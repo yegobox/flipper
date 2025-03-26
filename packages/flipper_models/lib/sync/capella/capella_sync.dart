@@ -1,5 +1,7 @@
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
+import 'package:flipper_models/sync/mixins/category_mixin.dart';
+
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_models/secrets.dart';
@@ -45,7 +47,8 @@ class CapellaSync extends CapellaSyncBase
         CapellaTenantMixin,
         CapellaTransactionItemMixin,
         CapellaTransactionMixin,
-        CapellaVariantMixin {
+        CapellaVariantMixin,
+        CategoryMixin {
   CapellaSync() : super(AppSecrets.apihubProd);
 
   final Talker _talker = Talker();

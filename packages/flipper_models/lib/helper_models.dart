@@ -8,7 +8,6 @@ export 'helperModels/SyncRecord.dart';
 export 'helperModels/Email.dart';
 export 'helperModels/customer.dart';
 export 'helperModels/color.dart';
-export 'helperModels/category.dart';
 export 'helperModels/business.dart';
 export 'helperModels/branch.dart';
 export 'helperModels/favorite.dart';

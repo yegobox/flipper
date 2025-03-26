@@ -1,4 +1,5 @@
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
+import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/storage_interface.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
@@ -44,7 +45,7 @@ abstract class CoreSyncBase extends AiStrategyImpl
         CoreMiscellaneousInterface,
         TransactionInterface,
         TransactionItemInterface,
-        VariantInterface {
+        VariantInterface,CategoryInterface{
   final Repository repository = Repository();
   bool offlineLogin = false;
   final String apihub;

@@ -18,7 +18,7 @@ Future<Product> _$ProductFromSupabase(
     supplierId:
         data['supplier_id'] == null ? null : data['supplier_id'] as String?,
     categoryId:
-        data['category_id'] == null ? null : data['category_id'] as int?,
+        data['category_id'] == null ? null : data['category_id'] as String?,
     createdAt:
         data['created_at'] == null
             ? null
@@ -130,7 +130,7 @@ Future<Product> _$ProductFromSqlite(
     supplierId:
         data['supplier_id'] == null ? null : data['supplier_id'] as String?,
     categoryId:
-        data['category_id'] == null ? null : data['category_id'] as int?,
+        data['category_id'] == null ? null : data['category_id'] as String?,
     createdAt:
         data['created_at'] == null
             ? null
@@ -375,7 +375,7 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: false,
       columnName: 'category_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

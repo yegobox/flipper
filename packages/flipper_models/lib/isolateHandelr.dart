@@ -155,9 +155,9 @@ mixin VariantPatch {
       sendPort("Patch successful"); //Consider a better message here.
     }
     // we set ebmSynced when stock is done updating on rra side.
-    /// we should not update variant here rather we update it in rw_tax @saveStockItems
-    variant.ebmSynced = true;
-    repository.upsert(variant);
+    /// we should not update variant here rather we update it in rw_tax @saveStockItems<<< dev
+    // variant.ebmSynced = true;
+    await repository.upsert(variant);
     ProxyService.box.writeBool(key: 'lockPatching', value: false);
   }
 }
