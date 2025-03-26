@@ -956,7 +956,7 @@ final customProductMock = Product(
   ..description = "L"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
-  ..categoryId = 1
+  ..categoryId = "1"
   ..unit = "kg"
   ..createdAt = DateTime.now();
 
@@ -971,7 +971,7 @@ final productMock = Product(
   ..description = "L"
   ..color = "#e74c3c"
   ..supplierId = "XXX"
-  ..categoryId = 1
+  ..categoryId = "1"
   ..unit = "kg"
   ..createdAt = DateTime.now();
 

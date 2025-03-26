@@ -188,6 +188,7 @@ mixin ProductMixin implements ProductInterface {
           ebmSynced: ebmSynced,
           spplrItemCd: spplrItemCd,
           spplrItemClsCd: spplrItemClsCd,
+          categoryId: product.categoryId, // Pass category info from product
         );
         talker.info('New variant created: ${newVariant.toJson()}');
         final Stock stock = Stock(
@@ -267,9 +268,10 @@ mixin ProductMixin implements ProductInterface {
       String? taskCd,
       String? dclDe,
       String? hsCd,
-      String? spplrItemCd,
       String? imptItemsttsCd,
+      String? spplrItemCd,
       String? spplrItemClsCd,
+      String? categoryId,
       Map<String, String>? taxTypes,
       Map<String, String>? itemClasses,
       Map<String, String>? itemTypes,
@@ -284,6 +286,10 @@ mixin ProductMixin implements ProductInterface {
       String? itemCd}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
+    Category? category = (await repository.get<Category>(
+      query: Query(where: [Where('id').isExactly(categoryId)]),
+    ))
+        .firstOrNull;
 
     return Variant(
       spplrNm: spplrNm ?? "",
@@ -300,7 +306,6 @@ mixin ProductMixin implements ProductInterface {
       dclNo: dclNo ?? "",
       taskCd: taskCd ?? "",
       dclDe: dclDe ?? "",
-
       hsCd: hsCd ?? "",
       imptItemSttsCd: imptItemsttsCd ?? "",
       lastTouched: DateTime.now(),
@@ -308,6 +313,8 @@ mixin ProductMixin implements ProductInterface {
       sku: sku.toString(),
       dcRt: 0.0,
       productId: product?.id ?? productId,
+      categoryId: categoryId,
+      categoryName: category?.name,
       color: product?.color,
       unit: 'Per Item',
       productName: product?.name ?? name,
@@ -319,7 +326,6 @@ mixin ProductMixin implements ProductInterface {
       itemStdNm: product?.name ?? name,
       addInfo: "A",
       pkg: pkg ?? 1,
-
       splyAmt: supplierPrice,
       itemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
       itemCd: createItemCode
@@ -363,16 +369,13 @@ mixin ProductMixin implements ProductInterface {
       dftPrc: retailPrice,
       prc: retailPrice,
 
-      // NOTE: I believe bellow item are required when saving purchase
-      ///but I wonder how to get them when saving an item.
-      spplrItemCd: spplrItemCd ?? "",
-      spplrItemClsCd: itemClasses?[product?.barCode] ?? spplrItemClsCd,
-      spplrItemNm: product?.name ?? name,
-
       /// Packaging Unit
       // qtyUnitCd ??
       qtyUnitCd: "U", // see 4.6 in doc
       ebmSynced: ebmSynced,
+      spplrItemCd: spplrItemCd ?? "",
+      spplrItemClsCd: itemClasses?[product?.barCode] ?? spplrItemClsCd,
+      spplrItemNm: product?.name ?? name,
     );
   }
 

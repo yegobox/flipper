@@ -19,6 +19,9 @@ import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
+
+import 'package:flipper_models/sync/mixins/category_mixin.dart';
+
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
@@ -70,7 +73,9 @@ class CoreSync extends AiStrategyImpl
         PurchaseMixin,
         BusinessMixin,
         TransactionItemMixin,
-        VariantMixin
+        VariantMixin,
+        CategoryMixin
+
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -376,21 +381,6 @@ class CoreSync extends AiStrategyImpl
   Future<List<Business>> businesses({required int userId}) async {
     return await repository.get<Business>(
         query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
-  }
-
-  @override
-  Future<List<Category>> categories({required int branchId}) {
-    return repository.get<Category>(
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
-  }
-
-  @override
-  Stream<List<Category>> categoryStream() {
-    final branchId = ProxyService.box.getBranchId()!;
-    return repository.subscribe<Category>(
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
   @override

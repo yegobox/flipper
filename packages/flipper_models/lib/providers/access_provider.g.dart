@@ -158,7 +158,8 @@ class _UserAccessesProviderElement
   int get userId => (origin as UserAccessesProvider).userId;
 }
 
-String _$featureAccessHash() => r'c09da2698870987a98223193ca5ac771dd2f2c92';
+String _$featureAccessHash() => r'ab175e76b4db8681ee30c9141f97208c170e820e';
+
 
 /// See also [featureAccess].
 @ProviderFor(featureAccess)
@@ -306,7 +307,9 @@ class _FeatureAccessProviderElement extends AutoDisposeProviderElement<bool>
 }
 
 String _$featureAccessLevelHash() =>
-    r'd360caa01e1ba715f20fa8730cdec61e3528a91f';
+
+    r'91f4a5e1e269cd40c1d7a910cdace428ec6a6114';
+
 
 /// See also [featureAccessLevel].
 @ProviderFor(featureAccessLevel)
