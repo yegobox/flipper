@@ -1,12 +1,13 @@
 name: Tweet on Merge
 
 on:
-  push:
-    branches:
-      - main 
+  pull_request:
+    types:
+      - closed
 
 jobs:
   tweet:
+    if: github.event.pull_request.merged == true  # Only run if the PR was merged
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,7 +16,7 @@ jobs:
       - name: Post Tweet
         uses: ethomson/send-tweet-action@v1
         with:
-          status: "New merge to main! 🚀 Check it out: https://github.com/${{ github.repository }}/commits/main"
+          status: "🚀 A new pull request has been merged into main! 🎉 Check it out: https://github.com/${{ github.repository }}/commits/main"
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
           TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
