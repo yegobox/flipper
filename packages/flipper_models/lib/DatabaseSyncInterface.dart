@@ -8,6 +8,11 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/sync/interfaces/branch_interface.dart';
+import 'package:flipper_models/sync/interfaces/business_interface.dart';
+import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
+import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
+import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 import 'package:flipper_services/constants.dart';
@@ -36,7 +41,13 @@ abstract class DataMigratorToLocal {
   List<String> activeRealmSubscriptions();
 }
 
-abstract class DatabaseSyncInterface extends AiStrategy {
+abstract class DatabaseSyncInterface extends AiStrategy
+    implements
+        BranchInterface,
+        PurchaseInterface,
+        BusinessInterface,
+        VariantInterface,
+        TransactionItemInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -79,7 +90,6 @@ abstract class DatabaseSyncInterface extends AiStrategy {
 
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
-  FutureOr<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   FutureOr<T?> create<T>({required T data});
   Stream<double> wholeStockValue({required int branchId});
@@ -90,22 +100,7 @@ abstract class DatabaseSyncInterface extends AiStrategy {
       HttpClientInterface? flipperHttpClient});
   Future<PColor?> getColor({required String id});
 
-  Future<List<Variant>> variants({
-    required int branchId,
-    String? productId,
-    String? variantId,
-    int? page,
-    String? purchaseId,
-    bool excludeApprovedInWaitingOrCanceledItems = false,
-    int? itemsPerPage,
-    String? name,
-    String? bcd,
-    // this define if we are ready to show item on dashboard,
-    String? imptItemsttsCd,
-    bool fetchRemote = false,
-  });
   FutureOr<Configurations?> getByTaxType({required String taxtype});
-  FutureOr<Purchase?> getPurchase({required String purchaseId});
 
   FutureOr<void> addAccess({
     required int userId,
@@ -285,20 +280,6 @@ abstract class DatabaseSyncInterface extends AiStrategy {
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
 
-  Future<void> addTransactionItem({
-    ITransaction? transaction,
-    required bool partOfComposite,
-    required DateTime lastTouched,
-    required double discount,
-    double? compositePrice,
-    required double quantity,
-    required double currentStock,
-    Variant? variation,
-    required double amountTotal, // Added to match old implementation
-    required String name,
-    TransactionItem? item, // Added to match old implementation
-  });
-
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
 
@@ -325,6 +306,7 @@ abstract class DatabaseSyncInterface extends AiStrategy {
     bool? doneWithTransaction,
     int? branchId,
     String? id,
+    String? variantId,
     bool? active,
     bool fetchRemote = false,
     String? requestId,
@@ -530,10 +512,8 @@ abstract class DatabaseSyncInterface extends AiStrategy {
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   FutureOr<Business?> getBusiness({int? businessId});
-  FutureOr<Business?> getBusinessById({required int businessId});
   Future<Business?> defaultBusiness();
   FutureOr<Branch?> defaultBranch();
-  Future<Branch> activeBranch();
 
   Future<List<ITenant>> tenantsFromOnline(
       {required int businessId,
@@ -927,7 +907,7 @@ abstract class DatabaseSyncInterface extends AiStrategy {
 
   Future<List<FinanceProvider>> financeProviders();
   Future<VariantBranch?> variantBranch(
-      {required String variantId,  required String destinationBranchId});
+      {required String variantId, required String destinationBranchId});
 
   Future<BusinessInfo> initializeEbm(
       {required String tin, required String bhfId, required String dvcSrlNo});

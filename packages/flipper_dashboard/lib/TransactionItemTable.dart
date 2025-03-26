@@ -11,6 +11,28 @@ import 'package:flutter/material.dart';
 mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   List<TransactionItem> internalTransactionItems = [];
+  // Add a map to track local quantities
+  final Map<String, double> _localQuantities = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize local quantities from internalTransactionItems
+    _updateLocalQuantities();
+  }
+
+  void _updateLocalQuantities() {
+    for (var item in internalTransactionItems) {
+      _localQuantities[item.id] = item.qty;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant T oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update local quantities when internalTransactionItems changes
+    _updateLocalQuantities();
+  }
 
   // Calculation methods
   double get grandTotal {
@@ -141,11 +163,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildQuantityField(TransactionItem item, bool isOrdering) {
+    final currentQty = _getCurrentQuantity(item);
     return SizedBox(
       width: 50,
       child: TextFormField(
-        key: ValueKey(item.qty),
-        initialValue: item.qty.toString(),
+        key: ValueKey('${item.id}_$currentQty'),
+        initialValue: currentQty.toString(),
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 16),
@@ -173,30 +196,54 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  // Item manipulation methods
-  Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (!item.partOfComposite!) {
-      if (item.qty > 0) {
-        item.qty--;
-        await ProxyService.strategy.updateTransactionItem(
-          transactionItemId: item.id,
-          qty: item.qty,
-          quantityRequested: item.qty.toInt(),
-        );
-      }
+  // Helper method to get the current quantity
+  double _getCurrentQuantity(TransactionItem item) {
+    // Always get the latest quantity from the item itself
+    _localQuantities[item.id] = item.qty;
+    return _localQuantities[item.id] ?? item.qty;
+  }
+
+  // Update both local and remote quantity
+  Future<void> _updateQuantityBoth(
+      TransactionItem item, double newQty, bool isOrdering) async {
+    if (item.partOfComposite!) return;
+
+    // Update local state immediately
+    setState(() {
+      _localQuantities[item.id] = newQty;
+      item.qty = newQty; // Also update the item's quantity
+    });
+
+    try {
+      await ProxyService.strategy.updateTransactionItem(
+        transactionItemId: item.id,
+        qty: newQty,
+        incrementQty: false,
+        quantityRequested: newQty.toInt(),
+      );
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
+    } catch (e) {
+      // Revert local state on error
+      setState(() {
+        _localQuantities[item.id] = item.qty;
+      });
+      talker.error(e);
     }
   }
 
   Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
     if (!item.partOfComposite!) {
-      await ProxyService.strategy.updateTransactionItem(
-        transactionItemId: item.id,
-        qty: item.qty,
-        incrementQty: true,
-        quantityRequested: item.qty.toInt(),
-      );
-      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
+      final newQty = _getCurrentQuantity(item) + 1;
+      await _updateQuantityBoth(item, newQty, isOrdering);
+    }
+  }
+
+  Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
+    if (!item.partOfComposite!) {
+      final currentQty = _getCurrentQuantity(item);
+      if (currentQty > 0) {
+        await _updateQuantityBoth(item, currentQty - 1, isOrdering);
+      }
     }
   }
 
@@ -209,33 +256,28 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       if (doubleValue != null) {
         final newQty = doubleValue.toInt();
         if (doubleValue == newQty.toDouble() && newQty >= 0) {
-          await ProxyService.strategy.updateTransactionItem(
-            transactionItemId: item.id,
-            qty: doubleValue,
-            incrementQty: false,
-            quantityRequested: newQty,
-          );
-          _refreshTransactionItems(isOrdering,
-              transactionId: item.transactionId!);
+          await _updateQuantityBoth(item, doubleValue, isOrdering);
         }
       }
     }
   }
 
-  void _deleteItem(TransactionItem item, bool isOrdering) {
+  // Item manipulation methods
+  Future<void> _deleteItem(TransactionItem item, bool isOrdering) async {
     if (!item.partOfComposite!) {
-      _deleteSingleItem(item, isOrdering);
+      await _deleteSingleItem(item, isOrdering);
       ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
       ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
     } else {
-      _deleteCompositeItems(item, isOrdering);
+      await _deleteCompositeItems(item, isOrdering);
       ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
     }
   }
 
-  void _deleteSingleItem(TransactionItem item, bool isOrdering) {
+  Future<void> _deleteSingleItem(TransactionItem item, bool isOrdering) async {
     try {
-      ProxyService.strategy.delete(id: item.id, endPoint: 'transactionItem');
+      await ProxyService.strategy
+          .delete(id: item.id, endPoint: 'transactionItem');
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     } catch (e) {
       talker.error(e);

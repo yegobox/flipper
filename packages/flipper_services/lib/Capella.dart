@@ -48,8 +48,8 @@ class Capella extends AiStrategyImpl
   @override
   SendPort? sendPort;
 
-  late String apihub;
-  late String commApi;
+  // late String apihub;
+  // late String commApi;
 
   // TODO: implement countersCollection
   // Future<AsyncCollection> getCountersCollection() async {
@@ -69,13 +69,13 @@ class Capella extends AiStrategyImpl
   // }
 
   void _setApiEndpoints() {
-    if (foundation.kDebugMode) {
-      apihub = AppSecrets.coreApi;
-      commApi = AppSecrets.commApi;
-    } else {
-      apihub = AppSecrets.apihubProd;
-      commApi = AppSecrets.commApi;
-    }
+    // if (foundation.kDebugMode) {
+    //   apihub = AppSecrets.coreApi;
+    //   commApi = AppSecrets.commApi;
+    // } else {
+    //   apihub = AppSecrets.apihubProd;
+    //   commApi = AppSecrets.commApi;
+    // }
   }
 
   @override
@@ -338,12 +338,6 @@ class Capella extends AiStrategyImpl
   @override
   Future<Branch> activeBranch() {
     // TODO: implement activeBranch
-    throw UnimplementedError();
-  }
-
-  @override
-  Category? activeCategory({required int branchId}) {
-    // TODO: implement activeCategory
     throw UnimplementedError();
   }
 
@@ -1378,6 +1372,7 @@ class Capella extends AiStrategyImpl
     bool? doneWithTransaction,
     int? branchId,
     String? id,
+    String? variantId,
     bool? active,
     bool fetchRemote = false,
     String? requestId,
@@ -1910,7 +1905,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<brick.Purchase?> getPurchase({required String purchaseId}) {
+  FutureOr<brick.Purchase?> getPurchase({required String id}) {
     // TODO: implement getPurchase
     throw UnimplementedError();
   }
@@ -1972,6 +1967,31 @@ class Capella extends AiStrategyImpl
   Future<brick.VariantBranch?> variantBranch(
       {required String variantId, required String destinationBranchId}) {
     // TODO: implement variantBranch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> logOut() {
+    // TODO: implement logOut
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Purchase>> purchases() {
+    // TODO: implement purchases
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveVariant(
+      brick.Variant item, brick.Business business, int branchId) {
+    // TODO: implement saveVariant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Category?> activeCategory({required int branchId}) {
+    // TODO: implement activeCategory
     throw UnimplementedError();
   }
 }

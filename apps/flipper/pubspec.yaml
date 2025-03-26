@@ -155,11 +155,11 @@ dependencies:
   flipper_services: any
   flipper_login: any
   sqlite3_flutter_libs: ^0.5.31
-  amplify_core: ^2.6.0
-  amplify_api: ^2.6.0
-  amplify_flutter: ^2.6.0
-  amplify_auth_cognito: ^2.6.0
-  amplify_storage_s3: ^2.6.0
+  amplify_core: ^2.6.1
+  amplify_api: ^2.6.1
+  amplify_flutter: ^2.6.1
+  amplify_auth_cognito: ^2.6.1
+  amplify_storage_s3: ^2.6.1
   shared_preferences: ^2.5.2
   easy_localization: ^3.0.7 
   # cloud_firestore: ^5.4.3

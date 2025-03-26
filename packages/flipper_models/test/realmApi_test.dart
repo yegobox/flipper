@@ -1,8 +1,5 @@
 import 'package:flipper_rw/dependencyInitializer.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flipper_mocks/bootstrapTestData.dart';
 
 // flutter test test/realmApi_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {

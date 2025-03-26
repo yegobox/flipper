@@ -74,6 +74,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'stockInOutType',
         'defaultCurrency',
         'userName',
+        'lockPatching'
       },
     ));
     return this;
@@ -426,5 +427,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String defaultCurrency() {
     return prefs.getString('defaultCurrency') ?? "RWF";
+  }
+  
+  @override
+  bool lockPatching() {
+    return prefs.getBool('lockPatching') ?? false;
   }
 }

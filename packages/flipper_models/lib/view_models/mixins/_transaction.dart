@@ -192,7 +192,8 @@ mixin TransactionMixin {
       required double currentStock,
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
-      TransactionItem? item}) async {
+      TransactionItem? item,
+      String? sarTyCd}) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItem(
@@ -202,6 +203,7 @@ mixin TransactionMixin {
         variationId: variation.id,
         pendingTransaction: pendingTransaction,
         name: variation.name,
+        sarTyCd: sarTyCd,
         variation: variation,
         currentStock: currentStock,
         amountTotal: amountTotal,
@@ -232,20 +234,38 @@ mixin TransactionMixin {
     double? compositePrice,
     required bool partOfComposite,
     bool useTransactionItemForQty = false,
+    String? sarTyCd,
   }) async {
     try {
-      // Update an existing item
-      if (item != null && !isCustom && !useTransactionItemForQty) {
-        _updateExistingTransactionItem(
-          item: item,
+      // First check if there's an existing active transaction item for this variant
+      final existingItems = await ProxyService.strategy.transactionItems(
+        transactionId: pendingTransaction.id,
+        branchId: ProxyService.box.getBranchId()!,
+        active: true,
+      );
 
-          /// the  item.qty + 1 is for when a user click on same item on cart to increment
-          /// while  useTransactionItemForQty ? item.qty is when we are dealing with adjustment etc..
-          quantity: item.qty + 1,
+      // If item is provided, use it. Otherwise find an existing one.
+      TransactionItem? existingItem;
+      if (item != null) {
+        existingItem = item;
+      } else {
+        existingItem = existingItems
+            .where((i) => i.variantId == variationId && !i.doneWithTransaction!)
+            .firstOrNull;
+      }
+
+      // Update existing item if found and not custom
+      if (existingItem != null && !isCustom) {
+        await _updateExistingTransactionItem(
+          item: existingItem,
+          quantity: sarTyCd == "02"
+              ? variation.stock!.currentStock!
+              : existingItem.qty + 1,
           variation: variation,
           amountTotal: amountTotal,
         );
-        updatePendingTransactionTotals(pendingTransaction);
+        await updatePendingTransactionTotals(pendingTransaction,
+            sarTyCd: sarTyCd ?? "11");
         return;
       }
 
@@ -255,13 +275,17 @@ mixin TransactionMixin {
         partOfComposite: partOfComposite,
         variation: variation,
       );
+      final quantity =
+          useTransactionItemForQty && item != null ? item.qty : computedQty;
+      final sarQty =
+          sarTyCd == "02" ? variation.stock!.currentStock! : quantity;
 
-      ProxyService.strategy.addTransactionItem(
+      await ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
         lastTouched: DateTime.now(),
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
-        quantity: useTransactionItemForQty ? item!.qty : computedQty,
+        quantity: sarTyCd == null ? quantity : sarQty,
         currentStock: currentStock,
         partOfComposite: partOfComposite,
         variation: variation,
@@ -270,9 +294,10 @@ mixin TransactionMixin {
       );
 
       // Reactivate inactive items if necessary
-      _reactivateInactiveItems(pendingTransaction);
+      await _reactivateInactiveItems(pendingTransaction);
 
-      updatePendingTransactionTotals(pendingTransaction);
+      await updatePendingTransactionTotals(pendingTransaction,
+          sarTyCd: sarTyCd ?? "11");
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
@@ -355,8 +380,8 @@ mixin TransactionMixin {
     }
   }
 
-  Future<void> updatePendingTransactionTotals(
-      ITransaction pendingTransaction) async {
+  Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
+      {required String sarTyCd}) async {
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
       branchId: ProxyService.box.getBranchId()!,
       transactionId: pendingTransaction.id,
@@ -377,6 +402,7 @@ mixin TransactionMixin {
       lastTouched: newLastTouched,
       receiptType: "NS",
       isProformaMode: false,
+      sarTyCd: sarTyCd,
       isTrainingMode: false,
     );
   }
@@ -405,6 +431,7 @@ mixin TransactionMixin {
         partOfComposite: false,
         compositePrice: 0,
         item: item,
+        sarTyCd: sarTyCd,
         useTransactionItemForQty: useTransactionItemForQty,
       );
 
@@ -464,10 +491,6 @@ mixin TransactionMixin {
         .isTaxEnabled(businessId: business!.serverId);
     if (isEbmEnabled) {
       try {
-        VariantPatch.patchVariant(
-          URI: (await ProxyService.box.getServerUrl())!,
-        );
-
         await ProxyService.strategy.updateTransaction(
             isUnclassfied: true,
             transaction: pendingTransaction,

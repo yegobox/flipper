@@ -356,7 +356,7 @@ class ProductListScreenState extends ConsumerState<OrderingView>
           items.fold(0.0, (sum, item) => sum + (item.qty * item.price));
 
       final orderDetails =
-          'New order with $itemCount items, total: \$${totalAmount.toStringAsFixed(2)}';
+          'New order with $itemCount items, total: \$${totalAmount.toRwf()}';
 
       transaction.supplierId = ref.read(selectedSupplierProvider)!.serverId!;
       ProxyService.strategy.updateTransaction(

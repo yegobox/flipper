@@ -28,6 +28,8 @@ class RequestStatus {
   static const String partiallyApproved = 'partiallyApproved';
   static const String rejected = 'rejected';
   static const String fulfilled = 'fulfilled';
+
+  static const voided = 'voided';
 }
 
 final features = [

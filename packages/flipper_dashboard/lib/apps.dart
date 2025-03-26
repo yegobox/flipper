@@ -2,21 +2,15 @@ import 'dart:developer';
 
 import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flutter/services.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flipper_services/proxy.dart';
 import 'drawerB.dart';
 import 'customappbar.dart';
 import 'widgets/app_icons_grid.dart';
-import 'providers/navigation_providers.dart';
 
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 
@@ -39,6 +33,7 @@ class Apps extends StatefulHookConsumerWidget {
 }
 
 class _AppsState extends ConsumerState<Apps> {
+  // ignore: unused_field
   final _routerService = locator<RouterService>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -52,20 +47,6 @@ class _AppsState extends ConsumerState<Apps> {
 
   String profitType = "Net Profit";
   final List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
-
-  void _handleAppTap(String appId) {
-    switch (appId) {
-      case 'sales':
-        ref.read(selectedMenuItemProvider.notifier).state = 0;
-        break;
-      case 'inventory':
-        ref.read(selectedMenuItemProvider.notifier).state = 1;
-        break;
-      case 'tickets':
-        ref.read(selectedMenuItemProvider.notifier).state = 2;
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +69,7 @@ class _AppsState extends ConsumerState<Apps> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
+                  // ignore: unused_result
                   await ref.refresh(transactionsStreamProvider);
                 },
                 child: SingleChildScrollView(
@@ -314,49 +296,5 @@ class _AppsState extends ConsumerState<Apps> {
       }
     }
     return sumCashOut;
-  }
-
-  Future<void> _navigateToPage(String page) async {
-    switch (page) {
-      case "POS":
-        await _routerService.navigateTo(CheckOutRoute(
-          isBigScreen: widget.isBigScreen,
-        ));
-        break;
-      case "Cashbook":
-        await _routerService.navigateTo(CashbookRoute(
-          isBigScreen: widget.isBigScreen,
-        ));
-        break;
-      case "Settings":
-        await _routerService.navigateTo(SettingPageRoute());
-        break;
-      case "Support":
-        final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
-        if (await canLaunchUrl(whatsappUri)) {
-          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-        } else {
-          throw 'Could not launch $whatsappUri';
-        }
-        break;
-      case "Connecta":
-        ProxyService.box.writeString(key: 'defaultApp', value: "2");
-        await _routerService.navigateTo(SocialHomeViewRoute());
-        break;
-      case "Transactions":
-        await _routerService.navigateTo(TransactionsRoute());
-        break;
-      case "Contacts":
-        await _routerService.navigateTo(CustomersRoute());
-        break;
-      //TODO: if a user is of type agent do not show this Order menu.
-      case "Orders":
-        await _routerService.navigateTo(InventoryRequestMobileViewRoute());
-        break;
-      default:
-        await _routerService.navigateTo(CheckOutRoute(
-          isBigScreen: widget.isBigScreen,
-        ));
-    }
   }
 }

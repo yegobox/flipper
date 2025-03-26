@@ -22,9 +22,9 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  Future<List<model.Variant>>? _futureImportResponse;
-  Future<List<model.Variant>>?
-      _futurePurchaseResponse; // Added for purchase data
+  Future<List<model.Variant>> _futureImportResponse = Future.value([]);
+  Future<List<model.Variant>> _futurePurchaseResponse = Future.value([]);
+  Future<List<model.Purchase>> _futurePurchases = Future.value([]);
   model.Variant? _selectedItem;
   model.Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
@@ -41,25 +41,66 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    setState(() => isLoading = true);
+    try {
+      if (isImport) {
+        final importResponse = _fetchDataImport(selectedDate: _selectedDate);
+        _futureImportResponse = importResponse;
+        await importResponse;
+      } else {
+        final purchaseResponseFuture =
+            _fetchDataPurchase(selectedDate: _selectedDate);
+        final purchasesFuture = ProxyService.strategy.purchases();
+
+        _futurePurchaseResponse = purchaseResponseFuture;
+        _futurePurchases = purchasesFuture;
+
+        // Wait for both futures to complete
+        await Future.wait([purchaseResponseFuture, purchasesFuture]);
+      }
+
+      if (mounted) {
+        setState(() {
+          // State is updated after both futures complete
+        });
+      }
+    } catch (e) {
+      talker.warning(e);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   Future<void> _fetchData() async {
     setState(() => isLoading = true);
     try {
       if (isImport) {
-        _futureImportResponse = _fetchDataImport(selectedDate: _selectedDate);
-        await _futureImportResponse;
+        final importResponse = _fetchDataImport(selectedDate: _selectedDate);
+        _futureImportResponse = importResponse;
+        await importResponse;
       } else {
-        _futurePurchaseResponse =
+        final purchaseResponseFuture =
             _fetchDataPurchase(selectedDate: _selectedDate);
-        await _futurePurchaseResponse;
+        final purchasesFuture = ProxyService.strategy.purchases();
+
+        _futurePurchaseResponse = purchaseResponseFuture;
+        _futurePurchases = purchasesFuture;
+
+        // Wait for both futures to complete
+        await Future.wait([purchaseResponseFuture, purchasesFuture]);
       }
     } catch (e) {
-      // Handle any errors that occur during the fetch
       talker.warning(e);
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -181,9 +222,14 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           value: isImport,
                           onChanged: (value) {
                             setState(() {
+                              _selectItem(null);
+                              _selectedPurchaseItem = null;
+                              finalItemList = [];
+                              salesList = [];
+                              _variantMap.clear();
                               isImport = value;
-                              _fetchData();
                             });
+                            _fetchData();
                           },
                         ),
                         Text(isImport ? "Import" : "Purchase"),
@@ -242,48 +288,66 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                             await coreViewModel.rejectImportItem(item);
                           },
                         )
-                      : FutureBuilder<List<model.Variant>>(
-                          future: _futurePurchaseResponse,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
+                      : FutureBuilder<List<model.Purchase>>(
+                          future: _futurePurchases,
+                          builder: (context, purchaseSnapshot) {
+                            if (purchaseSnapshot.hasError) {
                               return Center(
-                                  child: Text('Error: ${snapshot.error}'));
-                            } else if (!snapshot.hasData ||
-                                snapshot.data!.isEmpty) {
-                              return Center(child: Text('No data available'));
-                            } else {
-                              salesList = snapshot.data!;
-                              return Purchases(
-                                formKey: _importFormKey,
-                                nameController: _nameController,
-                                supplyPriceController: _supplyPriceController,
-                                retailPriceController: _retailPriceController,
-                                saveItemName: _saveChangeMadeOnItem,
-                                acceptPurchases: (
-                                    {required List<model.Variant> variants,
-                                    required String pchsSttsCd}) async {
-                                  final pendingTransaction = await ProxyService
-                                      .strategy
-                                      .manageTransaction(
-                                    transactionType: TransactionType.adjustment,
-                                    isExpense: true,
-                                    branchId: ProxyService.box.getBranchId()!,
-                                  );
-                                  await coreViewModel.acceptPurchase(
-                                    variants: variants,
-                                    itemMapper: itemMapper,
-                                    pendingTransaction: pendingTransaction!,
-                                    pchsSttsCd: pchsSttsCd,
-                                  );
-                                },
-                                selectSale: (model.Variant? itemToAssign,
-                                        model.Variant? itemFromPurchase) =>
-                                    _asignPurchaseItem(
-                                        itemToAssign: itemToAssign!,
-                                        itemFromPurchase: itemFromPurchase!),
-                                finalSalesList: salesList,
-                              );
+                                  child:
+                                      Text('Error: ${purchaseSnapshot.error}'));
                             }
+                            return FutureBuilder<List<model.Variant>>(
+                              future: _futurePurchaseResponse,
+                              builder: (context, variantSnapshot) {
+                                if (variantSnapshot.hasError) {
+                                  return Center(
+                                      child: Text(
+                                          'Error: ${variantSnapshot.error}'));
+                                } else if (!variantSnapshot.hasData ||
+                                    variantSnapshot.data!.isEmpty) {
+                                  return Center(
+                                      child: Text('No data available'));
+                                } else {
+                                  salesList = variantSnapshot.data!;
+                                  return Purchases(
+                                    purchases: purchaseSnapshot.data ?? [],
+                                    formKey: _importFormKey,
+                                    nameController: _nameController,
+                                    supplyPriceController:
+                                        _supplyPriceController,
+                                    retailPriceController:
+                                        _retailPriceController,
+                                    saveItemName: _saveChangeMadeOnItem,
+                                    acceptPurchases: (
+                                        {required List<model.Variant> variants,
+                                        required String pchsSttsCd}) async {
+                                      final pendingTransaction =
+                                          await ProxyService.strategy
+                                              .manageTransaction(
+                                        transactionType:
+                                            TransactionType.adjustment,
+                                        isExpense: true,
+                                        branchId:
+                                            ProxyService.box.getBranchId()!,
+                                      );
+                                      await coreViewModel.acceptPurchase(
+                                        variants: variants,
+                                        itemMapper: itemMapper,
+                                        pendingTransaction: pendingTransaction!,
+                                        pchsSttsCd: pchsSttsCd,
+                                      );
+                                    },
+                                    selectSale: (model.Variant? itemToAssign,
+                                            model.Variant? itemFromPurchase) =>
+                                        _asignPurchaseItem(
+                                            itemToAssign: itemToAssign!,
+                                            itemFromPurchase:
+                                                itemFromPurchase!),
+                                    finalSalesList: salesList,
+                                  );
+                                }
+                              },
+                            );
                           },
                         ),
                 ],

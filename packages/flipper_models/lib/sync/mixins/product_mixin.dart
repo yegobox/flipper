@@ -202,12 +202,33 @@ mixin ProductMixin implements ProductInterface {
         newVariant.stockId = createdStock.id;
 
         /// if this was associated with purchase, look for the variant created then associate it with the purchase
-        /// purchase can have a list of variants associated with it.
+        /// purchase can have a list of variants associated with it.RW2BCU0000104
         if (purchase != null) {
-          Purchase purch = await repository.upsert<Purchase>(purchase);
+          // First ensure the purchase exists and is saved
+          Purchase? existingPurchase = (await repository.get<Purchase>(
+            query: Query(where: [Where('id').isExactly(purchase.id)]),
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+          ))
+              .firstOrNull;
+
+          Purchase purch;
+          if (existingPurchase == null) {
+            // If purchase doesn't exist, create and wait for it to be saved
+            purch = await repository.upsert<Purchase>(
+              purchase,
+              policy: OfflineFirstUpsertPolicy.optimisticLocal,
+            );
+          } else {
+            purch = existingPurchase;
+          }
+
+          // Now that we're sure purchase exists, save the variant
           newVariant.purchaseId = purch.id;
           newVariant.spplrNm = purch.spplrNm;
-          await repository.upsert<Variant>(newVariant);
+          await repository.upsert<Variant>(
+            newVariant,
+            policy: OfflineFirstUpsertPolicy.optimisticLocal,
+          );
         } else {
           await repository.upsert<Variant>(newVariant);
         }
@@ -396,6 +417,7 @@ mixin ProductMixin implements ProductInterface {
 
     return newItemCode;
   }
+
   @override
   FutureOr<SKU> getSku({required int branchId, required int businessId}) async {
     final query = Query(

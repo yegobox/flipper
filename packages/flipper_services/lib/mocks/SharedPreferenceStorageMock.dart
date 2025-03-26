@@ -341,4 +341,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement defaultCurrency
     throw UnimplementedError();
   }
+
+  @override
+  bool lockPatching() {
+    // TODO: implement lockPatching
+    throw UnimplementedError();
+  }
 }

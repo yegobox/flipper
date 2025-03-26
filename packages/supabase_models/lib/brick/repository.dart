@@ -57,9 +57,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databasePath: queuePath,
       onReattempt: (http.Request re, o) {},
       onRequestException: (request, object) {
+        Repository().deleteUnprocessedRequests();
         // Deal with failed requests see https://github.com/GetDutchie/brick/issues/527
-        print("Offline request exception: $request");
-        print(object);
       },
     );
 
@@ -102,16 +101,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }
 
   Future<int> availableQueue() async {
-    final requests =
-        await offlineRequestQueue.requestManager.unprocessedRequests();
+    final requests = await offlineRequestQueue.requestManager
+        .wunprocessedRequests(onlyLocked: true);
     return requests.length;
   }
 
   Future<void> deleteUnprocessedRequests() async {
     try {
       // Retrieve unprocessed requests
-      final requests =
-          await offlineRequestQueue.requestManager.unprocessedRequests();
+      final requests = await offlineRequestQueue.requestManager
+          .wunprocessedRequests(onlyLocked: true);
 
       // Extract the primary key column name
       final primaryKeyColumn =

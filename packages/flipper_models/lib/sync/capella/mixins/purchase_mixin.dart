@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -35,5 +37,17 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
     int branchId,
   ) async {
     throw UnimplementedError('saveVariant needs to be implemented for Capella');
+  }
+
+  @override
+  Future<List<Purchase>> purchases() {
+    throw UnimplementedError('purchases needs to be implemented for Capella');
+  }
+
+  @override
+  FutureOr<Purchase?> getPurchase({
+    required String id,
+  }) {
+    throw UnimplementedError('getPurchase needs to be implemented for Capella');
   }
 }

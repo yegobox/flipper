@@ -566,10 +566,6 @@ final tenantProvider = FutureProvider<Tenant?>((ref) async {
 /// check if a user has either, admin,read,write on a given feature
 // StateNotifierProvider
 // Provider to get the list of user accesses
-final userAccessesProvider = FutureProvider<List<Access>>((ref) async {
-  final userId = ProxyService.box.getUserId()!;
-  return await ProxyService.strategy.access(userId: userId);
-});
 
 final businessesProvider = FutureProvider<List<Business>>((ref) async {
   return await ProxyService.strategy
@@ -582,65 +578,6 @@ final selectedBranchProvider = AutoDisposeStateProvider<Branch?>((ref) => null);
 /// A provider that determines if a user has access to a specific feature based on their permissions.
 /// This provider implements a hierarchical access control system where certain elevated permissions
 /// (like ticket access) can restrict access to other features.
-final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
-  try {
-    // Get the current user's access permissions
-    final accesses = ref.watch(userAccessesProvider);
-    final now = DateTime.now();
-
-    // Default access granted if no permissions are set
-    // if (accesses.value == null) return true;
-    talker.warning("Accesses: ${accesses.value?.first.featureName}");
-
-    /// Check for elevated permission (specifically ticket access)
-    /// An elevated permission is a special type of access that, when active,
-    /// restricts the user from accessing other features. This is typically
-    /// used in scenarios where you want to limit a user to only specific
-    /// functionality (like only working with tickets) and prevent access
-    /// to other parts of the application.
-    final hasElevatedPermission = accesses.value?.any((access) =>
-        access.featureName == AppFeature.Tickets &&
-        access.status == 'active' &&
-        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
-
-    /// If user has elevated ticket permission:
-    /// - Allow access to ticket feature
-    /// - Deny access to all other features
-    /// This ensures users with elevated permissions can only access their
-    /// designated feature and nothing else
-    if (hasElevatedPermission == true && featureName != AppFeature.Tickets) {
-      return false;
-    }
-
-    /// Standard permission check for the requested feature:
-    /// 1. If feature name is not found in any access and is not the ticket feature, grant access automatically
-    /// 2. For existing features:
-    ///    - Status must be 'active'
-    ///    - Either no expiration date is set, or it hasn't expired yet
-    /// Note: If no accesses are defined (accesses.value == null),
-    /// we grant access by default for backward compatibility
-    if (accesses.value == null) return true;
-    if (!accesses.value!.any((access) => access.featureName == featureName) &&
-        featureName != AppFeature.Tickets) return true;
-    return accesses.value!.any((access) =>
-        access.featureName == featureName &&
-        access.status == 'active' &&
-        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
-  } catch (e, s) {
-    talker.error(e, s);
-    return false;
-  }
-});
-
-final featureAccessLevelProvider =
-    Provider.family<bool, String>((ref, accessLevel) {
-  final accesses = ref.watch(userAccessesProvider);
-  final now = DateTime.now();
-  // Normal permission check for the requested feature
-  return accesses.value!.any((access) =>
-      access.accessLevel == accessLevel &&
-      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
-});
 
 class BusinessSelectionState {
   final bool isLoading;
@@ -738,10 +675,11 @@ final stockRequestsProvider = StreamProvider.autoDispose
   // Add distinct() to prevent unnecessary updates and ensure quantities are preserved
   return ProxyService.strategy
       .requestsStream(branchId: branchId, filter: filter)
-      .map((requests) => requests.where((req) => 
-        // Filter out requests that are to the same branch
-        req.branchId != req.subBranchId
-      ).toList())
+      .map((requests) => requests
+          .where((req) =>
+              // Filter out requests that are to the same branch
+              req.branchId != req.subBranchId)
+          .toList())
       .distinct();
 });
 

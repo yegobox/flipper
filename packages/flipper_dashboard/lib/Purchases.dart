@@ -1,7 +1,4 @@
 import 'package:flipper_dashboard/PurchaseTable.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -13,7 +10,7 @@ class Purchases extends StatefulHookConsumerWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
-  final void Function(
+  final Future<void> Function(
       {required List<Variant> variants,
       required String pchsSttsCd}) acceptPurchases;
   final void Function(
@@ -21,6 +18,7 @@ class Purchases extends StatefulHookConsumerWidget {
     Variant? itemFromPurchase,
   ) selectSale;
   final List<Variant> finalSalesList;
+  final List<Purchase> purchases;
 
   Purchases({
     required this.formKey,
@@ -31,6 +29,7 @@ class Purchases extends StatefulHookConsumerWidget {
     required this.acceptPurchases,
     required this.selectSale,
     required this.finalSalesList,
+    required this.purchases,
   });
 
   @override
@@ -55,10 +54,11 @@ class _PurchasesState extends ConsumerState<Purchases> {
                   widget.finalSalesList.isEmpty
                       ? const SizedBox.shrink()
                       : FlipperButton(
-                          onPressed: () {
-                            widget.acceptPurchases(
+                          onPressed: () async {
+                            await widget.acceptPurchases(
                                 variants: widget.finalSalesList,
                                 pchsSttsCd: '02');
+                            showToast(context, "You Accepted all purchaes");
                           },
                           text: 'Accept All Purchases',
                           textColor: Colors.black,
@@ -69,27 +69,13 @@ class _PurchasesState extends ConsumerState<Purchases> {
             const SizedBox(height: 16),
             Expanded(
               child: PurchaseTable(
+                purchases: widget.purchases,
                 nameController: widget.nameController,
                 supplyPriceController: widget.supplyPriceController,
                 retailPriceController: widget.retailPriceController,
                 saveItemName: widget.saveItemName,
-                acceptPurchases: (List<Variant> variants, pchsSttsCd) async {
-                  widget.acceptPurchases(
-                      variants: variants, pchsSttsCd: pchsSttsCd);
-                  // Refresh the product list
-                  // Refresh the product list
-                  ref
-                      .read(searchStringProvider.notifier)
-                      .emitString(value: "search");
-                  ref.read(searchStringProvider.notifier).emitString(value: "");
-
-                  await ref
-                      .read(productsProvider(ProxyService.box.getBranchId()!)
-                          .notifier)
-                      .loadProducts(searchString: "", scanMode: true);
-                },
-                selectSale: (itemToAssign, itemFromPurchase) =>
-                    widget.selectSale(itemToAssign, itemFromPurchase),
+                acceptPurchases: widget.acceptPurchases,
+                selectSale: widget.selectSale,
                 finalSalesList: widget.finalSalesList,
               ),
             ),
