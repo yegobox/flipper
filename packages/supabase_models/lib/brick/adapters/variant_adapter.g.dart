@@ -31,6 +31,10 @@ Future<Variant> _$VariantFromSupabase(
     unit: data['unit'] == null ? null : data['unit'] as String?,
     productName:
         data['product_name'] == null ? null : data['product_name'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
+    categoryName:
+        data['category_name'] == null ? null : data['category_name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
@@ -148,6 +152,8 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'product_id': instance.productId,
     'unit': instance.unit,
     'product_name': instance.productName,
+    'category_id': instance.categoryId,
+    'category_name': instance.categoryName,
     'branch_id': instance.branchId,
     'tax_name': instance.taxName,
     'item_seq': instance.itemSeq,
@@ -240,6 +246,10 @@ Future<Variant> _$VariantFromSqlite(
     unit: data['unit'] == null ? null : data['unit'] as String?,
     productName:
         data['product_name'] == null ? null : data['product_name'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
+    categoryName:
+        data['category_name'] == null ? null : data['category_name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
@@ -357,6 +367,8 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'product_id': instance.productId,
     'unit': instance.unit,
     'product_name': instance.productName,
+    'category_id': instance.categoryId,
+    'category_name': instance.categoryName,
     'branch_id': instance.branchId,
     'tax_name': instance.taxName,
     'item_seq': instance.itemSeq,
@@ -474,6 +486,14 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'productName': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'product_name',
+    ),
+    'categoryId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'category_id',
+    ),
+    'categoryName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'category_name',
     ),
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -779,6 +799,18 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'productName': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'product_name',
+      iterable: false,
+      type: String,
+    ),
+    'categoryId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'category_id',
+      iterable: false,
+      type: String,
+    ),
+    'categoryName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'category_name',
       iterable: false,
       type: String,
     ),

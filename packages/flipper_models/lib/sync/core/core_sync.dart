@@ -1,6 +1,7 @@
 import 'package:flipper_models/sync/core/core_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
+import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/mixins/tenant_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
@@ -55,7 +56,8 @@ class CoreSync extends CoreSyncBase
         DeleteOperationsMixin,
         EbmMixin,
         GetterOperationsMixin,
-        PurchaseMixin {
+        PurchaseMixin,
+        CategoryMixin {
   CoreSync() : super(AppSecrets.apihubProd);
 
   final Talker _talker = Talker();

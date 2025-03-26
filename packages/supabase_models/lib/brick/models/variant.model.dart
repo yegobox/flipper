@@ -28,6 +28,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productId;
   String? unit;
   String? productName;
+  String? categoryId;  // Reference to the category
+  String? categoryName;  // Name of the category
   int? branchId;
   String? taxName;
 
@@ -145,6 +147,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.productId,
     this.unit,
     this.productName,
+    this.categoryId,
+    this.categoryName,
     this.branchId,
     this.taxName,
     this.taxPercentage,
@@ -232,6 +236,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
         unit: parseOrDefault<String>(json['unit'], ''),
         qty: (json['qty'] as num?)?.toDouble() ?? 1.0,
         productName: parseOrDefault<String>(json['productName'], ''),
+        categoryId: parseOrDefault<String>(json['categoryId'], ''),
+        categoryName: parseOrDefault<String>(json['categoryName'], ''),
         branchId: parseOrDefault<int>(json['branchId'], 0),
         taxName: parseOrDefault<String>(json['taxName'], ''),
         taxPercentage:
@@ -320,6 +326,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'productId': productId,
       'unit': unit,
       'productName': productName,
+      'categoryId': categoryId,
+      'categoryName': categoryName,
       'branchId': branchId,
       'taxName': taxName,
       'taxPercentage': taxPercentage,
@@ -394,6 +402,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
     String? productId,
     String? unit,
     String? productName,
+    String? categoryId,
+    String? categoryName,
     int? branchId,
     String? taxName,
     int? itemSeq,
@@ -471,6 +481,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
       productId: productId ?? this.productId,
       unit: unit ?? this.unit,
       productName: productName ?? this.productName,
+      categoryId: categoryId ?? this.categoryId,
+      categoryName: categoryName ?? this.categoryName,
       branchId: branchId ?? this.branchId,
       taxName: taxName ?? this.taxName,
       itemSeq: itemSeq ?? this.itemSeq,

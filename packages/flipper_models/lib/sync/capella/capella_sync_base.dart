@@ -1,4 +1,5 @@
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
+import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/storage_interface.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
@@ -45,7 +46,8 @@ abstract class CapellaSyncBase extends AiStrategyImpl
         SystemInterface,
         TransactionInterface,
         TransactionItemInterface,
-        VariantInterface {
+        VariantInterface,
+        CategoryInterface {
   final Repository repository = Repository();
   bool offlineLogin = false;
   final String apihub;
@@ -66,7 +68,8 @@ abstract class CapellaSyncBase extends AiStrategyImpl
     required bool useInMemory,
     required LocalStorage box,
   }) async {
-    throw UnimplementedError('configureLocal needs to be implemented for Capella');
+    throw UnimplementedError(
+        'configureLocal needs to be implemented for Capella');
   }
 
   @override
@@ -74,16 +77,19 @@ abstract class CapellaSyncBase extends AiStrategyImpl
     required bool useInMemory,
     required LocalStorage box,
   }) async {
-    throw UnimplementedError('configureCapella needs to be implemented for Capella');
+    throw UnimplementedError(
+        'configureCapella needs to be implemented for Capella');
   }
 
   @override
   Future<void> initCollections() async {
-    throw UnimplementedError('initCollections needs to be implemented for Capella');
+    throw UnimplementedError(
+        'initCollections needs to be implemented for Capella');
   }
 
   @override
   Future<void> startReplicator() async {
-    throw UnimplementedError('startReplicator needs to be implemented for Capella');
+    throw UnimplementedError(
+        'startReplicator needs to be implemented for Capella');
   }
 }

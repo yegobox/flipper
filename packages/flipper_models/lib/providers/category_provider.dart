@@ -9,3 +9,8 @@ part 'category_provider.g.dart';
 Stream<List<Category>> category(Ref ref) {
   return ProxyService.strategy.categoryStream();
 }
+
+@riverpod
+Future<List<Category>> categories(Ref ref, {required int branchId}) async {
+  return await ProxyService.strategy.categories(branchId: branchId);
+}
