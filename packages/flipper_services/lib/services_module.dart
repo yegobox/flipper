@@ -74,6 +74,12 @@ abstract class ServicesModule {
   @LazySingleton()
   @Named('coresync')
   Future<DatabaseSyncInterface> provideSyncInterface(LocalStorage box) async {
+    if (kIsWeb) {
+      return await Capella().configureCapella(
+        box: box,
+        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      );
+    }
     return await CoreSync().configureLocal(
         useInMemory:
             bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false),

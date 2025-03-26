@@ -12,7 +12,6 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-  @Supabase(ignore: true)
   List<Variant>? variants;
   final String spplrTin;
   final String spplrNm;
@@ -41,10 +40,15 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   final num totAmt;
   int? branchId;
   final String? remark;
+  bool? hasUnApprovedVariant;
+  int? approved;
+  int? rejected;
+  int? pending;
 
   Purchase({
     String? id,
     this.branchId,
+    bool? hasUnApprovedVariant,
     required this.spplrTin,
     required this.spplrNm,
     required this.spplrBhfId,
@@ -70,9 +74,13 @@ class Purchase extends OfflineFirstWithSupabaseModel {
     required this.totTaxblAmt,
     required this.totTaxAmt,
     required this.totAmt,
+    this.approved,
+    this.rejected,
+    this.pending,
     this.remark,
     this.variants,
-  }) : id = id ?? const Uuid().v4();
+  })  : id = id ?? const Uuid().v4(),
+        hasUnApprovedVariant = hasUnApprovedVariant ?? true;
   // from json method
   factory Purchase.fromJson(Map<String, dynamic> json) {
     return Purchase(

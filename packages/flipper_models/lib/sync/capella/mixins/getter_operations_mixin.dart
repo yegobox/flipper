@@ -138,7 +138,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  Future<Business?> getBusinessById({required int businessId}) async {
+  FutureOr<Business?> getBusinessById({required int businessId}) async {
     throw UnimplementedError(
         'getBusinessById needs to be implemented for Capella');
   }

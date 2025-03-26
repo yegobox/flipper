@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/realm_model_export.dart';
 
 abstract class PurchaseInterface {
@@ -6,6 +8,8 @@ abstract class PurchaseInterface {
     required String bhfId,
     required String lastRequestdate,
   });
+
+  Future<List<Purchase>> purchases();
 
   Future<List<Variant>> selectPurchases({
     required String bhfId,
@@ -19,4 +23,7 @@ abstract class PurchaseInterface {
     Business business,
     int branchId,
   );
+  FutureOr<Purchase?> getPurchase({
+    required String id,
+  });
 }

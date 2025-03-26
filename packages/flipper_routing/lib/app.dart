@@ -806,5 +806,6 @@ class App {}
 // TODO: keep track https://github.com/javaherisaber/open_filex/pull/19
 // supabase secrets set --env-file .env
 // supabase functions deploy urlRedirect --no-verify-jwt=true
+// web: dart run sqflite_common_ffi_web:setup advice from: @https://github.com/GetDutchie/brick/issues/552
 
 

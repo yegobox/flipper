@@ -156,8 +156,8 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": "1",
-        "orgSarNo": "1",
+        "sarNo": "2",
+        "orgSarNo": "2",
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
@@ -169,6 +169,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       final data = RwApiResponse.fromJson(
         response.data,
       );
+
       return data;
     } catch (e) {
       rethrow;

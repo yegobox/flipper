@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flipper_models/firebase_options.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' show Uuid;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -24,76 +23,142 @@ import 'package:sqlite3/sqlite3.dart'
 
 final repository = Repository();
 mixin VariantPatch {
-  static Future<void> patchVariant(
-      {required String URI,
-      Function(String)? sendPort,
-      String? identifier}) async {
-    List<Variant> variants = [];
-    final branchId = ProxyService.box.getBranchId();
+  static Future<void> patchVariant({
+    required String URI,
+    Function(String)? sendPort,
+    String? identifier,
+  }) async {
+    final branchId = ProxyService.box.getBranchId()!;
+    List<Variant> variants = await _getVariants(identifier, branchId);
+
+    for (Variant variant in variants) {
+      if (_shouldSkipVariant(variant)) {
+        continue;
+      }
+
+      try {
+        await _ensureBusinessInfo(variant);
+        await updateVariantitemTyCd(variant);
+
+        final response = await RWTax().saveItem(variation: variant, URI: URI);
+
+        if (response.resultCd == "000") {
+          _handleSuccess(
+            variant: variant,
+            identifier: identifier,
+            URI: URI,
+            sendPort: sendPort,
+            branchId: branchId,
+          );
+        } else if (sendPort != null) {
+          sendPort(response.resultMsg);
+          throw Exception(response.resultMsg);
+        }
+      } catch (e) {
+        // Log the error for debugging. Consider more specific error handling.
+        print("Error patching variant ${variant.id}: $e");
+        // in case of errror be the wrong data we are passing to rra, ignore and continue.
+        continue;
+      }
+    }
+  }
+
+  // Helper method to get variants based on identifier
+  static Future<List<Variant>> _getVariants(
+      String? identifier, int? branchId) async {
     if (identifier != null) {
-      variants = await repository.get<Variant>(
+      return await repository.get<Variant>(
           query: brick.Query(where: [
         Where('id').isExactly(identifier),
         Where('branchId').isExactly(branchId)
       ]));
     } else {
-      variants = await repository.get<Variant>(
+      return await repository.get<Variant>(
           query: brick.Query(where: [
         Where('ebmSynced').isExactly(false),
         Where('branchId').isExactly(branchId)
       ]));
     }
+  }
 
-    for (Variant variant in variants) {
-      if (variant.imptItemSttsCd == "2" || variant.pchsSttsCd == "01") {
-        continue;
-      }
-      try {
-        if (variant.bhfId == null) {
-          Business? business = await ProxyService.strategy
-              .getBusiness(businessId: ProxyService.box.getBusinessId());
-          variant.bhfId = business!.bhfId ?? "00";
-          variant.tin = business.tinNumber ?? 999909695;
+  // Helper method to check if a variant should be skipped
+  static bool _shouldSkipVariant(Variant variant) {
+    return variant.imptItemSttsCd == "2" || variant.pchsSttsCd == "01";
+  }
 
-          await ProxyService.strategy.updateVariant(updatables: [variant]);
-        }
-        await updateVariantitemTyCd(variant);
+  // Helper method to ensure business info is populated
+  static Future<void> _ensureBusinessInfo(Variant variant) async {
+    if (variant.bhfId == null) {
+      Business? business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId());
+      variant.bhfId = business!.bhfId ?? "00";
+      variant.tin = business.tinNumber ?? 999909695;
 
-        final response = await RWTax().saveItem(variation: variant, URI: URI);
-
-        if (response.resultCd == "000" && sendPort != null) {
-          sendPort(response.resultMsg);
-          if (identifier != null) {
-            await StockPatch.patchStock(
-              identifier: variant.stock?.id,
-              URI: (await ProxyService.box.getServerUrl())!,
-              sendPort: (message) {
-                ProxyService.notification.sendLocalNotification(body: message);
-              },
-            );
-          } else {
-            await StockPatch.patchStock(
-              URI: (await ProxyService.box.getServerUrl())!,
-              sendPort: (message) {
-                ProxyService.notification.sendLocalNotification(body: message);
-              },
-            );
-          }
-
-          // we set ebmSynced when stock is done updating on rra side.
-          variant.ebmSynced = true;
-          repository.upsert(variant);
-        } else if (sendPort != null) {
-          sendPort(response.resultMsg);
-          throw Exception(response.resultMsg);
-        }
-        talker.info(response.resultMsg);
-        //throw Exception(response.resultMsg);
-      } catch (e, s) {
-        talker.error(e, s);
-        rethrow;
-      }
+      await ProxyService.strategy.updateVariant(updatables: [variant]);
     }
+  }
+
+  static Future<void> _handleSuccess({
+    required Variant variant,
+    required String? identifier,
+    required String URI,
+    required Function(String)? sendPort,
+    required int branchId,
+  }) async {
+    final serverUrl = await ProxyService.box.getServerUrl();
+    final tinNumber = ProxyService.box.tin();
+    final bhfId = await ProxyService.box.bhfId();
+
+    final notificationSender = (String message) {
+      ProxyService.notification.sendLocalNotification(body: message);
+    };
+
+    // Patch stock
+    if (identifier != null) {
+      if (variant.stock?.id != null) {
+        await StockPatch.patchStock(
+          identifier: variant.stock!.id,
+          URI: serverUrl!,
+          sendPort: notificationSender,
+        );
+      } else {
+        await StockPatch.patchStock(
+          URI: serverUrl!,
+          sendPort: notificationSender,
+        );
+      }
+    } else {
+      await StockPatch.patchStock(
+        URI: serverUrl!,
+        sendPort: notificationSender,
+      );
+    }
+
+    // Patch transaction item
+    await PatchTransactionItem.patchTransactionItem(
+      URI: URI,
+      sendPort: notificationSender,
+      tinNumber: tinNumber,
+      bhfId: bhfId!,
+    );
+
+    // Patch customer
+    CustomerPatch.patchCustomer(
+      URI: URI,
+      tinNumber: tinNumber,
+      bhfId: bhfId,
+      branchId: branchId,
+      sendPort: notificationSender,
+    );
+
+    if (sendPort != null) {
+      sendPort("Patch successful"); //Consider a better message here.
+    }
+    // we set ebmSynced when stock is done updating on rra side.
+    /// we should not update variant here rather we update it in rw_tax @saveStockItems
+    variant.ebmSynced = true;
+    repository.upsert(variant);
+    ProxyService.box.writeBool(key: 'lockPatching', value: false);
   }
 }
 Future<void> updateVariantitemTyCd(Variant variant) async {

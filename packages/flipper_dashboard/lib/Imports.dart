@@ -493,23 +493,40 @@ class VariantDataSource extends DataGridSource {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: const Icon(Icons.check_circle_outline, color: Colors.green),
-          onPressed:
-              _state._isLoading ? null : () => _state._handleApproval(variant),
-          tooltip: 'Approve',
-          constraints: const BoxConstraints(),
-          padding: const EdgeInsets.all(8),
-        ),
+        _state._isLoading
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                ),
+              )
+            : IconButton(
+                icon:
+                    const Icon(Icons.check_circle_outline, color: Colors.green),
+                onPressed: () => _state._handleApproval(variant),
+                tooltip: 'Approve',
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.all(8),
+              ),
         const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-          onPressed:
-              _state._isLoading ? null : () => _state._handleRejection(variant),
-          tooltip: 'Reject',
-          constraints: const BoxConstraints(),
-          padding: const EdgeInsets.all(8),
-        ),
+        _state._isLoading
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+                ),
+              )
+            : IconButton(
+                icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+                onPressed: () => _state._handleRejection(variant),
+                tooltip: 'Reject',
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.all(8),
+              ),
       ],
     );
   }

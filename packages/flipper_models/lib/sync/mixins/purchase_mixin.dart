@@ -7,8 +7,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 import '../interfaces/purchase_interface.dart';
 import '../interfaces/branch_interface.dart';
@@ -72,6 +70,7 @@ mixin PurchaseMixin
     );
   }
 
+  @override
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
@@ -143,7 +142,8 @@ mixin PurchaseMixin
         try {
           await repository.upsert<ImportPurchaseDates>(
               ImportPurchaseDates(
-                lastRequestDate: response.resultDt,
+                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                // lastRequestDate: response.resultDt,
                 branchId: activeBranch.id,
                 requestType: "IMPORT",
               ),
@@ -181,6 +181,7 @@ mixin PurchaseMixin
     }
   }
 
+  @override
   Future<List<Variant>> selectPurchases({
     required String bhfId,
     required int tin,
@@ -300,6 +301,8 @@ mixin PurchaseMixin
                       "Error processing variant: $variantError\n$variantStackTrace");
                   talker.error("Error processing variant", variantError,
                       variantStackTrace);
+                  // Handle the error.  Perhaps log it or increment an error counter.
+                  //Critically:  Do NOT rethrow here. You want to continue processing other variants.
                 }
               }());
             }
@@ -313,7 +316,8 @@ mixin PurchaseMixin
           final newImportDate = ImportPurchaseDates(
             branchId: activeBranch.id,
             requestType: "PURCHASE",
-            lastRequestDate: response.resultDt,
+            // lastRequestDate: response.resultDt,
+            lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
           );
 
           await repository.upsert<ImportPurchaseDates>(
@@ -324,7 +328,7 @@ mixin PurchaseMixin
                 brick.Where('requestType').isExactly("PURCHASE"),
               ],
             ),
-          );
+          ); // Upsert ensures either creates or updates
         } catch (saveError, saveStackTrace) {
           print(
               "Error saving ImportPurchaseDates: $saveError\n$saveStackTrace");
@@ -347,5 +351,55 @@ mixin PurchaseMixin
 
   String randomizeColor() {
     return '#${(Random().nextInt(0x1000000) | 0x800000).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  }
+
+  @override
+  Future<List<Purchase>> purchases() async {
+    // Fetch all purchases that may have unapproved variants
+    final purchases = await repository.get<Purchase>(
+      query: brick.Query(
+        where: [brick.Where('hasUnApprovedVariant').isExactly(true)],
+      ),
+    );
+
+    if (purchases.isEmpty) return [];
+
+    List<Purchase> updatedPurchases = [];
+
+    for (final purchase in purchases) {
+      // Fetch variants for the current purchase
+      final variants = await repository.get<Variant>(
+        query: brick.Query(
+          where: [brick.Where('purchaseId').isExactly(purchase.id)],
+        ),
+      );
+
+      bool hasUnapprovedVariants =
+          variants.any((variant) => variant.pchsSttsCd == '01');
+
+      // Only update if the status has changed
+      if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
+        purchase.hasUnApprovedVariant = hasUnapprovedVariants;
+        await repository.upsert<Purchase>(purchase); // Update only if necessary
+      }
+
+      if (hasUnapprovedVariants) {
+        updatedPurchases.add(purchase);
+      }
+    }
+
+    return updatedPurchases;
+  }
+
+  @override
+  FutureOr<Purchase?> getPurchase({
+    required String id,
+  }) async {
+    final purchase = await repository.get<Purchase>(
+      query: brick.Query(
+        where: [brick.Where('id').isExactly(id)],
+      ),
+    );
+    return purchase.firstOrNull;
   }
 }

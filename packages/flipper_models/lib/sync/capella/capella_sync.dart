@@ -1,5 +1,6 @@
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/abstractions/storage.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:talker/talker.dart';
@@ -23,8 +24,8 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 
-class CapellaSync extends CapellaSyncBase 
-    with 
+class CapellaSync extends CapellaSyncBase
+    with
         CapellaAuthMixin,
         CapellaBranchMixin,
         CapellaBusinessMixin,
@@ -33,6 +34,7 @@ class CapellaSync extends CapellaSyncBase
         CapellaDeleteOperationsMixin,
         CapellaEbmMixin,
         CapellaFavoriteMixin,
+        CoreMiscellaneous,
         CapellaGetterOperationsMixin,
         CapellaProductMixin,
         CapellaPurchaseMixin,

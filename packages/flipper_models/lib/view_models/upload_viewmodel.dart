@@ -17,7 +17,11 @@ import 'package:flipper_models/providers/upload_providers.dart';
 class UploadViewModel extends ProductViewModel {
   final appService = loc.getIt<AppService>();
   File? selectedImage;
-  final _container = ProviderContainer();
+  WidgetRef? ref;
+
+  void setRef(WidgetRef ref) {
+    this.ref = ref;
+  }
 
   Future<Product> browsePictureFromGallery({
     required String id,
@@ -61,6 +65,7 @@ class UploadViewModel extends ProductViewModel {
           .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
 
       talker.warning('Saving picked file locally...');
+      await savePickedFileLocally(platformFile, uniqueFileName);
 
       final filePath = 'public/branch-$branchId/$uniqueFileName';
       talker.warning('Uploading file to S3 at path: $filePath');
@@ -76,7 +81,9 @@ class UploadViewModel extends ProductViewModel {
         ),
         onProgress: (progress) {
           talker.warning('Fraction completed: ${progress.fractionCompleted}');
-          _container.read(uploadProgressProvider.notifier).state = progress.fractionCompleted;
+          if (ref != null) {
+            ref!.read(uploadProgressProvider.notifier).state = progress.fractionCompleted;
+          }
         },
       ).result;
 
@@ -93,10 +100,13 @@ class UploadViewModel extends ProductViewModel {
         await ProxyService.strategy
             .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
       } catch (e) {
-        saveAsset(assetName: uniqueFileName, productId: id);
+        await saveAsset(assetName: uniqueFileName, productId: id);
       }
-      await ProxyService.strategy.downloadAssetSave(assetName: uniqueFileName);
-      await Future.delayed(Duration(seconds: 2));
+
+      // Save the original file to local storage
+      final appSupportDir = await getApplicationSupportDirectory();
+      final localFilePath = '${appSupportDir.path}/$uniqueFileName';
+      await File(platformFile.path!).copy(localFilePath);
 
       await ProxyService.strategy.updateProduct(
         productId: id,
@@ -123,13 +133,16 @@ class UploadViewModel extends ProductViewModel {
 
   Future<void> savePickedFileLocally(
       PlatformFile platformFile, String fileName) async {
-    final appDocDir = await getApplicationDocumentsDirectory();
-    final localFile = File('${appDocDir.path}/$fileName');
-    final stream = platformFile.readStream;
-
-    if (stream != null) {
+    final appSupportDir = await getApplicationSupportDirectory();
+    final localFile = File('${appSupportDir.path}/$fileName');
+    
+    if (platformFile.path != null) {
+      await File(platformFile.path!).copy(localFile.path);
+    } else if (platformFile.bytes != null) {
+      await localFile.writeAsBytes(platformFile.bytes!);
+    } else if (platformFile.readStream != null) {
       final sink = localFile.openWrite();
-      await stream.pipe(sink);
+      await platformFile.readStream!.pipe(sink);
       await sink.close();
     }
   }

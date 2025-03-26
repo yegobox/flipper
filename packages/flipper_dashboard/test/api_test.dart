@@ -1,9 +1,5 @@
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:test/test.dart';
-import 'package:brick_supabase/testing.dart';
-import 'package:uuid/uuid.dart';
 
 void main() {
   group('Purchase with Variants', () {
