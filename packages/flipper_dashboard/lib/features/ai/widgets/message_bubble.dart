@@ -146,7 +146,11 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   )
                                 else
                                   IconButton(
-                                    icon: const Icon(Icons.copy, size: 20),
+                                    icon: const Icon(
+                                      Icons.copy_outlined,
+                                      size: 20,
+                                      color: Colors.blue,
+                                    ),
                                     color: Colors.grey[600],
                                     onPressed: _copyToClipboard,
                                     tooltip: 'Copy message',

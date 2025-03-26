@@ -71,20 +71,17 @@ class _AiInputFieldState extends State<AiInputField> {
         children: [
           const SizedBox(width: 16),
           Expanded(
-            child: Focus(
+            child: TextField(
+              controller: widget.controller,
               focusNode: _focusNode,
-              child: TextField(
-                controller: widget.controller,
-                focusNode: _focusNode,
-                decoration: const InputDecoration(
-                  hintText: 'Type your message...',
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(16),
-                ),
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
+              decoration: const InputDecoration(
+                hintText: 'Type your message...',
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.all(16),
               ),
+              maxLines: null,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
             ),
           ),
           const SizedBox(width: 8),

@@ -64,6 +64,8 @@ class CronService {
       }
     });
     Timer.periodic(Duration(minutes: 1), (Timer t) async {
+      ProxyService.strategy
+          .analytics(branchId: ProxyService.box.getBranchId()!);
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
       if (!ProxyService.box.transactionInProgress() && !isTaxServiceStoped!) {
         final URI = await ProxyService.box.getServerUrl();

@@ -47,15 +47,21 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   Future<void> _initializeData() async {
     setState(() => isLoading = true);
     try {
-      final purchaseResponseFuture =
-          _fetchDataPurchase(selectedDate: _selectedDate);
-      final purchasesFuture = ProxyService.strategy.purchases();
+      if (isImport) {
+        final importResponse = _fetchDataImport(selectedDate: _selectedDate);
+        _futureImportResponse = importResponse;
+        await importResponse;
+      } else {
+        final purchaseResponseFuture =
+            _fetchDataPurchase(selectedDate: _selectedDate);
+        final purchasesFuture = ProxyService.strategy.purchases();
 
-      _futurePurchaseResponse = purchaseResponseFuture;
-      _futurePurchases = purchasesFuture;
+        _futurePurchaseResponse = purchaseResponseFuture;
+        _futurePurchases = purchasesFuture;
 
-      // Wait for both futures to complete
-      await Future.wait([purchaseResponseFuture, purchasesFuture]);
+        // Wait for both futures to complete
+        await Future.wait([purchaseResponseFuture, purchasesFuture]);
+      }
 
       if (mounted) {
         setState(() {
