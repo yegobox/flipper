@@ -5,7 +5,7 @@ import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flutter/material.dart';
 
 class PurchaseCodeFormBloc extends FormBloc<String, String>
-    with TransactionMixin {
+    with TransactionMixinOld {
   final TextFieldBloc purchaseCode = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,

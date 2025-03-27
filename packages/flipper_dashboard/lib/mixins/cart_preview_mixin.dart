@@ -70,7 +70,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _markItemsAsDone(
       List<TransactionItem> items, dynamic pendingTransaction) async {
-    markItemAsDoneWithTransaction(
+    ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       pendingTransaction: pendingTransaction,

@@ -35,7 +35,7 @@ class OrderingView extends StatefulHookConsumerWidget {
 class ProductListScreenState extends ConsumerState<OrderingView>
     with
         Datamixer,
-        TransactionMixin,
+        TransactionMixinOld,
         TextEditingControllersMixin,
         PreviewCartMixin,
         Refresh,

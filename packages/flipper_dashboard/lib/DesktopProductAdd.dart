@@ -36,7 +36,7 @@ class ProductEntryScreen extends StatefulHookConsumerWidget {
 }
 
 class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
-    with TransactionMixin {
+    with TransactionMixinOld {
   Color pickerColor = Colors.amber;
   bool isColorPicked = false;
 
@@ -126,7 +126,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
             for (Variant variant in variants) {
               // Handle the transaction for stock adjustment
-              await assignTransaction(
+              await ProxyService.strategy.assignTransaction(
                 variant: variant,
                 pendingTransaction: pendingTransaction!,
                 business: business!,

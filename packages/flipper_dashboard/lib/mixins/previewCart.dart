@@ -25,7 +25,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
-    on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
+    on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   /// this method will either preview or completeOrder
   Future<void> placeFinalOrder(
       {bool isShoppingFromWareHouse = true,
@@ -86,7 +86,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _markItemsAsDone(
       List<TransactionItem> items, dynamic pendingTransaction) async {
-    markItemAsDoneWithTransaction(
+    ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       pendingTransaction: pendingTransaction,

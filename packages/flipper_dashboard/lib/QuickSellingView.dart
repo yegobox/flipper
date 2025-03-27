@@ -46,7 +46,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
 
 class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     with
-        TransactionMixin,
+        TransactionMixinOld,
         TextEditingControllersMixin,
         PreviewCartMixin,
         TransactionItemTable,

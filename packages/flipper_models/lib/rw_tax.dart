@@ -25,7 +25,7 @@ import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
-class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
+class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   String itemPrefix = "flip-";
   // String eBMURL = "https://turbo.yegobox.com";
   // String eBMURL = "http://10.0.2.2:8080/rra";

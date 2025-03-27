@@ -22,7 +22,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool isExpense = false,
     bool includePending = false,
   }) async {
-    throw UnimplementedError('transactions needs to be implemented for Capella');
+    throw UnimplementedError(
+        'transactions needs to be implemented for Capella');
   }
 
   @override
@@ -40,7 +41,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
-    throw UnimplementedError('getByTaxType needs to be implemented for Capella');
+    throw UnimplementedError(
+        'getByTaxType needs to be implemented for Capella');
   }
 
   @override
@@ -50,7 +52,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required int branchId,
     bool includeSubTotalCheck = false,
   }) async {
-    throw UnimplementedError('manageTransaction needs to be implemented for Capella');
+    throw UnimplementedError(
+        'manageTransaction needs to be implemented for Capella');
   }
 
   @override
@@ -60,11 +63,56 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required int branchId,
     bool includeSubTotalCheck = false,
   }) {
-    throw UnimplementedError('manageTransactionStream needs to be implemented for Capella');
+    throw UnimplementedError(
+        'manageTransactionStream needs to be implemented for Capella');
   }
 
   @override
-  FutureOr<void> removeCustomerFromTransaction({required ITransaction transaction}) async {
-    throw UnimplementedError('removeCustomerFromTransaction needs to be implemented for Capella');
+  FutureOr<void> removeCustomerFromTransaction(
+      {required ITransaction transaction}) async {
+    throw UnimplementedError(
+        'removeCustomerFromTransaction needs to be implemented for Capella');
+  }
+
+  @override
+  Future<void> assignTransaction({
+    required Variant variant,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required int randomNumber,
+    required String sarTyCd,
+
+    /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
+    /// transaction i.e not original transaction
+    bool useTransactionItemForQty = false,
+    TransactionItem? item,
+  }) {
+    throw UnimplementedError(
+        'assignTransaction needs to be implemented for Capella');
+  }
+
+  @override
+  Future<bool> saveTransaction(
+      {double? compositePrice,
+      required Variant variation,
+      required double amountTotal,
+      required bool customItem,
+      required ITransaction pendingTransaction,
+      required double currentStock,
+      bool useTransactionItemForQty = false,
+      required bool partOfComposite,
+      TransactionItem? item,
+      String? sarTyCd}) {
+    throw UnimplementedError(
+        'saveTransaction needs to be implemented for Capella');
+  }
+
+  @override
+  Future<void> markItemAsDoneWithTransaction(
+      {required List<TransactionItem> inactiveItems,
+      required ITransaction pendingTransaction,
+      bool isDoneWithTransaction = false}) {
+    throw UnimplementedError(
+        'markItemAsDoneWithTransaction needs to be implemented for Capella');
   }
 }

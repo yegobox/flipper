@@ -9,6 +9,7 @@ abstract class TransactionItemInterface {
     required DateTime lastTouched,
     required double discount,
     double? compositePrice,
+    bool? doneWithTransaction,
     required double quantity,
     required double currentStock,
     Variant? variation,

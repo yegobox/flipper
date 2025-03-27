@@ -20,7 +20,7 @@ import 'package:flipper_models/realm_model_export.dart' as brick;
 import 'mixins/all.dart';
 
 class CoreViewModel extends FlipperBaseModel
-    with Properties, SharebleMethods, TransactionMixin {
+    with Properties, SharebleMethods, TransactionMixinOld {
   bool handlingConfirm = false;
   // Stream<List<AppNotification>> get notificationStream => ProxyService.strategy
   //     .notificationStream(identifier: ProxyService.box.getBranchId()!);
@@ -752,7 +752,7 @@ class CoreViewModel extends FlipperBaseModel
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = await ProxyService.strategy.getVariant(id: checked);
 
-    await saveTransaction(
+    await ProxyService.strategy.saveTransaction(
         partOfComposite: false,
         variation: variant!,
         amountTotal: amountTotal,
@@ -1107,7 +1107,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> _processStockInTransaction(
       Variant variant, ITransaction pendingTransaction, Business business,
       {required String sarTyCd}) async {
-    await assignTransaction(
+    await ProxyService.strategy.assignTransaction(
       variant: variant,
       pendingTransaction: pendingTransaction,
       business: business,

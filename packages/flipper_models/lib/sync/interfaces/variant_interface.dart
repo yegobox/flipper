@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/realm_model_export.dart';
 
 abstract class VariantInterface {
@@ -24,4 +26,24 @@ abstract class VariantInterface {
   Future<List<IUnit>> units({required int branchId});
 
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
+
+  FutureOr<void> updateVariant(
+      {required List<Variant> updatables,
+      String? color,
+      String? taxTyCd,
+      String? variantId,
+      double? newRetailPrice,
+      double? retailPrice,
+      Map<String, String>? rates,
+      double? supplyPrice,
+      Map<String, String>? dates,
+      String? selectedProductType,
+      String? productId,
+      String? productName,
+      String? unit,
+      String? pkgUnitCd,
+      DateTime? expirationDate,
+      bool? ebmSynced});
+
+  FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 }

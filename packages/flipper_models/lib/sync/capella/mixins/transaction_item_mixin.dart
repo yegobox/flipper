@@ -15,6 +15,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       required DateTime lastTouched,
       required double discount,
       double? compositePrice,
+      bool? doneWithTransaction,
       required double quantity,
       required double currentStock,
       Variant? variation,

@@ -1240,16 +1240,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<ITransaction?> manageTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool includeSubTotalCheck = false}) {
-    // TODO: implement manageTransaction
-    throw UnimplementedError();
-  }
-
-  @override
   Stream<ITransaction> manageTransactionStream(
       {required String transactionType,
       required bool isExpense,
@@ -1871,6 +1861,7 @@ class Capella extends AiStrategyImpl
       required double discount,
       double? compositePrice,
       required double quantity,
+      bool? doneWithTransaction,
       required double currentStock,
       brick.Variant? variation,
       required double amountTotal,
@@ -1992,6 +1983,54 @@ class Capella extends AiStrategyImpl
   @override
   Future<brick.Category?> activeCategory({required int branchId}) {
     // TODO: implement activeCategory
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> assignTransaction(
+      {required brick.Variant variant,
+      required brick.ITransaction pendingTransaction,
+      required brick.Business business,
+      required int randomNumber,
+      required String sarTyCd,
+      bool useTransactionItemForQty = false,
+      brick.TransactionItem? item}) {
+    // TODO: implement assignTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> markItemAsDoneWithTransaction(
+      {required List<brick.TransactionItem> inactiveItems,
+      required brick.ITransaction pendingTransaction,
+      bool isDoneWithTransaction = false}) {
+    // TODO: implement markItemAsDoneWithTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> saveTransaction(
+      {double? compositePrice,
+      required brick.Variant variation,
+      required double amountTotal,
+      required bool customItem,
+      required brick.ITransaction pendingTransaction,
+      required double currentStock,
+      bool useTransactionItemForQty = false,
+      required bool partOfComposite,
+      brick.TransactionItem? item,
+      String? sarTyCd}) {
+    // TODO: implement saveTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.ITransaction?> manageTransaction(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool includeSubTotalCheck = false}) {
+    // TODO: implement manageTransaction
     throw UnimplementedError();
   }
 }

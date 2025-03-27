@@ -24,6 +24,7 @@ import 'package:flipper_models/sync/mixins/category_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
+import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
@@ -68,14 +69,14 @@ class CoreSync extends AiStrategyImpl
     with
         Booting,
         CoreMiscellaneous,
-        TransactionMixin,
+        TransactionMixinOld,
         BranchMixin,
         PurchaseMixin,
+        TransactionMixin,
         BusinessMixin,
         TransactionItemMixin,
         VariantMixin,
         CategoryMixin
-
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -3494,13 +3495,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Variant> addStockToVariant(
-      {required Variant variant, Stock? stock}) async {
-    variant.stock = stock;
-    return await repository.upsert<Variant>(variant);
-  }
-
-  @override
   Future<DatabaseSyncInterface> configureCapella(
       {required bool useInMemory, required storage.LocalStorage box}) async {
     return this as DatabaseSyncInterface;
@@ -4064,8 +4058,6 @@ class CoreSync extends AiStrategyImpl
     throw Exception('Failed to create branch');
   }
 
-  
-
   @override
   void updateAccess(
       {required String accessId,
@@ -4112,83 +4104,6 @@ class CoreSync extends AiStrategyImpl
       branchUpdate.isDefault = isDefault;
 
       repository.upsert<Branch>(branchUpdate);
-    }
-  }
-
-  @override
-  FutureOr<void> updateVariant(
-      {required List<Variant> updatables,
-      String? color,
-      String? taxTyCd,
-      String? variantId,
-      double? newRetailPrice,
-      double? retailPrice,
-      Map<String, String>? rates,
-      double? supplyPrice,
-      Map<String, String>? dates,
-      String? selectedProductType,
-      String? productId,
-      String? productName,
-      String? unit,
-      String? pkgUnitCd,
-      DateTime? expirationDate,
-      bool? ebmSynced}) async {
-    if (variantId != null) {
-      Variant? variant = await getVariant(id: variantId);
-      if (variant != null) {
-        variant.productName = productName ?? variant.productName;
-        variant.productId = productId ?? variant.productId;
-        variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
-        variant.unit = unit ?? variant.unit;
-        repository.upsert(variant);
-      }
-      return;
-    }
-
-    // loop through all variants and update all with retailPrice and supplyPrice
-
-    for (var i = 0; i < updatables.length; i++) {
-      final name = (productName ?? updatables[i].productName)!;
-      updatables[i].productName = name;
-      if (updatables[i].stock == null) {
-        await addStockToVariant(variant: updatables[i]);
-      }
-
-      updatables[i].name = name;
-      updatables[i].itemStdNm = name;
-      updatables[i].spplrItemNm = name;
-      double rate = rates?[updatables[i].id] == null
-          ? 0
-          : double.parse(rates![updatables[i].id]!);
-      if (color != null) {
-        updatables[i].color = color;
-      }
-      updatables[i].bhfId = updatables[i].bhfId ?? "00";
-      updatables[i].itemNm = name;
-      updatables[i].expirationDate = expirationDate;
-
-      updatables[i].ebmSynced = false;
-      updatables[i].retailPrice =
-          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      if (selectedProductType != null) {
-        updatables[i].itemTyCd = selectedProductType;
-      }
-
-      updatables[i].dcRt = rate;
-      updatables[i].expirationDate = dates?[updatables[i].id] == null
-          ? null
-          : DateTime.tryParse(dates![updatables[i].id]!);
-
-      if (retailPrice != 0 && retailPrice != null) {
-        updatables[i].retailPrice = retailPrice;
-      }
-      if (supplyPrice != 0 && supplyPrice != null) {
-        updatables[i].supplyPrice = supplyPrice;
-      }
-
-      updatables[i].lastTouched = DateTime.now().toLocal();
-
-      await repository.upsert<Variant>(updatables[i]);
     }
   }
 

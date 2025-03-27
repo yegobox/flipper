@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -511,7 +512,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             variant.expirationDate =
                 DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
           }
-          ProxyService.strategy.updateVariant(
+          await ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
             color: color,
             productName: productName.isEmpty ? null : productName,
@@ -521,6 +522,23 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             dates: dates?.map((key, value) => MapEntry(key, value.text)),
             supplyPrice: supplyPrice != 0 ? supplyPrice : null,
             retailPrice: retailPrice != 0 ? retailPrice : null,
+          );
+          final pendingTransaction =
+              await ProxyService.strategy.manageTransaction(
+            transactionType: TransactionType.adjustment,
+            isExpense: true,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          Business? business = await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+          await ProxyService.strategy.assignTransaction(
+            variant: variant,
+            pendingTransaction: pendingTransaction!,
+            business: business!,
+            randomNumber: randomNumber(),
+            // 06 is incoming adjustment.
+            sarTyCd: "06",
           );
         }
       } catch (e) {

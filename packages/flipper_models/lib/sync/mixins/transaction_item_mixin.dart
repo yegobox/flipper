@@ -6,6 +6,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+
 mixin TransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
 
@@ -15,6 +16,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     required bool partOfComposite,
     required DateTime lastTouched,
     required double discount,
+    bool? doneWithTransaction,
     double? compositePrice,
     required double quantity,
     required double currentStock,
@@ -38,7 +40,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         // Use the provided `TransactionItem`
         transactionItem = item;
         transactionItem.qty = quantity; // Update quantity
-
+        transactionItem.doneWithTransaction =
+            doneWithTransaction ?? transactionItem.doneWithTransaction;
         // Check if retailPrice is not null before performing calculations
         if (variation?.retailPrice != null) {
           transactionItem.taxblAmt =
@@ -104,7 +107,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           isRefunded: false, // Assuming default value
-          doneWithTransaction: false,
+          doneWithTransaction: doneWithTransaction ?? false,
           active: true,
           dcRt: variation.dcRt,
           dcAmt: dcAmt,
@@ -142,6 +145,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       rethrow;
     }
   }
+
   @override
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
@@ -161,8 +165,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       // Optional conditions
       if (transactionId != null)
         Where('transactionId').isExactly(transactionId),
-      if (requestId != null)
-        Where('inventoryRequestId').isExactly(requestId),
+      if (requestId != null) Where('inventoryRequestId').isExactly(requestId),
 
       // Date range handling
       if (startDate != null && endDate != null)

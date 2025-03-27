@@ -264,6 +264,7 @@ mixin PatchTransactionItem {
         query: brick.Query(where: [
       Where('ebmSynced').isExactly(false),
       Where('status').isExactly(COMPLETE),
+      Or('status').isExactly(PARKED),
       Where('customerName').isNot(null),
       Where('customerTin').isNot(null),
       Where('branchId').isExactly(branchId)

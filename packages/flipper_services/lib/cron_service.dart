@@ -78,6 +78,16 @@ class CronService {
               ProxyService.notification.sendLocalNotification(body: message);
             },
           );
+          final tinNumber = ProxyService.box.tin();
+          final bhfId = await ProxyService.box.bhfId();
+          await PatchTransactionItem.patchTransactionItem(
+            tinNumber: tinNumber,
+            bhfId: bhfId!,
+            URI: URI,
+            sendPort: (message) {
+              ProxyService.notification.sendLocalNotification(body: message);
+            },
+          );
         }
       }
     });

@@ -13,6 +13,7 @@ import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
 
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
+import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_services/abstractions/storage.dart';
@@ -50,8 +51,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
         BusinessInterface,
         VariantInterface,
         TransactionItemInterface,
+        TransactionInterface,
         CategoryInterface {
-
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -222,12 +223,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int branchId,
       bool includeSubTotalCheck = false});
 
-  FutureOr<ITransaction?> manageTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool includeSubTotalCheck = false});
-
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType,
       required bool isExpense,
@@ -304,8 +299,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     DateTime? endDate,
   });
 
- 
-
   FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
 
@@ -360,7 +353,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
 
-  FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
 
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
@@ -380,7 +372,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});
-  
 
   Stream<double> totalSales({required int branchId});
 
@@ -645,24 +636,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? open,
   });
 
-  FutureOr<void> updateVariant({
-    required List<Variant> updatables,
-    String? color,
-    String? taxTyCd,
-    String? variantId,
-    double? newRetailPrice,
-    double? retailPrice,
-    Map<String, String>? rates,
-    double? supplyPrice,
-    Map<String, String>? dates,
-    String? selectedProductType,
-    String? productId,
-    String? productName,
-    String? unit,
-    String? pkgUnitCd,
-    bool? ebmSynced,
-    DateTime? expirationDate,
-  });
   FutureOr<void> updateTenant({
     required String tenantId,
     String? name,

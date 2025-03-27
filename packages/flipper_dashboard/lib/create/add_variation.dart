@@ -19,7 +19,7 @@ class AddVariation extends StatefulWidget {
   _AddVariationState createState() => _AddVariationState();
 }
 
-class _AddVariationState extends State<AddVariation> with TransactionMixin {
+class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
   TextEditingController retailController = TextEditingController();
   TextEditingController costController = TextEditingController();
   TextEditingController nameController = TextEditingController();
@@ -234,7 +234,7 @@ class _AddVariationState extends State<AddVariation> with TransactionMixin {
         Business? business = await ProxyService.strategy
             .getBusiness(businessId: ProxyService.box.getBusinessId()!);
         for (Variant variant in variants) {
-          await assignTransaction(
+          await ProxyService.strategy.assignTransaction(
             variant: variant,
             pendingTransaction: pendingTransaction!,
             business: business!,
