@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
@@ -122,19 +123,19 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       final mod = randomNumber().toString();
       final sar = randomNumber();
 
-      final repository = Repository();
-
-      final query = Query.where('transactionId', transaction.id);
-      List<TransactionItem> items =
-          await repository.get<TransactionItem>(query: query);
+      // Query active, non-done items only
+      final items = await ProxyService.strategy.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
+        transactionId: transaction.id,
+        doneWithTransaction: true,
+        active: true,
+      );
 
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async => await mapItemToJson(item, bhfId: bhFId))
           .toList());
       if (itemsList.isEmpty) throw Exception("No items to save");
 
-      /// add totDcAmt: "0"
-      /// TODO: handle discount later.
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
       });
@@ -156,8 +157,8 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": "2",
-        "orgSarNo": "2",
+        "sarNo": transaction.sarNo,
+        "orgSarNo": transaction.orgSarNo,
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
@@ -461,7 +462,8 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         }
 
         // Update transaction and item statuses
-        updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
+        updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd'],
+            counter: counter);
         // mark item involved as need sync
 
         return data;
@@ -793,12 +795,11 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
 
   /// Helper function to update transaction and item statuses
   Future<void> updateTransactionAndItems(ITransaction transaction,
-      List<TransactionItem> items, String? receiptType) async {
-    // for (TransactionItem item in items) {
-    //   Variant? stock = await ProxyService.strategy.getVariant(
-    //     id: item.variantId!,
-    //   );
-    // }
+      List<TransactionItem> items, String? receiptType,
+      {required odm.Counter counter}) async {
+    transaction.sarNo = counter.invcNo.toString();
+    transaction.orgSarNo = counter.invcNo.toString();
+    await repository.upsert(transaction);
   }
 
   // Define these constants at the top level of your file

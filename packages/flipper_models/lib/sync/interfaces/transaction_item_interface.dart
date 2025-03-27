@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/realm_model_export.dart';
 
 abstract class TransactionItemInterface {
@@ -13,5 +15,25 @@ abstract class TransactionItemInterface {
     required double amountTotal,
     required String name,
     TransactionItem? item,
+  });
+  FutureOr<List<TransactionItem>> transactionItems({
+    String? transactionId,
+    bool? doneWithTransaction,
+    int? branchId,
+    String? variantId,
+    String? id,
+    bool? active,
+    bool fetchRemote = false,
+    String? requestId,
+  });
+  Stream<List<TransactionItem>> transactionItemsStreams({
+    String? transactionId,
+    int? branchId,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? doneWithTransaction,
+    bool? active,
+    String? requestId,
+    bool fetchRemote = false,
   });
 }

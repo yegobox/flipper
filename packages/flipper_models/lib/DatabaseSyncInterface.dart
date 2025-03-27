@@ -304,16 +304,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     DateTime? endDate,
   });
 
-  FutureOr<List<TransactionItem>> transactionItems({
-    String? transactionId,
-    bool? doneWithTransaction,
-    int? branchId,
-    String? id,
-    String? variantId,
-    bool? active,
-    bool fetchRemote = false,
-    String? requestId,
-  });
+ 
 
   FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
@@ -389,16 +380,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});
-  Stream<List<TransactionItem>> transactionItemsStreams({
-    String? transactionId,
-    int? branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-    bool? doneWithTransaction,
-    bool? active,
-    bool fetchRemote = false,
-    String? requestId,
-  });
+  
 
   Stream<double> totalSales({required int branchId});
 

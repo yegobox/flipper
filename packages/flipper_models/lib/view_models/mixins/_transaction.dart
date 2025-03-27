@@ -503,7 +503,7 @@ mixin TransactionMixin {
           bhfId: bhfId!,
           URI: (await ProxyService.box.getServerUrl())!,
           sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: message);
+            ProxyService.notification.sendLocalNotification(body: "Stock IO");
           },
         );
       } catch (e) {}

@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-
+import 'package:brick_offline_first/brick_offline_first.dart';
 mixin TransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
 
@@ -139,5 +141,88 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       talker.error(s);
       rethrow;
     }
+  }
+  @override
+  Stream<List<TransactionItem>> transactionItemsStreams({
+    String? transactionId,
+    int? branchId,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? doneWithTransaction,
+    bool? active,
+    String? requestId,
+    bool fetchRemote = false,
+  }) {
+    // Create a list of conditions for better readability and debugging
+    final List<Where> conditions = [
+      // Always include branchId since it's required
+      if (branchId != null) Where('branchId').isExactly(branchId),
+
+      // Optional conditions
+      if (transactionId != null)
+        Where('transactionId').isExactly(transactionId),
+      if (requestId != null)
+        Where('inventoryRequestId').isExactly(requestId),
+
+      // Date range handling
+      if (startDate != null && endDate != null)
+        if (startDate == endDate)
+          Where('createdAt').isBetween(
+            startDate.toIso8601String(),
+            startDate.add(const Duration(days: 1)).toIso8601String(),
+          )
+        else
+          Where('createdAt').isBetween(
+            startDate.toIso8601String(),
+            endDate.toIso8601String(),
+          ),
+
+      if (doneWithTransaction != null)
+        Where('doneWithTransaction').isExactly(doneWithTransaction),
+      if (active != null) Where('active').isExactly(active),
+    ];
+
+    // Add logging to help debug the query
+    // print('TransactionItems query conditions: $conditions');
+
+    final queryString = Query(where: conditions);
+
+    // Return the stream directly from repository with mapping
+    return repository.subscribe<TransactionItem>(
+      query: queryString,
+      policy: fetchRemote == true
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
+    );
+  }
+
+  @override
+  FutureOr<List<TransactionItem>> transactionItems({
+    String? transactionId,
+    bool? doneWithTransaction,
+    int? branchId,
+    String? variantId,
+    String? id,
+    bool? active,
+    bool fetchRemote = false,
+    String? requestId,
+  }) async {
+    final items = await repository.get<TransactionItem>(
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [
+          if (transactionId != null)
+            Where('transactionId').isExactly(transactionId),
+          if (branchId != null) Where('branchId').isExactly(branchId),
+          if (id != null) Where('id').isExactly(id),
+          if (doneWithTransaction != null)
+            Where('doneWithTransaction').isExactly(doneWithTransaction),
+          if (active != null) Where('active').isExactly(active),
+          if (variantId != null) Where('variantId').isExactly(active),
+          if (requestId != null)
+            Where('inventoryRequestId').isExactly(requestId),
+        ]));
+    return items;
   }
 }
