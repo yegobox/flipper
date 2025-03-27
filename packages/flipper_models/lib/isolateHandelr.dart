@@ -315,9 +315,12 @@ mixin PatchTransactionItem {
           sendPort('TrItem:${response.resultMsg}');
 
           transaction.ebmSynced = true;
-          repository.upsert(transaction);
+          await repository.upsert(transaction);
         } else {
-          sendPort('Notification:${response.resultMsg}');
+          /// if for some reason we fail ignore this forever
+          transaction.ebmSynced = true;
+          await repository.upsert(transaction);
+          sendPort(response.resultMsg);
         }
         print(response);
       } catch (e) {}

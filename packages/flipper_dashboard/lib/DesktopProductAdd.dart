@@ -115,30 +115,35 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0],
           onCompleteCallback: (List<Variant> variants) async {
-            final pendingTransaction =
-                await ProxyService.strategy.manageTransaction(
-              transactionType: TransactionType.adjustment,
-              isExpense: true,
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            Business? business = await ProxyService.strategy
-                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            /// TODO: commented bellow code because
+            /// in most cases a business enter data they start with
+            /// this data are not directly linked to a purchase or might not be linked to
+            /// purchase hence using bellow code we will require invoice number to link to.
+            /// that work is handled by import/purchase functionality not when we are adding data for the first time.
+            // final pendingTransaction =
+            //     await ProxyService.strategy.manageTransaction(
+            //   transactionType: TransactionType.adjustment,
+            //   isExpense: true,
+            //   branchId: ProxyService.box.getBranchId()!,
+            // );
+            // Business? business = await ProxyService.strategy
+            //     .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-            for (Variant variant in variants) {
-              // Handle the transaction for stock adjustment
-              await ProxyService.strategy.assignTransaction(
-                variant: variant,
-                pendingTransaction: pendingTransaction!,
-                business: business!,
-                randomNumber: randomNumber(),
-                // 06 is incoming adjustment.
-                sarTyCd: "06",
-              );
-            }
+            // for (Variant variant in variants) {
+            //   // Handle the transaction for stock adjustment
+            //   await ProxyService.strategy.assignTransaction(
+            //     variant: variant,
+            //     pendingTransaction: pendingTransaction!,
+            //     business: business!,
+            //     randomNumber: randomNumber(),
+            //     // 06 is incoming adjustment.
+            //     sarTyCd: "06",
+            //   );
+            // }
 
-            if (pendingTransaction != null) {
-              await completeTransaction(pendingTransaction: pendingTransaction);
-            }
+            // if (pendingTransaction != null) {
+            //   await completeTransaction(pendingTransaction: pendingTransaction);
+            // }
           },
         );
       }
