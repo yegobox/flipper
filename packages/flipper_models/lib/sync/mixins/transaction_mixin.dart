@@ -240,7 +240,7 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     try {
       // Save the transaction item
-      await saveTransaction(
+      await saveTransactionItem(
         variation: variant,
         amountTotal: variant.retailPrice!,
         customItem: false,
@@ -309,7 +309,7 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<bool> saveTransaction(
+  Future<bool> saveTransactionItem(
       {double? compositePrice,
       required Variant variation,
       required double amountTotal,
@@ -386,7 +386,9 @@ mixin TransactionMixin implements TransactionInterface {
       if (existingItem != null && !isCustom) {
         await _updateExistingTransactionItem(
           item: existingItem,
-          quantity: sarTyCd == "02"
+
+          /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
+          quantity: sarTyCd == "02" || sarTyCd == "01"
               ? variation.stock!.currentStock!
               : existingItem.qty + 1,
           variation: variation,
@@ -405,8 +407,9 @@ mixin TransactionMixin implements TransactionInterface {
       );
       final quantity =
           useTransactionItemForQty && item != null ? item.qty : computedQty;
-      final sarQty =
-          sarTyCd == "02" ? variation.stock!.currentStock! : quantity;
+      final sarQty = sarTyCd == "02" || sarTyCd == "01"
+          ? variation.stock!.currentStock!
+          : quantity;
 
       await ProxyService.strategy.addTransactionItem(
         doneWithTransaction: doneWithTransaction,

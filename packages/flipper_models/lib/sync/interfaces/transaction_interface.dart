@@ -57,7 +57,7 @@ abstract class TransactionInterface {
     int? invoiceNumber,
   });
 
-  Future<bool> saveTransaction(
+  Future<bool> saveTransactionItem(
       {double? compositePrice,
       required Variant variation,
       required double amountTotal,

@@ -752,7 +752,7 @@ class CoreViewModel extends FlipperBaseModel
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = await ProxyService.strategy.getVariant(id: checked);
 
-    await ProxyService.strategy.saveTransaction(
+    await ProxyService.strategy.saveTransactionItem(
         partOfComposite: false,
         variation: variant!,
         amountTotal: amountTotal,
@@ -936,6 +936,7 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.strategy.updateVariant(updatables: [variant]);
           await _processStockInTransaction(
               variant, pendingTransaction, business,
+              purchase: purchase,
               //02 is Incoming purchase
               sarTyCd: pchsSttsCd);
         }
@@ -1051,7 +1052,6 @@ class CoreViewModel extends FlipperBaseModel
     }
 
     await _processStockInTransaction(
-      
         variantToProcess!, pendingTransaction!, business,
         sarTyCd: "01");
 
@@ -1109,10 +1109,11 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _processStockInTransaction(
       Variant variant, ITransaction pendingTransaction, Business business,
-      {required String sarTyCd,  Purchase? purchase}) async {
+      {required String sarTyCd, Purchase? purchase}) async {
     await ProxyService.strategy.assignTransaction(
       variant: variant,
       purchase: purchase,
+      invoiceNumber: int.tryParse(variant.taskCd ?? ""),
       pendingTransaction: pendingTransaction,
       business: business,
       randomNumber: randomNumber(),

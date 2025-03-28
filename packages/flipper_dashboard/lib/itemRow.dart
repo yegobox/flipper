@@ -524,7 +524,7 @@ class _RowItemState extends ConsumerState<RowItem>
           final variant =
               await ProxyService.strategy.getVariant(id: composite.variantId!);
           if (variant != null) {
-            await ProxyService.strategy.saveTransaction(
+            await ProxyService.strategy.saveTransactionItem(
               variation: variant,
               amountTotal: variant.retailPrice!,
               customItem: false,
@@ -537,7 +537,7 @@ class _RowItemState extends ConsumerState<RowItem>
         }
       } else {
         // Handle non-composite product
-        await ProxyService.strategy.saveTransaction(
+        await ProxyService.strategy.saveTransactionItem(
           variation: widget.variant!,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,

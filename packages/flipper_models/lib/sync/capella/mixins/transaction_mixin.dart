@@ -94,7 +94,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<bool> saveTransaction(
+  Future<bool> saveTransactionItem(
       {double? compositePrice,
       required Variant variation,
       required double amountTotal,

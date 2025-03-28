@@ -256,7 +256,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     final pendingTransaction =
         ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
-    await ProxyService.strategy.saveTransaction(
+    await ProxyService.strategy.saveTransactionItem(
       variation: variant,
       amountTotal: variant.retailPrice!,
       customItem: false,

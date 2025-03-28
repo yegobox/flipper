@@ -1893,7 +1893,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<bool> saveTransaction(
+  Future<bool> saveTransactionItem(
       {double? compositePrice,
       required brick.Variant variation,
       required double amountTotal,
