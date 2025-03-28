@@ -38,7 +38,8 @@ mixin ProductMixin {
       String? color,
       Product? product,
       required Function(List<Variant> variantions) onCompleteCallback,
-      required ScannViewModel model}) async {
+      required ScannViewModel model,
+      String? categoryId}) async {
     if (product == null) return;
 
     ///loop variations add pkgUnitCd this come from UI but a lot of
@@ -50,11 +51,14 @@ mixin ProductMixin {
       // find the related product to update its name
 
       ProxyService.strategy.updateProduct(
+        categoryId: categoryId,
         productId: product.id,
         name: productName,
         branchId: ProxyService.box.getBranchId()!,
         businessId: ProxyService.box.getBusinessId()!,
       );
+      // get the category
+      Category category = await ProxyService.strategy.category(id: categoryId!);
       List<Variant> updatables = [];
       for (var i = 0; i < variations!.length; i++) {
         variations[i].pkgUnitCd = packagingUnit;
@@ -63,6 +67,8 @@ mixin ProductMixin {
         variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
         variations[i].isrccNm = "";
         variations[i].isrcRt = 0;
+        variations[i].categoryId = category.id;
+        variations[i].categoryName = category.name;
         variations[i].dcRt = rates?[variations[i]] == null
             ? 0
             : double.parse(rates![variations[i]]!.text);

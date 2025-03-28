@@ -1012,21 +1012,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      required int branchId,
-      required int businessId,
-      String? imageUrl,
-      String? expiryDate}) {
-    // TODO: implement updateProduct
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateReport({required String reportId, bool? downloaded}) {
     // TODO: implement updateReport
     throw UnimplementedError();
@@ -1539,17 +1524,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<brick.Product?> getProduct(
-      {String? id,
-      String? barCode,
-      required int branchId,
-      String? name,
-      required int businessId}) {
-    // TODO: implement getProduct
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<brick.Product>> getProducts(
       {String? key, int? prodIndex, required int branchId}) {
     // TODO: implement getProducts
@@ -1757,53 +1731,6 @@ class Capella extends AiStrategyImpl
   @override
   Future<List<brick.Country>> countries() {
     // TODO: implement countries
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<brick.Product?> createProduct({
-    required brick.Product product,
-    String? modrId,
-    Purchase? purchase,
-    String? orgnNatCd,
-    String? exptNatCd,
-    int? pkg,
-    String? pkgUnitCd,
-    String? spplrItemClsCd,
-    String? spplrItemCd,
-    String? qtyUnitCd,
-    int? totWt,
-    int? netWt,
-    String? itemCd,
-    String? spplrNm,
-    String? agntNm,
-    int? invcFcurAmt,
-    String? invcFcurCd,
-    double? invcFcurExcrt,
-    String? dclNo,
-    String? taskCd,
-    String? dclDe,
-    String? hsCd,
-    required bool createItemCode,
-    String? imptItemsttsCd,
-    required int businessId,
-    required int branchId,
-    required int tinNumber,
-    required String bhFId,
-    Map<String, String>? taxTypes,
-    Map<String, String>? itemClasses,
-    Map<String, String>? itemTypes,
-    bool skipRegularVariant = false,
-    double qty = 1,
-    double supplyPrice = 0,
-    double retailPrice = 0,
-    int itemSeq = 1,
-    bool ebmSynced = false,
-    String? pchsSttsCd,
-    double? totAmt,
-    double? taxAmt,
-  }) {
-    // TODO: implement createProduct
     throw UnimplementedError();
   }
 
@@ -2035,6 +1962,87 @@ class Capella extends AiStrategyImpl
       brick.Purchase? purchase,
       int? invoiceNumber}) {
     // TODO: implement assignTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Product?> createProduct(
+      {required brick.Product product,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
+      required String bhFId,
+      Map<String, String>? taxTypes,
+      Map<String, String>? itemClasses,
+      Map<String, String>? itemTypes,
+      String? modrId,
+      String? orgnNatCd,
+      String? exptNatCd,
+      int? pkg,
+      String? pkgUnitCd,
+      String? qtyUnitCd,
+      int? totWt,
+      int? netWt,
+      String? spplrNm,
+      String? agntNm,
+      int? invcFcurAmt,
+      String? invcFcurCd,
+      double? invcFcurExcrt,
+      String? dclNo,
+      String? taskCd,
+      String? dclDe,
+      String? hsCd,
+      String? imptItemsttsCd,
+      String? spplrItemClsCd,
+      String? spplrItemCd,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      required bool createItemCode,
+      bool ebmSynced = false,
+      String? saleListId,
+      brick.Purchase? purchase,
+      String? pchsSttsCd,
+      double? totAmt,
+      double? taxAmt,
+      double? taxblAmt,
+      String? itemCd}) {
+    // TODO: implement createProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Product?> getProduct(
+      {String? id,
+      String? barCode,
+      required int branchId,
+      String? name,
+      required int businessId}) {
+    // TODO: implement getProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateProduct(
+      {String? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? color,
+      required int branchId,
+      required int businessId,
+      String? imageUrl,
+      String? expiryDate,
+      String? categoryId}) {
+    // TODO: implement updateProduct
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Category> category({required String id}) {
+    // TODO: implement category
     throw UnimplementedError();
   }
 }

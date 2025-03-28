@@ -4,6 +4,7 @@ class DropdownButtonWithLabel extends StatelessWidget {
   final String label;
   final String? selectedValue;
   final List<String> options;
+  final Map<String, String?>? displayNames;
   final ValueChanged<String?> onChanged;
   final VoidCallback? onAdd;
   final bool isRequired;
@@ -17,6 +18,7 @@ class DropdownButtonWithLabel extends StatelessWidget {
     required this.label,
     this.selectedValue,
     required this.options,
+    this.displayNames,
     required this.onChanged,
     this.onAdd,
     this.isRequired = false,
@@ -28,6 +30,10 @@ class DropdownButtonWithLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Ensure selected value is valid
+    final validatedSelectedValue =
+        options.contains(selectedValue) ? selectedValue : null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
@@ -51,7 +57,7 @@ class DropdownButtonWithLabel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            value: selectedValue,
+            value: validatedSelectedValue,
             decoration: InputDecoration(
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -85,7 +91,8 @@ class DropdownButtonWithLabel extends StatelessWidget {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(
-                  value,
+                  // Use display name if available, otherwise use the value itself
+                  displayNames?[value] ?? value,
                   style: TextStyle(
                     color: isEnabled ? Colors.black : Colors.grey,
                   ),

@@ -14,4 +14,9 @@ mixin CategoryMixin implements CategoryInterface {
   Stream<List<Category>> categoryStream() {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Category> category({required String id}) {
+    throw UnimplementedError();
+  }
 }
