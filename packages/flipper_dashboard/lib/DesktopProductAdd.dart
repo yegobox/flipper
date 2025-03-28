@@ -15,6 +15,7 @@ import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -26,6 +27,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
+import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -45,6 +47,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Map<String, TextEditingController> _dates = {};
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
+  String? selectedCategoryId;
 
   TextEditingController productNameController = TextEditingController();
   TextEditingController retailPriceController = TextEditingController();
@@ -365,15 +368,91 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       !ref.watch(isCompositeProvider)
                           ? scanField(model, productRef: productRef)
                           : SizedBox.shrink(),
-                      DropdownButtonWithLabel(
-                        label: "Packaging Unit",
-                        selectedValue: selectedPackageUnitValue,
-                        options: model.pkgUnits,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedPackageUnitValue = newValue!;
-                          });
-                        },
+                      // DropdownButtonWithLabel(
+                      //   label: "Packaging Unit",
+                      //   selectedValue: selectedPackageUnitValue,
+                      //   options: model.pkgUnits,
+                      //   onChanged: (String? newValue) {
+                      //     setState(() {
+                      //       selectedPackageUnitValue = newValue!;
+                      //     });
+                      //   },
+                      // ),
+                      // --- ROW WITH TWO DROPDOWNS START ---
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: DropdownButtonWithLabel(
+                                label: "Packaging Unit",
+                                selectedValue: selectedPackageUnitValue,
+                                options: model.pkgUnits,
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      selectedPackageUnitValue = newValue;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Consumer(
+                                // Keep consumer here
+                                builder: (context, ref, child) {
+                                  // Watch provider inside the builder
+                                  final categoryAsyncValue =
+                                      ref.watch(categoryProvider);
+                                  // Use .when to handle states
+                                  return categoryAsyncValue.when(
+                                    data: (categories) {
+                                      // Map Category objects to "id:name" strings
+                                      final categoryOptions = categories
+                                          .map((cat) => "${cat.name}")
+                                          .toList();
+
+                                      return DropdownButtonWithLabel(
+                                        onAdd: () {
+                                          showAddCategoryModal(context);
+                                        },
+                                        label: "Category",
+                                        // Use selectedCategoryId for the value
+                                        selectedValue: selectedCategoryId,
+                                        // Pass the generated options
+                                        options: categoryOptions,
+                                        onChanged: (String? newValue) {
+                                          if (newValue != null) {
+                                            setState(() {
+                                              // Update selectedCategoryId with the chosen "id:name" string
+                                              selectedCategoryId = newValue;
+                                            });
+                                          }
+                                        },
+                                      );
+                                    },
+                                    loading: () => DropdownButtonWithLabel(
+                                      label: "Category",
+                                      selectedValue: null,
+                                      options: const [],
+                                      onChanged: (String? _) {},
+                                    ),
+                                    error: (err, stack) =>
+                                        DropdownButtonWithLabel(
+                                      label: "Category",
+                                      selectedValue: null,
+                                      options: const [], // No options on error
+                                      onChanged:
+                                          (String? _) {}, // Disable dropdown
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
                       // _productTypeDropDown(context),

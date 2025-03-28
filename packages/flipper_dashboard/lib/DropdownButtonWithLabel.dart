@@ -1,51 +1,114 @@
 import 'package:flutter/material.dart';
 
 class DropdownButtonWithLabel extends StatelessWidget {
-  final String label; // Label for the dropdown
-  final String? selectedValue; // Currently selected value
-  final List<String> options; // List of dropdown options
-  final ValueChanged<String?> onChanged; // Callback to handle value changes
+  final String label;
+  final String? selectedValue;
+  final List<String> options;
+  final ValueChanged<String?> onChanged;
+  final VoidCallback? onAdd;
+  final bool isRequired;
+  final String? Function(String?)? validator;
+  final bool isEnabled;
+  final Color? borderColor;
+  final Color? textColor;
 
   const DropdownButtonWithLabel({
-    Key? key,
+    super.key,
     required this.label,
-    required this.selectedValue,
+    this.selectedValue,
     required this.options,
     required this.onChanged,
-  }) : super(key: key);
+    this.onAdd,
+    this.isRequired = false,
+    this.validator,
+    this.isEnabled = true,
+    this.borderColor,
+    this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          RichText(
+            text: TextSpan(
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: textColor ?? Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+              children: [
+                TextSpan(text: label),
+                if (isRequired)
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red, fontSize: 16),
+                  ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey),
+          DropdownButtonFormField<String>(
+            value: selectedValue,
+            decoration: InputDecoration(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: borderColor ?? Colors.grey,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: borderColor ?? Colors.grey,
+                ),
+              ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: Colors.grey.shade300,
+                ),
+              ),
+              suffixIcon: onAdd != null
+                  ? IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: isEnabled ? onAdd : null,
+                      tooltip: 'Add',
+                    )
+                  : null,
             ),
-            child: DropdownButton<String>(
-              value: selectedValue,
-              onChanged: onChanged,
-              items: options.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-              icon: const Icon(Icons.arrow_drop_down),
-              iconSize: 30,
-              isExpanded: true,
-              underline: const SizedBox(), // Remove the default underline
+            items: options.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    color: isEnabled ? Colors.black : Colors.grey,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: isEnabled ? onChanged : null,
+            validator: validator ??
+                (value) {
+                  if (isRequired && (value == null || value.isEmpty)) {
+                    return '$label is required';
+                  }
+                  return null;
+                },
+            dropdownColor: Colors.white,
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: isEnabled ? Colors.black : Colors.grey,
+            ),
+            isExpanded: true,
+            style: TextStyle(
+              color: isEnabled ? Colors.black : Colors.grey,
+              fontSize: 16,
             ),
           ),
         ],
