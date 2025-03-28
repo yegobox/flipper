@@ -49,6 +49,7 @@ class PurchaseTable extends StatefulHookConsumerWidget {
   final Future<void> Function({
     required List<Variant> variants,
     required String pchsSttsCd,
+    required Purchase purchase,
   }) acceptPurchases;
 
   @override
@@ -251,41 +252,49 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           ),
                                         ),
                                       ),
-                                      child: SfDataGrid(
-                                        source: PurchaseDataSource(
-                                          unapprovedVariants,
-                                          _editedRetailPrices,
-                                          _editedSupplyPrices,
-                                          talker,
-                                          () => setState(() {}),
-                                          widget.acceptPurchases,
-                                        ),
-                                        columns: buildPurchaseColumns(),
-                                        columnWidthMode: ColumnWidthMode.fill,
-                                        headerRowHeight: 56.0,
-                                        rowHeight: 50.0,
-                                        gridLinesVisibility:
-                                            GridLinesVisibility.horizontal,
-                                        headerGridLinesVisibility:
-                                            GridLinesVisibility.both,
-                                        selectionMode: SelectionMode.single,
-                                        onCellTap: (details) async {
-                                          if (details.rowColumnIndex.rowIndex >
-                                              0) {
-                                            final item = unapprovedVariants[
-                                                details.rowColumnIndex
-                                                        .rowIndex -
-                                                    1];
-                                            final variants = await ProxyService
-                                                .strategy
-                                                .variants(
-                                                    fetchRemote: false,
-                                                    branchId: ProxyService.box
-                                                        .getBranchId()!);
-                                            _showEditDialog(context, item,
-                                                variants: variants);
-                                          }
-                                        },
+                                      child: Column(
+                                        children: [
+                                          if (unapprovedVariants.isNotEmpty)
+                                            Expanded(
+                                              child: SfDataGrid(
+                                                source: PurchaseDataSource(
+                                                  unapprovedVariants,
+                                                  _editedRetailPrices,
+                                                  _editedSupplyPrices,
+                                                  talker,
+                                                  () => setState(() {}),
+                                                  widget.acceptPurchases,
+                                                  purchase,
+                                                ),
+                                                columns: buildPurchaseColumns(),
+                                                columnWidthMode: ColumnWidthMode.fill,
+                                                headerRowHeight: 56.0,
+                                                rowHeight: 50.0,
+                                                gridLinesVisibility:
+                                                    GridLinesVisibility.horizontal,
+                                                headerGridLinesVisibility:
+                                                    GridLinesVisibility.both,
+                                                selectionMode: SelectionMode.single,
+                                                onCellTap: (details) async {
+                                                  if (details.rowColumnIndex.rowIndex >
+                                                      0) {
+                                                    final item = unapprovedVariants[
+                                                        details.rowColumnIndex
+                                                                .rowIndex -
+                                                            1];
+                                                    final variants = await ProxyService
+                                                        .strategy
+                                                        .variants(
+                                                            fetchRemote: false,
+                                                            branchId: ProxyService.box
+                                                                .getBranchId()!);
+                                                    _showEditDialog(context, item,
+                                                        variants: variants);
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   );

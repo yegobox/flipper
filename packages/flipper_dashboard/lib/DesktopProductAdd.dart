@@ -25,6 +25,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -97,7 +98,36 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
             rates: _rates,
-            dates: _dates);
+            dates: _dates, onCompleteCallback: (List<Variant> variants) async {
+          final invoiceNumber = await showInvoiceNumberModal(context);
+          if (invoiceNumber == null) return;
+
+          final pendingTransaction =
+              await ProxyService.strategy.manageTransaction(
+            transactionType: TransactionType.adjustment,
+            isExpense: true,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          Business? business = await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+          for (Variant variant in variants) {
+            // Handle the transaction for stock adjustment
+            await ProxyService.strategy.assignTransaction(
+              variant: variant,
+              invoiceNumber: invoiceNumber,
+              pendingTransaction: pendingTransaction!,
+              business: business!,
+              randomNumber: randomNumber(),
+              // 06 is incoming adjustment.
+              sarTyCd: "06",
+            );
+          }
+
+          if (pendingTransaction != null) {
+            await completeTransaction(pendingTransaction: pendingTransaction);
+          }
+        });
       } else {
         await model.addVariant(
           model: model,
@@ -115,35 +145,34 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           selectedProductType: selectedProductType,
           packagingUnit: selectedPackageUnitValue.split(":")[0],
           onCompleteCallback: (List<Variant> variants) async {
-            /// TODO: commented bellow code because
-            /// in most cases a business enter data they start with
-            /// this data are not directly linked to a purchase or might not be linked to
-            /// purchase hence using bellow code we will require invoice number to link to.
-            /// that work is handled by import/purchase functionality not when we are adding data for the first time.
-            // final pendingTransaction =
-            //     await ProxyService.strategy.manageTransaction(
-            //   transactionType: TransactionType.adjustment,
-            //   isExpense: true,
-            //   branchId: ProxyService.box.getBranchId()!,
-            // );
-            // Business? business = await ProxyService.strategy
-            //     .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            final invoiceNumber = await showInvoiceNumberModal(context);
+            if (invoiceNumber == null) return;
 
-            // for (Variant variant in variants) {
-            //   // Handle the transaction for stock adjustment
-            //   await ProxyService.strategy.assignTransaction(
-            //     variant: variant,
-            //     pendingTransaction: pendingTransaction!,
-            //     business: business!,
-            //     randomNumber: randomNumber(),
-            //     // 06 is incoming adjustment.
-            //     sarTyCd: "06",
-            //   );
-            // }
+            final pendingTransaction =
+                await ProxyService.strategy.manageTransaction(
+              transactionType: TransactionType.adjustment,
+              isExpense: true,
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            Business? business = await ProxyService.strategy
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-            // if (pendingTransaction != null) {
-            //   await completeTransaction(pendingTransaction: pendingTransaction);
-            // }
+            for (Variant variant in variants) {
+              // Handle the transaction for stock adjustment
+              await ProxyService.strategy.assignTransaction(
+                variant: variant,
+                invoiceNumber: invoiceNumber,
+                pendingTransaction: pendingTransaction!,
+                business: business!,
+                randomNumber: randomNumber(),
+                // 06 is incoming adjustment.
+                sarTyCd: "06",
+              );
+            }
+
+            if (pendingTransaction != null) {
+              await completeTransaction(pendingTransaction: pendingTransaction);
+            }
           },
         );
       }
@@ -161,12 +190,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       final combinedNotifier = ref.read(refreshProvider);
       combinedNotifier.performActions(productName: "", scanMode: true);
       ref.read(loadingProvider.notifier).stopLoading();
-      toast("Product Saved Successfully");
-      Navigator.maybePop(context);
     } catch (e) {
       ref.read(loadingProvider.notifier).stopLoading();
       toast("We did not close normally, check if your product is saved");
-      Navigator.maybePop(context);
       rethrow;
     }
   }
@@ -220,10 +246,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       final combinedNotifier = ref.read(refreshProvider);
       combinedNotifier.performActions(productName: "", scanMode: true);
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
-
       ref.read(loadingProvider.notifier).stopLoading();
-      toast("Composite product saved successfully");
-      Navigator.maybePop(context);
     } catch (e) {
       ref.read(loadingProvider.notifier).stopLoading();
       toast("Failed to save composite product: ${e.toString()}");
@@ -481,7 +504,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               !ref.watch(isCompositeProvider)) {
                             if (productRef == null) {
                               toast("Invalid product reference");
-                              Navigator.maybePop(context);
                               return;
                             }
 

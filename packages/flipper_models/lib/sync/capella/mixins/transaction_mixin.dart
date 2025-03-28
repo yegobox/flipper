@@ -78,6 +78,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<void> assignTransaction({
     required Variant variant,
     required ITransaction pendingTransaction,
+    Purchase? purchase,
+    int? invoiceNumber,
     required Business business,
     required int randomNumber,
     required String sarTyCd,
@@ -114,5 +116,49 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       bool isDoneWithTransaction = false}) {
     throw UnimplementedError(
         'markItemAsDoneWithTransaction needs to be implemented for Capella');
+  }
+
+  /// Updates a transaction with the provided details.
+  ///
+  /// The [transaction] parameter is required and represents the transaction to update.
+  /// The [isUnclassfied] parameter is used to mark the transaction as unclassified,
+  /// meaning it is neither income nor expense. This helps avoid incorrect computations
+  /// on the dashboard.
+  @override
+  FutureOr<void> updateTransaction({
+    required ITransaction? transaction,
+    String? receiptType,
+    double? subTotal,
+    String? note,
+    String? status,
+    String? customerId,
+    bool? ebmSynced,
+    String? sarTyCd,
+    String? reference,
+    String? customerTin,
+    String? customerBhfId,
+    double? cashReceived,
+    bool? isRefunded,
+    String? customerName,
+    String? ticketName,
+    DateTime? updatedAt,
+    int? invoiceNumber,
+    DateTime? lastTouched,
+    int? supplierId,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    bool? isProformaMode,
+    String? sarNo,
+    String? orgSarNo,
+
+    /// because transaction is involved in account reporting
+    /// and in other ways to facilitate that everything in flipper has attached transaction
+    /// we want to make it unclassified i.e neither it is income or expense
+    /// this help us having wrong computation on dashboard of what is income or expenses.
+    bool isUnclassfied = false,
+    bool? isTrainingMode,
+  }) {
+    throw UnimplementedError(
+        'updateTransaction needs to be implemented for Capella');
   }
 }

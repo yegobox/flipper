@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -504,7 +503,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Map<String, TextEditingController>? rates,
       required double newRetailPrice,
       Map<String, TextEditingController>? dates,
-      required String productName}) async {
+      required String productName,
+      Function(List<Variant>)? onCompleteCallback}) async {
     if (editmode) {
       try {
         for (var variant in scannedVariants) {
@@ -523,29 +523,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             supplyPrice: supplyPrice != 0 ? supplyPrice : null,
             retailPrice: retailPrice != 0 ? retailPrice : null,
           );
+        }
 
-          /// TODO: commented bellow code because
-          /// in most cases a business enter data they start with
-          /// this data are not directly linked to a purchase or might not be linked to
-          /// purchase hence using bellow code we will require invoice number to link to.
-          /// that work is handled by import/purchase functionality not when we are adding data for the first time.
-          // final pendingTransaction =
-          //     await ProxyService.strategy.manageTransaction(
-          //   transactionType: TransactionType.adjustment,
-          //   isExpense: true,
-          //   branchId: ProxyService.box.getBranchId()!,
-          // );
-          // Business? business = await ProxyService.strategy
-          //     .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-
-          // await ProxyService.strategy.assignTransaction(
-          //   variant: variant,
-          //   pendingTransaction: pendingTransaction!,
-          //   business: business!,
-          //   randomNumber: randomNumber(),
-          //   // 06 is incoming adjustment.
-          //   sarTyCd: "06",
-          // );
+        // Call the onCompleteCallback if provided
+        if (onCompleteCallback != null) {
+          onCompleteCallback(scannedVariants);
         }
       } catch (e) {
         talker.error(e);
@@ -553,7 +535,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       }
     }
   }
-  // OLJ
 
   void updateDateController(String id, DateTime date) {
     if (_dateControllers.containsKey(id)) {

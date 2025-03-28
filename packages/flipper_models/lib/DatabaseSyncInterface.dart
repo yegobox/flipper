@@ -585,37 +585,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double? dcAmt,
   });
 
-  FutureOr<void> updateTransaction(
-      {required ITransaction? transaction,
-      String? receiptType,
-      double? subTotal,
-      String? note,
-      String? status,
-      int? supplierId,
-      String? customerId,
-      bool? ebmSynced,
-      String? sarTyCd,
-      String? reference,
-      String? customerTin,
-      String? customerBhfId,
-      double? cashReceived,
-      bool? isRefunded,
-      String? customerName,
-      String? ticketName,
-      DateTime? updatedAt,
-      int? invoiceNumber,
-      DateTime? lastTouched,
-      int? receiptNumber,
-      int? totalReceiptNumber,
-      bool? isProformaMode,
-      bool? isTrainingMode,
-
-      /// because transaction is involved in account reporting
-      /// and in other ways to facilitate that everything in flipper has attached transaction
-      /// we want to make it unclassified i.e neither it is income or expense
-      /// this help us having wrong computation on dashboard of what is income or expenses.
-      bool isUnclassfied = false});
-
   void updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,

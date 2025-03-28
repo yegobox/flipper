@@ -899,7 +899,8 @@ class CoreViewModel extends FlipperBaseModel
       {required List<Variant> variants,
       required ITransaction pendingTransaction,
       required String pchsSttsCd,
-      Map<String, Variant>? itemMapper}) async {
+      Map<String, Variant>? itemMapper,
+      required Purchase purchase}) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -962,6 +963,7 @@ class CoreViewModel extends FlipperBaseModel
 
             await _processStockInTransaction(
                 variantFromPurchase, pendingTransaction, business,
+                purchase: purchase,
                 //02 is Incoming purchase for both direct and assigned purchases
                 sarTyCd: pchsSttsCd);
           } else {
@@ -1049,6 +1051,7 @@ class CoreViewModel extends FlipperBaseModel
     }
 
     await _processStockInTransaction(
+      
         variantToProcess!, pendingTransaction!, business,
         sarTyCd: "01");
 
@@ -1106,9 +1109,10 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _processStockInTransaction(
       Variant variant, ITransaction pendingTransaction, Business business,
-      {required String sarTyCd}) async {
+      {required String sarTyCd,  Purchase? purchase}) async {
     await ProxyService.strategy.assignTransaction(
       variant: variant,
+      purchase: purchase,
       pendingTransaction: pendingTransaction,
       business: business,
       randomNumber: randomNumber(),

@@ -229,7 +229,9 @@ mixin TransactionMixin implements TransactionInterface {
     required ITransaction pendingTransaction,
     required Business business,
     required int randomNumber,
+    int? invoiceNumber,
     required String sarTyCd,
+    Purchase? purchase,
 
     /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
     /// transaction i.e not original transaction
@@ -253,6 +255,8 @@ mixin TransactionMixin implements TransactionInterface {
 
       // Update the transaction status to PARKED
       await _parkTransaction(
+        purchase: purchase,
+        invoiceNumber: invoiceNumber,
         pendingTransaction: pendingTransaction,
         variant: variant,
         sarTyCd: sarTyCd,
@@ -273,14 +277,28 @@ mixin TransactionMixin implements TransactionInterface {
     required dynamic business,
     required int randomNumber,
     required String sarTyCd,
+    Purchase? purchase,
+    int? invoiceNumber,
   }) async {
-    await ProxyService.strategy.updateTransaction(
+    if (purchase != null && invoiceNumber != null) {
+      throw ArgumentError(
+          'Both purchase and invoiceNumber cannot be provided at the same time.');
+    }
+
+    await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
+
+      sarNo: invoiceNumber != null
+          ? invoiceNumber.toString()
+          : purchase?.spplrInvcNo.toString(),
+      orgSarNo: invoiceNumber != null
+          ? invoiceNumber.toString()
+          : purchase?.spplrInvcNo.toString(),
       sarTyCd: sarTyCd, //Incoming- Adjustment
       receiptNumber: randomNumber,
       reference: randomNumber.toString(),
-      invoiceNumber: randomNumber,
+      invoiceNumber: invoiceNumber ?? randomNumber,
       receiptType: TransactionType.adjustment,
       customerTin: ProxyService.box.tin().toString(),
       customerBhfId: await ProxyService.box.bhfId() ?? "00",
@@ -517,5 +535,93 @@ mixin TransactionMixin implements TransactionInterface {
       sarTyCd: sarTyCd,
       isTrainingMode: false,
     );
+  }
+
+  /// Updates a transaction with the provided details.
+  ///
+  /// The [transaction] parameter is required and represents the transaction to update.
+  /// The [isUnclassfied] parameter is used to mark the transaction as unclassified,
+  /// meaning it is neither income nor expense. This helps avoid incorrect computations
+  /// on the dashboard.
+  @override
+  FutureOr<void> updateTransaction({
+    required ITransaction? transaction,
+    String? receiptType,
+    double? subTotal,
+    String? note,
+    String? status,
+    String? customerId,
+    bool? ebmSynced,
+    String? sarTyCd,
+    String? reference,
+    String? customerTin,
+    String? customerBhfId,
+    double? cashReceived,
+    bool? isRefunded,
+    String? customerName,
+    String? ticketName,
+    DateTime? updatedAt,
+    int? invoiceNumber,
+    DateTime? lastTouched,
+    int? supplierId,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    bool? isProformaMode,
+    String? sarNo,
+    String? orgSarNo,
+
+    /// because transaction is involved in account reporting
+    /// and in other ways to facilitate that everything in flipper has attached transaction
+    /// we want to make it unclassified i.e neither it is income or expense
+    /// this help us having wrong computation on dashboard of what is income or expenses.
+    bool isUnclassfied = false,
+    bool? isTrainingMode,
+  }) async {
+    if (transaction == null) {
+      print("Error: Transaction is null in updateTransaction.");
+      return; // Exit if transaction is null.
+    }
+
+    // Determine receipt type based on mode (or use the provided value if available)
+    if (isProformaMode != null || isTrainingMode != null) {
+      String newReceiptType = TransactionReceptType.NS;
+      if (isProformaMode == true) {
+        newReceiptType = TransactionReceptType.PS;
+      }
+      if (isTrainingMode == true) {
+        newReceiptType = TransactionReceptType.TS;
+      }
+      receiptType = newReceiptType; // Use the determined value for receiptType
+    }
+
+    // update to avoid the same issue, make sure that every parameter is update correctly.
+    transaction.receiptType = receiptType ?? transaction.receiptType;
+    transaction.subTotal = subTotal ?? transaction.subTotal;
+    transaction.note = note ?? transaction.note;
+    transaction.supplierId = supplierId ?? transaction.supplierId;
+    transaction.status = status ?? transaction.status;
+    transaction.ticketName = ticketName ?? transaction.ticketName;
+    transaction.updatedAt = updatedAt ?? transaction.updatedAt;
+    transaction.customerId = customerId ?? transaction.customerId;
+    transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+    transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
+    transaction.sarNo = sarNo ?? transaction.sarNo;
+    transaction.orgSarNo = orgSarNo ?? transaction.orgSarNo;
+    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
+    transaction.totalReceiptNumber =
+        totalReceiptNumber ?? transaction.totalReceiptNumber;
+    transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
+    transaction.reference = reference ?? transaction.reference;
+    transaction.customerTin = customerTin ?? transaction.customerTin;
+    transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
+    transaction.cashReceived = cashReceived ?? transaction.cashReceived;
+    transaction.customerName = customerName ?? transaction.customerName;
+    transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
+    transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
+
+    await repository.upsert<ITransaction>(
+        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
   }
 }

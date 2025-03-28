@@ -53,6 +53,8 @@ abstract class TransactionInterface {
     /// transaction i.e not original transaction
     bool useTransactionItemForQty = false,
     TransactionItem? item,
+    Purchase? purchase,
+    int? invoiceNumber,
   });
 
   Future<bool> saveTransaction(
@@ -71,4 +73,37 @@ abstract class TransactionInterface {
       {required List<TransactionItem> inactiveItems,
       required ITransaction pendingTransaction,
       bool isDoneWithTransaction = false});
+  FutureOr<void> updateTransaction({
+    required ITransaction? transaction,
+    String? receiptType,
+    double? subTotal,
+    String? note,
+    String? status,
+    String? customerId,
+    bool? ebmSynced,
+    String? sarTyCd,
+    String? reference,
+    String? customerTin,
+    String? customerBhfId,
+    double? cashReceived,
+    bool? isRefunded,
+    String? customerName,
+    String? ticketName,
+    DateTime? updatedAt,
+    int? invoiceNumber,
+    DateTime? lastTouched,
+    int? supplierId,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    bool? isProformaMode,
+    String? sarNo,
+    String? orgSarNo,
+
+    /// because transaction is involved in account reporting
+    /// and in other ways to facilitate that everything in flipper has attached transaction
+    /// we want to make it unclassified i.e neither it is income or expense
+    /// this help us having wrong computation on dashboard of what is income or expenses.
+    bool isUnclassfied = false,
+    bool? isTrainingMode,
+  });
 }

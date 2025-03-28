@@ -1057,36 +1057,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateTransaction(
-      {required ITransaction? transaction,
-      String? receiptType,
-      double? subTotal,
-      String? note,
-      String? status,
-      String? customerId,
-      bool? ebmSynced,
-      int? supplierId,
-      String? sarTyCd,
-      String? reference,
-      String? customerTin,
-      String? customerBhfId,
-      double? cashReceived,
-      bool? isRefunded,
-      String? customerName,
-      String? ticketName,
-      DateTime? updatedAt,
-      int? invoiceNumber,
-      DateTime? lastTouched,
-      int? receiptNumber,
-      int? totalReceiptNumber,
-      bool? isProformaMode,
-      bool isUnclassfied = false,
-      bool? isTrainingMode}) {
-    // TODO: implement updateTransaction
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateTransactionItem(
       {double? qty,
       required String transactionItemId,
@@ -1987,19 +1957,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<void> assignTransaction(
-      {required brick.Variant variant,
-      required brick.ITransaction pendingTransaction,
-      required brick.Business business,
-      required int randomNumber,
-      required String sarTyCd,
-      bool useTransactionItemForQty = false,
-      brick.TransactionItem? item}) {
-    // TODO: implement assignTransaction
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> markItemAsDoneWithTransaction(
       {required List<brick.TransactionItem> inactiveItems,
       required brick.ITransaction pendingTransaction,
@@ -2031,6 +1988,53 @@ class Capella extends AiStrategyImpl
       required int branchId,
       bool includeSubTotalCheck = false}) {
     // TODO: implement manageTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateTransaction(
+      {required brick.ITransaction? transaction,
+      String? receiptType,
+      double? subTotal,
+      String? note,
+      String? status,
+      String? customerId,
+      bool? ebmSynced,
+      String? sarTyCd,
+      String? reference,
+      String? customerTin,
+      String? customerBhfId,
+      double? cashReceived,
+      bool? isRefunded,
+      String? customerName,
+      String? ticketName,
+      DateTime? updatedAt,
+      int? invoiceNumber,
+      DateTime? lastTouched,
+      int? supplierId,
+      int? receiptNumber,
+      int? totalReceiptNumber,
+      bool? isProformaMode,
+      String? sarNo,
+      String? orgSarNo,
+      bool isUnclassfied = false,
+      bool? isTrainingMode}) {
+    // TODO: implement updateTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> assignTransaction(
+      {required brick.Variant variant,
+      required brick.ITransaction pendingTransaction,
+      required brick.Business business,
+      required int randomNumber,
+      required String sarTyCd,
+      bool useTransactionItemForQty = false,
+      brick.TransactionItem? item,
+      brick.Purchase? purchase,
+      int? invoiceNumber}) {
+    // TODO: implement assignTransaction
     throw UnimplementedError();
   }
 }

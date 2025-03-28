@@ -12,7 +12,8 @@ class Purchases extends StatefulHookConsumerWidget {
   final void Function() saveItemName;
   final Future<void> Function(
       {required List<Variant> variants,
-      required String pchsSttsCd}) acceptPurchases;
+      required String pchsSttsCd,
+      required Purchase purchase}) acceptPurchases;
   final void Function(
     Variant? itemToAssign,
     Variant? itemFromPurchase,
@@ -57,7 +58,8 @@ class _PurchasesState extends ConsumerState<Purchases> {
                           onPressed: () async {
                             await widget.acceptPurchases(
                                 variants: widget.finalSalesList,
-                                pchsSttsCd: '02');
+                                pchsSttsCd: '02',
+                                purchase: widget.purchases.first);
                             showToast(context, "You Accepted all purchaes");
                           },
                           text: 'Accept All Purchases',

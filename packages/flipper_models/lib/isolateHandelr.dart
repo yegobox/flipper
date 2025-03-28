@@ -291,7 +291,12 @@ mixin PatchTransactionItem {
 
       totalvat = totalTaxB;
 
-      if (transaction.customerName == null || transaction.customerTin == null) {
+      if (transaction.customerName == null ||
+          transaction.customerTin == null ||
+          transaction.sarNo == null) {
+        // for this to not eat up the budget next time mark it as synced
+        transaction.ebmSynced = true;
+        await repository.upsert(transaction);
         continue;
       }
       try {

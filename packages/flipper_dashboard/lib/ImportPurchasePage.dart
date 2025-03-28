@@ -320,7 +320,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                     saveItemName: _saveChangeMadeOnItem,
                                     acceptPurchases: (
                                         {required List<model.Variant> variants,
-                                        required String pchsSttsCd}) async {
+                                        required String pchsSttsCd,
+                                        required model.Purchase purchase}) async {
                                       final pendingTransaction =
                                           await ProxyService.strategy
                                               .manageTransaction(
@@ -335,6 +336,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                         itemMapper: itemMapper,
                                         pendingTransaction: pendingTransaction!,
                                         pchsSttsCd: pchsSttsCd,
+                                        purchase: purchase,
                                       );
                                     },
                                     selectSale: (model.Variant? itemToAssign,
