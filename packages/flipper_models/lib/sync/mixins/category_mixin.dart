@@ -20,9 +20,9 @@ mixin CategoryMixin implements CategoryInterface {
   }
 
   @override
-  Future<Category> category({required String id}) async {
+  Future<Category?> category({required String id}) async {
     return (await repository.get<Category>(
             query: Query(where: [Where('id').isExactly(id)])))
-        .first;
+        .firstOrNull;
   }
 }

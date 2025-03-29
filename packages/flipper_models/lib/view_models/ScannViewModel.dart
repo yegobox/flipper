@@ -504,7 +504,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required double newRetailPrice,
       Map<String, TextEditingController>? dates,
       required String productName,
-      Function(List<Variant>)? onCompleteCallback}) async {
+      Function(List<Variant>)? onCompleteCallback,
+      String? categoryId}) async {
     if (editmode) {
       try {
         for (var variant in scannedVariants) {
@@ -515,6 +516,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           await ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
             color: color,
+            // because we are in edit mode if there is no category selected then user use the one on variant.
+            categoryId: categoryId ?? variant.categoryId,
+            selectedProductType: selectedProductType,
             productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,
             newRetailPrice: newRetailPrice,

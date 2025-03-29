@@ -1551,6 +1551,7 @@ class Capella extends AiStrategyImpl
       String? taxTyCd,
       String? variantId,
       double? newRetailPrice,
+        String? categoryId,
       double? retailPrice,
       Map<String, String>? rates,
       double? supplyPrice,

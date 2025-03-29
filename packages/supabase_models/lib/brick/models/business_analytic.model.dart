@@ -19,6 +19,8 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
   final num taxRate;
   final int trafficCount;
   int? branchId;
+  String? categoryName;
+  String? categoryId;
 
   BusinessAnalytic({
     String? id,
@@ -29,11 +31,13 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
     required this.unitsSold,
     required this.taxRate,
     required this.trafficCount,
+    this.categoryName,
+    this.categoryId,
     this.branchId,
   }) : id = id ?? const Uuid().v4();
 
   @override
   String toString() {
-    return 'BusinessAnalytic{id: $id, date: $date, itemName: $itemName, price: $price, profit: $profit, unitsSold: $unitsSold, taxRate: $taxRate, trafficCount: $trafficCount, branchId: $branchId}';
+    return 'BusinessAnalytic{id: $id, date: $date, itemName: $itemName, price: $price, profit: $profit, unitsSold: $unitsSold, taxRate: $taxRate, trafficCount: $trafficCount, branchId: $branchId, categoryName: $categoryName, categoryId: $categoryId}';
   }
 }

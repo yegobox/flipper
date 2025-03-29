@@ -58,7 +58,8 @@ mixin ProductMixin {
         businessId: ProxyService.box.getBusinessId()!,
       );
       // get the category
-      Category category = await ProxyService.strategy.category(id: categoryId!);
+      Category? category =
+          await ProxyService.strategy.category(id: categoryId!);
       List<Variant> updatables = [];
       for (var i = 0; i < variations!.length; i++) {
         variations[i].pkgUnitCd = packagingUnit;
@@ -67,8 +68,8 @@ mixin ProductMixin {
         variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
         variations[i].isrccNm = "";
         variations[i].isrcRt = 0;
-        variations[i].categoryId = category.id;
-        variations[i].categoryName = category.name;
+        variations[i].categoryId = category?.id;
+        variations[i].categoryName = category?.name;
         variations[i].dcRt = rates?[variations[i]] == null
             ? 0
             : double.parse(rates![variations[i]]!.text);

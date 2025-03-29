@@ -4967,9 +4967,12 @@ class CoreSync extends AiStrategyImpl
   Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
     try {
       final data = await repository.get<BusinessAnalytic>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: brick.Query(
-              where: [brick.Where('branchId').isExactly(branchId)]));
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: brick.Query(
+          where: [brick.Where('branchId').isExactly(branchId)],
+          orderBy: [OrderBy('date', ascending: false)],
+        ),
+      );
       return data;
     } catch (e) {
       rethrow;

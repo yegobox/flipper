@@ -66,6 +66,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       double? retailPrice,
       Map<String, String>? rates,
       double? supplyPrice,
+      String? categoryId,
       Map<String, String>? dates,
       String? selectedProductType,
       String? productId,

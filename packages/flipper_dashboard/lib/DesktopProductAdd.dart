@@ -109,6 +109,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         if (widget.productId != null) {
           await model.bulkUpdateVariants(true,
               color: pickerColor.toHex(),
+              categoryId: selectedCategoryId,
               productName: productNameController.text,
               selectedProductType: selectedProductType,
               newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,

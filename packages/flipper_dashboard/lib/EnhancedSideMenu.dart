@@ -56,7 +56,7 @@ class EnhancedSideMenu extends ConsumerWidget {
               title: 'Chat',
               isSelected: selectedItem == 1,
               icon: Icon(
-                FluentIcons.chat_24_regular,
+                Icons.chat_bubble,
                 color: selectedItem == 1 ? Colors.blue : Colors.grey.shade600,
                 size: 20,
               ),
