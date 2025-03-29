@@ -293,7 +293,8 @@ mixin PatchTransactionItem {
 
       if (transaction.customerName == null ||
           transaction.customerTin == null ||
-          transaction.sarNo == null) {
+          transaction.sarNo == null ||
+          transaction.ebmSynced!) {
         // for this to not eat up the budget next time mark it as synced
         transaction.ebmSynced = true;
         await repository.upsert(transaction);
@@ -317,7 +318,7 @@ mixin PatchTransactionItem {
             URI: URI);
 
         if (response.resultCd == "000") {
-          sendPort('TrItem:${response.resultMsg}');
+          sendPort('${transaction.sarNo}:${response.resultMsg}');
 
           transaction.ebmSynced = true;
           await repository.upsert(transaction);
