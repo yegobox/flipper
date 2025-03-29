@@ -47,7 +47,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         TickerProviderStateMixin,
         WidgetsBindingObserver,
         TextEditingControllersMixin,
-        TransactionMixin,
+        TransactionMixinOld,
         PreviewCartMixin,
         Refresh {
   late AnimationController _animationController;

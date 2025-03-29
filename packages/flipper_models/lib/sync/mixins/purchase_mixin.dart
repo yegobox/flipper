@@ -355,7 +355,7 @@ mixin PurchaseMixin
 
   @override
   Future<List<Purchase>> purchases() async {
-    // Fetch all purchases that may have unapproved variants
+    // Fetch all purchases with unapproved variants
     final purchases = await repository.get<Purchase>(
       query: brick.Query(
         where: [brick.Where('hasUnApprovedVariant').isExactly(true)],
@@ -364,31 +364,36 @@ mixin PurchaseMixin
 
     if (purchases.isEmpty) return [];
 
-    List<Purchase> updatedPurchases = [];
+    List<Future<Purchase?>> purchaseUpdates = [];
 
     for (final purchase in purchases) {
-      // Fetch variants for the current purchase
-      final variants = await repository.get<Variant>(
-        query: brick.Query(
-          where: [brick.Where('purchaseId').isExactly(purchase.id)],
-        ),
-      );
-
-      bool hasUnapprovedVariants =
-          variants.any((variant) => variant.pchsSttsCd == '01');
-
-      // Only update if the status has changed
-      if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
-        purchase.hasUnApprovedVariant = hasUnapprovedVariants;
-        await repository.upsert<Purchase>(purchase); // Update only if necessary
-      }
-
-      if (hasUnapprovedVariants) {
-        updatedPurchases.add(purchase);
-      }
+      purchaseUpdates.add(_processPurchase(purchase));
     }
 
-    return updatedPurchases;
+    // Wait for all updates to complete
+    final updatedPurchases = await Future.wait(purchaseUpdates);
+
+    // Remove null values and return the updated list
+    return updatedPurchases.whereType<Purchase>().toList();
+  }
+
+  Future<Purchase?> _processPurchase(Purchase purchase) async {
+    // Fetch variants for the current purchase
+    final variants = await repository.get<Variant>(
+      query: brick.Query(
+        where: [brick.Where('purchaseId').isExactly(purchase.id)],
+      ),
+    );
+
+    bool hasUnapprovedVariants =
+        variants.any((variant) => variant.pchsSttsCd == '01');
+
+    if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
+      purchase.hasUnApprovedVariant = hasUnapprovedVariants;
+      await repository.upsert<Purchase>(purchase); // Update only if necessary
+    }
+
+    return hasUnapprovedVariants ? purchase : null;
   }
 
   @override

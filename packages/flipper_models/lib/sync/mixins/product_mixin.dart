@@ -67,21 +67,22 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  Future<Product?> getProduct({
-    String? id,
-    String? barCode,
-    required int branchId,
-    String? name,
-    required int businessId,
-  }) async {
-    final query = Query(where: [
-      Where('branchId').isExactly(branchId),
-      if (id != null) Where('id').isExactly(id),
-      if (barCode != null) Where('barCode').isExactly(barCode),
-      if (name != null) Where('name').isExactly(name),
-    ]);
-
-    return (await repository.get<Product>(query: query)).firstOrNull;
+  Future<Product?> getProduct(
+      {String? id,
+      String? barCode,
+      required int branchId,
+      String? name,
+      required int businessId}) async {
+    return (await repository.get<Product>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+            query: Query(where: [
+              if (id != null) Where('id').isExactly(id),
+              if (name != null) Where('name').isExactly(name),
+              if (barCode != null) Where('barCode').isExactly(barCode),
+              Where('branchId').isExactly(branchId),
+              Where('businessId').isExactly(businessId),
+            ])))
+        .firstOrNull;
   }
 
   @override
@@ -188,7 +189,6 @@ mixin ProductMixin implements ProductInterface {
           ebmSynced: ebmSynced,
           spplrItemCd: spplrItemCd,
           spplrItemClsCd: spplrItemClsCd,
-          categoryId: product.categoryId, // Pass category info from product
         );
         talker.info('New variant created: ${newVariant.toJson()}');
         final Stock stock = Stock(
@@ -203,33 +203,12 @@ mixin ProductMixin implements ProductInterface {
         newVariant.stockId = createdStock.id;
 
         /// if this was associated with purchase, look for the variant created then associate it with the purchase
-        /// purchase can have a list of variants associated with it.RW2BCU0000104
+        /// purchase can have a list of variants associated with it.
         if (purchase != null) {
-          // First ensure the purchase exists and is saved
-          Purchase? existingPurchase = (await repository.get<Purchase>(
-            query: Query(where: [Where('id').isExactly(purchase.id)]),
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-          ))
-              .firstOrNull;
-
-          Purchase purch;
-          if (existingPurchase == null) {
-            // If purchase doesn't exist, create and wait for it to be saved
-            purch = await repository.upsert<Purchase>(
-              purchase,
-              policy: OfflineFirstUpsertPolicy.optimisticLocal,
-            );
-          } else {
-            purch = existingPurchase;
-          }
-
-          // Now that we're sure purchase exists, save the variant
+          Purchase purch = await repository.upsert<Purchase>(purchase);
           newVariant.purchaseId = purch.id;
           newVariant.spplrNm = purch.spplrNm;
-          await repository.upsert<Variant>(
-            newVariant,
-            policy: OfflineFirstUpsertPolicy.optimisticLocal,
-          );
+          await repository.upsert<Variant>(newVariant);
         } else {
           await repository.upsert<Variant>(newVariant);
         }
@@ -446,5 +425,31 @@ mixin ProductMixin implements ProductInterface {
     await repository.upsert(newSku);
 
     return newSku;
+  }
+
+  @override
+  FutureOr<void> updateProduct(
+      {String? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? color,
+      String? imageUrl,
+      required int branchId,
+      required int businessId,
+      String? categoryId,
+      String? expiryDate}) async {
+    final product = await getProduct(
+        id: productId, branchId: branchId, businessId: businessId);
+    if (product != null) {
+      product.name = name ?? product.name;
+      product.categoryId = categoryId ?? product.categoryId;
+      product.isComposite = isComposite ?? product.isComposite;
+      product.unit = unit ?? product.unit;
+      product.expiryDate = expiryDate ?? product.expiryDate;
+      product.imageUrl = imageUrl ?? product.imageUrl;
+      product.color = color ?? product.color;
+      await repository.upsert(product);
+    }
   }
 }

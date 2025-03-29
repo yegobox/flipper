@@ -12,7 +12,9 @@ class PurchaseDataSource extends DataGridSource {
   final Future<void> Function({
     required List<Variant> variants,
     required String pchsSttsCd,
+    required Purchase purchase,
   }) acceptPurchases;
+  final Purchase purchase;
 
   List<DataGridRow> _dataGridRows = [];
   // Track loading state for each variant
@@ -25,6 +27,7 @@ class PurchaseDataSource extends DataGridSource {
     this.talker,
     this.updateCallback,
     this.acceptPurchases,
+    this.purchase,
   ) {
     _buildDataGridRows();
   }
@@ -72,7 +75,11 @@ class PurchaseDataSource extends DataGridSource {
       variant.pchsSttsCd = status;
 
       // Update the variant's status
-      await acceptPurchases(variants: [variant], pchsSttsCd: status);
+      await acceptPurchases(
+        variants: [variant],
+        pchsSttsCd: status,
+        purchase: purchase,
+      );
 
       // Remove the variant from the list and rebuild rows
       variants.removeWhere((v) => v.id == id);

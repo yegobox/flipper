@@ -13,7 +13,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 
 mixin BaseCartMixin<T extends ConsumerStatefulWidget>
-    on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
+    on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   Future<void> refreshTransactionItems({required String transactionId}) async {
     ref.refresh(transactionItemsProvider(transactionId: transactionId));
 

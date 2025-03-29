@@ -20,7 +20,7 @@ import 'package:flipper_models/realm_model_export.dart' as brick;
 import 'mixins/all.dart';
 
 class CoreViewModel extends FlipperBaseModel
-    with Properties, SharebleMethods, TransactionMixin {
+    with Properties, SharebleMethods, TransactionMixinOld {
   bool handlingConfirm = false;
   // Stream<List<AppNotification>> get notificationStream => ProxyService.strategy
   //     .notificationStream(identifier: ProxyService.box.getBranchId()!);
@@ -752,7 +752,7 @@ class CoreViewModel extends FlipperBaseModel
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = await ProxyService.strategy.getVariant(id: checked);
 
-    await saveTransaction(
+    await ProxyService.strategy.saveTransactionItem(
         partOfComposite: false,
         variation: variant!,
         amountTotal: amountTotal,
@@ -899,7 +899,8 @@ class CoreViewModel extends FlipperBaseModel
       {required List<Variant> variants,
       required ITransaction pendingTransaction,
       required String pchsSttsCd,
-      Map<String, Variant>? itemMapper}) async {
+      Map<String, Variant>? itemMapper,
+      required Purchase purchase}) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -935,6 +936,7 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.strategy.updateVariant(updatables: [variant]);
           await _processStockInTransaction(
               variant, pendingTransaction, business,
+              purchase: purchase,
               //02 is Incoming purchase
               sarTyCd: pchsSttsCd);
         }
@@ -962,6 +964,7 @@ class CoreViewModel extends FlipperBaseModel
 
             await _processStockInTransaction(
                 variantFromPurchase, pendingTransaction, business,
+                purchase: purchase,
                 //02 is Incoming purchase for both direct and assigned purchases
                 sarTyCd: pchsSttsCd);
           } else {
@@ -1106,9 +1109,11 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _processStockInTransaction(
       Variant variant, ITransaction pendingTransaction, Business business,
-      {required String sarTyCd}) async {
-    await assignTransaction(
+      {required String sarTyCd, Purchase? purchase}) async {
+    await ProxyService.strategy.assignTransaction(
       variant: variant,
+      purchase: purchase,
+      invoiceNumber: int.tryParse(variant.taskCd ?? ""),
       pendingTransaction: pendingTransaction,
       business: business,
       randomNumber: randomNumber(),

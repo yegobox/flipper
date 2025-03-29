@@ -1,7 +1,5 @@
 library flipper_services;
 
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/cupertino.dart';
 import 'abstractions/dynamic_link.dart';
 
@@ -16,11 +14,8 @@ class UnSupportedDynamicLink implements DynamicLink {
 }
 
 class DynamicLinkService implements DynamicLink {
-  final _routerService = locator<RouterService>();
   @override
-  Future handleDynamicLink(BuildContext context) async {
-   
-  }
+  Future handleDynamicLink(BuildContext context) async {}
 
   @override
   Future<String> createDynamicLink() async {

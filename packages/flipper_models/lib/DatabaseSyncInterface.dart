@@ -11,8 +11,10 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+import 'package:flipper_models/sync/interfaces/product_interface.dart';
 
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
+import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_services/abstractions/storage.dart';
@@ -50,8 +52,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
         BusinessInterface,
         VariantInterface,
         TransactionItemInterface,
+        TransactionInterface,
+        ProductInterface,
         CategoryInterface {
-
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -167,62 +170,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Stream<List<Message>> conversationStream({required String conversationId});
 
-  FutureOr<Product?> getProduct(
-      {String? id,
-      String? barCode,
-      required int branchId,
-      String? name,
-      required int businessId});
-
-  Future<Product?> createProduct(
-      {required Product product,
-      Purchase? purchase,
-      String? modrId,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? spplrItemClsCd,
-      String? spplrItemCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      required bool createItemCode,
-      String? imptItemsttsCd,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      bool ebmSynced = false,
-      String? pchsSttsCd,
-      double? totAmt,
-      String? itemCd,
-      double? taxAmt});
-
   Stream<ITransaction> manageTransactionStream(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool includeSubTotalCheck = false});
-
-  FutureOr<ITransaction?> manageTransaction(
       {required String transactionType,
       required bool isExpense,
       required int branchId,
@@ -304,17 +252,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     DateTime? endDate,
   });
 
-  FutureOr<List<TransactionItem>> transactionItems({
-    String? transactionId,
-    bool? doneWithTransaction,
-    int? branchId,
-    String? id,
-    String? variantId,
-    bool? active,
-    bool fetchRemote = false,
-    String? requestId,
-  });
-
   FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
 
@@ -369,7 +306,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk});
 
-  FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
 
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
@@ -389,16 +325,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});
-  Stream<List<TransactionItem>> transactionItemsStreams({
-    String? transactionId,
-    int? branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-    bool? doneWithTransaction,
-    bool? active,
-    bool fetchRemote = false,
-    String? requestId,
-  });
 
   Stream<double> totalSales({required int branchId});
 
@@ -612,37 +538,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double? dcAmt,
   });
 
-  FutureOr<void> updateTransaction(
-      {required ITransaction? transaction,
-      String? receiptType,
-      double? subTotal,
-      String? note,
-      String? status,
-      int? supplierId,
-      String? customerId,
-      bool? ebmSynced,
-      String? sarTyCd,
-      String? reference,
-      String? customerTin,
-      String? customerBhfId,
-      double? cashReceived,
-      bool? isRefunded,
-      String? customerName,
-      String? ticketName,
-      DateTime? updatedAt,
-      int? invoiceNumber,
-      DateTime? lastTouched,
-      int? receiptNumber,
-      int? totalReceiptNumber,
-      bool? isProformaMode,
-      bool? isTrainingMode,
-
-      /// because transaction is involved in account reporting
-      /// and in other ways to facilitate that everything in flipper has attached transaction
-      /// we want to make it unclassified i.e neither it is income or expense
-      /// this help us having wrong computation on dashboard of what is income or expenses.
-      bool isUnclassfied = false});
-
   void updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
@@ -663,24 +558,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? open,
   });
 
-  FutureOr<void> updateVariant({
-    required List<Variant> updatables,
-    String? color,
-    String? taxTyCd,
-    String? variantId,
-    double? newRetailPrice,
-    double? retailPrice,
-    Map<String, String>? rates,
-    double? supplyPrice,
-    Map<String, String>? dates,
-    String? selectedProductType,
-    String? productId,
-    String? productName,
-    String? unit,
-    String? pkgUnitCd,
-    bool? ebmSynced,
-    DateTime? expirationDate,
-  });
   FutureOr<void> updateTenant({
     required String tenantId,
     String? name,
@@ -709,17 +586,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? active,
     int? branchId,
   });
-
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      required int branchId,
-      required int businessId,
-      String? imageUrl,
-      String? expiryDate});
 
   FutureOr<void> updateColor(
       {required String colorId, String? name, bool? active});
@@ -867,13 +733,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   getTop5RecentConversations() {}
 
-  FutureOr<String> itemCode({
-    required int branchId,
-    required String countryCode, // e.g., "RW"
-    required String productType, // e.g., "2"
-    required String packagingUnit, // e.g., "NT"
-    required String quantityUnit, // e.g., "BJ"
-  });
 
   Future<void> createNewStock(
       {required Variant variant,

@@ -82,11 +82,11 @@ mixin TransactionMixin implements TransactionInterface {
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(PENDING),
         Where('transactionType').isExactly(transactionType),
-        if (includeSubTotalCheck)
-          Where('subTotal').isGreaterThan(0),
+        if (includeSubTotalCheck) Where('subTotal').isGreaterThan(0),
       ]);
 
-      final List<ITransaction> transactions = await repository.get<ITransaction>(
+      final List<ITransaction> transactions =
+          await repository.get<ITransaction>(
         query: query,
         policy: OfflineFirstGetPolicy.localOnly,
       );
@@ -217,8 +217,414 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  FutureOr<void> removeCustomerFromTransaction({required ITransaction transaction}) {
+  FutureOr<void> removeCustomerFromTransaction(
+      {required ITransaction transaction}) {
     transaction.customerId = null;
     repository.upsert(transaction);
+  }
+
+  @override
+  Future<void> assignTransaction({
+    required Variant variant,
+    required ITransaction pendingTransaction,
+    required Business business,
+    required int randomNumber,
+    int? invoiceNumber,
+    required String sarTyCd,
+    Purchase? purchase,
+
+    /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
+    /// transaction i.e not original transaction
+    bool useTransactionItemForQty = false,
+    TransactionItem? item,
+  }) async {
+    try {
+      // Save the transaction item
+      await saveTransactionItem(
+        variation: variant,
+        amountTotal: variant.retailPrice!,
+        customItem: false,
+        currentStock: variant.stock!.currentStock!,
+        pendingTransaction: pendingTransaction,
+        partOfComposite: false,
+        compositePrice: 0,
+        item: item,
+        sarTyCd: sarTyCd,
+        useTransactionItemForQty: useTransactionItemForQty,
+      );
+
+      // Update the transaction status to PARKED
+      await _parkTransaction(
+        purchase: purchase,
+        invoiceNumber: invoiceNumber,
+        pendingTransaction: pendingTransaction,
+        variant: variant,
+        sarTyCd: sarTyCd,
+        business: business,
+        randomNumber: randomNumber,
+      );
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  ///Parks the transaction
+  Future<void> _parkTransaction({
+    required ITransaction pendingTransaction,
+    required Variant variant,
+    required dynamic business,
+    required int randomNumber,
+    required String sarTyCd,
+    Purchase? purchase,
+    int? invoiceNumber,
+  }) async {
+    if (purchase != null && invoiceNumber != null) {
+      throw ArgumentError(
+          'Both purchase and invoiceNumber cannot be provided at the same time.');
+    }
+
+    await updateTransaction(
+      transaction: pendingTransaction,
+      status: PARKED,
+
+      sarNo: invoiceNumber != null
+          ? invoiceNumber.toString()
+          : purchase?.spplrInvcNo.toString(),
+      orgSarNo: invoiceNumber != null
+          ? invoiceNumber.toString()
+          : purchase?.spplrInvcNo.toString(),
+      sarTyCd: sarTyCd, //Incoming- Adjustment
+      receiptNumber: randomNumber,
+      reference: randomNumber.toString(),
+      invoiceNumber: invoiceNumber ?? randomNumber,
+      receiptType: TransactionType.adjustment,
+      customerTin: ProxyService.box.tin().toString(),
+      customerBhfId: await ProxyService.box.bhfId() ?? "00",
+      subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
+      cashReceived: -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
+      customerName: business.name,
+    );
+  }
+
+  @override
+  Future<bool> saveTransactionItem(
+      {double? compositePrice,
+      required Variant variation,
+      required double amountTotal,
+      required bool customItem,
+      required ITransaction pendingTransaction,
+      required double currentStock,
+      bool useTransactionItemForQty = false,
+      required bool partOfComposite,
+      TransactionItem? item,
+      String? sarTyCd}) async {
+    try {
+      TransactionItem? existTransactionItem = await ProxyService.strategy
+          .getTransactionItem(
+              variantId: variation.id, transactionId: pendingTransaction.id);
+
+      await addTransactionItems(
+        doneWithTransaction: true,
+        variationId: variation.id,
+        pendingTransaction: pendingTransaction,
+        name: variation.name,
+        sarTyCd: sarTyCd,
+        variation: variation,
+        currentStock: currentStock,
+        amountTotal: amountTotal,
+        isCustom: customItem,
+        partOfComposite: partOfComposite,
+        compositePrice: compositePrice,
+        item: existTransactionItem ?? item,
+        useTransactionItemForQty: useTransactionItemForQty,
+      );
+
+      return true;
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  Future<void> addTransactionItems({
+    required String variationId,
+    required ITransaction pendingTransaction,
+    required String name,
+    required Variant variation,
+    required double currentStock,
+    required double amountTotal,
+    required bool isCustom,
+    TransactionItem? item,
+    double? compositePrice,
+    required bool partOfComposite,
+    bool useTransactionItemForQty = false,
+    String? sarTyCd,
+    bool? doneWithTransaction,
+  }) async {
+    try {
+      // First check if there's an existing active transaction item for this variant
+      final existingItems = await ProxyService.strategy.transactionItems(
+        transactionId: pendingTransaction.id,
+        branchId: ProxyService.box.getBranchId()!,
+        active: true,
+      );
+
+      // If item is provided, use it. Otherwise find an existing one.
+      TransactionItem? existingItem;
+      if (item != null) {
+        existingItem = item;
+      } else {
+        existingItem = existingItems
+            .where((i) => i.variantId == variationId && !i.doneWithTransaction!)
+            .firstOrNull;
+      }
+
+      // Update existing item if found and not custom
+      if (existingItem != null && !isCustom) {
+        await _updateExistingTransactionItem(
+          item: existingItem,
+
+          /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
+          quantity: sarTyCd == "02" || sarTyCd == "01"
+              ? variation.stock!.currentStock!
+              : existingItem.qty + 1,
+          variation: variation,
+          amountTotal: amountTotal,
+        );
+        await updatePendingTransactionTotals(pendingTransaction,
+            sarTyCd: sarTyCd ?? "11");
+        return;
+      }
+
+      // Add a new item
+      double computedQty = await _calculateQuantity(
+        isCustom: isCustom,
+        partOfComposite: partOfComposite,
+        variation: variation,
+      );
+      final quantity =
+          useTransactionItemForQty && item != null ? item.qty : computedQty;
+      final sarQty = sarTyCd == "02" || sarTyCd == "01"
+          ? variation.stock!.currentStock!
+          : quantity;
+
+      await ProxyService.strategy.addTransactionItem(
+        doneWithTransaction: doneWithTransaction,
+        transaction: pendingTransaction,
+        lastTouched: DateTime.now(),
+        discount: 0.0,
+        compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
+        quantity: sarTyCd == null ? quantity : sarQty,
+        currentStock: currentStock,
+        partOfComposite: partOfComposite,
+        variation: variation,
+        name: name,
+        amountTotal: amountTotal,
+      );
+
+      // Reactivate inactive items if necessary
+      await _reactivateInactiveItems(pendingTransaction);
+
+      await updatePendingTransactionTotals(pendingTransaction,
+          sarTyCd: sarTyCd ?? "11");
+    } catch (e, s) {
+      talker.warning(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+// Helper: Update existing transaction item
+  Future<void> _updateExistingTransactionItem({
+    required TransactionItem item,
+    required double quantity,
+    required Variant variation,
+    required double amountTotal,
+  }) async {
+    await ProxyService.strategy.updateTransactionItem(
+      transactionItemId: item.id,
+      doneWithTransaction: false,
+      qty: quantity,
+      taxblAmt: variation.retailPrice! * quantity,
+      price: variation.retailPrice!,
+      totAmt: variation.retailPrice! * quantity,
+      prc: item.prc + variation.retailPrice! * quantity,
+      splyAmt: variation.supplyPrice,
+      active: true,
+      quantityRequested: quantity.toInt(),
+      quantityShipped: 0,
+    );
+  }
+
+// Helper: Calculate quantity
+  Future<double> _calculateQuantity({
+    required bool isCustom,
+    required bool partOfComposite,
+    required Variant variation,
+  }) async {
+    if (isCustom) return 1.0;
+
+    /// because for composite we might have more than one item to be added to the cart at once hence why we have this
+    if (partOfComposite) {
+      final composite =
+          (await ProxyService.strategy.composites(variantId: variation.id))
+              .firstOrNull;
+      return composite?.qty ?? 0.0;
+    }
+
+    return 1;
+  }
+
+// Helper: Reactivate inactive items
+  Future<void> _reactivateInactiveItems(ITransaction pendingTransaction) async {
+    final inactiveItems = await ProxyService.strategy.transactionItems(
+      branchId: ProxyService.box.getBranchId()!,
+      transactionId: pendingTransaction.id,
+      doneWithTransaction: false,
+      active: false,
+    );
+
+    if (inactiveItems.isNotEmpty) {
+      markItemAsDoneWithTransaction(
+        inactiveItems: inactiveItems,
+        pendingTransaction: pendingTransaction,
+      );
+    }
+  }
+
+  @override
+  Future<void> markItemAsDoneWithTransaction(
+      {required List<TransactionItem> inactiveItems,
+      required ITransaction pendingTransaction,
+      bool isDoneWithTransaction = false}) async {
+    if (inactiveItems.isNotEmpty) {
+      for (TransactionItem inactiveItem in inactiveItems) {
+        inactiveItem.active = true;
+        if (isDoneWithTransaction) {
+          await ProxyService.strategy.updateTransactionItem(
+            transactionItemId: inactiveItem.id,
+            doneWithTransaction: true,
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
+      {required String sarTyCd}) async {
+    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
+      branchId: ProxyService.box.getBranchId()!,
+      transactionId: pendingTransaction.id,
+      doneWithTransaction: false,
+      active: true,
+    );
+
+    // Calculate the new values
+    double newSubTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    DateTime newUpdatedAt = DateTime.now();
+    DateTime newLastTouched = DateTime.now();
+
+    // Check if we're already in a write transaction
+    await ProxyService.strategy.updateTransaction(
+      transaction: pendingTransaction,
+      subTotal: newSubTotal,
+      updatedAt: newUpdatedAt,
+      lastTouched: newLastTouched,
+      receiptType: "NS",
+      isProformaMode: false,
+      sarTyCd: sarTyCd,
+      isTrainingMode: false,
+    );
+  }
+
+  /// Updates a transaction with the provided details.
+  ///
+  /// The [transaction] parameter is required and represents the transaction to update.
+  /// The [isUnclassfied] parameter is used to mark the transaction as unclassified,
+  /// meaning it is neither income nor expense. This helps avoid incorrect computations
+  /// on the dashboard.
+  @override
+  FutureOr<void> updateTransaction({
+    required ITransaction? transaction,
+    String? receiptType,
+    double? subTotal,
+    String? note,
+    String? status,
+    String? customerId,
+    bool? ebmSynced,
+    String? sarTyCd,
+    String? reference,
+    String? customerTin,
+    String? customerBhfId,
+    double? cashReceived,
+    bool? isRefunded,
+    String? customerName,
+    String? ticketName,
+    DateTime? updatedAt,
+    int? invoiceNumber,
+    DateTime? lastTouched,
+    int? supplierId,
+    int? receiptNumber,
+    int? totalReceiptNumber,
+    bool? isProformaMode,
+    String? sarNo,
+    String? orgSarNo,
+
+    /// because transaction is involved in account reporting
+    /// and in other ways to facilitate that everything in flipper has attached transaction
+    /// we want to make it unclassified i.e neither it is income or expense
+    /// this help us having wrong computation on dashboard of what is income or expenses.
+    bool isUnclassfied = false,
+    bool? isTrainingMode,
+  }) async {
+    if (transaction == null) {
+      print("Error: Transaction is null in updateTransaction.");
+      return; // Exit if transaction is null.
+    }
+
+    // Determine receipt type based on mode (or use the provided value if available)
+    if (isProformaMode != null || isTrainingMode != null) {
+      String newReceiptType = TransactionReceptType.NS;
+      if (isProformaMode == true) {
+        newReceiptType = TransactionReceptType.PS;
+      }
+      if (isTrainingMode == true) {
+        newReceiptType = TransactionReceptType.TS;
+      }
+      receiptType = newReceiptType; // Use the determined value for receiptType
+    }
+
+    // update to avoid the same issue, make sure that every parameter is update correctly.
+    transaction.receiptType = receiptType ?? transaction.receiptType;
+    transaction.subTotal = subTotal ?? transaction.subTotal;
+    transaction.note = note ?? transaction.note;
+    transaction.supplierId = supplierId ?? transaction.supplierId;
+    transaction.status = status ?? transaction.status;
+    transaction.ticketName = ticketName ?? transaction.ticketName;
+    transaction.updatedAt = updatedAt ?? transaction.updatedAt;
+    transaction.customerId = customerId ?? transaction.customerId;
+    transaction.isRefunded = isRefunded ?? transaction.isRefunded;
+    transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
+    transaction.sarNo = sarNo ?? transaction.sarNo;
+    transaction.orgSarNo = orgSarNo ?? transaction.orgSarNo;
+    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
+    transaction.totalReceiptNumber =
+        totalReceiptNumber ?? transaction.totalReceiptNumber;
+    transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
+    transaction.reference = reference ?? transaction.reference;
+    transaction.customerTin = customerTin ?? transaction.customerTin;
+    transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
+    transaction.cashReceived = cashReceived ?? transaction.cashReceived;
+    transaction.customerName = customerName ?? transaction.customerName;
+    transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
+    transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
+
+    await repository.upsert<ITransaction>(
+        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
   }
 }

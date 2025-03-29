@@ -10,8 +10,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'drawerB.dart';
 import 'customappbar.dart';
 
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 
 class MobileView extends StatefulHookConsumerWidget {
@@ -31,7 +29,6 @@ class MobileView extends StatefulHookConsumerWidget {
 }
 
 class _MobileViewState extends ConsumerState<MobileView> {
-  final _routerService = locator<RouterService>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String transactionPeriod = "Today";
