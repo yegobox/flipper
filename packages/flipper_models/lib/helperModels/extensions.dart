@@ -217,6 +217,10 @@ extension DoubleExtension on double {
     final factor = pow(10, fractionDigits);
     return (this * factor).round() / factor;
   }
+
+  double roundToTwoDecimalPlaces() {
+    return double.parse(toStringAsFixed(2));
+  }
 }
 
 extension DateOnly on DateTime {
