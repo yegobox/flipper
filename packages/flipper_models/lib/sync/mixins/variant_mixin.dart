@@ -184,7 +184,8 @@ mixin VariantMixin implements VariantInterface {
       }
       return;
     }
-    Category? category = await ProxyService.strategy.category(id: categoryId!);
+    Category? category =
+        await ProxyService.strategy.category(id: categoryId ?? "");
     // loop through all variants and update all with retailPrice and supplyPrice
 
     for (var i = 0; i < updatables.length; i++) {
@@ -195,8 +196,8 @@ mixin VariantMixin implements VariantInterface {
       }
 
       updatables[i].name = name;
-      updatables[i].categoryId = category?.id;
-      updatables[i].categoryName = category?.name;
+      updatables[i].categoryId = category?.id ?? updatables[i].categoryId;
+      updatables[i].categoryName = category?.name ?? updatables[i].categoryName;
       updatables[i].itemStdNm = name;
       updatables[i].spplrItemNm = name;
       double rate = rates?[updatables[i].id] == null
