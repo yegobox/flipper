@@ -47,6 +47,9 @@ mixin VariantMixin implements VariantInterface {
         ] else if (imptItemsttsCd != null) ...[
           Where('imptItemSttsCd').isExactly(imptItemsttsCd),
           Where('branchId').isExactly(branchId)
+        ] else if (purchaseId != null) ...[
+          Where('purchaseId').isExactly(purchaseId),
+          Where('branchId').isExactly(branchId)
         ] else if (productId != null) ...[
           Where('productId').isExactly(productId),
           Where('branchId').isExactly(branchId)

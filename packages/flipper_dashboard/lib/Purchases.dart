@@ -18,7 +18,7 @@ class Purchases extends StatefulHookConsumerWidget {
     Variant? itemToAssign,
     Variant? itemFromPurchase,
   ) selectSale;
-  final List<Variant> finalSalesList;
+  final List<Variant> variants;
   final List<Purchase> purchases;
 
   Purchases({
@@ -29,7 +29,7 @@ class Purchases extends StatefulHookConsumerWidget {
     required this.saveItemName,
     required this.acceptPurchases,
     required this.selectSale,
-    required this.finalSalesList,
+    required this.variants,
     required this.purchases,
   });
 
@@ -52,12 +52,12 @@ class _PurchasesState extends ConsumerState<Purchases> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  widget.finalSalesList.isEmpty
+                  widget.variants.isEmpty
                       ? const SizedBox.shrink()
                       : FlipperButton(
                           onPressed: () async {
                             await widget.acceptPurchases(
-                                variants: widget.finalSalesList,
+                                variants: widget.variants,
                                 pchsSttsCd: '02',
                                 purchase: widget.purchases.first);
                             showToast(context, "You Accepted all purchaes");
@@ -78,7 +78,7 @@ class _PurchasesState extends ConsumerState<Purchases> {
                 saveItemName: widget.saveItemName,
                 acceptPurchases: widget.acceptPurchases,
                 selectSale: widget.selectSale,
-                finalSalesList: widget.finalSalesList,
+                variants: widget.variants,
               ),
             ),
           ],
