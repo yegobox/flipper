@@ -64,6 +64,7 @@ class SellState extends ConsumerState<Sell> {
 
               bool saved = await ProxyService.strategy.saveTransactionItem(
                   partOfComposite: false,
+                  doneWithTransaction: false,
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,

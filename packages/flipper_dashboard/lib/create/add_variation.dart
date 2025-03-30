@@ -236,6 +236,7 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
         for (Variant variant in variants) {
           await ProxyService.strategy.assignTransaction(
             variant: variant,
+            doneWithTransaction: true,
             pendingTransaction: pendingTransaction!,
             business: business!,
             randomNumber: randomNumber(),

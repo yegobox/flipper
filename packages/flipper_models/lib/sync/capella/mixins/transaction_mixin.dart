@@ -79,6 +79,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required Variant variant,
     required ITransaction pendingTransaction,
     Purchase? purchase,
+    required bool doneWithTransaction,
     int? invoiceNumber,
     required Business business,
     required int randomNumber,
@@ -97,6 +98,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<bool> saveTransactionItem(
       {double? compositePrice,
       required Variant variation,
+      required bool doneWithTransaction,
       required double amountTotal,
       required bool customItem,
       required ITransaction pendingTransaction,

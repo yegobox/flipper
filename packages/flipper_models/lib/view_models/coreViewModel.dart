@@ -754,6 +754,7 @@ class CoreViewModel extends FlipperBaseModel
 
     await ProxyService.strategy.saveTransactionItem(
         partOfComposite: false,
+        doneWithTransaction: false,
         variation: variant!,
         amountTotal: amountTotal,
         customItem: false,
@@ -1112,6 +1113,10 @@ class CoreViewModel extends FlipperBaseModel
       {required String sarTyCd, Purchase? purchase}) async {
     await ProxyService.strategy.assignTransaction(
       variant: variant,
+
+      /// we set it done with transaction becase this transaction item will never be marked
+      /// as done with transaction later.
+      doneWithTransaction: true,
       purchase: purchase,
       invoiceNumber: int.tryParse(variant.taskCd ?? ""),
       pendingTransaction: pendingTransaction,

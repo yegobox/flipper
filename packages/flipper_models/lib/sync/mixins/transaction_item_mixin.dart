@@ -228,4 +228,55 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         ]));
     return items;
   }
+
+
+  @override
+  FutureOr<void> updateTransactionItem(
+      {double? qty,
+      required String transactionItemId,
+      double? discount,
+      bool? active,
+      double? taxAmt,
+      int? quantityApproved,
+      int? quantityRequested,
+      bool? ebmSynced,
+      bool? isRefunded,
+      bool? incrementQty,
+      double? price,
+      double? prc,
+      double? splyAmt,
+      bool? doneWithTransaction,
+      int? quantityShipped,
+      double? taxblAmt,
+      double? totAmt,
+      double? dcRt,
+      double? dcAmt}) async {
+    TransactionItem? item = (await repository.get<TransactionItem>(
+            query: Query(where: [
+      Where('id', value: transactionItemId, compare: Compare.exact),
+    ])))
+        .firstOrNull;
+    if (item != null) {
+      item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
+      item.discount = discount ?? item.discount;
+      item.active = active ?? item.active;
+      item.price = price ?? item.price;
+      item.prc = prc ?? item.prc;
+      item.taxAmt = taxAmt ?? item.taxAmt;
+      item.isRefunded = isRefunded ?? item.isRefunded;
+      item.ebmSynced = ebmSynced ?? item.ebmSynced;
+      item.quantityApproved =
+          (item.quantityApproved ?? 0) + (quantityApproved ?? 0);
+      item.quantityRequested = incrementQty == true
+          ? (item.qty + 1).toInt()
+          : qty?.toInt() ?? item.qty.toInt();
+      item.splyAmt = splyAmt ?? item.splyAmt;
+      item.quantityShipped = quantityShipped ?? item.quantityShipped;
+      item.taxblAmt = taxblAmt ?? item.taxblAmt;
+      item.totAmt = totAmt ?? item.totAmt;
+      item.doneWithTransaction =
+          doneWithTransaction ?? item.doneWithTransaction;
+      repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
+    }
+  }
 }

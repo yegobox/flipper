@@ -197,7 +197,7 @@ dependencies:
   firebase_ui_oauth: ^1.6.1
   firebase_ui_oauth_google: ^1.4.0
   sentry: ^8.13.0
-  sentry_flutter: ^8.13.0
+  sentry_flutter: ^8.14.1
   
   equatable: ^2.0.3
   built_value: ^8.1.4
@@ -287,7 +287,7 @@ dev_dependencies:
   dart_mappable_builder: ^4.4.0
   isar_generator: ^3.1.0+1
   patrol: ^3.14.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.3
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
   msix: ^3.16.8

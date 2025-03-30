@@ -526,6 +526,7 @@ class _RowItemState extends ConsumerState<RowItem>
           if (variant != null) {
             await ProxyService.strategy.saveTransactionItem(
               variation: variant,
+              doneWithTransaction: false,
               amountTotal: variant.retailPrice!,
               customItem: false,
               currentStock: variant.stock?.currentStock ?? 0,
@@ -539,6 +540,7 @@ class _RowItemState extends ConsumerState<RowItem>
         // Handle non-composite product
         await ProxyService.strategy.saveTransactionItem(
           variation: widget.variant!,
+          doneWithTransaction: false,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
           currentStock: widget.variant!.stock?.currentStock ?? 0,

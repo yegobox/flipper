@@ -260,6 +260,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       variation: variant,
       amountTotal: variant.retailPrice!,
       customItem: false,
+      doneWithTransaction: true,
       pendingTransaction: pendingTransaction.value!,
       currentStock: variant.stock!.currentStock!,
       partOfComposite: false,

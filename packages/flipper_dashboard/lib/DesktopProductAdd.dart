@@ -132,6 +132,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               // Handle the transaction for stock adjustment
               await ProxyService.strategy.assignTransaction(
                 variant: variant,
+                doneWithTransaction: true,
                 invoiceNumber: invoiceNumber,
                 pendingTransaction: pendingTransaction!,
                 business: business!,
@@ -179,6 +180,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 // Handle the transaction for stock adjustment
                 await ProxyService.strategy.assignTransaction(
                   variant: variant,
+                  doneWithTransaction: true,
                   invoiceNumber: invoiceNumber,
                   pendingTransaction: pendingTransaction!,
                   business: business!,

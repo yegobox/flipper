@@ -122,11 +122,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           isExpense: ProxyService.box.isOrdering() ?? false));
     });
 
-    return ViewModelBuilder.nonReactive(
+    return ViewModelBuilder.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           internalTransactionItems = ref
-                  .watch(transactionItemsProvider(
+                  .watch(transactionItemsStreamProvider(
                       transactionId: transactionAsyncValue.value?.id))
                   .value ??
               [];

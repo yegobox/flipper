@@ -232,7 +232,7 @@ mixin TransactionMixin implements TransactionInterface {
     int? invoiceNumber,
     required String sarTyCd,
     Purchase? purchase,
-
+  required bool doneWithTransaction,
     /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
     /// transaction i.e not original transaction
     bool useTransactionItemForQty = false,
@@ -242,6 +242,7 @@ mixin TransactionMixin implements TransactionInterface {
       // Save the transaction item
       await saveTransactionItem(
         variation: variant,
+        doneWithTransaction:doneWithTransaction,
         amountTotal: variant.retailPrice!,
         customItem: false,
         currentStock: variant.stock!.currentStock!,
@@ -318,6 +319,7 @@ mixin TransactionMixin implements TransactionInterface {
       required double currentStock,
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
+      required bool doneWithTransaction,
       TransactionItem? item,
       String? sarTyCd}) async {
     try {
@@ -325,8 +327,9 @@ mixin TransactionMixin implements TransactionInterface {
           .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction.id);
 
+
       await addTransactionItems(
-        doneWithTransaction: true,
+        doneWithTransaction: doneWithTransaction,
         variationId: variation.id,
         pendingTransaction: pendingTransaction,
         name: variation.name,
@@ -365,32 +368,15 @@ mixin TransactionMixin implements TransactionInterface {
     bool? doneWithTransaction,
   }) async {
     try {
-      // First check if there's an existing active transaction item for this variant
-      final existingItems = await ProxyService.strategy.transactionItems(
-        transactionId: pendingTransaction.id,
-        branchId: ProxyService.box.getBranchId()!,
-        active: true,
-      );
-
-      // If item is provided, use it. Otherwise find an existing one.
-      TransactionItem? existingItem;
-      if (item != null) {
-        existingItem = item;
-      } else {
-        existingItem = existingItems
-            .where((i) => i.variantId == variationId && !i.doneWithTransaction!)
-            .firstOrNull;
-      }
-
       // Update existing item if found and not custom
-      if (existingItem != null && !isCustom) {
+      if (item != null && !isCustom) {
         await _updateExistingTransactionItem(
-          item: existingItem,
+          item: item,
 
           /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
           quantity: sarTyCd == "02" || sarTyCd == "01"
               ? variation.stock!.currentStock!
-              : existingItem.qty + 1,
+              : item.qty + 1,
           variation: variation,
           amountTotal: amountTotal,
         );
@@ -424,9 +410,6 @@ mixin TransactionMixin implements TransactionInterface {
         name: name,
         amountTotal: amountTotal,
       );
-
-      // Reactivate inactive items if necessary
-      await _reactivateInactiveItems(pendingTransaction);
 
       await updatePendingTransactionTotals(pendingTransaction,
           sarTyCd: sarTyCd ?? "11");
@@ -476,23 +459,6 @@ mixin TransactionMixin implements TransactionInterface {
     }
 
     return 1;
-  }
-
-// Helper: Reactivate inactive items
-  Future<void> _reactivateInactiveItems(ITransaction pendingTransaction) async {
-    final inactiveItems = await ProxyService.strategy.transactionItems(
-      branchId: ProxyService.box.getBranchId()!,
-      transactionId: pendingTransaction.id,
-      doneWithTransaction: false,
-      active: false,
-    );
-
-    if (inactiveItems.isNotEmpty) {
-      markItemAsDoneWithTransaction(
-        inactiveItems: inactiveItems,
-        pendingTransaction: pendingTransaction,
-      );
-    }
   }
 
   @override

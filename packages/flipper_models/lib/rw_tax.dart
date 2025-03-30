@@ -123,7 +123,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final mod = randomNumber().toString();
       final sar = randomNumber();
 
-      // Query active, non-done items only
+      // Query active, done items only
       final items = await ProxyService.strategy.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id,
@@ -394,6 +394,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Business? business = await ProxyService.strategy.getBusiness();
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         transactionId: transaction.id,
+        // doneWithTransaction: true,
         branchId: ProxyService.box.getBranchId()!);
 
     // Get the current date and time in the required format yyyyMMddHHmmss

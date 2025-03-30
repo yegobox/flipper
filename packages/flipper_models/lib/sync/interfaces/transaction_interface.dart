@@ -44,6 +44,7 @@ abstract class TransactionInterface {
 
   Future<void> assignTransaction({
     required Variant variant,
+    required bool doneWithTransaction,
     required ITransaction pendingTransaction,
     required Business business,
     required int randomNumber,
@@ -62,6 +63,7 @@ abstract class TransactionInterface {
       required Variant variation,
       required double amountTotal,
       required bool customItem,
+      required bool doneWithTransaction,
       required ITransaction pendingTransaction,
       required double currentStock,
       bool useTransactionItemForQty = false,
