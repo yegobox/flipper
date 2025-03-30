@@ -102,7 +102,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
   Future<int> availableQueue() async {
     final requests = await offlineRequestQueue.requestManager
-        .wunprocessedRequests(onlyLocked: true);
+        .unprocessedRequests(onlyLocked: true);
     return requests.length;
   }
 
@@ -110,7 +110,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     try {
       // Retrieve unprocessed requests
       final requests = await offlineRequestQueue.requestManager
-          .wunprocessedRequests(onlyLocked: true);
+          .unprocessedRequests(onlyLocked: true);
 
       // Extract the primary key column name
       final primaryKeyColumn =
