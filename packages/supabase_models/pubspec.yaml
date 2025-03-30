@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   brick_offline_first_with_supabase: ^2.0.0
-  brick_sqlite: ^4.0.0
+  brick_sqlite: ^4.0.1
   brick_supabase: ^2.0.0
   supabase_flutter: ^2.8.0
   sqflite_common: ^2.5.4+6 
