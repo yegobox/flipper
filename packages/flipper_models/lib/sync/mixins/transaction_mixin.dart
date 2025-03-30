@@ -232,7 +232,8 @@ mixin TransactionMixin implements TransactionInterface {
     int? invoiceNumber,
     required String sarTyCd,
     Purchase? purchase,
-  required bool doneWithTransaction,
+    required bool doneWithTransaction,
+
     /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
     /// transaction i.e not original transaction
     bool useTransactionItemForQty = false,
@@ -242,7 +243,7 @@ mixin TransactionMixin implements TransactionInterface {
       // Save the transaction item
       await saveTransactionItem(
         variation: variant,
-        doneWithTransaction:doneWithTransaction,
+        doneWithTransaction: doneWithTransaction,
         amountTotal: variant.retailPrice!,
         customItem: false,
         currentStock: variant.stock!.currentStock!,
@@ -326,7 +327,6 @@ mixin TransactionMixin implements TransactionInterface {
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction.id);
-
 
       await addTransactionItems(
         doneWithTransaction: doneWithTransaction,
@@ -592,5 +592,28 @@ mixin TransactionMixin implements TransactionInterface {
 
     await repository.upsert<ITransaction>(
         policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
+  }
+
+  @override
+  Future<ITransaction?> getTransaction(
+      {String? sarNo, required int branchId}) async {
+    try {
+      final query = Query(where: [
+        if (sarNo != null) Where('sarNo').isExactly(sarNo),
+        Where('branchId').isExactly(branchId)
+      ]);
+
+      final List<ITransaction> transactions =
+          await repository.get<ITransaction>(
+        query: query,
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      return transactions.isNotEmpty ? transactions.last : null;
+    } catch (e, s) {
+      talker.error('Error in _pendingTransaction: $e');
+      talker.error('Stack trace: $s');
+      return null;
+    }
   }
 }

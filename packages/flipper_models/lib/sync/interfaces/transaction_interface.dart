@@ -108,4 +108,5 @@ abstract class TransactionInterface {
     bool isUnclassfied = false,
     bool? isTrainingMode,
   });
+  Future<ITransaction?> getTransaction({String? sarNo,required int branchId});
 }

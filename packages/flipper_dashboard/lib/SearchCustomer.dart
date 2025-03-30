@@ -302,6 +302,18 @@ class _SearchInputWithDropdownState
                               ProxyService.box.writeString(
                                   key: 'stockInOutType', value: "11");
                             } else if (newValue == "Incoming Return") {
+                              /// TODO: show the modal, for a user to give receipt number
+                              /// query the transaction item, using this given receipt number
+                              /// first retrieve this transaction using ProxyService.strategy.getTransaction(sarNo: 'given receiptnumber',branchId: ProxyService.box.getBranchId()!)
+                              /// then
+                              /// retrieve the items using the above transaction using ProxyService.strategy.transactionItems(transactionId: retrievedTransactionId) 
+                              /// mark the item as not done with transaction
+                              /// mark the current pending transaction as parked and save its id temporarily
+                              /// then mark the transaction that has retrieved these item as pending (this make it the active one)
+                              /// change action button from Pay-> confirm return
+                              /// When we are deaking with return only 1 button show and it does not involves payment, it just complete transaction
+                              /// 
+                              /// finally save a return.
                               ProxyService.box.writeString(
                                   key: 'stockInOutType', value: "03");
                             }

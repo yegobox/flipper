@@ -2048,4 +2048,9 @@ class Capella extends AiStrategyImpl
     // TODO: implement category
     throw UnimplementedError();
   }
+  @override
+  Future<ITransaction?> getTransaction({String? sarNo, required int branchId}) {
+    throw UnimplementedError(
+        'getTransaction needs to be implemented for Capella');
+  }
 }
