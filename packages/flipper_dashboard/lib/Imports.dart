@@ -1,4 +1,3 @@
-// Imports.dart
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -15,13 +14,11 @@ class Imports extends StatefulHookConsumerWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveChangeMadeOnItem;
-  //changed
   final void Function(List<Variant> variants) acceptAllImport;
   final void Function(Variant? selectedItem) selectItem;
   final Variant? selectedItem;
   final List<Variant> finalItemList;
   final Map<String, Variant> variantMap;
-  // Add these callbacks
   final Future<void> Function(Variant) onApprove;
   final Future<void> Function(Variant) onReject;
 
@@ -47,7 +44,6 @@ class Imports extends StatefulHookConsumerWidget {
 }
 
 class ImportsState extends ConsumerState<Imports> {
-  bool _isLoading = false;
   late VariantDataSource _variantDataSource;
   Variant? variantSelectedWhenClickingOnRow;
 
@@ -57,28 +53,31 @@ class ImportsState extends ConsumerState<Imports> {
     _variantDataSource = VariantDataSource([], this);
   }
 
-  // _handleApproval and _handleRejection now call the callbacks
   Future<void> _handleApproval(Variant item) async {
-    setState(() => _isLoading = true);
+    // Update both local state and datasource state
+    _variantDataSource.setApproveLoading(item.id, true);
+
     try {
-      await widget.onApprove(item); // Call the provided callback
-    } catch (e, s) {
-      talker.error(s);
+      await widget.onApprove(item);
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error approving item: $e'),
-          backgroundColor: Colors.red,
-        ),
+            content: Text('Error approving item: $e'),
+            backgroundColor: Colors.red),
       );
     } finally {
-      setState(() => _isLoading = false);
+      // Important: Always update the state when the operation completes
+      _variantDataSource.setApproveLoading(item.id, false);
     }
   }
 
   Future<void> _handleRejection(Variant item) async {
-    setState(() => _isLoading = true);
+    // Update both local state and datasource state
+
+    _variantDataSource.setRejectLoading(item.id, true);
+
     try {
-      await widget.onReject(item); // Call the provided callback
+      await widget.onReject(item);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -87,7 +86,8 @@ class ImportsState extends ConsumerState<Imports> {
         ),
       );
     } finally {
-      setState(() => _isLoading = false);
+      // Important: Always update the state when the operation completes
+      _variantDataSource.setRejectLoading(item.id, false);
     }
   }
 
@@ -101,7 +101,6 @@ class ImportsState extends ConsumerState<Imports> {
           child: FutureBuilder<List<Variant>>(
             future: widget.futureResponse,
             builder: (context, snapshot) {
-              // Modify error handling to show generic "No Data Found" view
               if (snapshot.hasError ||
                   !snapshot.hasData ||
                   snapshot.data == null ||
@@ -198,7 +197,6 @@ class ImportsState extends ConsumerState<Imports> {
                             : null;
 
                     return Column(
-                      // Wrap with Column to accommodate the extra widget.
                       children: [
                         DropdownButton<String>(
                           value: selectedVariantObject?.id,
@@ -213,21 +211,13 @@ class ImportsState extends ConsumerState<Imports> {
                             if (value != null) {
                               final selectedVariant = variants
                                   .firstWhere((variant) => variant.id == value);
-                              // Ensure variantSelectedWhenClickingOnRow is updated too if necessary:
-                              // setState(() {
-                              //   variantSelectedWhenClickingOnRow =
-                              //       selectedVariant; // Update the value
-                              // });
                               widget.variantMap.clear();
                               widget.variantMap.putIfAbsent(
                                   variantSelectedWhenClickingOnRow!.id,
                                   () => selectedVariant);
-                              // Call setState to update the UI
-                              widget.selectItem(
-                                  selectedVariant); // make sure that you set the textfield here also.
+                              widget.selectItem(selectedVariant);
                             } else {
-                              widget.selectItem(
-                                  null); // make sure that you set the textfield here also.
+                              widget.selectItem(null);
                             }
                           },
                         ),
@@ -271,13 +261,15 @@ class ImportsState extends ConsumerState<Imports> {
     return Row(
       children: [
         FlipperButton(
-          onPressed: _isLoading ? null : widget.saveChangeMadeOnItem,
+          onPressed: _variantDataSource.anyLoading
+              ? null
+              : widget.saveChangeMadeOnItem,
           text: 'Save Changes',
           textColor: Colors.black,
         ),
         const SizedBox(width: 8),
         FlipperIconButton(
-          onPressed: _isLoading
+          onPressed: _variantDataSource.anyLoading
               ? null
               : () => widget.acceptAllImport(widget.finalItemList),
           icon: Icons.done_all,
@@ -302,11 +294,10 @@ class ImportsState extends ConsumerState<Imports> {
             setState(() {
               variantSelectedWhenClickingOnRow = selectedVariant;
             });
-            // Add/Update the variant in the map when row is selected
             widget.variantMap.clear();
             widget.variantMap
                 .putIfAbsent(selectedVariant!.id, () => selectedVariant);
-            _updateTextFields(selectedVariant); // Update TextFields
+            _updateTextFields(selectedVariant);
           } else {
             widget.selectItem(null);
           }
@@ -407,10 +398,8 @@ class ImportsState extends ConsumerState<Imports> {
 
   void _updateTextFields(Variant variant) {
     widget.nameController.text = variant.itemNm ?? variant.name;
-    widget.supplyPriceController.text =
-        variant.supplyPrice?.toString() ?? ''; // Ensure null safety
-    widget.retailPriceController.text =
-        variant.retailPrice?.toString() ?? ''; // Ensure null safety
+    widget.supplyPriceController.text = variant.supplyPrice?.toString() ?? '';
+    widget.retailPriceController.text = variant.retailPrice?.toString() ?? '';
   }
 }
 
@@ -418,10 +407,48 @@ class VariantDataSource extends DataGridSource {
   final List<Variant> _variants;
   final ImportsState _state;
   List<DataGridRow> _dataGridRows = [];
+  final Map<String, bool> _approveLoadingState = {};
+  final Map<String, bool> _rejectLoadingState = {};
 
   VariantDataSource(this._variants, this._state) {
+    for (final variant in _variants) {
+      _approveLoadingState[variant.id] = false;
+      _rejectLoadingState[variant.id] = false;
+    }
     updateDataSource();
   }
+
+  void setApproveLoading(String variantId, bool isLoading) {
+    if (_approveLoadingState.containsKey(variantId)) {
+      _approveLoadingState[variantId] = isLoading;
+    } else {
+      _approveLoadingState[variantId] = isLoading;
+      talker.warning("Variant ID $variantId was missing, adding it now.");
+    }
+    updateDataSource(); // Rebuild rows with new state
+  }
+
+  void setRejectLoading(String variantId, bool isLoading) {
+    if (_rejectLoadingState.containsKey(variantId)) {
+      _rejectLoadingState[variantId] = isLoading;
+    } else {
+      _rejectLoadingState[variantId] = isLoading;
+      talker.warning("Variant ID $variantId was missing, adding it now.");
+    }
+    updateDataSource(); // Rebuild rows with new state
+  }
+
+  bool isApproveLoading(String variantId) {
+    return _approveLoadingState[variantId] ?? false;
+  }
+
+  bool isRejectLoading(String variantId) {
+    return _rejectLoadingState[variantId] ?? false;
+  }
+
+  bool get anyLoading =>
+      _approveLoadingState.values.any((isLoading) => isLoading) ||
+      _rejectLoadingState.values.any((isLoading) => isLoading);
 
   void updateDataSource() {
     _dataGridRows = _variants.map<DataGridRow>((variant) {
@@ -484,50 +511,121 @@ class VariantDataSource extends DataGridSource {
     return const Text('Processed');
   }
 
+  // Improve the _buildActionsWidget in VariantDataSource class
   Widget _buildActionsWidget(Variant variant) {
-    final isWaitingApproval = variant.imptItemSttsCd == "2";
+    // Check variant status
+    final bool isWaitingApproval = variant.imptItemSttsCd == "2";
+    final bool isApproved = variant.imptItemSttsCd == "3";
+
+    // If already processed (approved or rejected)
     if (!isWaitingApproval) {
-      return const Text('-');
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isApproved ? Colors.green.shade100 : Colors.red.shade100,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: isApproved ? Colors.green : Colors.red,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isApproved ? Icons.check_circle : Icons.cancel,
+              size: 16,
+              color: isApproved ? Colors.green.shade700 : Colors.red.shade700,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isApproved ? 'Approved' : 'Rejected',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isApproved ? Colors.green.shade700 : Colors.red.shade700,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _state._isLoading
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
-                ),
-              )
-            : IconButton(
-                icon:
-                    const Icon(Icons.check_circle_outline, color: Colors.green),
-                onPressed: () => _state._handleApproval(variant),
-                tooltip: 'Approve',
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(8),
+    // Check loading states for pending approvals - renamed variables to avoid conflict
+    final bool approveIsLoading = isApproveLoading(variant.id);
+    final bool rejectIsLoading = isRejectLoading(variant.id);
+    final bool isProcessing = approveIsLoading || rejectIsLoading;
+
+    // Waiting for approval actions - Fixed container sizing
+    return Container(
+      // decoration: BoxDecoration(
+      //   color: Colors.grey.shade100,
+      //   borderRadius: BorderRadius.circular(4),
+      //   border: Border.all(color: Colors.grey.shade300),
+      // ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Approve button with proper sizing
+          SizedBox(
+            height: 36,
+            width: 36,
+            child: _buildActionButton(
+              isLoading: approveIsLoading,
+              icon: Icons.check_circle_outline,
+              color: Colors.green,
+              tooltip: 'Approve',
+              onPressed:
+                  isProcessing ? null : () => _state._handleApproval(variant),
+            ),
+          ),
+          // Reject button with proper sizing
+          SizedBox(
+            height: 36,
+            width: 36,
+            child: _buildActionButton(
+              isLoading: rejectIsLoading,
+              icon: Icons.cancel_outlined,
+              color: Colors.red,
+              tooltip: 'Reject',
+              onPressed:
+                  isProcessing ? null : () => _state._handleRejection(variant),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Helper method to build consistent action buttons
+  Widget _buildActionButton({
+    required bool isLoading,
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback? onPressed,
+  }) {
+    return Center(
+      child: isLoading
+          ? SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation(color),
               ),
-        const SizedBox(width: 8),
-        _state._isLoading
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.indigo),
+            )
+          : Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: onPressed,
+                child: Tooltip(
+                  message: tooltip,
+                  child: Icon(icon, color: color, size: 20),
                 ),
-              )
-            : IconButton(
-                icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                onPressed: () => _state._handleRejection(variant),
-                tooltip: 'Reject',
-                constraints: const BoxConstraints(),
-                padding: const EdgeInsets.all(8),
               ),
-      ],
+            ),
     );
   }
 
