@@ -84,12 +84,13 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(PaymentPlanUIRoute());
       return;
     } else {
-      // Handle other unexpected errors.
-      // if (!isTestEnvironment()) {
-      await logOut();
-      // }
-
-      _routerService.clearStackAndShow(LoginRoute());
+      try {
+        logOut();
+        _routerService.navigateTo(LoginRoute());
+      } catch (e) {
+        _routerService.navigateTo(LoginRoute());
+      }
+      // check if there is any view navigated to
       return;
     }
   }

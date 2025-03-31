@@ -217,7 +217,7 @@ class _TicketsListState extends ConsumerState<TicketsList>
                 fontSize: 18,
                 color: const Color(0xff006AFE),
               ),
-            ),
+            ).shouldSeeTheApp(ref, featureName: "Tickets"),
             const SizedBox(height: 16),
             _buildTicketSection(context),
           ],

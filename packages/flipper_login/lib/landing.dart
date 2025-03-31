@@ -89,81 +89,126 @@ class _LandingState extends State<Landing> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Column(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  Image.asset(
-                    'assets/flipper_logo.png',
-                    height: 82,
-                    width: 82,
-                    package: 'flipper_login',
-                  ),
-                  Expanded(
-                    child: CarouselView(
-                      scrollDirection: Axis.horizontal,
-                      controller: _pageController,
-                      children: _pagesContent
-                          .map((page) => _buildCarouselItem(page))
-                          .toList(),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Logo with proper spacing
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Image.asset(
+                  'assets/flipper_logo.png',
+                  height: 82,
+                  width: 82,
+                  package: 'flipper_login',
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: CarouselView(
+                        scrollDirection: Axis.horizontal,
+                        controller: _pageController,
+                        children: _pagesContent
+                            .map((page) => _buildCarouselItem(page))
+                            .toList(),
+                      ),
                     ),
-                  ),
-                  PageIndicator(
-                    count: _pagesContent.length,
-                    currentIndex: _currentPage,
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    PageIndicator(
+                      count: _pagesContent.length,
+                      currentIndex: _currentPage,
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildButton(
-                    text: "Create Account",
-                    onPressed: () => _routerService.navigateTo(AuthRoute()),
-                  ),
-                  const SizedBox(height: 22),
-                  _buildButton(
-                    text: "Sign In",
-                    key: signInButtonKey,
-                    onPressed: () =>
-                        _routerService.clearStackAndShow(AuthRoute()),
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(bottom: 30, left: 16, right: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildButton(
+                      text: "Create Account",
+                      onPressed: () => _routerService.navigateTo(AuthRoute()),
+                    ),
+                    const SizedBox(height: 22),
+                    _buildButton(
+                      text: "Sign In",
+                      key: signInButtonKey,
+                      onPressed: () =>
+                          _routerService.clearStackAndShow(AuthRoute()),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      desktop: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Flexible(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: CarouselView(
-                    scrollDirection: Axis.horizontal,
-                    controller: _pageController,
-                    children: _pagesContent
-                        .map((page) => _buildDesktopCarouselItem(page))
-                        .toList(),
-                  ),
-                ),
-                PageIndicator(
-                  count: _pagesContent.length,
-                  currentIndex: _currentPage,
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+      desktop: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xff0056C2), Color(0xff9747FF)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-        ],
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Image.asset(
+                  'assets/flipper_logo.png',
+                  height: 100,
+                  width: 100,
+                  package: 'flipper_login',
+                ),
+              ),
+              Flexible(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: CarouselView(
+                        scrollDirection: Axis.horizontal,
+                        controller: _pageController,
+                        children: _pagesContent
+                            .map((page) => _buildDesktopCarouselItem(page))
+                            .toList(),
+                      ),
+                    ),
+                    PageIndicator(
+                      count: _pagesContent.length,
+                      currentIndex: _currentPage,
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildButton(
+                      text: "Create Account",
+                      onPressed: () => _routerService.navigateTo(AuthRoute()),
+                    ),
+                    const SizedBox(height: 22),
+                    _buildButton(
+                      text: "Sign In",
+                      key: signInButtonKey,
+                      onPressed: () =>
+                          _routerService.clearStackAndShow(AuthRoute()),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -177,9 +222,10 @@ class _LandingState extends State<Landing> {
           height: 321,
           width: 321,
           package: 'flipper_login',
+          fit: BoxFit.contain,
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Text(
             page.text,
             style: GoogleFonts.poppins(
@@ -195,23 +241,27 @@ class _LandingState extends State<Landing> {
   }
 
   Widget _buildDesktopCarouselItem(PageContent page) {
-    return Wrap(
-      direction: Axis.vertical,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Image.asset(
           page.imagePath,
-          height: 321,
-          width: 321,
+          height: 400,
+          width: 400,
           package: 'flipper_login',
+          fit: BoxFit.contain,
         ),
-        Text(
-          page.text,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+          child: Text(
+            page.text,
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
           ),
-          textAlign: TextAlign.center,
         ),
       ],
     );
@@ -228,14 +278,14 @@ class _LandingState extends State<Landing> {
       child: OutlinedButton(
         key: key,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.white),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          side: const BorderSide(color: Colors.white, width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: onPressed,
         child: Text(
           text,
           style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w400,
+            fontWeight: FontWeight.w500,
             fontSize: 20,
             color: Colors.white,
           ),
@@ -279,7 +329,7 @@ class PageIndicator extends StatelessWidget {
     Key? key,
     required this.count,
     required this.currentIndex,
-    this.dotSize = 8.0,
+    this.dotSize = 10.0,
     this.activeColor = Colors.white,
     this.inactiveColor = Colors.white54,
   }) : super(key: key);
@@ -292,7 +342,7 @@ class PageIndicator extends StatelessWidget {
         return Container(
           width: dotSize,
           height: dotSize,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+          margin: const EdgeInsets.symmetric(horizontal: 6),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: index == currentIndex ? activeColor : inactiveColor,

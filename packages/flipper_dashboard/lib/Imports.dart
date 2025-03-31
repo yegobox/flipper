@@ -612,7 +612,7 @@ class VariantDataSource extends DataGridSource {
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(color),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             )
           : Material(
