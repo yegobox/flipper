@@ -1,28 +1,18 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 // import 'package:flipper_login/apple_logo_painter.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 // import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'OAuthProviderButton.dart';
 import 'apple_logo_painter.dart';
-import 'dart:developer';
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:async';
 
 // Constants for consistent styling
 class AppColors {
@@ -244,6 +234,7 @@ class _AuthState extends State<Auth> {
         _authController.notifyError(e.message ?? "Authentication failed");
       }
     } catch (e) {
+      talker.warning(e);
       Sentry.captureException(e, stackTrace: StackTrace.current);
       _authController.notifyError("Apple login failed");
     }
@@ -459,15 +450,22 @@ class SocialLoginButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            customIcon ??
-                (iconPath != null
-                    ? SvgPicture.asset(
-                        iconPath!,
-                        package: 'flipper_login',
-                        width: 20,
-                        height: 20,
-                      )
-                    : SizedBox()),
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: Center(
+                child: customIcon ??
+                    (iconPath != null
+                        ? SvgPicture.asset(
+                            iconPath!,
+                            package: 'flipper_login',
+                            width: 20,
+                            height: 20,
+                            fit: BoxFit.contain,
+                          )
+                        : SizedBox()),
+              ),
+            ),
             SizedBox(width: 12),
             Text(
               text,
