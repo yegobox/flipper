@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -19,7 +20,7 @@ const dbFileName = "flipper_v17.sqlite";
 const queueName = "brick_offline_queue_v17.sqlite";
 
 class Repository extends OfflineFirstWithSupabaseRepository {
-  static late Repository? _singleton;
+  static Repository? _singleton;
 
   Repository._({
     required super.supabaseProvider,
@@ -29,35 +30,100 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     super.memoryCacheProvider,
   });
 
-  factory Repository() => _singleton!;
+  factory Repository() {
+    // For web or uninitialized cases, return a dummy repository instead of throwing
+    if (_singleton == null) {
+      if (kIsWeb) {
+        // Create and return a dummy repository for web that silently does nothing
+        return _createDummyRepository();
+      } else {
+        // For non-web platforms, still throw an error as it's likely a real issue
+        throw StateError(
+            'Repository not initialized. Call initializeSupabaseAndConfigure first.');
+      }
+    }
+    return _singleton!;
+  }
+
+  // Creates a dummy repository that does nothing (for web)
+  static Repository _createDummyRepository() {
+    // Create minimal implementations that do nothing for web
+    final dummySupabaseProvider = SupabaseProvider(
+      SupabaseClient('dummy-url', 'dummy-key'),
+      modelDictionary: supabaseModelDictionary,
+    );
+
+    final dummySqliteProvider = SqliteProvider(
+      inMemoryDatabasePath,
+      databaseFactory: databaseFactory,
+      modelDictionary: sqliteModelDictionary,
+    );
+
+    // Create a client and queue using the helper method
+    final (_, dummyQueue) = OfflineFirstWithSupabaseRepository.clientQueue(
+      databaseFactory: databaseFactory,
+      databasePath: inMemoryDatabasePath,
+      onReattempt: (_, __) {},
+      onRequestException: (_, __) {},
+    );
+
+    return Repository._(
+      supabaseProvider: dummySupabaseProvider,
+      sqliteProvider: dummySqliteProvider,
+      migrations: migrations,
+      offlineRequestQueue: dummyQueue,
+      memoryCacheProvider: MemoryCacheProvider(),
+    );
+  }
 
   static Future<void> initializeSupabaseAndConfigure({
     required String supabaseUrl,
     required String supabaseAnonKey,
   }) async {
-    // Initialize FFI for Windows
+    // Create a variable to hold the database paths
+    String dbPath;
+    String queuePath;
 
-    sqfliteFfiInit();
+    // Create variables to hold the appropriate database factory
+    final databaseFactoryToUse = kIsWeb
+        ? databaseFactory
+        : (Platform.isWindows || DatabasePath.isTestEnvironment()
+            ? databaseFactoryFfi
+            : databaseFactory);
 
-    // Get the appropriate directory path
-    final directory = await DatabasePath.getDatabaseDirectory();
+    if (kIsWeb) {
+      // For web, use in-memory database or a web-specific approach
+      dbPath = inMemoryDatabasePath;
+      queuePath = inMemoryDatabasePath;
 
-    // Ensure the directory exists
-    if (!await Directory(directory).exists()) {
-      await Directory(directory).create(recursive: true);
+      // Initialize FFI is not needed for web
+    } else {
+      // Initialize FFI for Windows platforms
+      if (Platform.isWindows) {
+        sqfliteFfiInit();
+      }
+
+      // Get the appropriate directory path for native platforms
+      final directory = await DatabasePath.getDatabaseDirectory();
+
+      // Ensure the directory exists
+      if (!await Directory(directory).exists()) {
+        await Directory(directory).create(recursive: true);
+      }
+
+      // Construct the full database path
+      dbPath = join(directory, dbFileName);
+      queuePath = join(directory, queueName);
     }
-    // Construct the full database path
-    final dbPath = join(directory, dbFileName);
-    final queuePath = join(directory, queueName);
 
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
-      databaseFactory: Platform.isWindows || DatabasePath.isTestEnvironment()
-          ? databaseFactoryFfi
-          : databaseFactory,
+      databaseFactory: databaseFactoryToUse,
       databasePath: queuePath,
       onReattempt: (http.Request re, o) {},
       onRequestException: (request, object) {
-        Repository().deleteUnprocessedRequests();
+        if (_singleton != null) {
+          _singleton!.deleteUnprocessedRequests();
+        }
         // Deal with failed requests see https://github.com/GetDutchie/brick/issues/527
       },
     );
@@ -88,10 +154,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: SqliteProvider(
-        DatabasePath.isTestEnvironment() ? inMemoryDatabasePath : dbPath,
-        databaseFactory: Platform.isWindows || DatabasePath.isTestEnvironment()
-            ? databaseFactoryFfi
-            : databaseFactory,
+        DatabasePath.isTestEnvironment() || kIsWeb
+            ? inMemoryDatabasePath
+            : dbPath,
+        databaseFactory: databaseFactoryToUse,
         modelDictionary: sqliteModelDictionary,
       ),
       migrations: migrations,
@@ -101,12 +167,22 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }
 
   Future<int> availableQueue() async {
+    // On web, silently return 0 without trying to access the queue
+    if (kIsWeb) {
+      return 0;
+    }
+
     final requests = await offlineRequestQueue.requestManager
         .unprocessedRequests(onlyLocked: true);
     return requests.length;
   }
 
   Future<void> deleteUnprocessedRequests() async {
+    // On web, silently do nothing
+    if (kIsWeb) {
+      return;
+    }
+
     try {
       // Retrieve unprocessed requests
       final requests = await offlineRequestQueue.requestManager

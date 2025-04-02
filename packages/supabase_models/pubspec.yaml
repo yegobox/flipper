@@ -22,6 +22,7 @@ dependencies:
   mock_supabase_http_client: 0.0.3+1
   mockito: ^5.4.5
   brick_offline_first: ^4.0.0
+  sqflite_common_ffi_web: ^1.0.0
 dependency_overrides: 
   device_info_plus: ^11.2.2
   
