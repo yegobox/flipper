@@ -233,6 +233,7 @@ mixin TransactionMixin implements TransactionInterface {
     required String sarTyCd,
     Purchase? purchase,
     required bool doneWithTransaction,
+    double? updatableQty,
 
     /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
     /// transaction i.e not original transaction
@@ -243,6 +244,7 @@ mixin TransactionMixin implements TransactionInterface {
       // Save the transaction item
       await saveTransactionItem(
         variation: variant,
+        updatableQty: updatableQty,
         doneWithTransaction: doneWithTransaction,
         amountTotal: variant.retailPrice!,
         customItem: false,
@@ -322,6 +324,7 @@ mixin TransactionMixin implements TransactionInterface {
       required bool partOfComposite,
       required bool doneWithTransaction,
       TransactionItem? item,
+      double? updatableQty,
       String? sarTyCd}) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy
@@ -337,6 +340,7 @@ mixin TransactionMixin implements TransactionInterface {
         variation: variation,
         currentStock: currentStock,
         amountTotal: amountTotal,
+        updatableQty: updatableQty,
         isCustom: customItem,
         partOfComposite: partOfComposite,
         compositePrice: compositePrice,
@@ -352,21 +356,21 @@ mixin TransactionMixin implements TransactionInterface {
     }
   }
 
-  Future<void> addTransactionItems({
-    required String variationId,
-    required ITransaction pendingTransaction,
-    required String name,
-    required Variant variation,
-    required double currentStock,
-    required double amountTotal,
-    required bool isCustom,
-    TransactionItem? item,
-    double? compositePrice,
-    required bool partOfComposite,
-    bool useTransactionItemForQty = false,
-    String? sarTyCd,
-    bool? doneWithTransaction,
-  }) async {
+  Future<void> addTransactionItems(
+      {required String variationId,
+      required ITransaction pendingTransaction,
+      required String name,
+      required Variant variation,
+      required double currentStock,
+      required double amountTotal,
+      required bool isCustom,
+      TransactionItem? item,
+      double? compositePrice,
+      required bool partOfComposite,
+      bool useTransactionItemForQty = false,
+      String? sarTyCd,
+      bool? doneWithTransaction,
+      double? updatableQty}) async {
     try {
       // Update existing item if found and not custom
       if (item != null && !isCustom) {
@@ -374,9 +378,11 @@ mixin TransactionMixin implements TransactionInterface {
           item: item,
 
           /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
-          quantity: sarTyCd == "02" || sarTyCd == "01"
-              ? variation.stock!.currentStock!
-              : item.qty + 1,
+          quantity: updatableQty != null
+              ? updatableQty
+              : sarTyCd == "02" || sarTyCd == "01"
+                  ? variation.stock!.currentStock!
+                  : item.qty + 1,
           variation: variation,
           amountTotal: amountTotal,
         );
@@ -403,7 +409,11 @@ mixin TransactionMixin implements TransactionInterface {
         lastTouched: DateTime.now(),
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
-        quantity: sarTyCd == null ? quantity : sarQty,
+        quantity: updatableQty != null
+            ? updatableQty
+            : sarTyCd == null
+                ? quantity
+                : sarQty,
         currentStock: currentStock,
         partOfComposite: partOfComposite,
         variation: variation,

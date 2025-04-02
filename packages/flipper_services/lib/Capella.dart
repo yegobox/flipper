@@ -1896,6 +1896,7 @@ class Capella extends AiStrategyImpl
   @override
   Future<bool> saveTransactionItem(
       {double? compositePrice,
+      double? updatableQty,
       required brick.Variant variation,
       required double amountTotal,
       required bool doneWithTransaction,
@@ -1949,22 +1950,6 @@ class Capella extends AiStrategyImpl
       bool isUnclassfied = false,
       bool? isTrainingMode}) {
     // TODO: implement updateTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> assignTransaction(
-      {required brick.Variant variant,
-      required brick.ITransaction pendingTransaction,
-      required brick.Business business,
-      required int randomNumber,
-      required bool doneWithTransaction,
-      required String sarTyCd,
-      bool useTransactionItemForQty = false,
-      brick.TransactionItem? item,
-      brick.Purchase? purchase,
-      int? invoiceNumber}) {
-    // TODO: implement assignTransaction
     throw UnimplementedError();
   }
 
@@ -2048,9 +2033,27 @@ class Capella extends AiStrategyImpl
     // TODO: implement category
     throw UnimplementedError();
   }
+
   @override
   Future<ITransaction?> getTransaction({String? sarNo, required int branchId}) {
     throw UnimplementedError(
         'getTransaction needs to be implemented for Capella');
+  }
+
+  @override
+  Future<void> assignTransaction(
+      {double? updatableQty,
+      required brick.Variant variant,
+      required bool doneWithTransaction,
+      required brick.ITransaction pendingTransaction,
+      required brick.Business business,
+      required int randomNumber,
+      required String sarTyCd,
+      bool useTransactionItemForQty = false,
+      brick.TransactionItem? item,
+      brick.Purchase? purchase,
+      int? invoiceNumber}) {
+    // TODO: implement assignTransaction
+    throw UnimplementedError();
   }
 }

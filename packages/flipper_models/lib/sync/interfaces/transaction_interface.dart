@@ -43,6 +43,7 @@ abstract class TransactionInterface {
       {required ITransaction transaction});
 
   Future<void> assignTransaction({
+     double? updatableQty,
     required Variant variant,
     required bool doneWithTransaction,
     required ITransaction pendingTransaction,
@@ -68,6 +69,7 @@ abstract class TransactionInterface {
       required double currentStock,
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
+       double? updatableQty,
       TransactionItem? item,
       String? sarTyCd});
 

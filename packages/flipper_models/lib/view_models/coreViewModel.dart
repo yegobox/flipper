@@ -964,7 +964,10 @@ class CoreViewModel extends FlipperBaseModel
                 .updateVariant(updatables: [variantFromPurchase]);
 
             await _processStockInTransaction(
-                variantFromPurchase, pendingTransaction, business,
+                updatableQty: variantFromPurchase.stock!.currentStock!,
+                variant,
+                pendingTransaction,
+                business,
                 purchase: purchase,
                 //02 is Incoming purchase for both direct and assigned purchases
                 sarTyCd: pchsSttsCd);
@@ -1110,9 +1113,12 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _processStockInTransaction(
       Variant variant, ITransaction pendingTransaction, Business business,
-      {required String sarTyCd, Purchase? purchase}) async {
+      {required String sarTyCd,
+      Purchase? purchase,
+      double? updatableQty}) async {
     await ProxyService.strategy.assignTransaction(
       variant: variant,
+      updatableQty: updatableQty,
 
       /// we set it done with transaction becase this transaction item will never be marked
       /// as done with transaction later.

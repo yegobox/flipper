@@ -1,40 +1,44 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250329090821.migration.dart';
+part '20250402132301.migration.dart';
 part '20250314135245.migration.dart';
 part '20250308132353.migration.dart';
 part '20250315100347.migration.dart';
 part '20250319191328.migration.dart';
 part '20250315043528.migration.dart';
+part '20250327105039.migration.dart';
 part '20250319183234.migration.dart';
+part '20250326102213.migration.dart';
+part '20250329090821.migration.dart';
 part '20250308114254.migration.dart';
 part '20250315044419.migration.dart';
 part '20250301162356.migration.dart';
 part '20250308112114.migration.dart';
-part '20250326102213.migration.dart';
-part '20250327105039.migration.dart';
+part '20250402121901.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250329090821(),
+  const Migration20250402132301(),
   const Migration20250314135245(),
   const Migration20250308132353(),
   const Migration20250315100347(),
   const Migration20250319191328(),
   const Migration20250315043528(),
+  const Migration20250327105039(),
   const Migration20250319183234(),
+  const Migration20250326102213(),
+  const Migration20250329090821(),
   const Migration20250308114254(),
   const Migration20250315044419(),
   const Migration20250301162356(),
   const Migration20250308112114(),
-  const Migration20250326102213(),
-  const Migration20250327105039(),
+  const Migration20250402121901(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250327105039,
+  20250402121901,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
