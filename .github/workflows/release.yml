@@ -46,7 +46,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.2"
           channel: "stable"
       - run: |
           git submodule update --init
@@ -100,7 +100,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.2"
           channel: stable
       - run: flutter doctor -v
 
@@ -160,7 +160,7 @@ jobs:
   #     - name: Setup Flutter
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.0"  # Or a version that works with your Xcode
+  #         flutter-version: "3.29.2"  # Or a version that works with your Xcode
   #         channel: stable
 
   #     - name: Setup Java
@@ -222,7 +222,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.2"
           channel: stable
           cache: true
 
@@ -284,7 +284,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0"
+          flutter-version: "3.29.2"
           channel: stable
           cache: true
 
@@ -350,7 +350,7 @@ jobs:
   #     - name: Setup Flutter
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.0"
+  #         flutter-version: "3.29.2"
   #         channel: stable
 
   #     - name: Install Dependencies
@@ -444,7 +444,7 @@ jobs:
   #     - name: Clone Flutter repository with stable channel
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.0"
+  #         flutter-version: "3.29.2"
   #         channel: stable
   #     - run: flutter doctor -v
 
@@ -573,7 +573,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.0" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.29.2" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
