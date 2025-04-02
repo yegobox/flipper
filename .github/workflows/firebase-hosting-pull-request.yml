@@ -14,17 +14,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      # Setup Flutter (No changes needed here)
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.2" # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
+      # Git initialization and submodule handling (No changes needed here)
       - name: Initialize Git repository
         run: git init 
       - name: Submodule init and update
         run: git submodule update --init
+        
+      # Configure secrets (No changes needed here)
       - name: Configure Missing files
         shell: bash
         run: |
@@ -41,15 +46,26 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
+          
+      # Build Flutter web app (No changes needed here)
+      - name: Build Flutter Web App
+        run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
           cd apps/flipper
-          flutter build web
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0.9.0
+          flutter build web --release # Added --release flag for production builds
+          
+      # ----- ADD THIS STEP -----
+      - name: Set up Node.js for Firebase CLI
+        uses: actions/setup-node@v4 
         with:
-          entryPoint: apps/flipper
+          node-version: '20' # Specify Node.js v20.x LTS
+      # -------------------------
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0.9.0 # Consider using @v0 for latest fixes if needed
+        with:
+          entryPoint: apps/flipper # This should point to the directory containing firebase.json and the build output (usually build/web within the app)
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
           projectId: yegobox-2ee43
