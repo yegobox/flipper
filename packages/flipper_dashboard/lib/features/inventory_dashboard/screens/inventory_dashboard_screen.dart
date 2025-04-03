@@ -20,9 +20,7 @@ class _InventoryDashboardScreenState
     extends ConsumerState<InventoryDashboardScreen> {
   // Configuration for inventory data
 
-  // Configuration for inventory data
-  final int _expiryDaysThreshold = 7;
-  final int _itemsLimit = 10;
+  // No configuration needed as we're using default parameters
 
   // No sample data needed as we're using real data from the service
 
@@ -131,9 +129,9 @@ class _InventoryDashboardScreenState
             // Expired items section
             Consumer(
               builder: (context, ref, child) {
-                final expiredItemsAsync = ref.watch(expiredItemsProvider(
-                  ExpiredItemsParams(limit: _itemsLimit),
-                ));
+                // Using default parameters since custom parameters cause loading issues
+                final expiredItemsAsync =
+                    ref.watch(expiredItemsProvider(const ExpiredItemsParams()));
 
                 return expiredItemsAsync.when(
                   data: (expiredItems) => ExpiredItemsSection(
@@ -168,12 +166,10 @@ class _InventoryDashboardScreenState
                   flex: 2,
                   child: Consumer(
                     builder: (context, ref, child) {
+                      // Using default parameters since custom parameters cause loading issues
                       final nearExpiryItemsAsync =
                           ref.watch(nearExpiryItemsProvider(
-                        NearExpiryItemsParams(
-                          daysToExpiry: _expiryDaysThreshold,
-                          limit: _itemsLimit,
-                        ),
+                        const NearExpiryItemsParams(),
                       ));
 
                       return nearExpiryItemsAsync.when(
