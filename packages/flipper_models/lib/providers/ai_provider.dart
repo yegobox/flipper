@@ -106,7 +106,7 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     // Get current time for temporal context
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Format CSV with all available fields
     String csvData =
         "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
@@ -148,41 +148,33 @@ Analyze the provided business data following these guidelines:
 User Query: $userPrompt
 """;
 
+    // If there's no analytics data, provide a fallback response
+    if (businessAnalyticsData.isEmpty) {
+      return "I don't have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.";
+    }
+
     final inputData = GeminiInput(
       contents: [
         Content(
+          role: "user",
           parts: [
             Part(text: csvData),
             Part(text: basePrompt),
-            Part(text: """
-**[SUMMARY]**
-Total Revenue: RWF XXX
-Total Profit: RWF XXX
-Total Units Sold: XXX
-Average Transaction: RWF XXX
-
-**[DETAILS]**
-[PRODUCT ANALYSIS]
-• Top Products by Revenue
-• Top Products by Units
-• Product Categories Overview
-
-[OPERATIONAL INSIGHTS]
-• Customer Traffic Analysis
-• Tax Summary
-• Efficiency Metrics
-
-Note: All calculations are based on exact values. Percentages and averages are rounded to 2 decimal places.
-"""),
           ],
         ),
       ],
       generationConfig: GenerationConfig(
-        temperature: 0.2, // Lower temperature for more precise numerical analysis
+        temperature:
+            0.2, // Lower temperature for more precise numerical analysis
         maxOutputTokens: 2048,
       ),
     );
 
-    return await ref.watch(geminiResponseProvider(inputData).future);
+    try {
+      return await ref.read(geminiResponseProvider(inputData).future);
+    } catch (e) {
+      // Provide a fallback response if the API call fails
+      return "I'm having trouble analyzing your data right now. Please try again in a moment. Error: ${e.toString().split('Exception:').last}";
+    }
   }
 }
