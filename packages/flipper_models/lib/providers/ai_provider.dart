@@ -145,6 +145,14 @@ Analyze the provided business data following these guidelines:
    - Show time-based trends if multiple dates exist
    - Compare performance metrics across products
 
+5. Response Formatting:
+   - For tax calculations: Present a clear summary at the top, followed by detailed breakdown
+   - Use concise tables with proper alignment and clear headers
+   - Include a visual separator between summary and details sections
+   - For tax queries: Group identical items and show consolidated totals
+   - Exclude zero-value entries from calculations and tables
+   - End with a clearly highlighted total in bold
+
 User Query: $userPrompt
 """;
 
