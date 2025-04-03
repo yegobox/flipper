@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -80,6 +81,7 @@ class GeminiResponse extends _$GeminiResponse {
       );
 
       if (response.statusCode == 200) {
+        talker.info('Gemini API response: ${response.body}');
         final decodedResponse =
             jsonDecode(response.body) as Map<String, dynamic>;
         final content = decodedResponse['candidates'][0]['content'];
