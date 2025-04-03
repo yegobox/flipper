@@ -940,7 +940,7 @@ class CoreViewModel extends FlipperBaseModel
               pendingTransaction: pendingTransaction,
               business: business,
               invoiceNumber: purchase.spplrInvcNo,
-              purchase: purchase,
+              // purchase: purchase,
               //02 is Incoming purchase
               sarTyCd: pchsSttsCd);
         }
@@ -972,7 +972,8 @@ class CoreViewModel extends FlipperBaseModel
                 invoiceNumber: purchase.spplrInvcNo,
                 pendingTransaction: pendingTransaction,
                 business: business,
-                purchase: purchase,
+                // purchase: purchase,
+
                 //02 is Incoming purchase for both direct and assigned purchases
                 sarTyCd: pchsSttsCd);
           } else {
@@ -1133,7 +1134,7 @@ class CoreViewModel extends FlipperBaseModel
       required Business business,
       required String sarTyCd,
       Purchase? purchase,
-      required int invoiceNumber,
+      int? invoiceNumber,
       double? updatableQty}) async {
     await ProxyService.strategy.assignTransaction(
       variant: variant,

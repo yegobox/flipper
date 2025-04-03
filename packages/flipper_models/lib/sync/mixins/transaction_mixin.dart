@@ -294,14 +294,13 @@ mixin TransactionMixin implements TransactionInterface {
     await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
-
       sarNo: invoiceNumber != null
           ? invoiceNumber.toString()
           : purchase?.spplrInvcNo.toString(),
       orgSarNo: invoiceNumber != null
           ? invoiceNumber.toString()
           : purchase?.spplrInvcNo.toString(),
-      sarTyCd: sarTyCd, //Incoming- Adjustment
+      sarTyCd: sarTyCd,
       receiptNumber: randomNumber,
       reference: randomNumber.toString(),
       invoiceNumber: invoiceNumber ?? randomNumber,
