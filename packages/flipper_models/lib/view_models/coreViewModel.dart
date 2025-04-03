@@ -936,7 +936,10 @@ class CoreViewModel extends FlipperBaseModel
           variant.ebmSynced = false;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
           await _processStockInTransaction(
-              variant, pendingTransaction, business,
+              variant: variant,
+              pendingTransaction: pendingTransaction,
+              business: business,
+              invoiceNumber: purchase.spplrInvcNo,
               purchase: purchase,
               //02 is Incoming purchase
               sarTyCd: pchsSttsCd);
@@ -965,9 +968,10 @@ class CoreViewModel extends FlipperBaseModel
 
             await _processStockInTransaction(
                 updatableQty: variantFromPurchase.stock!.currentStock!,
-                variant,
-                pendingTransaction,
-                business,
+                variant: variant,
+                invoiceNumber: purchase.spplrInvcNo,
+                pendingTransaction: pendingTransaction,
+                business: business,
                 purchase: purchase,
                 //02 is Incoming purchase for both direct and assigned purchases
                 sarTyCd: pchsSttsCd);
@@ -1055,49 +1059,61 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
+    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
+    // "02" is the code for Incoming purchase/import in the system
     await _processStockInTransaction(
-        variantToProcess!, pendingTransaction!, business,
-        sarTyCd: "01");
+        variant: variantToProcess!,
+        pendingTransaction: pendingTransaction!,
+        business: business,
+        invoiceNumber: int.tryParse(variantToProcess.taskCd ?? "") ?? 0,
+        sarTyCd: "02");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
   }
 
   Future<void> _processImportItemSingle(
-    Variant item,
-    Map<String, Variant> variantMap,
+    Variant incomingNewItem,
+    Map<String, Variant> existingItemToUpdate,
     ITransaction? pendingTransaction,
     Business business,
     String URI,
   ) async {
     Variant? variantToProcess;
 
-    if (variantMap.isNotEmpty) {
-      variantToProcess = variantMap[item.id];
+    /// if variant map is not empty, use the existing variant from the map
+    if (existingItemToUpdate.isNotEmpty) {
+      variantToProcess = existingItemToUpdate[incomingNewItem.id]!;
 
-      if (variantToProcess != null) {
-        await _updateVariantStock(
-            item: item, existingVariantToUpdate: variantToProcess);
+      await _updateVariantStock(
+          item: incomingNewItem,
+          existingVariantToUpdate: existingItemToUpdate[incomingNewItem.id]!);
 
-        /// we mark this item as unsend since it's stock has been merged with existing, and also as ebm synced to avoid accidental
-        /// syncing it again.
-        item.imptItemSttsCd = "1"; // 1 means unsend
-        item.ebmSynced = true;
-        await ProxyService.strategy.updateVariant(updatables: [item]);
+      /// we preserve the original status code (3 for approved) and mark as ebm synced to avoid accidental
+      /// syncing it again.
+      incomingNewItem.ebmSynced = true;
+      await ProxyService.strategy.updateVariant(updatables: [incomingNewItem]);
 
-        variantToProcess.ebmSynced = false;
-        await ProxyService.strategy
-            .updateVariant(updatables: [variantToProcess]);
-      }
+      variantToProcess.ebmSynced = false;
+      await ProxyService.strategy.updateVariant(updatables: [variantToProcess]);
     } else {
-      variantToProcess = item;
+      /// we are not mapping save incoming item as new
+      variantToProcess = incomingNewItem;
       await _updateVariant(variantToProcess);
     }
 
+    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
+    // "02" is the code for Incoming purchase/import in the system
     await _processStockInTransaction(
-        variantToProcess!, pendingTransaction!, business,
+        variant: variantToProcess,
+        // variant: incomingNewItem,
+        pendingTransaction: pendingTransaction!,
+        business: business,
+        updatableQty: incomingNewItem.stock!.currentStock,
+        invoiceNumber: int.tryParse(incomingNewItem.taskCd ?? "") ?? 0,
+        // 01 is incoming imports
         sarTyCd: "01");
 
-    await ProxyService.tax.updateImportItems(item: item, URI: URI);
+    await ProxyService.tax.updateImportItems(item: incomingNewItem, URI: URI);
   }
 
   Future<void> _updateVariantStock(
@@ -1112,9 +1128,12 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> _processStockInTransaction(
-      Variant variant, ITransaction pendingTransaction, Business business,
-      {required String sarTyCd,
+      {required Variant variant,
+      required ITransaction pendingTransaction,
+      required Business business,
+      required String sarTyCd,
       Purchase? purchase,
+      required int invoiceNumber,
       double? updatableQty}) async {
     await ProxyService.strategy.assignTransaction(
       variant: variant,
@@ -1124,13 +1143,14 @@ class CoreViewModel extends FlipperBaseModel
       /// as done with transaction later.
       doneWithTransaction: true,
       purchase: purchase,
-      invoiceNumber: int.tryParse(variant.taskCd ?? ""),
+      invoiceNumber: invoiceNumber,
       pendingTransaction: pendingTransaction,
       business: business,
       randomNumber: randomNumber(),
       sarTyCd: sarTyCd,
     );
-    await completeTransaction(pendingTransaction: pendingTransaction);
+    await completeTransaction(
+        pendingTransaction: pendingTransaction, sarTyCd: sarTyCd);
   }
 
   Future<void> _updateVariant(Variant variant) async {
@@ -1148,6 +1168,7 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!,
       );
 
+      // Always set to approved (3) regardless of whether there's a selected item to assign
       item.imptItemSttsCd = "3";
       item.taxName = "B";
       item.taxTyCd = "B";

@@ -268,8 +268,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
                           variantMap: _variantMap,
-                          onApprove: (model.Variant item) async {
-                            final condition = _variantMap.containsKey(item.id);
+                          onApprove: (model.Variant item,
+                              Map<String, model.Variant> variantMap) async {
+                            final condition = variantMap.containsKey(item.id);
                             if (!condition &&
                                 (item.retailPrice == null ||
                                     item.supplyPrice == null ||
@@ -279,12 +280,13 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                               return;
                             }
                             await coreViewModel.approveImportItem(item,
-                                variantMap: _variantMap);
+                                variantMap: variantMap);
                             final combinedNotifier = ref.read(refreshProvider);
                             combinedNotifier.performActions(
                                 productName: "", scanMode: true);
                           },
-                          onReject: (model.Variant item) async {
+                          onReject: (model.Variant item,
+                              Map<String, model.Variant> variantMap) async {
                             await coreViewModel.rejectImportItem(item);
                           },
                         )

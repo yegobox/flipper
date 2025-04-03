@@ -188,12 +188,15 @@ mixin TransactionMixinOld {
   ///Completes the transaction
   Future<void> completeTransaction({
     required ITransaction pendingTransaction,
+    String? sarTyCd,
   }) async {
-    await _completeTransaction(pendingTransaction: pendingTransaction);
+    await _completeTransaction(
+        pendingTransaction: pendingTransaction, sarTyCd: sarTyCd);
   }
 
   Future<void> _completeTransaction({
     required ITransaction pendingTransaction,
+    String? sarTyCd,
   }) async {
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -203,6 +206,7 @@ mixin TransactionMixinOld {
     if (isEbmEnabled) {
       try {
         await ProxyService.strategy.updateTransaction(
+            sarTyCd: sarTyCd,
             isUnclassfied: true,
             transaction: pendingTransaction,
             status: COMPLETE,

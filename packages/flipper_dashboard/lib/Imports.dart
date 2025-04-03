@@ -19,8 +19,8 @@ class Imports extends StatefulHookConsumerWidget {
   final Variant? selectedItem;
   final List<Variant> finalItemList;
   final Map<String, Variant> variantMap;
-  final Future<void> Function(Variant) onApprove;
-  final Future<void> Function(Variant) onReject;
+  final Future<void> Function(Variant, Map<String, Variant>) onApprove;
+  final Future<void> Function(Variant, Map<String, Variant>) onReject;
 
   const Imports({
     super.key,
@@ -58,7 +58,7 @@ class ImportsState extends ConsumerState<Imports> {
     _variantDataSource.setApproveLoading(item.id, true);
 
     try {
-      await widget.onApprove(item);
+      await widget.onApprove(item, widget.variantMap);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -77,7 +77,7 @@ class ImportsState extends ConsumerState<Imports> {
     _variantDataSource.setRejectLoading(item.id, true);
 
     try {
-      await widget.onReject(item);
+      await widget.onReject(item, widget.variantMap);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -212,9 +212,15 @@ class ImportsState extends ConsumerState<Imports> {
                               final selectedVariant = variants
                                   .firstWhere((variant) => variant.id == value);
                               widget.variantMap.clear();
-                              widget.variantMap.putIfAbsent(
-                                  variantSelectedWhenClickingOnRow!.id,
-                                  () => selectedVariant);
+                              if (variantSelectedWhenClickingOnRow != null) {
+                                widget.variantMap.putIfAbsent(
+                                    variantSelectedWhenClickingOnRow!.id,
+                                    () => selectedVariant);
+                              } else if (widget.finalItemList.isNotEmpty) {
+                                widget.variantMap.putIfAbsent(
+                                    widget.finalItemList.first.id,
+                                    () => selectedVariant);
+                              }
                               widget.selectItem(selectedVariant);
                             } else {
                               widget.selectItem(null);
