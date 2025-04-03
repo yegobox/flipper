@@ -316,6 +316,7 @@ final transactionListProvider =
     final stream = ProxyService.strategy.transactionsStream(
       startDate: startDate,
       endDate: endDate,
+      removeAdjustmentTransactions: true,
       branchId: ProxyService.box.getBranchId(),
       status: COMPLETE,
     );
@@ -340,8 +341,10 @@ final currentTransactionsByIdStream =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.strategy
-      .transactionsStream(id: id, filterType: FilterType.TRANSACTION);
+  final transactionsStream = ProxyService.strategy.transactionsStream(
+      id: id,
+      filterType: FilterType.TRANSACTION,
+      removeAdjustmentTransactions: true);
 
   // Return the stream
   return transactionsStream;
@@ -364,7 +367,9 @@ final transactionsStreamProvider =
 
   // Use ProxyService to get the IsarStream of transactions
   final transactionsStream = ProxyService.strategy.transactionsStream(
-      branchId: ProxyService.box.getBranchId()!, status: COMPLETE);
+      branchId: ProxyService.box.getBranchId()!,
+      status: COMPLETE,
+      removeAdjustmentTransactions: true);
 
   // Return the stream
   return transactionsStream;
@@ -373,7 +378,8 @@ final transactionsStreamProvider =
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
-  return ProxyService.strategy.transactionsStream(branchId: branchId);
+  return ProxyService.strategy.transactionsStream(
+      branchId: branchId, removeAdjustmentTransactions: true);
 });
 
 final universalProductsNames =

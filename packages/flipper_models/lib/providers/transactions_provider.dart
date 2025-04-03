@@ -19,6 +19,7 @@ Stream<List<ITransaction>> transactions(Ref ref) {
   return ProxyService.strategy.transactionsStream(
     status: PARKED,
     branchId: branchId,
+    removeAdjustmentTransactions: true,
   );
 }
 

@@ -51,8 +51,8 @@ class CronService {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
 
     Timer.periodic(Duration(minutes: 1), (Timer t) async {
-      ProxyService.strategy
-          .getCounters(branchId: ProxyService.box.getBranchId()!);
+      ProxyService.strategy.getCounters(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
     });
     Timer.periodic(Duration(seconds: kDebugMode ? 40 : 40), (Timer t) async {
       if (ProxyService.strategy.sendPort != null) {

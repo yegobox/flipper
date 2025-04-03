@@ -382,10 +382,14 @@ class TaxController<OBJ> {
               transactionId: newTransactionId.id, // Update transactionId
               variantId: transaction.id, // Update variantId
             );
+            // get variant
+            Variant? variant =
+                await ProxyService.strategy.getVariant(id: item.variantId);
 
             await ProxyService.strategy.addTransactionItem(
               transaction: newTransactionId,
               item: copy,
+              variation: variant,
               partOfComposite: item.partOfComposite ?? false,
               lastTouched: item.lastTouched ?? DateTime.now(),
               discount: item.discount,

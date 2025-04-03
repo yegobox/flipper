@@ -16,6 +16,19 @@ abstract class TransactionInterface {
     bool includePending = false,
   });
 
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    String? id,
+    FilterType? filterType,
+    bool includePending = false,
+    DateTime? startDate,
+    DateTime? endDate,
+    required bool removeAdjustmentTransactions,
+  });
+
   Future<List<Configurations>> taxes({required int branchId});
 
   Future<Configurations> saveTax({
@@ -43,7 +56,7 @@ abstract class TransactionInterface {
       {required ITransaction transaction});
 
   Future<void> assignTransaction({
-     double? updatableQty,
+    double? updatableQty,
     required Variant variant,
     required bool doneWithTransaction,
     required ITransaction pendingTransaction,
@@ -69,7 +82,7 @@ abstract class TransactionInterface {
       required double currentStock,
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
-       double? updatableQty,
+      double? updatableQty,
       TransactionItem? item,
       String? sarTyCd});
 
@@ -110,5 +123,5 @@ abstract class TransactionInterface {
     bool isUnclassfied = false,
     bool? isTrainingMode,
   });
-  Future<ITransaction?> getTransaction({String? sarNo,required int branchId});
+  Future<ITransaction?> getTransaction({String? sarNo, required int branchId});
 }

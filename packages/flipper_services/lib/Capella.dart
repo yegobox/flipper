@@ -1511,6 +1511,7 @@ class Capella extends AiStrategyImpl
       bool includePending = false,
       String? id,
       FilterType? filterType,
+      bool removeAdjustmentTransactions = false,
       DateTime? startDate,
       DateTime? endDate}) {
     // TODO: implement transactionsStream

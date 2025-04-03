@@ -90,7 +90,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         builder: (context, model, child) {
           return Expanded(
             child: StreamBuilder<List<ITransaction>>(
-              stream: ProxyService.strategy.transactionsStream(status: PARKED),
+              stream: ProxyService.strategy.transactionsStream(
+                  status: PARKED, removeAdjustmentTransactions: true),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   List<ITransaction> data = snapshot.data!;

@@ -266,6 +266,7 @@ mixin TransactionMixin implements TransactionInterface {
         sarTyCd: sarTyCd,
         business: business,
         randomNumber: randomNumber,
+        updatableQty: updatableQty,
       );
     } catch (e, s) {
       talker.warning(e);
@@ -283,6 +284,7 @@ mixin TransactionMixin implements TransactionInterface {
     required String sarTyCd,
     Purchase? purchase,
     int? invoiceNumber,
+    double? updatableQty,
   }) async {
     if (purchase != null && invoiceNumber != null) {
       throw ArgumentError(
@@ -306,8 +308,12 @@ mixin TransactionMixin implements TransactionInterface {
       receiptType: TransactionType.adjustment,
       customerTin: ProxyService.box.tin().toString(),
       customerBhfId: await ProxyService.box.bhfId() ?? "00",
-      subTotal: pendingTransaction.subTotal! + (variant.splyAmt ?? 0),
-      cashReceived: -(pendingTransaction.subTotal! + (variant.splyAmt ?? 0)),
+      subTotal: pendingTransaction.subTotal! > 0
+          ? pendingTransaction.subTotal!
+          : (variant.retailPrice! * (updatableQty ?? 1)),
+      cashReceived: -(pendingTransaction.subTotal! > 0
+          ? pendingTransaction.subTotal!
+          : (variant.retailPrice! * (updatableQty ?? 1))),
       customerName: business.name,
     );
   }
@@ -625,5 +631,60 @@ mixin TransactionMixin implements TransactionInterface {
       talker.error('Stack trace: $s');
       return null;
     }
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    String? id,
+    required bool removeAdjustmentTransactions,
+    FilterType? filterType,
+    bool includePending = false,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    final List<Where> conditions = [
+      Where('status').isExactly(status ?? COMPLETE),
+      Where('subTotal').isGreaterThan(0),
+      if (id != null) Where('id').isExactly(id),
+      if (branchId != null) Where('branchId').isExactly(branchId),
+      if (isCashOut) Where('isExpense').isExactly(true),
+    ];
+    // talker.warning(conditions.toString());
+    if (startDate != null && endDate != null) {
+      if (startDate == endDate) {
+        // Ensure we include the entire day
+        DateTime endOfDay = startDate.add(Duration(days: 1));
+
+        conditions.add(
+          Where('lastTouched').isBetween(
+            startDate.toUtc().toIso8601String(),
+            endOfDay.toUtc().toIso8601String(),
+          ),
+        );
+      } else {
+        conditions.add(
+          Where('lastTouched').isBetween(
+            startDate.toUtc().toIso8601String(),
+            endDate.toUtc().toIso8601String(),
+          ),
+        );
+      }
+    }
+    if (removeAdjustmentTransactions) {
+      conditions.add(Where('receiptType').isNot('adjustment'));
+    }
+    final queryString = Query(where: conditions);
+    // Directly return the stream from the repository
+    return repository
+        .subscribe<ITransaction>(
+            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+        .map((data) {
+      print('Transaction stream data: ${data.length} records');
+      return data;
+    });
   }
 }

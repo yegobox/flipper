@@ -2757,56 +2757,7 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-  @override
-  Stream<List<ITransaction>> transactionsStream({
-    String? status,
-    String? transactionType,
-    int? branchId,
-    bool isCashOut = false,
-    String? id,
-    FilterType? filterType,
-    bool includePending = false,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    final List<brick.Where> conditions = [
-      brick.Where('status').isExactly(status ?? COMPLETE),
-      brick.Where('subTotal').isGreaterThan(0),
-      if (id != null) brick.Where('id').isExactly(id),
-      if (branchId != null) brick.Where('branchId').isExactly(branchId),
-      if (isCashOut) brick.Where('isExpense').isExactly(true),
-    ];
-    // talker.warning(conditions.toString());
-    if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        // Ensure we include the entire day
-        DateTime endOfDay = startDate.add(Duration(days: 1));
-
-        conditions.add(
-          brick.Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endOfDay.toUtc().toIso8601String(),
-          ),
-        );
-      } else {
-        conditions.add(
-          brick.Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endDate.toUtc().toIso8601String(),
-          ),
-        );
-      }
-    }
-    final queryString = brick.Query(where: conditions);
-    // Directly return the stream from the repository
-    return repository
-        .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
-        .map((data) {
-      print('Transaction stream data: ${data.length} records');
-      return data;
-    });
-  }
+  
 
   @override
   Future<List<IUnit>> units({required int branchId}) async {
