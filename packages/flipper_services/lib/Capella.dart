@@ -2057,4 +2057,11 @@ class Capella extends AiStrategyImpl
     // TODO: implement assignTransaction
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<brick.Variant>> getExpiredItems(
+      {required int branchId, int? daysToExpiry, int? limit}) {
+    // TODO: implement getExpiredItems
+    throw UnimplementedError();
+  }
 }

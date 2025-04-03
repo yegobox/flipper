@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/inventory_dashboard_screen.dart';
 
 class InventoryDashboardApp extends StatelessWidget {
@@ -6,9 +7,11 @@ class InventoryDashboardApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use the parent context's theme instead of defining a new one
-    return const Material(
-      child: InventoryDashboardScreen(),
+    // Wrap with ProviderScope to enable Riverpod
+    return const ProviderScope(
+      child: Material(
+        child: InventoryDashboardScreen(),
+      ),
     );
   }
 }

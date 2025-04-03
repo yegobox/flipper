@@ -173,7 +173,7 @@ class _VariantProviderElement
   String? get key => (origin as VariantProvider).key;
 }
 
-String _$purchaseVariantHash() => r'be3336685a9a0c92b6fd639607ad96a6f70e1bde';
+String _$purchaseVariantHash() => r'ecdb78389cbc2826c5d271cb8c1bfd897edc3263';
 
 /// See also [purchaseVariant].
 @ProviderFor(purchaseVariant)

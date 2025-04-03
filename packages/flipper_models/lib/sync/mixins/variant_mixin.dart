@@ -241,4 +241,69 @@ mixin VariantMixin implements VariantInterface {
     variant.stock = stock;
     return await repository.upsert<Variant>(variant);
   }
+
+  @override
+  Future<List<Variant>> getExpiredItems({
+    required int branchId,
+    int? daysToExpiry,
+    int? limit,
+  }) async {
+    try {
+      talker.debug('Fetching expired items for branch $branchId');
+      
+      // Calculate the date threshold for expiring soon items
+      final now = DateTime.now();
+      final expiryThreshold = daysToExpiry != null
+          ? now.add(Duration(days: daysToExpiry))
+          : now;
+      
+      // Create a query to find variants with expiration dates before or on the threshold
+      final query = Query(where: [
+        Where('branchId').isExactly(branchId),
+        Where('expirationDate').isNot(null),
+      ]);
+      
+      // Get variants from the repository
+      final variants = await repository.get<Variant>(
+        query: query,
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+      
+      // Filter variants by expiration date
+      final filteredVariants = variants.where((variant) => 
+        variant.expirationDate != null && 
+        (variant.expirationDate!.isBefore(expiryThreshold) || 
+        variant.expirationDate!.isAtSameMomentAs(expiryThreshold))
+      ).toList();
+      
+      // Apply limit if specified
+      final limitedVariants = limit != null && limit < filteredVariants.length
+          ? filteredVariants.take(limit).toList()
+          : filteredVariants;
+      
+      // Fetch stock data for each variant if needed
+      for (final variant in limitedVariants) {
+        if (variant.stockId != null && variant.stock == null) {
+          try {
+            final stockResult = await repository.get<Stock>(
+              query: Query(where: [Where('id').isExactly(variant.stockId!)]),
+              policy: OfflineFirstGetPolicy.localOnly,
+            );
+            
+            if (stockResult.isNotEmpty) {
+              variant.stock = stockResult.first;
+            }
+          } catch (e) {
+            talker.warning('Could not load stock for variant ${variant.id}: $e');
+          }
+        }
+      }
+      
+      talker.debug('Found ${limitedVariants.length} expired or expiring items');
+      return limitedVariants;
+    } catch (e, stackTrace) {
+      talker.error('Error fetching expired items: $e', e, stackTrace);
+      return [];
+    }
+  }
 }

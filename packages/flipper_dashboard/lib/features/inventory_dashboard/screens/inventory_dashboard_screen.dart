@@ -1,92 +1,30 @@
+import 'package:flipper_dashboard/features/inventory_dashboard/models/inventory_models.dart';
+import 'package:flipper_dashboard/features/inventory_dashboard/widgets/expired_items_section.dart';
+import 'package:flipper_models/providers/inventory_provider.dart';
 import 'package:flutter/material.dart';
-import '../models/inventory_models.dart';
-import '../widgets/summary_cards.dart';
-import '../widgets/expired_items_section.dart';
-import '../widgets/charts_section.dart';
-import '../widgets/recent_orders_section.dart';
 import '../widgets/near_expiry_section.dart';
+import '../widgets/summary_cards.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/recent_orders_section.dart';
 import 'package:intl/intl.dart';
 
-class InventoryDashboardScreen extends StatefulWidget {
+class InventoryDashboardScreen extends ConsumerStatefulWidget {
   const InventoryDashboardScreen({Key? key}) : super(key: key);
 
   @override
-  State<InventoryDashboardScreen> createState() => _InventoryDashboardScreenState();
+  ConsumerState<InventoryDashboardScreen> createState() =>
+      _InventoryDashboardScreenState();
 }
 
-class _InventoryDashboardScreenState extends State<InventoryDashboardScreen> {
-  // Sample data for the dashboard
-  final List<InventoryItem> _expiredItems = [
-    InventoryItem(
-      id: '001',
-      name: 'Milk',
-      category: 'Dairy',
-      quantity: 15,
-      expiryDate: DateTime.now().subtract(const Duration(days: 2)),
-      location: 'Warehouse A',
-    ),
-    InventoryItem(
-      id: '002',
-      name: 'Yogurt',
-      category: 'Dairy',
-      quantity: 30,
-      expiryDate: DateTime.now().subtract(const Duration(days: 1)),
-      location: 'Warehouse A',
-    ),
-    InventoryItem(
-      id: '003',
-      name: 'Cheese',
-      category: 'Dairy',
-      quantity: 10,
-      expiryDate: DateTime.now().subtract(const Duration(days: 3)),
-      location: 'Warehouse B',
-    ),
-    InventoryItem(
-      id: '004',
-      name: 'Orange Juice',
-      category: 'Beverages',
-      quantity: 25,
-      expiryDate: DateTime.now().subtract(const Duration(days: 5)),
-      location: 'Warehouse C',
-    ),
-  ];
+class _InventoryDashboardScreenState
+    extends ConsumerState<InventoryDashboardScreen> {
+  // Configuration for inventory data
 
-  final List<InventoryItem> _nearExpiryItems = [
-    InventoryItem(
-      id: '005',
-      name: 'Bread',
-      category: 'Bakery',
-      quantity: 20,
-      expiryDate: DateTime.now().add(const Duration(days: 2)),
-      location: 'Warehouse B',
-    ),
-    InventoryItem(
-      id: '006',
-      name: 'Eggs',
-      category: 'Dairy',
-      quantity: 50,
-      expiryDate: DateTime.now().add(const Duration(days: 3)),
-      location: 'Warehouse A',
-    ),
-    InventoryItem(
-      id: '007',
-      name: 'Chicken',
-      category: 'Meat',
-      quantity: 15,
-      expiryDate: DateTime.now().add(const Duration(days: 1)),
-      location: 'Warehouse C',
-    ),
-  ];
+  // Configuration for inventory data
+  final int _expiryDaysThreshold = 7;
+  final int _itemsLimit = 10;
 
-  // Sample inventory levels by category
-  final Map<String, int> _inventoryByCategory = {
-    'Dairy': 325,
-    'Bakery': 150,
-    'Meat': 200,
-    'Produce': 450,
-    'Beverages': 275,
-    'Frozen': 180,
-  };
+  // No sample data needed as we're using real data from the service
 
   // Sample reorder history
   final List<ReorderHistory> _reorderHistory = [
@@ -121,9 +59,11 @@ class _InventoryDashboardScreenState extends State<InventoryDashboardScreen> {
   ];
 
   void _deleteItem(InventoryItem item) {
-    setState(() {
-      _expiredItems.remove(item);
-    });
+    // In a real implementation, this would call a service to delete the item
+    // and then refresh the provider
+    // Refresh the expired items list
+    // Using discard to explicitly ignore the result as we don't need to wait for it
+    final _ = ref.refresh(expiredItemsProvider(const ExpiredItemsParams()));
   }
 
   void _showItemDetailsDialog(BuildContext context, InventoryItem item) {
@@ -172,19 +112,47 @@ class _InventoryDashboardScreenState extends State<InventoryDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Dashboard header with summary cards
-            SummaryCards(expiredItemsCount: _expiredItems.length),
+            Consumer(
+              builder: (context, ref, child) {
+                final expiredItemsAsync =
+                    ref.watch(expiredItemsProvider(const ExpiredItemsParams()));
+
+                return expiredItemsAsync.when(
+                  data: (expiredItems) => SummaryCards(
+                    expiredItemsCount: expiredItems.length,
+                  ),
+                  loading: () => SummaryCards(expiredItemsCount: 0),
+                  error: (_, __) => SummaryCards(expiredItemsCount: 0),
+                );
+              },
+            ),
             const SizedBox(height: 24),
 
             // Expired items section
-            ExpiredItemsSection(
-              expiredItems: _expiredItems,
-              onDeleteItem: _deleteItem,
-              onViewItemDetails: _showItemDetailsDialog,
+            Consumer(
+              builder: (context, ref, child) {
+                final expiredItemsAsync = ref.watch(expiredItemsProvider(
+                  ExpiredItemsParams(limit: _itemsLimit),
+                ));
+
+                return expiredItemsAsync.when(
+                  data: (expiredItems) => ExpiredItemsSection(
+                    expiredItems: expiredItems,
+                    onDeleteItem: _deleteItem,
+                    onViewItemDetails: _showItemDetailsDialog,
+                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) => Center(
+                    child: Text('Error loading expired items: $error'),
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
             // Charts section
-            ChartsSection(inventoryByCategory: _inventoryByCategory),
+            // Charts section would go here if implemented
             const SizedBox(height: 24),
 
             // Recent orders and near expiry items
@@ -198,7 +166,29 @@ class _InventoryDashboardScreenState extends State<InventoryDashboardScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   flex: 2,
-                  child: NearExpirySection(nearExpiryItems: _nearExpiryItems),
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final nearExpiryItemsAsync =
+                          ref.watch(nearExpiryItemsProvider(
+                        NearExpiryItemsParams(
+                          daysToExpiry: _expiryDaysThreshold,
+                          limit: _itemsLimit,
+                        ),
+                      ));
+
+                      return nearExpiryItemsAsync.when(
+                        data: (nearExpiryItems) => NearExpirySection(
+                          nearExpiryItems: nearExpiryItems,
+                        ),
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (error, stackTrace) => Center(
+                          child:
+                              Text('Error loading near expiry items: $error'),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
