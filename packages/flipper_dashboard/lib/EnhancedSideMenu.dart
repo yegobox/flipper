@@ -64,6 +64,25 @@ class EnhancedSideMenu extends ConsumerWidget {
                 ref.read(selectedMenuItemProvider.notifier).state = 1;
               },
             ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              highlightSelectedColor: Colors.blue.withOpacity(0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Items',
+              isSelected: selectedItem == 2,
+              icon: Icon(
+                FluentIcons.box_24_regular,
+                color: selectedItem == 2 ? Colors.blue : Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () {
+                ref.read(selectedMenuItemProvider.notifier).state = 2;
+              },
+            ),
           ],
           footer: Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
