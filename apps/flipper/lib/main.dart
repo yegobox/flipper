@@ -26,7 +26,7 @@ Future<void> main() async {
   }
   await SentryFlutter.init(
     (options) => options
-      ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey
+      ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey
       ..release = 'flipper@1.170.4252223232243+1723059742'
       ..environment = 'production'
       ..experimental.replay.sessionSampleRate = 1.0

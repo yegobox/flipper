@@ -188,7 +188,7 @@ mixin AuthMixin implements AuthInterface {
             latitude: e.latitude,
             location: e.location,
             active: e.active,
-            isDefault: e.isDefault ?? false))
+            isDefault: false))
         .toList();
   }
 
@@ -198,8 +198,7 @@ mixin AuthMixin implements AuthInterface {
             id: e.serverId,
             name: e.name,
             userId: e.userId.toString(),
-            // active: e.active,
-            isDefault: e.isDefault ?? false))
+            isDefault: false))
         .toList();
   }
 

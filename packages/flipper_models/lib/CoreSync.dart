@@ -674,8 +674,6 @@ class CoreSync extends AiStrategyImpl
         .firstOrNull;
   }
 
-
-
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
     try {
       // 1. Fetch the TransactionItem to be deleted.
@@ -1034,10 +1032,6 @@ class CoreSync extends AiStrategyImpl
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }
-
- 
-
-  
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
@@ -2793,7 +2787,7 @@ class CoreSync extends AiStrategyImpl
         if (isIncome) {
           // Update transaction details
           final double subTotal =
-              items.fold(0, (num a, b) => a + (b.price * b.qty));
+              items.fold(0, (num a, b) => a + (b.price * b.qty.toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
@@ -2965,7 +2959,7 @@ class CoreSync extends AiStrategyImpl
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
     // Setting the quantity here, after the stock patch is crucial for accuracy.
 
-    variant?.qty = item.qty;
+    variant?.qty = item.qty?.toDouble();
     if (variant != null) {
       await _updateVariantAndPatchStock(
         variant: variant,
@@ -3595,7 +3589,6 @@ class CoreSync extends AiStrategyImpl
     await repository.upsert(stock);
   }
 
-
   @override
   FutureOr<LPermission?> permission({required int userId}) async {
     return (await repository.get<LPermission>(
@@ -3690,7 +3683,6 @@ class CoreSync extends AiStrategyImpl
       required String userType}) {
     // TODO: implement updateAccess
   }
-
 
   @override
   FutureOr<void> updateBranch(

@@ -194,7 +194,7 @@ mixin Booting {
         adrs: business.adrs,
         taxEnabled: business.taxEnabled,
         taxServerUrl: "",
-        isDefault: business.isDefault,
+        isDefault: false,
         businessTypeId: business.businessTypeId,
         lastTouched: business.lastTouched,
         deletedAt: business.deletedAt,

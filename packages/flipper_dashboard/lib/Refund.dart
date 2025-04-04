@@ -59,9 +59,15 @@ class _RefundState extends ConsumerState<Refund> {
                 const SizedBox(height: 32),
                 BoxButton(
                   borderRadius: 1,
-                  title: widget.transaction?.isRefunded == true
+                  title: widget.transaction?.receiptType == "NR" ||
+                          widget.transaction?.receiptType == "CR"
                       ? "Refunded"
                       : "Refund",
+                  color: widget.transaction?.receiptType == "NR" ||
+                          widget.transaction?.receiptType == "CR"
+                      ? Colors.green
+                      : null,
+                  busy: isRefundProcessing,
                   onTap: () async {
                     try {
                       if (widget.transaction!.isRefunded ?? false) {
@@ -108,7 +114,6 @@ class _RefundState extends ConsumerState<Refund> {
                       toast(e.toString());
                     }
                   },
-                  busy: isRefundProcessing,
                 ),
                 const SizedBox(height: 16),
                 BoxButton(
@@ -277,6 +282,9 @@ class _RefundState extends ConsumerState<Refund> {
             await ProxyService.strategy.getVariant(id: item.variantId);
         if (variant != null) {
           if (variant.stock != null) {
+            // mark the variant.ebmSynced to false
+            ProxyService.strategy.updateVariant(
+                updatables: [variant], variantId: variant.id, ebmSynced: false);
             // Update the stock
             ProxyService.strategy.updateStock(
                 stockId: variant.stock!.id,
@@ -294,7 +302,7 @@ class _RefundState extends ConsumerState<Refund> {
                 .getBusiness(businessId: ProxyService.box.getBusinessId()!);
             await ProxyService.strategy.assignTransaction(
               variant: variant,
-              updatableQty: item.qty,
+              updatableQty: item.qty.toDouble(),
               doneWithTransaction: true,
               invoiceNumber: int.parse(widget.transaction!.sarNo!),
               pendingTransaction: pendingTransaction!,
@@ -324,10 +332,17 @@ class _RefundState extends ConsumerState<Refund> {
   Future<void> handleReceipt({required FilterType filterType}) async {
     try {
       setState(() {
-        if (filterType == FilterType.CS) {
+        // Set the correct loading state based on the operation
+        // For CS (Copy Sales) and CR (Copy Refund), we're printing a copy receipt
+        // For all other filter types, we're processing a refund
+        if (filterType == FilterType.CS ||
+            filterType == FilterType.CR ||
+            filterType == FilterType.CP) {
           isPrintingCopy = true;
+          isRefundProcessing = false;
         } else {
           isRefundProcessing = true;
+          isPrintingCopy = false;
         }
       });
 
@@ -335,7 +350,10 @@ class _RefundState extends ConsumerState<Refund> {
           .handleReceipt(filterType: filterType);
 
       setState(() {
-        if (filterType == FilterType.CS) {
+        // Reset the loading state when done
+        if (filterType == FilterType.CS ||
+            filterType == FilterType.CR ||
+            filterType == FilterType.CP) {
           isPrintingCopy = false;
         } else {
           isRefundProcessing = false;
@@ -344,7 +362,10 @@ class _RefundState extends ConsumerState<Refund> {
     } catch (e) {
       talker.critical(e);
       setState(() {
-        if (filterType == FilterType.CS) {
+        // Reset loading states in case of error
+        if (filterType == FilterType.CS ||
+            filterType == FilterType.CR ||
+            filterType == FilterType.CP) {
           isPrintingCopy = false;
         } else {
           isRefundProcessing = false;
