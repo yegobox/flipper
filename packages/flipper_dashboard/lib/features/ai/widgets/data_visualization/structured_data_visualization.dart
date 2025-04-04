@@ -67,7 +67,24 @@ class StructuredDataVisualization implements VisualizationInterface {
     // Extract data from the structured format
     final String title = data['title'] ?? 'Tax Summary';
     final String date = data['date'] ?? 'Today';
-    final double totalTax = data['totalTax']?.toDouble() ?? 0.0;
+
+    // Handle totalTax more robustly to prevent failures
+    double totalTax = 0.0;
+    final dynamic rawTotalTax = data['totalTax'];
+    if (rawTotalTax != null) {
+      if (rawTotalTax is num) {
+        totalTax = rawTotalTax.toDouble();
+      } else if (rawTotalTax is String) {
+        // Try to parse string to double, removing any non-numeric characters except decimal point
+        final cleanedStr = rawTotalTax.replaceAll(RegExp(r'[^\d.]'), '');
+        try {
+          totalTax = double.parse(cleanedStr);
+        } catch (e) {
+          print('Error parsing totalTax: $e');
+        }
+      }
+    }
+
     final String currencyCode = data['currencyCode'] ?? 'RWF';
 
     // Include date in title if available
@@ -88,7 +105,23 @@ class StructuredDataVisualization implements VisualizationInterface {
     final Map<String, double> itemTaxContributions = {};
     for (final item in items) {
       final String name = item['name'] ?? 'Unknown';
-      final double taxAmount = item['taxAmount']?.toDouble() ?? 0.0;
+
+      // Handle taxAmount more robustly
+      double taxAmount = 0.0;
+      final dynamic rawTaxAmount = item['taxAmount'];
+      if (rawTaxAmount != null) {
+        if (rawTaxAmount is num) {
+          taxAmount = rawTaxAmount.toDouble();
+        } else if (rawTaxAmount is String) {
+          // Try to parse string to double, removing any non-numeric characters except decimal point
+          final cleanedStr = rawTaxAmount.replaceAll(RegExp(r'[^\d.]'), '');
+          try {
+            taxAmount = double.parse(cleanedStr);
+          } catch (e) {
+            print('Error parsing item taxAmount: $e');
+          }
+        }
+      }
 
       if (taxAmount > 0) {
         // Group by main product name (before comma if present)
@@ -292,10 +325,55 @@ class StructuredDataVisualization implements VisualizationInterface {
       BuildContext context, Map<String, dynamic> data, String? currency) {
     final theme = Theme.of(context);
 
-    // Extract data from the structured format
-    final double revenue = data['revenue']?.toDouble() ?? 0.0;
-    final double profit = data['profit']?.toDouble() ?? 0.0;
-    final double unitsSold = data['unitsSold']?.toDouble() ?? 0.0;
+    // Extract data from the structured format with robust parsing
+    double revenue = 0.0;
+    double profit = 0.0;
+    double unitsSold = 0.0;
+
+    // Parse revenue safely
+    final dynamic rawRevenue = data['revenue'];
+    if (rawRevenue != null) {
+      if (rawRevenue is num) {
+        revenue = rawRevenue.toDouble();
+      } else if (rawRevenue is String) {
+        final cleanedStr = rawRevenue.replaceAll(RegExp(r'[^\d.]'), '');
+        try {
+          revenue = double.parse(cleanedStr);
+        } catch (e) {
+          print('Error parsing revenue: $e');
+        }
+      }
+    }
+
+    // Parse profit safely
+    final dynamic rawProfit = data['profit'];
+    if (rawProfit != null) {
+      if (rawProfit is num) {
+        profit = rawProfit.toDouble();
+      } else if (rawProfit is String) {
+        final cleanedStr = rawProfit.replaceAll(RegExp(r'[^\d.]'), '');
+        try {
+          profit = double.parse(cleanedStr);
+        } catch (e) {
+          print('Error parsing profit: $e');
+        }
+      }
+    }
+
+    // Parse units sold safely
+    final dynamic rawUnitsSold = data['unitsSold'];
+    if (rawUnitsSold != null) {
+      if (rawUnitsSold is num) {
+        unitsSold = rawUnitsSold.toDouble();
+      } else if (rawUnitsSold is String) {
+        final cleanedStr = rawUnitsSold.replaceAll(RegExp(r'[^\d.]'), '');
+        try {
+          unitsSold = double.parse(cleanedStr);
+        } catch (e) {
+          print('Error parsing unitsSold: $e');
+        }
+      }
+    }
     final String currencyCode = data['currencyCode'] ?? currency ?? 'USD';
 
     // Format values
