@@ -2757,8 +2757,6 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-  
-
   @override
   Future<List<IUnit>> units({required int branchId}) async {
     final existingUnits = await repository.get<IUnit>(
@@ -2898,10 +2896,17 @@ class CoreSync extends AiStrategyImpl
 
         // Handle receipt if required
         if (directlyHandleReceipt) {
-          TaxController(object: transaction)
-              .handleReceipt(filterType: FilterType.NS);
+          if (!isProformaMode && !isTrainingMode) {
+            TaxController(object: transaction)
+                .handleReceipt(filterType: FilterType.NS);
+          } else if (isProformaMode) {
+            TaxController(object: transaction)
+                .handleReceipt(filterType: FilterType.PS);
+          } else if (isTrainingMode) {
+            TaxController(object: transaction)
+                .handleReceipt(filterType: FilterType.TS);
+          }
         }
-
         return transaction;
       } catch (e, s) {
         talker.error(s);

@@ -507,8 +507,16 @@ class PaymentsState extends ConsumerState<Payments> {
 
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
-      await TaxController(object: widget.transaction)
-          .handleReceipt(filterType: FilterType.NS);
+      if (ProxyService.box.isProformaMode()) {
+        await TaxController(object: widget.transaction)
+            .handleReceipt(filterType: FilterType.PS);
+      } else if (ProxyService.box.isTrainingMode()) {
+        await TaxController(object: widget.transaction)
+            .handleReceipt(filterType: FilterType.NS);
+      } else {
+        await TaxController(object: widget.transaction)
+            .handleReceipt(filterType: FilterType.NS);
+      }
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);

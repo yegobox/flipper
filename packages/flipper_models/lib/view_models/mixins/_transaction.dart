@@ -100,7 +100,6 @@ mixin TransactionMixinOld {
       double discount,
       {required Function onComplete,
       required String bhfId}) async {
-    // TODO: TODO: check if we are computing the stock's value propper.
     await ProxyService.strategy.collectPayment(
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
@@ -148,11 +147,9 @@ mixin TransactionMixinOld {
   }
 
   FilterType getFilterType({required String transactionType}) {
-    if (transactionType == "NS") {
-      return FilterType.NS;
-    } else if (transactionType == "PS") {
+    if (ProxyService.box.isProformaMode()) {
       return FilterType.PS;
-    } else if (transactionType == "TS") {
+    } else if (ProxyService.box.isTrainingMode()) {
       return FilterType.TS;
     } else {
       return FilterType.NS;
