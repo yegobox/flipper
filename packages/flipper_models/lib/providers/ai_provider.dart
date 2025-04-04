@@ -155,6 +155,33 @@ Analyze the provided business data following these guidelines:
    - Exclude zero-value entries from calculations and tables
    - End with a clearly highlighted total in bold
 
+6. Visualization Data:
+   - If your response includes data that should be visualized (like tax information, business analytics, etc.), 
+     include a structured JSON block in the following format:
+
+   {{VISUALIZATION_DATA}}
+   {
+     "type": "tax|business_analytics|inventory",
+     // For tax visualization include:
+     "title": "Tax Summary",
+     "date": "DD/MM/YYYY",
+     "totalTax": 1234.56,
+     "currencyCode": "RWF",
+     "items": [
+       {"name": "Product Name", "taxAmount": 123.45},
+       // Add more items as needed
+     ]
+     
+     // For business_analytics visualization include:
+     "revenue": 1234.56,
+     "profit": 567.89,
+     "unitsSold": 42,
+     "currencyCode": "RWF"
+     
+     // For inventory visualization include appropriate fields
+   }
+   {{/VISUALIZATION_DATA}}
+
 User Query: $userPrompt
 """;
 
