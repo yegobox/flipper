@@ -13,23 +13,59 @@ class TaxVisualization implements VisualizationInterface {
   Widget build(BuildContext context, {String? currency}) {
     final theme = Theme.of(context);
 
-    // Attempt to extract total tax from the "Total Tax Payable" format
-    final totalTaxPayableMatch =
-        RegExp(r'Total Tax Payable .*?\*\*RWF ([\d,\.]+)\*\*').firstMatch(data);
+    // Attempt to extract total tax from various formats
+    RegExpMatch? totalTaxMatch;
+    String? totalTaxStr;
 
-    // Attempt to extract total tax from the "Total: RWF" format
-    final totalTaxMatch =
-        RegExp(r'Total: RWF\s*([\d,\.]+)\s*').firstMatch(data);
+    // Try "Total Tax Collected" format
+    totalTaxMatch = RegExp(r'Total Tax Collected .*?\*\*RWF ([\d,\.]+)\*\*')
+        .firstMatch(data);
+    if (totalTaxMatch != null) {
+      totalTaxStr = totalTaxMatch.group(1);
+    }
 
-    final totalTaxStr = totalTaxPayableMatch?.group(1)?.replaceAll(',', '') ??
-        totalTaxMatch?.group(1)?.replaceAll(',', '');
+    // Try "Total Tax Payable" format
+    if (totalTaxStr == null) {
+      totalTaxMatch = RegExp(r'Total Tax Payable .*?\*\*RWF ([\d,\.]+)\*\*')
+          .firstMatch(data);
+      if (totalTaxMatch != null) {
+        totalTaxStr = totalTaxMatch.group(1);
+      }
+    }
 
-    final totalTax =
-        totalTaxStr != null ? double.tryParse(totalTaxStr) ?? 0.0 : 0.0;
+    // Try "Total: RWF" format
+    if (totalTaxStr == null) {
+      totalTaxMatch = RegExp(r'Total: RWF\s*([\d,\.]+)\s*').firstMatch(data);
+      if (totalTaxMatch != null) {
+        totalTaxStr = totalTaxMatch.group(1);
+      }
+    }
+
+    // Calculate sum from table if no total found
+    double calculatedTotal = 0.0;
+    if (totalTaxStr == null) {
+      final taxAmountRegex =
+          RegExp(r'RWF ([\d,\.]+)\s*\|\s*$', multiLine: true);
+      final taxMatches = taxAmountRegex.allMatches(data);
+      for (final match in taxMatches) {
+        final amountStr = match.group(1)?.replaceAll(',', '') ?? '0';
+        final amount = double.tryParse(amountStr) ?? 0.0;
+        calculatedTotal += amount;
+      }
+    }
+
+    final totalTax = totalTaxStr != null
+        ? (double.tryParse(totalTaxStr.replaceAll(',', '')) ?? 0.0)
+        : calculatedTotal;
 
     // Extract date information
-    final dateMatch =
-        RegExp(r'Tax Summary for\s*(\d{2}/\d{2}/\d{4})').firstMatch(data);
+    RegExpMatch? dateMatch =
+        RegExp(r'Detailed Tax Breakdown for (\d{2}/\d{2}/\d{4})')
+            .firstMatch(data);
+    if (dateMatch == null) {
+      dateMatch =
+          RegExp(r'Tax Summary for\s*(\d{2}/\d{2}/\d{4})').firstMatch(data);
+    }
     final dateStr = dateMatch?.group(1) ?? 'Today';
 
     // Attempt to extract tax breakdown by item
@@ -195,6 +231,10 @@ class TaxVisualization implements VisualizationInterface {
   @override
   bool canVisualize(String data) {
     // Check for tax-related keywords in the response
-    return data.contains('Tax Summary') || data.contains('Tax Payable');
+    return data.contains('Tax Summary') ||
+        data.contains('Tax Payable') ||
+        data.contains('Total Tax Collected') ||
+        data.contains('Detailed Tax Breakdown') ||
+        (data.contains('Tax Rate') && data.contains('Total Tax'));
   }
 }
