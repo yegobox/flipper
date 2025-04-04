@@ -283,8 +283,8 @@ class _RefundState extends ConsumerState<Refund> {
         if (variant != null) {
           if (variant.stock != null) {
             // mark the variant.ebmSynced to false
-            ProxyService.strategy.updateVariant(
-                updatables: [variant], variantId: variant.id, ebmSynced: false);
+            ProxyService.strategy
+                .updateVariant(updatables: [variant], ebmSynced: false);
             // Update the stock
             ProxyService.strategy.updateStock(
                 stockId: variant.stock!.id,
