@@ -323,8 +323,6 @@ class StructuredDataVisualization implements VisualizationInterface {
   /// Build business analytics visualization from structured data
   Widget _buildBusinessAnalyticsVisualization(
       BuildContext context, Map<String, dynamic> data, String? currency) {
-    final theme = Theme.of(context);
-
     // Extract data from the structured format with robust parsing
     double revenue = 0.0;
     double profit = 0.0;
@@ -375,42 +373,115 @@ class StructuredDataVisualization implements VisualizationInterface {
       }
     }
     final String currencyCode = data['currencyCode'] ?? currency ?? 'USD';
+    final String date = data['date'] ?? 'Today';
 
-    // Format values
-    final formattedRevenue =
-        currencyService.formatCurrencyValue(revenue, currency: currency) ??
-            '$currencyCode ${revenue.toStringAsFixed(2)}';
-    final formattedProfit =
-        currencyService.formatCurrencyValue(profit, currency: currency) ??
-            '$currencyCode ${profit.toStringAsFixed(2)}';
-    final formattedUnitsSold = unitsSold.toStringAsFixed(0);
+    // Format values with commas for large numbers
+    String formatNumber(double value) {
+      return value.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]},',
+          );
+    }
 
-    final summaryDisplay =
-        'Summary: Total Revenue: $formattedRevenue, Total Profit: $formattedProfit, Total Units Sold: $formattedUnitsSold';
+    final formattedRevenue = '$currencyCode ${formatNumber(revenue)}';
+    final formattedProfit = '$currencyCode ${formatNumber(profit)}';
+    final formattedUnitsSold = formatNumber(unitsSold);
+
+    // Determine if we need to scale values for visualization
+    bool needsScaling =
+        revenue > 1000000 || profit > 1000000 || unitsSold > 1000;
+    double revenueDisplay = revenue;
+    double profitDisplay = profit;
+    double unitsDisplay = unitsSold;
+    String scaleSuffix = '';
+
+    if (needsScaling) {
+      if (revenue > 1000000) {
+        // Scale to millions
+        revenueDisplay = revenue / 1000000;
+        profitDisplay = profit / 1000000;
+        scaleSuffix = ' (in millions)';
+      } else if (revenue > 1000) {
+        // Scale to thousands
+        revenueDisplay = revenue / 1000;
+        profitDisplay = profit / 1000;
+        scaleSuffix = ' (in thousands)';
+      }
+
+      if (unitsSold > 1000) {
+        unitsDisplay = unitsSold / 1000;
+      }
+    }
+
+    final title = 'Business Analytics for $date';
 
     return Card(
+      elevation: 4,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              summaryDisplay,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.black.withOpacity(0.87),
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 8),
+            // Summary cards in a row
+            Row(
+              children: [
+                Expanded(
+                  child: _buildSummaryCard(
+                    'Revenue',
+                    formattedRevenue,
+                    Colors.blue.shade100,
+                    Colors.blue,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSummaryCard(
+                    'Profit',
+                    formattedProfit,
+                    Colors.green.shade100,
+                    Colors.green,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildSummaryCard(
+                    'Units Sold',
+                    formattedUnitsSold,
+                    Colors.orange.shade100,
+                    Colors.orange,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
+            if (needsScaling)
+              Text(
+                'Chart values$scaleSuffix',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            const SizedBox(height: 8),
             SizedBox(
               height: 200,
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: revenue * 1.2,
+                  maxY: revenueDisplay * 1.2,
                   barGroups: [
-                    _createBarGroup(0, revenue),
-                    _createBarGroup(1, profit),
-                    _createBarGroup(2, unitsSold),
+                    _createBarGroup(0, revenueDisplay),
+                    _createBarGroup(1, profitDisplay),
+                    _createBarGroup(2, unitsDisplay),
                   ],
                   titlesData: FlTitlesData(
                     show: true,
@@ -418,23 +489,31 @@ class StructuredDataVisualization implements VisualizationInterface {
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          final titles = [
-                            'Total Revenue',
-                            'Total Profit',
-                            'Total Units Sold'
-                          ];
+                          final titles = ['Revenue', 'Profit', 'Units'];
                           return Text(
                             titles[value.toInt()],
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: Colors.grey[600],
                               fontSize: 12,
                             ),
                           );
                         },
                       ),
                     ),
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 10,
+                            ),
+                          );
+                        },
+                        reservedSize: 40,
+                      ),
                     ),
                     topTitles: const AxisTitles(
                       sideTitles: SideTitles(showTitles: false),
@@ -443,13 +522,56 @@ class StructuredDataVisualization implements VisualizationInterface {
                       sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
-                  gridData: const FlGridData(show: false),
+                  gridData: FlGridData(
+                    show: true,
+                    drawHorizontalLine: true,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.grey[300],
+                      strokeWidth: 1,
+                    ),
+                    drawVerticalLine: false,
+                  ),
                   borderData: FlBorderData(show: false),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Helper method to build summary cards
+  Widget _buildSummaryCard(
+      String title, String value, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
