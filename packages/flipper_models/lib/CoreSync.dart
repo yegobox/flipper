@@ -7,7 +7,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/business.dart';
-import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
@@ -191,20 +190,6 @@ class CoreSync extends AiStrategyImpl
   SendPort? sendPort;
 
   @override
-  Future<Business?> activeBusiness({int? userId}) async {
-    return (await repository.get<Business>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(
-        where: [
-          if (userId != null) brick.Where('userId').isExactly(userId),
-          brick.Where('isDefault').isExactly(true),
-        ],
-      ),
-    ))
-        .firstOrNull;
-  }
-
-  @override
   Future<Customer?> addCustomer(
       {required Customer customer, String? transactionId}) async {
     return await repository.upsert(customer);
@@ -365,25 +350,6 @@ class CoreSync extends AiStrategyImpl
       talker.error(s);
       rethrow;
     }
-  }
-
-  @override
-  Future<List<ext.BusinessType>> businessTypes() async {
-    final responseJson = [
-      {"id": "1", "typeName": "Flipper Retailer"}
-    ];
-    await Future.delayed(Duration(seconds: 5));
-    final response = http.Response(jsonEncode(responseJson), 200);
-    if (response.statusCode == 200) {
-      return BusinessType.fromJsonList(jsonEncode(responseJson));
-    }
-    return BusinessType.fromJsonList(jsonEncode(responseJson));
-  }
-
-  @override
-  Future<List<Business>> businesses({required int userId}) async {
-    return await repository.get<Business>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
   }
 
   @override
@@ -708,13 +674,7 @@ class CoreSync extends AiStrategyImpl
         .firstOrNull;
   }
 
-  @override
-  Future<Business?> defaultBusiness() async {
-    return (await repository.get<Business>(
-            query:
-                brick.Query(where: [brick.Where('isDefault').isExactly(true)])))
-        .firstOrNull;
-  }
+
 
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
     try {
@@ -1075,45 +1035,9 @@ class CoreSync extends AiStrategyImpl
     return result.firstOrNull;
   }
 
-  @override
-  FutureOr<Business?> getBusiness({int? businessId}) async {
-    final repository = Repository();
-    final query = brick.Query(
-        where: businessId != null
-            ? [brick.Where('serverId').isExactly(businessId)]
-            : [brick.Where('isDefault').isExactly(true)]);
-    final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
-    return result.firstOrNull;
-  }
+ 
 
-  @override
-  Future<Business?> getBusinessFromOnlineGivenId(
-      {required int id, required HttpClientInterface flipperHttpClient}) async {
-    final repository = Repository();
-    final query = brick.Query(where: [brick.Where('serverId').isExactly(id)]);
-    final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    Business? business = result.firstOrNull;
-
-    if (business != null) return business;
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
-    if (response.statusCode == 200) {
-      int id = randomNumber();
-      IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
-      Business business = Business(
-          serverId: iBusiness.id,
-          name: iBusiness.name,
-          userId: int.parse(iBusiness.userId),
-          createdAt: DateTime.now());
-
-      business.serverId = id;
-      await repository.upsert<models.Business>(business);
-      return business;
-    }
-    return null;
-  }
+  
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
@@ -3671,109 +3595,6 @@ class CoreSync extends AiStrategyImpl
     await repository.upsert(stock);
   }
 
-  @override
-  Future<void> addBusiness(
-      {required int id,
-      required int userId,
-      required int serverId,
-      String? name,
-      String? currency,
-      String? categoryId,
-      String? latitude,
-      String? longitude,
-      String? timeZone,
-      String? country,
-      String? businessUrl,
-      String? hexColor,
-      String? imageUrl,
-      String? type,
-      bool? active,
-      String? chatUid,
-      String? metadata,
-      String? role,
-      int? lastSeen,
-      String? firstName,
-      String? lastName,
-      String? createdAt,
-      String? deviceToken,
-      bool? backUpEnabled,
-      String? subscriptionPlan,
-      String? nextBillingDate,
-      String? previousBillingDate,
-      bool? isLastSubscriptionPaymentSucceeded,
-      String? backupFileId,
-      String? email,
-      String? lastDbBackup,
-      String? fullName,
-      int? tinNumber,
-      required String bhfId,
-      String? dvcSrlNo,
-      String? adrs,
-      bool? taxEnabled,
-      String? taxServerUrl,
-      bool? isDefault,
-      int? businessTypeId,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      required String encryptionKey}) async {
-    Business? exist =
-        await ProxyService.strategy.getBusiness(businessId: serverId);
-
-    if (exist != null) {
-      exist.tinNumber = tinNumber;
-
-      repository.upsert<Business>(exist);
-
-      Business? dd =
-          await ProxyService.strategy.getBusiness(businessId: serverId);
-
-      talker.warning("tin number:${dd?.tinNumber ?? ""}");
-    } else {
-      repository.upsert<Business>(Business(
-        serverId: serverId,
-        name: name,
-        currency: currency,
-        categoryId: categoryId,
-        latitude: latitude,
-        longitude: longitude,
-        timeZone: timeZone,
-        country: country,
-        businessUrl: businessUrl,
-        hexColor: hexColor,
-        imageUrl: imageUrl,
-        type: type,
-        active: active,
-        chatUid: chatUid,
-        tinNumber: tinNumber,
-        metadata: metadata,
-        role: role,
-        userId: userId,
-        lastSeen: lastSeen,
-        firstName: firstName,
-        lastName: lastName,
-        deviceToken: deviceToken,
-        backUpEnabled: backUpEnabled,
-        subscriptionPlan: subscriptionPlan,
-        nextBillingDate: nextBillingDate,
-        previousBillingDate: previousBillingDate,
-        isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded,
-        backupFileId: backupFileId,
-        email: email,
-        lastDbBackup: lastDbBackup,
-        fullName: fullName,
-        bhfId: bhfId,
-        dvcSrlNo: dvcSrlNo,
-        adrs: adrs,
-        taxEnabled: taxEnabled,
-        taxServerUrl: taxServerUrl,
-        isDefault: isDefault,
-        businessTypeId: businessTypeId,
-        lastTouched: lastTouched,
-        deletedAt: deletedAt,
-        encryptionKey: encryptionKey,
-      ));
-    }
-  }
 
   @override
   FutureOr<LPermission?> permission({required int userId}) async {
@@ -3870,25 +3691,6 @@ class CoreSync extends AiStrategyImpl
     // TODO: implement updateAccess
   }
 
-  @override
-  Future<void> updateBusiness(
-      {required int businessId,
-      String? name,
-      bool? active,
-      bool? isDefault,
-      String? backupFileId}) async {
-    final query =
-        brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
-    final business = await repository.get<Business>(query: query);
-    if (business.firstOrNull != null) {
-      Business businessUpdate = business.first;
-      businessUpdate.isDefault = isDefault;
-      businessUpdate.active = active;
-      businessUpdate.backupFileId = backupFileId;
-
-      repository.upsert<Business>(businessUpdate);
-    }
-  }
 
   @override
   FutureOr<void> updateBranch(

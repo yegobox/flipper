@@ -808,6 +808,8 @@ class App {}
 // supabase functions deploy urlRedirect --no-verify-jwt=true
 // web: dart run sqflite_common_ffi_web:setup advice from: @https://github.com/GetDutchie/brick/issues/552
 // git reset --hard origin/main
-
+// something to consider in my project.
+// https://pub.dev/packages/queue
+// https://pub.dev/packages/dart_mq
 
 

@@ -119,15 +119,29 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         return;
       }
       talker.warning("StartupViewModel _allRequirementsMeets");
-      List<Business> businesses = await ProxyService.strategy
-          .businesses(userId: ProxyService.box.getUserId()!);
-      talker.warning("businesses: ${businesses.length}");
-      List<Branch> branches = await ProxyService.strategy
-          .branches(businessId: ProxyService.box.getBusinessId()!);
+
+      // Check if business ID is set
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId == null) {
+        throw Exception("Business ID is not set in local storage");
+      }
+
+      // Check if the specific business exists instead of fetching all businesses
+      final business =
+          await ProxyService.strategy.getBusiness(businessId: businessId);
+      if (business == null) {
+        throw Exception("Business not found locally");
+      }
+      talker.warning("Business found: ${business.name}");
+
+      // Check branches for the specific business
+      List<Branch> branches =
+          await ProxyService.strategy.branches(businessId: businessId);
       talker.warning("branches: ${branches.length}");
-      if (businesses.isEmpty || branches.isEmpty) {
+
+      if (branches.isEmpty) {
         throw Exception(
-            "requirements failed for having business and branch saved locally");
+            "requirements failed for having branches saved locally");
       }
     } catch (e) {
       talker.error("StartupViewModel _allRequirementsMeets ${e}");

@@ -240,7 +240,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<List<Product>> productsFuture({required int branchId});
 
-
   FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
 
@@ -306,7 +305,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Stream<Tenant?> authState({required int branchId});
 
-  Future<List<BusinessType>> businessTypes();
   Future<IPin?> getPin(
       {required String pinString,
       required HttpClientInterface flipperHttpClient});
@@ -421,9 +419,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required Pin pin,
       required HttpClientInterface flipperHttpClient});
 
-  Future<List<Business>> businesses({required int userId});
-  Future<Business?> activeBusiness({int? userId});
-
   Future<List<Branch>> branches(
       {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
@@ -435,8 +430,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<List<ITenant>> tenantsFromOnline(
       {required int businessId,
       required HttpClientInterface flipperHttpClient});
-  Future<Business?> getBusinessFromOnlineGivenId(
-      {required int id, required HttpClientInterface flipperHttpClient});
+
   Future<List<Business>> getContacts();
 
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
@@ -581,13 +575,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<void> updateReport({required String reportId, bool? downloaded});
 
-  FutureOr<void> updateBusiness(
-      {required int businessId,
-      String? name,
-      bool? active,
-      bool? isDefault,
-      String? backupFileId});
-
   FutureOr<void> updateBranch(
       {required int branchId, String? name, bool? active, bool? isDefault});
 
@@ -657,51 +644,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   void whoAmI();
 
-  FutureOr<void> addBusiness(
-      {required int id,
-      required int userId,
-      required int serverId,
-      String? name,
-      String? currency,
-      String? categoryId,
-      String? latitude,
-      String? longitude,
-      String? timeZone,
-      String? country,
-      String? businessUrl,
-      String? hexColor,
-      String? imageUrl,
-      String? type,
-      bool? active,
-      String? chatUid,
-      String? metadata,
-      String? role,
-      int? lastSeen,
-      String? firstName,
-      String? lastName,
-      String? createdAt,
-      String? deviceToken,
-      bool? backUpEnabled,
-      String? subscriptionPlan,
-      String? nextBillingDate,
-      String? previousBillingDate,
-      bool? isLastSubscriptionPaymentSucceeded,
-      String? backupFileId,
-      String? email,
-      String? lastDbBackup,
-      String? fullName,
-      int? tinNumber,
-      required String bhfId,
-      String? dvcSrlNo,
-      String? adrs,
-      bool? taxEnabled,
-      String? taxServerUrl,
-      bool? isDefault,
-      int? businessTypeId,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      required String encryptionKey});
-
   FutureOr<LPermission?> permission({required int userId});
 
   void updateAccess(
@@ -721,7 +663,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   conversations({int? conversationId}) {}
 
   getTop5RecentConversations() {}
-
 
   Future<void> createNewStock(
       {required Variant variant,

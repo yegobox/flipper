@@ -697,10 +697,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     /// so need to account them in future
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
-    // TODO: this name was business.name but was returning wrong name
-    final name = "Kigali Manufacturing Company";
+
     final topMessage =
-        "${name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";
+        "${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";
 
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");

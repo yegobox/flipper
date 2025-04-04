@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
@@ -124,6 +125,12 @@ class CapellaSync extends CapellaSyncBase
       bool removeAdjustmentTransactions = false,
       DateTime? endDate}) {
     // TODO: implement transactionsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<BusinessType>> businessTypes() {
+    // TODO: implement businessTypes
     throw UnimplementedError();
   }
 }

@@ -1327,55 +1327,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addBusiness(
-      {required int id,
-      required int userId,
-      required int serverId,
-      String? name,
-      String? currency,
-      String? categoryId,
-      String? latitude,
-      String? longitude,
-      String? timeZone,
-      String? country,
-      String? businessUrl,
-      String? hexColor,
-      String? imageUrl,
-      String? type,
-      bool? active,
-      String? chatUid,
-      String? metadata,
-      String? role,
-      int? lastSeen,
-      String? firstName,
-      String? lastName,
-      String? createdAt,
-      String? deviceToken,
-      bool? backUpEnabled,
-      String? subscriptionPlan,
-      String? nextBillingDate,
-      String? previousBillingDate,
-      bool? isLastSubscriptionPaymentSucceeded,
-      String? backupFileId,
-      String? email,
-      String? lastDbBackup,
-      String? fullName,
-      int? tinNumber,
-      required String bhfId,
-      String? dvcSrlNo,
-      String? adrs,
-      bool? taxEnabled,
-      String? taxServerUrl,
-      bool? isDefault,
-      int? businessTypeId,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      required String encryptionKey}) {
-    // TODO: implement addBusiness
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<brick.LPermission?> permission({required int userId}) {
     // TODO: implement permission
     throw UnimplementedError();
@@ -1447,17 +1398,6 @@ class Capella extends AiStrategyImpl
       DateTime? deletedAt,
       int? id}) {
     // TODO: implement addBranch
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> updateBusiness(
-      {required int businessId,
-      String? name,
-      bool? active,
-      bool? isDefault,
-      String? backupFileId}) {
-    // TODO: implement updateBusiness
     throw UnimplementedError();
   }
 
@@ -2062,6 +2002,66 @@ class Capella extends AiStrategyImpl
   Future<List<brick.Variant>> getExpiredItems(
       {required int branchId, int? daysToExpiry, int? limit}) {
     // TODO: implement getExpiredItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> addBusiness(
+      {required int id,
+      required int userId,
+      required int serverId,
+      String? name,
+      String? currency,
+      String? categoryId,
+      String? latitude,
+      String? longitude,
+      String? timeZone,
+      String? country,
+      String? businessUrl,
+      String? hexColor,
+      String? imageUrl,
+      String? type,
+      bool? active,
+      String? chatUid,
+      String? metadata,
+      String? role,
+      int? lastSeen,
+      String? firstName,
+      String? lastName,
+      String? createdAt,
+      String? deviceToken,
+      bool? backUpEnabled,
+      String? subscriptionPlan,
+      String? nextBillingDate,
+      String? previousBillingDate,
+      bool? isLastSubscriptionPaymentSucceeded,
+      String? backupFileId,
+      String? email,
+      String? lastDbBackup,
+      String? fullName,
+      int? tinNumber,
+      required String bhfId,
+      String? dvcSrlNo,
+      String? adrs,
+      bool? taxEnabled,
+      String? taxServerUrl,
+      bool? isDefault,
+      int? businessTypeId,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      required String encryptionKey}) {
+    // TODO: implement addBusiness
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateBusiness(
+      {required int businessId,
+      String? name,
+      bool? active,
+      bool? isDefault,
+      String? backupFileId}) {
+    // TODO: implement updateBusiness
     throw UnimplementedError();
   }
 }
