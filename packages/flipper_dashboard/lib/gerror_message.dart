@@ -9,8 +9,11 @@ class GErrorMessage extends StatelessWidget {
     required this.icon,
     required this.title,
     this.subtitle,
-    this.buttonLabel,
+    this.buttonText,
     this.onPressed,
+    this.isLoading = false,
+    this.secondaryButtonText,
+    this.onSecondaryPressed,
   }) : super(key: key);
 
   /// An icon to display.
@@ -22,11 +25,20 @@ class GErrorMessage extends StatelessWidget {
   /// A description to explain the error
   final String? subtitle;
 
-  /// Text that describes the button.
-  final String? buttonLabel;
+  /// Text that describes the primary button.
+  final String? buttonText;
 
-  /// A callback after the user click the button.
+  /// A callback after the user clicks the primary button.
   final void Function()? onPressed;
+
+  /// Text that describes the secondary button.
+  final String? secondaryButtonText;
+
+  /// A callback after the user clicks the secondary button.
+  final void Function()? onSecondaryPressed;
+
+  /// Whether to show a loading indicator instead of the button text.
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +85,27 @@ class GErrorMessage extends StatelessWidget {
                 if (onPressed != null) const SizedBox(height: 32),
                 if (onPressed != null)
                   ElevatedButton(
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            buttonText ?? "Try again",
+                          ),
+                    onPressed: isLoading ? null : onPressed,
+                  ),
+                if (onSecondaryPressed != null) const SizedBox(height: 16),
+                if (onSecondaryPressed != null)
+                  TextButton(
                     child: Text(
-                      buttonLabel ?? "Try again",
+                      secondaryButtonText ?? "Cancel",
                     ),
-                    onPressed: onPressed,
+                    onPressed: isLoading ? null : onSecondaryPressed,
                   ),
               ],
             ),

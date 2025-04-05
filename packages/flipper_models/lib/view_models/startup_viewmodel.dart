@@ -5,6 +5,7 @@ import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
+import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
@@ -24,6 +25,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   // Payment verification service instance
   final _paymentVerificationService = PaymentVerificationService();
 
+  // Internet connection service instance
+  final _internetConnectionService = InternetConnectionService();
+
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
@@ -40,6 +44,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       // Start periodic payment verification (check every 60 minutes)
       _paymentVerificationService.startPeriodicVerification();
+
+      // Start periodic internet connection check (check every 6 hours)
+      _internetConnectionService.startPeriodicConnectionCheck();
 
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
