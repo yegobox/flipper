@@ -23,23 +23,29 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     }
 
     // Create a merged stream of transactions with all three statuses
-    final parkedStream = ProxyService.strategy.transactionsStream(
-      status: PARKED,
-      branchId: branchId,
-      removeAdjustmentTransactions: true,
-    );
+    final parkedStream = ProxyService.strategy
+        .transactionsStream(
+          status: PARKED,
+          branchId: branchId,
+          removeAdjustmentTransactions: true,
+        )
+        .asBroadcastStream();
 
-    final orderingStream = ProxyService.strategy.transactionsStream(
-      status: ORDERING,
-      branchId: branchId,
-      removeAdjustmentTransactions: true,
-    );
+    final orderingStream = ProxyService.strategy
+        .transactionsStream(
+          status: ORDERING,
+          branchId: branchId,
+          removeAdjustmentTransactions: true,
+        )
+        .asBroadcastStream();
 
-    final completeStream = ProxyService.strategy.transactionsStream(
-      status: COMPLETE,
-      branchId: branchId,
-      removeAdjustmentTransactions: true,
-    );
+    final completeStream = ProxyService.strategy
+        .transactionsStream(
+          status: COMPLETE,
+          branchId: branchId,
+          removeAdjustmentTransactions: true,
+        )
+        .asBroadcastStream();
 
     // Merge all streams and combine their results
     return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
