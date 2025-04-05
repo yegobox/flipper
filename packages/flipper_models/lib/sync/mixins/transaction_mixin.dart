@@ -632,11 +632,12 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<ITransaction?> getTransaction(
-      {String? sarNo, required int branchId}) async {
+      {String? sarNo, required int branchId, String? id}) async {
     try {
       final query = Query(where: [
         if (sarNo != null) Where('sarNo').isExactly(sarNo),
-        Where('branchId').isExactly(branchId)
+        Where('branchId').isExactly(branchId),
+        if (id != null) Where('id').isExactly(id)
       ]);
 
       final List<ITransaction> transactions =
@@ -669,7 +670,6 @@ mixin TransactionMixin implements TransactionInterface {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
-      Where('subTotal').isGreaterThan(0.0),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
       if (isCashOut) Where('isExpense').isExactly(true),

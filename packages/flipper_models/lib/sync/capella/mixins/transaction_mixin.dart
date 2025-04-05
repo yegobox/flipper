@@ -168,7 +168,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<ITransaction?> getTransaction({String? sarNo, required int branchId}) {
+  Future<ITransaction?> getTransaction(
+      {String? sarNo, required int branchId, String? id}) {
     throw UnimplementedError(
         'getTransaction needs to be implemented for Capella');
   }

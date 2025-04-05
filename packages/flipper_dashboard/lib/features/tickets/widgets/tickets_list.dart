@@ -151,11 +151,31 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Now set the selected ticket to PENDING status
       // Make sure the transaction has a valid subtotal (greater than 0)
       // This is required for the _pendingTransaction method to find it
+      talker.debug('Setting ticket ${ticket.id} to PENDING status');
+
+      // Ensure we're using the most up-to-date version of the ticket
+      final updatedTicket = await ProxyService.strategy.getTransaction(
+          id: ticket.id, branchId: ProxyService.box.getBranchId()!);
+      final ticketToUpdate = updatedTicket ?? ticket;
+
+      // Make sure we set the status to PENDING and ensure subtotal is greater than 0
+      final double currentSubTotal = ticketToUpdate.subTotal ?? 0.0;
+
+      // Explicitly update the ticket status to PENDING
+      talker.debug(
+          'Updating ticket ${ticketToUpdate.id} status from ${ticketToUpdate.status} to PENDING');
+
       await ProxyService.strategy.updateTransaction(
-        transaction: ticket,
-        status: PENDING,
-        updatedAt: DateTime.now(),
+        transaction: ticketToUpdate,
+        status: PENDING, // Explicitly set to PENDING
+        updatedAt: DateTime.now().toUtc(),
+        subTotal: currentSubTotal > 0
+            ? currentSubTotal
+            : 0.01, // Ensure positive subtotal
       );
+
+      talker.debug(
+          'Ticket status updated to PENDING with subtotal: ${currentSubTotal > 0 ? currentSubTotal : 0.01}');
 
       await Future.delayed(const Duration(microseconds: 800));
 
@@ -218,7 +238,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Stream<List<ITransaction>> _getTicketsStream() {
     // Create broadcast streams for each status
     final parkedStream = ProxyService.strategy
-        .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
+        .transactionsStream(
+          status: PARKED,
+          removeAdjustmentTransactions: true,
+        )
         .asBroadcastStream();
 
     final inProgressStream = ProxyService.strategy
@@ -264,5 +287,3 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     });
   }
 }
-
-class CoreViewModel extends BaseViewModel {}
