@@ -81,18 +81,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<double> totalStock({String? productId, String? variantId});
 
-  FutureOr<List<ITransaction>> transactions({
-    DateTime? startDate,
-    DateTime? endDate,
-    String? status,
-    String? transactionType,
-    bool isCashOut = false,
-    String? id,
-    FilterType? filterType,
-    int? branchId,
-    bool isExpense = false,
-    bool includePending = false,
-  });
   Stream<List<Product>> productStreams({String? prodIndex});
 
   Future<List<PColor>> colors({required int branchId});

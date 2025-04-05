@@ -41,22 +41,51 @@ class TicketTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      ticket.ticketName ?? "N/A",
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 17,
-                        color: Colors.black,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          ticket.ticketName ?? "N/A",
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 17,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Display ID in a smaller, subtle format
+                        Text(
+                          '(ID: ${ticket.id.substring(0, 8)}...)',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12,
+                            color: Colors.grey[400],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      timeago.format(ticket.updatedAt!),
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                    Row(
+                      children: [
+                        // Display time ago
+                        Text(
+                          timeago.format(ticket.updatedAt!),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Display subtotal
+                        Text(
+                          'Subtotal: ${(ticket.subTotal ?? 0.0).toStringAsFixed(2)}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

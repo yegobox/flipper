@@ -2627,53 +2627,7 @@ class CoreSync extends AiStrategyImpl
     return totalStock;
   }
 
-  @override
-  FutureOr<List<ITransaction>> transactions({
-    DateTime? startDate,
-    DateTime? endDate,
-    String? status,
-    String? transactionType,
-    int? branchId,
-    bool isCashOut = false,
-    String? id,
-    FilterType? filterType,
-    bool isExpense = false,
-    bool includePending = false,
-  }) async {
-    final List<brick.Where> conditions = [
-      brick.Where('status')
-          .isExactly(status ?? COMPLETE), // Ensure default value
-      if (!isExpense)
-        brick.Where('subTotal').isGreaterThan(0), // Optional condition
-      if (id != null) brick.Where('id').isExactly(id),
-      if (branchId != null) brick.Where('branchId').isExactly(branchId),
-      if (isCashOut) brick.Where('isCashOut').isExactly(true),
-      if (isExpense) brick.Where('isExpense').isExactly(true),
-      if (includePending) brick.Where('status').isExactly(PENDING),
-      if (filterType != null)
-        brick.Where('type').isExactly(filterType.toString()),
-      if (transactionType != null)
-        brick.Where('transactionType').isExactly(transactionType),
-    ];
-
-    if (startDate != null && endDate != null) {
-      final endRange =
-          startDate == endDate ? endDate.add(Duration(days: 1)) : endDate;
-      conditions.add(
-        brick.Where('lastTouched').isBetween(
-          startDate.toIso8601String(),
-          endRange.toUtc().toIso8601String(),
-        ),
-      );
-    }
-
-    final queryString = brick.Query(where: conditions);
-
-    return await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: queryString,
-    );
-  }
+  
 
   @override
   Future<List<IUnit>> units({required int branchId}) async {

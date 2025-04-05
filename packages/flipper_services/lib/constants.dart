@@ -141,6 +141,7 @@ const String COLOR = "#e74c3c";
 const String ATTENDANCE = 'attendance';
 const String LOGIN = 'login';
 const String SELLING = 'selling';
+const String SALE = 'Sale';
 const String ORDERING = 'ordering';
 const String IN_PROGRESS = 'inProgress';
 const String COMPLETE = 'completed';

@@ -20,6 +20,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     FilterType? filterType,
     int? branchId,
     bool isExpense = false,
+    bool includeZeroSubTotal = false,
     bool includePending = false,
   }) async {
     throw UnimplementedError(

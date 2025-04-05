@@ -35,6 +35,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
               elevation: 0,
               leading: IconButton(
                 onPressed: () {
+                  // ignore: unused_result
                   ref.refresh(
                     pendingTransactionStreamProvider(isExpense: false),
                   );

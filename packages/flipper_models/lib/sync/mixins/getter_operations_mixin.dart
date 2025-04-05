@@ -30,6 +30,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     bool isCashOut = false,
     String? id,
     FilterType? filterType,
+    bool includeZeroSubTotal = false,
     int? branchId,
     bool isExpense = false,
     bool includePending = false,

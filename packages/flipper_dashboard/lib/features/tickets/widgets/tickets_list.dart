@@ -1,4 +1,7 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -119,6 +122,35 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
 
     if (confirm == true) {
+      // First, find any existing PENDING transactions and mark them as PARKED
+      // This ensures only one transaction can be in PENDING state at a time
+
+      // First approach: Get all pending transactions without filters
+      final pendingTransactions = await ProxyService.strategy.transactions(
+        status: PENDING,
+        branchId: ProxyService.box.getBranchId(),
+        includeZeroSubTotal: true,
+        transactionType: SALE,
+      );
+
+      // Add debug logging to see what transactions we found
+      talker.debug('Found ${pendingTransactions.length} pending transactions');
+      for (final tx in pendingTransactions) {
+        talker.debug(
+            'Pending transaction: ${tx.id}, type: ${tx.transactionType}, subTotal: ${tx.subTotal}');
+        if (tx.id != ticket.id) {
+          // Skip the current ticket
+          await ProxyService.strategy.updateTransaction(
+            transaction: tx,
+            status: PARKED,
+            updatedAt: DateTime.now().toUtc(),
+          );
+        }
+      }
+
+      // Now set the selected ticket to PENDING status
+      // Make sure the transaction has a valid subtotal (greater than 0)
+      // This is required for the _pendingTransaction method to find it
       await ProxyService.strategy.updateTransaction(
         transaction: ticket,
         status: PENDING,

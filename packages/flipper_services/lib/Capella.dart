@@ -1530,9 +1530,10 @@ class Capella extends AiStrategyImpl
       String? transactionType,
       bool isCashOut = false,
       String? id,
+      bool isExpense = false,
       FilterType? filterType,
       int? branchId,
-      bool isExpense = false,
+      bool includeZeroSubTotal = false,
       bool includePending = false}) {
     // TODO: implement transactions
     throw UnimplementedError();

@@ -18,24 +18,45 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? endDate,
     String? status,
     String? transactionType,
+    int? branchId,
     bool isCashOut = false,
     String? id,
-    FilterType? filterType,
-    int? branchId,
     bool isExpense = false,
+    FilterType? filterType,
+    bool includeZeroSubTotal = false,
     bool includePending = false,
   }) async {
-    final query = Query(where: [
-      if (branchId != null) Where('branchId').isExactly(branchId),
+    final List<Where> conditions = [
+      Where('status').isExactly(status ?? COMPLETE), // Ensure default value
+      if (!includeZeroSubTotal)
+        Where('subTotal').isGreaterThan(0), // Optional condition
       if (id != null) Where('id').isExactly(id),
-      if (status != null) Where('status').isExactly(status),
-      if (transactionType != null) Where('type').isExactly(transactionType),
-      if (startDate != null)
-        Where('createdAt').isGreaterThanOrEqualTo(startDate),
-      if (endDate != null) Where('createdAt').isLessThanOrEqualTo(endDate),
-    ]);
+      if (branchId != null) Where('branchId').isExactly(branchId),
+      if (isCashOut) Where('isCashOut').isExactly(true),
+      if (isExpense) Where('isExpense').isExactly(true),
+      if (includePending) Where('status').isExactly(PENDING),
+      if (filterType != null) Where('type').isExactly(filterType.toString()),
+      if (transactionType != null)
+        Where('transactionType').isExactly(transactionType),
+    ];
 
-    return await repository.get<ITransaction>(query: query);
+    if (startDate != null && endDate != null) {
+      final endRange =
+          startDate == endDate ? endDate.add(Duration(days: 1)) : endDate;
+      conditions.add(
+        Where('lastTouched').isBetween(
+          startDate.toIso8601String(),
+          endRange.toUtc().toIso8601String(),
+        ),
+      );
+    }
+
+    final queryString = Query(where: conditions);
+
+    return await repository.get<ITransaction>(
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: queryString,
+    );
   }
 
   @override
@@ -648,6 +669,7 @@ mixin TransactionMixin implements TransactionInterface {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
+      Where('subTotal').isGreaterThan(0.0),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
       if (isCashOut) Where('isExpense').isExactly(true),

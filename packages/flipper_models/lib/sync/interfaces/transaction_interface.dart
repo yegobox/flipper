@@ -8,11 +8,12 @@ abstract class TransactionInterface {
     DateTime? endDate,
     String? status,
     String? transactionType,
+    int? branchId,
     bool isCashOut = false,
     String? id,
-    FilterType? filterType,
-    int? branchId,
     bool isExpense = false,
+    FilterType? filterType,
+    bool includeZeroSubTotal = false,
     bool includePending = false,
   });
 
