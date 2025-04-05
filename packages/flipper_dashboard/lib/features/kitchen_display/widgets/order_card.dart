@@ -66,7 +66,7 @@ class OrderCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Total: ${NumberFormat.currency(symbol: '\$').format(order.subTotal)}',
+                'Total: ${order.subTotal?.toRwf()}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
