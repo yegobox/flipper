@@ -182,11 +182,16 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         });
   }
 
-  // Create a stream that combines tickets with PARKED and WAITING statuses only
+  // Create a stream that combines tickets with PARKED, ORDERING, and WAITING statuses
   Stream<List<ITransaction>> _getTicketsStream() {
     // Create broadcast streams for each status
     final parkedStream = ProxyService.strategy
         .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
+        .asBroadcastStream();
+
+    final orderingStream = ProxyService.strategy
+        .transactionsStream(
+            status: ORDERING, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
     final waitingStream = ProxyService.strategy
@@ -196,9 +201,34 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Merge streams with periodic polling (excluding COMPLETE status)
     return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
       final parkedTickets = await parkedStream.first;
+      final orderingTickets = await orderingStream.first;
       final waitingTickets = await waitingStream.first;
 
-      return [...parkedTickets, ...waitingTickets];
+      // Sort tickets to prioritize waiting tickets at the top
+      final allTickets = [
+        ...waitingTickets,
+        ...parkedTickets,
+        ...orderingTickets
+      ];
+
+      // Sort by status priority and then by creation date (newest first)
+      allTickets.sort((a, b) {
+        // First sort by status priority (WAITING > PARKED > ORDERING)
+        final statusA = a.status;
+        final statusB = b.status;
+
+        if (statusA == WAITING && statusB != WAITING) return -1;
+        if (statusA != WAITING && statusB == WAITING) return 1;
+        if (statusA == PARKED && statusB == ORDERING) return -1;
+        if (statusA == ORDERING && statusB == PARKED) return 1;
+
+        // If same status, sort by creation date (newest first)
+        final dateA = a.createdAt ?? DateTime(1970);
+        final dateB = b.createdAt ?? DateTime(1970);
+        return dateB.compareTo(dateA);
+      });
+
+      return allTickets;
     });
   }
 }

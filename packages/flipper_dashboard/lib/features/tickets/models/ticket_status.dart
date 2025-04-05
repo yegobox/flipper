@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/constants.dart';
 
 /// Enum representing the possible statuses of a ticket
-enum TicketStatus { pending, inProgress, completed }
+enum TicketStatus { waiting, inProgress, completed }
 
 extension TicketStatusExtension on TicketStatus {
   String get displayName {
     switch (this) {
-      case TicketStatus.pending:
-        return 'Pending';
+      case TicketStatus.waiting:
+        return 'Waiting';
       case TicketStatus.inProgress:
         return 'In Progress';
       case TicketStatus.completed:
@@ -18,8 +18,8 @@ extension TicketStatusExtension on TicketStatus {
 
   Color get color {
     switch (this) {
-      case TicketStatus.pending:
-        return Colors.orange;
+      case TicketStatus.waiting:
+        return Colors.purple;
       case TicketStatus.inProgress:
         return Colors.blue;
       case TicketStatus.completed:
@@ -29,7 +29,7 @@ extension TicketStatusExtension on TicketStatus {
 
   String get statusValue {
     switch (this) {
-      case TicketStatus.pending:
+      case TicketStatus.waiting:
         return PARKED;
       case TicketStatus.inProgress:
         return ORDERING;
@@ -41,13 +41,13 @@ extension TicketStatusExtension on TicketStatus {
   static TicketStatus fromString(String status) {
     switch (status) {
       case PARKED:
-        return TicketStatus.pending;
+        return TicketStatus.waiting;
       case ORDERING:
         return TicketStatus.inProgress;
       case COMPLETE:
         return TicketStatus.completed;
       default:
-        return TicketStatus.pending;
+        return TicketStatus.waiting;
     }
   }
 }
