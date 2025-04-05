@@ -108,9 +108,9 @@ class OrderColumn extends StatelessWidget {
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(
                                   maxWidth: MediaQuery.of(context).size.width *
-                                      0.25, // 25% of screen width
+                                      0.35, // 35% of screen width
                                   minWidth:
-                                      200, // Minimum width to ensure content is visible
+                                      250, // Minimum width to ensure content is visible
                                 ),
                                 child: OrderCard(
                                   order: order,
