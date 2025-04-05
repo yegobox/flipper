@@ -16,6 +16,57 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'new_ticket.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 
+// Define ticket status enum similar to OrderStatus in kitchen display
+enum TicketStatus { pending, inProgress, completed }
+
+extension TicketStatusExtension on TicketStatus {
+  String get displayName {
+    switch (this) {
+      case TicketStatus.pending:
+        return 'Pending';
+      case TicketStatus.inProgress:
+        return 'In Progress';
+      case TicketStatus.completed:
+        return 'Completed';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case TicketStatus.pending:
+        return Colors.orange;
+      case TicketStatus.inProgress:
+        return Colors.blue;
+      case TicketStatus.completed:
+        return Colors.green;
+    }
+  }
+
+  String get statusValue {
+    switch (this) {
+      case TicketStatus.pending:
+        return PARKED;
+      case TicketStatus.inProgress:
+        return ORDERING;
+      case TicketStatus.completed:
+        return COMPLETE;
+    }
+  }
+
+  static TicketStatus fromString(String status) {
+    switch (status) {
+      case PARKED:
+        return TicketStatus.pending;
+      case ORDERING:
+        return TicketStatus.inProgress;
+      case COMPLETE:
+        return TicketStatus.completed;
+      default:
+        return TicketStatus.pending;
+    }
+  }
+}
+
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
 
@@ -28,47 +79,112 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return TicketTile(
           ticket: ticket,
           onTap: () async {
-            bool? confirm = await showDialog<bool>(
+            // Show options dialog to update ticket status
+            final TicketStatus? selectedStatus = await showDialog<TicketStatus>(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text('Confirm Resume'),
-                  content: Text('Are you sure you want to resume this order?'),
+                  title: const Text('Update Ticket Status'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                          'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
+                      const SizedBox(height: 16),
+                      const Text('Select new status:'),
+                    ],
+                  ),
                   actions: <Widget>[
+                    // Cancel button
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop(false);
+                        Navigator.of(context).pop(null);
                       },
-                      child: Text('Cancel'),
+                      child: const Text('Cancel'),
                     ),
+                    // Resume button (change to PENDING)
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop(true);
+                        Navigator.of(context).pop(null); // Close dialog
+                        _resumeOrder(
+                            ticket); // Use existing resume functionality
                       },
-                      child: Text('Confirm'),
+                      child: const Text('Resume Order'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.green,
+                      ),
                     ),
+                    // Status options
+                    ...TicketStatus.values.map((status) => TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(status);
+                          },
+                          child: Text(status.displayName),
+                          style: TextButton.styleFrom(
+                            foregroundColor: status.color,
+                          ),
+                        )),
                   ],
                 );
               },
             );
 
-            if (confirm == true) {
+            // Update ticket status if a new status was selected
+            if (selectedStatus != null) {
               await ProxyService.strategy.updateTransaction(
                 transaction: ticket,
-                status: PENDING,
+                status: selectedStatus.statusValue,
                 updatedAt: DateTime.now(),
               );
 
-              await Future.delayed(Duration(microseconds: 800));
-
-              ref.refresh(transactionItemsProvider(transactionId: ticket.id));
-
-              _routerService.clearStackAndShow(FlipperAppRoute());
+              // Refresh the UI
+              setState(() {});
             }
           },
         );
       },
     );
+  }
+
+  // Extract resume order functionality to a separate method
+  Future<void> _resumeOrder(ITransaction ticket) async {
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Resume'),
+          content: const Text('Are you sure you want to resume this order?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      await ProxyService.strategy.updateTransaction(
+        transaction: ticket,
+        status: PENDING,
+        updatedAt: DateTime.now(),
+      );
+
+      await Future.delayed(const Duration(microseconds: 800));
+
+      ref.refresh(transactionItemsProvider(transactionId: ticket.id));
+
+      _routerService.clearStackAndShow(FlipperAppRoute());
+    }
   }
 
   Widget _buildNoTickets(BuildContext context) {
@@ -90,8 +206,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         builder: (context, model, child) {
           return Expanded(
             child: StreamBuilder<List<ITransaction>>(
-              stream: ProxyService.strategy.transactionsStream(
-                  status: PARKED, removeAdjustmentTransactions: true),
+              stream: _getTicketsStream(),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   List<ITransaction> data = snapshot.data!;
@@ -119,6 +234,33 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ),
           );
         });
+  }
+
+  // Create a stream that combines tickets with all statuses
+  Stream<List<ITransaction>> _getTicketsStream() {
+    // Create broadcast streams for each status
+    final parkedStream = ProxyService.strategy
+        .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
+        .asBroadcastStream();
+
+    final orderingStream = ProxyService.strategy
+        .transactionsStream(
+            status: ORDERING, removeAdjustmentTransactions: true)
+        .asBroadcastStream();
+
+    final completeStream = ProxyService.strategy
+        .transactionsStream(
+            status: COMPLETE, removeAdjustmentTransactions: true)
+        .asBroadcastStream();
+
+    // Merge all streams with periodic polling
+    return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
+      final parkedTickets = await parkedStream.first;
+      final orderingTickets = await orderingStream.first;
+      final completeTickets = await completeStream.first;
+
+      return [...parkedTickets, ...orderingTickets, ...completeTickets];
+    });
   }
 }
 
@@ -235,6 +377,10 @@ class TicketTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get ticket status from transaction status
+    final ticketStatus =
+        TicketStatusExtension.fromString(ticket.status ?? PARKED);
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -250,20 +396,45 @@ class TicketTile extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                ticket.ticketName ?? "N/A",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 17,
-                  color: Colors.black,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      ticket.ticketName ?? "N/A",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 17,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      timeago.format(ticket.updatedAt!),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                timeago.format(ticket.updatedAt!),
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 17,
-                  color: Colors.black,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: ticketStatus.color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: ticketStatus.color, width: 1),
+                ),
+                child: Text(
+                  ticketStatus.displayName,
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: ticketStatus.color,
+                  ),
                 ),
               ),
             ],
