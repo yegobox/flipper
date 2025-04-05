@@ -122,66 +122,81 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
 
     if (confirm == true) {
-      // First, find any existing PENDING transactions and mark them as PARKED
-      // This ensures only one transaction can be in PENDING state at a time
+      try {
+        // First, park all existing PENDING transactions to ensure only one active transaction
+        final pendingTransactions = await ProxyService.strategy.transactions(
+          status: PENDING,
+          branchId: ProxyService.box.getBranchId(),
+          includeZeroSubTotal:
+              true, // Include all transactions regardless of subtotal
+        );
 
-      // First approach: Get all pending transactions without filters
-      final pendingTransactions = await ProxyService.strategy.transactions(
-        status: PENDING,
-        branchId: ProxyService.box.getBranchId(),
-        includeZeroSubTotal: true,
-        transactionType: SALE,
-      );
+        talker
+            .debug('Found ${pendingTransactions.length} pending transactions');
 
-      // Add debug logging to see what transactions we found
-      talker.debug('Found ${pendingTransactions.length} pending transactions');
-      for (final tx in pendingTransactions) {
-        talker.debug(
-            'Pending transaction: ${tx.id}, type: ${tx.transactionType}, subTotal: ${tx.subTotal}');
-        if (tx.id != ticket.id) {
-          // Skip the current ticket
-          await ProxyService.strategy.updateTransaction(
-            transaction: tx,
-            status: PARKED,
-            updatedAt: DateTime.now().toUtc(),
-          );
+        // Park all existing pending transactions except the current one
+        for (final tx in pendingTransactions) {
+          if (tx.id != ticket.id) {
+            talker.debug('Parking transaction: ${tx.id}');
+            await ProxyService.strategy.updateTransaction(
+              transaction: tx,
+              status: PARKED,
+              updatedAt: DateTime.now(),
+            );
+          }
         }
+
+        // Get the most up-to-date version of the ticket
+        final updatedTicket = await ProxyService.strategy.getTransaction(
+            id: ticket.id, branchId: ProxyService.box.getBranchId()!);
+        final ticketToUpdate = updatedTicket ?? ticket;
+
+        // Ensure the transaction has a valid subtotal (greater than 0)
+        final double currentSubTotal = ticketToUpdate.subTotal ?? 0.0;
+        final double safeSubTotal =
+            currentSubTotal > 0 ? currentSubTotal : 0.01;
+
+        talker.debug(
+            'Resuming ticket ${ticketToUpdate.id} from ${ticketToUpdate.status} to PENDING');
+
+        // Update the ticket status to PENDING
+        await ProxyService.strategy.updateTransaction(
+          transaction: ticketToUpdate,
+          status: PENDING,
+          updatedAt: DateTime.now(),
+          subTotal: safeSubTotal,
+        );
+
+        talker.debug(
+            'Successfully updated ticket to PENDING with subtotal: $safeSubTotal');
+
+        // Give the database a moment to update
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Refresh the transaction items provider to update the UI
+        ref.refresh(transactionItemsProvider(transactionId: ticket.id));
+
+        // Navigate back to the main app route
+        _routerService.clearStackAndShow(FlipperAppRoute());
+      } catch (e, stackTrace) {
+        talker.error('Error resuming ticket: $e');
+        talker.error(stackTrace.toString());
+
+        // Show error dialog to user
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to resume ticket: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
       }
-
-      // Now set the selected ticket to PENDING status
-      // Make sure the transaction has a valid subtotal (greater than 0)
-      // This is required for the _pendingTransaction method to find it
-      talker.debug('Setting ticket ${ticket.id} to PENDING status');
-
-      // Ensure we're using the most up-to-date version of the ticket
-      final updatedTicket = await ProxyService.strategy.getTransaction(
-          id: ticket.id, branchId: ProxyService.box.getBranchId()!);
-      final ticketToUpdate = updatedTicket ?? ticket;
-
-      // Make sure we set the status to PENDING and ensure subtotal is greater than 0
-      final double currentSubTotal = ticketToUpdate.subTotal ?? 0.0;
-
-      // Explicitly update the ticket status to PENDING
-      talker.debug(
-          'Updating ticket ${ticketToUpdate.id} status from ${ticketToUpdate.status} to PENDING');
-
-      await ProxyService.strategy.updateTransaction(
-        transaction: ticketToUpdate,
-        status: PENDING, // Explicitly set to PENDING
-        updatedAt: DateTime.now().toUtc(),
-        subTotal: currentSubTotal > 0
-            ? currentSubTotal
-            : 0.01, // Ensure positive subtotal
-      );
-
-      talker.debug(
-          'Ticket status updated to PENDING with subtotal: ${currentSubTotal > 0 ? currentSubTotal : 0.01}');
-
-      await Future.delayed(const Duration(microseconds: 800));
-
-      ref.refresh(transactionItemsProvider(transactionId: ticket.id));
-
-      _routerService.clearStackAndShow(FlipperAppRoute());
     }
   }
 

@@ -561,13 +561,16 @@ class CoreViewModel extends FlipperBaseModel
       {required String ticketName,
       required String ticketNote,
       required ITransaction transaction}) async {
-    await ProxyService.strategy.updateTransaction(
-      transaction: transaction,
-      status: PARKED,
-      note: ticketNote,
-      ticketName: ticketName,
-      updatedAt: DateTime.now(),
-    );
+    // Only change status to PARKED if we have both ticket name and note
+    if (ticketName.isNotEmpty && ticketNote.isNotEmpty) {
+      await ProxyService.strategy.updateTransaction(
+        transaction: transaction,
+        status: PARKED,
+        note: ticketNote,
+        ticketName: ticketName,
+        updatedAt: DateTime.now(),
+      );
+    }
   }
 
   /// the method return total amount of the transaction to be used in the payment
