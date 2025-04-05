@@ -2626,7 +2626,7 @@ class CoreSync extends AiStrategyImpl
         if (isIncome) {
           // Update transaction details
           final double subTotal =
-              items.fold(0, (num a, b) => a + (b.price * b.qty.toDouble()));
+              items.fold(0, (num a, b) => a + (b.price * (b.qty ?? 0).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.

@@ -11,15 +11,24 @@ class NoNetViewModel extends BaseViewModel {
   final _routerService = locator<RouterService>();
 
   Future<void> checkInternetConnection() async {
-    setBusy(true);
-    final isConnected =
-        await _internetConnectionService.checkInternetConnectionRequirement();
-    setBusy(false);
+    try {
+      final isConnected =
+          await _internetConnectionService.checkInternetConnectionRequirement();
 
-    // If connection is successful, the service will automatically navigate back to the app
-    // If not, we stay on this screen
-    if (!isConnected) {
-      // Optional: Show a snackbar or message that connection is still unavailable
+      // If connection is successful, the service will automatically navigate back to the app
+      // If not, we stay on this screen
+      if (!isConnected) {
+        // Optional: Show a snackbar or message that connection is still unavailable
+      }
+    } catch (e) {
+      // Handle connection check errors
+      final _snackbarService = locator<SnackbarService>();
+      _snackbarService.showSnackbar(
+        message: 'Error checking connection: ${e.toString()}',
+        duration: const Duration(seconds: 2),
+      );
+    } finally {
+      setBusy(false);
     }
   }
 

@@ -40,7 +40,7 @@ class PaymentVerificationService {
 
   /// Starts periodic payment verification
   /// [intervalMinutes] defines how often to check (defaults to 60 minutes)
-  void startPeriodicVerification({int intervalMinutes = 1}) {
+  void startPeriodicVerification({int intervalMinutes = 60}) {
     stopPeriodicVerification();
 
     _verificationTimer = Timer.periodic(

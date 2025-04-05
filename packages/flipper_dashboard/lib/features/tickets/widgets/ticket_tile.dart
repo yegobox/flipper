@@ -3,6 +3,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../../utils/string_utils.dart';
 
 import '../models/ticket_status.dart';
 
@@ -54,7 +55,7 @@ class TicketTile extends StatelessWidget {
                         const SizedBox(width: 8),
                         // Display ID in a smaller, subtle format
                         Text(
-                          '(ID: ${ticket.id.substring(0, 8)}...)',
+                          '(ID: ${safeSubstring(ticket.id, 0, end: 8, ellipsis: false)})',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
                             fontSize: 12,
