@@ -185,9 +185,10 @@ class InventoryService {
 
       // If we don't have any historical data, use a reasonable estimate
       // based on typical inventory growth patterns
+      bool estimateUsed = false;
       if (previousCount == 0 && totalCount > 0) {
-        previousCount =
-            (totalCount * 0.95).round(); // Assume 5% growth as fallback
+        previousCount = (totalCount * 0.95).round(); // Assume 5% growth as fallback
+        estimateUsed = true;
       }
 
       // Calculate trend percentage
@@ -206,6 +207,7 @@ class InventoryService {
         totalCount: totalCount,
         trendPercentage: double.parse(trendPercentage.toStringAsFixed(1)),
         isPositive: isPositive,
+        isEstimateUsed: estimateUsed,
       );
     } catch (e) {
       print('Error fetching total items: $e');
@@ -214,6 +216,7 @@ class InventoryService {
         totalCount: 0,
         trendPercentage: 0.0,
         isPositive: true,
+        isEstimateUsed: true, // Mark as estimate since we're using default values
       );
     }
   }

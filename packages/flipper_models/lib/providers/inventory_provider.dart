@@ -9,7 +9,9 @@ final inventoryServiceProvider = Provider<InventoryService>((ref) {
 });
 
 /// Provider for expired items
-final expiredItemsProvider = FutureProvider.family<List<InventoryItem>, ExpiredItemsParams>((ref, params) async {
+final expiredItemsProvider =
+    FutureProvider.family<List<InventoryItem>, ExpiredItemsParams>(
+        (ref, params) async {
   final service = ref.watch(inventoryServiceProvider);
   return service.getExpiredItems(
     branchId: params.branchId,
@@ -19,7 +21,9 @@ final expiredItemsProvider = FutureProvider.family<List<InventoryItem>, ExpiredI
 });
 
 /// Provider for near expiry items
-final nearExpiryItemsProvider = FutureProvider.family<List<InventoryItem>, NearExpiryItemsParams>((ref, params) async {
+final nearExpiryItemsProvider =
+    FutureProvider.family<List<InventoryItem>, NearExpiryItemsParams>(
+        (ref, params) async {
   final service = ref.watch(inventoryServiceProvider);
   return service.getNearExpiryItems(
     branchId: params.branchId,
@@ -39,7 +43,7 @@ class ExpiredItemsParams {
   final int? branchId;
   final int? daysToExpiry;
   final int? limit;
-  
+
   const ExpiredItemsParams({
     this.branchId,
     this.daysToExpiry,
@@ -52,7 +56,7 @@ class NearExpiryItemsParams {
   final int? branchId;
   final int daysToExpiry;
   final int? limit;
-  
+
   const NearExpiryItemsParams({
     this.branchId,
     this.daysToExpiry = 7,
@@ -66,10 +70,12 @@ class TotalItemsData {
   final double trendPercentage;
   final bool isPositive;
   final String formattedCount;
-  
+  final bool isEstimateUsed;
+
   TotalItemsData({
     required this.totalCount,
     required this.trendPercentage,
     required this.isPositive,
+    required this.isEstimateUsed,
   }) : formattedCount = NumberFormat('#,###').format(totalCount);
 }

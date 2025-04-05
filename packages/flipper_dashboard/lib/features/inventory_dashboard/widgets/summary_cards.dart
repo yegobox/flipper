@@ -29,8 +29,10 @@ class SummaryCards extends ConsumerWidget {
                   value: totalItemsData.formattedCount,
                   icon: Icons.inventory,
                   color: Colors.blue,
-                  trend: '${totalItemsData.isPositive ? "+" : "-"}${totalItemsData.trendPercentage.abs().toStringAsFixed(1)}%',
+                  trend:
+                      '${totalItemsData.isPositive ? "+" : "-"}${totalItemsData.trendPercentage.abs().toStringAsFixed(1)}%',
                   isPositive: totalItemsData.isPositive,
+                  isEstimate: totalItemsData.isEstimateUsed,
                 );
               },
               loading: () => _buildSummaryCard(
@@ -41,6 +43,7 @@ class SummaryCards extends ConsumerWidget {
                 color: Colors.blue,
                 trend: '0.0%',
                 isPositive: true,
+                isEstimate: true,
               ),
               error: (_, __) => _buildSummaryCard(
                 context: context,
@@ -50,6 +53,7 @@ class SummaryCards extends ConsumerWidget {
                 color: Colors.blue,
                 trend: '0.0%',
                 isPositive: true,
+                isEstimate: true,
               ),
             ),
         _buildSummaryCard(
@@ -91,6 +95,7 @@ class SummaryCards extends ConsumerWidget {
     required Color color,
     required String trend,
     required bool isPositive,
+    bool isEstimate = false,
   }) {
     return Card(
       elevation: 2,
@@ -160,6 +165,17 @@ class SummaryCards extends ConsumerWidget {
                     color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                 ),
+                if (isEstimate) ...[
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: 'This trend is based on an estimate',
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 14,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
