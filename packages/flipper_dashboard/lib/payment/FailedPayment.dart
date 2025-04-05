@@ -45,11 +45,41 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
     final plan = useState<models.Plan?>(null);
     final usePhoneNumber = useState(false); // Toggle state
     final phoneNumber = useState<String?>(""); // Phone number input
+    final isCheckingPayment = useState(false);
     TextEditingController phoneNumberController = TextEditingController();
+
+    // Function to check if payment has been reactivated
+    Future<void> checkPaymentStatus() async {
+      if (isCheckingPayment.value) return;
+
+      isCheckingPayment.value = true;
+      try {
+        final businessId = ProxyService.box.getBusinessId();
+        if (businessId != null) {
+          // Check if payment is now active
+          await ProxyService.strategy.hasActiveSubscription(
+            businessId: businessId,
+            flipperHttpClient: ProxyService.http,
+            fetchRemote: true,
+          );
+
+          // If we get here without an exception, payment is now active
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/flipper-app', (route) => false);
+        }
+      } catch (e) {
+        // Payment is still inactive, stay on this screen
+      } finally {
+        isCheckingPayment.value = false;
+      }
+    }
 
     useEffect(() {
       Future<void> fetchPlan() async {
         try {
+          // Check if payment has been reactivated
+          checkPaymentStatus();
+
           final fetchedPlan = await ProxyService.strategy
               .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
           plan.value = fetchedPlan;

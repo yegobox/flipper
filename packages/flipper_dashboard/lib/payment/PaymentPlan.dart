@@ -36,7 +36,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     _checkForActivePayment();
   }
 
-  /// Checks if there's an active payment plan and navigates back to the app if found
+  /// Checks if there's an active payment plan and navigates to the appropriate screen
   Future<void> _checkForActivePayment() async {
     if (_isCheckingPayment) return;
 
@@ -47,20 +47,38 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     try {
       final businessId = ProxyService.box.getBusinessId();
       if (businessId != null) {
-        // Check if there's an active payment plan
-        await ProxyService.strategy.hasActiveSubscription(
+        // First check if a payment plan exists at all
+        final plan = await ProxyService.strategy.getPaymentPlan(
           businessId: businessId,
-          flipperHttpClient: ProxyService.http,
           fetchRemote: true,
         );
-
-        // If we get here without an exception, there's an active plan
-        talker.info('Active payment plan found, returning to app');
-        locator<RouterService>().navigateTo(FlipperAppRoute());
+        
+        if (plan != null) {
+          // A plan exists, now check if it's active
+          try {
+            await ProxyService.strategy.hasActiveSubscription(
+              businessId: businessId,
+              flipperHttpClient: ProxyService.http,
+              fetchRemote: true,
+            );
+            
+            // If we get here without an exception, there's an active plan
+            talker.info('Active payment plan found, returning to app');
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+            return;
+          } catch (subscriptionError) {
+            // Plan exists but is not active, go to FailedPayment
+            talker.warning('Payment plan exists but is not active: $subscriptionError');
+            locator<RouterService>().navigateTo(FailedPaymentRoute());
+            return;
+          }
+        }
+        // If no plan exists, stay on this screen to create one
+        talker.warning('No payment plan found, staying on payment plan screen');
       }
     } catch (e) {
-      // If there's an exception, we need to stay on this screen
-      talker.warning('No active payment plan found: $e');
+      // General error, stay on this screen
+      talker.error('Error checking payment status: $e');
     } finally {
       if (mounted) {
         setState(() {

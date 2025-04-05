@@ -86,35 +86,54 @@ class PaymentVerificationService {
         return false;
       }
 
-      await ProxyService.strategy.hasActiveSubscription(
+      // First check if a payment plan exists at all
+      final plan = await ProxyService.strategy.getPaymentPlan(
         businessId: businessId,
-        flipperHttpClient: ProxyService.http,
         fetchRemote: true,
       );
 
-      talker.info('Payment verification successful: Subscription is active');
-      
-      // If we were on a payment screen, navigate back to the main app
-      if (_isOnPaymentScreen) {
-        talker.info('Returning to main app after successful payment verification');
-        _clearPaymentScreenFlag();
-        _routerService.navigateTo(FlipperAppRoute());
+      if (plan == null) {
+        // No payment plan exists, direct to payment plan screen
+        talker
+            .warning('No payment plan found, directing to payment plan screen');
+        _setOnPaymentScreen();
+        _routerService.navigateTo(PaymentPlanUIRoute());
+        return false;
       }
-      
-      return true;
+
+      // A plan exists, now check if it's active
+      try {
+        await ProxyService.strategy.hasActiveSubscription(
+          businessId: businessId,
+          flipperHttpClient: ProxyService.http,
+          fetchRemote: true,
+        );
+
+        talker.info('Payment verification successful: Subscription is active');
+
+        // If we were on a payment screen, navigate back to the main app
+        if (_isOnPaymentScreen) {
+          talker.info(
+              'Returning to main app after successful payment verification');
+          _clearPaymentScreenFlag();
+          _routerService.navigateTo(FlipperAppRoute());
+        }
+
+        return true;
+      } catch (subscriptionError) {
+        // Plan exists but is not active (payment failed or expired)
+        talker
+            .error('Payment plan exists but is not active: $subscriptionError');
+        _setOnPaymentScreen();
+        _routerService.navigateTo(FailedPaymentRoute());
+        return false;
+      }
     } catch (e) {
-      talker.error('Payment verification failed: $e');
+      talker.error('Error during payment verification: $e');
       _setOnPaymentScreen();
 
-      // Navigate to payment screen based on the error type
-      if (e.toString().contains('No payment plan found')) {
-        _routerService.navigateTo(PaymentPlanUIRoute());
-      } else if (e.toString().contains('payment reactivation required')) {
-        _routerService.navigateTo(FailedPaymentRoute());
-      } else {
-        _routerService.navigateTo(PaymentPlanUIRoute());
-      }
-
+      // For general errors, direct to payment plan screen
+      _routerService.navigateTo(PaymentPlanUIRoute());
       return false;
     }
   }
