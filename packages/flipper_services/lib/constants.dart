@@ -132,6 +132,7 @@ void showSnackBar(BuildContext context, String message,
 
 const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
+const String WAITING = 'waiting';
 const String PENDING = 'pending';
 const String BARCODE = 'addBarCode';
 const String CUSTOM_PRODUCT = "Custom Amount";

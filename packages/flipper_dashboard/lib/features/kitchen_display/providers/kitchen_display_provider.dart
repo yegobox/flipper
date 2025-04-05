@@ -50,7 +50,7 @@ class KitchenOrdersNotifier
         categorizedOrders[OrderStatus.incoming]!.add(transaction);
       } else if (transaction.status == ORDERING) {
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
-      } else if (transaction.status == COMPLETE) {
+      } else if (transaction.status == WAITING) {
         categorizedOrders[OrderStatus.waiting]!.add(transaction);
       }
     }
@@ -76,7 +76,7 @@ class KitchenOrdersNotifier
         updatedOrder.status = ORDERING;
         break;
       case OrderStatus.waiting:
-        updatedOrder.status = COMPLETE;
+        updatedOrder.status = WAITING;
         break;
     }
 
