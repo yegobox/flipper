@@ -56,33 +56,128 @@ class SummaryCards extends ConsumerWidget {
                 isEstimate: true,
               ),
             ),
-        _buildSummaryCard(
-          context: context,
-          title: 'Expired Items',
-          value: '$expiredItemsCount',
-          icon: Icons.warning_amber,
-          color: Colors.red,
-          trend: '+2',
-          isPositive: false,
-        ),
-        _buildSummaryCard(
-          context: context,
-          title: 'Low Stock Items',
-          value: '21',
-          icon: Icons.trending_down,
-          color: Colors.orange,
-          trend: '-3',
-          isPositive: true,
-        ),
-        _buildSummaryCard(
-          context: context,
-          title: 'Pending Orders',
-          value: '12',
-          icon: Icons.shopping_cart,
-          color: Colors.green,
-          trend: '+4',
-          isPositive: true,
-        ),
+        // Expired Items card with real data
+        ref.watch(expiredItemsProvider(const ExpiredItemsParams())).when(
+              data: (expiredItems) {
+                // Calculate trend - in a real implementation, you would track this over time
+                final currentCount = expiredItems.length;
+                final previousCount = expiredItemsCount;
+                double trendPercentage = 0.0;
+                bool isPositive = false;
+
+                if (previousCount > 0) {
+                  final difference = currentCount - previousCount;
+                  trendPercentage = (difference / previousCount) * 100;
+                  // For expired items, a decrease is positive (fewer expired items is good)
+                  isPositive = difference < 0;
+                }
+
+                return _buildSummaryCard(
+                  context: context,
+                  title: 'Expired Items',
+                  value: '$currentCount',
+                  icon: Icons.warning_amber,
+                  color: Colors.red,
+                  trend:
+                      '${isPositive ? "+" : "-"}${trendPercentage.abs().toStringAsFixed(1)}%',
+                  isPositive: isPositive,
+                  isEstimate:
+                      true, // We're estimating the trend based on previous count
+                );
+              },
+              loading: () => _buildSummaryCard(
+                context: context,
+                title: 'Expired Items',
+                value: '...',
+                icon: Icons.warning_amber,
+                color: Colors.red,
+                trend: '0.0%',
+                isPositive: false,
+                isEstimate: true,
+              ),
+              error: (_, __) => _buildSummaryCard(
+                context: context,
+                title: 'Expired Items',
+                value: '$expiredItemsCount',
+                icon: Icons.warning_amber,
+                color: Colors.red,
+                trend: '0.0%',
+                isPositive: false,
+                isEstimate: true,
+              ),
+            ),
+        // Low Stock Items card with real data
+        ref.watch(lowStockItemsProvider).when(
+              data: (lowStockData) {
+                return _buildSummaryCard(
+                  context: context,
+                  title: 'Low Stock Items',
+                  value: lowStockData.formattedCount,
+                  icon: Icons.trending_down,
+                  color: Colors.orange,
+                  trend:
+                      '${lowStockData.isPositive ? "+" : "-"}${lowStockData.trendPercentage.abs().toStringAsFixed(1)}%',
+                  isPositive: lowStockData.isPositive,
+                  isEstimate: lowStockData.isEstimateUsed,
+                );
+              },
+              loading: () => _buildSummaryCard(
+                context: context,
+                title: 'Low Stock Items',
+                value: '...',
+                icon: Icons.trending_down,
+                color: Colors.orange,
+                trend: '0.0%',
+                isPositive: true,
+                isEstimate: true,
+              ),
+              error: (_, __) => _buildSummaryCard(
+                context: context,
+                title: 'Low Stock Items',
+                value: '0',
+                icon: Icons.trending_down,
+                color: Colors.orange,
+                trend: '0.0%',
+                isPositive: true,
+                isEstimate: true,
+              ),
+            ),
+        // Pending Orders card with real data
+        ref.watch(pendingOrdersProvider).when(
+              data: (pendingOrdersData) {
+                return _buildSummaryCard(
+                  context: context,
+                  title: 'Pending Orders',
+                  value: pendingOrdersData.formattedCount,
+                  icon: Icons.shopping_cart,
+                  color: Colors.green,
+                  trend:
+                      '${pendingOrdersData.isPositive ? "+" : "-"}${pendingOrdersData.trendPercentage.abs().toStringAsFixed(1)}%',
+                  isPositive: pendingOrdersData.isPositive,
+                  isEstimate: pendingOrdersData.isEstimateUsed,
+                );
+              },
+              loading: () => _buildSummaryCard(
+                context: context,
+                title: 'Pending Orders',
+                value: '...',
+                icon: Icons.shopping_cart,
+                color: Colors.green,
+                trend: '0.0%',
+                isPositive: true,
+                isEstimate: true,
+              ),
+              error: (_, __) => _buildSummaryCard(
+                context: context,
+                title: 'Pending Orders',
+                value: '0',
+                icon: Icons.shopping_cart,
+                color: Colors.green,
+                trend: '0.0%',
+                isPositive: true,
+                isEstimate: true,
+              ),
+            ),
       ],
     );
   }

@@ -38,6 +38,18 @@ final totalItemsProvider = FutureProvider<TotalItemsData>((ref) async {
   return service.getTotalItems();
 });
 
+/// Provider for low stock items count and trend
+final lowStockItemsProvider = FutureProvider<TotalItemsData>((ref) async {
+  final service = ref.watch(inventoryServiceProvider);
+  return service.getLowStockItems();
+});
+
+/// Provider for pending orders count and trend
+final pendingOrdersProvider = FutureProvider<TotalItemsData>((ref) async {
+  final service = ref.watch(inventoryServiceProvider);
+  return service.getPendingOrders();
+});
+
 /// Parameters for expired items provider
 class ExpiredItemsParams {
   final int? branchId;

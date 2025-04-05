@@ -187,7 +187,8 @@ class InventoryService {
       // based on typical inventory growth patterns
       bool estimateUsed = false;
       if (previousCount == 0 && totalCount > 0) {
-        previousCount = (totalCount * 0.95).round(); // Assume 5% growth as fallback
+        previousCount =
+            (totalCount * 0.95).round(); // Assume 5% growth as fallback
         estimateUsed = true;
       }
 
@@ -216,7 +217,168 @@ class InventoryService {
         totalCount: 0,
         trendPercentage: 0.0,
         isPositive: true,
-        isEstimateUsed: true, // Mark as estimate since we're using default values
+        isEstimateUsed:
+            true, // Mark as estimate since we're using default values
+      );
+    }
+  }
+
+  /// Fetches low stock items count and trend data
+  ///
+  /// Returns a TotalItemsData object with count and trend information
+  Future<TotalItemsData> getLowStockItems() async {
+    try {
+      // Get the active branch ID
+      final activeBranchId = ProxyService.box.getBranchId() ?? 0;
+
+      // Get current date and date from a week ago
+      final now = DateTime.now();
+      final oneWeekAgo = now.subtract(const Duration(days: 7));
+
+      // Get variants with low stock for this branch
+      final variants = await ProxyService.strategy.variants(
+        branchId: activeBranchId,
+      );
+
+      // Filter variants with low stock (stock below threshold)
+      final lowStockVariants = variants.where((variant) {
+        // Consider a variant as low stock if its quantity is below a threshold
+        // This threshold could be customized per product in a real implementation
+        const lowStockThreshold = 5; // Example threshold
+        return variant.quantity != null &&
+            variant.quantity! < lowStockThreshold;
+      }).toList();
+
+      // Count low stock items
+      final totalCount = lowStockVariants.length;
+
+      // Get low stock variants that existed a week ago
+      final previousLowStockVariants = lowStockVariants.where((variant) {
+        if (variant.lastTouched != null) {
+          final lastTouchedUtc = variant.lastTouched!.toUtc();
+          return lastTouchedUtc.isBefore(oneWeekAgo.toUtc());
+        }
+        return false;
+      }).toList();
+
+      // Get the previous count (from a week ago)
+      int previousCount = previousLowStockVariants.length;
+
+      // If we don't have any historical data, use a reasonable estimate
+      bool estimateUsed = false;
+      if (previousCount == 0 && totalCount > 0) {
+        previousCount =
+            (totalCount * 0.9).round(); // Assume 10% change as fallback
+        estimateUsed = true;
+      }
+
+      // Calculate trend percentage
+      double trendPercentage = 0.0;
+      bool isPositive = true;
+
+      if (previousCount > 0) {
+        final difference = totalCount - previousCount;
+        trendPercentage = (difference / previousCount) * 100;
+        // For low stock items, a decrease is actually positive (fewer low stock items is good)
+        isPositive = difference <= 0;
+      }
+
+      return TotalItemsData(
+        totalCount: totalCount,
+        trendPercentage: double.parse(trendPercentage.toStringAsFixed(1)),
+        isPositive: isPositive,
+        isEstimateUsed: estimateUsed,
+      );
+    } catch (e) {
+      print('Error fetching low stock items: $e');
+      // Return default data in case of error
+      return TotalItemsData(
+        totalCount: 0,
+        trendPercentage: 0.0,
+        isPositive: true,
+        isEstimateUsed: true,
+      );
+    }
+  }
+
+  /// Fetches pending orders count and trend data
+  ///
+  /// Returns a TotalItemsData object with count and trend information
+  Future<TotalItemsData> getPendingOrders() async {
+    try {
+      // Get the active branch ID
+      final activeBranchId = ProxyService.box.getBranchId() ?? 0;
+
+      // In a real implementation, we would fetch pending orders from the backend
+      // For now, we'll use transactions as a proxy for pending orders
+      // This is a placeholder implementation - in a real system, you would
+      // fetch actual pending orders data from your backend
+
+      // Get transactions that might represent pending orders
+      final transactions = await ProxyService.strategy.transactions(
+        branchId: activeBranchId,
+        status: 'parked', // Filter for pending status
+      );
+
+      // Count pending transactions as orders
+      final pendingOrders = transactions.where((transaction) {
+        // Consider transactions with 'pending' or 'processing' status as pending orders
+        return transaction.status == 'parked' ||
+            transaction.status == 'processing';
+      }).toList();
+
+      // Count pending orders
+      final totalCount = pendingOrders.length;
+
+      // Get current date and date from a week ago
+      final now = DateTime.now();
+      final oneWeekAgo = now.subtract(const Duration(days: 7));
+
+      // Get orders that were pending a week ago
+      final previousPendingOrders = pendingOrders.where((order) {
+        if (order.createdAt != null) {
+          final createdAtUtc = order.createdAt!.toUtc();
+          return createdAtUtc.isBefore(oneWeekAgo.toUtc());
+        }
+        return false;
+      }).toList();
+
+      // Get the previous count (from a week ago)
+      int previousCount = previousPendingOrders.length;
+
+      // If we don't have any historical data, use a reasonable estimate
+      bool estimateUsed = false;
+      if (previousCount == 0 && totalCount > 0) {
+        previousCount =
+            (totalCount * 0.9).round(); // Assume 10% change as fallback
+        estimateUsed = true;
+      }
+
+      // Calculate trend percentage
+      double trendPercentage = 0.0;
+      bool isPositive =
+          false; // For pending orders, an increase is generally not positive
+
+      if (previousCount > 0) {
+        final difference = totalCount - previousCount;
+        trendPercentage = (difference / previousCount) * 100;
+        isPositive = difference < 0; // Fewer pending orders is positive
+      }
+
+      return TotalItemsData(
+        totalCount: totalCount,
+        trendPercentage: double.parse(trendPercentage.toStringAsFixed(1)),
+        isPositive: isPositive,
+        isEstimateUsed: estimateUsed,
+      );
+    } catch (e) {
+      print('Error fetching pending orders: $e');
+      // Return default data in case of error
+      return TotalItemsData(
+        totalCount: 0,
+        trendPercentage: 0.0,
+        isPositive: true,
+        isEstimateUsed: true,
       );
     }
   }
