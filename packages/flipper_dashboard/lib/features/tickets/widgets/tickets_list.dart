@@ -182,30 +182,23 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         });
   }
 
-  // Create a stream that combines tickets with all statuses
+  // Create a stream that combines tickets with PARKED and WAITING statuses only
   Stream<List<ITransaction>> _getTicketsStream() {
     // Create broadcast streams for each status
     final parkedStream = ProxyService.strategy
         .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
-    final orderingStream = ProxyService.strategy
-        .transactionsStream(
-            status: ORDERING, removeAdjustmentTransactions: true)
+    final waitingStream = ProxyService.strategy
+        .transactionsStream(status: WAITING, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
-    final completeStream = ProxyService.strategy
-        .transactionsStream(
-            status: COMPLETE, removeAdjustmentTransactions: true)
-        .asBroadcastStream();
-
-    // Merge all streams with periodic polling
+    // Merge streams with periodic polling (excluding COMPLETE status)
     return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
       final parkedTickets = await parkedStream.first;
-      final orderingTickets = await orderingStream.first;
-      final completeTickets = await completeStream.first;
+      final waitingTickets = await waitingStream.first;
 
-      return [...parkedTickets, ...orderingTickets, ...completeTickets];
+      return [...parkedTickets, ...waitingTickets];
     });
   }
 }
