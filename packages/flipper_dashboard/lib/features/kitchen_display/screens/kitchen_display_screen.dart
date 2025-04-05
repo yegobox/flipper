@@ -1,6 +1,5 @@
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -16,13 +15,26 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
+  // Create a StreamProvider for kitchen orders
+  final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((ref) {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return Stream.value([]);
+    }
+    return ProxyService.strategy.transactionsStream(
+      status: PARKED,
+      branchId: branchId,
+      removeAdjustmentTransactions: true,
+    );
+  });
+
   @override
   Widget build(BuildContext context) {
-    final transactionsStream = ref.watch(transactionsProvider);
+    final kitchenOrdersStream = ref.watch(kitchenOrdersStreamProvider);
     final kitchenOrders = ref.watch(kitchenOrdersProvider);
 
-    // Listen to transactions changes - must be in build method
-    ref.listen(transactionsProvider, (previous, next) {
+    // Listen to kitchen orders changes - must be in build method
+    ref.listen(kitchenOrdersStreamProvider, (previous, next) {
       next.whenData((transactions) {
         // Schedule the update after the current build is complete
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -42,12 +54,12 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               // Force refresh
-              ref.invalidate(transactionsProvider);
+              ref.invalidate(kitchenOrdersStreamProvider);
             },
           ),
         ],
       ),
-      body: transactionsStream.when(
+      body: kitchenOrdersStream.when(
         data: (transactions) {
           return Padding(
             padding: const EdgeInsets.all(16.0),
