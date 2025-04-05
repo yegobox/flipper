@@ -48,7 +48,8 @@ class KitchenOrdersNotifier
     for (final transaction in transactions) {
       if (transaction.status == PARKED) {
         categorizedOrders[OrderStatus.incoming]!.add(transaction);
-      } else if (transaction.status == ORDERING) {
+      } else if (transaction.status == IN_PROGRESS || transaction.status == ORDERING) {
+        // Support both new IN_PROGRESS and legacy ORDERING status
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
       } else if (transaction.status == WAITING) {
         // Only accept WAITING status for the waiting column
@@ -74,7 +75,7 @@ class KitchenOrdersNotifier
         updatedOrder.status = PARKED;
         break;
       case OrderStatus.inProgress:
-        updatedOrder.status = ORDERING;
+        updatedOrder.status = IN_PROGRESS;
         break;
       case OrderStatus.waiting:
         updatedOrder.status = WAITING;
