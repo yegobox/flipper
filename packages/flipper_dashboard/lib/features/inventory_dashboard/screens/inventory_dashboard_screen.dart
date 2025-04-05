@@ -126,42 +126,41 @@ class _InventoryDashboardScreenState
             ),
             const SizedBox(height: 24),
 
-            // Expired items section
-            Consumer(
-              builder: (context, ref, child) {
-                // Using default parameters since custom parameters cause loading issues
-                final expiredItemsAsync =
-                    ref.watch(expiredItemsProvider(const ExpiredItemsParams()));
-
-                return expiredItemsAsync.when(
-                  data: (expiredItems) => ExpiredItemsSection(
-                    expiredItems: expiredItems,
-                    onDeleteItem: _deleteItem,
-                    onViewItemDetails: _showItemDetailsDialog,
-                  ),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stackTrace) => Center(
-                    child: Text('Error loading expired items: $error'),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Charts section
-            // Charts section would go here if implemented
-            const SizedBox(height: 24),
-
-            // Recent orders and near expiry items
+            // Expired items and Near Expiry items in a row
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Expired items section
                 Expanded(
                   flex: 3,
-                  child: RecentOrdersSection(reorderHistory: _reorderHistory),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: 700, // Minimum width to ensure readability
+                    ),
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        // Using default parameters since custom parameters cause loading issues
+                        final expiredItemsAsync = ref.watch(
+                            expiredItemsProvider(const ExpiredItemsParams()));
+
+                        return expiredItemsAsync.when(
+                          data: (expiredItems) => ExpiredItemsSection(
+                            expiredItems: expiredItems,
+                            onDeleteItem: _deleteItem,
+                            onViewItemDetails: _showItemDetailsDialog,
+                          ),
+                          loading: () =>
+                              const Center(child: CircularProgressIndicator()),
+                          error: (error, stackTrace) => Center(
+                            child: Text('Error loading expired items: $error'),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 16),
+                // Near expiry items section
                 Expanded(
                   flex: 2,
                   child: Consumer(
@@ -188,6 +187,15 @@ class _InventoryDashboardScreenState
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            // Charts section
+            // Charts section would go here if implemented
+            const SizedBox(height: 24),
+
+            // Recent orders section
+            //TODO: implement this soon.
+            // RecentOrdersSection(reorderHistory: _reorderHistory),
             const SizedBox(height: 16),
           ],
         ),

@@ -16,14 +16,20 @@ class ExpiredItemsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate the available width for the table
+    final availableWidth =
+        MediaQuery.of(context).size.width - 64; // Full width minus padding
+
     return Card(
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      margin: EdgeInsets.zero, // Remove default card margin
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with title and View All button
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
@@ -37,17 +43,27 @@ class ExpiredItemsSection extends StatelessWidget {
                   onPressed: () {
                     _showExpiredItemsDialog(context);
                   },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    minimumSize: const Size(80, 40),
+                  ),
                   child: const Text('View All'),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+          ),
+          // Table section - no horizontal scroll
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+            child: SizedBox(
+              width: availableWidth,
               child: DataTable(
                 columnSpacing: 20,
                 headingRowColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.3),
                 ),
                 columns: const [
                   DataColumn(label: Text('ID')),
@@ -61,7 +77,9 @@ class ExpiredItemsSection extends StatelessWidget {
                 rows: expiredItems.map((item) {
                   return DataRow(
                     cells: [
-                      DataCell(Text(item.id)),
+                      DataCell(Text(item.id.length > 5
+                          ? item.id.substring(0, 5) + '...'
+                          : item.id)),
                       DataCell(Text(item.name)),
                       DataCell(Text(item.category)),
                       DataCell(Text(item.quantity.toString())),
@@ -96,8 +114,8 @@ class ExpiredItemsSection extends StatelessWidget {
                 }).toList(),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -110,6 +128,7 @@ class ExpiredItemsSection extends StatelessWidget {
           title: const Text('All Expired Items'),
           content: SingleChildScrollView(
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: expiredItems.map((item) {
                 return ListTile(
                   title: Text(item.name),
