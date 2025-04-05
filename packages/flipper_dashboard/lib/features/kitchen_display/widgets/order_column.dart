@@ -22,7 +22,8 @@ class OrderColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DragTarget<Map<String, dynamic>>(
-      onAccept: (data) {
+      onAcceptWithDetails: (details) {
+        final data = details.data;
         final order = data['order'] as ITransaction;
         final fromStatus = data['fromStatus'] as OrderStatus;
         // Pass the current column's status as the destination status
