@@ -39,6 +39,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         )
         .asBroadcastStream();
 
+    // Fetch transactions with WAITING status
     final waitingStream = ProxyService.strategy
         .transactionsStream(
           status: WAITING,
@@ -47,12 +48,16 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         )
         .asBroadcastStream();
 
+    // We only want WAITING status transactions in the waiting column
+    // No need to fetch COMPLETE status transactions
+
     // Merge all streams and combine their results
     return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
       final parkedOrders = await parkedStream.first;
       final orderingOrders = await orderingStream.first;
       final waitingOrders = await waitingStream.first;
 
+      // Only include WAITING status orders in the waiting column
       return [...parkedOrders, ...orderingOrders, ...waitingOrders];
     });
   });

@@ -51,6 +51,7 @@ class KitchenOrdersNotifier
       } else if (transaction.status == ORDERING) {
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
       } else if (transaction.status == WAITING) {
+        // Only accept WAITING status for the waiting column
         categorizedOrders[OrderStatus.waiting]!.add(transaction);
       }
     }
