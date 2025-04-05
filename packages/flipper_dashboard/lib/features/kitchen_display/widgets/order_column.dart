@@ -101,13 +101,17 @@ class OrderColumn extends StatelessWidget {
                               'fromStatus': status,
                             },
                             // Use a more constrained feedback widget to prevent overflow
-                            feedback: SizedBox(
-                              width: 250, // Fixed width smaller than the column
-                              child: Material(
-                                elevation: 4.0,
-                                borderRadius: BorderRadius.circular(8),
-                                clipBehavior:
-                                    Clip.antiAlias, // Clip any overflow
+                            feedback: Material(
+                              elevation: 4.0,
+                              borderRadius: BorderRadius.circular(8),
+                              clipBehavior: Clip.antiAlias, // Clip any overflow
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: MediaQuery.of(context).size.width *
+                                      0.25, // 25% of screen width
+                                  minWidth:
+                                      200, // Minimum width to ensure content is visible
+                                ),
                                 child: OrderCard(
                                   order: order,
                                   borderColor: color,
