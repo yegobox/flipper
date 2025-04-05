@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'drawerB.dart';

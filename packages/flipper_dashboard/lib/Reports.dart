@@ -1,7 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

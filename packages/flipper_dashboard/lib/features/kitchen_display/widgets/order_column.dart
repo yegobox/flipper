@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_card.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 
 class OrderColumn extends StatelessWidget {
@@ -97,11 +97,16 @@ class OrderColumn extends StatelessWidget {
                               'order': order,
                               'fromStatus': status,
                             },
-                            feedback: SizedBox(
-                              width: 280,
-                              child: OrderCard(
-                                order: order,
-                                borderColor: color,
+                            feedback: Material(
+                              elevation: 4.0,
+                              child: Container(
+                                width: 280,
+                                constraints:
+                                    const BoxConstraints(maxHeight: 200),
+                                child: OrderCard(
+                                  order: order,
+                                  borderColor: color,
+                                ),
                               ),
                             ),
                             childWhenDragging: Opacity(

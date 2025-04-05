@@ -1,5 +1,5 @@
 import 'package:flipper_models/sync/interfaces/conversation_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -15,7 +15,8 @@ mixin CapellaConversationMixin implements ConversationInterface {
     int? limit,
     int? offset,
   }) async {
-    throw UnimplementedError('getConversationHistory needs to be implemented for Capella');
+    throw UnimplementedError(
+        'getConversationHistory needs to be implemented for Capella');
   }
 
   @override
@@ -33,6 +34,7 @@ mixin CapellaConversationMixin implements ConversationInterface {
 
   @override
   Stream<List<Message>> conversationStream({required String conversationId}) {
-    throw UnimplementedError('conversationStream needs to be implemented for Capella');
+    throw UnimplementedError(
+        'conversationStream needs to be implemented for Capella');
   }
 }

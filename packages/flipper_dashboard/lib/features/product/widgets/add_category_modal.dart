@@ -1,7 +1,7 @@
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 class AddCategoryModal extends StatelessWidget {
   const AddCategoryModal({Key? key}) : super(key: key);
@@ -32,7 +32,8 @@ class AddCategoryModal extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Category Name',
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.grey.shade300),

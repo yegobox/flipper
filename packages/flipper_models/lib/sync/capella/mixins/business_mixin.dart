@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 

@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 
 // import 'package:flipper_models/providers/all_providers.dart';
 // import 'package:flutter_test/flutter_test.dart';
-// import 'package:flipper_models/realm_model_export.dart';
+// import 'package:flipper_models/db_model_export.dart';
 // import 'package:riverpod/riverpod.dart';
 // import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:uuid/uuid.dart';

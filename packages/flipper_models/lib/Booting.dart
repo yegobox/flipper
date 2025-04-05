@@ -4,7 +4,7 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 

@@ -1,13 +1,9 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum OrderStatus {
-  incoming,
-  inProgress,
-  completed
-}
+enum OrderStatus { incoming, inProgress, completed }
 
 extension OrderStatusExtension on OrderStatus {
   String get displayName {
@@ -20,7 +16,7 @@ extension OrderStatusExtension on OrderStatus {
         return 'Completed';
     }
   }
-  
+
   Color get color {
     switch (this) {
       case OrderStatus.incoming:
@@ -33,12 +29,14 @@ extension OrderStatusExtension on OrderStatus {
   }
 }
 
-class KitchenOrdersNotifier extends StateNotifier<Map<OrderStatus, List<ITransaction>>> {
-  KitchenOrdersNotifier() : super({
-    OrderStatus.incoming: [],
-    OrderStatus.inProgress: [],
-    OrderStatus.completed: [],
-  });
+class KitchenOrdersNotifier
+    extends StateNotifier<Map<OrderStatus, List<ITransaction>>> {
+  KitchenOrdersNotifier()
+      : super({
+          OrderStatus.incoming: [],
+          OrderStatus.inProgress: [],
+          OrderStatus.completed: [],
+        });
 
   void updateOrders(List<ITransaction> transactions) {
     final Map<OrderStatus, List<ITransaction>> categorizedOrders = {
@@ -60,14 +58,14 @@ class KitchenOrdersNotifier extends StateNotifier<Map<OrderStatus, List<ITransac
     state = categorizedOrders;
   }
 
-  void moveOrder(ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) {
+  void moveOrder(
+      ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) {
     final updatedState = Map<OrderStatus, List<ITransaction>>.from(state);
-    
+
     // Remove from source list
-    updatedState[fromStatus] = updatedState[fromStatus]!
-        .where((t) => t.id != order.id)
-        .toList();
-    
+    updatedState[fromStatus] =
+        updatedState[fromStatus]!.where((t) => t.id != order.id).toList();
+
     // Update order status based on the target column
     final updatedOrder = order;
     switch (toStatus) {
@@ -81,14 +79,15 @@ class KitchenOrdersNotifier extends StateNotifier<Map<OrderStatus, List<ITransac
         updatedOrder.status = COMPLETE;
         break;
     }
-    
+
     // Add to target list
     updatedState[toStatus] = [...updatedState[toStatus]!, updatedOrder];
-    
+
     state = updatedState;
   }
 }
 
-final kitchenOrdersProvider = StateNotifierProvider<KitchenOrdersNotifier, Map<OrderStatus, List<ITransaction>>>((ref) {
+final kitchenOrdersProvider = StateNotifierProvider<KitchenOrdersNotifier,
+    Map<OrderStatus, List<ITransaction>>>((ref) {
   return KitchenOrdersNotifier();
 });

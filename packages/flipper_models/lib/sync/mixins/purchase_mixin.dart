@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';

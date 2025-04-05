@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_models/helperModels/pin.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';

@@ -18,7 +18,7 @@ import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/ribbon.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';

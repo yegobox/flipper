@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:supabase_models/brick/repository.dart';
 

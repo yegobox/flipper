@@ -1,5 +1,5 @@
 import 'package:flipper_models/providers/inventory_provider.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import '../models/inventory_models.dart';
 

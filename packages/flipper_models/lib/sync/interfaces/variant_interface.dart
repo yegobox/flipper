@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 /// Interface for variant operations
 abstract class VariantInterface {
@@ -44,12 +44,13 @@ abstract class VariantInterface {
       String? unit,
       String? pkgUnitCd,
       DateTime? expirationDate,
-      bool? ebmSynced, String? categoryId});
+      bool? ebmSynced,
+      String? categoryId});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
-  
+
   /// Gets a list of expired items for inventory dashboard
-  /// 
+  ///
   /// [branchId] - The branch ID to filter items by
   /// [daysToExpiry] - Optional, include items expiring within this many days
   /// [limit] - Optional, limit the number of results returned

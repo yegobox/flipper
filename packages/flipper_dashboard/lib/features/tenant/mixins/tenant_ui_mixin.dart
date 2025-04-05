@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -47,10 +47,12 @@ class TenantUIMixin {
     void Function(void Function()) setState,
     void Function(List<Access>) updateTenantPermissions,
     void Function(Tenant, List<Access>) fillFormWithTenantData,
-    void Function(BuildContext, Tenant, FlipperBaseModel) showDeleteConfirmation,
+    void Function(BuildContext, Tenant, FlipperBaseModel)
+        showDeleteConfirmation,
   ) {
     return FutureBuilder<List<Access>>(
-      future: Future.value(ProxyService.strategy.access(userId: tenant.userId!)),
+      future:
+          Future.value(ProxyService.strategy.access(userId: tenant.userId!)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return buildLoadingTenantTileStatic(context, tenant);
@@ -74,7 +76,8 @@ class TenantUIMixin {
     );
   }
 
-  static Widget buildLoadingTenantTileStatic(BuildContext context, Tenant tenant) {
+  static Widget buildLoadingTenantTileStatic(
+      BuildContext context, Tenant tenant) {
     return ListTile(
       leading: buildTenantAvatarStatic(context, tenant),
       title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -82,7 +85,8 @@ class TenantUIMixin {
     );
   }
 
-  static Widget buildErrorTenantTileStatic(BuildContext context, Tenant tenant) {
+  static Widget buildErrorTenantTileStatic(
+      BuildContext context, Tenant tenant) {
     return ListTile(
       leading: buildTenantAvatarStatic(context, tenant),
       title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -100,7 +104,8 @@ class TenantUIMixin {
     List<Access> tenantAccesses,
     void Function(List<Access>) updateTenantPermissions,
     void Function(Tenant, List<Access>) fillFormWithTenantData,
-    void Function(BuildContext, Tenant, FlipperBaseModel) showDeleteConfirmation,
+    void Function(BuildContext, Tenant, FlipperBaseModel)
+        showDeleteConfirmation,
   ) {
     return ExpansionTile(
       onExpansionChanged: (expanded) {
@@ -124,7 +129,8 @@ class TenantUIMixin {
         mainAxisSize: MainAxisSize.min,
         children: [
           buildNfcButtonStatic(context, tenant),
-          buildDeleteButtonStatic(context, tenant, model, showDeleteConfirmation),
+          buildDeleteButtonStatic(
+              context, tenant, model, showDeleteConfirmation),
         ],
       ),
       children: [
@@ -159,7 +165,8 @@ class TenantUIMixin {
     BuildContext context,
     Tenant tenant,
     FlipperBaseModel model,
-    void Function(BuildContext, Tenant, FlipperBaseModel) showDeleteConfirmation,
+    void Function(BuildContext, Tenant, FlipperBaseModel)
+        showDeleteConfirmation,
   ) {
     return IconButton(
       icon: Icon(Icons.delete, color: Colors.red),
@@ -175,9 +182,10 @@ class TenantUIMixin {
         children: [
           Text("Permissions:", style: TextStyle(fontWeight: FontWeight.bold)),
           SizedBox(height: 8),
-          if (tenantAccesses.isEmpty)
-            Text("No permissions assigned."),
-          ...tenantAccesses.map((access) => buildAccessItemStatic(access)).toList(),
+          if (tenantAccesses.isEmpty) Text("No permissions assigned."),
+          ...tenantAccesses
+              .map((access) => buildAccessItemStatic(access))
+              .toList(),
         ],
       ),
     );

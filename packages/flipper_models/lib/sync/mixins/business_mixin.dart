@@ -6,7 +6,7 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:http/http.dart' as http;

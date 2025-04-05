@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -122,17 +122,28 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
 
     // Update the order status in the database
     try {
+      // Get the new status string
       final status = _getStatusString(toStatus);
-      // Update the transaction directly
-      order.status = status;
-      // Save changes
-      await ProxyService.strategy.updateTransaction(transaction: order);
+
+      // Update the transaction properties
+      final updatedOrder = order;
+      updatedOrder.status = status;
+      updatedOrder.lastTouched = DateTime.now();
+
+      // Use the same approach as in transaction_mixin.dart to update the transaction
+      // This is how transactions are updated throughout the Flipper codebase
+      await ProxyService.strategy.updateTransaction(transaction: updatedOrder);
+
+      // Force refresh the stream to reflect changes
+      ref.invalidate(kitchenOrdersStreamProvider);
     } catch (e) {
       // Show error if update fails
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update order: $e')),
         );
+        // Revert the UI change since the database update failed
+        ref.invalidate(kitchenOrdersStreamProvider);
       }
     }
   }

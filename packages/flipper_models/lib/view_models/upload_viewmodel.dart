@@ -5,7 +5,7 @@ import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -74,15 +74,14 @@ class UploadViewModel extends ProductViewModel {
         localFile: AWSFile.fromPath(platformFile.path!),
         path: StoragePath.fromString(filePath),
         options: StorageUploadFileOptions(
-          metadata: {
-            "contentType": 'image/${platformFile.extension}'
-          },
+          metadata: {"contentType": 'image/${platformFile.extension}'},
           pluginOptions: S3UploadFilePluginOptions(getProperties: true),
         ),
         onProgress: (progress) {
           talker.warning('Fraction completed: ${progress.fractionCompleted}');
           if (ref != null) {
-            ref!.read(uploadProgressProvider.notifier).state = progress.fractionCompleted;
+            ref!.read(uploadProgressProvider.notifier).state =
+                progress.fractionCompleted;
           }
         },
       ).result;
@@ -135,7 +134,7 @@ class UploadViewModel extends ProductViewModel {
       PlatformFile platformFile, String fileName) async {
     final appSupportDir = await getApplicationSupportDirectory();
     final localFile = File('${appSupportDir.path}/$fileName');
-    
+
     if (platformFile.path != null) {
       await File(platformFile.path!).copy(localFile.path);
     } else if (platformFile.bytes != null) {
@@ -147,7 +146,8 @@ class UploadViewModel extends ProductViewModel {
     }
   }
 
-  FutureOr<void> saveAsset({required String productId, required assetName}) async {
+  FutureOr<void> saveAsset(
+      {required String productId, required assetName}) async {
     await ProxyService.strategy.addAsset(
       productId: productId,
       assetName: assetName,

@@ -7,7 +7,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/realm_model_export.dart' as brick;
+import 'package:flipper_models/db_model_export.dart' as brick;
 import 'mixins/all.dart';
 
 class CoreViewModel extends FlipperBaseModel

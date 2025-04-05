@@ -9,7 +9,7 @@ import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:ui' as ui;
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.locator.dart';

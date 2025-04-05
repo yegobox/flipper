@@ -1,7 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -316,7 +316,7 @@ class _SearchInputWithDropdownState
                               /// query the transaction item, using this given receipt number
                               /// first retrieve this transaction using ProxyService.strategy.getTransaction(sarNo: 'given receiptnumber',branchId: ProxyService.box.getBranchId()!)
                               /// then
-                              ///  
+                              ///
                               /// retrieve the items using the above transaction using ProxyService.strategy.transactionItems(transactionId: retrievedTransactionId)
                               /// mark the item as not done with transaction
                               /// mark the current pending transaction as parked and save its id temporarily

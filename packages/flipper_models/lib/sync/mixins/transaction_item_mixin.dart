@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -228,7 +228,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         ]));
     return items;
   }
-
 
   @override
   FutureOr<void> updateTransactionItem(

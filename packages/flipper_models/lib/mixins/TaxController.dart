@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;

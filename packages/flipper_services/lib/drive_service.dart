@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
