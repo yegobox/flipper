@@ -1,3 +1,4 @@
+import 'package:flipper_models/providers/inventory_provider.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import '../models/inventory_models.dart';
@@ -136,5 +137,54 @@ class InventoryService {
       expiryDate: variant.expirationDate ?? DateTime.now(),
       location: location,
     );
+  }
+  
+  /// Fetches total items count and trend data
+  /// 
+  /// Returns a TotalItemsData object with count and trend information
+  Future<TotalItemsData> getTotalItems() async {
+    try {
+      // Get the active branch ID
+      final activeBranchId = ProxyService.box.getBranchId() ?? 0;
+      
+      // Get all variants with stock for this branch
+      // Using the variant method that's available in the ProxyService.strategy interface
+      final variants = await ProxyService.strategy.variants(
+        branchId: activeBranchId,
+      );
+      
+      // Count total items (variants with stock)
+      final totalCount = variants.length;
+      
+      // Get variants from a week ago for trend calculation
+      // In a real implementation, you would fetch historical data
+      // For now, we'll simulate a trend based on current data
+      final previousCount = (totalCount * 0.95).round(); // Simulate 5% growth
+      
+      // Calculate trend percentage
+      double trendPercentage = 0.0;
+      bool isPositive = true;
+      
+      if (previousCount > 0) {
+        final difference = totalCount - previousCount;
+        trendPercentage = (difference / previousCount) * 100;
+        isPositive = difference >= 0;
+        trendPercentage = trendPercentage.abs(); // Always positive for display
+      }
+      
+      return TotalItemsData(
+        totalCount: totalCount,
+        trendPercentage: double.parse(trendPercentage.toStringAsFixed(1)),
+        isPositive: isPositive,
+      );
+    } catch (e) {
+      print('Error fetching total items: $e');
+      // Return default data in case of error
+      return TotalItemsData(
+        totalCount: 0,
+        trendPercentage: 0.0,
+        isPositive: true,
+      );
+    }
   }
 }

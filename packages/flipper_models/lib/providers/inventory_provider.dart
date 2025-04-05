@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/inventory_dashboard/models/inventory_models.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/services/inventory_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 /// Service provider for inventory operations
 final inventoryServiceProvider = Provider<InventoryService>((ref) {
@@ -27,6 +28,12 @@ final nearExpiryItemsProvider = FutureProvider.family<List<InventoryItem>, NearE
   );
 });
 
+/// Provider for total items count and trend
+final totalItemsProvider = FutureProvider<TotalItemsData>((ref) async {
+  final service = ref.watch(inventoryServiceProvider);
+  return service.getTotalItems();
+});
+
 /// Parameters for expired items provider
 class ExpiredItemsParams {
   final int? branchId;
@@ -51,4 +58,18 @@ class NearExpiryItemsParams {
     this.daysToExpiry = 7,
     this.limit,
   });
+}
+
+/// Data class for total items count and trend
+class TotalItemsData {
+  final int totalCount;
+  final double trendPercentage;
+  final bool isPositive;
+  final String formattedCount;
+  
+  TotalItemsData({
+    required this.totalCount,
+    required this.trendPercentage,
+    required this.isPositive,
+  }) : formattedCount = NumberFormat('#,###').format(totalCount);
 }

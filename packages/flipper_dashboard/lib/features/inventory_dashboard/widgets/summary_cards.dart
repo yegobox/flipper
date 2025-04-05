@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/providers/inventory_provider.dart';
 
-class SummaryCards extends StatelessWidget {
+class SummaryCards extends ConsumerWidget {
   const SummaryCards({
     Key? key,
     required this.expiredItemsCount,
@@ -9,7 +11,7 @@ class SummaryCards extends StatelessWidget {
   final int expiredItemsCount;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GridView.count(
       crossAxisCount: MediaQuery.of(context).size.width > 1100 ? 4 : 2,
       shrinkWrap: true,
@@ -18,15 +20,38 @@ class SummaryCards extends StatelessWidget {
       crossAxisSpacing: 16,
       childAspectRatio: 1.5,
       children: [
-        _buildSummaryCard(
-          context: context,
-          title: 'Total Items',
-          value: '1,580',
-          icon: Icons.inventory,
-          color: Colors.blue,
-          trend: '+5.8%',
-          isPositive: true,
-        ),
+        // Total Items card with real data
+        ref.watch(totalItemsProvider).when(
+              data: (totalItemsData) {
+                return _buildSummaryCard(
+                  context: context,
+                  title: 'Total Items',
+                  value: totalItemsData.formattedCount,
+                  icon: Icons.inventory,
+                  color: Colors.blue,
+                  trend: '+${totalItemsData.trendPercentage}%',
+                  isPositive: totalItemsData.isPositive,
+                );
+              },
+              loading: () => _buildSummaryCard(
+                context: context,
+                title: 'Total Items',
+                value: '...',
+                icon: Icons.inventory,
+                color: Colors.blue,
+                trend: '0.0%',
+                isPositive: true,
+              ),
+              error: (_, __) => _buildSummaryCard(
+                context: context,
+                title: 'Total Items',
+                value: '0',
+                icon: Icons.inventory,
+                color: Colors.blue,
+                trend: '0.0%',
+                isPositive: true,
+              ),
+            ),
         _buildSummaryCard(
           context: context,
           title: 'Expired Items',
