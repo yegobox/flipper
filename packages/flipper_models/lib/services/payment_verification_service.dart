@@ -61,6 +61,21 @@ class PaymentVerificationService {
   /// Verifies if the current business has an active subscription
   /// Returns true if subscription is active, otherwise navigates to payment screen
   /// and returns false
+  /// Flag to track if we're currently on a payment screen
+  bool _isOnPaymentScreen = false;
+
+  /// Set when navigating to a payment screen
+  void _setOnPaymentScreen() {
+    _isOnPaymentScreen = true;
+    talker.info('Payment screen flag set to true');
+  }
+
+  /// Set when navigating back to the main app
+  void _clearPaymentScreenFlag() {
+    _isOnPaymentScreen = false;
+    talker.info('Payment screen flag set to false');
+  }
+
   Future<bool> verifyPaymentStatus() async {
     talker.info('Verifying payment status');
 
@@ -78,9 +93,18 @@ class PaymentVerificationService {
       );
 
       talker.info('Payment verification successful: Subscription is active');
+      
+      // If we were on a payment screen, navigate back to the main app
+      if (_isOnPaymentScreen) {
+        talker.info('Returning to main app after successful payment verification');
+        _clearPaymentScreenFlag();
+        _routerService.navigateTo(FlipperAppRoute());
+      }
+      
       return true;
     } catch (e) {
       talker.error('Payment verification failed: $e');
+      _setOnPaymentScreen();
 
       // Navigate to payment screen based on the error type
       if (e.toString().contains('No payment plan found')) {
