@@ -95,58 +95,61 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
+  /// Parks all existing PENDING transactions to prevent duplicates
+  /// when resuming a ticket
+  Future<void> _parkExistingPendingTransactions() async {
+    try {
+      // Get all pending transactions for this branch
+      final pendingTransactions = await ProxyService.strategy.transactions(
+        branchId: ProxyService.box.getBranchId()!,
+        status: PENDING,
+        includeZeroSubTotal:
+            true, // Include all transactions regardless of subtotal
+      );
+
+      talker.debug(
+          'Found ${pendingTransactions.length} pending transactions to park');
+
+      // Park all existing pending transactions
+      for (final tx in pendingTransactions) {
+        talker.debug('Parking transaction: ${tx.id}');
+        await ProxyService.strategy.updateTransaction(
+          transaction: tx,
+          status: PARKED,
+          updatedAt: DateTime.now(),
+        );
+      }
+    } catch (e) {
+      talker.error('Error parking existing transactions: $e');
+    }
+  }
+
   // Extract resume order functionality to a separate method
   Future<void> _resumeOrder(ITransaction ticket) async {
-    bool? confirm = await showDialog<bool>(
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Resume'),
-          content: const Text('Are you sure you want to resume this order?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('Confirm'),
-            ),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Resume Ticket'),
+        content: const Text('Are you sure you want to resume this ticket?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Resume'),
+          ),
+        ],
+      ),
     );
 
     if (confirm == true) {
       try {
-        // First, park all existing PENDING transactions to ensure only one active transaction
-        final pendingTransactions = await ProxyService.strategy.transactions(
-          status: PENDING,
-          branchId: ProxyService.box.getBranchId(),
-          includeZeroSubTotal:
-              true, // Include all transactions regardless of subtotal
-        );
+        // First, park all existing PENDING transactions to prevent duplicates
+        await _parkExistingPendingTransactions();
 
-        talker
-            .debug('Found ${pendingTransactions.length} pending transactions');
-
-        // Park all existing pending transactions except the current one
-        for (final tx in pendingTransactions) {
-          if (tx.id != ticket.id) {
-            talker.debug('Parking transaction: ${tx.id}');
-            await ProxyService.strategy.updateTransaction(
-              transaction: tx,
-              status: PARKED,
-              updatedAt: DateTime.now(),
-            );
-          }
-        }
-
-        // Get the most up-to-date version of the ticket
+        // Then, check if the ticket exists and get the latest version
         final updatedTicket = await ProxyService.strategy.getTransaction(
             id: ticket.id, branchId: ProxyService.box.getBranchId()!);
         final ticketToUpdate = updatedTicket ?? ticket;

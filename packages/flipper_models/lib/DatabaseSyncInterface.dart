@@ -158,12 +158,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Stream<List<Message>> conversationStream({required String conversationId});
 
-  Stream<ITransaction> manageTransactionStream(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId,
-      bool includeSubTotalCheck = false});
-
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType,
       required bool isExpense,

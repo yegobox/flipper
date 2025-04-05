@@ -98,21 +98,41 @@ mixin TransactionMixin implements TransactionInterface {
     bool includeSubTotalCheck = true,
   }) async {
     try {
-      final query = Query(where: [
+      // Base query to find PENDING transactions matching the criteria
+      final baseWhere = [
         Where('branchId').isExactly(branchId),
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(PENDING),
         Where('transactionType').isExactly(transactionType),
-        if (includeSubTotalCheck) Where('subTotal').isGreaterThan(0),
-      ]);
+      ];
 
-      final List<ITransaction> transactions =
-          await repository.get<ITransaction>(
+      // First try to find transactions with subtotal > 0
+      if (includeSubTotalCheck) {
+        final queryWithSubtotal = Query(where: [
+          ...baseWhere,
+          Where('subTotal').isGreaterThan(0),
+        ]);
+
+        final transactionsWithSubtotal = await repository.get<ITransaction>(
+          query: queryWithSubtotal,
+          policy: OfflineFirstGetPolicy.localOnly,
+        );
+
+        if (transactionsWithSubtotal.isNotEmpty) {
+          return transactionsWithSubtotal.first;
+        }
+      }
+
+      // If no transaction with subtotal > 0 found or includeSubTotalCheck is false,
+      // find any pending transaction regardless of subtotal
+      final query = Query(where: baseWhere);
+
+      final transactions = await repository.get<ITransaction>(
         query: query,
         policy: OfflineFirstGetPolicy.localOnly,
       );
 
-      return transactions.isNotEmpty ? transactions.last : null;
+      return transactions.isNotEmpty ? transactions.first : null;
     } catch (e, s) {
       talker.error('Error in _pendingTransaction: $e');
       talker.error('Stack trace: $s');
@@ -123,6 +143,8 @@ mixin TransactionMixin implements TransactionInterface {
   bool _isProcessingTransaction = false;
   final Lock _transactionLock = Lock();
 
+  final Map<int, bool> _isProcessingTransactionMap = {};
+
   @override
   Future<ITransaction?> manageTransaction({
     required String transactionType,
@@ -131,15 +153,17 @@ mixin TransactionMixin implements TransactionInterface {
     bool includeSubTotalCheck = false,
   }) async {
     return await _transactionLock.synchronized(() async {
-      if (_isProcessingTransaction) return null;
+      if (_isProcessingTransaction) return null; // Ensure return
 
       _isProcessingTransaction = true;
       try {
+        // Always pass includeSubTotalCheck: false to find any existing PENDING transaction
+        // regardless of subtotal to prevent duplicate transactions
         final existTransaction = await _pendingTransaction(
           branchId: branchId,
           isExpense: isExpense,
           transactionType: transactionType,
-          includeSubTotalCheck: includeSubTotalCheck,
+          includeSubTotalCheck: true,
         );
 
         if (existTransaction != null) return existTransaction;
@@ -167,15 +191,13 @@ mixin TransactionMixin implements TransactionInterface {
         await repository.upsert<ITransaction>(transaction);
         return transaction;
       } catch (e) {
-        talker.error('Error processing transaction: $e');
+        print('Error processing transaction: $e');
         rethrow;
       } finally {
         _isProcessingTransaction = false;
       }
     });
   }
-
-  final Map<int, bool> _isProcessingTransactionMap = {};
 
   @override
   Stream<ITransaction> manageTransactionStream({
@@ -186,15 +208,19 @@ mixin TransactionMixin implements TransactionInterface {
   }) async* {
     _isProcessingTransactionMap[branchId] ??= false;
 
+    // Check for an existing transaction - always use includeSubTotalCheck: false
+    // to find any existing PENDING transaction regardless of subtotal
     ITransaction? transaction = await _pendingTransaction(
       branchId: branchId,
       isExpense: isExpense,
       transactionType: transactionType,
-      includeSubTotalCheck: includeSubTotalCheck,
+      includeSubTotalCheck: true,
     );
 
+    // If no transaction exists, create and insert a new one
     if (transaction == null && !_isProcessingTransactionMap[branchId]!) {
-      _isProcessingTransactionMap[branchId] = true;
+      _isProcessingTransactionMap[branchId] =
+          true; // Lock processing for this branch
 
       transaction = ITransaction(
         lastTouched: DateTime.now(),
@@ -215,24 +241,27 @@ mixin TransactionMixin implements TransactionInterface {
 
       await repository.upsert<ITransaction>(transaction);
 
-      _isProcessingTransactionMap[branchId] = false;
+      _isProcessingTransactionMap[branchId] =
+          false; // Unlock processing for this branch
     }
     if (transaction != null) {
       yield transaction;
     }
-
+    // Listen for changes in the transaction data
     while (true) {
+      // Always use includeSubTotalCheck: true to find any existing PENDING transaction
       final updatedTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
         transactionType: transactionType,
-        includeSubTotalCheck: includeSubTotalCheck,
+        includeSubTotalCheck: true,
       );
 
       if (updatedTransaction != null) {
         yield updatedTransaction;
       }
 
+      // Add a delay to avoid busy-waiting
       await Future.delayed(Duration(seconds: 1));
     }
   }

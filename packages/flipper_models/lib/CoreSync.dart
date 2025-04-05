@@ -1795,128 +1795,6 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  bool _isProcessingTransaction = false;
-  final Lock _transactionLock = Lock();
-
-  @override
-  Future<ITransaction?> manageTransaction({
-    required String transactionType,
-    required bool isExpense,
-    required int branchId,
-    bool includeSubTotalCheck = false,
-  }) async {
-    return await _transactionLock.synchronized(() async {
-      if (_isProcessingTransaction) return null; // Ensure return
-
-      _isProcessingTransaction = true;
-      try {
-        final existTransaction = await _pendingTransaction(
-          branchId: branchId,
-          isExpense: isExpense,
-          transactionType: transactionType,
-          includeSubTotalCheck: includeSubTotalCheck,
-        );
-
-        if (existTransaction != null) return existTransaction;
-
-        final now = DateTime.now();
-        final randomRef = randomNumber().toString();
-
-        final transaction = ITransaction(
-          lastTouched: now,
-          reference: randomRef,
-          transactionNumber: randomRef,
-          status: PENDING,
-          isExpense: isExpense,
-          isIncome: !isExpense,
-          transactionType: transactionType,
-          subTotal: 0.0,
-          cashReceived: 0.0,
-          updatedAt: now,
-          customerChangeDue: 0.0,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          branchId: branchId,
-          createdAt: now,
-        );
-
-        await repository.upsert<ITransaction>(transaction);
-        return transaction;
-      } catch (e) {
-        print('Error processing transaction: $e');
-        rethrow;
-      } finally {
-        _isProcessingTransaction = false;
-      }
-    });
-  }
-
-  final Map<int, bool> _isProcessingTransactionMap = {};
-
-  @override
-  Stream<ITransaction> manageTransactionStream({
-    required String transactionType,
-    required bool isExpense,
-    required int branchId,
-    bool includeSubTotalCheck = false,
-  }) async* {
-    _isProcessingTransactionMap[branchId] ??= false;
-
-    // Check for an existing transaction
-    ITransaction? transaction = await _pendingTransaction(
-      branchId: branchId,
-      isExpense: isExpense,
-      transactionType: transactionType,
-      includeSubTotalCheck: includeSubTotalCheck,
-    );
-
-    // If no transaction exists, create and insert a new one
-    if (transaction == null && !_isProcessingTransactionMap[branchId]!) {
-      _isProcessingTransactionMap[branchId] =
-          true; // Lock processing for this branch
-
-      transaction = ITransaction(
-        lastTouched: DateTime.now(),
-        reference: randomNumber().toString(),
-        transactionNumber: randomNumber().toString(),
-        status: PENDING,
-        isExpense: isExpense,
-        isIncome: !isExpense,
-        transactionType: transactionType,
-        subTotal: 0.0,
-        cashReceived: 0.0,
-        updatedAt: DateTime.now(),
-        customerChangeDue: 0.0,
-        paymentType: ProxyService.box.paymentType() ?? "Cash",
-        branchId: branchId,
-        createdAt: DateTime.now(),
-      );
-
-      await repository.upsert<ITransaction>(transaction);
-
-      _isProcessingTransactionMap[branchId] =
-          false; // Unlock processing for this branch
-    }
-    if (transaction != null) {
-      yield transaction;
-    }
-    // Listen for changes in the transaction data
-    while (true) {
-      final updatedTransaction = await _pendingTransaction(
-        branchId: branchId,
-        isExpense: isExpense,
-        transactionType: transactionType,
-        includeSubTotalCheck: includeSubTotalCheck,
-      );
-
-      if (updatedTransaction != null) {
-        yield updatedTransaction;
-      }
-
-      // Add a delay to avoid busy-waiting
-      await Future.delayed(Duration(seconds: 1));
-    }
-  }
-
   @override
   FutureOr<void> removeCustomerFromTransaction(
       {required ITransaction transaction}) {
@@ -2626,8 +2504,6 @@ class CoreSync extends AiStrategyImpl
     }
     return totalStock;
   }
-
-  
 
   @override
   Future<List<IUnit>> units({required int branchId}) async {

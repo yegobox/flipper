@@ -84,7 +84,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     required this.branchId,
     required this.status,
     required this.transactionType,
-    required this.subTotal,
+    double? subTotal,
     required this.paymentType,
     required this.cashReceived,
     required this.customerChangeDue,
@@ -113,6 +113,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.sarNo,
     this.orgSarNo,
   })  : id = id ?? const Uuid().v4(),
+        subTotal = subTotal == 0.0 ? 1 : subTotal,
         isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
         customerId =
             (customerId != null && customerId.isEmpty) ? null : customerId,
