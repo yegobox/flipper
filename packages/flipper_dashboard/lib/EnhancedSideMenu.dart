@@ -28,7 +28,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           items: [
             SideMenuItemDataTile(
               hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withOpacity(0.1),
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
               selectedTitleStyle: const TextStyle(
                 color: Colors.blue,
                 fontWeight: FontWeight.w600,
@@ -47,7 +47,7 @@ class EnhancedSideMenu extends ConsumerWidget {
             ),
             SideMenuItemDataTile(
               hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withOpacity(0.1),
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
               selectedTitleStyle: const TextStyle(
                 color: Colors.blue,
                 fontWeight: FontWeight.w600,
@@ -56,12 +56,50 @@ class EnhancedSideMenu extends ConsumerWidget {
               title: 'Chat',
               isSelected: selectedItem == 1,
               icon: Icon(
-                FluentIcons.chat_24_regular,
+                Icons.chat_bubble,
                 color: selectedItem == 1 ? Colors.blue : Colors.grey.shade600,
                 size: 20,
               ),
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 1;
+              },
+            ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Items',
+              isSelected: selectedItem == 2,
+              icon: Icon(
+                FluentIcons.box_24_regular,
+                color: selectedItem == 2 ? Colors.blue : Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () {
+                ref.read(selectedMenuItemProvider.notifier).state = 2;
+              },
+            ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Kitchen Display',
+              isSelected: selectedItem == 3,
+              icon: Icon(
+                Icons.restaurant_menu,
+                color: selectedItem == 3 ? Colors.blue : Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () {
+                ref.read(selectedMenuItemProvider.notifier).state = 3;
               },
             ),
           ],

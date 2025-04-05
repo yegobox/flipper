@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_services/constants.dart';

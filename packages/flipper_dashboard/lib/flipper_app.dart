@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/refresh.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/app_service.dart';
@@ -132,7 +132,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _viewModelReadyLogic(CoreViewModel model) {
-   // ProxyService.dynamicLink.handleDynamicLink(context);
+    // ProxyService.dynamicLink.handleDynamicLink(context);
 
     if ((isAndroid || isIos)) {
       _startNFCForModel(model);

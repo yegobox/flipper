@@ -4,7 +4,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
@@ -62,8 +62,9 @@ class SellState extends ConsumerState<Sell> {
               Variant? variant =
                   await ProxyService.strategy.getVariant(id: model.checked);
 
-              bool saved = await model.saveTransaction(
+              bool saved = await ProxyService.strategy.saveTransactionItem(
                   partOfComposite: false,
+                  doneWithTransaction: false,
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,

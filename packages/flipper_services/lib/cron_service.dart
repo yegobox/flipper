@@ -5,7 +5,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -51,8 +51,8 @@ class CronService {
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
 
     Timer.periodic(Duration(minutes: 1), (Timer t) async {
-      ProxyService.strategy
-          .getCounters(branchId: ProxyService.box.getBranchId()!);
+      ProxyService.strategy.getCounters(
+          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
     });
     Timer.periodic(Duration(seconds: kDebugMode ? 40 : 40), (Timer t) async {
       if (ProxyService.strategy.sendPort != null) {
@@ -74,6 +74,16 @@ class CronService {
         if (!ProxyService.box.lockPatching()) {
           await VariantPatch.patchVariant(
             URI: URI!,
+            sendPort: (message) {
+              ProxyService.notification.sendLocalNotification(body: message);
+            },
+          );
+          final tinNumber = ProxyService.box.tin();
+          final bhfId = await ProxyService.box.bhfId();
+          await PatchTransactionItem.patchTransactionItem(
+            tinNumber: tinNumber,
+            bhfId: bhfId!,
+            URI: URI,
             sendPort: (message) {
               ProxyService.notification.sendLocalNotification(body: message);
             },

@@ -1,17 +1,30 @@
 import 'dart:async';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 abstract class ProductInterface {
   Future<List<Product>> products({required int branchId});
+  FutureOr<void> updateProduct(
+      {String? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? color,
+      required int branchId,
+      required int businessId,
+      String? imageUrl,
+      String? expiryDate,
+      String? categoryId});
   Stream<List<Product>> productStreams({String? prodIndex});
   Future<double> totalStock({String? productId, String? variantId});
   Stream<double> wholeStockValue({required int branchId});
-  FutureOr<String> itemCode(
-      {required String countryCode,
-      required String productType,
-      required packagingUnit,
-      required int branchId,
-      required String quantityUnit});
+  FutureOr<String> itemCode({
+    required int branchId,
+    required String countryCode, // e.g., "RW"
+    required String productType, // e.g., "2"
+    required String packagingUnit, // e.g., "NT"
+    required String quantityUnit, // e.g., "BJ"
+  });
+
   Future<Product?> getProduct({
     String? id,
     String? barCode,

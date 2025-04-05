@@ -1,7 +1,7 @@
 // import 'dart:async';
 // import 'dart:io';
 
-// import 'package:flipper_models/realm_model_export.dart';
+// import 'package:flipper_models/db_model_export.dart';
 // import 'package:flutter/material.dart';
 // import 'package:hooks_riverpod/hooks_riverpod.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/composite_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 

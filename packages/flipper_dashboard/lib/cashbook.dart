@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/BuildGaugeOrList.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'widgets/dropdown.dart';
 
 class Cashbook extends StatefulHookConsumerWidget {

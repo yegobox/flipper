@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -17,5 +17,21 @@ Future<List<Variant>> variant(
     branchId: branchId,
   );
   print('Fetched ${variants.length} variants for branchId: $branchId');
+  return variants;
+}
+
+@riverpod
+Future<List<Variant>> purchaseVariant(
+  Ref ref, {
+  required int branchId,
+  String? purchaseId,
+}) async {
+  print('Fetching variants for branchId: $branchId');
+  final variants = await ProxyService.strategy.variants(
+    purchaseId: purchaseId,
+    branchId: branchId,
+  );
+  print('Fetched!! ${variants.length} variants for branchId: $branchId');
+
   return variants;
 }

@@ -1,6 +1,6 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -90,7 +90,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         builder: (context, model, child) {
           return Expanded(
             child: StreamBuilder<List<ITransaction>>(
-              stream: ProxyService.strategy.transactionsStream(status: PARKED),
+              stream: ProxyService.strategy.transactionsStream(
+                  status: PARKED, removeAdjustmentTransactions: true),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   List<ITransaction> data = snapshot.data!;
@@ -180,16 +181,11 @@ class _TicketsListState extends ConsumerState<TicketsList>
                   showDialog(
                     context: context,
                     builder: (context) {
-                      return Dialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: NewTicket(
-                          transaction: widget.transaction!,
-                          onClose: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
+                      return NewTicket(
+                        transaction: widget.transaction!,
+                        onClose: () {
+                          Navigator.of(context).pop();
+                        },
                       );
                     },
                   );
@@ -217,7 +213,7 @@ class _TicketsListState extends ConsumerState<TicketsList>
                 fontSize: 18,
                 color: const Color(0xff006AFE),
               ),
-            ),
+            ).shouldSeeTheApp(ref, featureName: "Tickets"),
             const SizedBox(height: 16),
             _buildTicketSection(context),
           ],

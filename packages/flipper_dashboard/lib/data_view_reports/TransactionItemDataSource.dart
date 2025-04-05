@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 class TransactionItemDataSource extends DynamicDataSource<TransactionItem> {
   final int rowsPerPage;

@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -9,7 +9,8 @@ import 'tenant_operations_mixin.dart';
 import 'tenant_permissions_mixin.dart';
 import 'tenant_ui_mixin.dart';
 
-mixin TenantManagementMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
+mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
+    on ConsumerState<T> {
   final routerService = locator<RouterService>();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();

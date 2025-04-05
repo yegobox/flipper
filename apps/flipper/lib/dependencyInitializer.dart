@@ -23,7 +23,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
-
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 // Generated in previous step
 import 'amplifyconfiguration.dart';
 
@@ -71,6 +71,8 @@ Future<void> initializeDependencies() async {
     // Use the ffi on windows
     sqfliteFfiInit();
     databaseFactoryOrNull = databaseFactoryFfi;
+  } else if (kIsWeb) {
+    databaseFactoryOrNull = databaseFactoryFfiWeb;
   }
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);

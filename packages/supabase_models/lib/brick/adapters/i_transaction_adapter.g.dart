@@ -106,6 +106,8 @@ Future<ITransaction> _$ITransactionFromSupabase(
         data['current_sale_customer_phone_number'] == null
             ? null
             : data['current_sale_customer_phone_number'] as String?,
+    sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
+    orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
   );
 }
 
@@ -151,6 +153,8 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'receipt_file_name': instance.receiptFileName,
     'current_sale_customer_phone_number':
         instance.currentSaleCustomerPhoneNumber,
+    'sar_no': instance.sarNo,
+    'org_sar_no': instance.orgSarNo,
   };
 }
 
@@ -246,6 +250,8 @@ Future<ITransaction> _$ITransactionFromSqlite(
         data['current_sale_customer_phone_number'] == null
             ? null
             : data['current_sale_customer_phone_number'] as String?,
+    sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
+    orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -298,6 +304,8 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'receipt_file_name': instance.receiptFileName,
     'current_sale_customer_phone_number':
         instance.currentSaleCustomerPhoneNumber,
+    'sar_no': instance.sarNo,
+    'org_sar_no': instance.orgSarNo,
   };
 }
 
@@ -451,6 +459,14 @@ class ITransactionAdapter
     'currentSaleCustomerPhoneNumber': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'current_sale_customer_phone_number',
+    ),
+    'sarNo': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'sar_no',
+    ),
+    'orgSarNo': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'org_sar_no',
     ),
   };
   @override
@@ -672,6 +688,18 @@ class ITransactionAdapter
     'currentSaleCustomerPhoneNumber': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'current_sale_customer_phone_number',
+      iterable: false,
+      type: String,
+    ),
+    'sarNo': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'sar_no',
+      iterable: false,
+      type: String,
+    ),
+    'orgSarNo': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'org_sar_no',
       iterable: false,
       type: String,
     ),

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_ui/helpers/hex.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 class _Style {
   static const double circleUnreadIndicatorWidth = 14.0;

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'proxy.dart';

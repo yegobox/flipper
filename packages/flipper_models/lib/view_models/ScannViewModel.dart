@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -503,7 +503,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       Map<String, TextEditingController>? rates,
       required double newRetailPrice,
       Map<String, TextEditingController>? dates,
-      required String productName}) async {
+      required String productName,
+      Function(List<Variant>)? onCompleteCallback,
+      String? categoryId}) async {
     if (editmode) {
       try {
         for (var variant in scannedVariants) {
@@ -511,9 +513,12 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             variant.expirationDate =
                 DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
           }
-          ProxyService.strategy.updateVariant(
+          await ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
             color: color,
+            // because we are in edit mode if there is no category selected then user use the one on variant.
+            categoryId: categoryId ?? variant.categoryId,
+            selectedProductType: selectedProductType,
             productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,
             newRetailPrice: newRetailPrice,
@@ -523,13 +528,17 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             retailPrice: retailPrice != 0 ? retailPrice : null,
           );
         }
+
+        // Call the onCompleteCallback if provided
+        if (onCompleteCallback != null) {
+          onCompleteCallback(scannedVariants);
+        }
       } catch (e) {
         talker.error(e);
         rethrow;
       }
     }
   }
-  // OLJ
 
   void updateDateController(String id, DateTime date) {
     if (_dateControllers.containsKey(id)) {

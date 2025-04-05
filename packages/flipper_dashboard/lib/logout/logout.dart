@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/ui/common/ui_helpers.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';

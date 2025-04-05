@@ -1,7 +1,7 @@
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 class BusinessSettingButton extends StatelessWidget {
   const BusinessSettingButton({Key? key, this.image, required this.onPressed})

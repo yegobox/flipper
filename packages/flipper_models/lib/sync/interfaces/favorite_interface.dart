@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 abstract class FavoriteInterface {
   Future<int> addFavorite({required Favorite data});

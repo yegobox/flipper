@@ -1,9 +1,8 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -257,10 +256,11 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     final pendingTransaction =
         ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
-    await model.saveTransaction(
+    await ProxyService.strategy.saveTransactionItem(
       variation: variant,
       amountTotal: variant.retailPrice!,
       customItem: false,
+      doneWithTransaction: true,
       pendingTransaction: pendingTransaction.value!,
       currentStock: variant.stock!.currentStock!,
       partOfComposite: false,

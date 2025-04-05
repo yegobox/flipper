@@ -20,6 +20,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   int? branchId;
   @Supabase(defaultValue: "0.0")
   double? currentStock;
+
   @Supabase(defaultValue: "0.0")
   double? lowStock;
   @Sqlite(defaultValue: "true")

@@ -1,5 +1,5 @@
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 abstract class TenantInterface {
   Future<Tenant?> saveTenant({

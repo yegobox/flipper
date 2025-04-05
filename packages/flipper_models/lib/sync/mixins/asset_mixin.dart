@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/SessionManager.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:path/path.dart' as path;
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_services/proxy.dart';

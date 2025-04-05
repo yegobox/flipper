@@ -12,11 +12,13 @@ class PurchaseDataSource extends DataGridSource {
   final Future<void> Function({
     required List<Variant> variants,
     required String pchsSttsCd,
+    required Purchase purchase,
   }) acceptPurchases;
+  final Purchase purchase;
 
   List<DataGridRow> _dataGridRows = [];
   // Track loading state for each variant
-  final Map<String, bool> _loadingStates = {};
+  final Map<String, (bool approve, bool decline)> _loadingStates = {};
 
   PurchaseDataSource(
     this.variants,
@@ -25,13 +27,17 @@ class PurchaseDataSource extends DataGridSource {
     this.talker,
     this.updateCallback,
     this.acceptPurchases,
+    this.purchase,
   ) {
     _buildDataGridRows();
   }
 
   void _buildDataGridRows() {
     _dataGridRows = variants.map<DataGridRow>((variant) {
-      final isLoading = _loadingStates[variant.id] ?? false;
+      final loadingStates = _loadingStates[variant.id] ?? (false, false);
+      final isLoadingApprove = loadingStates.$1;
+      final isLoadingDecline = loadingStates.$2;
+
       return DataGridRow(
         cells: [
           DataGridCell<String>(columnName: 'Name', value: variant.name),
@@ -53,9 +59,12 @@ class PurchaseDataSource extends DataGridSource {
             columnName: 'Actions',
             value: _ActionButtons(
               variantId: variant.id,
-              isLoading: isLoading,
-              onApprove: () => _onStatusChange(variant.id, "02"),
-              onDecline: () => _onStatusChange(variant.id, "04"),
+              isLoadingApprove: isLoadingApprove,
+              isLoadingDecline: isLoadingDecline,
+              onApprove: () =>
+                  _onStatusChange(variant.id, "02", isApprove: true),
+              onDecline: () =>
+                  _onStatusChange(variant.id, "04", isApprove: false),
             ),
           ),
         ],
@@ -63,33 +72,42 @@ class PurchaseDataSource extends DataGridSource {
     }).toList();
   }
 
-  Future<void> _onStatusChange(String id, String status) async {
+  Future<void> _onStatusChange(String id, String status,
+      {required bool isApprove}) async {
     try {
       // Set loading state
-      _setLoading(id, true);
+      _setLoading(id,
+          isLoadingApprove: isApprove, isLoadingDecline: !isApprove);
 
       final variant = variants.firstWhere((v) => v.id == id);
       variant.pchsSttsCd = status;
 
       // Update the variant's status
-      await acceptPurchases(variants: [variant], pchsSttsCd: status);
+      await acceptPurchases(
+        variants: [variant],
+        pchsSttsCd: status,
+        purchase: purchase,
+      );
 
       // Remove the variant from the list and rebuild rows
-      variants.removeWhere((v) => v.id == id);
-      _setLoading(id, false); // Clean up loading state
+      //variants.removeWhere((v) => v.id == id);  // DO NOT REMOVE HERE, IT'S DONE ON THE UI.
+      _setLoading(id,
+          isLoadingApprove: false,
+          isLoadingDecline: false); // Clean up loading state
       _buildDataGridRows();
 
       talker.log('Status updated for variant ${variant.name} to $status');
       updateCallback();
     } catch (e) {
       // Reset loading state on error
-      _setLoading(id, false);
+      _setLoading(id, isLoadingApprove: false, isLoadingDecline: false);
       talker.error('Error updating status: $e');
     }
   }
 
-  void _setLoading(String id, bool isLoading) {
-    _loadingStates[id] = isLoading;
+  void _setLoading(String id,
+      {required bool isLoadingApprove, required bool isLoadingDecline}) {
+    _loadingStates[id] = (isLoadingApprove, isLoadingDecline);
     _buildDataGridRows();
     notifyListeners();
   }
@@ -136,13 +154,15 @@ class PurchaseDataSource extends DataGridSource {
 
 class _ActionButtons extends StatelessWidget {
   final String variantId;
-  final bool isLoading;
+  final bool isLoadingApprove;
+  final bool isLoadingDecline;
   final VoidCallback onApprove;
   final VoidCallback onDecline;
 
   const _ActionButtons({
     required this.variantId,
-    required this.isLoading,
+    required this.isLoadingApprove,
+    required this.isLoadingDecline,
     required this.onApprove,
     required this.onDecline,
   });
@@ -154,7 +174,7 @@ class _ActionButtons extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          icon: isLoading
+          icon: isLoadingApprove
               ? const SizedBox(
                   width: 20,
                   height: 20,
@@ -164,10 +184,10 @@ class _ActionButtons extends StatelessWidget {
                   ),
                 )
               : const Icon(Icons.check, color: Colors.green),
-          onPressed: isLoading ? null : onApprove,
+          onPressed: isLoadingApprove ? null : onApprove,
         ),
         IconButton(
-          icon: isLoading
+          icon: isLoadingDecline
               ? const SizedBox(
                   width: 20,
                   height: 20,
@@ -177,7 +197,7 @@ class _ActionButtons extends StatelessWidget {
                   ),
                 )
               : const Icon(Icons.close, color: Colors.red),
-          onPressed: isLoading ? null : onDecline,
+          onPressed: isLoadingDecline ? null : onDecline,
         ),
       ],
     );

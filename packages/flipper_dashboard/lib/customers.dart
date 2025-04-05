@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'add_customer.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_routing/app.locator.dart';

@@ -3,7 +3,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -507,8 +507,16 @@ class PaymentsState extends ConsumerState<Payments> {
 
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
-      await TaxController(object: widget.transaction)
-          .handleReceipt(filterType: FilterType.NS);
+      if (ProxyService.box.isProformaMode()) {
+        await TaxController(object: widget.transaction)
+            .handleReceipt(filterType: FilterType.PS);
+      } else if (ProxyService.box.isTrainingMode()) {
+        await TaxController(object: widget.transaction)
+            .handleReceipt(filterType: FilterType.NS);
+      } else {
+        await TaxController(object: widget.transaction)
+            .handleReceipt(filterType: FilterType.NS);
+      }
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);

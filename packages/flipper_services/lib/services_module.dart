@@ -77,12 +77,12 @@ abstract class ServicesModule {
     if (kIsWeb) {
       return await Capella().configureCapella(
         box: box,
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+        useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     }
     return await CoreSync().configureLocal(
         useInMemory:
-            bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false),
+            const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false),
         box: box);
   }
 
@@ -94,7 +94,7 @@ abstract class ServicesModule {
   ) async {
     return await Capella().configureCapella(
       box: box,
-      useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+      useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
     );
   }
 
@@ -124,10 +124,13 @@ abstract class ServicesModule {
     if (!kIsWeb) {
       return await CoreSync().configureLocal(
         box: box,
-        useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
+        useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     }
-    throw Exception("This is not supported on web");
+    return await Capella().configureLocal(
+      box: box,
+      useInMemory: true,
+    );
   }
 
   @singleton

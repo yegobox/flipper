@@ -26,7 +26,7 @@ Future<void> main() async {
   }
   await SentryFlutter.init(
     (options) => options
-      ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey
+      ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey
       ..release = 'flipper@1.170.4252223232243+1723059742'
       ..environment = 'production'
       ..experimental.replay.sessionSampleRate = 1.0
@@ -61,6 +61,30 @@ Future<void> main() async {
                       borderRadius: BorderRadius.circular(4)),
                 ),
               ),
+              // darkTheme: ThemeData(
+              //   textTheme: GoogleFonts.poppinsTextTheme(),
+              //   brightness: Brightness.light, // Use dark brightness
+              //   primaryColor: Colors.blue,
+              //   colorScheme: ColorScheme.fromSeed(
+              //     seedColor: Colors.blue, // Set a dark theme color
+              //     brightness:
+              //         Brightness.light, // Important: Set brightness to dark
+              //     primary: Colors.blue,
+              //     secondary: Colors.grey[800]!, // Example dark secondary color
+              //   ).copyWith(
+              //       surface: Colors.grey[900]!), // Example dark surface color
+              //   appBarTheme: const AppBarTheme(
+              //     backgroundColor: Colors.black,
+              //     foregroundColor: Colors.white,
+              //     elevation: 0,
+              //   ),
+              //   cardTheme: CardTheme(
+              //     elevation: 2,
+              //     color: Colors.grey[800], // Example dark card color
+              //     shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(4)),
+              //   ),
+              // ),
               localizationsDelegates: [
                 FirebaseUILocalizations.withDefaultOverrides(
                   const LabelOverrides(),

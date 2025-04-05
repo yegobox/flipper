@@ -4,7 +4,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 

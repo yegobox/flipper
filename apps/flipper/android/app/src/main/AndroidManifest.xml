@@ -22,7 +22,7 @@
         android:label="flipper"
         android:fullBackupContent="false"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <!-- https://github.com/Levi-Lesches/flutter_local_notifications/blob/readme-refactor/flutter_local_notifications/docs/android-setup.md -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">

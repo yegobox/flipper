@@ -2,14 +2,15 @@
 
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import '../providers/incoming_orders_provider.dart';
 
-class ItemsList extends ConsumerWidget with StockRequestApprovalLogic, SnackBarMixin {
+class ItemsList extends ConsumerWidget
+    with StockRequestApprovalLogic, SnackBarMixin {
   final InventoryRequest request;
 
   const ItemsList({
@@ -47,13 +48,15 @@ class ItemsList extends ConsumerWidget with StockRequestApprovalLogic, SnackBarM
     );
   }
 
-  List<Widget> _buildItemList(List<TransactionItem> items, BuildContext context, WidgetRef ref) {
+  List<Widget> _buildItemList(
+      List<TransactionItem> items, BuildContext context, WidgetRef ref) {
     items.sort((a, b) => (a.name).compareTo(b.name));
 
     return items.map((item) => _buildItemCard(item, context, ref)).toList();
   }
 
-  Widget _buildItemCard(TransactionItem item, BuildContext context, WidgetRef ref) {
+  Widget _buildItemCard(
+      TransactionItem item, BuildContext context, WidgetRef ref) {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
@@ -95,7 +98,8 @@ class ItemsList extends ConsumerWidget with StockRequestApprovalLogic, SnackBarM
                       ),
                     ],
                   ),
-                  if ((item.quantityRequested ?? 0) > (item.quantityApproved ?? 0))
+                  if ((item.quantityRequested ?? 0) >
+                      (item.quantityApproved ?? 0))
                     Padding(
                       padding: EdgeInsets.only(top: 2),
                       child: Text(
@@ -134,7 +138,8 @@ class ItemsList extends ConsumerWidget with StockRequestApprovalLogic, SnackBarM
     return Colors.green[700]!;
   }
 
-  void _handleSingleItemApproval(BuildContext context, WidgetRef ref, TransactionItem item) {
+  void _handleSingleItemApproval(
+      BuildContext context, WidgetRef ref, TransactionItem item) {
     try {
       approveSingleItem(request: request, item: item, context: context);
       final stringValue = ref.watch(stringProvider);

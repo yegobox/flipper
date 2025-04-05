@@ -1,5 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -35,10 +35,7 @@ class TenantOperationsMixin {
         newTenant = await ProxyService.strategy.getTenant(userId: userId!);
       }
 
-      updateTenantStatic(
-          tenant: newTenant,
-          name: name,
-          type: userType);
+      updateTenantStatic(tenant: newTenant, name: name, type: userType);
 
       await model.loadTenants();
     } catch (e, s) {
@@ -47,7 +44,8 @@ class TenantOperationsMixin {
     }
   }
 
-  static void updateTenantStatic({Tenant? tenant, String? name, required String type}) {
+  static void updateTenantStatic(
+      {Tenant? tenant, String? name, required String type}) {
     try {
       if (name != null && !name.isEmpty) {
         ProxyService.strategy.updateTenant(

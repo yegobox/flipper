@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
@@ -382,10 +382,14 @@ class TaxController<OBJ> {
               transactionId: newTransactionId.id, // Update transactionId
               variantId: transaction.id, // Update variantId
             );
+            // get variant
+            Variant? variant =
+                await ProxyService.strategy.getVariant(id: item.variantId);
 
             await ProxyService.strategy.addTransactionItem(
               transaction: newTransactionId,
               item: copy,
+              variation: variant,
               partOfComposite: item.partOfComposite ?? false,
               lastTouched: item.lastTouched ?? DateTime.now(),
               discount: item.discount,

@@ -1,5 +1,5 @@
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -66,7 +66,8 @@ mixin CapellaAuthMixin implements AuthInterface {
   }
 
   @override
-  Future<List<Branch>> branches({required int businessId, bool? includeSelf = false}) async {
+  Future<List<Branch>> branches(
+      {required int businessId, bool? includeSelf = false}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 }

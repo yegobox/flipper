@@ -95,14 +95,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (!widget.isUser &&
-                                widget.message.text
-                                    .contains('**[SUMMARY]**')) ...[
+                            // Conditionally render DataVisualization and Text widgets
+                            if (_shouldShowDataVisualization(
+                                widget.message.text))
                               DataVisualization(
                                 data: widget.message.text,
                                 currency: ProxyService.box.defaultCurrency(),
-                              ),
-                            ] else ...[
+                              )
+                            else
                               Text(
                                 widget.message.text,
                                 style: TextStyle(
@@ -112,7 +112,6 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   fontSize: 16,
                                 ),
                               ),
-                            ],
                           ],
                         ),
                       ),
@@ -181,6 +180,15 @@ class _MessageBubbleState extends State<MessageBubble> {
         ],
       ),
     );
+  }
+
+  // Helper function to determine whether to show DataVisualization or Text
+  bool _shouldShowDataVisualization(String messageText) {
+    return messageText.contains('**[SUMMARY]**') ||
+        messageText.contains('Tax Summary') ||
+        messageText.contains('Tax Payable') ||
+        (messageText.contains('Tax Breakdown') &&
+            messageText.contains('Tax Rate'));
   }
 
   Widget _buildAvatar(IconData icon, ThemeData theme) {

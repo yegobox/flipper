@@ -1,20 +1,130 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 // import 'package:flipper_login/apple_logo_painter.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 // import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'apple_logo_painter.dart';
 
+// Constants for consistent styling
+class AppColors {
+  static const primary = Color(0xFF006AFE);
+  static const primaryLight = Color(0xFFE6F0FF);
+  static const error = Color(0xFFE53935);
+  static const textDark = Color(0xFF333333);
+  static const textLight = Color(0xFF757575);
+}
+
+class AppStyles {
+  static final heading = GoogleFonts.poppins(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textDark,
+  );
+
+  static final buttonText = GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: Colors.white,
+  );
+
+  static final secondaryButtonText = GoogleFonts.poppins(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    color: AppColors.primary,
+  );
+}
+
+// Button styles
+class AppButtons {
+  static final primaryButton = ButtonStyle(
+    backgroundColor: WidgetStateProperty.all(AppColors.primary),
+    foregroundColor: WidgetStateProperty.all(Colors.white),
+    padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 16)),
+    shape: WidgetStateProperty.all(RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+    )),
+    elevation: WidgetStateProperty.all(0),
+  );
+
+  static final secondaryButton = ButtonStyle(
+    backgroundColor: WidgetStateProperty.all(Colors.white),
+    foregroundColor: WidgetStateProperty.all(AppColors.primary),
+    padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 16)),
+    shape: WidgetStateProperty.all(RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+      side: BorderSide(color: AppColors.primary),
+    )),
+    elevation: WidgetStateProperty.all(0),
+  );
+
+  static final outlinedButton = ButtonStyle(
+    backgroundColor: WidgetStateProperty.all(AppColors.primaryLight),
+    foregroundColor: WidgetStateProperty.all(AppColors.primary),
+    padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 16)),
+    shape: WidgetStateProperty.all(RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+    )),
+    elevation: WidgetStateProperty.all(0),
+  );
+}
+
+// Enhanced AuthState management
+enum AuthStatus { initial, loading, success, error }
+
+class AuthState {
+  final AuthStatus status;
+  final String? errorMessage;
+
+  AuthState({this.status = AuthStatus.initial, this.errorMessage});
+
+  AuthState copyWith({AuthStatus? status, String? errorMessage}) {
+    return AuthState(
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
+
+class AuthController {
+  final _authStateController = StreamController<AuthState>.broadcast();
+
+  Stream<AuthState> get authState => _authStateController.stream;
+
+  void updateState(AuthState state) {
+    _authStateController.add(state);
+  }
+
+  void notifySignedIn() {
+    updateState(AuthState(status: AuthStatus.success));
+  }
+
+  void notifySignedOut() {
+    updateState(AuthState(status: AuthStatus.initial));
+  }
+
+  void notifyError(String message) {
+    updateState(AuthState(status: AuthStatus.error, errorMessage: message));
+  }
+
+  void notifyLoading() {
+    updateState(AuthState(status: AuthStatus.loading));
+  }
+
+  void dispose() {
+    _authStateController.close();
+  }
+}
+
+// Main Authentication Screen
 class Auth extends StatefulWidget {
   @override
   State<Auth> createState() => _AuthState();
@@ -22,276 +132,291 @@ class Auth extends StatefulWidget {
 
 class _AuthState extends State<Auth> {
   final _routerService = locator<RouterService>();
-
   final _authController = AuthController();
-
-  bool isAddingUser = false;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
+  void initState() {
+    super.initState();
+    _authController.authState.listen((state) {
+      setState(() {
+        _isLoading = state.status == AuthStatus.loading;
+        _errorMessage = state.errorMessage;
+      });
+
+      if (state.status == AuthStatus.success) {
+        _routerService.clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handlePhoneNumberLogin() async {
+    _authController.notifyLoading();
+    try {
+      await _routerService.clearStackAndShow(CountryPickerRoute());
+    } catch (e) {
+      _authController.notifyError("Failed to navigate to phone login");
+    }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    _authController.notifyLoading();
+    try {
+      final provider = GoogleAuthProvider();
+      final userCredential =
+          await FirebaseAuth.instance.signInWithProvider(provider);
+
+      if (userCredential.user != null) {
+        _authController.notifySignedIn();
+      } else {
+        _authController.notifyError("Sign in failed");
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'popup-closed-by-user' ||
+          e.code == 'canceled' ||
+          e.code == 'web-context-canceled') {
+        _authController.notifySignedOut();
+      } else {
+        Sentry.captureException(e, stackTrace: StackTrace.current);
+        _authController.notifyError(e.message ?? "Authentication failed");
+      }
+    } catch (e) {
+      Sentry.captureException(e, stackTrace: StackTrace.current);
+      _authController.notifyError("An unexpected error occurred");
+    }
+  }
+
+  Future<void> _handleMicrosoftLogin() async {
+    _authController.notifyLoading();
+    try {
+      final provider = MicrosoftAuthProvider();
+      provider.addScope('mail.read');
+
+      final userCredential =
+          await FirebaseAuth.instance.signInWithProvider(provider);
+      if (userCredential.user != null) {
+        _authController.notifySignedIn();
+      } else {
+        _authController.notifyError("Sign in failed");
+      }
+    } catch (e) {
+      Sentry.captureException(e, stackTrace: StackTrace.current);
+      _authController.notifyError("Microsoft login failed");
+    }
+  }
+
+  Future<void> _handleAppleLogin() async {
+    _authController.notifyLoading();
+    try {
+      final provider = AppleAuthProvider();
+      final userCredential =
+          await FirebaseAuth.instance.signInWithProvider(provider);
+
+      if (userCredential.user != null) {
+        _authController.notifySignedIn();
+      } else {
+        _authController.notifyError("Sign in failed");
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'popup-closed-by-user' ||
+          e.code == 'canceled' ||
+          e.code == 'web-context-canceled') {
+        _authController.notifySignedOut();
+      } else {
+        Sentry.captureException(e, stackTrace: StackTrace.current);
+        _authController.notifyError(e.message ?? "Authentication failed");
+      }
+    } catch (e) {
+      talker.warning(e);
+      Sentry.captureException(e, stackTrace: StackTrace.current);
+      _authController.notifyError("Apple login failed");
+    }
+  }
+
+  void _handlePinLogin() {
+    _routerService.navigateTo(PinLoginRoute());
+  }
+
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      body: Center(
+      body: SafeArea(
         child: Stack(
-          alignment: Alignment.center,
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/flipper_logo.png',
-                  package: 'flipper_login',
-                ),
-                SizedBox(height: screenHeight * 0.1),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    "How would you like to proceed?",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                SizedBox(height: screenHeight * 0.1),
-                SizedBox(
-                  width: 368,
-                  height: 68,
-                  child: OutlinedButton(
-                    key: Key("phoneNumberLogin"),
-                    style: primaryButtonStyle.copyWith(
-                      side: WidgetStateProperty.resolveWith((states) =>
-                          const BorderSide(color: Color(0xff006AFE))),
-                      shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-                        (states) => RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4),
-                        ),
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 48),
+
+                    // Logo
+                    Center(
+                      child: Image.asset(
+                        'assets/flipper_logo.png',
+                        package: 'flipper_login',
+                        height: 80,
                       ),
                     ),
-                    onPressed: () async {
-                      setState(() {
-                        isAddingUser = true;
-                      });
-                      _routerService.clearStackAndShow(CountryPickerRoute());
-                    },
-                    child: Text(
-                      "Phone Number",
+
+                    SizedBox(height: 48),
+
+                    // Heading
+                    Text(
+                      "Welcome to Flipper",
+                      style: AppStyles.heading,
+                      textAlign: TextAlign.center,
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Subheading
+                    Text(
+                      "How would you like to sign in?",
                       style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 20,
-                        color: Colors.white,
+                        fontSize: 16,
+                        color: AppColors.textLight,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ),
-                // SizedBox(
-                //   width: 368,
-                //   height: 68,
-                //   child: OAuthProviderButton(
-                //     variant: OAuthButtonVariant.icon,
-                //     provider:
-                //         GoogleProvider(clientId: _googleClientId, scopes: [
-                //       ga.DriveApi.driveFileScope,
-                //       ga.DriveApi.driveMetadataScope,
-                //       ga.DriveApi.driveAppdataScope,
-                //       ga.DriveApi.driveScope
-                //     ]),
-                //   ),
-                // ),
-                SizedBox(height: screenHeight * 0.02),
-                AuthButton(
-                  key: Key("googleLogin"),
-                  onPressed: () async {
-                    try {
-                      setState(() {
-                        isAddingUser = true;
-                      });
-                      final provider = GoogleAuthProvider();
-                      final user = await FirebaseAuth.instance
-                          .signInWithProvider(provider);
-                      if (user.user != null) {
-                        _authController.notifySignedIn();
-                        _routerService.clearStackAndShow(
-                            StartUpViewRoute(invokeLogin: true));
-                      }
-                    } on FirebaseAuthException catch (e) {
-                      if (e.code == 'popup-closed-by-user' ||
-                          e.code == 'canceled' ||
-                          e.code == 'web-context-canceled') {
-                        // User canceled the operation, return null or handle accordingly
-                        return null;
-                      } else {
-                        // Handle other FirebaseAuthExceptions
-                        Sentry.captureException(e,
-                            stackTrace: StackTrace.current);
-                        setState(() {
-                          isAddingUser = false;
-                        });
-                        showSimpleNotification(
-                          Text("Error happened"),
-                          background: Colors.red,
-                          position: NotificationPosition.bottom,
-                        );
-                      }
-                    } catch (e) {
-                      Sentry.captureException(e,
-                          stackTrace: StackTrace.current);
-                      setState(() {
-                        isAddingUser = false;
-                      });
-                      showSimpleNotification(
-                        Text("Error happened"),
-                        background: Colors.red,
-                        position: NotificationPosition.bottom,
-                      );
-                    }
-                  },
-                  iconPath: 'assets/google.svg',
-                ),
-                // SizedBox(height: screenHeight * 0.02),
-                // AuthButton(
-                //     key: Key("applelogin"),
-                //     onPressed: () async {
-                //       try {
-                //         setState(() {
-                //           isAddingUser = true;
-                //         });
-                //         final provider = AppleAuthProvider();
-                //         final user = await FirebaseAuth.instance
-                //             .signInWithProvider(provider);
-                //         if (user.user != null) {
-                //           _authController.notifySignedIn();
-                //           _routerService.clearStackAndShow(
-                //               StartUpViewRoute(invokeLogin: true));
-                //         }
-                //       } on FirebaseAuthException catch (e) {
-                //         if (e.code == 'popup-closed-by-user' ||
-                //             e.code == 'canceled' ||
-                //             e.code == 'web-context-canceled') {
-                //           // User canceled the operation, return null or handle accordingly
-                //           return null;
-                //         } else {
-                //           // Handle other FirebaseAuthExceptions
-                //           Sentry.captureException(e,
-                //               stackTrace: StackTrace.current);
-                //           setState(() {
-                //             isAddingUser = false;
-                //           });
-                //           talker.warning(e);
-                //           showSimpleNotification(
-                //             Text(e.message ?? "Error happened"),
-                //             background: Colors.red,
-                //             position: NotificationPosition.bottom,
-                //           );
-                //         }
-                //       } catch (e) {
-                //         Sentry.captureException(e,
-                //             stackTrace: StackTrace.current);
-                //         setState(() {
-                //           isAddingUser = false;
-                //         });
-                //         showSimpleNotification(
-                //           Text("Error happened"),
-                //           background: Colors.red,
-                //           position: NotificationPosition.bottom,
-                //         );
-                //       }
-                //     },
-                //     customIcon: SizedBox(
-                //       width: 24,
-                //       height: 24,
-                //       child: CustomPaint(
-                //         painter: AppleLogoPainter(color: Colors.black),
-                //       ),
-                //     )),
 
-                SizedBox(height: screenHeight * 0.02),
-                AuthButton(
-                  key: Key("microsoftLogin"),
-                  onPressed: () async {
-                    try {
-                      log('microsoft');
-                      setState(() {
-                        isAddingUser = true;
-                      });
-                      final provider = MicrosoftAuthProvider();
-                      provider.addScope('mail.read');
-                      log(FirebaseAuth.instance.currentUser?.uid ?? "None",
-                          name: "microsoft");
+                    SizedBox(height: 40),
 
-                      final user = await FirebaseAuth.instance
-                          .signInWithProvider(provider);
-                      if (user.user != null) {
-                        _authController.notifySignedIn();
-                        _routerService.clearStackAndShow(
-                            StartUpViewRoute(invokeLogin: true));
-                      }
-                    } catch (e) {
-                      // ProxyService.strategy.logOut();
-                      Sentry.captureException(e,
-                          stackTrace: StackTrace.current);
-                      setState(() {
-                        isAddingUser = false;
-                      });
-                      showSimpleNotification(
-                        Text("Error happened"),
-                        background: Colors.red,
-                        position: NotificationPosition.bottom,
-                      );
-                    }
-                  },
-                  iconPath: 'assets/microsoft.svg',
-                ),
-                SizedBox(height: 10),
-                SizedBox(
-                  width: 368,
-                  height: 68,
-                  child: OutlinedButton(
-                    key: Key('pinLogin'),
-                    child: Text(
-                      'PIN Login',
-                      style: TextStyle(color: Color(0xff006AFE)),
-                    ),
-                    style: ButtonStyle(
-                      shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
-                          (states) => RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4))),
-                      side: WidgetStateProperty.resolveWith<BorderSide>(
-                        (states) => BorderSide(
-                          color: const Color(0xff006AFE).withOpacity(0.1),
+                    // Error message if any
+                    if (_errorMessage != null)
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: AppColors.error),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.close, color: AppColors.error),
+                              onPressed: () =>
+                                  setState(() => _errorMessage = null),
+                            ),
+                          ],
                         ),
                       ),
-                      backgroundColor: WidgetStateProperty.all<Color>(
-                          const Color(0xff006AFE).withOpacity(0.1)),
-                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
-                        (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.hovered)) {
-                            return Color(0xff006AFE).withOpacity(0.5);
-                          }
-                          if (states.contains(WidgetState.focused) ||
-                              states.contains(WidgetState.pressed)) {
-                            return Color(0xff006AFE).withOpacity(0.5);
-                          }
-                          return Color(0xff006AFE).withOpacity(0.5);
-                        },
+
+                    if (_errorMessage != null) SizedBox(height: 24),
+
+                    // Phone Number Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        key: Key("phoneNumberLogin"),
+                        style: AppButtons.primaryButton,
+                        onPressed: _isLoading ? null : _handlePhoneNumberLogin,
+                        icon: Icon(Icons.phone, size: 20),
+                        label: Text("Continue with Phone",
+                            style: AppStyles.buttonText),
                       ),
                     ),
-                    onPressed: () {
-                      _routerService.navigateTo(PinLoginRoute());
-                    },
-                  ),
-                )
-              ],
+
+                    SizedBox(height: 16),
+
+                    // Google Button
+                    SocialLoginButton(
+                      key: Key("googleLogin"),
+                      onPressed: _isLoading ? null : _handleGoogleLogin,
+                      iconPath: 'assets/google.svg',
+                      text: 'Continue with Google',
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Microsoft Button
+                    SocialLoginButton(
+                      key: Key("microsoftLogin"),
+                      onPressed: _isLoading ? null : _handleMicrosoftLogin,
+                      iconPath: 'assets/microsoft.svg',
+                      text: 'Continue with Microsoft',
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Apple Button
+                    SocialLoginButton(
+                      key: Key("appleLogin"),
+                      onPressed: _isLoading ? null : _handleAppleLogin,
+                      customIcon: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CustomPaint(
+                          painter: AppleLogoPainter(color: Colors.black),
+                        ),
+                      ),
+                      text: 'Continue with Apple',
+                    ),
+
+                    SizedBox(height: 24),
+
+                    // Divider
+                    Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            "OR",
+                            style: TextStyle(color: AppColors.textLight),
+                          ),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+
+                    SizedBox(height: 24),
+
+                    // PIN Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        key: Key('pinLogin'),
+                        style: AppButtons.outlinedButton,
+                        onPressed: _isLoading ? null : _handlePinLogin,
+                        icon: Icon(Icons.pin_outlined, size: 20),
+                        label: Text('PIN Login',
+                            style: AppStyles.secondaryButtonText),
+                      ),
+                    ),
+
+                    SizedBox(height: 48),
+                  ],
+                ),
+              ),
             ),
-            if (isAddingUser)
-              LoadingAnimationWidget.fallingDot(
-                color: Colors.blueGrey,
-                size: 100,
+
+            // Loading overlay
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: Center(
+                  child: LoadingAnimationWidget.fallingDot(
+                    color: Colors.white,
+                    size: 60,
+                  ),
+                ),
               ),
           ],
         ),
@@ -300,77 +425,59 @@ class _AuthState extends State<Auth> {
   }
 }
 
-class AuthButton extends StatelessWidget {
-  const AuthButton({
+// Social Login Button Component
+class SocialLoginButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final String? iconPath;
+  final Widget? customIcon;
+  final String text;
+
+  const SocialLoginButton({
     Key? key,
     required this.onPressed,
     this.iconPath,
     this.customIcon,
+    required this.text,
   }) : super(key: key);
-
-  final VoidCallback onPressed;
-  final String? iconPath;
-  final Widget? customIcon;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 368,
-      height: 68,
-      child: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: Offset(0, 3),
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: AppButtons.secondaryButton,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: Center(
+                child: customIcon ??
+                    (iconPath != null
+                        ? SvgPicture.asset(
+                            iconPath!,
+                            package: 'flipper_login',
+                            width: 20,
+                            height: 20,
+                            fit: BoxFit.contain,
+                          )
+                        : SizedBox()),
+              ),
+            ),
+            SizedBox(width: 12),
+            Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textDark,
+              ),
             ),
           ],
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: ElevatedButton(
-          onPressed: onPressed,
-          style: ElevatedButton.styleFrom(
-            // primary: Colors.white,
-            // onPrimary: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(4),
-              side: BorderSide(color: Colors.grey.withOpacity(0.1)),
-            ),
-          ),
-          child: customIcon != null
-              ? customIcon!
-              : (iconPath != null
-                  ? SvgPicture.asset(
-                      iconPath!,
-                      package: 'flipper_login',
-                      width: 24,
-                      height: 24,
-                    )
-                  : SizedBox()),
         ),
       ),
     );
   }
 }
-
-class AuthController {
-  final _authStateChanged = StreamController<AuthState>();
-
-  Stream<AuthState> get authStateChanged => _authStateChanged.stream;
-
-  void notifySignedIn() {
-    // _authStateChanged.add(SignedIn());
-  }
-
-  void notifySignedOut() {
-    // _authStateChanged.add(SignedOut());
-  }
-
-  void dispose() {
-    _authStateChanged.close();
-  }
-}
-
-abstract class AuthState {}

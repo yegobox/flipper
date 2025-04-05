@@ -8,7 +8,7 @@ import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.da
 
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';

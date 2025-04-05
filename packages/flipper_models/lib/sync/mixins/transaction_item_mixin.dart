@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 mixin TransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
@@ -13,6 +16,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     required bool partOfComposite,
     required DateTime lastTouched,
     required double discount,
+    bool? doneWithTransaction,
     double? compositePrice,
     required double quantity,
     required double currentStock,
@@ -36,7 +40,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         // Use the provided `TransactionItem`
         transactionItem = item;
         transactionItem.qty = quantity; // Update quantity
-
+        transactionItem.doneWithTransaction =
+            doneWithTransaction ?? transactionItem.doneWithTransaction;
         // Check if retailPrice is not null before performing calculations
         if (variation?.retailPrice != null) {
           transactionItem.taxblAmt =
@@ -102,7 +107,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
           isRefunded: false, // Assuming default value
-          doneWithTransaction: false,
+          doneWithTransaction: doneWithTransaction ?? false,
           active: true,
           dcRt: variation.dcRt,
           dcAmt: dcAmt,
@@ -138,6 +143,139 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     } catch (e, s) {
       talker.error(s);
       rethrow;
+    }
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemsStreams({
+    String? transactionId,
+    int? branchId,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? doneWithTransaction,
+    bool? active,
+    String? requestId,
+    bool fetchRemote = false,
+  }) {
+    // Create a list of conditions for better readability and debugging
+    final List<Where> conditions = [
+      // Always include branchId since it's required
+      if (branchId != null) Where('branchId').isExactly(branchId),
+
+      // Optional conditions
+      if (transactionId != null)
+        Where('transactionId').isExactly(transactionId),
+      if (requestId != null) Where('inventoryRequestId').isExactly(requestId),
+
+      // Date range handling
+      if (startDate != null && endDate != null)
+        if (startDate == endDate)
+          Where('createdAt').isBetween(
+            startDate.toIso8601String(),
+            startDate.add(const Duration(days: 1)).toIso8601String(),
+          )
+        else
+          Where('createdAt').isBetween(
+            startDate.toIso8601String(),
+            endDate.toIso8601String(),
+          ),
+
+      if (doneWithTransaction != null)
+        Where('doneWithTransaction').isExactly(doneWithTransaction),
+      if (active != null) Where('active').isExactly(active),
+    ];
+
+    // Add logging to help debug the query
+    // print('TransactionItems query conditions: $conditions');
+
+    final queryString = Query(where: conditions);
+
+    // Return the stream directly from repository with mapping
+    return repository.subscribe<TransactionItem>(
+      query: queryString,
+      policy: fetchRemote == true
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
+    );
+  }
+
+  @override
+  FutureOr<List<TransactionItem>> transactionItems({
+    String? transactionId,
+    bool? doneWithTransaction,
+    int? branchId,
+    String? variantId,
+    String? id,
+    bool? active,
+    bool fetchRemote = false,
+    String? requestId,
+  }) async {
+    final items = await repository.get<TransactionItem>(
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [
+          if (transactionId != null)
+            Where('transactionId').isExactly(transactionId),
+          if (branchId != null) Where('branchId').isExactly(branchId),
+          if (id != null) Where('id').isExactly(id),
+          if (doneWithTransaction != null)
+            Where('doneWithTransaction').isExactly(doneWithTransaction),
+          if (active != null) Where('active').isExactly(active),
+          if (variantId != null) Where('variantId').isExactly(active),
+          if (requestId != null)
+            Where('inventoryRequestId').isExactly(requestId),
+        ]));
+    return items;
+  }
+
+  @override
+  FutureOr<void> updateTransactionItem(
+      {double? qty,
+      required String transactionItemId,
+      double? discount,
+      bool? active,
+      double? taxAmt,
+      int? quantityApproved,
+      int? quantityRequested,
+      bool? ebmSynced,
+      bool? isRefunded,
+      bool? incrementQty,
+      double? price,
+      double? prc,
+      double? splyAmt,
+      bool? doneWithTransaction,
+      int? quantityShipped,
+      double? taxblAmt,
+      double? totAmt,
+      double? dcRt,
+      double? dcAmt}) async {
+    TransactionItem? item = (await repository.get<TransactionItem>(
+            query: Query(where: [
+      Where('id', value: transactionItemId, compare: Compare.exact),
+    ])))
+        .firstOrNull;
+    if (item != null) {
+      item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
+      item.discount = discount ?? item.discount;
+      item.active = active ?? item.active;
+      item.price = price ?? item.price;
+      item.prc = prc ?? item.prc;
+      item.taxAmt = taxAmt ?? item.taxAmt;
+      item.isRefunded = isRefunded ?? item.isRefunded;
+      item.ebmSynced = ebmSynced ?? item.ebmSynced;
+      item.quantityApproved =
+          (item.quantityApproved ?? 0) + (quantityApproved ?? 0);
+      item.quantityRequested = incrementQty == true
+          ? (item.qty + 1).toInt()
+          : qty?.toInt() ?? item.qty.toInt();
+      item.splyAmt = splyAmt ?? item.splyAmt;
+      item.quantityShipped = quantityShipped ?? item.quantityShipped;
+      item.taxblAmt = taxblAmt ?? item.taxblAmt;
+      item.totAmt = totAmt ?? item.totAmt;
+      item.doneWithTransaction =
+          doneWithTransaction ?? item.doneWithTransaction;
+      repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
     }
   }
 }

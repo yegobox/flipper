@@ -7,7 +7,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/business.dart';
-import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
@@ -21,9 +20,11 @@ import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
+import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
+import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
@@ -68,14 +69,15 @@ class CoreSync extends AiStrategyImpl
     with
         Booting,
         CoreMiscellaneous,
-        TransactionMixin,
+        TransactionMixinOld,
         BranchMixin,
         PurchaseMixin,
+        TransactionMixin,
         BusinessMixin,
         TransactionItemMixin,
+        ProductMixin,
         VariantMixin,
         CategoryMixin
-
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -186,20 +188,6 @@ class CoreSync extends AiStrategyImpl
 
   @override
   SendPort? sendPort;
-
-  @override
-  Future<Business?> activeBusiness({int? userId}) async {
-    return (await repository.get<Business>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: brick.Query(
-        where: [
-          if (userId != null) brick.Where('userId').isExactly(userId),
-          brick.Where('isDefault').isExactly(true),
-        ],
-      ),
-    ))
-        .firstOrNull;
-  }
 
   @override
   Future<Customer?> addCustomer(
@@ -362,25 +350,6 @@ class CoreSync extends AiStrategyImpl
       talker.error(s);
       rethrow;
     }
-  }
-
-  @override
-  Future<List<ext.BusinessType>> businessTypes() async {
-    final responseJson = [
-      {"id": "1", "typeName": "Flipper Retailer"}
-    ];
-    await Future.delayed(Duration(seconds: 5));
-    final response = http.Response(jsonEncode(responseJson), 200);
-    if (response.statusCode == 200) {
-      return BusinessType.fromJsonList(jsonEncode(responseJson));
-    }
-    return BusinessType.fromJsonList(jsonEncode(responseJson));
-  }
-
-  @override
-  Future<List<Business>> businesses({required int userId}) async {
-    return await repository.get<Business>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
   }
 
   @override
@@ -702,14 +671,6 @@ class CoreSync extends AiStrategyImpl
             query: brick.Query(where: [
       brick.Where('isDefault').isExactly(true),
     ])))
-        .firstOrNull;
-  }
-
-  @override
-  Future<Business?> defaultBusiness() async {
-    return (await repository.get<Business>(
-            query:
-                brick.Query(where: [brick.Where('isDefault').isExactly(true)])))
         .firstOrNull;
   }
 
@@ -1070,46 +1031,6 @@ class CoreSync extends AiStrategyImpl
     final result = await repository.get<models.Assets>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
-  }
-
-  @override
-  FutureOr<Business?> getBusiness({int? businessId}) async {
-    final repository = Repository();
-    final query = brick.Query(
-        where: businessId != null
-            ? [brick.Where('serverId').isExactly(businessId)]
-            : [brick.Where('isDefault').isExactly(true)]);
-    final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
-    return result.firstOrNull;
-  }
-
-  @override
-  Future<Business?> getBusinessFromOnlineGivenId(
-      {required int id, required HttpClientInterface flipperHttpClient}) async {
-    final repository = Repository();
-    final query = brick.Query(where: [brick.Where('serverId').isExactly(id)]);
-    final result = await repository.get<models.Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    Business? business = result.firstOrNull;
-
-    if (business != null) return business;
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
-    if (response.statusCode == 200) {
-      int id = randomNumber();
-      IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
-      Business business = Business(
-          serverId: iBusiness.id,
-          name: iBusiness.name,
-          userId: int.parse(iBusiness.userId),
-          createdAt: DateTime.now());
-
-      business.serverId = id;
-      await repository.upsert<models.Business>(business);
-      return business;
-    }
-    return null;
   }
 
   @override
@@ -2755,57 +2676,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<ITransaction>> transactionsStream({
-    String? status,
-    String? transactionType,
-    int? branchId,
-    bool isCashOut = false,
-    String? id,
-    FilterType? filterType,
-    bool includePending = false,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    final List<brick.Where> conditions = [
-      brick.Where('status').isExactly(status ?? COMPLETE),
-      brick.Where('subTotal').isGreaterThan(0),
-      if (id != null) brick.Where('id').isExactly(id),
-      if (branchId != null) brick.Where('branchId').isExactly(branchId),
-      if (isCashOut) brick.Where('isExpense').isExactly(true),
-    ];
-    // talker.warning(conditions.toString());
-    if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        // Ensure we include the entire day
-        DateTime endOfDay = startDate.add(Duration(days: 1));
-
-        conditions.add(
-          brick.Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endOfDay.toUtc().toIso8601String(),
-          ),
-        );
-      } else {
-        conditions.add(
-          brick.Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endDate.toUtc().toIso8601String(),
-          ),
-        );
-      }
-    }
-    final queryString = brick.Query(where: conditions);
-    // Directly return the stream from the repository
-    return repository
-        .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
-        .map((data) {
-      print('Transaction stream data: ${data.length} records');
-      return data;
-    });
-  }
-
-  @override
   Future<List<IUnit>> units({required int branchId}) async {
     final existingUnits = await repository.get<IUnit>(
         query:
@@ -2917,7 +2787,7 @@ class CoreSync extends AiStrategyImpl
         if (isIncome) {
           // Update transaction details
           final double subTotal =
-              items.fold(0, (num a, b) => a + (b.price * b.qty));
+              items.fold(0, (num a, b) => a + (b.price * b.qty.toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
@@ -2944,10 +2814,17 @@ class CoreSync extends AiStrategyImpl
 
         // Handle receipt if required
         if (directlyHandleReceipt) {
-          TaxController(object: transaction)
-              .handleReceipt(filterType: FilterType.NS);
+          if (!isProformaMode && !isTrainingMode) {
+            TaxController(object: transaction)
+                .handleReceipt(filterType: FilterType.NS);
+          } else if (isProformaMode) {
+            TaxController(object: transaction)
+                .handleReceipt(filterType: FilterType.PS);
+          } else if (isTrainingMode) {
+            TaxController(object: transaction)
+                .handleReceipt(filterType: FilterType.TS);
+          }
         }
-
         return transaction;
       } catch (e, s) {
         talker.error(s);
@@ -3082,7 +2959,7 @@ class CoreSync extends AiStrategyImpl
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
     // Setting the quantity here, after the stock patch is crucial for accuracy.
 
-    variant?.qty = item.qty;
+    variant?.qty = item.qty?.toDouble();
     if (variant != null) {
       await _updateVariantAndPatchStock(
         variant: variant,
@@ -3095,6 +2972,7 @@ class CoreSync extends AiStrategyImpl
         variant: variant,
         pendingTransaction: adjustmentTransaction,
         business: business,
+        doneWithTransaction: true,
         randomNumber: randomNumber(),
 
         /// this item we are passing is the item from existing transaction
@@ -3304,30 +3182,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      String? imageUrl,
-      required int branchId,
-      required int businessId,
-      String? expiryDate}) async {
-    final product = await getProduct(
-        id: productId, branchId: branchId, businessId: businessId);
-    if (product != null) {
-      product.name = name ?? product.name;
-      product.isComposite = isComposite ?? product.isComposite;
-      product.unit = unit ?? product.unit;
-      product.expiryDate = expiryDate ?? product.expiryDate;
-      product.imageUrl = imageUrl ?? product.imageUrl;
-      product.color = color ?? product.color;
-      await repository.upsert(product);
-    }
-  }
-
-  @override
   Future<void> updateTenant(
       {required String tenantId,
       String? name,
@@ -3357,147 +3211,6 @@ class CoreSync extends AiStrategyImpl
       pin: pin ?? tenant?.pin,
       sessionActive: sessionActive ?? tenant?.sessionActive,
     ));
-  }
-
-  /// Updates a transaction with the provided details.
-  ///
-  /// The [transaction] parameter is required and represents the transaction to update.
-  /// The [isUnclassfied] parameter is used to mark the transaction as unclassified,
-  /// meaning it is neither income nor expense. This helps avoid incorrect computations
-  /// on the dashboard.
-  @override
-  FutureOr<void> updateTransaction({
-    required ITransaction? transaction,
-    String? receiptType,
-    double? subTotal,
-    String? note,
-    String? status,
-    String? customerId,
-    bool? ebmSynced,
-    String? sarTyCd,
-    String? reference,
-    String? customerTin,
-    String? customerBhfId,
-    double? cashReceived,
-    bool? isRefunded,
-    String? customerName,
-    String? ticketName,
-    DateTime? updatedAt,
-    int? invoiceNumber,
-    DateTime? lastTouched,
-    int? supplierId,
-    int? receiptNumber,
-    int? totalReceiptNumber,
-    bool? isProformaMode,
-
-    /// because transaction is involved in account reporting
-    /// and in other ways to facilitate that everything in flipper has attached transaction
-    /// we want to make it unclassified i.e neither it is income or expense
-    /// this help us having wrong computation on dashboard of what is income or expenses.
-    bool isUnclassfied = false,
-    bool? isTrainingMode,
-  }) async {
-    if (transaction == null) {
-      print("Error: Transaction is null in updateTransaction.");
-      return; // Exit if transaction is null.
-    }
-
-    // Determine receipt type based on mode (or use the provided value if available)
-    if (isProformaMode != null || isTrainingMode != null) {
-      String newReceiptType = TransactionReceptType.NS;
-      if (isProformaMode == true) {
-        newReceiptType = TransactionReceptType.PS;
-      }
-      if (isTrainingMode == true) {
-        newReceiptType = TransactionReceptType.TS;
-      }
-      receiptType = newReceiptType; // Use the determined value for receiptType
-    }
-
-    // update to avoid the same issue, make sure that every parameter is update correctly.
-    transaction.receiptType = receiptType ?? transaction.receiptType;
-    transaction.subTotal = subTotal ?? transaction.subTotal;
-    transaction.note = note ?? transaction.note;
-    transaction.supplierId = supplierId ?? transaction.supplierId;
-    transaction.status = status ?? transaction.status;
-    transaction.ticketName = ticketName ?? transaction.ticketName;
-    transaction.updatedAt = updatedAt ?? transaction.updatedAt;
-    transaction.customerId = customerId ?? transaction.customerId;
-    transaction.isRefunded = isRefunded ?? transaction.isRefunded;
-    transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
-    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
-    transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
-    transaction.totalReceiptNumber =
-        totalReceiptNumber ?? transaction.totalReceiptNumber;
-    transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
-    transaction.reference = reference ?? transaction.reference;
-    transaction.customerTin = customerTin ?? transaction.customerTin;
-    transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
-    transaction.cashReceived = cashReceived ?? transaction.cashReceived;
-    transaction.customerName = customerName ?? transaction.customerName;
-    transaction.lastTouched = lastTouched ?? transaction.lastTouched;
-    transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
-    transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
-
-    await repository.upsert<ITransaction>(
-        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
-  }
-
-  @override
-  FutureOr<void> updateTransactionItem(
-      {double? qty,
-      required String transactionItemId,
-      double? discount,
-      bool? active,
-      double? taxAmt,
-      int? quantityApproved,
-      int? quantityRequested,
-      bool? ebmSynced,
-      bool? isRefunded,
-      bool? incrementQty,
-      double? price,
-      double? prc,
-      double? splyAmt,
-      bool? doneWithTransaction,
-      int? quantityShipped,
-      double? taxblAmt,
-      double? totAmt,
-      double? dcRt,
-      double? dcAmt}) async {
-    TransactionItem? item = (await repository.get<TransactionItem>(
-            query: brick.Query(where: [
-      brick.Where('id', value: transactionItemId, compare: brick.Compare.exact),
-    ])))
-        .firstOrNull;
-    if (item != null) {
-      item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
-      item.discount = discount ?? item.discount;
-      item.active = active ?? item.active;
-      item.price = price ?? item.price;
-      item.prc = prc ?? item.prc;
-      item.taxAmt = taxAmt ?? item.taxAmt;
-      item.isRefunded = isRefunded ?? item.isRefunded;
-      item.ebmSynced = ebmSynced ?? item.ebmSynced;
-      item.quantityApproved =
-          (item.quantityApproved ?? 0) + (quantityApproved ?? 0);
-      item.quantityRequested = incrementQty == true
-          ? (item.qty + 1).toInt()
-          : qty?.toInt() ?? item.qty.toInt();
-      item.splyAmt = splyAmt ?? item.splyAmt;
-      item.quantityShipped = quantityShipped ?? item.quantityShipped;
-      item.taxblAmt = taxblAmt ?? item.taxblAmt;
-      item.totAmt = totAmt ?? item.totAmt;
-      item.doneWithTransaction =
-          doneWithTransaction ?? item.doneWithTransaction;
-      repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
-    }
-  }
-
-  @override
-  FutureOr<Variant> addStockToVariant(
-      {required Variant variant, Stock? stock}) async {
-    variant.stock = stock;
-    return await repository.upsert<Variant>(variant);
   }
 
   @override
@@ -3877,110 +3590,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> addBusiness(
-      {required int id,
-      required int userId,
-      required int serverId,
-      String? name,
-      String? currency,
-      String? categoryId,
-      String? latitude,
-      String? longitude,
-      String? timeZone,
-      String? country,
-      String? businessUrl,
-      String? hexColor,
-      String? imageUrl,
-      String? type,
-      bool? active,
-      String? chatUid,
-      String? metadata,
-      String? role,
-      int? lastSeen,
-      String? firstName,
-      String? lastName,
-      String? createdAt,
-      String? deviceToken,
-      bool? backUpEnabled,
-      String? subscriptionPlan,
-      String? nextBillingDate,
-      String? previousBillingDate,
-      bool? isLastSubscriptionPaymentSucceeded,
-      String? backupFileId,
-      String? email,
-      String? lastDbBackup,
-      String? fullName,
-      int? tinNumber,
-      required String bhfId,
-      String? dvcSrlNo,
-      String? adrs,
-      bool? taxEnabled,
-      String? taxServerUrl,
-      bool? isDefault,
-      int? businessTypeId,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      required String encryptionKey}) async {
-    Business? exist =
-        await ProxyService.strategy.getBusiness(businessId: serverId);
-
-    if (exist != null) {
-      exist.tinNumber = tinNumber;
-
-      repository.upsert<Business>(exist);
-
-      Business? dd =
-          await ProxyService.strategy.getBusiness(businessId: serverId);
-
-      talker.warning("tin number:${dd?.tinNumber ?? ""}");
-    } else {
-      repository.upsert<Business>(Business(
-        serverId: serverId,
-        name: name,
-        currency: currency,
-        categoryId: categoryId,
-        latitude: latitude,
-        longitude: longitude,
-        timeZone: timeZone,
-        country: country,
-        businessUrl: businessUrl,
-        hexColor: hexColor,
-        imageUrl: imageUrl,
-        type: type,
-        active: active,
-        chatUid: chatUid,
-        tinNumber: tinNumber,
-        metadata: metadata,
-        role: role,
-        userId: userId,
-        lastSeen: lastSeen,
-        firstName: firstName,
-        lastName: lastName,
-        deviceToken: deviceToken,
-        backUpEnabled: backUpEnabled,
-        subscriptionPlan: subscriptionPlan,
-        nextBillingDate: nextBillingDate,
-        previousBillingDate: previousBillingDate,
-        isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded,
-        backupFileId: backupFileId,
-        email: email,
-        lastDbBackup: lastDbBackup,
-        fullName: fullName,
-        bhfId: bhfId,
-        dvcSrlNo: dvcSrlNo,
-        adrs: adrs,
-        taxEnabled: taxEnabled,
-        taxServerUrl: taxServerUrl,
-        isDefault: isDefault,
-        businessTypeId: businessTypeId,
-        lastTouched: lastTouched,
-        deletedAt: deletedAt,
-        encryptionKey: encryptionKey,
-      ));
-    }
-  }
-
-  @override
   FutureOr<LPermission?> permission({required int userId}) async {
     return (await repository.get<LPermission>(
             query:
@@ -4065,90 +3674,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<TransactionItem>> transactionItemsStreams({
-    String? transactionId,
-    int? branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-    bool? doneWithTransaction,
-    bool? active,
-    String? requestId,
-    bool fetchRemote = false,
-  }) {
-    // Create a list of conditions for better readability and debugging
-    final List<brick.Where> conditions = [
-      // Always include branchId since it's required
-      if (branchId != null) brick.Where('branchId').isExactly(branchId),
-
-      // Optional conditions
-      if (transactionId != null)
-        brick.Where('transactionId').isExactly(transactionId),
-      if (requestId != null)
-        brick.Where('inventoryRequestId').isExactly(requestId),
-
-      // Date range handling
-      if (startDate != null && endDate != null)
-        if (startDate == endDate)
-          brick.Where('createdAt').isBetween(
-            startDate.toIso8601String(),
-            startDate.add(const Duration(days: 1)).toIso8601String(),
-          )
-        else
-          brick.Where('createdAt').isBetween(
-            startDate.toIso8601String(),
-            endDate.toIso8601String(),
-          ),
-
-      if (doneWithTransaction != null)
-        brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
-      if (active != null) brick.Where('active').isExactly(active),
-    ];
-
-    // Add logging to help debug the query
-    // print('TransactionItems query conditions: $conditions');
-
-    final queryString = brick.Query(where: conditions);
-
-    // Return the stream directly from repository with mapping
-    return repository.subscribe<TransactionItem>(
-      query: queryString,
-      policy: fetchRemote == true
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.localOnly,
-    );
-  }
-
-  @override
-  FutureOr<List<TransactionItem>> transactionItems({
-    String? transactionId,
-    bool? doneWithTransaction,
-    int? branchId,
-    String? variantId,
-    String? id,
-    bool? active,
-    bool fetchRemote = false,
-    String? requestId,
-  }) async {
-    final items = await repository.get<TransactionItem>(
-        policy: fetchRemote
-            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.localOnly,
-        query: brick.Query(where: [
-          if (transactionId != null)
-            brick.Where('transactionId').isExactly(transactionId),
-          if (branchId != null) brick.Where('branchId').isExactly(branchId),
-          if (id != null) brick.Where('id').isExactly(id),
-          if (doneWithTransaction != null)
-            brick.Where('doneWithTransaction').isExactly(doneWithTransaction),
-          if (active != null) brick.Where('active').isExactly(active),
-          if (variantId != null) brick.Where('variantId').isExactly(active),
-          if (requestId != null)
-            brick.Where('inventoryRequestId').isExactly(requestId),
-        ]));
-    return items;
-  }
-
-  @override
   void updateAccess(
       {required String accessId,
       required int userId,
@@ -4157,26 +3682,6 @@ class CoreSync extends AiStrategyImpl
       required String status,
       required String userType}) {
     // TODO: implement updateAccess
-  }
-
-  @override
-  Future<void> updateBusiness(
-      {required int businessId,
-      String? name,
-      bool? active,
-      bool? isDefault,
-      String? backupFileId}) async {
-    final query =
-        brick.Query(where: [brick.Where('serverId').isExactly(businessId)]);
-    final business = await repository.get<Business>(query: query);
-    if (business.firstOrNull != null) {
-      Business businessUpdate = business.first;
-      businessUpdate.isDefault = isDefault;
-      businessUpdate.active = active;
-      businessUpdate.backupFileId = backupFileId;
-
-      repository.upsert<Business>(businessUpdate);
-    }
   }
 
   @override
@@ -4194,83 +3699,6 @@ class CoreSync extends AiStrategyImpl
       branchUpdate.isDefault = isDefault;
 
       repository.upsert<Branch>(branchUpdate);
-    }
-  }
-
-  @override
-  FutureOr<void> updateVariant(
-      {required List<Variant> updatables,
-      String? color,
-      String? taxTyCd,
-      String? variantId,
-      double? newRetailPrice,
-      double? retailPrice,
-      Map<String, String>? rates,
-      double? supplyPrice,
-      Map<String, String>? dates,
-      String? selectedProductType,
-      String? productId,
-      String? productName,
-      String? unit,
-      String? pkgUnitCd,
-      DateTime? expirationDate,
-      bool? ebmSynced}) async {
-    if (variantId != null) {
-      Variant? variant = await getVariant(id: variantId);
-      if (variant != null) {
-        variant.productName = productName ?? variant.productName;
-        variant.productId = productId ?? variant.productId;
-        variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
-        variant.unit = unit ?? variant.unit;
-        repository.upsert(variant);
-      }
-      return;
-    }
-
-    // loop through all variants and update all with retailPrice and supplyPrice
-
-    for (var i = 0; i < updatables.length; i++) {
-      final name = (productName ?? updatables[i].productName)!;
-      updatables[i].productName = name;
-      if (updatables[i].stock == null) {
-        await addStockToVariant(variant: updatables[i]);
-      }
-
-      updatables[i].name = name;
-      updatables[i].itemStdNm = name;
-      updatables[i].spplrItemNm = name;
-      double rate = rates?[updatables[i].id] == null
-          ? 0
-          : double.parse(rates![updatables[i].id]!);
-      if (color != null) {
-        updatables[i].color = color;
-      }
-      updatables[i].bhfId = updatables[i].bhfId ?? "00";
-      updatables[i].itemNm = name;
-      updatables[i].expirationDate = expirationDate;
-
-      updatables[i].ebmSynced = false;
-      updatables[i].retailPrice =
-          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      if (selectedProductType != null) {
-        updatables[i].itemTyCd = selectedProductType;
-      }
-
-      updatables[i].dcRt = rate;
-      updatables[i].expirationDate = dates?[updatables[i].id] == null
-          ? null
-          : DateTime.tryParse(dates![updatables[i].id]!);
-
-      if (retailPrice != 0 && retailPrice != null) {
-        updatables[i].retailPrice = retailPrice;
-      }
-      if (supplyPrice != 0 && supplyPrice != null) {
-        updatables[i].supplyPrice = supplyPrice;
-      }
-
-      updatables[i].lastTouched = DateTime.now().toLocal();
-
-      await repository.upsert<Variant>(updatables[i]);
     }
   }
 
@@ -4465,67 +3893,6 @@ class CoreSync extends AiStrategyImpl
     } catch (e) {
       return this;
     }
-  }
-
-  @override
-  Future<models.Product?> getProduct(
-      {String? id,
-      String? barCode,
-      required int branchId,
-      String? name,
-      required int businessId}) async {
-    return (await repository.get<Product>(
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-            query: brick.Query(where: [
-              if (id != null) brick.Where('id').isExactly(id),
-              if (name != null) brick.Where('name').isExactly(name),
-              if (barCode != null) brick.Where('barCode').isExactly(barCode),
-              brick.Where('branchId').isExactly(branchId),
-              brick.Where('businessId').isExactly(businessId),
-            ])))
-        .firstOrNull;
-  }
-
-  @override
-  FutureOr<String> itemCode(
-      {required String countryCode,
-      required String productType,
-      required packagingUnit,
-      required int branchId,
-      required String quantityUnit}) async {
-    final repository = Repository();
-    final Query = brick.Query(
-      where: [
-        brick.Where('code').isNot(null),
-        brick.Where('branchId').isExactly(branchId),
-      ],
-      orderBy: [brick.OrderBy('createdAt', ascending: false)],
-    );
-    final items = await repository.get<ItemCode>(
-        query: Query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-
-    // Extract the last sequence number and increment it
-    int lastSequence = 0;
-    if (items.isNotEmpty) {
-      final lastItemCode = items.first.code;
-      final sequencePart = lastItemCode.substring(lastItemCode.length - 7);
-      try {
-        lastSequence = int.parse(sequencePart);
-      } catch (e) {
-        lastSequence = 0;
-      }
-    }
-    final newSequence = (lastSequence + 1).toString().padLeft(7, '0');
-    // Construct the new item code
-    final newItemCode =
-        '$countryCode$productType$packagingUnit$quantityUnit$newSequence';
-
-    // Save the new item code in the database
-    final newItem = ItemCode(
-        code: newItemCode, createdAt: DateTime.now(), branchId: branchId);
-    await repository.upsert(newItem);
-
-    return newItemCode;
   }
 
   @override
@@ -5177,141 +4544,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Product?> createProduct(
-      {required Product product,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      String? modrId,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      String? qtyUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      double? invcFcurExcrt,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? imptItemsttsCd,
-      String? spplrItemClsCd,
-      String? spplrItemCd,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      required bool createItemCode,
-      bool ebmSynced = false,
-      String? saleListId,
-      Purchase? purchase,
-      String? pchsSttsCd,
-      double? totAmt,
-      double? taxAmt,
-      double? taxblAmt,
-      String? itemCd}) async {
-    try {
-      final String productName = product.name;
-      if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
-        final Product? existingProduct = await getProduct(
-            name: productName, businessId: businessId, branchId: branchId);
-        if (existingProduct != null) {
-          return existingProduct;
-        }
-      }
-
-      SKU sku = await getSku(branchId: branchId, businessId: businessId);
-
-      sku.consumed = true;
-      await repository.upsert(sku);
-      final createdProduct = await repository.upsert<Product>(product);
-
-      if (!skipRegularVariant) {
-        Variant newVariant = await _createRegularVariant(
-          branchId,
-          tinNumber,
-          orgnNatCd: orgnNatCd,
-          exptNatCd: exptNatCd,
-          pchsSttsCd: pchsSttsCd,
-          pkg: pkg,
-          taxblAmt: taxblAmt,
-          taxAmt: taxAmt,
-          totAmt: totAmt,
-          itemCd: itemCd,
-          createItemCode: createItemCode,
-          taxTypes: taxTypes,
-          saleListId: saleListId,
-          itemClasses: itemClasses,
-          itemTypes: itemTypes,
-          pkgUnitCd: pkgUnitCd,
-          qtyUnitCd: qtyUnitCd,
-          totWt: totWt,
-          netWt: netWt,
-          spplrNm: spplrNm,
-          agntNm: agntNm,
-          invcFcurAmt: invcFcurAmt,
-          invcFcurExcrt: invcFcurExcrt,
-          invcFcurCd: invcFcurCd,
-          qty: qty,
-          dclNo: dclNo,
-          taskCd: taskCd,
-          dclDe: dclDe,
-          hsCd: hsCd,
-          imptItemsttsCd: imptItemsttsCd,
-          product: createdProduct,
-          bhFId: bhFId,
-          supplierPrice: supplyPrice,
-          retailPrice: retailPrice,
-          name: createdProduct.name,
-          sku: sku.sku!,
-          productId: product.id,
-          itemSeq: itemSeq,
-          bcd: product.barCode,
-          ebmSynced: ebmSynced,
-          spplrItemCd: spplrItemCd,
-          spplrItemClsCd: spplrItemClsCd,
-        );
-        talker.info('New variant created: ${newVariant.toJson()}');
-        final Stock stock = Stock(
-            lastTouched: DateTime.now(),
-            rsdQty: qty,
-            initialStock: qty,
-            value: (qty * newVariant.retailPrice!).toDouble(),
-            branchId: branchId,
-            currentStock: qty);
-        final createdStock = await repository.upsert<Stock>(stock);
-        newVariant.stock = createdStock;
-        newVariant.stockId = createdStock.id;
-
-        /// if this was associated with purchase, look for the variant created then associate it with the purchase
-        /// purchase can have a list of variants associated with it.
-        if (purchase != null) {
-          Purchase purch = await repository.upsert<Purchase>(purchase);
-          newVariant.purchaseId = purch.id;
-          newVariant.spplrNm = purch.spplrNm;
-          await repository.upsert<Variant>(newVariant);
-        } else {
-          await repository.upsert<Variant>(newVariant);
-        }
-      }
-
-      return createdProduct;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
   Future<double> fetchCost(int branchId) async {
     double totalCost = 0.0;
 
@@ -5436,9 +4668,12 @@ class CoreSync extends AiStrategyImpl
   Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
     try {
       final data = await repository.get<BusinessAnalytic>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: brick.Query(
-              where: [brick.Where('branchId').isExactly(branchId)]));
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: brick.Query(
+          where: [brick.Where('branchId').isExactly(branchId)],
+          orderBy: [OrderBy('date', ascending: false)],
+        ),
+      );
       return data;
     } catch (e) {
       rethrow;

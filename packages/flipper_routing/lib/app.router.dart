@@ -10,7 +10,7 @@ import 'dart:ui' as _i8;
 import 'package:firebase_auth/firebase_auth.dart' as _i7;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i6;
 import 'package:flipper_dashboard/QuickSellingView.dart' as _i2;
-import 'package:flipper_models/realm_model_export.dart' as _i9;
+import 'package:flipper_models/db_model_export.dart' as _i9;
 import 'package:flutter/material.dart' as _i5;
 import 'package:stacked/stacked.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
