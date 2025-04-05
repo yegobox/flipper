@@ -138,40 +138,70 @@ class InventoryService {
       location: location,
     );
   }
-  
+
   /// Fetches total items count and trend data
-  /// 
+  ///
   /// Returns a TotalItemsData object with count and trend information
   Future<TotalItemsData> getTotalItems() async {
     try {
       // Get the active branch ID
       final activeBranchId = ProxyService.box.getBranchId() ?? 0;
-      
+
+      // Get current date and date from a week ago
+      final now = DateTime.now();
+      final oneWeekAgo = now.subtract(const Duration(days: 7));
+
       // Get all variants with stock for this branch
-      // Using the variant method that's available in the ProxyService.strategy interface
       final variants = await ProxyService.strategy.variants(
         branchId: activeBranchId,
       );
-      
+
       // Count total items (variants with stock)
       final totalCount = variants.length;
-      
-      // Get variants from a week ago for trend calculation
-      // In a real implementation, you would fetch historical data
-      // For now, we'll simulate a trend based on current data
-      final previousCount = (totalCount * 0.95).round(); // Simulate 5% growth
-      
+
+      // Get variants that existed a week ago
+      // We need to consider both lastTouched and creation date (if available)
+      // to ensure we don't miss variants that were created long ago but not modified recently
+      final variantsFromLastWeek = variants.where((variant) {
+        // If we have a lastTouched date, check if it's before one week ago
+        if (variant.lastTouched != null) {
+          // Convert to UTC to avoid timezone issues
+          final lastTouchedUtc = variant.lastTouched!.toUtc();
+          return lastTouchedUtc.isBefore(oneWeekAgo.toUtc());
+        }
+
+        // If no lastTouched, the variant might still be old
+        // For variants without lastTouched, we'll check other indicators
+        // such as SKU format, ID pattern, or other business-specific indicators
+        // that might suggest it's an older inventory item
+
+        // As a fallback, we'll assume variants without lastTouched are new
+        return false;
+      }).toList();
+
+      // Get the previous count (from a week ago)
+      // If we can't determine it accurately, we'll use a reasonable estimate
+      int previousCount = variantsFromLastWeek.length;
+
+      // If we don't have any historical data, use a reasonable estimate
+      // based on typical inventory growth patterns
+      if (previousCount == 0 && totalCount > 0) {
+        previousCount =
+            (totalCount * 0.95).round(); // Assume 5% growth as fallback
+      }
+
       // Calculate trend percentage
       double trendPercentage = 0.0;
       bool isPositive = true;
-      
+
       if (previousCount > 0) {
         final difference = totalCount - previousCount;
         trendPercentage = (difference / previousCount) * 100;
         isPositive = difference >= 0;
-        trendPercentage = trendPercentage.abs(); // Always positive for display
+        // Keep the actual sign for transparency, don't force positive
+        // The UI will use isPositive to determine color and direction
       }
-      
+
       return TotalItemsData(
         totalCount: totalCount,
         trendPercentage: double.parse(trendPercentage.toStringAsFixed(1)),

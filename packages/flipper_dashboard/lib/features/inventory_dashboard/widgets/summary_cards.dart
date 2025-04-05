@@ -29,7 +29,7 @@ class SummaryCards extends ConsumerWidget {
                   value: totalItemsData.formattedCount,
                   icon: Icons.inventory,
                   color: Colors.blue,
-                  trend: '+${totalItemsData.trendPercentage}%',
+                  trend: '${totalItemsData.isPositive ? "+" : "-"}${totalItemsData.trendPercentage.abs().toStringAsFixed(1)}%',
                   isPositive: totalItemsData.isPositive,
                 );
               },
