@@ -139,8 +139,10 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     );
   }
 
-  void _handleOrderMoved(ITransaction order, OrderStatus fromStatus) async {
-    final toStatus = _getNextStatus(fromStatus);
+  void _handleOrderMoved(ITransaction order, OrderStatus fromStatus,
+      [OrderStatus? customToStatus]) async {
+    // Allow for a custom destination status (for drag and drop between columns)
+    final toStatus = customToStatus ?? _getNextStatus(fromStatus);
 
     // Update the UI immediately
     ref.read(kitchenOrdersProvider.notifier).moveOrder(
@@ -151,12 +153,12 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
 
     // Update the order status in the database
     try {
-      // Get the new status string
+      // Get the new status string based on the destination column
       final status = _getStatusString(toStatus);
 
       // Update the transaction properties
       final updatedOrder = order;
-      updatedOrder.status = status;
+      updatedOrder.status = status; // This will be PARKED for Incoming column
       updatedOrder.lastTouched = DateTime.now();
 
       // Use the same approach as in transaction_mixin.dart to update the transaction
