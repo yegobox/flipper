@@ -139,10 +139,8 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     );
   }
 
-  void _handleOrderMoved(ITransaction order, OrderStatus fromStatus,
-      [OrderStatus? customToStatus]) async {
-    // Allow for a custom destination status (for drag and drop between columns)
-    final toStatus = customToStatus ?? _getNextStatus(fromStatus);
+  void _handleOrderMoved(ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) async {
+    // toStatus is now directly passed from the OrderColumn, representing the column where the order was dropped
 
     // Update the UI immediately
     ref.read(kitchenOrdersProvider.notifier).moveOrder(
@@ -179,16 +177,8 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     }
   }
 
-  OrderStatus _getNextStatus(OrderStatus current) {
-    switch (current) {
-      case OrderStatus.incoming:
-        return OrderStatus.inProgress;
-      case OrderStatus.inProgress:
-        return OrderStatus.completed;
-      case OrderStatus.completed:
-        return OrderStatus.incoming; // Cycle back to incoming
-    }
-  }
+  // _getNextStatus method removed as we now directly pass the destination status
+
 
   String _getStatusString(OrderStatus status) {
     switch (status) {

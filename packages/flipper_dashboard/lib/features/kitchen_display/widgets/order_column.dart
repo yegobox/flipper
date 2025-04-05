@@ -8,7 +8,7 @@ class OrderColumn extends StatelessWidget {
   final List<ITransaction> orders;
   final Color color;
   final OrderStatus status;
-  final Function(ITransaction, OrderStatus) onOrderAccepted;
+  final Function(ITransaction, OrderStatus, OrderStatus) onOrderAccepted;
 
   const OrderColumn({
     Key? key,
@@ -25,11 +25,13 @@ class OrderColumn extends StatelessWidget {
       onAccept: (data) {
         final order = data['order'] as ITransaction;
         final fromStatus = data['fromStatus'] as OrderStatus;
-        onOrderAccepted(order, fromStatus);
+        // Pass the current column's status as the destination status
+        onOrderAccepted(order, fromStatus, status);
       },
       builder: (context, candidateData, rejectedData) {
         return Container(
-          width: 300,
+          // Make the width flexible to fit the available space
+          constraints: const BoxConstraints(maxWidth: 300),
           decoration: BoxDecoration(
             color: Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
@@ -97,12 +99,14 @@ class OrderColumn extends StatelessWidget {
                               'order': order,
                               'fromStatus': status,
                             },
-                            feedback: Material(
-                              elevation: 4.0,
-                              child: Container(
-                                width: 280,
-                                constraints:
-                                    const BoxConstraints(maxHeight: 200),
+                            // Use a more constrained feedback widget to prevent overflow
+                            feedback: SizedBox(
+                              width: 250, // Fixed width smaller than the column
+                              child: Material(
+                                elevation: 4.0,
+                                borderRadius: BorderRadius.circular(8),
+                                clipBehavior:
+                                    Clip.antiAlias, // Clip any overflow
                                 child: OrderCard(
                                   order: order,
                                   borderColor: color,
