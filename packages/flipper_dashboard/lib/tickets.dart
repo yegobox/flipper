@@ -181,16 +181,11 @@ class _TicketsListState extends ConsumerState<TicketsList>
                   showDialog(
                     context: context,
                     builder: (context) {
-                      return Dialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: NewTicket(
-                          transaction: widget.transaction!,
-                          onClose: () {
-                            Navigator.of(context).pop();
-                          },
-                        ),
+                      return NewTicket(
+                        transaction: widget.transaction!,
+                        onClose: () {
+                          Navigator.of(context).pop();
+                        },
                       );
                     },
                   );
