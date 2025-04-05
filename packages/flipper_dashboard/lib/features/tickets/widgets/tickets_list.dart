@@ -189,9 +189,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
-    final orderingStream = ProxyService.strategy
+    final inProgressStream = ProxyService.strategy
         .transactionsStream(
-            status: ORDERING, removeAdjustmentTransactions: true)
+            status: IN_PROGRESS, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
     final waitingStream = ProxyService.strategy
@@ -201,14 +201,14 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Merge streams with periodic polling (excluding COMPLETE status)
     return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
       final parkedTickets = await parkedStream.first;
-      final orderingTickets = await orderingStream.first;
+      final inProgressTickets = await inProgressStream.first;
       final waitingTickets = await waitingStream.first;
 
       // Sort tickets to prioritize waiting tickets at the top
       final allTickets = [
         ...waitingTickets,
         ...parkedTickets,
-        ...orderingTickets
+        ...inProgressTickets
       ];
 
       // Sort by status priority and then by creation date (newest first)
@@ -219,8 +219,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         if (statusA == WAITING && statusB != WAITING) return -1;
         if (statusA != WAITING && statusB == WAITING) return 1;
-        if (statusA == PARKED && statusB == ORDERING) return -1;
-        if (statusA == ORDERING && statusB == PARKED) return 1;
+        if (statusA == PARKED && statusB == IN_PROGRESS) return -1;
+        if (statusA == IN_PROGRESS && statusB == PARKED) return 1;
 
         // If same status, sort by creation date (newest first)
         final dateA = a.createdAt ?? DateTime(1970);

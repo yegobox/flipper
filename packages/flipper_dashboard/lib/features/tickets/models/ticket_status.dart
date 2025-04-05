@@ -32,7 +32,7 @@ extension TicketStatusExtension on TicketStatus {
       case TicketStatus.waiting:
         return PARKED;
       case TicketStatus.inProgress:
-        return ORDERING;
+        return IN_PROGRESS;
       case TicketStatus.completed:
         return COMPLETE;
     }
@@ -42,7 +42,9 @@ extension TicketStatusExtension on TicketStatus {
     switch (status) {
       case PARKED:
         return TicketStatus.waiting;
-      case ORDERING:
+      case IN_PROGRESS:
+        return TicketStatus.inProgress;
+      case ORDERING: // Keep backward compatibility with existing data
         return TicketStatus.inProgress;
       case COMPLETE:
         return TicketStatus.completed;

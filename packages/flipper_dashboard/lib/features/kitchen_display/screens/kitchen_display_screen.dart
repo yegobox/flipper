@@ -31,9 +31,9 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         )
         .asBroadcastStream();
 
-    final orderingStream = ProxyService.strategy
+    final inProgressStream = ProxyService.strategy
         .transactionsStream(
-          status: ORDERING,
+          status: IN_PROGRESS,
           branchId: branchId,
           removeAdjustmentTransactions: true,
         )
@@ -54,11 +54,11 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     // Merge all streams and combine their results
     return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
       final parkedOrders = await parkedStream.first;
-      final orderingOrders = await orderingStream.first;
+      final inProgressOrders = await inProgressStream.first;
       final waitingOrders = await waitingStream.first;
 
       // Only include WAITING status orders in the waiting column
-      return [...parkedOrders, ...orderingOrders, ...waitingOrders];
+      return [...parkedOrders, ...inProgressOrders, ...waitingOrders];
     });
   });
 
@@ -190,7 +190,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       case OrderStatus.incoming:
         return PARKED;
       case OrderStatus.inProgress:
-        return ORDERING; // This is correct, but was being overridden in the updatedOrder.status assignment
+        return IN_PROGRESS; // This is correct, but was being overridden in the updatedOrder.status assignment
       case OrderStatus.waiting:
         return WAITING;
     }
