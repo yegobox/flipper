@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../widgets/near_expiry_section.dart';
 import '../widgets/summary_cards.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/recent_orders_section.dart';
+// import '../widgets/recent_orders_section.dart';
 import 'package:intl/intl.dart';
 
 class InventoryDashboardScreen extends ConsumerStatefulWidget {
@@ -25,36 +25,36 @@ class _InventoryDashboardScreenState
   // No sample data needed as we're using real data from the service
 
   // Sample reorder history
-  final List<ReorderHistory> _reorderHistory = [
-    ReorderHistory(
-      id: '101',
-      itemName: 'Milk',
-      quantity: 100,
-      date: DateTime.now().subtract(const Duration(days: 7)),
-      status: OrderStatus.delivered,
-    ),
-    ReorderHistory(
-      id: '102',
-      itemName: 'Bread',
-      quantity: 80,
-      date: DateTime.now().subtract(const Duration(days: 5)),
-      status: OrderStatus.delivered,
-    ),
-    ReorderHistory(
-      id: '103',
-      itemName: 'Eggs',
-      quantity: 200,
-      date: DateTime.now().subtract(const Duration(days: 2)),
-      status: OrderStatus.inTransit,
-    ),
-    ReorderHistory(
-      id: '104',
-      itemName: 'Chicken',
-      quantity: 50,
-      date: DateTime.now().subtract(const Duration(days: 1)),
-      status: OrderStatus.processing,
-    ),
-  ];
+  // final List<ReorderHistory> _reorderHistory = [
+  //   ReorderHistory(
+  //     id: '101',
+  //     itemName: 'Milk',
+  //     quantity: 100,
+  //     date: DateTime.now().subtract(const Duration(days: 7)),
+  //     status: OrderStatus.delivered,
+  //   ),
+  //   ReorderHistory(
+  //     id: '102',
+  //     itemName: 'Bread',
+  //     quantity: 80,
+  //     date: DateTime.now().subtract(const Duration(days: 5)),
+  //     status: OrderStatus.delivered,
+  //   ),
+  //   ReorderHistory(
+  //     id: '103',
+  //     itemName: 'Eggs',
+  //     quantity: 200,
+  //     date: DateTime.now().subtract(const Duration(days: 2)),
+  //     status: OrderStatus.inTransit,
+  //   ),
+  //   ReorderHistory(
+  //     id: '104',
+  //     itemName: 'Chicken',
+  //     quantity: 50,
+  //     date: DateTime.now().subtract(const Duration(days: 1)),
+  //     status: OrderStatus.processing,
+  //   ),
+  // ];
 
   void _deleteItem(InventoryItem item) {
     // In a real implementation, this would call a service to delete the item
@@ -194,7 +194,7 @@ class _InventoryDashboardScreenState
             const SizedBox(height: 24),
 
             // Recent orders section
-            //TODO: implement this soon.
+            ///TODO: implement this soon.
             // RecentOrdersSection(reorderHistory: _reorderHistory),
             const SizedBox(height: 16),
           ],

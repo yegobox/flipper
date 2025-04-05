@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/inventory_dashboard_app.dart';
+import 'package:flipper_dashboard/kitchen_display.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
 import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_services/proxy.dart';
@@ -74,6 +75,8 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
         return const Ai();
       case 2:
         return const InventoryDashboardApp();
+      case 3:
+        return const KitchenDisplay();
       default:
         return InventoryApp(
           searchController: searchController,
