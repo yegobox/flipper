@@ -117,10 +117,10 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: OrderColumn(
-                    title: OrderStatus.completed.displayName,
-                    orders: kitchenOrders[OrderStatus.completed] ?? [],
-                    color: OrderStatus.completed.color,
-                    status: OrderStatus.completed,
+                    title: OrderStatus.waiting.displayName,
+                    orders: kitchenOrders[OrderStatus.waiting] ?? [],
+                    color: OrderStatus.waiting.color,
+                    status: OrderStatus.waiting,
                     onOrderAccepted: _handleOrderMoved,
                   ),
                 ),
@@ -139,7 +139,8 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     );
   }
 
-  void _handleOrderMoved(ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) async {
+  void _handleOrderMoved(
+      ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) async {
     // toStatus is now directly passed from the OrderColumn, representing the column where the order was dropped
 
     // Update the UI immediately
@@ -179,14 +180,13 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
 
   // _getNextStatus method removed as we now directly pass the destination status
 
-
   String _getStatusString(OrderStatus status) {
     switch (status) {
       case OrderStatus.incoming:
         return PARKED;
       case OrderStatus.inProgress:
         return ORDERING; // This is correct, but was being overridden in the updatedOrder.status assignment
-      case OrderStatus.completed:
+      case OrderStatus.waiting:
         return COMPLETE;
     }
   }

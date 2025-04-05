@@ -251,7 +251,7 @@ class TicketTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                ticket.ticketName!,
+                ticket.ticketName ?? "N/A",
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w400,
                   fontSize: 17,

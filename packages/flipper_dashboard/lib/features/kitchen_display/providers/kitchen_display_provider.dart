@@ -3,7 +3,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum OrderStatus { incoming, inProgress, completed }
+enum OrderStatus { incoming, inProgress, waiting }
 
 extension OrderStatusExtension on OrderStatus {
   String get displayName {
@@ -12,8 +12,8 @@ extension OrderStatusExtension on OrderStatus {
         return 'Incoming';
       case OrderStatus.inProgress:
         return 'In Progress';
-      case OrderStatus.completed:
-        return 'Completed';
+      case OrderStatus.waiting:
+        return 'Waiting';
     }
   }
 
@@ -23,8 +23,8 @@ extension OrderStatusExtension on OrderStatus {
         return Colors.orange;
       case OrderStatus.inProgress:
         return Colors.blue;
-      case OrderStatus.completed:
-        return Colors.green;
+      case OrderStatus.waiting:
+        return Colors.purple;
     }
   }
 }
@@ -35,14 +35,14 @@ class KitchenOrdersNotifier
       : super({
           OrderStatus.incoming: [],
           OrderStatus.inProgress: [],
-          OrderStatus.completed: [],
+          OrderStatus.waiting: [],
         });
 
   void updateOrders(List<ITransaction> transactions) {
     final Map<OrderStatus, List<ITransaction>> categorizedOrders = {
       OrderStatus.incoming: [],
       OrderStatus.inProgress: [],
-      OrderStatus.completed: [],
+      OrderStatus.waiting: [],
     };
 
     for (final transaction in transactions) {
@@ -51,7 +51,7 @@ class KitchenOrdersNotifier
       } else if (transaction.status == ORDERING) {
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
       } else if (transaction.status == COMPLETE) {
-        categorizedOrders[OrderStatus.completed]!.add(transaction);
+        categorizedOrders[OrderStatus.waiting]!.add(transaction);
       }
     }
 
@@ -75,7 +75,7 @@ class KitchenOrdersNotifier
       case OrderStatus.inProgress:
         updatedOrder.status = ORDERING;
         break;
-      case OrderStatus.completed:
+      case OrderStatus.waiting:
         updatedOrder.status = COMPLETE;
         break;
     }
