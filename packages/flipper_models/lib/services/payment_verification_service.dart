@@ -1,0 +1,107 @@
+import 'dart:async';
+
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:stacked_services/stacked_services.dart';
+
+/// Exception thrown when a payment plan is not found.
+class NoPaymentPlanFoundException implements Exception {
+  final String message;
+  NoPaymentPlanFoundException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// Exception thrown when payment has failed or is incomplete.
+class PaymentIncompleteException implements Exception {
+  final String message;
+  PaymentIncompleteException(this.message);
+
+  @override
+  String toString() => message;
+}
+
+/// Service responsible for verifying payment status throughout the app lifecycle.
+class PaymentVerificationService {
+  static final PaymentVerificationService _instance =
+      PaymentVerificationService._internal();
+  final _routerService = locator<RouterService>();
+  Timer? _verificationTimer;
+
+  /// Singleton instance
+  factory PaymentVerificationService() {
+    return _instance;
+  }
+
+  PaymentVerificationService._internal();
+
+  /// Starts periodic payment verification
+  /// [intervalMinutes] defines how often to check (defaults to 60 minutes)
+  void startPeriodicVerification({int intervalMinutes = 1}) {
+    stopPeriodicVerification();
+
+    _verificationTimer = Timer.periodic(
+      Duration(minutes: intervalMinutes),
+      (_) => verifyPaymentStatus(),
+    );
+
+    talker.info(
+        'Payment verification service started with interval of $intervalMinutes minutes');
+  }
+
+  /// Stops periodic payment verification
+  void stopPeriodicVerification() {
+    _verificationTimer?.cancel();
+    _verificationTimer = null;
+  }
+
+  /// Verifies if the current business has an active subscription
+  /// Returns true if subscription is active, otherwise navigates to payment screen
+  /// and returns false
+  Future<bool> verifyPaymentStatus() async {
+    talker.info('Verifying payment status');
+
+    try {
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId == null) {
+        talker.warning('Cannot verify payment: Business ID is null');
+        return false;
+      }
+
+      await ProxyService.strategy.hasActiveSubscription(
+        businessId: businessId,
+        flipperHttpClient: ProxyService.http,
+        fetchRemote: true,
+      );
+
+      talker.info('Payment verification successful: Subscription is active');
+      return true;
+    } catch (e) {
+      talker.error('Payment verification failed: $e');
+
+      // Navigate to payment screen based on the error type
+      if (e.toString().contains('No payment plan found')) {
+        _routerService.navigateTo(PaymentPlanUIRoute());
+      } else if (e.toString().contains('payment reactivation required')) {
+        _routerService.navigateTo(FailedPaymentRoute());
+      } else {
+        _routerService.navigateTo(PaymentPlanUIRoute());
+      }
+
+      return false;
+    }
+  }
+
+  /// Force immediate payment verification and redirect to payment screen if needed
+  /// This can be called from any part of the app when payment verification is needed
+  Future<void> forcePaymentVerification() async {
+    final isActive = await verifyPaymentStatus();
+    if (!isActive) {
+      talker.warning(
+          'Forced payment verification failed - redirecting to payment screen');
+    }
+  }
+}

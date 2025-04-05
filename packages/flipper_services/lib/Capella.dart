@@ -590,7 +590,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<models.Plan?> getPaymentPlan({required int businessId}) {
+  Future<models.Plan?> getPaymentPlan(
+      {required int businessId, bool fetchRemote = false}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }
@@ -649,6 +650,7 @@ class Capella extends AiStrategyImpl
   @override
   Future<bool> hasActiveSubscription(
       {required int businessId,
+      required bool fetchRemote,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement hasActiveSubscription
     throw UnimplementedError();

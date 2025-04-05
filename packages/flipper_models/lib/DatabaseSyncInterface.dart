@@ -356,7 +356,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<bool> hasActiveSubscription(
       {required int businessId,
-      required HttpClientInterface flipperHttpClient});
+      required HttpClientInterface flipperHttpClient,
+      required bool fetchRemote});
   Future<bool> firebaseLogin({String? token});
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required int businessId,
@@ -372,7 +373,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   });
-  Future<models.Plan?> getPaymentPlan({required int businessId});
+  Future<models.Plan?> getPaymentPlan(
+      {required int businessId, bool fetchRemote = false});
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
 
   void deleteItemFromCart(

@@ -8,6 +8,10 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PaymentPlanUI extends StatefulWidget {
+  final bool fromRunningApp;
+  
+  const PaymentPlanUI({Key? key, this.fromRunningApp = false}) : super(key: key);
+  
   @override
   _PaymentPlanUIState createState() => _PaymentPlanUIState();
 }

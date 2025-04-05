@@ -1507,7 +1507,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<models.Plan?> getPaymentPlan({required int businessId}) async {
+  Future<models.Plan?> getPaymentPlan({
+    required int businessId,
+    bool fetchRemote = false,
+  }) async {
     try {
       final repository = brick.Repository();
 
@@ -1515,7 +1518,10 @@ class CoreSync extends AiStrategyImpl
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
-          query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+          query: query,
+          policy: fetchRemote
+              ? OfflineFirstGetPolicy.alwaysHydrate
+              : OfflineFirstGetPolicy.localOnly);
       return result.firstOrNull;
     } catch (e) {
       talker.error(e);
@@ -1527,9 +1533,11 @@ class CoreSync extends AiStrategyImpl
   Future<bool> hasActiveSubscription({
     required int businessId,
     required HttpClientInterface flipperHttpClient,
+    required bool fetchRemote,
   }) async {
-    if (isTestEnvironment()) return true;
-    final models.Plan? plan = await getPaymentPlan(businessId: businessId);
+    // if (isTestEnvironment()) return true;
+    final models.Plan? plan =
+        await getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
 
     if (plan == null) {
       throw NoPaymentPlanFound(
@@ -1616,10 +1624,11 @@ class CoreSync extends AiStrategyImpl
     return user;
   }
 
-  Future<void> _hasActiveSubscription() async {
+  Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
     await hasActiveSubscription(
         businessId: ProxyService.box.getBusinessId()!,
-        flipperHttpClient: ProxyService.http);
+        flipperHttpClient: ProxyService.http,
+        fetchRemote: fetchRemote);
   }
 
   Future<IUser> _authenticateUser(String phoneNumber, Pin pin,

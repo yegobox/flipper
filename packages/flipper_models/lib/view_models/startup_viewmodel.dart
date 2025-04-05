@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
@@ -20,6 +21,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   Future<void> listenToAuthChange() async {}
 
+  // Payment verification service instance
+  final _paymentVerificationService = PaymentVerificationService();
+
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
@@ -33,6 +37,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       AppInitializer.initialize();
 
       talker.warning("StartupViewModel Below AppInitializer.initialize()");
+
+      // Start periodic payment verification (check every 60 minutes)
+      _paymentVerificationService.startPeriodicVerification();
 
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
@@ -105,6 +112,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   Future<void> _hasActiveSubscription() async {
     await ProxyService.strategy.hasActiveSubscription(
+        fetchRemote: false,
         businessId: ProxyService.box.getBusinessId()!,
         flipperHttpClient: ProxyService.http);
   }
