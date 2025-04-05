@@ -21,11 +21,34 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     if (branchId == null) {
       return Stream.value([]);
     }
-    return ProxyService.strategy.transactionsStream(
+
+    // Create a merged stream of transactions with all three statuses
+    final parkedStream = ProxyService.strategy.transactionsStream(
       status: PARKED,
       branchId: branchId,
       removeAdjustmentTransactions: true,
     );
+
+    final orderingStream = ProxyService.strategy.transactionsStream(
+      status: ORDERING,
+      branchId: branchId,
+      removeAdjustmentTransactions: true,
+    );
+
+    final completeStream = ProxyService.strategy.transactionsStream(
+      status: COMPLETE,
+      branchId: branchId,
+      removeAdjustmentTransactions: true,
+    );
+
+    // Merge all streams and combine their results
+    return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
+      final parkedOrders = await parkedStream.first;
+      final orderingOrders = await orderingStream.first;
+      final completeOrders = await completeStream.first;
+
+      return [...parkedOrders, ...orderingOrders, ...completeOrders];
+    });
   });
 
   @override
@@ -164,7 +187,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       case OrderStatus.incoming:
         return PARKED;
       case OrderStatus.inProgress:
-        return ORDERING;
+        return ORDERING; // This is correct, but was being overridden in the updatedOrder.status assignment
       case OrderStatus.completed:
         return COMPLETE;
     }
