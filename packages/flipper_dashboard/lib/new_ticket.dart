@@ -21,6 +21,24 @@ class NewTicketState extends State<NewTicket> {
   bool _ticketNameValue = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Prefill ticket name if available
+    if (widget.transaction.ticketName != null &&
+        widget.transaction.ticketName!.isNotEmpty) {
+      _swipeController.text = widget.transaction.ticketName!;
+      _ticketNameValue = true;
+    }
+
+    // Prefill note if available
+    if (widget.transaction.note != null &&
+        widget.transaction.note!.isNotEmpty) {
+      _noteController.text = widget.transaction.note!;
+      _noteValue = true;
+    }
+  }
+
+  @override
   void dispose() {
     _swipeController.dispose();
     _noteController.dispose();
