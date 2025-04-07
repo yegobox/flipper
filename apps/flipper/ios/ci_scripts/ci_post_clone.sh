@@ -40,30 +40,114 @@ echo "{
 
 echo "✅ firebase_app_id_file.json has been generated successfully."
 
+# Define required environment variables
+REQUIRED_ENV_VARS=(
+  "SECRETS_CONTENT_1"
+  "SECRETS_CONTENT_2"
+  "FIREBASE_OPTIONS1_CONTENT"
+  "FIREBASE_OPTIONS2_CONTENT"
+  "INDEX_HTML_CONTENT"
+  "CONFIG_DART_CONTENT"
+  "AMPLIFY_CONFIG_CONTENT"
+  "AMPLIFY_TEAM_PROVIDER_CONTENT"
+)
+
+# Optional environment variables - script will continue if these are missing
+OPTIONAL_ENV_VARS=()
+
+# Check if required environment variables are set
+MISSING_VARS=0
+echo "🔍 Checking required environment variables..."
+for var_name in "${REQUIRED_ENV_VARS[@]}"; do
+  if [[ -z "${!var_name}" ]]; then
+    echo "❌ Required environment variable $var_name is not set or empty!"
+    MISSING_VARS=$((MISSING_VARS+1))
+  else
+    echo "✅ Found environment variable: $var_name"
+  fi
+done
+
+# Exit if any required environment variables are missing
+if [[ $MISSING_VARS -gt 0 ]]; then
+  echo "❌ ERROR: $MISSING_VARS required environment variables are missing!"
+  echo "⚠️ Make sure these environment variables are properly defined in your Xcode scheme"
+  echo "⚠️ and marked to be passed to the build script."
+  exit 1
+fi
+
 # Function to write environment variables to files
 write_to_file() {
-  local var_name="$1"
-  local file_path="$2"
+  local var_name="$1"    # Name of the env var containing content
+  local file_path="$2"   # Destination file path
+  local is_required="${3:-true}"  # Is this a required file? Default: true
   local content="${!var_name}"
 
+  echo "📝 Processing $var_name -> $file_path"
+  
   if [[ -n "$content" ]]; then
     mkdir -p "$(dirname "$file_path")"
     echo "$content" > "$file_path"
     echo "✅ Successfully wrote $var_name to $file_path"
+    # Verify the file was created and has content
+    if [[ ! -s "$file_path" ]]; then
+      echo "❌ ERROR: File $file_path was created but is empty!"
+      [[ "$is_required" == "true" ]] && exit 1
+    fi
   else
-    echo "⚠️ Warning: $var_name is empty, skipping $file_path" >&2
+    echo "⚠️ Warning: $var_name is empty" >&2
+    if [[ "$is_required" == "true" ]]; then
+      echo "❌ ERROR: Required variable $var_name is empty, cannot create $file_path" >&2
+      exit 1
+    else
+      echo "⚠️ Skipping optional file $file_path" >&2
+    fi
   fi
 }
 
-# Write environment variables
-write_to_file "SECRETS_PATH1" "$SECRETS_PATH1"
-write_to_file "SECRETS_PATH2" "$SECRETS_PATH2"
-write_to_file "FIREBASE_OPTIONS1_PATH" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "FIREBASE_OPTIONS2_PATH" "$FIREBASE_OPTIONS2_PATH"
-write_to_file "INDEX" "$INDEX_PATH"
-write_to_file "CONFIGDART" "$CONFIGDART_PATH"
-write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
-write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
+echo "📋 Writing environment variables to files..."
+
+# Write environment variables (content) to the correct file paths
+write_to_file "SECRETS_CONTENT_1" "$SECRETS_PATH1"
+write_to_file "SECRETS_CONTENT_2" "$SECRETS_PATH2"
+write_to_file "FIREBASE_OPTIONS1_CONTENT" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "FIREBASE_OPTIONS2_CONTENT" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "INDEX_HTML_CONTENT" "$INDEX_PATH"
+write_to_file "CONFIG_DART_CONTENT" "$CONFIGDART_PATH"
+write_to_file "AMPLIFY_CONFIG_CONTENT" "$AMPLIFY_CONFIG_PATH"
+write_to_file "AMPLIFY_TEAM_PROVIDER_CONTENT" "$AMPLIFY_TEAM_PROVIDER_PATH"
+
+# Verify all required files were created
+echo "🔍 Verifying files were created properly..."
+ALL_PATHS=(
+  "$SECRETS_PATH1"
+  "$SECRETS_PATH2"
+  "$FIREBASE_OPTIONS1_PATH"
+  "$FIREBASE_OPTIONS2_PATH"
+  "$INDEX_PATH"
+  "$CONFIGDART_PATH"
+  "$AMPLIFY_CONFIG_PATH"
+  "$AMPLIFY_TEAM_PROVIDER_PATH"
+)
+
+MISSING_FILES=0
+for file_path in "${ALL_PATHS[@]}"; do
+  if [[ ! -f "$file_path" ]]; then
+    echo "❌ ERROR: File not created: $file_path"
+    MISSING_FILES=$((MISSING_FILES+1))
+  elif [[ ! -s "$file_path" ]]; then
+    echo "❌ ERROR: File exists but is empty: $file_path"
+    MISSING_FILES=$((MISSING_FILES+1))
+  else
+    echo "✅ File created successfully: $file_path"
+  fi
+done
+
+if [[ $MISSING_FILES -gt 0 ]]; then
+  echo "❌ ERROR: $MISSING_FILES files were not created properly!"
+  exit 1
+fi
+
+echo "✅ All environment variables were successfully copied to their files."
 
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
@@ -86,7 +170,7 @@ fi
 # Ensure correct gem paths
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
 
-# Fix `rexml` & `xcodeproj` issue
+# Fix rexml & xcodeproj issue
 echo "🔄 Fixing gem conflicts..."
 gem uninstall -aIx rexml xcodeproj
 gem install rexml -v 3.3.6 --user-install --no-document
