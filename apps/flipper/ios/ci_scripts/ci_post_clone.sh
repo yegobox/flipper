@@ -30,13 +30,6 @@ if [[ -z "$GOOGLE_APP_ID" || -z "$FIREBASE_PROJECT_ID" || -z "$GCM_SENDER_ID" ]]
 fi
 
 # Create JSON configuration file
-INDEX_CONTENT="{}"
-CONFIGDART_CONTENT="{}"
-SECRETS_CONTENT="{}"
-FIREBASE_OPTIONS_CONTENT="{}"
-AMPLIFY_CONFIG_CONTENT="{}"
-AMPLIFY_TEAM_PROVIDER_CONTENT="{}"
-
 echo "{
   \"file_generated_by\": \"FlutterFire CLI\",
   \"purpose\": \"FirebaseAppID & ProjectID\",
@@ -46,6 +39,16 @@ echo "{
 }" > "$BASE_PATH/firebase_app_id_file.json"
 
 echo "✅ firebase_app_id_file.json has been generated successfully."
+
+# Get content from environment variables
+INDEX_CONTENT="${INDEX:-{}}"
+CONFIGDART_CONTENT="${CONFIGDART:-{}}"
+SECRETS_CONTENT="${SECRETS_PATH:-{}}"
+SECRETS_PATH2_CONTENT="${SECRETS_PATH2:-{}}"
+FIREBASE_OPTIONS_CONTENT="${FIREBASE_OPTIONS2_PATH:-{}}"
+FIREBASE_OPTIONS2_CONTENT="${FIREBASE_OPTIONS2_PATH:-{}}"
+AMPLIFY_CONFIG_CONTENT="${AMPLIFY_CONFIG:-{}}"
+AMPLIFY_TEAM_PROVIDER_CONTENT="${AMPLIFY_TEAM_PROVIDER:-{}}"
 
 # Function to write content to files with proper error handling
 write_to_file() {
@@ -77,9 +80,9 @@ write_to_file() {
 write_to_file "$INDEX_CONTENT" "$INDEX_PATH"
 write_to_file "$CONFIGDART_CONTENT" "$CONFIGDART_PATH"
 write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH1"
-write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH2"
+write_to_file "$SECRETS_PATH2_CONTENT" "$SECRETS_PATH2"
 write_to_file "$FIREBASE_OPTIONS_CONTENT" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "$FIREBASE_OPTIONS_CONTENT" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "$FIREBASE_OPTIONS2_CONTENT" "$FIREBASE_OPTIONS2_PATH"
 write_to_file "$AMPLIFY_CONFIG_CONTENT" "$AMPLIFY_CONFIG_PATH"
 write_to_file "$AMPLIFY_TEAM_PROVIDER_CONTENT" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
