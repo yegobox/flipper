@@ -53,6 +53,12 @@ write_to_file() {
   local file_path="$2"
   
   if [[ -n "$content" ]]; then
+    echo "🔍 Content to be written to $file_path:"
+    echo "$content" | head -n 10  # Show first 10 lines of content
+    if [[ $(echo "$content" | wc -l) -gt 10 ]]; then
+      echo "...(truncated)"
+    fi
+    
     mkdir -p "$(dirname "$file_path")" || {
       echo "❌ ERROR: Failed to create directory for $file_path" >&2
       exit 1
