@@ -1,0 +1,60 @@
+{
+    "resultCd": "000",
+    "resultMsg": "It is succeeded",
+    "resultDt": "20250407105959",
+    "data": {
+        "stockList": [
+            {
+                "custTin": "999909695",
+                "custBhfId": "00",
+                "sarNo": 2276822,
+                "ocrnDt": "20250407",
+                "totItemCnt": 1,
+                "totTaxblAmt": 12000,
+                "totTaxAmt": 1830.51,
+                "totAmt": 12000,
+                "remark": "Stock Requesteded",
+                "itemList": [
+                    {
+                        "itemSeq": 1,
+                        "itemCd": "RW2BJCT0000386",
+                        "itemClsCd": "5020230602",
+                        "itemNm": "ExpiredItem",
+                        "bcd": "1232",
+                        "pkgUnitCd": "NT",
+                        "pkg": 1,
+                        "qtyUnitCd": "U",
+                        "qty": 1,
+                        "itemExprDt": null,
+                        "prc": 200,
+                        "splyAmt": 200,
+                        "totDcAmt": 0,
+                        "taxblAmt": 200,
+                        "taxTyCd": "B",
+                        "taxAmt": 30.51,
+                        "totAmt": 200
+                    },
+                    {
+                        "itemSeq": 0,
+                        "itemCd": "RW2BCCT0000269",
+                        "itemClsCd": "5020230602",
+                        "itemNm": "Beans",
+                        "bcd": "66666666",
+                        "pkgUnitCd": "BJ",
+                        "pkg": 1,
+                        "qtyUnitCd": "U",
+                        "qty": 10,
+                        "itemExprDt": "20250328",
+                        "prc": 2000,
+                        "splyAmt": 1000,
+                        "totDcAmt": 0,
+                        "taxblAmt": 12000,
+                        "taxTyCd": "B",
+                        "taxAmt": 12000,
+                        "totAmt": 12000
+                    }
+                ]
+            }
+        ]
+    }
+}
