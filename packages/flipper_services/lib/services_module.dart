@@ -15,7 +15,7 @@ import 'package:flipper_services/HttpApi.dart';
 import 'package:flipper_services/PayStackService.dart';
 
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
@@ -44,7 +44,6 @@ import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
 import 'WindowLocationService.dart';
 import 'WindowsBlueToothPrinterService.dart';
-import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
 import 'abstractions/remote.dart';
 import 'abstractions/shareable.dart';
@@ -52,7 +51,6 @@ import 'abstractions/storage.dart';
 import 'abstractions/upload.dart';
 import 'app_service.dart';
 import 'country_service.dart';
-import 'dynamic_link_service.dart';
 import 'firebase_messaging.dart';
 import 'keypad_service.dart';
 import 'local_notification_service.dart';
@@ -66,7 +64,7 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 
 class MockFirebaseCrashlytics extends Mock implements FirebaseCrashlytics {}
 
-class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+// class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
 
 @module
 abstract class ServicesModule {
@@ -133,17 +131,17 @@ abstract class ServicesModule {
     );
   }
 
-  @singleton
-  FirebaseFirestore get firestore {
-    const testEnv = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
-    if (testEnv) {
-      // Return a mock instance during tests
-      return MockFirebaseFirestore();
-    } else {
-      // Return the real instance in production
-      return FirebaseFirestore.instance;
-    }
-  }
+  // @singleton
+  // FirebaseFirestore get firestore {
+  //   const testEnv = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+  //   if (testEnv) {
+  //     // Return a mock instance during tests
+  //     return MockFirebaseFirestore();
+  //   } else {
+  //     // Return the real instance in production
+  //     return FirebaseFirestore.instance;
+  //   }
+  // }
 
   @singleton
   FirebaseCrashlytics get crashlytics {
@@ -247,17 +245,6 @@ abstract class ServicesModule {
       messaging = FirebaseMessagingDesktop();
     }
     return messaging;
-  }
-
-  @LazySingleton()
-  DynamicLink get dynamicLink {
-    DynamicLink dynamicLink;
-    if (UniversalPlatform.isAndroid || UniversalPlatform.isIOS) {
-      dynamicLink = DynamicLinkService();
-    } else {
-      dynamicLink = UnSupportedDynamicLink();
-    }
-    return dynamicLink;
   }
 
   @LazySingleton()

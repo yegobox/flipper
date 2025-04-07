@@ -12,7 +12,7 @@ dependencies:
   brick_offline_first_with_supabase: ^2.0.0
   brick_sqlite: ^4.0.1
   brick_supabase: ^2.0.0
-  supabase_flutter: ^2.8.0
+  supabase_flutter: ^2.8.4
   sqflite_common: ^2.5.4+6 
   sqflite_common_ffi: ^2.3.4+4
   path_provider: ^2.1.5
@@ -33,4 +33,3 @@ dev_dependencies:
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
   build_runner: ^2.4.15
-  

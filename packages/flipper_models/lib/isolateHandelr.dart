@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
@@ -374,7 +374,7 @@ mixin CustomerPatch {
 class IsolateHandler with StockPatch {
   static Future<void> clearFirestoreCache() async {
     try {
-      await FirebaseFirestore.instance.clearPersistence();
+      // await FirebaseFirestore.instance.clearPersistence();
     } catch (e) {}
   }
 

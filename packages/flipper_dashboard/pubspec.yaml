@@ -111,7 +111,7 @@ dependencies:
   flipper_mocks: any
   excel: ^4.0.6
   supabase_models: any
-  supabase_flutter: ^2.8.0
+  supabase_flutter: ^2.8.4
   uuid: ^4.5.1
   fl_chart: ^0.70.2
   flutter_typeahead: ^5.2.0
