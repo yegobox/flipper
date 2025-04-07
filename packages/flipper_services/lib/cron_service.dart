@@ -71,9 +71,9 @@ class CronService {
         final URI = await ProxyService.box.getServerUrl();
 
         //// first check if there is no other transaction in progress before we start the patching
-        if (!ProxyService.box.lockPatching()) {
+        if (!ProxyService.box.lockPatching() && URI != null) {
           await VariantPatch.patchVariant(
-            URI: URI!,
+            URI: URI,
             sendPort: (message) {
               ProxyService.notification.sendLocalNotification(body: message);
             },
