@@ -167,22 +167,4 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     widget.onClearAll();
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
-
-  void _handleAcknowledge(
-      AppNotification notification, String index, StateSetter setState) async {
-    await ProxyService.strategy
-        .updateNotification(notificationId: notification.id, completed: true);
-
-    widget.onAcknowledge(notification.id);
-    setState(() {
-      //widget.notifications.removeAt(index);
-    });
-
-    // Update the state to hide the parent snackbar if all notifications are cleared
-    if (widget.notifications.isEmpty) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    } else {
-      _showNotifications(context);
-    }
-  }
 }
