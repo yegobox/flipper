@@ -30,6 +30,13 @@ if [[ -z "$GOOGLE_APP_ID" || -z "$FIREBASE_PROJECT_ID" || -z "$GCM_SENDER_ID" ]]
 fi
 
 # Create JSON configuration file
+INDEX_CONTENT="{}"
+CONFIGDART_CONTENT="{}"
+SECRETS_CONTENT="{}"
+FIREBASE_OPTIONS_CONTENT="{}"
+AMPLIFY_CONFIG_CONTENT="{}"
+AMPLIFY_TEAM_PROVIDER_CONTENT="{}"
+
 echo "{
   \"file_generated_by\": \"FlutterFire CLI\",
   \"purpose\": \"FirebaseAppID & ProjectID\",
@@ -40,30 +47,35 @@ echo "{
 
 echo "✅ firebase_app_id_file.json has been generated successfully."
 
-# Function to write environment variables to files
+# Function to write content to files with proper error handling
 write_to_file() {
-  local var_name="$1"
+  local content="$1"
   local file_path="$2"
-  local content="${!var_name}"
-
+  
   if [[ -n "$content" ]]; then
-    mkdir -p "$(dirname "$file_path")"
-    echo "$content" > "$file_path"
-    echo "✅ Successfully wrote $var_name to $file_path"
+    mkdir -p "$(dirname "$file_path")" || {
+      echo "❌ ERROR: Failed to create directory for $file_path" >&2
+      exit 1
+    }
+    echo "$content" > "$file_path" || {
+      echo "❌ ERROR: Failed to write to $file_path" >&2
+      exit 1
+    }
+    echo "✅ Successfully wrote content to $file_path"
   else
-    echo "⚠️ Warning: $var_name is empty, skipping $file_path" >&2
+    echo "⚠️ Warning: Empty content, skipping $file_path" >&2
   fi
 }
 
-# Write environment variables
-write_to_file "SECRETS_PATH1" "$SECRETS_PATH1"
-write_to_file "SECRETS_PATH2" "$SECRETS_PATH2"
-write_to_file "FIREBASE_OPTIONS1_PATH" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "FIREBASE_OPTIONS2_PATH" "$FIREBASE_OPTIONS2_PATH"
-write_to_file "INDEX" "$INDEX_PATH"
-write_to_file "CONFIGDART" "$CONFIGDART_PATH"
-write_to_file "AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
-write_to_file "AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
+# Write environment variables with proper content
+write_to_file "$INDEX_CONTENT" "$INDEX_PATH"
+write_to_file "$CONFIGDART_CONTENT" "$CONFIGDART_PATH"
+write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH1"
+write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH2"
+write_to_file "$FIREBASE_OPTIONS_CONTENT" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "$FIREBASE_OPTIONS_CONTENT" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "$AMPLIFY_CONFIG_CONTENT" "$AMPLIFY_CONFIG_PATH"
+write_to_file "$AMPLIFY_TEAM_PROVIDER_CONTENT" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
@@ -86,22 +98,36 @@ fi
 # Ensure correct gem paths
 export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
 
-# Fix `rexml` & `xcodeproj` issue
+# Fix gem conflicts with proper error handling
 echo "🔄 Fixing gem conflicts..."
-gem uninstall -aIx rexml xcodeproj
-gem install rexml -v 3.3.6 --user-install --no-document
-gem install xcodeproj --user-install --no-document
+gem uninstall -aIx rexml xcodeproj || {
+  echo "⚠️ Warning: Failed to uninstall gems, continuing..." >&2
+}
+gem install rexml -v 3.3.6 --user-install --no-document || {
+  echo "❌ ERROR: Failed to install rexml" >&2
+  exit 1
+}
+gem install xcodeproj --user-install --no-document || {
+  echo "❌ ERROR: Failed to install xcodeproj" >&2
+  exit 1
+}
 echo "✅ Gems fixed."
 
-# Install required Ruby gems
+# Install required Ruby gems with proper error handling
 echo "🔄 Installing required Ruby gems..."
-gem install ffi cocoapods --user-install --no-document
+gem install ffi cocoapods --user-install --no-document || {
+  echo "❌ ERROR: Failed to install required gems" >&2
+  exit 1
+}
 echo "✅ Ruby gems installed."
 
-# Ensure CocoaPods is installed
+# Ensure CocoaPods is installed with proper error handling
 if ! command -v pod &> /dev/null; then
   echo "🔄 Installing CocoaPods..."
-  gem install cocoapods --user-install --no-document
+  gem install cocoapods --user-install --no-document || {
+    echo "❌ ERROR: Failed to install CocoaPods" >&2
+    exit 1
+  }
 fi
 echo "✅ CocoaPods version: $(pod --version)"
 
@@ -129,8 +155,15 @@ if ! command -v melos &> /dev/null; then
   dart pub global activate melos 6.3.2
 fi
 
-melos bootstrap
+# Add cleanup trap for temporary files
+trap 'rm -f "$BASE_PATH/firebase_app_id_file.json"' EXIT
 
+# Add explicit error handling for melos bootstrap
+echo "🔄 Running melos bootstrap..."
+melos bootstrap || {
+  echo "❌ ERROR: melos bootstrap failed" >&2
+  exit 1
+}
 echo "✅ Melos setup completed successfully."
 
 # Install Flutter dependencies
@@ -140,13 +173,22 @@ echo "🔄 Navigated into apps/flipper"
 cd ios || exit 1
 echo "🔄 Navigated into apps/flipper/ios"
 
-# Use Bundler if a Gemfile exists
+# Add explicit error handling for pod install
+echo "🔄 Running pod install..."
 if [[ -f "Gemfile" ]]; then
   echo "🔄 Using Bundler for pod install..."
-  bundle install
-  bundle exec pod install
+  bundle install || {
+    echo "❌ ERROR: bundle install failed" >&2
+    exit 1
+  }
+  bundle exec pod install || {
+    echo "❌ ERROR: bundle exec pod install failed" >&2
+    exit 1
+  }
 else
-  pod install
+  pod install || {
+    echo "❌ ERROR: pod install failed" >&2
+    exit 1
+  }
 fi
-
 echo "✅ Post-clone setup completed successfully."
