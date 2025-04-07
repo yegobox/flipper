@@ -2068,4 +2068,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement updateBusiness
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> deleteTransaction({required brick.ITransaction transaction}) {
+    // TODO: implement deleteTransaction
+    throw UnimplementedError();
+  }
 }

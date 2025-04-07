@@ -173,4 +173,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     throw UnimplementedError(
         'getTransaction needs to be implemented for Capella');
   }
+
+  @override
+  Future<bool> deleteTransaction({required ITransaction transaction}) async {
+    throw UnimplementedError(
+        'deleteTransaction needs to be implemented for Capella');
+  }
 }

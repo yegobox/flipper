@@ -97,7 +97,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Parks all existing PENDING transactions to prevent duplicates
   /// when resuming a ticket
-  Future<void> _parkExistingPendingTransactions() async {
+  Future<void> _parkExistingPendingTransactions(
+      {required String excludeId}) async {
     try {
       // Get all pending transactions for this branch
       final pendingTransactions = await ProxyService.strategy.transactions(
@@ -113,11 +114,20 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Park all existing pending transactions
       for (final tx in pendingTransactions) {
         talker.debug('Parking transaction: ${tx.id}');
-        await ProxyService.strategy.updateTransaction(
-          transaction: tx,
-          status: PARKED,
-          updatedAt: DateTime.now(),
-        );
+        if (tx.id == excludeId) {
+          continue;
+        }
+        // if we try to resume order and there is non zero pending order throw error request a user to create new ticket for it
+        if (tx.subTotal != 0.0) {
+          throw Exception(
+              'There is a non zero pending order, First create ticket for it');
+        }
+        // delete all pending with 0.0 as subTotal
+        if (tx.subTotal == 0.0) {
+          await ProxyService.strategy.deleteTransaction(
+            transaction: tx,
+          );
+        }
       }
     } catch (e) {
       talker.error('Error parking existing transactions: $e');
@@ -147,7 +157,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (confirm == true) {
       try {
         // First, park all existing PENDING transactions to prevent duplicates
-        await _parkExistingPendingTransactions();
+        await _parkExistingPendingTransactions(excludeId: ticket.id);
 
         // Then, check if the ticket exists and get the latest version
         final updatedTicket = await ProxyService.strategy.getTransaction(

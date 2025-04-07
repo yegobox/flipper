@@ -737,4 +737,9 @@ mixin TransactionMixin implements TransactionInterface {
       return data;
     });
   }
+
+  @override
+  Future<bool> deleteTransaction({required ITransaction transaction}) async {
+    return await repository.delete<ITransaction>(transaction);
+  }
 }
