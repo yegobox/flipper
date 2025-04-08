@@ -2138,7 +2138,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> sendMessageToIsolate() async {
-    if (ProxyService.box.stopTaxService()!) return;
+    if (ProxyService.box.stopTaxService() ?? false) return;
 
     Business? business =
         await getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -2625,8 +2625,8 @@ class CoreSync extends AiStrategyImpl
         double subTotalFinalized = cashReceived;
         if (isIncome) {
           // Update transaction details
-          final double subTotal =
-              items.fold(0, (num a, b) => a + (b.price * (b.qty ?? 0).toDouble()));
+          final double subTotal = items.fold(
+              0, (num a, b) => a + (b.price * (b.qty ?? 0).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.

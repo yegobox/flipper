@@ -12,11 +12,11 @@ import 'abstractions/storage.dart';
 class SharedPreferenceStorage implements LocalStorage {
   // The in-memory cache of preferences
   Map<String, dynamic> _cache = {};
-  
+
   // The file path where preferences are stored
   late String _filePath;
   late String _backupFilePath;
-  
+
   // Set of allowed keys (same as the original implementation)
   static const Set<String> _allowedKeys = {
     'branchId',
@@ -90,26 +90,26 @@ class SharedPreferenceStorage implements LocalStorage {
     try {
       // Get the document directory (same as used by repository.dart)
       final directory = await _getStorageDirectory();
-      
+
       // Ensure the directory exists
       if (!await Directory(directory).exists()) {
         await Directory(directory).create(recursive: true);
       }
-      
+
       // Set the file paths
       _filePath = path.join(directory, 'flipper_preferences.json');
       _backupFilePath = path.join(directory, 'flipper_preferences_backup.json');
-      
+
       // Load preferences from file
       await _loadPreferences();
     } catch (e) {
       // If there's an error, start with an empty cache
       _cache = {};
     }
-    
+
     return this;
   }
-  
+
   /// Get the storage directory path
   Future<String> _getStorageDirectory() async {
     if (Platform.isWindows) {
@@ -126,12 +126,12 @@ class SharedPreferenceStorage implements LocalStorage {
       return path.join(appDir.path, '_db');
     }
   }
-  
+
   /// Load preferences from the JSON file
   Future<void> _loadPreferences() async {
     try {
       final file = File(_filePath);
-      
+
       // If the file doesn't exist, try to restore from backup
       if (!file.existsSync()) {
         final backupFile = File(_backupFilePath);
@@ -139,7 +139,7 @@ class SharedPreferenceStorage implements LocalStorage {
           await backupFile.copy(_filePath);
         }
       }
-      
+
       // If the file exists after potential restore, read it
       if (file.existsSync()) {
         final jsonString = await file.readAsString();
@@ -154,7 +154,7 @@ class SharedPreferenceStorage implements LocalStorage {
           final jsonString = await backupFile.readAsString();
           final Map<String, dynamic> data = jsonDecode(jsonString);
           _cache = data;
-          
+
           // Restore the main file from backup
           await backupFile.copy(_filePath);
         }
@@ -164,26 +164,26 @@ class SharedPreferenceStorage implements LocalStorage {
       }
     }
   }
-  
+
   /// Save preferences to the JSON file using a safe write pattern
   Future<void> _savePreferences() async {
     try {
       final file = File(_filePath);
       final tempFile = File('${_filePath}.tmp');
-      
+
       // Write to a temporary file first
       await tempFile.writeAsString(jsonEncode(_cache), flush: true);
-      
+
       // Rename the temporary file to the actual file (atomic operation)
       await tempFile.rename(_filePath);
-      
+
       // Create a backup after successful write
       await file.copy(_backupFilePath);
     } catch (e) {
       // Silently ignore save errors
     }
   }
-  
+
   /// Check if a key is allowed
   bool _isKeyAllowed(String key) {
     return _allowedKeys.contains(key);
@@ -411,12 +411,12 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   int? itemPerPage() {
-    return (_cache['itemPerPage'] as int?) ?? 10;
+    return (_cache['itemPerPage'] as int?) ?? 1000;
   }
 
   @override
   bool? isOrdering() {
-    return _cache['isOrdering'] as bool?;
+    return (_cache['isOrdering'] as bool?) ?? false;
   }
 
   @override
@@ -467,7 +467,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool? pinLogin() {
-    return _cache['pinLogin'] as bool?;
+    return (_cache['pinLogin'] as bool?) ?? false;
   }
 
   @override
@@ -477,22 +477,22 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool? stopTaxService() {
-    return _cache['stopTaxService'] as bool?;
+    return (_cache['stopTaxService'] as bool?) ?? false;
   }
 
   @override
   bool? enableDebug() {
-    return _cache['enableDebug'] as bool?;
+    return (_cache['enableDebug'] as bool?) ?? false;
   }
 
   @override
   bool? switchToCloudSync() {
-    return _cache['switchToCloudSync'] as bool?;
+    return (_cache['switchToCloudSync'] as bool?) ?? false;
   }
 
   @override
   bool? useInHouseSyncGateway() {
-    return _cache['useInHouseSyncGateway'] as bool?;
+    return (_cache['useInHouseSyncGateway'] as bool?) ?? false;
   }
 
   @override

@@ -377,7 +377,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 // Helper method to handle payment errors
   void _handlePaymentError(
       dynamic error, StackTrace stackTracke, BuildContext context) {
-    if (ProxyService.box.enableDebug()!) {
+    if ((ProxyService.box.enableDebug() ?? false)) {
       // show stackTracke instead
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         duration: Duration(seconds: 10),
