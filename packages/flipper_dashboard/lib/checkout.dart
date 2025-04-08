@@ -134,7 +134,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                 height: constraints.maxHeight,
                 child: FadeTransition(
                   opacity: _animation,
-                  child: (ProxyService.box.isPosDefault()!)
+                  child: (ProxyService.box.isPosDefault() ?? true)
                       ? _buildPosDefaultContent(transaction, model)
                       : SizedBox.shrink(),
                 ),
@@ -144,7 +144,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               padding: const EdgeInsets.only(top: 160.0),
               child: FadeTransition(
                 opacity: _animation,
-                child: (ProxyService.box.isOrdersDefault()!)
+                child: (ProxyService.box.isOrdersDefault() ?? false)
                     ? _buildOrdersContent()
                     : SizedBox.shrink(),
               ),

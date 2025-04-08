@@ -9,7 +9,7 @@ part 'outer_variant_provider.g.dart';
 @riverpod
 class OuterVariants extends _$OuterVariants {
   int _currentPage = 0;
-  final int _itemsPerPage = ProxyService.box.itemPerPage()!;
+  final int _itemsPerPage = ProxyService.box.itemPerPage() ?? 1000;
   bool _hasMore = true;
   bool _isLoading = false;
 

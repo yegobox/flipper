@@ -401,17 +401,17 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool? isPosDefault() {
-    return _cache['isPosDefault'] as bool?;
+    return (_cache['isPosDefault'] as bool?) ?? true;
   }
 
   @override
   bool? isOrdersDefault() {
-    return _cache['isOrdersDefault'] as bool?;
+    return (_cache['isOrdersDefault'] as bool?) ?? false;
   }
 
   @override
   int? itemPerPage() {
-    return _cache['itemPerPage'] as int?;
+    return (_cache['itemPerPage'] as int?) ?? 10;
   }
 
   @override
