@@ -42,11 +42,6 @@ class CronService {
           branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
     }
 
-    if (ProxyService.box.forceUPSERT()) {
-      ProxyService.strategy.variants(
-          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
-    }
-
     /// end of pulling
     await ProxyService.strategy.spawnIsolate(IsolateHandler.handler);
 
@@ -64,6 +59,10 @@ class CronService {
       }
     });
     Timer.periodic(Duration(minutes: 1), (Timer t) async {
+      if (ProxyService.box.forceUPSERT()) {
+        ProxyService.strategy.variants(
+            branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+      }
       ProxyService.strategy
           .analytics(branchId: ProxyService.box.getBranchId()!);
       final isTaxServiceStoped = ProxyService.box.stopTaxService();
