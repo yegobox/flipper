@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223233592+1744095413
+version: 1.170.4252223233593+1744119434
 
 
 
@@ -50,7 +50,7 @@ dependencies:
   google_fonts: ^6.1.0
   
   number_display: ^3.0.0
-  firebase_core: ^3.12.1
+  firebase_core: ^3.13.0
   cupertino_icons: ^1.0.2
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
@@ -218,7 +218,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.3742.0
+  msix_version: 1.170.3743.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

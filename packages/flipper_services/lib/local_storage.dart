@@ -1,114 +1,227 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flipper_services/proxy.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart' show getDatabasesPath;
 
 import 'abstractions/storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+/// A robust implementation of LocalStorage that uses JSON files in the document directory
+/// This implementation is designed to be resilient to power outages and corruption
 class SharedPreferenceStorage implements LocalStorage {
-  late SharedPreferencesWithCache prefs;
+  // The in-memory cache of preferences
+  Map<String, dynamic> _cache = {};
+  
+  // The file path where preferences are stored
+  late String _filePath;
+  late String _backupFilePath;
+  
+  // Set of allowed keys (same as the original implementation)
+  static const Set<String> _allowedKeys = {
+    'branchId',
+    'businessId',
+    'userId',
+    'userPhone',
+    'needLinkPhoneNumber',
+    'getServerUrl',
+    'currentOrderId',
+    'isProformaMode',
+    'isTrainingMode',
+    'isAutoPrintEnabled',
+    'isAutoBackupEnabled',
+    'transactionId',
+    'hasSignedInForAutoBackup',
+    'gdID',
+    'isAnonymous',
+    'bearerToken',
+    'getIsTokenRegistered',
+    'defaultApp',
+    'whatsAppToken',
+    'createdAt',
+    'id',
+    'encryptionKey',
+    'authComplete',
+    'uid',
+    'bhfId',
+    'tin',
+    'currentSaleCustomerPhoneNumber',
+    'getRefundReason',
+    'mrc',
+    'isPosDefault',
+    'isOrdersDefault',
+    'version',
+    'UToken',
+    'itemPerPage',
+    'isOrdering',
+    'couponCode',
+    'discountRate',
+    'paymentType',
+    'yegoboxLoggedInUserPermission',
+    'doneDownloadingAsset',
+    'doneMigrateToLocal',
+    'forceUPSERT',
+    'dbVersion',
+    'performBackup',
+    'pinLogin',
+    'customerName',
+    'stopTaxService',
+    'enableDebug',
+    'switchToCloudSync',
+    'useInHouseSyncGateway',
+    'customPhoneNumberForPayment',
+    'purchaseCode',
+    'A4',
+    'numberOfPayments',
+    'exportAsPdf',
+    'getBusinessServerId',
+    'getBranchServerId',
+    'referralCode',
+    'transactionInProgress',
+    'stockInOutType',
+    'defaultCurrency',
+    'userName',
+    'lockPatching',
+    'last_internet_connection_timestamp'
+  };
 
+  /// Initialize the preferences by loading from the JSON file
   Future<LocalStorage> initializePreferences() async {
-    prefs = await SharedPreferencesWithCache.create(
-        // You can add cache options here if needed
-        cacheOptions: const SharedPreferencesWithCacheOptions(
-      // When an allowlist is included, any keys that aren't included cannot be used.
-      allowList: <String>{
-        'branchId',
-        'businessId',
-        'userId',
-        'userPhone',
-        'needLinkPhoneNumber',
-        'getServerUrl',
-        'currentOrderId',
-        'isProformaMode',
-        'isTrainingMode',
-        'isAutoPrintEnabled',
-        'isAutoBackupEnabled',
-        'transactionId',
-        'hasSignedInForAutoBackup',
-        'gdID',
-        'isAnonymous',
-        'bearerToken',
-        'getIsTokenRegistered',
-        'defaultApp',
-        'whatsAppToken',
-        'createdAt',
-        'id',
-        'encryptionKey',
-        'authComplete',
-        'uid',
-        'bhfId',
-        'tin',
-        'currentSaleCustomerPhoneNumber',
-        'getRefundReason',
-        'mrc',
-        'isPosDefault',
-        'isOrdersDefault',
-        'version',
-        'UToken',
-        'itemPerPage',
-        'isOrdering',
-        'couponCode',
-        'discountRate',
-        'paymentType',
-        'yegoboxLoggedInUserPermission',
-        'doneDownloadingAsset',
-        'doneMigrateToLocal',
-        'forceUPSERT',
-        'dbVersion',
-        'performBackup',
-        'pinLogin',
-        'customerName',
-        'stopTaxService',
-        'enableDebug',
-        'switchToCloudSync',
-        'useInHouseSyncGateway',
-        'customPhoneNumberForPayment',
-        'purchaseCode',
-        'A4',
-        'numberOfPayments',
-        'exportAsPdf',
-        'getBusinessServerId',
-        'getBranchServerId',
-        'referralCode',
-        'transactionInProgress',
-        'stockInOutType',
-        'defaultCurrency',
-        'userName',
-        'lockPatching',
-        'last_internet_connection_timestamp'
-      },
-    ));
+    try {
+      // Get the document directory (same as used by repository.dart)
+      final directory = await _getStorageDirectory();
+      
+      // Ensure the directory exists
+      if (!await Directory(directory).exists()) {
+        await Directory(directory).create(recursive: true);
+      }
+      
+      // Set the file paths
+      _filePath = path.join(directory, 'flipper_preferences.json');
+      _backupFilePath = path.join(directory, 'flipper_preferences_backup.json');
+      
+      // Load preferences from file
+      await _loadPreferences();
+    } catch (e) {
+      // If there's an error, start with an empty cache
+      _cache = {};
+    }
+    
     return this;
+  }
+  
+  /// Get the storage directory path
+  Future<String> _getStorageDirectory() async {
+    if (Platform.isWindows) {
+      final appDir = await getApplicationDocumentsDirectory();
+      return path.join(appDir.path, '_db');
+    } else if (Platform.isAndroid) {
+      return await getDatabasesPath();
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      final documents = await getApplicationDocumentsDirectory();
+      return documents.path;
+    } else {
+      // For other platforms, use application documents directory
+      final appDir = await getApplicationDocumentsDirectory();
+      return path.join(appDir.path, '_db');
+    }
+  }
+  
+  /// Load preferences from the JSON file
+  Future<void> _loadPreferences() async {
+    try {
+      final file = File(_filePath);
+      
+      // If the file doesn't exist, try to restore from backup
+      if (!file.existsSync()) {
+        final backupFile = File(_backupFilePath);
+        if (backupFile.existsSync()) {
+          await backupFile.copy(_filePath);
+        }
+      }
+      
+      // If the file exists after potential restore, read it
+      if (file.existsSync()) {
+        final jsonString = await file.readAsString();
+        final Map<String, dynamic> data = jsonDecode(jsonString);
+        _cache = data;
+      }
+    } catch (e) {
+      // If there's an error reading the file, try the backup
+      try {
+        final backupFile = File(_backupFilePath);
+        if (backupFile.existsSync()) {
+          final jsonString = await backupFile.readAsString();
+          final Map<String, dynamic> data = jsonDecode(jsonString);
+          _cache = data;
+          
+          // Restore the main file from backup
+          await backupFile.copy(_filePath);
+        }
+      } catch (backupError) {
+        // If backup also fails, start with an empty cache
+        _cache = {};
+      }
+    }
+  }
+  
+  /// Save preferences to the JSON file using a safe write pattern
+  Future<void> _savePreferences() async {
+    try {
+      final file = File(_filePath);
+      final tempFile = File('${_filePath}.tmp');
+      
+      // Write to a temporary file first
+      await tempFile.writeAsString(jsonEncode(_cache), flush: true);
+      
+      // Rename the temporary file to the actual file (atomic operation)
+      await tempFile.rename(_filePath);
+      
+      // Create a backup after successful write
+      await file.copy(_backupFilePath);
+    } catch (e) {
+      // Silently ignore save errors
+    }
+  }
+  
+  /// Check if a key is allowed
+  bool _isKeyAllowed(String key) {
+    return _allowedKeys.contains(key);
   }
 
   @override
   int? readInt({required String key}) {
-    return prefs.getInt(key);
+    if (!_isKeyAllowed(key)) return null;
+    return _cache[key] as int?;
   }
 
   @override
   Future<void> writeInt({required dynamic key, required int value}) async {
-    prefs.setInt(key, value);
+    if (!_isKeyAllowed(key.toString())) return;
+    _cache[key.toString()] = value;
+    await _savePreferences();
   }
 
   @override
   void remove({required String key}) {
-    prefs.remove(key);
+    if (!_isKeyAllowed(key)) return;
+    _cache.remove(key);
+    _savePreferences();
   }
 
   @override
   int? getBranchId() {
-    return prefs.getInt('branchId');
+    return _cache['branchId'] as int?;
   }
 
   @override
   int? getBusinessId() {
-    return prefs.getInt('businessId');
+    return _cache['businessId'] as int?;
   }
 
   @override
   int? getUserId() {
-    final userId = prefs.get('userId');
+    final userId = _cache['userId'];
     if (userId is String) {
       final parsedUserId = int.tryParse(userId);
       return parsedUserId ?? null;
@@ -127,12 +240,12 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getUserPhone() {
-    return prefs.getString('userPhone');
+    return _cache['userPhone'] as String?;
   }
 
   @override
   bool getNeedAccountLinkWithPhone() {
-    return prefs.getBool('needLinkPhoneNumber') ?? false;
+    return (_cache['needLinkPhoneNumber'] as bool?) ?? false;
   }
 
   @override
@@ -141,297 +254,305 @@ class SharedPreferenceStorage implements LocalStorage {
     if (ebm != null) {
       return ebm.taxServerUrl;
     }
-    return prefs.getString('getServerUrl');
+    return _cache['getServerUrl'] as String?;
   }
 
   @override
   int? currentOrderId() {
-    return prefs.getInt('currentOrderId');
+    return _cache['currentOrderId'] as int?;
   }
 
   @override
   bool isProformaMode() {
-    return prefs.getBool('isProformaMode') ?? false;
+    return (_cache['isProformaMode'] as bool?) ?? false;
   }
 
   @override
   bool isTrainingMode() {
-    return prefs.getBool('isTrainingMode') ?? false;
+    return (_cache['isTrainingMode'] as bool?) ?? false;
   }
 
   @override
   bool isAutoPrintEnabled() {
-    return prefs.getBool('isAutoPrintEnabled') ?? false;
+    return (_cache['isAutoPrintEnabled'] as bool?) ?? false;
   }
 
   @override
   bool isAutoBackupEnabled() {
-    return prefs.getBool('isAutoBackupEnabled') ?? false;
+    return (_cache['isAutoBackupEnabled'] as bool?) ?? false;
   }
 
   @override
   bool hasSignedInForAutoBackup() {
-    return prefs.getBool('hasSignedInForAutoBackup') ?? false;
+    return (_cache['hasSignedInForAutoBackup'] as bool?) ?? false;
   }
 
   @override
   String? gdID() {
-    return prefs.getString('gdID');
+    return _cache['gdID'] as String?;
   }
 
   @override
   bool isAnonymous() {
-    return prefs.getBool('isAnonymous') ?? false;
+    return (_cache['isAnonymous'] as bool?) ?? false;
   }
 
   @override
   String? getBearerToken() {
-    return prefs.getString('bearerToken');
+    return _cache['bearerToken'] as String?;
   }
 
   @override
   bool? getIsTokenRegistered() {
-    return prefs.getBool('getIsTokenRegistered') ?? false;
+    return (_cache['getIsTokenRegistered'] as bool?) ?? false;
   }
 
   @override
   String getDefaultApp() {
-    return prefs.getString('defaultApp') ?? "1";
+    return (_cache['defaultApp'] as String?) ?? "1";
   }
 
   @override
   String? whatsAppToken() {
-    return prefs.getString('whatsAppToken');
+    return _cache['whatsAppToken'] as String?;
   }
 
   @override
   String? paginationCreatedAt() {
-    return prefs.getString('createdAt') ?? '';
+    return _cache['createdAt'] as String?;
   }
 
   @override
   int? paginationId() {
-    return prefs.getInt('id') ?? 0;
+    return _cache['id'] as int? ?? 0;
   }
 
   @override
   String? readString({required String key}) {
-    return prefs.getString(key);
+    if (!_isKeyAllowed(key)) return null;
+    return _cache[key] as String?;
   }
 
   @override
   Future<void> writeString({required String key, required String value}) async {
-    await prefs.setString(key, value);
-  }
-
-  @override
-  Future<void> writeBool({required String key, required bool value}) async {
-    await prefs.setBool(key, value);
+    if (!_isKeyAllowed(key)) return;
+    _cache[key] = value;
+    await _savePreferences();
   }
 
   @override
   bool? readBool({required String key}) {
-    return prefs.getBool(key);
+    if (!_isKeyAllowed(key)) return null;
+    return _cache[key] as bool?;
+  }
+
+  @override
+  Future<void> writeBool({required String key, required bool value}) async {
+    if (!_isKeyAllowed(key)) return;
+    _cache[key] = value;
+    await _savePreferences();
   }
 
   @override
   Future<void> clear() async {
-    return await prefs.clear();
+    _cache.clear();
+    await _savePreferences();
   }
 
   @override
   String encryptionKey() {
-    return prefs.getString('encryptionKey') ?? "";
+    return _cache['encryptionKey'] as String? ?? "";
   }
 
   @override
   Future<bool> authComplete() async {
-    return await prefs.getBool("authComplete") ?? false;
+    return (_cache['authComplete'] as bool?) ?? false;
   }
 
   @override
   String uid() {
-    return prefs.getString('uid') ?? "";
+    return (_cache['uid'] as String?) ?? "";
   }
 
   @override
   Future<String?> bhfId() async {
-    final ebm = await ProxyService.strategy.ebm(branchId: getBranchId()!);
-    if (ebm != null) {
-      return ebm.bhfId;
-    }
-    return prefs.getString('bhfId');
+    return _cache['bhfId'] as String?;
   }
 
   @override
   int tin() {
-    return prefs.getInt('tin') ?? -1;
+    return (_cache['tin'] as int?) ?? 0;
   }
 
   @override
   String? currentSaleCustomerPhoneNumber() {
-    return prefs.getString('currentSaleCustomerPhoneNumber');
+    return _cache['currentSaleCustomerPhoneNumber'] as String?;
   }
 
   @override
   String? getRefundReason() {
-    return prefs.getString("getRefundReason") ?? "";
+    return _cache['getRefundReason'] as String?;
   }
 
   @override
   String? mrc() {
-    final mc = prefs.getString("mrc");
-    return (mc == null || mc.isEmpty) ? null : mc;
+    return _cache['mrc'] as String?;
   }
 
   @override
   bool? isPosDefault() {
-    return prefs.getBool("isPosDefault") ?? true;
+    return _cache['isPosDefault'] as bool?;
   }
 
   @override
   bool? isOrdersDefault() {
-    return prefs.getBool("isOrdersDefault") ?? true;
+    return _cache['isOrdersDefault'] as bool?;
   }
 
   @override
   int? itemPerPage() {
-    return prefs.getInt('itemPerPage') ?? 1000;
+    return _cache['itemPerPage'] as int?;
   }
 
   @override
   bool? isOrdering() {
-    return prefs.getBool('isOrdering') ?? false;
+    return _cache['isOrdering'] as bool?;
   }
 
   @override
   String? couponCode() {
-    return prefs.getString('couponCode');
+    return _cache['couponCode'] as String?;
   }
 
   @override
   double? discountRate() {
-    return prefs.getDouble('discountRate');
+    final value = _cache['discountRate'];
+    if (value is String) {
+      return double.tryParse(value);
+    } else if (value is double) {
+      return value;
+    }
+    return null;
   }
 
   @override
   String? paymentType() {
-    return prefs.getString('paymentType');
+    return _cache['paymentType'] as String?;
   }
 
   @override
   String? yegoboxLoggedInUserPermission() {
-    return prefs.getString('yegoboxLoggedInUserPermission');
+    return _cache['yegoboxLoggedInUserPermission'] as String?;
   }
 
   @override
   bool doneDownloadingAsset() {
-    return prefs.getBool('doneDownloadingAsset') ?? false;
+    return (_cache['doneDownloadingAsset'] as bool?) ?? false;
   }
 
   @override
   bool doneMigrateToLocal() {
-    return prefs.getBool('doneMigrateToLocal') ?? false;
+    return (_cache['doneMigrateToLocal'] as bool?) ?? false;
   }
 
   @override
   bool forceUPSERT() {
-    return prefs.getBool('forceUPSERT') ?? false;
+    return (_cache['forceUPSERT'] as bool?) ?? false;
   }
 
   @override
   int? dbVersion() {
-    return prefs.getInt('dbVersion') ?? 6;
+    return _cache['dbVersion'] as int?;
   }
 
   @override
   bool? pinLogin() {
-    return prefs.getBool('pinLogin') ?? false;
+    return _cache['pinLogin'] as bool?;
   }
 
   @override
   String? customerName() {
-    return prefs.getString('customerName') ?? "N/A";
+    return _cache['customerName'] as String?;
   }
 
   @override
   bool? stopTaxService() {
-    return prefs.getBool('stopTaxService') ?? false;
+    return _cache['stopTaxService'] as bool?;
   }
 
   @override
   bool? enableDebug() {
-    return prefs.getBool('enableDebug') ?? false;
+    return _cache['enableDebug'] as bool?;
   }
 
   @override
   bool? switchToCloudSync() {
-    return prefs.getBool('switchToCloudSync') ?? false;
+    return _cache['switchToCloudSync'] as bool?;
   }
 
   @override
   bool? useInHouseSyncGateway() {
-    return prefs.getBool('useInHouseSyncGateway') ?? false;
+    return _cache['useInHouseSyncGateway'] as bool?;
   }
 
   @override
   String? customPhoneNumberForPayment() {
-    return prefs.getString('customPhoneNumberForPayment');
+    return _cache['customPhoneNumberForPayment'] as String?;
   }
 
   @override
   String? purchaseCode() {
-    return prefs.getString('purchaseCode');
+    return _cache['purchaseCode'] as String?;
   }
 
   @override
   bool A4() {
-    return prefs.getBool('A4') ?? false;
+    return (_cache['A4'] as bool?) ?? false;
   }
 
   @override
   int? numberOfPayments() {
-    return prefs.getInt('numberOfPayments');
+    return _cache['numberOfPayments'] as int?;
   }
 
   @override
   bool exportAsPdf() {
-    return prefs.getBool('exportAsPdf') ?? false;
+    return (_cache['exportAsPdf'] as bool?) ?? false;
   }
 
   @override
   String transactionId() {
-    return prefs.getString('transactionId') ?? "";
+    return (_cache['transactionId'] as String?) ?? "";
   }
 
   @override
   int? getBranchServerId() {
-    return prefs.getInt('getBranchServerId');
+    return _cache['getBranchServerId'] as int?;
   }
 
   @override
   int? getBusinessServerId() {
-    return prefs.getInt('getBusinessServerId');
+    return _cache['getBusinessServerId'] as int?;
   }
 
   /// allow us to lock some part of cron operation while there is transaction hapening.
   @override
   bool transactionInProgress() {
-    return prefs.getBool('transactionInProgress') ?? false;
+    return (_cache['transactionInProgress'] as bool?) ?? false;
   }
 
   @override
   String stockInOutType() {
-    return prefs.getString('stockInOutType') ?? "11";
+    return (_cache['stockInOutType'] as String?) ?? "";
   }
 
   @override
   String defaultCurrency() {
-    return prefs.getString('defaultCurrency') ?? "RWF";
+    return (_cache['defaultCurrency'] as String?) ?? "RWF";
   }
 
   @override
   bool lockPatching() {
-    return prefs.getBool('lockPatching') ?? false;
+    return (_cache['lockPatching'] as bool?) ?? false;
   }
 }
