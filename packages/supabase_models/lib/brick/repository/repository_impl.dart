@@ -1,17 +1,15 @@
-import 'dart:io';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:http/http.dart' as http show Request;
+// ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_models/brick/db/schema.g.dart';
 
 import '../brick.g.dart';
-import '../databasePath.dart';
 import 'backup_manager.dart';
 import 'database_manager.dart';
 import 'queue_manager.dart';

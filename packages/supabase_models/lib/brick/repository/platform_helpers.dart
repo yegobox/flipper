@@ -1,17 +1,9 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:brick_supabase/testing.dart';
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-import 'package:brick_sqlite/brick_sqlite.dart';
-import 'package:brick_sqlite/memory_cache_provider.dart';
-import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:http/http.dart' as http show Request;
-import 'package:supabase_models/brick/brick.g.dart';
-import 'package:supabase_models/brick/databasePath.dart';
-import 'package:path/path.dart';
+// ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
+import 'package:supabase_models/brick/databasePath.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
