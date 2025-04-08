@@ -12,15 +12,18 @@ import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
+import 'package:logging/logging.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
 const dbFileName = "flipper_v17.sqlite";
 const queueName = "brick_offline_queue_v17.sqlite";
+const maxBackupCount = 3; // Maximum number of backups to keep
 
 class Repository extends OfflineFirstWithSupabaseRepository {
   static Repository? _singleton;
+  static final _logger = Logger('Repository');
 
   Repository._({
     required super.supabaseProvider,
@@ -53,19 +56,18 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }) async {
     String dbPath;
     String queuePath;
-    String backupDbPath;
 
     if (kIsWeb) {
       // For web, use in-memory database or a web-specific approach
       dbPath = inMemoryDatabasePath;
       queuePath = inMemoryDatabasePath;
-      backupDbPath = inMemoryDatabasePath;
 
       // Initialize FFI is not needed for web
     } else {
       // Initialize FFI for Windows platforms
       if (Platform.isWindows) {
         sqfliteFfiInit();
+        _logger.info('Initialized SQLite FFI for Windows');
       }
 
       // Get the appropriate directory path for native platforms
@@ -74,15 +76,15 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Ensure the directory exists
       if (!await Directory(directory).exists()) {
         await Directory(directory).create(recursive: true);
+        _logger.info('Created database directory: $directory');
       }
 
       // Construct the full database path
       dbPath = join(directory, dbFileName);
       queuePath = join(directory, queueName);
-      backupDbPath = join(directory, "${dbFileName}_backup");
 
       // Check if the database exists and verify its integrity
-      if (File(dbPath).existsSync()) {
+      if (await File(dbPath).exists()) {
         try {
           // Try to open the database to check if it's valid
           final db = await databaseFactoryToUse.openDatabase(
@@ -90,19 +92,19 @@ class Repository extends OfflineFirstWithSupabaseRepository {
             options: OpenDatabaseOptions(readOnly: true),
           );
           await db.close();
+          _logger.info('Database integrity check passed');
         } catch (e) {
+          _logger.warning('Database corruption detected: $e');
           // Database is corrupted, try to restore from backup
-          if (File(backupDbPath).existsSync()) {
-            try {
-              // Copy backup to main database file
-              await File(backupDbPath).copy(dbPath);
-            } catch (backupError) {
-              // If restore fails, delete corrupted database to start fresh
+          final restored = await _restoreLatestBackup(
+              directory, dbPath, databaseFactoryToUse);
+          if (!restored) {
+            _logger.severe(
+                'Failed to restore from any backup, creating new database');
+            // If restore fails, delete corrupted database to start fresh
+            if (await File(dbPath).exists()) {
               await File(dbPath).delete();
             }
-          } else {
-            // No backup available, delete corrupted database
-            await File(dbPath).delete();
           }
         }
       }
@@ -111,13 +113,15 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: databaseFactoryToUse,
       databasePath: queuePath,
-      onReattempt: (http.Request re, o) {},
+      onReattempt: (http.Request request, dynamic object) {
+        _logger.info('Reattempting offline request: ${request.url}');
+      },
       onRequestException: (request, object) {
-        // Handle failed requests by clearing the queue
+        // Handle failed requests by logging the error
         try {
-          // Silently ignore errors during queue handling
+          _logger.warning('Offline request failed: ${request.url}');
         } catch (e) {
-          // Silently ignore errors
+          _logger.severe('Error handling offline request exception: $e');
         }
       },
     );
@@ -166,26 +170,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (!kIsWeb && !DatabasePath.isTestEnvironment()) {
       try {
         // Create a backup of the database after successful initialization
-        if (File(dbPath).existsSync()) {
-          await File(dbPath).copy(backupDbPath);
+        if (await File(dbPath).exists()) {
+          await _createVersionedBackup(dbPath);
         }
 
         // Configure the database with WAL mode and other settings
-        if (File(dbPath).existsSync()) {
-          final db = await databaseFactoryToUse.openDatabase(dbPath);
-
-          // Enable Write-Ahead Logging for better crash recovery
-          await db.execute('PRAGMA journal_mode = WAL');
-          // Ensure data is immediately written to disk
-          await db.execute('PRAGMA synchronous = FULL');
-          // Run integrity check
-          await db.execute('PRAGMA integrity_check');
-
-          // Close the database after configuration
-          await db.close();
+        if (await File(dbPath).exists()) {
+          await _configureDatabaseSettings(dbPath, databaseFactoryToUse);
         }
       } catch (e) {
-        // Silently ignore configuration errors
+        _logger.warning('Error during database configuration: $e');
       }
     }
   }
@@ -254,7 +248,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return requests.length;
     } catch (e) {
       // Handle any errors gracefully
-      print("Error checking queue: $e");
+      _logger.warning("Error checking queue: $e");
       return 0;
     }
   }
@@ -294,9 +288,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Wait for all deletion operations to complete
       await Future.wait(deletionFutures);
 
-      print("All locked requests have been cleared.");
+      _logger.info("All locked requests have been cleared.");
     } catch (e) {
-      print("An error occurred while clearing locked requests: $e");
+      _logger.warning("An error occurred while clearing locked requests: $e");
     }
   }
 
@@ -311,21 +305,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       final directory = await DatabasePath.getDatabaseDirectory();
       final dbPath = join(directory, dbFileName);
 
-      if (File(dbPath).existsSync()) {
-        final db = await databaseFactory.openDatabase(dbPath);
-
-        // Enable Write-Ahead Logging for better crash recovery
-        await db.execute('PRAGMA journal_mode = WAL');
-        // Ensure data is immediately written to disk
-        await db.execute('PRAGMA synchronous = FULL');
-        // Run integrity check
-        await db.execute('PRAGMA integrity_check');
-
-        // Close the database after configuration
-        await db.close();
+      if (await File(dbPath).exists()) {
+        await _configureDatabaseSettings(dbPath, databaseFactory);
+        _logger.info('Database configured for better crash resilience');
       }
     } catch (e) {
-      // Silently ignore configuration errors
+      _logger.warning('Error during database configuration: $e');
     }
   }
 
@@ -338,14 +323,14 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     try {
       final directory = await DatabasePath.getDatabaseDirectory();
       final dbPath = join(directory, dbFileName);
-      final backupPath = join(directory, "${dbFileName}_backup");
 
       // Create backup only if the database exists
-      if (File(dbPath).existsSync()) {
-        await File(dbPath).copy(backupPath);
+      if (await File(dbPath).exists()) {
+        await _createVersionedBackup(dbPath);
+        _logger.info('Database backup created successfully');
       }
     } catch (e) {
-      // Silently ignore backup errors
+      _logger.warning('Error during database backup: $e');
     }
   }
 
@@ -358,10 +343,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     try {
       final directory = await DatabasePath.getDatabaseDirectory();
       final dbPath = join(directory, dbFileName);
-      final backupPath = join(directory, "${dbFileName}_backup");
 
       // Check if the database exists but might be corrupted
-      if (File(dbPath).existsSync()) {
+      if (await File(dbPath).exists()) {
         try {
           // Try to open the database to check if it's valid
           final db = await databaseFactory.openDatabase(dbPath);
@@ -370,33 +354,158 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
           // If we get here, the database is likely valid
           // Create a backup for safety
-          if (File(dbPath).existsSync()) {
-            await File(dbPath).copy(backupPath);
-          }
+          await _createVersionedBackup(dbPath);
+          _logger.info('Database integrity verified, created backup');
           return false;
         } catch (e) {
+          _logger
+              .warning('Database corruption detected during restore check: $e');
           // Database is corrupted, try to restore from backup
-          if (File(backupPath).existsSync()) {
-            try {
-              // Delete corrupted database
-              await File(dbPath).delete();
-
-              // Copy backup to main database file
-              await File(backupPath).copy(dbPath);
-              return true;
-            } catch (backupError) {
-              // If restore fails, we'll create a new database on next access
-              if (File(dbPath).existsSync()) {
-                await File(dbPath).delete();
-              }
-              return false;
-            }
+          final restored =
+              await _restoreLatestBackup(directory, dbPath, databaseFactory);
+          if (restored) {
+            _logger.info('Successfully restored database from backup');
+          } else {
+            _logger.severe('Failed to restore database from any backup');
           }
+          return restored;
         }
       }
       return false;
     } catch (e) {
+      _logger.severe('Error during database restore process: $e');
       return false;
+    }
+  }
+
+  // Helper method to create a versioned backup
+  static Future<void> _createVersionedBackup(String dbPath) async {
+    try {
+      final directory = dirname(dbPath);
+      final filename = basename(dbPath);
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final backupPath = join(directory, '${filename}_backup_$timestamp');
+
+      // Create the new backup
+      await File(dbPath).copy(backupPath);
+      _logger.info('Created versioned backup: $backupPath');
+
+      // Clean up old backups if we have too many
+      await _cleanupOldBackups(directory, filename);
+    } catch (e) {
+      _logger.warning('Failed to create versioned backup: $e');
+    }
+  }
+
+  // Helper method to clean up old backups
+  static Future<void> _cleanupOldBackups(
+      String directory, String baseFilename) async {
+    try {
+      final dir = Directory(directory);
+      final backupPrefix = '${baseFilename}_backup_';
+
+      // List all backup files
+      final backupFiles = await dir
+          .list()
+          .where((entity) =>
+              entity is File && basename(entity.path).startsWith(backupPrefix))
+          .cast<File>()
+          .toList();
+
+      // Sort by modification time (newest first)
+      backupFiles
+          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+      // Keep only the most recent backups
+      if (backupFiles.length > maxBackupCount) {
+        for (var i = maxBackupCount; i < backupFiles.length; i++) {
+          await backupFiles[i].delete();
+          _logger.info('Deleted old backup: ${backupFiles[i].path}');
+        }
+      }
+    } catch (e) {
+      _logger.warning('Error during backup cleanup: $e');
+    }
+  }
+
+  // Helper method to restore from the latest backup
+  static Future<bool> _restoreLatestBackup(
+      String directory, String dbPath, DatabaseFactory dbFactory) async {
+    try {
+      final filename = basename(dbPath);
+      final backupPrefix = '${filename}_backup_';
+      final dir = Directory(directory);
+
+      // List all backup files
+      final backupFiles = await dir
+          .list()
+          .where((entity) =>
+              entity is File && basename(entity.path).startsWith(backupPrefix))
+          .cast<File>()
+          .toList();
+
+      // Sort by modification time (newest first)
+      backupFiles
+          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+      // Try each backup in order until one works
+      for (final backupFile in backupFiles) {
+        try {
+          // Delete corrupted database if it exists
+          if (await File(dbPath).exists()) {
+            await File(dbPath).delete();
+          }
+
+          // Copy backup to main database file
+          await backupFile.copy(dbPath);
+
+          // Verify the restored database
+          final db = await dbFactory.openDatabase(dbPath);
+          await db.query('sqlite_master', limit: 1);
+          await db.close();
+
+          _logger.info('Successfully restored from backup: ${backupFile.path}');
+          return true;
+        } catch (e) {
+          _logger
+              .warning('Failed to restore from backup ${backupFile.path}: $e');
+          // Continue to the next backup
+        }
+      }
+
+      // If we get here, all backups failed
+      _logger.severe('All backup restoration attempts failed');
+      return false;
+    } catch (e) {
+      _logger.severe('Error during backup restoration process: $e');
+      return false;
+    }
+  }
+
+  // Helper method to configure database settings
+  static Future<void> _configureDatabaseSettings(
+      String dbPath, DatabaseFactory dbFactory) async {
+    try {
+      final db = await dbFactory.openDatabase(dbPath);
+
+      // Enable Write-Ahead Logging for better crash recovery
+      await db.execute('PRAGMA journal_mode = WAL');
+      // Ensure data is immediately written to disk
+      await db.execute('PRAGMA synchronous = FULL');
+      // Run integrity check
+      final integrityResult = await db.rawQuery('PRAGMA integrity_check');
+      if (integrityResult.isNotEmpty &&
+          integrityResult.first.values.first != 'ok') {
+        _logger.warning(
+            'Database integrity check failed: ${integrityResult.first.values.first}');
+      } else {
+        _logger.info('Database integrity check passed');
+      }
+
+      // Close the database after configuration
+      await db.close();
+    } catch (e) {
+      _logger.warning('Error configuring database settings: $e');
     }
   }
 }
