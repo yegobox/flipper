@@ -1525,13 +1525,14 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<brick.ITransaction>> transactions(
+  Future<List<brick.ITransaction>> transactions(
       {DateTime? startDate,
       DateTime? endDate,
       String? status,
       String? transactionType,
       bool isCashOut = false,
       String? id,
+      bool fetchRemote = false,
       bool isExpense = false,
       FilterType? filterType,
       int? branchId,

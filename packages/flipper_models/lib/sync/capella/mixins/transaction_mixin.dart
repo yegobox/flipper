@@ -10,13 +10,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Talker get talker;
 
   @override
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
     bool isCashOut = false,
     String? id,
+    bool fetchRemote = false,
     FilterType? filterType,
     int? branchId,
     bool isExpense = false,

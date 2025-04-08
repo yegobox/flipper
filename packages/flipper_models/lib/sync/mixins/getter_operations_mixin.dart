@@ -22,8 +22,9 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   @override
   FutureOr<Branch?> branch({required int serverId});
   @override
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
+    bool fetchRemote = false,
     DateTime? endDate,
     String? status,
     String? transactionType,

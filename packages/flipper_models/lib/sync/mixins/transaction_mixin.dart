@@ -13,13 +13,14 @@ mixin TransactionMixin implements TransactionInterface {
   Repository get repository;
 
   @override
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
     int? branchId,
     bool isCashOut = false,
+    bool fetchRemote = false,
     String? id,
     bool isExpense = false,
     FilterType? filterType,
@@ -54,7 +55,9 @@ mixin TransactionMixin implements TransactionInterface {
     final queryString = Query(where: conditions);
 
     return await repository.get<ITransaction>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
       query: queryString,
     );
   }

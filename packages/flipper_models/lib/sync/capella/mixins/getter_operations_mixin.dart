@@ -149,12 +149,13 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
     bool isCashOut = false,
+    bool fetchRemote = false,
     String? id,
     bool isExpense = false,
     FilterType? filterType,

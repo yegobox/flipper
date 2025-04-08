@@ -3,7 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 
 abstract class TransactionInterface {
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
@@ -14,6 +14,7 @@ abstract class TransactionInterface {
     bool isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
+    bool fetchRemote = false,
     bool includePending = false,
   });
 
