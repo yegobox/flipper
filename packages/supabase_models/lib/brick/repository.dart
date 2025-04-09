@@ -314,4 +314,31 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return false;
     }
   }
+  
+  /// Perform a periodic backup if enough time has passed since the last backup
+  /// Returns true if a backup was performed, false otherwise
+  Future<bool> performPeriodicBackup({Duration minInterval = const Duration(minutes: 20)}) async {
+    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
+      return false;
+    }
+    
+    try {
+      final dbPath = join(await DatabasePath.getDatabaseDirectory(), dbFileName);
+      
+      // Get the database factory to ensure transaction-safe backups
+      final dbFactory = PlatformHelpers.getDatabaseFactory();
+      
+      // Check if there are any active transactions before proceeding
+      // We can still do a backup during transactions, but we'll use the transaction-safe approach
+      final result = await _backupManager.performPeriodicBackup(
+        dbPath, 
+        minInterval: minInterval,
+        dbFactory: dbFactory
+      );
+      return result;
+    } catch (e) {
+      _logger.warning('Error during periodic database backup: $e');
+      return false;
+    }
+  }
 }

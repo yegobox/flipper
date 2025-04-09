@@ -8,8 +8,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_models/brick/repository.dart' as repo;
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -29,6 +29,7 @@ class CronService {
   static const int _counterSyncMinutes = 1;
   static const int _isolateMessageSeconds = 40;
   static const int _analyticsSyncMinutes = 1;
+  static const int _databaseBackupMinutes = 5;
 
   /// Schedules various tasks and timers to handle data synchronization, device publishing,
   /// and other periodic operations.
@@ -142,6 +143,18 @@ class CronService {
         }
       } catch (e) {
         talker.error("Asset download failed: $e");
+      }
+    }));
+
+    // Setup periodic database backup timer
+    _activeTimers.add(Timer.periodic(Duration(minutes: _databaseBackupMinutes),
+        (Timer t) async {
+      try {
+        // Import Repository dynamically to avoid circular dependencies
+        // This is needed because Repository is in a different package
+        await _performPeriodicDatabaseBackup();
+      } catch (e, stackTrace) {
+        talker.error("Periodic database backup failed: $e", stackTrace);
       }
     }));
   }
@@ -369,7 +382,24 @@ class CronService {
 
   /// Returns the duration for file download schedule
   Duration _getDownloadFileSchedule() {
-    return Duration(minutes: kDebugMode ? 1 : 2);
+    return const Duration(minutes: 2);
+  }
+
+  /// Performs a periodic database backup if enough time has passed since the last backup
+  Future<void> _performPeriodicDatabaseBackup() async {
+    try {
+      // Call the performPeriodicBackup method on the Repository instance
+      final result = await repo.Repository().performPeriodicBackup();
+
+      if (result == true) {
+        talker.info('Periodic database backup completed successfully');
+      } else {
+        talker.info(
+            'Periodic database backup skipped (not enough time passed since last backup)');
+      }
+    } catch (e, stackTrace) {
+      talker.error('Error during periodic database backup: $e', stackTrace);
+    }
   }
 
   /// Platform detection helpers

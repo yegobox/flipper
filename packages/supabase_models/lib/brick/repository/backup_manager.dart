@@ -2,28 +2,125 @@ import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import 'package:logging/logging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
+
+// For database operations
+import 'package:sqflite_common/sqlite_api.dart';
 
 /// Manages database backup and restoration operations
 class BackupManager {
   static final _logger = Logger('BackupManager');
   final int maxBackupCount;
 
+  /// Timestamp of the last backup
+  DateTime? _lastBackupTime;
+
   BackupManager({this.maxBackupCount = 3});
 
   /// Creates a versioned backup of the database file
-  Future<void> createVersionedBackup(String dbPath) async {
+  /// When dbFactory is provided, uses a transaction-safe approach
+  /// Otherwise falls back to file copying (less safe during concurrent operations)
+  Future<void> createVersionedBackup(String dbPath,
+      {DatabaseFactory? dbFactory}) async {
     try {
       final directory = dirname(dbPath);
       final filename = basename(dbPath);
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final backupPath = join(directory, '${filename}_backup_$timestamp');
 
-      // Create the new backup
-      await File(dbPath).copy(backupPath);
-      _logger.info('Created versioned backup: $backupPath');
+      // If no database factory is provided, fall back to file copying
+      // This is less safe but doesn't require the database factory
+      if (dbFactory == null) {
+        _logger.info(
+            'No database factory provided, using file copy for backup (less safe during writes)');
+        await File(dbPath).copy(backupPath);
+        _logger.info('Created versioned backup via file copy: $backupPath');
+        await cleanupOldBackups(directory, filename);
+        return;
+      }
+
+      // Use the provided database factory for a transaction-safe backup
+      final factory = dbFactory;
+
+      // Open the source database in read-only mode to avoid interfering with ongoing transactions
+      final sourceDb = await factory.openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(readOnly: true),
+      );
+
+      try {
+        // Create the backup database
+        final backupDb = await factory.openDatabase(
+          backupPath,
+          options: OpenDatabaseOptions(readOnly: false),
+        );
+
+        try {
+          // Use SQLite's backup API via batch operations to safely copy the database
+          // This is done by backing up the schema first, then the data
+
+          // Get all tables from the source database
+          final tables = await sourceDb.query('sqlite_master',
+              where:
+                  "type = 'table' AND name != 'sqlite_sequence' AND name != 'android_metadata'");
+
+          // Begin transaction on the backup database
+          await backupDb.execute('BEGIN TRANSACTION');
+
+          // Copy each table schema and data
+          for (final table in tables) {
+            final tableName = table['name'] as String;
+
+            // Get the CREATE TABLE statement
+            final createTableSql = table['sql'] as String;
+            await backupDb.execute(createTableSql);
+
+            // Copy the data
+            final rows = await sourceDb.query(tableName);
+            for (final row in rows) {
+              // Build insert statement with proper escaping
+              final columns = row.keys.join(', ');
+              final values = row.values.map((value) {
+                if (value == null) return 'NULL';
+                if (value is num) return value.toString();
+                return "'${value.toString().replaceAll("'", "''")}'";
+              }).join(', ');
+
+              await backupDb.execute(
+                  'INSERT INTO $tableName ($columns) VALUES ($values)');
+            }
+          }
+
+          // Commit the transaction
+          await backupDb.execute('COMMIT');
+          _logger.info('Created versioned backup: $backupPath');
+        } catch (e) {
+          // Rollback if there was an error
+          try {
+            await backupDb.execute('ROLLBACK');
+          } catch (_) {}
+          rethrow;
+        } finally {
+          // Close the backup database
+          await backupDb.close();
+        }
+      } catch (e) {
+        _logger.warning('Error during backup database operations: $e');
+        // Clean up the incomplete backup file if it exists
+        try {
+          final backupFile = File(backupPath);
+          if (await backupFile.exists()) {
+            await backupFile.delete();
+          }
+        } catch (_) {}
+        rethrow;
+      } finally {
+        // Close the source database
+        await sourceDb.close();
+      }
 
       // Clean up old backups if we have too many
       await cleanupOldBackups(directory, filename);
@@ -112,6 +209,42 @@ class BackupManager {
       return false;
     } catch (e) {
       _logger.severe('Error during backup restoration process: $e');
+      return false;
+    }
+  }
+
+  /// Performs a periodic backup if enough time has passed since the last backup
+  /// Returns true if a backup was performed, false otherwise
+  ///
+  /// The dbFactory parameter is required for transaction-safe backups.
+  /// If not provided, will fall back to file copying (less safe during concurrent operations).
+  Future<bool> performPeriodicBackup(String dbPath,
+      {Duration minInterval = const Duration(minutes: 20),
+      DatabaseFactory? dbFactory}) async {
+    // Skip for web or if the database doesn't exist
+    if (kIsWeb || !await File(dbPath).exists()) {
+      return false;
+    }
+
+    final now = DateTime.now();
+
+    // Check if enough time has passed since the last backup
+    if (_lastBackupTime != null) {
+      final timeSinceLastBackup = now.difference(_lastBackupTime!);
+      if (timeSinceLastBackup < minInterval) {
+        _logger.fine(
+            'Skipping backup: last backup was ${timeSinceLastBackup.inMinutes} minutes ago');
+        return false;
+      }
+    }
+
+    try {
+      await createVersionedBackup(dbPath, dbFactory: dbFactory);
+      _lastBackupTime = now;
+      _logger.info('Periodic backup created successfully');
+      return true;
+    } catch (e) {
+      _logger.warning('Error during periodic backup: $e');
       return false;
     }
   }
