@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
+// ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 // ignore: depend_on_referenced_packages
@@ -18,6 +19,9 @@ class BackupManager {
   /// Timestamp of the last backup
   DateTime? _lastBackupTime;
 
+  /// Flag to track if a backup is currently in progress
+  bool _isBackupInProgress = false;
+
   BackupManager({this.maxBackupCount = 3});
 
   /// Creates a versioned backup of the database file
@@ -25,6 +29,14 @@ class BackupManager {
   /// Otherwise falls back to file copying (less safe during concurrent operations)
   Future<void> createVersionedBackup(String dbPath,
       {DatabaseFactory? dbFactory}) async {
+    // Set flag to indicate backup is in progress
+    if (_isBackupInProgress) {
+      _logger.info('Backup already in progress, skipping this request');
+      return;
+    }
+
+    _isBackupInProgress = true;
+
     try {
       final directory = dirname(dbPath);
       final filename = basename(dbPath);
@@ -44,12 +56,26 @@ class BackupManager {
 
       // Use the provided database factory for a transaction-safe backup
       final factory = dbFactory;
+      Database? sourceDb;
 
-      // Open the source database in read-only mode to avoid interfering with ongoing transactions
-      final sourceDb = await factory.openDatabase(
-        dbPath,
-        options: OpenDatabaseOptions(readOnly: true),
-      );
+      try {
+        // Open the source database in read-only mode to avoid interfering with ongoing transactions
+        sourceDb = await factory.openDatabase(
+          dbPath,
+          options: OpenDatabaseOptions(readOnly: true),
+        );
+      } catch (e) {
+        _logger.warning('Failed to open database for backup: $e');
+        // If we can't open the database, try file copying as a fallback
+        if (await File(dbPath).exists()) {
+          _logger.info('Falling back to file copy backup method');
+          await File(dbPath).copy(backupPath);
+          _logger.info(
+              'Created versioned backup via file copy fallback: $backupPath');
+          await cleanupOldBackups(directory, filename);
+        }
+        return;
+      }
 
       try {
         // Create the backup database
@@ -118,14 +144,21 @@ class BackupManager {
         } catch (_) {}
         rethrow;
       } finally {
-        // Close the source database
-        await sourceDb.close();
+        // Close the source database if it was successfully opened
+        try {
+          await sourceDb.close();
+        } catch (e) {
+          _logger.warning('Error closing source database during backup: $e');
+        }
       }
 
       // Clean up old backups if we have too many
       await cleanupOldBackups(directory, filename);
     } catch (e) {
       _logger.warning('Failed to create versioned backup: $e');
+    } finally {
+      // Reset the backup in progress flag
+      _isBackupInProgress = false;
     }
   }
 
@@ -223,6 +256,12 @@ class BackupManager {
       DatabaseFactory? dbFactory}) async {
     // Skip for web or if the database doesn't exist
     if (kIsWeb || !await File(dbPath).exists()) {
+      return false;
+    }
+
+    // Check if a backup is already in progress
+    if (_isBackupInProgress) {
+      _logger.info('Backup already in progress, skipping this periodic backup');
       return false;
     }
 
