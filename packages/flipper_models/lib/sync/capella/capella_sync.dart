@@ -4,7 +4,7 @@ import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/abstractions/storage.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';

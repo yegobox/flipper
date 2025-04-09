@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flipper_services/proxy.dart';
+// import 'package:flipper_services/proxy.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart' show getDatabasesPath;
+import 'package:sqflite_common/sqflite.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
-import 'abstractions/storage.dart';
+// import '../../../../flipper_services/lib/abstractions/storage.dart';
 
 /// A robust implementation of LocalStorage that uses JSON files in the document directory
 /// This implementation is designed to be resilient to power outages and corruption
@@ -82,7 +83,9 @@ class SharedPreferenceStorage implements LocalStorage {
     'defaultCurrency',
     'userName',
     'lockPatching',
-    'last_internet_connection_timestamp'
+    'last_internet_connection_timestamp',
+    'databaseFilename',
+    'queueFilename'
   };
 
   /// Initialize the preferences by loading from the JSON file
@@ -250,10 +253,6 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   Future<String?> getServerUrl() async {
-    final ebm = await ProxyService.strategy.ebm(branchId: getBranchId()!);
-    if (ebm != null) {
-      return ebm.taxServerUrl;
-    }
     return _cache['getServerUrl'] as String?;
   }
 
@@ -554,5 +553,28 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool lockPatching() {
     return (_cache['lockPatching'] as bool?) ?? false;
+  }
+
+  @override
+  String getDatabaseFilename() {
+    return (_cache['databaseFilename'] as String?) ?? 'flipper_v17.sqlite';
+  }
+
+  @override
+  Future<void> setDatabaseFilename(String filename) async {
+    _cache['databaseFilename'] = filename;
+    await _savePreferences();
+  }
+
+  @override
+  String getQueueFilename() {
+    return (_cache['queueFilename'] as String?) ??
+        'brick_offline_queue_v17.sqlite';
+  }
+
+  @override
+  Future<void> setQueueFilename(String filename) async {
+    _cache['queueFilename'] = filename;
+    await _savePreferences();
   }
 }

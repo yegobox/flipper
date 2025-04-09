@@ -23,20 +23,50 @@ import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 
-const dbFileName = "flipper_v17.sqlite";
-const queueName = "brick_offline_queue_v17.sqlite";
+// Default values that will be used if LocalStorage is not available
+const defaultDbFileName = 'flipper_v17.sqlite';
+const defaultQueueName = 'brick_offline_queue_v17.sqlite';
 const maxBackupCount = 3; // Maximum number of backups to keep
+
+// Interface for retrieving database configuration
+/// This allows the Repository to get database filenames from any storage implementation
+abstract class DatabaseConfigStorage {
+  /// Get the main database filename
+  String getDatabaseFilename();
+  
+  /// Get the queue filename
+  String getQueueFilename();
+}
 
 /// Main repository class that serves as an entry point to the database operations
 /// This class maintains backward compatibility with the original implementation
 class Repository extends OfflineFirstWithSupabaseRepository {
   static Repository? _singleton;
   static final _logger = Logger('Repository');
+  static DatabaseConfigStorage? _configStorage;
 
   // Managers for different responsibilities
   late final BackupManager _backupManager;
   late final DatabaseManager _databaseManager;
   late final QueueManager _queueManager;
+
+  /// Set the storage for database configuration
+  static void setConfigStorage(DatabaseConfigStorage storage) {
+    _configStorage = storage;
+    _logger.info('Database configuration storage set');
+    _logger.info('Using database filename: ${dbFileName}');
+    _logger.info('Using queue filename: ${queueName}');
+  }
+
+  // Get the database filename from storage or use default
+  static String get dbFileName => 
+      _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
+
+  // Get the queue filename from storage or use default
+  static String get queueName => 
+      _configStorage?.getQueueFilename() ?? defaultQueueName;
+
+  // The setConfigStorage method is already defined above
 
   Repository._({
     required super.supabaseProvider,

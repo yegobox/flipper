@@ -1,5 +1,5 @@
 import 'package:flipper_services/ai_strategy.dart';
-import 'package:flipper_services/abstractions/storage.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
 abstract class BaseSyncInterface extends AiStrategy {
   Future<void> startReplicator();

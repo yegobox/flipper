@@ -21,12 +21,11 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
 import 'abstractions/analytic.dart' as _i271;
-import 'abstractions/dynamic_link.dart' as _i0;
 import 'abstractions/location.dart' as _i299;
 import 'abstractions/printer.dart' as _i289;
 import 'abstractions/remote.dart' as _i172;
 import 'abstractions/shareable.dart' as _i23;
-import 'abstractions/storage.dart' as _i740;
+import 'package:supabase_models/brick/repository/storage.dart' as _i740;
 import 'abstractions/system_time.dart' as _i703;
 import 'abstractions/upload.dart' as _i103;
 import 'app_service.dart' as _i403;

@@ -27,6 +27,11 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 // Generated in previous step
 import 'amplifyconfiguration.dart';
 
+// Import for database configuration
+import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/repository/storage_adapter.dart';
+import 'package:supabase_models/brick/repository/local_storage.dart';
+
 Future<void> _configureAmplify() async {
   // Add any Amplify plugins you want to use
   final authPlugin = cognito.AmplifyAuthCognito();
@@ -64,6 +69,27 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
+/// Initialize the database configuration with LocalStorage
+/// This connects the LocalStorage implementation with the Repository
+/// to provide configurable database filenames
+Future<void> initializeDatabaseConfig() async {
+  // Initialize the shared preferences storage
+  final localStorage = await SharedPreferenceStorage().initializePreferences();
+
+  // Create an adapter that connects LocalStorage to Repository
+  final storageAdapter = StorageAdapter(
+    getDatabaseFilename: () => localStorage.getDatabaseFilename(),
+    getQueueFilename: () => localStorage.getQueueFilename(),
+  );
+
+  // Set the storage adapter in the Repository class
+  Repository.setConfigStorage(storageAdapter);
+
+  // Log the configured database filenames
+  print('Database configured with main DB: ${Repository.dbFileName}');
+  print('Database configured with queue DB: ${Repository.queueName}');
+}
+
 Future<void> initializeDependencies() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -74,6 +100,10 @@ Future<void> initializeDependencies() async {
   } else if (kIsWeb) {
     databaseFactoryOrNull = databaseFactoryFfiWeb;
   }
+
+  // Initialize the database configuration with LocalStorage
+  await initializeDatabaseConfig();
+
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   if (!kIsWeb) {

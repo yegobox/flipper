@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flipper_services/abstractions/storage.dart';
 
 abstract class StorageInterface {
   Future<Stream<double>> downloadAsset({

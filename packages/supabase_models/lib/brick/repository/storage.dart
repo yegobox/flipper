@@ -75,4 +75,18 @@ abstract class LocalStorage {
   String stockInOutType();
   String defaultCurrency();
   bool lockPatching();
+
+  /// Returns the main database filename
+  /// Default is 'flipper_v17.sqlite'
+  String getDatabaseFilename();
+
+  /// Sets the main database filename
+  Future<void> setDatabaseFilename(String filename);
+
+  /// Returns the queue database filename
+  /// Default is 'brick_offline_queue_v17.sqlite'
+  String getQueueFilename();
+
+  /// Sets the queue database filename
+  Future<void> setQueueFilename(String filename);
 }

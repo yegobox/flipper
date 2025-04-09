@@ -36,10 +36,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
 import 'dart:async';
-import 'package:flipper_services/abstractions/storage.dart' as storage;
+import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flipper_models/exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:supabase_models/brick/repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/power_sync/schema.dart';
 import 'package:supabase_models/brick/databasePath.dart';
@@ -55,7 +56,6 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -2153,7 +2153,7 @@ class CoreSync extends AiStrategyImpl
         'tinNumber': business?.tinNumber,
         'encryptionKey': ProxyService.box.encryptionKey(),
         'dbPath':
-            path.join((await DatabasePath.getDatabaseDirectory()), dbFileName),
+            path.join((await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
       });
     } catch (e, s) {
       talker.error(e, s);
