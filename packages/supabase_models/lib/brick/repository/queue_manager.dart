@@ -1,3 +1,4 @@
+// ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
 import 'package:brick_offline_first/offline_queue.dart';
 
