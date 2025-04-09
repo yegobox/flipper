@@ -255,7 +255,16 @@ class BackupManager {
       {Duration minInterval = const Duration(minutes: 20),
       DatabaseFactory? dbFactory}) async {
     // Skip for web or if the database doesn't exist
-    if (kIsWeb || !await File(dbPath).exists()) {
+    if (kIsWeb) {
+      return false;
+    }
+    
+    try {
+      if (!await File(dbPath).exists()) {
+        return false;
+      }
+    } catch (e) {
+      _logger.warning('Error checking if database exists: $e');
       return false;
     }
 
@@ -271,20 +280,49 @@ class BackupManager {
     if (_lastBackupTime != null) {
       final timeSinceLastBackup = now.difference(_lastBackupTime!);
       if (timeSinceLastBackup < minInterval) {
-        _logger.fine(
+        _logger.info(
             'Skipping backup: last backup was ${timeSinceLastBackup.inMinutes} minutes ago');
         return false;
       }
     }
 
+    // Set a flag to prevent concurrent backups
+    _isBackupInProgress = true;
+    
     try {
-      await createVersionedBackup(dbPath, dbFactory: dbFactory);
-      _lastBackupTime = now;
-      _logger.info('Periodic backup created successfully');
-      return true;
+      // Use file copying as a safer alternative when we're doing periodic backups
+      // This avoids potential database_closed errors from opening the database
+      final directory = dirname(dbPath);
+      final filename = basename(dbPath);
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final backupPath = join(directory, '${filename}_backup_$timestamp');
+      
+      try {
+        await File(dbPath).copy(backupPath);
+        _logger.info('Created periodic backup via file copy: $backupPath');
+        await cleanupOldBackups(directory, filename);
+        _lastBackupTime = now;
+        return true;
+      } catch (e) {
+        // If direct file copy fails, try the more complex approach with dbFactory
+        _logger.warning('File copy backup failed, trying alternative method: $e');
+        
+        if (dbFactory != null) {
+          await createVersionedBackup(dbPath, dbFactory: dbFactory);
+          _lastBackupTime = now;
+          _logger.info('Periodic backup created successfully via alternative method');
+          return true;
+        } else {
+          _logger.warning('Cannot perform backup: both methods failed');
+          return false;
+        }
+      }
     } catch (e) {
       _logger.warning('Error during periodic backup: $e');
       return false;
+    } finally {
+      // Always reset the backup flag
+      _isBackupInProgress = false;
     }
   }
 }

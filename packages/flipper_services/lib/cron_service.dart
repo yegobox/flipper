@@ -386,10 +386,23 @@ class CronService {
   }
 
   /// Performs a periodic database backup if enough time has passed since the last backup
+  /// Uses a more resilient approach to handle potential database closure issues
   Future<void> _performPeriodicDatabaseBackup() async {
+    // Skip backup during active transactions to avoid conflicts
+    if (ProxyService.box.transactionInProgress()) {
+      talker.info('Skipping database backup: transaction in progress');
+      return;
+    }
+    
     try {
+      // Add a small delay to allow any pending database operations to complete
+      await Future.delayed(const Duration(milliseconds: 500));
+      
       // Call the performPeriodicBackup method on the Repository instance
-      final result = await repo.Repository().performPeriodicBackup();
+      final result = await repo.Repository().performPeriodicBackup(
+        // Use a longer interval to reduce backup frequency
+        minInterval: const Duration(minutes: 30)
+      );
 
       if (result == true) {
         talker.info('Periodic database backup completed successfully');
@@ -399,6 +412,7 @@ class CronService {
       }
     } catch (e, stackTrace) {
       talker.error('Error during periodic database backup: $e', stackTrace);
+      // Don't retry immediately if there was an error
     }
   }
 

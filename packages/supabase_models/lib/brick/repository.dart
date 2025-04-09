@@ -352,22 +352,38 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return false;
     }
     
+    // Add a small delay to allow any pending operations to complete
+    await Future.delayed(const Duration(milliseconds: 100));
+    
     try {
-      final dbPath = join(await DatabasePath.getDatabaseDirectory(), dbFileName);
+      // Get the database directory and path
+      final directory = await DatabasePath.getDatabaseDirectory();
+      final dbPath = join(directory, dbFileName);
+      
+      // Verify the database file exists before attempting backup
+      if (!await File(dbPath).exists()) {
+        _logger.info('Database file does not exist, skipping backup');
+        return false;
+      }
       
       // Get the database factory to ensure transaction-safe backups
       final dbFactory = PlatformHelpers.getDatabaseFactory();
       
-      // Check if there are any active transactions before proceeding
-      // We can still do a backup during transactions, but we'll use the transaction-safe approach
-      final result = await _backupManager.performPeriodicBackup(
-        dbPath, 
-        minInterval: minInterval,
-        dbFactory: dbFactory
-      );
-      return result;
+      // Use a try-catch block specifically for the backup operation
+      try {
+        final result = await _backupManager.performPeriodicBackup(
+          dbPath, 
+          minInterval: minInterval,
+          dbFactory: dbFactory
+        );
+        return result;
+      } catch (e) {
+        // Log the specific backup error but don't rethrow
+        _logger.warning('Backup operation failed: $e');
+        return false;
+      }
     } catch (e) {
-      _logger.warning('Error during periodic database backup: $e');
+      _logger.warning('Error during periodic database backup setup: $e');
       return false;
     }
   }
