@@ -102,6 +102,23 @@ class CronService {
 
   /// Sets up all periodic tasks with appropriate error handling
   void _setupPeriodicTasks() {
+    // Setup transaction refresh timer (every 10 minutes)
+    // This ensures reports have the latest data from all machines
+    _activeTimers.add(Timer.periodic(Duration(minutes: 10), (Timer t) async {
+      try {
+        final branchId = ProxyService.box.getBranchId();
+        if (branchId != null) {
+          talker.info("Refreshing transactions for reports");
+          await ProxyService.strategy
+              .transactions(branchId: branchId, fetchRemote: true);
+        } else {
+          talker.warning("Skipping transaction refresh: Branch ID is null");
+        }
+      } catch (e) {
+        talker.error("Transaction refresh failed: $e");
+      }
+    }));
+
     // Setup counter synchronization timer
     _activeTimers.add(
         Timer.periodic(Duration(minutes: _counterSyncMinutes), (Timer t) async {
