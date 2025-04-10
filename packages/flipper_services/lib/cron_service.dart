@@ -30,6 +30,7 @@ class CronService {
   static const int _isolateMessageSeconds = 40;
   static const int _analyticsSyncMinutes = 1;
   static const int _databaseBackupMinutes = 5;
+  static const int _queueCleanupMinutes = 10;
 
   /// Schedules various tasks and timers to handle data synchronization, device publishing,
   /// and other periodic operations.
@@ -155,6 +156,16 @@ class CronService {
         await _performPeriodicDatabaseBackup();
       } catch (e, stackTrace) {
         talker.error("Periodic database backup failed: $e", stackTrace);
+      }
+    }));
+    
+    // Setup periodic failed queue cleanup timer
+    _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
+        (Timer t) async {
+      try {
+        await _cleanupFailedQueue();
+      } catch (e, stackTrace) {
+        talker.error("Failed queue cleanup failed: $e", stackTrace);
       }
     }));
   }
@@ -412,6 +423,33 @@ class CronService {
       }
     } catch (e, stackTrace) {
       talker.error('Error during periodic database backup: $e', stackTrace);
+      // Don't retry immediately if there was an error
+    }
+  }
+
+  /// Performs cleanup of failed queue items
+  /// This removes requests that have failed to sync with Supabase
+  Future<void> _cleanupFailedQueue() async {
+    // Skip cleanup during active transactions to avoid conflicts
+    if (ProxyService.box.transactionInProgress()) {
+      talker.info('Skipping failed queue cleanup: transaction in progress');
+      return;
+    }
+    
+    try {
+      // Add a small delay to allow any pending operations to complete
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Call the cleanupFailedRequests method on the Repository instance
+      final deletedCount = await repo.Repository().cleanupFailedRequests();
+      
+      if (deletedCount > 0) {
+        talker.info('Failed queue cleanup: Deleted $deletedCount failed requests');
+      } else {
+        talker.info('Failed queue cleanup: No failed requests found');
+      }
+    } catch (e, stackTrace) {
+      talker.error('Error during failed queue cleanup: $e', stackTrace);
       // Don't retry immediately if there was an error
     }
   }

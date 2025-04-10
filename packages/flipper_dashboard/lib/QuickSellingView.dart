@@ -391,7 +391,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       minLines: 1,
       suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
       onChanged: (value) {
-        ProxyService.box.writeString(key: "customerName", value: value);
+        // Store the customer name with the exact key expected by rw_tax.dart
+        ProxyService.box.writeString(key: 'customerName', value: value);
+
+        // For debugging
+        talker.info('Customer name set to: $value');
       },
     );
   }

@@ -139,13 +139,23 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
       });
+      // Log the customer name for debugging
+      talker.info('Customer name from parameter: $customerName');
+      talker.info(
+          'Customer name from storage: ${ProxyService.box.customerName()}');
+
+      // Always use the customer name from ProxyService.box.customerName()
+      // This ensures consistency with what's entered in QuickSellingView
+      final effectiveCustomerName = ProxyService.box.customerName() ?? "N/A";
+      talker.info('Using customer name from storage: $effectiveCustomerName');
+
       final json = {
         "totItemCnt": items.length,
         "tin": tinNumber,
         "bhfId": bhFId,
         "regTyCd": regTyCd,
         "custTin": custTin.isValidTin() ? custTin : "",
-        "custNm": customerName,
+        "custNm": effectiveCustomerName,
         "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
         "ocrnDt": ocrnDt.toYYYMMdd(),
@@ -753,7 +763,22 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "regrNm": transaction.id.substring(0, 5),
       "modrId": transaction.id.substring(0, 5),
       "modrNm": transaction.id.substring(0, 5),
-      "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
+      // Always use the customer name from ProxyService.box.customerName()
+      // This ensures consistency with what's entered in QuickSellingView
+      "custNm": ProxyService.box.customerName() ?? "N/A",
+
+      // Log customer name source for debugging
+      ...(() {
+        final customerName = ProxyService.box.customerName();
+        if (customer?.custNm != null) {
+          talker.info('Using selected customer name: ${customer!.custNm}');
+        } else if (customerName != null) {
+          talker.info('Using manually entered customer name: $customerName');
+        } else {
+          talker.warning('No customer name available, using N/A');
+        }
+        return <String, dynamic>{};
+      }()),
       "remark": "",
       "prchrAcptcYn": "Y",
       "receipt": {

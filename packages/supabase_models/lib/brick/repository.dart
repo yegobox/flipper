@@ -295,6 +295,34 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     await _queueManager.deleteUnprocessedRequests();
   }
 
+  /// Get information about the queue status
+  /// Returns a map with counts of locked (failed) and unlocked (waiting) requests
+  Future<Map<String, int>> getQueueStatus() async {
+    if (kIsWeb) {
+      return {'locked': 0, 'unlocked': 0, 'total': 0};
+    }
+    return await _queueManager.getQueueStatus();
+  }
+
+  /// Delete only failed requests from the queue
+  /// Returns the number of requests deleted
+  Future<int> deleteFailedRequests() async {
+    if (kIsWeb) {
+      return 0;
+    }
+    return await _queueManager.deleteFailedRequests();
+  }
+
+  /// Cleanup failed requests from the queue
+  /// This method is designed to be called from CronService
+  /// Returns the number of failed requests that were cleaned up
+  Future<int> cleanupFailedRequests() async {
+    if (kIsWeb) {
+      return 0;
+    }
+    return await _queueManager.cleanupFailedRequests();
+  }
+
   /// Configure the database for better crash resilience
   Future<void> configureDatabase() async {
     if (kIsWeb || PlatformHelpers.isTestEnvironment()) {

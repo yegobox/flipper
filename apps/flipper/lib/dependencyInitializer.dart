@@ -104,6 +104,9 @@ Future<void> initializeDependencies() async {
   // Initialize the database configuration with LocalStorage
   await initializeDatabaseConfig();
 
+  // Note: Failed queue cleanup is now handled by CronService
+  // See packages/flipper_services/lib/cron_service.dart
+
   // Add any other initialization code here
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   if (!kIsWeb) {
