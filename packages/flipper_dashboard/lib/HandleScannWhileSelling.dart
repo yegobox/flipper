@@ -29,8 +29,35 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
     if (isScanningModeEnabled) {
       if (value.isNotEmpty) {
+        // Show loading indicator immediately to give feedback to the user
+        // This helps with perceived performance, especially on Windows
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 10),
+                  Text('Searching...'),
+                ],
+              ),
+              duration: Duration(milliseconds: 500),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+
         List<Variant> variants = await ProxyService.strategy
             .variants(bcd: value, branchId: ProxyService.box.getBranchId()!);
+
+        // Dismiss the loading indicator if it's still showing
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        }
 
         if (variants.isNotEmpty) {
           if (variants.length == 1) {
@@ -73,15 +100,24 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           return StatefulBuilder(
             builder: (context, setState) {
               void filterVariants(String query) {
+                // Optimize filtering by avoiding unnecessary work when query is empty
+                if (query.isEmpty) {
+                  setState(() {
+                    filteredVariants = List.from(variants);
+                  });
+                  return;
+                }
+
+                // Pre-compute lowercase query for better performance
+                final lowercaseQuery = query.toLowerCase();
+
                 setState(() {
                   filteredVariants = variants
                       .where((variant) =>
-                          variant.name
-                              .toLowerCase()
-                              .contains(query.toLowerCase()) ||
+                          variant.name.toLowerCase().contains(lowercaseQuery) ||
                           (variant.bcd
                                   ?.toLowerCase()
-                                  .contains(query.toLowerCase()) ??
+                                  .contains(lowercaseQuery) ??
                               false))
                       .toList();
                 });

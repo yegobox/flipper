@@ -52,14 +52,22 @@ mixin TransactionMixin implements TransactionInterface {
       );
     }
 
-    final queryString = Query(where: conditions);
+    // Add ordering to fetch transactions with latest createdAt first
+    final queryString = Query(
+      where: conditions,
+      orderBy: [OrderBy('createdAt', ascending: false)],
+    );
 
-    return await repository.get<ITransaction>(
+    // When fetchRemote is true, we need to ensure we're using alwaysHydrate policy
+    // to force fetching fresh data from the remote source
+    final result = await repository.get<ITransaction>(
       policy: fetchRemote
           ? OfflineFirstGetPolicy.alwaysHydrate
           : OfflineFirstGetPolicy.localOnly,
       query: queryString,
     );
+
+    return result;
   }
 
   @override

@@ -93,7 +93,10 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject.debounceTime(const Duration(seconds: 2)).listen((value) {
+          // Reduced debounce time for faster search response
+          // Using a shorter debounce time (300ms) for better user experience
+          // while still avoiding excessive database queries
+          _textSubject.debounceTime(const Duration(milliseconds: 300)).listen((value) {
             processDebouncedValue(value, model, widget.controller);
           });
         },
