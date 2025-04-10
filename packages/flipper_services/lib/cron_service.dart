@@ -29,8 +29,8 @@ class CronService {
   static const int _counterSyncMinutes = 1;
   static const int _isolateMessageSeconds = 40;
   static const int _analyticsSyncMinutes = 1;
-  static const int _databaseBackupMinutes = 5;
-  static const int _queueCleanupMinutes = 10;
+  static const int _databaseBackupMinutes = 30;
+  static const int _queueCleanupMinutes = 40;
 
   /// Schedules various tasks and timers to handle data synchronization, device publishing,
   /// and other periodic operations.
@@ -158,7 +158,7 @@ class CronService {
         talker.error("Periodic database backup failed: $e", stackTrace);
       }
     }));
-    
+
     // Setup periodic failed queue cleanup timer
     _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
         (Timer t) async {
@@ -404,16 +404,15 @@ class CronService {
       talker.info('Skipping database backup: transaction in progress');
       return;
     }
-    
+
     try {
       // Add a small delay to allow any pending database operations to complete
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // Call the performPeriodicBackup method on the Repository instance
       final result = await repo.Repository().performPeriodicBackup(
-        // Use a longer interval to reduce backup frequency
-        minInterval: const Duration(minutes: 30)
-      );
+          // Use a longer interval to reduce backup frequency
+          minInterval: const Duration(minutes: 30));
 
       if (result == true) {
         talker.info('Periodic database backup completed successfully');
@@ -435,16 +434,17 @@ class CronService {
       talker.info('Skipping failed queue cleanup: transaction in progress');
       return;
     }
-    
+
     try {
       // Add a small delay to allow any pending operations to complete
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // Call the cleanupFailedRequests method on the Repository instance
       final deletedCount = await repo.Repository().cleanupFailedRequests();
-      
+
       if (deletedCount > 0) {
-        talker.info('Failed queue cleanup: Deleted $deletedCount failed requests');
+        talker.info(
+            'Failed queue cleanup: Deleted $deletedCount failed requests');
       } else {
         talker.info('Failed queue cleanup: No failed requests found');
       }
