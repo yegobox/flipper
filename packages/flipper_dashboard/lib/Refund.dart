@@ -59,13 +59,11 @@ class _RefundState extends ConsumerState<Refund> {
                 const SizedBox(height: 32),
                 BoxButton(
                   borderRadius: 1,
-                  title: widget.transaction?.receiptType == "NR" ||
-                          widget.transaction?.receiptType == "CR"
+                  title: widget.transaction?.isRefunded == true
                       ? "Refunded"
                       : "Refund",
-                  color: widget.transaction?.receiptType == "NR" ||
-                          widget.transaction?.receiptType == "CR"
-                      ? Colors.green
+                  color: widget.transaction?.isRefunded == true
+                      ? Colors.red
                       : null,
                   busy: isRefundProcessing,
                   onTap: () async {
