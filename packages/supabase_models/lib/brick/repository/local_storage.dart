@@ -105,9 +105,20 @@ class SharedPreferenceStorage implements LocalStorage {
 
       // Load preferences from file
       await _loadPreferences();
+      
+      // Ensure the file exists by saving the current cache (even if empty)
+      // This is critical for fresh installs
+      await _savePreferences();
     } catch (e) {
       // If there's an error, start with an empty cache
       _cache = {};
+      
+      // Try to create the file anyway
+      try {
+        await _savePreferences();
+      } catch (saveError) {
+        // Ignore errors during recovery attempt
+      }
     }
 
     return this;
@@ -183,7 +194,14 @@ class SharedPreferenceStorage implements LocalStorage {
       // Create a backup after successful write
       await file.copy(_backupFilePath);
     } catch (e) {
-      // Silently ignore save errors
+      // If the rename fails, try a direct write approach as fallback
+      try {
+        final file = File(_filePath);
+        await file.writeAsString(jsonEncode(_cache), flush: true);
+      } catch (directWriteError) {
+        // Log the error but continue execution
+        print('Error writing preferences file: $directWriteError');
+      }
     }
   }
 

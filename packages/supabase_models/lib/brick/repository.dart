@@ -22,6 +22,7 @@ import 'repository/backup_manager.dart';
 import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
+import 'repository/local_storage.dart';
 
 // Default values that will be used if LocalStorage is not available
 const defaultDbFileName = 'flipper_v17.sqlite';
@@ -44,6 +45,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static Repository? _singleton;
   static final _logger = Logger('Repository');
   static DatabaseConfigStorage? _configStorage;
+  static SharedPreferenceStorage? _sharedPreferenceStorage;
 
   // Managers for different responsibilities
   late final BackupManager _backupManager;
@@ -56,6 +58,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _logger.info('Database configuration storage set');
     _logger.info('Using database filename: ${dbFileName}');
     _logger.info('Using queue filename: ${queueName}');
+  }
+
+  /// Get the shared preference storage instance
+  static Future<SharedPreferenceStorage> getSharedPreferenceStorage() async {
+    if (_sharedPreferenceStorage == null) {
+      _logger.info('Initializing SharedPreferenceStorage');
+      final storage = SharedPreferenceStorage();
+      _sharedPreferenceStorage = await storage.initializePreferences() as SharedPreferenceStorage;
+      _logger.info('SharedPreferenceStorage initialized successfully');
+    }
+    return _sharedPreferenceStorage!;
   }
 
   // Get the database filename from storage or use default
@@ -103,6 +116,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String supabaseAnonKey,
     required DatabaseFactory databaseFactoryToUse,
   }) async {
+    // Initialize SharedPreferenceStorage first to ensure it's available
+    await getSharedPreferenceStorage();
+
     String dbPath;
     String queuePath;
 
@@ -320,6 +336,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb) {
       return 0;
     }
+    
+    // Check if queue manager is properly initialized
+    try {
+      // This will throw an exception if not properly initialized
+      await _queueManager.getQueueStatus();
+    } catch (e) {
+      _logger.warning('Queue manager not fully initialized, skipping cleanup: $e');
+      return 0;
+    }
+    
     return await _queueManager.cleanupFailedRequests();
   }
 
