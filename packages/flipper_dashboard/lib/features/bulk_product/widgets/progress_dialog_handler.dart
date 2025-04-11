@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:supabase_models/brick/models/ProgressData.dart';
@@ -23,9 +24,9 @@ class ProgressDialogHandler extends StatelessWidget {
 
   static Future<void> showProgressDialog(
     BuildContext context,
-    Future<void> Function(ValueNotifier<ProgressData>) savingFunction,
-    {VoidCallback? onComplete,}
-  ) async {
+    Future<void> Function(ValueNotifier<ProgressData>) savingFunction, {
+    VoidCallback? onComplete,
+  }) async {
     final progressNotifier = ValueNotifier<ProgressData>(
       ProgressData(progress: '', currentItem: 0, totalItems: 0),
     );
@@ -59,7 +60,9 @@ class ProgressDialogHandler extends StatelessWidget {
       await Future.delayed(const Duration(milliseconds: 500));
       Navigator.of(context).pop();
       onComplete?.call();
-    } catch (e) {
+    } catch (e, s) {
+      talker.error('Error saving items: $e', s);
+
       Navigator.of(context).pop();
       rethrow;
     }
