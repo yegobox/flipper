@@ -30,8 +30,11 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'amplifyconfiguration.dart';
 
 // Import for database configuration
+// ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository.dart';
+// ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/storage_adapter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/local_storage.dart';
 
 Future<void> _configureAmplify() async {
