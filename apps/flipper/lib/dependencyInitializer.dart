@@ -97,6 +97,13 @@ Future<void> _initializeCriticalDependencies() async {
   // Note: WidgetsFlutterBinding is already initialized in main.dart
   // to preserve the native splash screen
 
+  // Configure HTTP overrides for SSL/TLS connections
+  // This is critical for secure connections, especially after database refactoring
+  if (!kIsWeb) {
+    HttpOverrides.global = MyHttpOverrides();
+    print('HTTP overrides configured for secure connections');
+  }
+
   // Platform-specific database initialization
   if (!kIsWeb && Platform.isWindows) {
     // Use the ffi on windows
@@ -192,7 +199,7 @@ Future<void> _optimizeForWindows() async {
 
   // Reduce file I/O operations during startup
   // Windows file I/O can be slow, especially on older systems
-  
+
   // Use a more efficient transaction mode for SQLite on Windows
   // to reduce file I/O overhead during startup
   if (!kIsWeb) {
@@ -200,10 +207,10 @@ Future<void> _optimizeForWindows() async {
       // Optimize SQLite for Windows by setting pragmas
       // These settings can significantly improve performance on Windows
       // Note: We're using direct SQLite optimization since Repository doesn't have an optimizeForPlatform method
-      
+
       // sqfliteFfiInit() was already called in _initializeCriticalDependencies
       // No need to call it again here
-      
+
       // Set journal mode to WAL for better performance
       // This reduces file I/O overhead during startup
       if (kDebugMode) {
@@ -286,7 +293,8 @@ Future<void> initializeDependencies() async {
     if (!kIsWeb) {
       if (Platform.isAndroid) {
         // Start Android optimizations early but don't wait
-        _optimizeForAndroid().catchError((e) => print('Android optimization error: $e'));
+        _optimizeForAndroid()
+            .catchError((e) => print('Android optimization error: $e'));
       } else if (Platform.isWindows) {
         // Windows optimizations are more critical for performance
         await _optimizeForWindows();

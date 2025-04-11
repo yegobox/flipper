@@ -46,22 +46,25 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
         backgroundColor: Theme.of(context).canvasColor,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SearchField(
-                  controller: searchController,
-                  showAddButton: true,
-                  showDatePicker: false,
-                  showIncomingButton: true,
-                  showOrderButton: true,
-                ),
+        // Use Column with Expanded to provide bounded height constraints
+        child: Column(
+          children: [
+            // Search field at the top (not flexible)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SearchField(
+                controller: searchController,
+                showAddButton: true,
+                showDatePicker: false,
+                showIncomingButton: true,
+                showOrderButton: true,
               ),
-              ProductView.normalMode(),
-            ],
-          ),
+            ),
+            // Product view takes remaining space with bounded height
+            Expanded(
+              child: ProductView.normalMode(),
+            ),
+          ],
         ),
       ),
     );
