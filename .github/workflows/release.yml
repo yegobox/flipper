@@ -140,6 +140,7 @@ jobs:
           entryPoint: apps/flipper # This should point to the directory containing firebase.json and the build output (usually build/web within the app)
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
+          channelId: pr-${{ github.event.pull_request.number }}
           projectId: yegobox-2ee43
   integration-testing-windows:
     name: "Integration Testing Windows"
