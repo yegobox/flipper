@@ -14,6 +14,80 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+/// A loading app that shows immediately while dependencies are initializing
+class FlipperLoadingApp extends StatelessWidget {
+  const FlipperLoadingApp({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textTheme: GoogleFonts.poppinsTextTheme(),
+        brightness: Brightness.light,
+        primaryColor: const Color(0xFF00C2E8),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00C2E8),
+          primary: const Color(0xFF00C2E8),
+        ),
+      ),
+      home: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Logo/Title with a subtle scaling animation
+              AnimatedContainer(
+                duration: const Duration(seconds: 1),
+                curve: Curves.easeInOut,
+                transform: Matrix4.identity()..scale(1.1),
+                child: Text(
+                  'Flipper',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black87,
+                    fontSize: 42,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Loading description with a fade-in effect
+              AnimatedOpacity(
+                opacity: 1.0,
+                duration: const Duration(milliseconds: 800),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Loading...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            const Color(0xFF00C2E8).withOpacity(0.7)),
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 // Flag to control dependency initialization in tests
 bool skipDependencyInitialization = false;
@@ -21,6 +95,13 @@ bool skipDependencyInitialization = false;
 // net info: billers
 //1.1.14
 Future<void> main() async {
+  // Ensure Flutter binding is initialized first so we can show a loading UI immediately
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Show the app with a loading indicator while dependencies initialize
+  runApp(const FlipperLoadingApp());
+
+  // Initialize dependencies in the background
   if (!skipDependencyInitialization) {
     await initializeDependencies();
   }

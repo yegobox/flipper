@@ -26,28 +26,31 @@ class AndroidNotifications extends BaseNotifications {
   @override
   Future<void> initialize() async {
     await super.initialize();
-    
-    const initSettingsAndroid = AndroidInitializationSettings('app_icon');
-    
+
+    const initSettingsAndroid = AndroidInitializationSettings('flipper_logo');
+
     final initSettings = InitializationSettings(
       android: initSettingsAndroid,
     );
 
     await notificationsPlugin.initialize(
       initSettings,
-      onDidReceiveBackgroundNotificationResponse: notificationBackgroundCallback,
+      onDidReceiveBackgroundNotificationResponse:
+          notificationBackgroundCallback,
       onDidReceiveNotificationResponse: notificationCallback,
     );
   }
 
   @override
   Future<bool?> requestPermission() async {
-    final androidPlugin = notificationsPlugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin =
+        notificationsPlugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin == null) return false;
 
-    permissionGranted = await androidPlugin.requestNotificationsPermission() ?? false;
+    permissionGranted =
+        await androidPlugin.requestNotificationsPermission() ?? false;
     return permissionGranted;
   }
 
@@ -79,7 +82,8 @@ class AndroidNotifications extends BaseNotifications {
   }
 
   Future<void> _scheduleNotificationMobile(Notification notification) async {
-    final conversation = IConversation.fromJson(jsonDecode(notification.payload!));
+    final conversation =
+        IConversation.fromJson(jsonDecode(notification.payload!));
 
     final createdAt = conversation.createdAt;
     if (createdAt == null) {
