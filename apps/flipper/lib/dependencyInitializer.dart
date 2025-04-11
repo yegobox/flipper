@@ -339,5 +339,5 @@ Future<void> initializeDependenciesForTest() async {
 
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
-  // setupBottomSheetUi();
+  setupBottomSheetUi();
 }

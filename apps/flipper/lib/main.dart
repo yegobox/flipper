@@ -65,29 +65,28 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Initialize Firebase first as critical services depend on it
-  await _initializeFirebase();
-
-  // Initialize Supabase next as Repository depends on it
-  await _initializeSupabase();
-
-  // Initialize critical UI-related services
-  loc.setupLocator(stackedRouter: stackedRouter);
-  setupDialogUi();
-  setupBottomSheetUi();
-  
-  // Initialize minimal dependencies required for UI
-  await initDependencies();
-
   // Initialize the rest of the dependencies in the background
   // while showing the UI to the user
   if (!skipDependencyInitialization) {
+    // Initialize Firebase first as critical services depend on it
+    await _initializeFirebase();
+
+    // Initialize Supabase next as Repository depends on it
+    await _initializeSupabase();
+
+    // Initialize critical UI-related services
+    loc.setupLocator(stackedRouter: stackedRouter);
+    setupDialogUi();
+    setupBottomSheetUi();
+
+    // Initialize minimal dependencies required for UI
+    await initDependencies();
     // Start initialization but don't block UI
     initializeDependencies().then((_) {
       print('All dependencies initialized');
     });
   }
-  
+
   await SentryFlutter.init(
     (options) => options
       ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey
