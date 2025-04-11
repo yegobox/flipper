@@ -147,17 +147,15 @@ class WindowsNotifications extends BaseNotifications {
   }
 
   Future<void> _setNotificationBadgeWindowsTaskbar(int count) async {
-    final icon = (count > 0)
-        ? 'assets/icons/windows_with_badge.ico'
-        : 'assets/icons/windows.ico';
+    final icon =
+        (count > 0) ? 'assets/windows_with_badge.ico' : 'assets/windows.ico';
 
     await windowManager.setIcon(icon);
   }
 
   Future<void> _setNotificationBadgeWindowsSystemTray(int count) async {
-    final icon = (count > 0)
-        ? 'assets/icons/windows_with_badge.ico'
-        : 'assets/icons/windows.ico';
+    final icon =
+        (count > 0) ? 'assets/windows_with_badge.ico' : 'assets/windows.ico';
 
     await SystemTrayManager.instance.setIcon(icon);
   }
