@@ -9,7 +9,8 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
+import 'package:flipper_services/notifications/notification_manager.dart';
+
 // import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
@@ -189,11 +190,10 @@ Future<void> initializeDependencies() async {
   );
   setupDialogUi();
   setupBottomSheetUi();
-  // await openDatabase();
 
   ///Will switch to localNotification when it support windows
   if (!isWeb && !isWindows) {
-    await NotificationsCubit.initialize(
+    await NotificationManager.create(
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );
   }

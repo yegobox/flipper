@@ -14,6 +14,3 @@ export 'models/models.dart';
 
 // Utils
 export 'utils/notification_utils.dart';
-
-// Legacy support (will be deprecated)
-export 'cubit/notifications_cubit.dart' hide notificationResponseStream;

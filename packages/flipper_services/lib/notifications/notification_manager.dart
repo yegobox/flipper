@@ -11,7 +11,6 @@ import 'platforms/linux_notifications.dart';
 import 'platforms/web_notifications.dart';
 import 'platforms/windows_notifications.dart';
 
-
 /// A stream that emits a notification response when the user taps on a notification.
 final StreamController<NotificationResponse> notificationResponseStream =
     StreamController.broadcast();
