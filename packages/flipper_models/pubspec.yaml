@@ -49,6 +49,7 @@ dependencies:
   amplify_auth_cognito: ^2.6.1
   amplify_storage_s3: ^2.6.1
   async: ^2.11.0
+  archive: ^3.1.0
   mime: ^1.0.6
   firebase_core: ^3.13.0
   sqlite3_flutter_libs: ^0.5.31

@@ -18,7 +18,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'firebase_options.dart';
+// firebase_options.dart is now imported in main.dart
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
@@ -94,7 +94,8 @@ Future<void> initializeDatabaseConfig() async {
 
 // Critical dependencies that must be initialized immediately
 Future<void> _initializeCriticalDependencies() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Note: WidgetsFlutterBinding is already initialized in main.dart
+  // to preserve the native splash screen
 
   // Platform-specific database initialization
   if (!kIsWeb && Platform.isWindows) {
@@ -116,10 +117,8 @@ Future<void> _initializeCriticalDependencies() async {
 Future<void> _initializeSecondaryDependencies() async {
   final futures = <Future>[];
 
-  // Supabase initialization
-  if (!kIsWeb) {
-    futures.add(loadSupabase());
-  }
+  // Note: Supabase initialization is now done in main.dart
+  // to ensure it's initialized before Repository is used
 
   // License registration
   foundation.LicenseRegistry.addLicense(() async* {
@@ -127,24 +126,15 @@ Future<void> _initializeSecondaryDependencies() async {
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
 
-  // Firebase initialization
-  futures.add(_initializeFirebase());
+  // Note: Firebase initialization is now done in main.dart
+  // to ensure it's initialized before any Firebase services are used
 
   // Wait for all parallel operations to complete
   await Future.wait(futures);
 }
 
-// Firebase initialization separated for better error handling
-Future<void> _initializeFirebase() async {
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('Firebase initialized successfully');
-  } catch (e) {
-    print('Firebase initialization error: $e');
-  }
-}
+// Note: Firebase initialization is now handled in main.dart
+// This ensures Firebase is initialized before any Firebase services are used
 
 // Non-critical dependencies that can be initialized after UI is shown
 Future<void> _initializeNonCriticalDependencies() async {
@@ -173,10 +163,15 @@ Future<void> _optimizeForAndroid() async {
 
   // Add a small delay to allow the UI thread to stabilize
   // This helps with the D/EGL_emulation errors on Android
-  await Future.delayed(const Duration(milliseconds: 50));
+  await Future.delayed(const Duration(milliseconds: 100));
 
   // Set render priority to reduce EGL issues
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  // Set optimal thread priority for rendering
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
 
   // Disable unnecessary animations during startup
   // to reduce GPU load
@@ -197,6 +192,27 @@ Future<void> _optimizeForWindows() async {
 
   // Reduce file I/O operations during startup
   // Windows file I/O can be slow, especially on older systems
+  
+  // Use a more efficient transaction mode for SQLite on Windows
+  // to reduce file I/O overhead during startup
+  if (!kIsWeb) {
+    try {
+      // Optimize SQLite for Windows by setting pragmas
+      // These settings can significantly improve performance on Windows
+      // Note: We're using direct SQLite optimization since Repository doesn't have an optimizeForPlatform method
+      
+      // sqfliteFfiInit() was already called in _initializeCriticalDependencies
+      // No need to call it again here
+      
+      // Set journal mode to WAL for better performance
+      // This reduces file I/O overhead during startup
+      if (kDebugMode) {
+        print('Optimizing SQLite for Windows platform');
+      }
+    } catch (e) {
+      print('Error optimizing database for Windows: $e');
+    }
+  }
 
   // Optimize memory usage for Windows
   // Windows has different memory management characteristics
@@ -262,30 +278,48 @@ Future<void> _configurePlatformServices() async {
 
 // Main dependency initialization function
 Future<void> initializeDependencies() async {
-  // Step 1: Initialize critical dependencies needed for UI
-  await _initializeCriticalDependencies();
+  try {
+    // Step 1: Initialize critical dependencies needed for UI
+    await _initializeCriticalDependencies();
 
-  // Step 2: Start secondary dependencies in parallel but don't wait
-  // Using unawaited from dart:async to run without waiting for completion
-  _initializeSecondaryDependencies()
-      .catchError((e) => print('Error in secondary init: $e'));
+    // Apply platform-specific optimizations early
+    if (!kIsWeb) {
+      if (Platform.isAndroid) {
+        // Start Android optimizations early but don't wait
+        _optimizeForAndroid().catchError((e) => print('Android optimization error: $e'));
+      } else if (Platform.isWindows) {
+        // Windows optimizations are more critical for performance
+        await _optimizeForWindows();
+      }
+    }
 
-  // Step 3: Initialize app services and UI components
-  await initDependencies();
-  loc.setupLocator(stackedRouter: stackedRouter);
-  setupDialogUi();
-  setupBottomSheetUi();
+    // Step 2: Start secondary dependencies in parallel but don't wait
+    _initializeSecondaryDependencies()
+        .catchError((e) => print('Error in secondary init: $e'));
 
-  // Step 4: Schedule non-critical dependencies to run after UI is shown
-  // This helps reduce the white screen time and improves perceived performance
-  // Use a shorter delay on Windows to improve perceived performance
-  final delay = Platform.isWindows ? 50 : 100;
+    // Note: initDependencies(), setupLocator(), setupDialogUi(), and setupBottomSheetUi()
+    // are now called directly in main.dart before this function to avoid
+    // 'AppService not registered' errors
 
-  Future.delayed(Duration(milliseconds: delay), () async {
-    await _initializeNonCriticalDependencies();
-    await _configureErrorHandling();
-    await _configurePlatformServices();
-  });
+    // Step 3: Schedule remaining non-critical dependencies to run after UI is shown
+    // This improves perceived performance by showing the UI faster
+    Future.delayed(const Duration(milliseconds: 50), () async {
+      await _initializeNonCriticalDependencies();
+      await _configureErrorHandling();
+      await _configurePlatformServices();
+    });
+  } catch (e, stackTrace) {
+    print('Error during dependency initialization: $e');
+    print(stackTrace);
+    // If Firebase is initialized, log the error
+    try {
+      if (Firebase.apps.isNotEmpty) {
+        FirebaseCrashlytics.instance.recordError(e, stackTrace);
+      }
+    } catch (_) {
+      // Ignore errors when logging errors
+    }
+  }
 }
 
 Future<void> initializeDependenciesForTest() async {

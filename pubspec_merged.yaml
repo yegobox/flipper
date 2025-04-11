@@ -233,7 +233,7 @@ dependencies:
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
   web: ^1.1.0
-  archive: ^3.1.0
+  archive: ^3.6.1
   bidi: ^2.0.10
   crypto: ^3.0.0
   path_parsing: ">=0.2.0 <2.0.0"
