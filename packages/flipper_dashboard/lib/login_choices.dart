@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -183,6 +183,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   void _handleBusinessSelection(Business business) async {
+    setState(() {
+      _loadingItemId = business.serverId.toString();
+    });
     try {
       await _setDefaultBusiness(business);
       if ((await ProxyService.strategy
@@ -190,8 +193,18 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
               .length ==
           1) {
         _navigateToBranchSelection();
+      } else {
+        setState(() {
+          _selectedBusiness = business;
+        });
       }
-    } finally {}
+    } catch (e) {
+      talker.error('Error handling business selection: $e');
+    } finally {
+      setState(() {
+        _loadingItemId = null;
+      });
+    }
   }
 
   Future<void> _handleBranchSelection(
@@ -218,12 +231,17 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     ref.read(businessSelectionProvider.notifier).setLoading(true);
 
     try {
-      _updateAllBusinessesInactive();
+      // First make all businesses inactive
+      await _updateAllBusinessesInactive();
+      // Then set the selected business as active and default
       await _updateBusinessActive(business);
-      _updateBusinessPreferences(business);
+      // Update preferences
+      await _updateBusinessPreferences(business);
+      // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
     } catch (e) {
       log(e.toString());
+      talker.error('Error setting default business: $e');
     } finally {
       ref.read(businessSelectionProvider.notifier).setLoading(false);
     }
@@ -235,7 +253,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     return Future.value(); // Return a completed Future<void>
   }
 
-  void _updateAllBusinessesInactive() async {
+  Future<void> _updateAllBusinessesInactive() async {
     final businesses = await ProxyService.strategy
         .businesses(userId: ProxyService.box.getUserId()!);
     for (final business in businesses) {

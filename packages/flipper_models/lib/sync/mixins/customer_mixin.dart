@@ -1,5 +1,5 @@
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
@@ -15,7 +15,8 @@ mixin CustomerMixin implements CustomerInterface {
   }
 
   @override
-  Future<List<Customer>> customers({required String id, required int branchId}) async {
+  Future<List<Customer>> customers(
+      {required String id, required int branchId}) async {
     return await repository.get<Customer>(
       query: Query(where: [
         Where('id').isExactly(id),

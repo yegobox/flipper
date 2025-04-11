@@ -217,6 +217,10 @@ extension DoubleExtension on double {
     final factor = pow(10, fractionDigits);
     return (this * factor).round() / factor;
   }
+
+  double roundToTwoDecimalPlaces() {
+    return double.parse(toStringAsFixed(2));
+  }
 }
 
 extension DateOnly on DateTime {
@@ -303,13 +307,13 @@ extension AccessControlWidget on Widget {
 extension PaymentTypeExtension on String {
   String toPaymentType() {
     if (this.contains("MTN")) {
-      return "MOMO-PAY";
+      return "MOMO";
     } else if (this.contains("Card")) {
-      return "CARD-PAY";
+      return "CARD";
     } else if (this.contains("Bank")) {
-      return "BANK-PAY";
+      return "BANK";
     } else if (this.contains("Credit")) {
-      return "Credit-PAY";
+      return "CREDIT";
     }
     return "CASH";
   }

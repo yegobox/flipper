@@ -1,7 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -151,6 +151,11 @@ class _SearchInputWithDropdownState
         branchId: ProxyService.box.getBranchId()!,
       );
       if (customer.isNotEmpty) {
+        ProxyService.box.writeString(
+            key: 'currentSaleCustomerPhoneNumber',
+            value: customer.first.telNo!);
+        ProxyService.box
+            .writeString(key: 'customerName', value: customer.first.custNm!);
         _searchController.text = customer.first.custNm!;
       }
     } else {
@@ -302,6 +307,29 @@ class _SearchInputWithDropdownState
                               ProxyService.box.writeString(
                                   key: 'stockInOutType', value: "11");
                             } else if (newValue == "Incoming Return") {
+                              /// TODO: The retrieved transaction should be marked as pending,
+                              /// making it the new active transaction, while the
+                              /// previously active one is parked. Then, after confirming the return,
+                              /// Final Logic Summary
+                              // ✅ Step 1: User enters receipt number.
+                              // ✅ Step 2: Retrieve transaction & items.
+                              // ✅ Step 3: Park the old transaction and activate the retrieved one (this make it to be current pending transaction).
+                              // ✅ Step 4: User confirms return → Save the return. (The Actions button has become Confirm Return)
+                              // ✅ Step 5: Restore the old pending transaction and update UI. we restore the old pending transaction.
+                              /// Flow->
+                              /// show the modal, for a user to give receipt number
+                              /// query the transaction item, using this given receipt number
+                              /// first retrieve this transaction using ProxyService.strategy.getTransaction(sarNo: 'given receiptnumber',branchId: ProxyService.box.getBranchId()!)
+                              /// then
+                              ///
+                              /// retrieve the items using the above transaction using ProxyService.strategy.transactionItems(transactionId: retrievedTransactionId)
+                              /// mark the item as not done with transaction
+                              /// mark the current pending transaction as parked and save its id temporarily
+                              /// then mark the transaction that has retrieved these item as pending (this make it the active one)
+                              /// change action button from Pay-> confirm return
+                              /// When we are deaking with return only 1 button show and it does not involves payment, it just complete transaction
+                              ///
+                              /// finally save a return.
                               ProxyService.box.writeString(
                                   key: 'stockInOutType', value: "03");
                             }

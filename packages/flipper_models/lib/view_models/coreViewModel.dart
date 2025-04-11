@@ -7,7 +7,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -16,11 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/realm_model_export.dart' as brick;
+import 'package:flipper_models/db_model_export.dart' as brick;
 import 'mixins/all.dart';
 
 class CoreViewModel extends FlipperBaseModel
-    with Properties, SharebleMethods, TransactionMixin {
+    with Properties, SharebleMethods, TransactionMixinOld {
   bool handlingConfirm = false;
   // Stream<List<AppNotification>> get notificationStream => ProxyService.strategy
   //     .notificationStream(identifier: ProxyService.box.getBranchId()!);
@@ -561,13 +561,16 @@ class CoreViewModel extends FlipperBaseModel
       {required String ticketName,
       required String ticketNote,
       required ITransaction transaction}) async {
-    await ProxyService.strategy.updateTransaction(
-      transaction: transaction,
-      status: PARKED,
-      note: ticketNote,
-      ticketName: ticketName,
-      updatedAt: DateTime.now(),
-    );
+    // Only change status to PARKED if we have both ticket name and note
+    if (ticketName.isNotEmpty && ticketNote.isNotEmpty) {
+      await ProxyService.strategy.updateTransaction(
+        transaction: transaction,
+        status: PARKED,
+        note: ticketNote,
+        ticketName: ticketName,
+        updatedAt: DateTime.now(),
+      );
+    }
   }
 
   /// the method return total amount of the transaction to be used in the payment
@@ -752,8 +755,9 @@ class CoreViewModel extends FlipperBaseModel
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = await ProxyService.strategy.getVariant(id: checked);
 
-    await saveTransaction(
+    await ProxyService.strategy.saveTransactionItem(
         partOfComposite: false,
+        doneWithTransaction: false,
         variation: variant!,
         amountTotal: amountTotal,
         customItem: false,
@@ -899,7 +903,8 @@ class CoreViewModel extends FlipperBaseModel
       {required List<Variant> variants,
       required ITransaction pendingTransaction,
       required String pchsSttsCd,
-      Map<String, Variant>? itemMapper}) async {
+      Map<String, Variant>? itemMapper,
+      required Purchase purchase}) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -934,7 +939,11 @@ class CoreViewModel extends FlipperBaseModel
           variant.ebmSynced = false;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
           await _processStockInTransaction(
-              variant, pendingTransaction, business,
+              variant: variant,
+              pendingTransaction: pendingTransaction,
+              business: business,
+              invoiceNumber: purchase.spplrInvcNo,
+              // purchase: purchase,
               //02 is Incoming purchase
               sarTyCd: pchsSttsCd);
         }
@@ -961,7 +970,13 @@ class CoreViewModel extends FlipperBaseModel
                 .updateVariant(updatables: [variantFromPurchase]);
 
             await _processStockInTransaction(
-                variantFromPurchase, pendingTransaction, business,
+                updatableQty: variantFromPurchase.stock!.currentStock!,
+                variant: variant,
+                invoiceNumber: purchase.spplrInvcNo,
+                pendingTransaction: pendingTransaction,
+                business: business,
+                // purchase: purchase,
+
                 //02 is Incoming purchase for both direct and assigned purchases
                 sarTyCd: pchsSttsCd);
           } else {
@@ -1048,49 +1063,61 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(variantToProcess);
     }
 
+    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
+    // "02" is the code for Incoming purchase/import in the system
     await _processStockInTransaction(
-        variantToProcess!, pendingTransaction!, business,
-        sarTyCd: "01");
+        variant: variantToProcess!,
+        pendingTransaction: pendingTransaction!,
+        business: business,
+        invoiceNumber: int.tryParse(variantToProcess.taskCd ?? "") ?? 0,
+        sarTyCd: "02");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
   }
 
   Future<void> _processImportItemSingle(
-    Variant item,
-    Map<String, Variant> variantMap,
+    Variant incomingNewItem,
+    Map<String, Variant> existingItemToUpdate,
     ITransaction? pendingTransaction,
     Business business,
     String URI,
   ) async {
     Variant? variantToProcess;
 
-    if (variantMap.isNotEmpty) {
-      variantToProcess = variantMap[item.id];
+    /// if variant map is not empty, use the existing variant from the map
+    if (existingItemToUpdate.isNotEmpty) {
+      variantToProcess = existingItemToUpdate[incomingNewItem.id]!;
 
-      if (variantToProcess != null) {
-        await _updateVariantStock(
-            item: item, existingVariantToUpdate: variantToProcess);
+      await _updateVariantStock(
+          item: incomingNewItem,
+          existingVariantToUpdate: existingItemToUpdate[incomingNewItem.id]!);
 
-        /// we mark this item as unsend since it's stock has been merged with existing, and also as ebm synced to avoid accidental
-        /// syncing it again.
-        item.imptItemSttsCd = "1"; // 1 means unsend
-        item.ebmSynced = true;
-        await ProxyService.strategy.updateVariant(updatables: [item]);
+      /// we preserve the original status code (3 for approved) and mark as ebm synced to avoid accidental
+      /// syncing it again.
+      incomingNewItem.ebmSynced = true;
+      await ProxyService.strategy.updateVariant(updatables: [incomingNewItem]);
 
-        variantToProcess.ebmSynced = false;
-        await ProxyService.strategy
-            .updateVariant(updatables: [variantToProcess]);
-      }
+      variantToProcess.ebmSynced = false;
+      await ProxyService.strategy.updateVariant(updatables: [variantToProcess]);
     } else {
-      variantToProcess = item;
+      /// we are not mapping save incoming item as new
+      variantToProcess = incomingNewItem;
       await _updateVariant(variantToProcess);
     }
 
+    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
+    // "02" is the code for Incoming purchase/import in the system
     await _processStockInTransaction(
-        variantToProcess!, pendingTransaction!, business,
+        variant: variantToProcess,
+        // variant: incomingNewItem,
+        pendingTransaction: pendingTransaction!,
+        business: business,
+        updatableQty: incomingNewItem.stock!.currentStock,
+        invoiceNumber: int.tryParse(incomingNewItem.taskCd ?? "") ?? 0,
+        // 01 is incoming imports
         sarTyCd: "01");
 
-    await ProxyService.tax.updateImportItems(item: item, URI: URI);
+    await ProxyService.tax.updateImportItems(item: incomingNewItem, URI: URI);
   }
 
   Future<void> _updateVariantStock(
@@ -1105,16 +1132,29 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> _processStockInTransaction(
-      Variant variant, ITransaction pendingTransaction, Business business,
-      {required String sarTyCd}) async {
-    await assignTransaction(
+      {required Variant variant,
+      required ITransaction pendingTransaction,
+      required Business business,
+      required String sarTyCd,
+      Purchase? purchase,
+      int? invoiceNumber,
+      double? updatableQty}) async {
+    await ProxyService.strategy.assignTransaction(
       variant: variant,
+      updatableQty: updatableQty,
+
+      /// we set it done with transaction becase this transaction item will never be marked
+      /// as done with transaction later.
+      doneWithTransaction: true,
+      purchase: purchase,
+      invoiceNumber: invoiceNumber,
       pendingTransaction: pendingTransaction,
       business: business,
       randomNumber: randomNumber(),
       sarTyCd: sarTyCd,
     );
-    await completeTransaction(pendingTransaction: pendingTransaction);
+    await completeTransaction(
+        pendingTransaction: pendingTransaction, sarTyCd: sarTyCd);
   }
 
   Future<void> _updateVariant(Variant variant) async {
@@ -1132,6 +1172,7 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!,
       );
 
+      // Always set to approved (3) regardless of whether there's a selected item to assign
       item.imptItemSttsCd = "3";
       item.taxName = "B";
       item.taxTyCd = "B";

@@ -8,6 +8,8 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PaymentPlanUI extends StatefulWidget {
+  const PaymentPlanUI({Key? key}) : super(key: key);
+
   @override
   _PaymentPlanUIState createState() => _PaymentPlanUIState();
 }
@@ -18,12 +20,73 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   bool _isYearlyPlan = false;
   double _totalPrice = 5000;
   List<String> _additionalServices = [];
+  bool _isCheckingPayment = false;
 
   // Add toggles for additional services
   bool _extraSupport = false;
   bool _taxReporting = false;
   bool _unlimitedBranches = false;
   final paymentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Always check for active payment when this screen is opened
+    // This ensures we return to the app if payment is already active
+    _checkForActivePayment();
+  }
+
+  /// Checks if there's an active payment plan and navigates to the appropriate screen
+  Future<void> _checkForActivePayment() async {
+    if (_isCheckingPayment) return;
+
+    setState(() {
+      _isCheckingPayment = true;
+    });
+
+    try {
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId != null) {
+        // First check if a payment plan exists at all
+        final plan = await ProxyService.strategy.getPaymentPlan(
+          businessId: businessId,
+          fetchRemote: true,
+        );
+        
+        if (plan != null) {
+          // A plan exists, now check if it's active
+          try {
+            await ProxyService.strategy.hasActiveSubscription(
+              businessId: businessId,
+              flipperHttpClient: ProxyService.http,
+              fetchRemote: true,
+            );
+            
+            // If we get here without an exception, there's an active plan
+            talker.info('Active payment plan found, returning to app');
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+            return;
+          } catch (subscriptionError) {
+            // Plan exists but is not active, go to FailedPayment
+            talker.warning('Payment plan exists but is not active: $subscriptionError');
+            locator<RouterService>().navigateTo(FailedPaymentRoute());
+            return;
+          }
+        }
+        // If no plan exists, stay on this screen to create one
+        talker.warning('No payment plan found, staying on payment plan screen');
+      }
+    } catch (e) {
+      // General error, stay on this screen
+      talker.error('Error checking payment status: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCheckingPayment = false;
+        });
+      }
+    }
+  }
 
   void _calculatePrice() {
     setState(() {

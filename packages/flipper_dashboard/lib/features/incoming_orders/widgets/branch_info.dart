@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 
 class BranchInfo extends StatelessWidget {
@@ -42,9 +42,11 @@ class BranchInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBranchInfoRow('From', "${request.branch?.name}", Colors.green[700]!),
+                _buildBranchInfoRow(
+                    'From', "${request.branch?.name}", Colors.green[700]!),
                 SizedBox(height: 8),
-                _buildBranchInfoRow('To', "${incomingBranch.name}", Colors.blue[700]!),
+                _buildBranchInfoRow(
+                    'To', "${incomingBranch.name}", Colors.blue[700]!),
               ],
             ),
           ),

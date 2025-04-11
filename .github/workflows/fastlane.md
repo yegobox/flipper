@@ -9,7 +9,7 @@
 #       - name: Clone Flutter repository with stable channel
 #         uses: subosito/flutter-action@v2
 #         with:
-#           flutter-version: "3.24.3" #firebase_auth_desktop is broken with  3.10.6
+#           flutter-version: "3.29.2" #firebase_auth_desktop is broken with  3.10.6
 #           channel: stable
 #       - run: flutter doctor -v
 

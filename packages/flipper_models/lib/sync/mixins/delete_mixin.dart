@@ -1,6 +1,6 @@
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -21,10 +21,11 @@ mixin DeleteMixin implements DeleteInterface {
       Where('branchId').isExactly(branchId),
       Where('businessId').isExactly(businessId),
     ]);
-    
+
     final result = await repository.get<Product>(query: query);
     return result.firstOrNull;
   }
+
   Future<Variant?> getVariant({required String id});
   Future<Stock?> getStockById({required String id});
   Future<List<Customer>> customers({required String id, required int branchId});

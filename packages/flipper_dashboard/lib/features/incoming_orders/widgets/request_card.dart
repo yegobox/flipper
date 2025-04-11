@@ -3,7 +3,7 @@ import 'package:flipper_dashboard/features/incoming_orders/widgets/branch_info.d
 import 'package:flipper_dashboard/features/incoming_orders/widgets/items_list.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/status_delivery_info.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/action_row.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

@@ -1,11 +1,11 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flutter/material.dart';
 
 class PurchaseCodeFormBloc extends FormBloc<String, String>
-    with TransactionMixin {
+    with TransactionMixinOld {
   final TextFieldBloc purchaseCode = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,

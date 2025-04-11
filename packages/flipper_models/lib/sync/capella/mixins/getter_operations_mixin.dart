@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_services/constants.dart';
@@ -149,16 +149,18 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
     bool isCashOut = false,
+    bool fetchRemote = false,
     String? id,
+    bool isExpense = false,
     FilterType? filterType,
     int? branchId,
-    bool isExpense = false,
+    bool includeZeroSubTotal = false,
     bool includePending = false,
   }) async {
     throw UnimplementedError(

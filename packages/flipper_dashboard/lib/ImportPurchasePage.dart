@@ -3,7 +3,7 @@ import 'package:flipper_dashboard/Imports.dart';
 import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart' as brick;
+import 'package:flipper_models/db_model_export.dart' as brick;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -268,8 +268,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                           selectedItem: _selectedItem,
                           finalItemList: finalItemList,
                           variantMap: _variantMap,
-                          onApprove: (model.Variant item) async {
-                            final condition = _variantMap.containsKey(item.id);
+                          onApprove: (model.Variant item,
+                              Map<String, model.Variant> variantMap) async {
+                            final condition = variantMap.containsKey(item.id);
                             if (!condition &&
                                 (item.retailPrice == null ||
                                     item.supplyPrice == null ||
@@ -279,12 +280,13 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                               return;
                             }
                             await coreViewModel.approveImportItem(item,
-                                variantMap: _variantMap);
+                                variantMap: variantMap);
                             final combinedNotifier = ref.read(refreshProvider);
                             combinedNotifier.performActions(
                                 productName: "", scanMode: true);
                           },
-                          onReject: (model.Variant item) async {
+                          onReject: (model.Variant item,
+                              Map<String, model.Variant> variantMap) async {
                             await coreViewModel.rejectImportItem(item);
                           },
                         )
@@ -320,7 +322,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                     saveItemName: _saveChangeMadeOnItem,
                                     acceptPurchases: (
                                         {required List<model.Variant> variants,
-                                        required String pchsSttsCd}) async {
+                                        required String pchsSttsCd,
+                                        required model.Purchase
+                                            purchase}) async {
                                       final pendingTransaction =
                                           await ProxyService.strategy
                                               .manageTransaction(
@@ -335,6 +339,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                         itemMapper: itemMapper,
                                         pendingTransaction: pendingTransaction!,
                                         pchsSttsCd: pchsSttsCd,
+                                        purchase: purchase,
                                       );
                                     },
                                     selectSale: (model.Variant? itemToAssign,
@@ -343,7 +348,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                                             itemToAssign: itemToAssign!,
                                             itemFromPurchase:
                                                 itemFromPurchase!),
-                                    finalSalesList: salesList,
+                                    variants: salesList,
                                   );
                                 }
                               },

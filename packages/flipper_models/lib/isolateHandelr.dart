@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helper_models.dart' show Uuid;
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -40,9 +40,8 @@ mixin VariantPatch {
         await _ensureBusinessInfo(variant);
         await updateVariantitemTyCd(variant);
 
-        final response = await RWTax().saveItem(variation: variant, URI: URI);
-
-        if (response.resultCd == "000") {
+        final syncSuccess = await _syncVariantWithRRA(variant, URI, sendPort);
+        if (syncSuccess) {
           _handleSuccess(
             variant: variant,
             identifier: identifier,
@@ -51,8 +50,7 @@ mixin VariantPatch {
             branchId: branchId,
           );
         } else if (sendPort != null) {
-          sendPort(response.resultMsg);
-          throw Exception(response.resultMsg);
+          throw Exception("Failed to sync variant with RRA");
         }
       } catch (e) {
         // Log the error for debugging. Consider more specific error handling.
@@ -154,11 +152,44 @@ mixin VariantPatch {
     if (sendPort != null) {
       sendPort("Patch successful"); //Consider a better message here.
     }
-    // we set ebmSynced when stock is done updating on rra side.
-    /// we should not update variant here rather we update it in rw_tax @saveStockItems<<< dev
-    // variant.ebmSynced = true;
-    await repository.upsert(variant);
     ProxyService.box.writeBool(key: 'lockPatching', value: false);
+  }
+
+  static Future<bool> _syncVariantWithRRA(
+    Variant variant,
+    String URI,
+    Function(String)? sendPort,
+  ) async {
+    try {
+      // First try to save the item
+      final itemResponse = await RWTax().saveItem(variation: variant, URI: URI);
+      if (itemResponse.resultCd != "000") {
+        if (sendPort != null) {
+          sendPort(itemResponse.resultMsg);
+        }
+        return false;
+      }
+
+      // Then try to save the stock master
+      final stockResponse =
+          await RWTax().saveStockMaster(variant: variant, URI: URI);
+      if (stockResponse.resultCd != "000") {
+        if (sendPort != null) {
+          sendPort(stockResponse.resultMsg);
+        }
+        return false;
+      }
+
+      // Both operations succeeded - now we can safely mark the variant as synced
+      variant.ebmSynced = true;
+      await repository.upsert(variant);
+      return true;
+    } catch (e) {
+      if (sendPort != null) {
+        sendPort(e.toString());
+      }
+      return false;
+    }
   }
 }
 Future<void> updateVariantitemTyCd(Variant variant) async {
@@ -233,6 +264,7 @@ mixin PatchTransactionItem {
         query: brick.Query(where: [
       Where('ebmSynced').isExactly(false),
       Where('status').isExactly(COMPLETE),
+      Or('status').isExactly(PARKED),
       Where('customerName').isNot(null),
       Where('customerTin').isNot(null),
       Where('branchId').isExactly(branchId)
@@ -259,7 +291,13 @@ mixin PatchTransactionItem {
 
       totalvat = totalTaxB;
 
-      if (transaction.customerName == null || transaction.customerTin == null) {
+      if (transaction.customerName == null ||
+          transaction.customerTin == null ||
+          transaction.sarNo == null ||
+          transaction.ebmSynced!) {
+        // for this to not eat up the budget next time mark it as synced
+        transaction.ebmSynced = true;
+        await repository.upsert(transaction);
         continue;
       }
       try {
@@ -280,12 +318,15 @@ mixin PatchTransactionItem {
             URI: URI);
 
         if (response.resultCd == "000") {
-          sendPort('TrItem:${response.resultMsg}');
+          sendPort('${transaction.sarNo}:${response.resultMsg}');
 
           transaction.ebmSynced = true;
-          repository.upsert(transaction);
+          await repository.upsert(transaction);
         } else {
-          sendPort('Notification:${response.resultMsg}');
+          /// if for some reason we fail ignore this forever
+          transaction.ebmSynced = true;
+          await repository.upsert(transaction);
+          sendPort(response.resultMsg);
         }
         print(response);
       } catch (e) {}
@@ -333,7 +374,7 @@ mixin CustomerPatch {
 class IsolateHandler with StockPatch {
   static Future<void> clearFirestoreCache() async {
     try {
-      await FirebaseFirestore.instance.clearPersistence();
+      // await FirebaseFirestore.instance.clearPersistence();
     } catch (e) {}
   }
 

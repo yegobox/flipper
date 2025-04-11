@@ -26,7 +26,7 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
 
     void _onNumberOfPaymentChanged(String value) {
       ProxyService.box
-          .writeInt(key: 'numberOfPayments', value: int.parse(value));
+          .writeInt(key: 'numberOfPayments', value: int.tryParse(value) ?? 1);
       ref.read(couponValidationProvider.notifier).validateCoupon(value);
     }
 

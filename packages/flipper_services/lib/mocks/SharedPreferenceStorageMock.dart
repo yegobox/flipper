@@ -1,4 +1,4 @@
-import 'package:flipper_services/abstractions/storage.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 
 class SharedPreferenceStorageMock implements LocalStorage {
   @override
@@ -346,5 +346,27 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool lockPatching() {
     // TODO: implement lockPatching
     throw UnimplementedError();
+  }
+
+  @override
+  String getDatabaseFilename() {
+    return 'flipper_v17.sqlite'; // Default database filename
+  }
+
+  @override
+  Future<void> setDatabaseFilename(String filename) async {
+    // Mock implementation - does nothing
+    return;
+  }
+
+  @override
+  String getQueueFilename() {
+    return 'brick_offline_queue_v17.sqlite'; // Default queue filename
+  }
+
+  @override
+  Future<void> setQueueFilename(String filename) async {
+    // Mock implementation - does nothing
+    return;
   }
 }

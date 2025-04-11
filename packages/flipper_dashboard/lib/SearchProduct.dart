@@ -3,7 +3,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:stacked/stacked.dart';

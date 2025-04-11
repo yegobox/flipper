@@ -1,10 +1,13 @@
+import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/abstractions/storage.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
@@ -107,5 +110,27 @@ class CapellaSync extends CapellaSyncBase
     required LocalStorage box,
   }) async {
     throw UnimplementedError('configureCapella needs to be implemented');
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionsStream(
+      {String? status,
+      String? transactionType,
+      int? branchId,
+      bool isCashOut = false,
+      String? id,
+      FilterType? filterType,
+      bool includePending = false,
+      DateTime? startDate,
+      bool removeAdjustmentTransactions = false,
+      DateTime? endDate}) {
+    // TODO: implement transactionsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<BusinessType>> businessTypes() {
+    // TODO: implement businessTypes
+    throw UnimplementedError();
   }
 }

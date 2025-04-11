@@ -3,7 +3,7 @@ import 'package:flipper_dashboard/TaxDropdown.dart';
 import 'package:flipper_dashboard/UnitOfMeasureDropdown.dart';
 import 'package:flipper_dashboard/UniversalProductDropdown.dart';
 import 'package:flipper_dashboard/_showEditQuantityDialog.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

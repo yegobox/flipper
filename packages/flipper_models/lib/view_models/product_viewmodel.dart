@@ -1,7 +1,7 @@
 library flipper_models;
 
 import 'dart:developer';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/cupertino.dart';
@@ -19,8 +19,7 @@ import 'package:stacked/stacked.dart';
 
 import 'mixins/_product.dart';
 
-class ProductViewModel extends CoreViewModel
-    with ProductMixin {
+class ProductViewModel extends CoreViewModel with ProductMixin {
   // extends ReactiveViewModel
   final AppService app = loc.getIt<AppService>();
   // ignore: annotate_overrides, overridden_fields

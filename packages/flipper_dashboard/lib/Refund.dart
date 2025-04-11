@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/RefundReasonForm.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_models/helperModels/random.dart';
 
 class Refund extends StatefulHookConsumerWidget {
   const Refund(
@@ -61,6 +62,10 @@ class _RefundState extends ConsumerState<Refund> {
                   title: widget.transaction?.isRefunded == true
                       ? "Refunded"
                       : "Refund",
+                  color: widget.transaction?.isRefunded == true
+                      ? Colors.red
+                      : null,
+                  busy: isRefundProcessing,
                   onTap: () async {
                     try {
                       if (widget.transaction!.isRefunded ?? false) {
@@ -107,7 +112,6 @@ class _RefundState extends ConsumerState<Refund> {
                       toast(e.toString());
                     }
                   },
-                  busy: isRefundProcessing,
                 ),
                 const SizedBox(height: 16),
                 BoxButton(
@@ -263,10 +267,6 @@ class _RefundState extends ConsumerState<Refund> {
         await handleReceipt(filterType: FilterType.NR);
       }
 
-      talker
-          .error("RefundableTransactionId: ${int.parse(widget.transactionId)}");
-      talker.error("RefundableBranchId: ${widget.transaction?.id}");
-
       List<TransactionItem> items = await ProxyService.strategy
           .transactionItems(
               transactionId: widget.transactionId,
@@ -276,20 +276,44 @@ class _RefundState extends ConsumerState<Refund> {
       talker.error("Items to Refund: ${items.length}");
 
       for (TransactionItem item in items) {
-        Variant? variant = (await ProxyService.strategy.variants(
-                variantId: item.variantId,
-                branchId: ProxyService.box.getBranchId()!))
-            .firstOrNull;
+        Variant? variant =
+            await ProxyService.strategy.getVariant(id: item.variantId);
         if (variant != null) {
           if (variant.stock != null) {
+            // mark the variant.ebmSynced to false
+            ProxyService.strategy
+                .updateVariant(updatables: [variant], ebmSynced: false);
+            // Update the stock
             ProxyService.strategy.updateStock(
                 stockId: variant.stock!.id,
                 currentStock: variant.stock!.currentStock! + item.qty,
                 ebmSynced: false);
 
+            // adjust rra stock as well  final pendingTransaction =
+            final pendingTransaction =
+                await ProxyService.strategy.manageTransaction(
+              transactionType: TransactionType.adjustment,
+              isExpense: true,
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            Business? business = await ProxyService.strategy
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            await ProxyService.strategy.assignTransaction(
+              variant: variant,
+              updatableQty: item.qty.toDouble(),
+              doneWithTransaction: true,
+              invoiceNumber: int.parse(widget.transaction!.sarNo!),
+              pendingTransaction: pendingTransaction!,
+              business: business!,
+              randomNumber: randomNumber(),
+              // 06 is incoming return.
+              sarTyCd: "03",
+            );
+
             ProxyService.strategy.updateVariant(
                 updatables: [variant], variantId: variant.id, ebmSynced: false);
 
+            // Mark the transaction as refunded
             ProxyService.strategy.updateTransaction(
               transaction: widget.transaction!,
               isRefunded: true,
@@ -306,10 +330,17 @@ class _RefundState extends ConsumerState<Refund> {
   Future<void> handleReceipt({required FilterType filterType}) async {
     try {
       setState(() {
-        if (filterType == FilterType.CS) {
+        // Set the correct loading state based on the operation
+        // For CS (Copy Sales) and CR (Copy Refund), we're printing a copy receipt
+        // For all other filter types, we're processing a refund
+        if (filterType == FilterType.CS ||
+            filterType == FilterType.CR ||
+            filterType == FilterType.CP) {
           isPrintingCopy = true;
+          isRefundProcessing = false;
         } else {
           isRefundProcessing = true;
+          isPrintingCopy = false;
         }
       });
 
@@ -317,7 +348,10 @@ class _RefundState extends ConsumerState<Refund> {
           .handleReceipt(filterType: filterType);
 
       setState(() {
-        if (filterType == FilterType.CS) {
+        // Reset the loading state when done
+        if (filterType == FilterType.CS ||
+            filterType == FilterType.CR ||
+            filterType == FilterType.CP) {
           isPrintingCopy = false;
         } else {
           isRefundProcessing = false;
@@ -326,7 +360,10 @@ class _RefundState extends ConsumerState<Refund> {
     } catch (e) {
       talker.critical(e);
       setState(() {
-        if (filterType == FilterType.CS) {
+        // Reset loading states in case of error
+        if (filterType == FilterType.CS ||
+            filterType == FilterType.CR ||
+            filterType == FilterType.CP) {
           isPrintingCopy = false;
         } else {
           isRefundProcessing = false;

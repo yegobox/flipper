@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:dio/dio.dart';
@@ -9,7 +10,7 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/mail_log.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // ignore: unused_import
@@ -24,7 +25,7 @@ import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
-class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
+class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   String itemPrefix = "flip-";
   // String eBMURL = "https://turbo.yegobox.com";
   // String eBMURL = "http://10.0.2.2:8080/rra";
@@ -122,42 +123,52 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
       final mod = randomNumber().toString();
       final sar = randomNumber();
 
-      final repository = Repository();
-
-      final query = Query.where('transactionId', transaction.id);
-      List<TransactionItem> items =
-          await repository.get<TransactionItem>(query: query);
+      // Query active, done items only
+      final items = await ProxyService.strategy.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
+        transactionId: transaction.id,
+        doneWithTransaction: true,
+        active: true,
+      );
 
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async => await mapItemToJson(item, bhfId: bhFId))
           .toList());
       if (itemsList.isEmpty) throw Exception("No items to save");
 
-      /// add totDcAmt: "0"
-      /// TODO: handle discount later.
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
       });
+      // Log the customer name for debugging
+      talker.info('Customer name from parameter: $customerName');
+      talker.info(
+          'Customer name from storage: ${ProxyService.box.customerName()}');
+
+      // Always use the customer name from ProxyService.box.customerName()
+      // This ensures consistency with what's entered in QuickSellingView
+      final effectiveCustomerName = ProxyService.box.customerName() ?? "N/A";
+      talker.info('Using customer name from storage: $effectiveCustomerName');
+
       final json = {
         "totItemCnt": items.length,
         "tin": tinNumber,
         "bhfId": bhFId,
         "regTyCd": regTyCd,
         "custTin": custTin.isValidTin() ? custTin : "",
-        "custNm": customerName,
+        "custNm": effectiveCustomerName,
         "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
         "ocrnDt": ocrnDt.toYYYMMdd(),
         "totTaxblAmt": totalSupplyPrice,
-        "totTaxAmt": totalvat,
+        "totTaxAmt": totalvat.roundToTwoDecimalPlaces(),
         "totAmt": totalAmount,
         "remark": remark,
         "regrId": mod,
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": "2",
-        "orgSarNo": "2",
+        "sarNo": transaction.sarNo,
+        "orgSarNo": transaction.orgSarNo,
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
@@ -393,6 +404,7 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
     Business? business = await ProxyService.strategy.getBusiness();
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         transactionId: transaction.id,
+        // doneWithTransaction: true,
         branchId: ProxyService.box.getBranchId()!);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
@@ -461,7 +473,8 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
         }
 
         // Update transaction and item statuses
-        updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd']);
+        updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd'],
+            counter: counter);
         // mark item involved as need sync
 
         return data;
@@ -743,14 +756,29 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
 
       "totTaxblAmt": totalTaxable,
 
-      "totTaxAmt": double.parse(totalTax.toStringAsFixed(2)),
+      "totTaxAmt": (totalTax).roundToTwoDecimalPlaces(),
       "totAmt": totalTaxable,
 
       "regrId": transaction.id.substring(0, 5),
       "regrNm": transaction.id.substring(0, 5),
       "modrId": transaction.id.substring(0, 5),
       "modrNm": transaction.id.substring(0, 5),
-      "custNm": customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
+      // Always use the customer name from ProxyService.box.customerName()
+      // This ensures consistency with what's entered in QuickSellingView
+      "custNm": ProxyService.box.customerName() ?? "N/A",
+
+      // Log customer name source for debugging
+      ...(() {
+        final customerName = ProxyService.box.customerName();
+        if (customer?.custNm != null) {
+          talker.info('Using selected customer name: ${customer!.custNm}');
+        } else if (customerName != null) {
+          talker.info('Using manually entered customer name: $customerName');
+        } else {
+          talker.warning('No customer name available, using N/A');
+        }
+        return <String, dynamic>{};
+      }()),
       "remark": "",
       "prchrAcptcYn": "Y",
       "receipt": {
@@ -793,12 +821,11 @@ class RWTax with NetworkHelper, TransactionMixin implements TaxApi {
 
   /// Helper function to update transaction and item statuses
   Future<void> updateTransactionAndItems(ITransaction transaction,
-      List<TransactionItem> items, String? receiptType) async {
-    // for (TransactionItem item in items) {
-    //   Variant? stock = await ProxyService.strategy.getVariant(
-    //     id: item.variantId!,
-    //   );
-    // }
+      List<TransactionItem> items, String? receiptType,
+      {required odm.Counter counter}) async {
+    transaction.sarNo = counter.invcNo.toString();
+    transaction.orgSarNo = counter.invcNo.toString();
+    await repository.upsert(transaction);
   }
 
   // Define these constants at the top level of your file

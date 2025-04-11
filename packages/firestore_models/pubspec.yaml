@@ -11,16 +11,12 @@ dependencies:
   flutter:
     sdk: flutter
   permission_handler: ^11.3.1
-  cloud_firestore_odm: ^1.0.0-dev.88
   json_annotation: ^4.9.0
   build_runner: ^2.4.15
   riverpod_lint: ^2.3.7
   dart_mappable_builder: ^4.4.0
-  # custom_lint: ^0.6.4
   mockito: ^5.4.4
   json_serializable: ^6.9.4
-  # cloud_firestore_odm_generator: ^1.0.0-dev.89
-  # cloud_firestore: ^5.4.3
   flipper_models: any
   freezed: ^3.0.3
   freezed_annotation: any

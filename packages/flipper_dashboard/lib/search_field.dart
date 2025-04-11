@@ -13,7 +13,7 @@ import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -93,7 +93,10 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject.debounceTime(const Duration(seconds: 2)).listen((value) {
+          // Reduced debounce time for faster search response
+          // Using a shorter debounce time (300ms) for better user experience
+          // while still avoiding excessive database queries
+          _textSubject.debounceTime(const Duration(milliseconds: 300)).listen((value) {
             processDebouncedValue(value, model, widget.controller);
           });
         },

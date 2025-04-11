@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 

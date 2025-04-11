@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -46,7 +46,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
 
 class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     with
-        TransactionMixin,
+        TransactionMixinOld,
         TextEditingControllersMixin,
         PreviewCartMixin,
         TransactionItemTable,
@@ -122,11 +122,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           isExpense: ProxyService.box.isOrdering() ?? false));
     });
 
-    return ViewModelBuilder.nonReactive(
+    return ViewModelBuilder.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           internalTransactionItems = ref
-                  .watch(transactionItemsProvider(
+                  .watch(transactionItemsStreamProvider(
                       transactionId: transactionAsyncValue.value?.id))
                   .value ??
               [];
@@ -391,7 +391,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       minLines: 1,
       suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
       onChanged: (value) {
-        ProxyService.box.writeString(key: "customerName", value: value);
+        // Store the customer name with the exact key expected by rw_tax.dart
+        ProxyService.box.writeString(key: 'customerName', value: value);
+
+        // For debugging
+        talker.info('Customer name set to: $value');
       },
     );
   }

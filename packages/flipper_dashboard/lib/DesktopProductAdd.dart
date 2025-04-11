@@ -15,9 +15,10 @@ import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
+import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -36,7 +39,7 @@ class ProductEntryScreen extends StatefulHookConsumerWidget {
 }
 
 class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
-    with TransactionMixin {
+    with TransactionMixinOld {
   Color pickerColor = Colors.amber;
   bool isColorPicked = false;
 
@@ -44,6 +47,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Map<String, TextEditingController> _dates = {};
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
+  String? selectedCategoryId;
 
   TextEditingController productNameController = TextEditingController();
   TextEditingController retailPriceController = TextEditingController();
@@ -78,6 +82,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     toast('No Product saved!');
   }
 
+  void _showNoCategorySelectedToast() {
+    toast('Please select a category!');
+  }
+
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef,
       {required String selectedProductType}) async {
@@ -90,31 +98,27 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         return;
       }
 
-      if (widget.productId != null) {
-        await model.bulkUpdateVariants(true,
-            color: pickerColor.toHex(),
-            productName: productNameController.text,
-            selectedProductType: selectedProductType,
-            newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
-            rates: _rates,
-            dates: _dates);
-      } else {
-        await model.addVariant(
-          model: model,
-          productName: model.kProductName!,
-          countryofOrigin: countryOfOriginController.text.isEmpty
-              ? "RW"
-              : countryOfOriginController.text,
-          rates: _rates,
-          color: pickerColor.toHex(),
-          dates: _dates,
-          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-          variations: model.scannedVariants,
-          product: productRef,
-          selectedProductType: selectedProductType,
-          packagingUnit: selectedPackageUnitValue.split(":")[0],
-          onCompleteCallback: (List<Variant> variants) async {
+      if (selectedCategoryId == null) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        _showNoCategorySelectedToast();
+        return;
+      }
+
+      if (_formKey.currentState!.validate() &&
+          !ref.watch(isCompositeProvider)) {
+        if (widget.productId != null) {
+          await model.bulkUpdateVariants(true,
+              color: pickerColor.toHex(),
+              categoryId: selectedCategoryId,
+              productName: productNameController.text,
+              selectedProductType: selectedProductType,
+              newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
+              rates: _rates,
+              dates: _dates,
+              onCompleteCallback: (List<Variant> variants) async {
+            final invoiceNumber = await showInvoiceNumberModal(context);
+            if (invoiceNumber == null) return;
+
             final pendingTransaction =
                 await ProxyService.strategy.manageTransaction(
               transactionType: TransactionType.adjustment,
@@ -126,8 +130,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
             for (Variant variant in variants) {
               // Handle the transaction for stock adjustment
-              await assignTransaction(
+              await ProxyService.strategy.assignTransaction(
                 variant: variant,
+                doneWithTransaction: true,
+                invoiceNumber: invoiceNumber,
                 pendingTransaction: pendingTransaction!,
                 business: business!,
                 randomNumber: randomNumber(),
@@ -139,29 +145,78 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             if (pendingTransaction != null) {
               await completeTransaction(pendingTransaction: pendingTransaction);
             }
-          },
-        );
+          });
+        } else {
+          await model.addVariant(
+            model: model,
+            productName: model.kProductName!,
+            countryofOrigin: countryOfOriginController.text.isEmpty
+                ? "RW"
+                : countryOfOriginController.text,
+            rates: _rates,
+            color: pickerColor.toHex(),
+            dates: _dates,
+            retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+            supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+            variations: model.scannedVariants,
+            product: productRef,
+            selectedProductType: selectedProductType,
+            packagingUnit: selectedPackageUnitValue.split(":")[0],
+            categoryId: selectedCategoryId,
+            onCompleteCallback: (List<Variant> variants) async {
+              final invoiceNumber = await showInvoiceNumberModal(context);
+              if (invoiceNumber == null) return;
+
+              final pendingTransaction =
+                  await ProxyService.strategy.manageTransaction(
+                transactionType: TransactionType.adjustment,
+                isExpense: true,
+                branchId: ProxyService.box.getBranchId()!,
+              );
+              Business? business = await ProxyService.strategy
+                  .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+              for (Variant variant in variants) {
+                // Handle the transaction for stock adjustment
+                await ProxyService.strategy.assignTransaction(
+                  variant: variant,
+                  doneWithTransaction: true,
+                  invoiceNumber: invoiceNumber,
+                  pendingTransaction: pendingTransaction!,
+                  business: business!,
+                  randomNumber: randomNumber(),
+                  // 06 is incoming adjustment.
+                  sarTyCd: "06",
+                );
+              }
+
+              if (pendingTransaction != null) {
+                await completeTransaction(
+                    pendingTransaction: pendingTransaction);
+              }
+            },
+          );
+        }
+
+        model.currentColor = pickerColor.toHex();
+
+        await model.saveProduct(
+            mproduct: productRef,
+            color: model.currentColor,
+            inUpdateProcess: widget.productId != null,
+            productName: model.kProductName!);
+
+        // Refresh the product list
+
+        final combinedNotifier = ref.read(refreshProvider);
+        combinedNotifier.performActions(productName: "", scanMode: true);
+        ref.read(loadingProvider.notifier).stopLoading();
+      } else if (_fieldComposite.currentState?.validate() ?? false) {
+        await _handleCompositeProductSave(model);
       }
-
-      model.currentColor = pickerColor.toHex();
-
-      await model.saveProduct(
-          mproduct: productRef,
-          color: model.currentColor,
-          inUpdateProcess: widget.productId != null,
-          productName: model.kProductName!);
-
-      // Refresh the product list
-
-      final combinedNotifier = ref.read(refreshProvider);
-      combinedNotifier.performActions(productName: "", scanMode: true);
-      ref.read(loadingProvider.notifier).stopLoading();
-      toast("Product Saved Successfully");
-      Navigator.maybePop(context);
     } catch (e) {
       ref.read(loadingProvider.notifier).stopLoading();
       toast("We did not close normally, check if your product is saved");
-      Navigator.maybePop(context);
       rethrow;
     }
   }
@@ -215,10 +270,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       final combinedNotifier = ref.read(refreshProvider);
       combinedNotifier.performActions(productName: "", scanMode: true);
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
-
       ref.read(loadingProvider.notifier).stopLoading();
-      toast("Composite product saved successfully");
-      Navigator.maybePop(context);
     } catch (e) {
       ref.read(loadingProvider.notifier).stopLoading();
       toast("Failed to save composite product: ${e.toString()}");
@@ -293,6 +345,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           supplyPriceController.text = variants.first.supplyPrice.toString();
           retailPriceController.text = variants.first.retailPrice.toString();
 
+          // Set the selectedCategoryId from the first variant's categoryId
+          if (variants.isNotEmpty && variants.first.categoryId != null) {
+            setState(() {
+              selectedCategoryId = variants.first.categoryId;
+            });
+          }
+
           model.setScannedVariants(variants);
 
           // If there are variants, set the color to the color of the first variant
@@ -337,15 +396,88 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       !ref.watch(isCompositeProvider)
                           ? scanField(model, productRef: productRef)
                           : SizedBox.shrink(),
-                      DropdownButtonWithLabel(
-                        label: "Packaging Unit",
-                        selectedValue: selectedPackageUnitValue,
-                        options: model.pkgUnits,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedPackageUnitValue = newValue!;
-                          });
-                        },
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: DropdownButtonWithLabel(
+                                label: "Packaging Unit",
+                                selectedValue: selectedPackageUnitValue,
+                                options: model.pkgUnits,
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      selectedPackageUnitValue = newValue;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Consumer(
+                                // Keep consumer here
+                                builder: (context, ref, child) {
+                                  // Watch provider inside the builder
+                                  final categoryAsyncValue =
+                                      ref.watch(categoryProvider);
+                                  // Use .when to handle states
+                                  return categoryAsyncValue.when(
+                                    data: (categories) {
+                                      // Map Category objects to a Map of id:name pairs for internal use
+                                      final categoryOptions = categories
+                                          .map((cat) => "${cat.id}:${cat.name}")
+                                          .toList();
+
+                                      // Create a display map for showing only names in the dropdown
+                                      final displayNames = Map.fromEntries(
+                                          categories.map((cat) => MapEntry(
+                                              "${cat.id}:${cat.name}",
+                                              cat.name)));
+
+                                      return DropdownButtonWithLabel(
+                                        onAdd: () {
+                                          showAddCategoryModal(context);
+                                        },
+                                        label: "Category",
+                                        selectedValue: selectedCategoryId,
+                                        // Pass both the options and display names
+                                        options: categoryOptions,
+                                        displayNames: displayNames,
+                                        onChanged: (String? newValue) {
+                                          if (newValue != null) {
+                                            final value = newValue.split(":");
+
+                                            setState(() {
+                                              selectedCategoryId = value[0];
+                                            });
+                                          }
+                                        },
+                                      );
+                                    },
+                                    loading: () => DropdownButtonWithLabel(
+                                      label: "Category",
+                                      selectedValue: null,
+                                      options: const [],
+                                      onChanged: (String? _) {},
+                                    ),
+                                    error: (err, stack) =>
+                                        DropdownButtonWithLabel(
+                                      label: "Category",
+                                      selectedValue: null,
+                                      options: const [], // No options on error
+                                      onChanged:
+                                          (String? _) {}, // Disable dropdown
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
                       // _productTypeDropDown(context),
@@ -476,7 +608,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               !ref.watch(isCompositeProvider)) {
                             if (productRef == null) {
                               toast("Invalid product reference");
-                              Navigator.maybePop(context);
                               return;
                             }
 

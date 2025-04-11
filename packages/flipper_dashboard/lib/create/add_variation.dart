@@ -4,7 +4,7 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -19,7 +19,7 @@ class AddVariation extends StatefulWidget {
   _AddVariationState createState() => _AddVariationState();
 }
 
-class _AddVariationState extends State<AddVariation> with TransactionMixin {
+class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
   TextEditingController retailController = TextEditingController();
   TextEditingController costController = TextEditingController();
   TextEditingController nameController = TextEditingController();
@@ -234,8 +234,9 @@ class _AddVariationState extends State<AddVariation> with TransactionMixin {
         Business? business = await ProxyService.strategy
             .getBusiness(businessId: ProxyService.box.getBusinessId()!);
         for (Variant variant in variants) {
-          await assignTransaction(
+          await ProxyService.strategy.assignTransaction(
             variant: variant,
+            doneWithTransaction: true,
             pendingTransaction: pendingTransaction!,
             business: business!,
             randomNumber: randomNumber(),

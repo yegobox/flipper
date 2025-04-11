@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/SnackBarMixin.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -27,8 +27,10 @@ class RequestHeader extends ConsumerWidget with SnackBarMixin {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(8),
                   onTap: () {
-                    Clipboard.setData(ClipboardData(text: request.id.toString()));
-                    showCustomSnackBar(context, 'Request ID copied to clipboard');
+                    Clipboard.setData(
+                        ClipboardData(text: request.id.toString()));
+                    showCustomSnackBar(
+                        context, 'Request ID copied to clipboard');
                   },
                   child: Padding(
                     padding: EdgeInsets.all(8),
@@ -61,12 +63,17 @@ class RequestHeader extends ConsumerWidget with SnackBarMixin {
       builder: (context, ref, child) {
         final itemsAsync = ref.watch(transactionItemsProvider(request.id));
         return itemsAsync.when(
-          loading: () => _buildItemCountContainer('0/${request.itemCounts}', request.itemCounts!.toInt()),
-          error: (error, stack) => _buildItemCountContainer('0/${request.itemCounts}', request.itemCounts!.toInt()),
+          loading: () => _buildItemCountContainer(
+              '0/${request.itemCounts}', request.itemCounts!.toInt()),
+          error: (error, stack) => _buildItemCountContainer(
+              '0/${request.itemCounts}', request.itemCounts!.toInt()),
           data: (items) {
-            final totalApproved = items.fold<int>(0, (sum, item) => sum + (item.quantityApproved ?? 0));
-            final totalRequested = items.fold<int>(0, (sum, item) => sum + (item.quantityRequested ?? 0));
-            return _buildItemCountContainer('$totalApproved/$totalRequested', totalRequested);
+            final totalApproved = items.fold<int>(
+                0, (sum, item) => sum + (item.quantityApproved ?? 0));
+            final totalRequested = items.fold<int>(
+                0, (sum, item) => sum + (item.quantityRequested ?? 0));
+            return _buildItemCountContainer(
+                '$totalApproved/$totalRequested', totalRequested);
           },
         );
       },
