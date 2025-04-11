@@ -1,9 +1,11 @@
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 
 /// Widget for price and quantity input fields
 class PriceQuantityField extends StatelessWidget {
@@ -173,6 +175,108 @@ class ItemClassDropdown extends ConsumerWidget {
         );
       },
       loading: () => Text('Loading...'),
+      error: (error, stackTrace) => Text('Error: $error'),
+    );
+  }
+}
+
+/// Widget for category dropdown
+class CategoryDropdown extends ConsumerWidget {
+  final String barCode;
+  final String? selectedValue;
+
+  const CategoryDropdown({
+    super.key,
+    required this.barCode,
+    this.selectedValue,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final model = ref.watch(bulkAddProductViewModelProvider);
+    final categoryAsyncValue = ref.watch(categoryProvider);
+
+    return categoryAsyncValue.when(
+      data: (categories) {
+        // Map Category objects to a Map of id:name pairs for internal use
+        final categoryOptions = categories
+            .map((category) => {
+                  'id': category.id,
+                  'name': category.name,
+                })
+            .toList();
+
+        return Row(
+          children: [
+            Expanded(
+              child: DropdownSearch<Map<String, dynamic>>(
+                items: (a, b) => categoryOptions,
+                selectedItem: selectedValue != null
+                    ? categoryOptions.firstWhere(
+                        (category) => category['id'] == selectedValue,
+                        orElse: () => categoryOptions.isNotEmpty
+                            ? categoryOptions.first
+                            : {'id': '', 'name': 'Select Category'},
+                      )
+                    : (categoryOptions.isNotEmpty
+                        ? categoryOptions.first
+                        : {'id': '', 'name': 'Select Category'}),
+                compareFn: (item1, item2) => item1['id'] == item2['id'],
+                itemAsString: (Map<String, dynamic> category) =>
+                    category['name'],
+                decoratorProps: DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                    disabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+                  ),
+                ),
+                onChanged: (Map<String, dynamic>? newValue) {
+                  if (newValue != null) {
+                    model.updateCategory(barCode, newValue['id']);
+                  }
+                },
+                popupProps: PopupProps.menu(
+                  showSearchBox: true,
+                  searchFieldProps: TextFieldProps(
+                    decoration: InputDecoration(
+                      hintText: 'Search category',
+                      contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  // Use containerBuilder instead of itemBuilder for custom item presentation
+                  containerBuilder: (context, popupWidget) {
+                    return popupWidget;
+                  },
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.add_circle_outline,
+                  color: Theme.of(context).primaryColor),
+              onPressed: () async {
+                await showAddCategoryModal(context);
+              },
+              tooltip: 'Add New Category',
+            ),
+          ],
+        );
+      },
+      loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stackTrace) => Text('Error: $error'),
     );
   }

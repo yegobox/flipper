@@ -81,7 +81,15 @@ class ProductDataTable extends StatelessWidget {
               cells: [
                 DataCell(Text(product['BarCode'] ?? '')),
                 DataCell(Text(product['Name'] ?? '')),
-                DataCell(Text(product['Category'] ?? '')),
+                DataCell(
+                  SizedBox(
+                    width: 200, // Fixed width, you can adjust this
+                    child: CategoryDropdown(
+                      barCode: barCode,
+                      selectedValue: model.selectedCategories[barCode],
+                    ),
+                  ),
+                ),
                 DataCell(
                   TextField(
                     controller: model.controllers[barCode],

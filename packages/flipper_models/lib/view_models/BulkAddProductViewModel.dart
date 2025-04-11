@@ -18,6 +18,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   final Map<String, String> _selectedTaxTypes = {};
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, String> _selectedProductTypes = {};
+  final Map<String, String> _selectedCategories = {};
   bool _isLoading = false;
 
   PlatformFile? get selectedFile => _selectedFile;
@@ -26,6 +27,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   Map<String, String> get selectedItemClasses => _selectedItemClasses;
   Map<String, String> get selectedTaxTypes => _selectedTaxTypes;
   Map<String, String> get selectedProductTypes => _selectedProductTypes;
+  Map<String, String> get selectedCategories => _selectedCategories;
   Map<String, TextEditingController> get quantityControllers =>
       _quantityControllers;
   bool get isLoading => _isLoading;
@@ -189,6 +191,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     // Convert each row from the table to an Item model
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
+      String barCode = product['BarCode'] ?? '';
+      String categoryId = _selectedCategories[barCode] ?? '';
+      
       return brick.Variant(
         itemCd: (await ProxyService.strategy.itemCode(
           countryCode: orgnNatCd,
@@ -198,12 +203,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
           branchId: ProxyService.box.getBranchId()!,
         )),
         bcdU: product['bcdU'] ?? '',
-        barCode: product['BarCode'] ?? '',
+        barCode: barCode,
         name: product['Name'] ?? '',
-        category: product['Category'] ?? '',
+        category: categoryId.isNotEmpty ? categoryId : (product['Category'] ?? ''),
         retailPrice: double.tryParse(product['Price']) ?? 0,
         supplyPrice: double.tryParse(product['Price']) ?? 0,
         quantity: double.tryParse(product['Quantity']) ?? 0,
+        categoryId: categoryId,
       );
     }).toList();
 
@@ -231,6 +237,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
       ValueNotifier<ProgressData> progressNotifier) async {
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
+      String barCode = product['BarCode'] ?? '';
+      String categoryId = _selectedCategories[barCode] ?? '';
+      
       return brick.Variant(
         itemCd: (await ProxyService.strategy.itemCode(
           countryCode: orgnNatCd,
@@ -240,12 +249,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
           branchId: ProxyService.box.getBranchId()!,
         )),
         bcdU: product['bcdU'] ?? '',
-        barCode: product['BarCode'] ?? '',
+        barCode: barCode,
         name: product['Name'] ?? '',
-        category: product['Category'] ?? '',
+        category: categoryId.isNotEmpty ? categoryId : (product['Category'] ?? ''),
         retailPrice: double.tryParse(product['Price']) ?? 0,
         supplyPrice: double.tryParse(product['Price']) ?? 0,
         quantity: double.tryParse(product['Quantity']) ?? 0,
+        categoryId: categoryId,
       );
     }).toList();
     List<brick.Variant> items = await Future.wait(itemFutures);
@@ -309,15 +319,15 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void updateItemClass(String barCode, String? newValue) {
-    if (newValue == null) return;
+    if (newValue != null) {
+      _selectedItemClasses[barCode] = newValue;
+      notifyListeners();
+    }
+  }
 
-    _selectedItemClasses[barCode] = newValue;
-    // Update the Excel data
-    final rowIndex = _excelData!.indexWhere((row) => row['BarCode'] == barCode);
-    if (rowIndex != -1) {
-      // Extract the item class code from the selected value
-      final itemClassCode = newValue.split(' ').last;
-      _excelData![rowIndex]['ItemClass'] = itemClassCode;
+  void updateCategory(String barCode, String? newValue) {
+    if (newValue != null) {
+      _selectedCategories[barCode] = newValue;
       notifyListeners();
     }
   }
