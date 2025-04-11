@@ -6,8 +6,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqflite.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
-// import '../../../../flipper_services/lib/abstractions/storage.dart';
-
 /// A robust implementation of LocalStorage that uses JSON files in the document directory
 /// This implementation is designed to be resilient to power outages and corruption
 class SharedPreferenceStorage implements LocalStorage {

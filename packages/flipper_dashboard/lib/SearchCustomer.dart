@@ -151,6 +151,11 @@ class _SearchInputWithDropdownState
         branchId: ProxyService.box.getBranchId()!,
       );
       if (customer.isNotEmpty) {
+        ProxyService.box.writeString(
+            key: 'currentSaleCustomerPhoneNumber',
+            value: customer.first.telNo!);
+        ProxyService.box
+            .writeString(key: 'customerName', value: customer.first.custNm!);
         _searchController.text = customer.first.custNm!;
       }
     } else {

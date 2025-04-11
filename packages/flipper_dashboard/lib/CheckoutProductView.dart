@@ -62,7 +62,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
             ),
             // Product view takes remaining space with bounded height
             Expanded(
-              child: ProductView.normalMode(),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ProductView.normalMode(),
+              ),
             ),
           ],
         ),

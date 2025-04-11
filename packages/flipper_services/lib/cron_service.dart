@@ -222,7 +222,6 @@ class CronService {
         isTaxServiceStopped) {
       return;
     }
-
     final uri = await ProxyService.box.getServerUrl();
     if (uri == null) {
       talker.warning("Skipping patching: Server URL is null");

@@ -994,7 +994,15 @@ class CoreSync extends AiStrategyImpl
         policy: fetchRemote == true
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return result.firstOrNull;
+    final ebm = result.firstOrNull;
+    if (ebm != null) {
+      // set it into the box
+      ProxyService.box
+          .writeString(key: 'getServerUrl', value: ebm.taxServerUrl);
+      ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
+      return ebm;
+    }
+    return null;
   }
 
   @override
@@ -4348,7 +4356,6 @@ class CoreSync extends AiStrategyImpl
         ]));
     return payment_status.isNotEmpty;
   }
-
 
   @override
   Future<void> setBranchPaymentStatus(
