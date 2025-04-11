@@ -34,7 +34,7 @@ const maxBackupCount = 3; // Maximum number of backups to keep
 abstract class DatabaseConfigStorage {
   /// Get the main database filename
   String getDatabaseFilename();
-  
+
   /// Get the queue filename
   String getQueueFilename();
 }
@@ -65,18 +65,19 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (_sharedPreferenceStorage == null) {
       _logger.info('Initializing SharedPreferenceStorage');
       final storage = SharedPreferenceStorage();
-      _sharedPreferenceStorage = await storage.initializePreferences() as SharedPreferenceStorage;
+      _sharedPreferenceStorage =
+          await storage.initializePreferences() as SharedPreferenceStorage;
       _logger.info('SharedPreferenceStorage initialized successfully');
     }
     return _sharedPreferenceStorage!;
   }
 
   // Get the database filename from storage or use default
-  static String get dbFileName => 
+  static String get dbFileName =>
       _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
 
   // Get the queue filename from storage or use default
-  static String get queueName => 
+  static String get queueName =>
       _configStorage?.getQueueFilename() ?? defaultQueueName;
 
   // The setConfigStorage method is already defined above
@@ -336,16 +337,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb) {
       return 0;
     }
-    
+
     // Check if queue manager is properly initialized
     try {
       // This will throw an exception if not properly initialized
       await _queueManager.getQueueStatus();
     } catch (e) {
-      _logger.warning('Queue manager not fully initialized, skipping cleanup: $e');
+      _logger
+          .warning('Queue manager not fully initialized, skipping cleanup: $e');
       return 0;
     }
-    
+
     return await _queueManager.cleanupFailedRequests();
   }
 
@@ -398,37 +400,39 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return false;
     }
   }
-  
+
   /// Perform a periodic backup if enough time has passed since the last backup
   /// Returns true if a backup was performed, false otherwise
-  Future<bool> performPeriodicBackup({Duration minInterval = const Duration(minutes: 20)}) async {
+  Future<bool> performPeriodicBackup(
+      {Duration minInterval = const Duration(minutes: 20)}) async {
     if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
       return false;
     }
-    
+
     // Add a small delay to allow any pending operations to complete
     await Future.delayed(const Duration(milliseconds: 100));
-    
+
     try {
       // Get the database directory and path
       final directory = await DatabasePath.getDatabaseDirectory();
       final dbPath = join(directory, dbFileName);
-      
+
       // Verify the database file exists before attempting backup
       if (!await File(dbPath).exists()) {
         _logger.info('Database file does not exist, skipping backup');
         return false;
       }
-      
+
       // Get the database factory to ensure transaction-safe backups
       final dbFactory = PlatformHelpers.getDatabaseFactory();
-      
+
       // Use a try-catch block specifically for the backup operation
       try {
         final result = await _backupManager.performPeriodicBackup(
-          dbPath, 
+          dbPath,
           minInterval: minInterval,
-          dbFactory: dbFactory
+          dbFactory: dbFactory,
+          currentBackupPath: dbFileName,
         );
         return result;
       } catch (e) {

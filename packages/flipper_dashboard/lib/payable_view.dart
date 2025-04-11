@@ -7,7 +7,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import 'package:flutter/material.dart';
 
 class PayableView extends HookConsumerWidget {
@@ -60,8 +59,9 @@ class PayableView extends HookConsumerWidget {
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 10),
+          ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
+          const SizedBox(width: 10)
+              .shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
           digitalPaymentEnabledAsync.when(
             data: (digitalPaymentEnabled) {
               return PreviewSaleButton(

@@ -10,6 +10,7 @@ export 'package:brick_core/query.dart'
 
 // For database operations
 import 'package:sqflite_common/sqlite_api.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 /// Manages database backup and restoration operations
 class BackupManager {
@@ -162,8 +163,15 @@ class BackupManager {
     }
   }
 
+  // Get the database filename from storage or use default
+  static String get dbFileName =>
+      _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
+
+  static DatabaseConfigStorage? _configStorage;
+
   /// Cleans up old backups, keeping only the most recent ones
-  Future<void> cleanupOldBackups(String directory, String baseFilename) async {
+  Future<void> cleanupOldBackups(String directory, String baseFilename,
+      {String? currentBackupPath}) async {
     try {
       final dir = Directory(directory);
       final backupPrefix = '${baseFilename}_backup_';
@@ -183,6 +191,10 @@ class BackupManager {
       // Keep only the most recent backups
       if (backupFiles.length > maxBackupCount) {
         for (var i = maxBackupCount; i < backupFiles.length; i++) {
+          if (backupFiles[i].path == dbFileName) {
+            _logger.info('Skipping current backup: ${backupFiles[i].path}');
+            continue;
+          }
           await backupFiles[i].delete();
           _logger.info('Deleted old backup: ${backupFiles[i].path}');
         }
@@ -253,12 +265,13 @@ class BackupManager {
   /// If not provided, will fall back to file copying (less safe during concurrent operations).
   Future<bool> performPeriodicBackup(String dbPath,
       {Duration minInterval = const Duration(minutes: 20),
-      DatabaseFactory? dbFactory}) async {
+      DatabaseFactory? dbFactory,
+      String? currentBackupPath}) async {
     // Skip for web or if the database doesn't exist
     if (kIsWeb) {
       return false;
     }
-    
+
     try {
       if (!await File(dbPath).exists()) {
         return false;
@@ -288,7 +301,7 @@ class BackupManager {
 
     // Set a flag to prevent concurrent backups
     _isBackupInProgress = true;
-    
+
     try {
       // Use file copying as a safer alternative when we're doing periodic backups
       // This avoids potential database_closed errors from opening the database
@@ -296,21 +309,24 @@ class BackupManager {
       final filename = basename(dbPath);
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final backupPath = join(directory, '${filename}_backup_$timestamp');
-      
+
       try {
         await File(dbPath).copy(backupPath);
         _logger.info('Created periodic backup via file copy: $backupPath');
-        await cleanupOldBackups(directory, filename);
+        await cleanupOldBackups(directory, filename,
+            currentBackupPath: backupPath);
         _lastBackupTime = now;
         return true;
       } catch (e) {
         // If direct file copy fails, try the more complex approach with dbFactory
-        _logger.warning('File copy backup failed, trying alternative method: $e');
-        
+        _logger
+            .warning('File copy backup failed, trying alternative method: $e');
+
         if (dbFactory != null) {
           await createVersionedBackup(dbPath, dbFactory: dbFactory);
           _lastBackupTime = now;
-          _logger.info('Periodic backup created successfully via alternative method');
+          _logger.info(
+              'Periodic backup created successfully via alternative method');
           return true;
         } else {
           _logger.warning('Cannot perform backup: both methods failed');
