@@ -480,14 +480,12 @@ class CoreSync extends AiStrategyImpl
       String? exptNatCd,
       int? pkg,
       String? pkgUnitCd,
-      String? qtyUnitCd,
       int? totWt,
       int? netWt,
       String? spplrNm,
       String? agntNm,
       int? invcFcurAmt,
       String? invcFcurCd,
-      double? invcFcurExcrt,
       String? dclNo,
       String? taskCd,
       String? dclDe,
@@ -501,7 +499,6 @@ class CoreSync extends AiStrategyImpl
       required int sku,
       models.Configurations? taxType,
       String? bcd,
-      String? saleListId,
       String? pchsSttsCd,
       double? totAmt,
       double? taxAmt,
@@ -2152,8 +2149,8 @@ class CoreSync extends AiStrategyImpl
         "bhfId": await ProxyService.box.bhfId(),
         'tinNumber': business?.tinNumber,
         'encryptionKey': ProxyService.box.encryptionKey(),
-        'dbPath':
-            path.join((await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
+        'dbPath': path.join(
+            (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
       });
     } catch (e, s) {
       talker.error(e, s);
@@ -4028,6 +4025,11 @@ class CoreSync extends AiStrategyImpl
           await repository.upsert(variant);
           //
         } else {
+          // Get category information if available
+          String? categoryId = item.categoryId;
+          String? category = item.category;
+
+          // Create a new variant with the product
           await createProduct(
             bhFId: bhfId ?? "00",
             tinNumber: business?.tinNumber ?? 111111,
@@ -4055,7 +4057,6 @@ class CoreSync extends AiStrategyImpl
             taxTypes: taxTypes,
             itemClasses: itemClasses,
             itemTypes: itemTypes,
-            // barCode: item.barCode,
             product: Product(
               color: randomizeColor(),
               name: item.itemNm ?? item.name,
@@ -4065,6 +4066,7 @@ class CoreSync extends AiStrategyImpl
               createdAt: DateTime.now(),
               spplrNm: item.spplrNm,
               barCode: item.barCode,
+              categoryId: categoryId, // Set categoryId on the product
             ),
             supplyPrice: item.supplyPrice ?? 0,
             retailPrice: item.retailPrice ?? 0,
@@ -4073,6 +4075,16 @@ class CoreSync extends AiStrategyImpl
             spplrItemCd: item.hsCd,
             spplrItemClsCd: item.hsCd,
           );
+
+          // After creating the product, find the variant by name and update its category information
+          if (categoryId != null && categoryId.isNotEmpty) {
+            Variant? variant = await getVariant(name: item.name);
+            if (variant != null) {
+              variant.categoryId = categoryId;
+              variant.category = category;
+              await repository.upsert(variant);
+            }
+          }
         }
       }
     } catch (e, s) {
