@@ -345,6 +345,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           supplyPriceController.text = variants.first.supplyPrice.toString();
           retailPriceController.text = variants.first.retailPrice.toString();
 
+          // Set the selectedCategoryId from the first variant's categoryId
+          if (variants.isNotEmpty && variants.first.categoryId != null) {
+            setState(() {
+              selectedCategoryId = variants.first.categoryId;
+            });
+          }
+
           model.setScannedVariants(variants);
 
           // If there are variants, set the color to the color of the first variant
