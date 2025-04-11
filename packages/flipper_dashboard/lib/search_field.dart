@@ -96,7 +96,7 @@ class SearchFieldState extends ConsumerState<SearchField>
           // Reduced debounce time for faster search response
           // Using a shorter debounce time (300ms) for better user experience
           // while still avoiding excessive database queries
-          _textSubject.debounceTime(const Duration(milliseconds: 300)).listen((value) {
+          _textSubject.debounceTime(const Duration(milliseconds: 3000)).listen((value) {
             processDebouncedValue(value, model, widget.controller);
           });
         },
