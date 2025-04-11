@@ -27,6 +27,7 @@ import 'package:flipper_models/power_sync/supabase.dart';
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
   try {
+    // Don't use microtask for Firebase as critical services depend on it
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
@@ -39,8 +40,11 @@ Future<void> _initializeFirebase() async {
 // Function to initialize Supabase
 Future<void> _initializeSupabase() async {
   try {
-    await loadSupabase();
-    print('Supabase initialized successfully');
+    // Wrap in a microtask to allow UI thread to continue
+    await Future<void>.microtask(() async {
+      await loadSupabase();
+      print('Supabase initialized successfully');
+    });
   } catch (e) {
     print('Supabase initialization error: $e');
   }
@@ -61,23 +65,29 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
 
-  // Initialize Firebase first to avoid 'No Firebase App' errors
+  // Initialize Firebase first as critical services depend on it
   await _initializeFirebase();
 
-  // Initialize Supabase to avoid 'Repository not initialized' errors
+  // Initialize Supabase next as Repository depends on it
   await _initializeSupabase();
 
-  // Then initialize critical services to avoid 'AppService not registered' error
-  // This ensures the GetIt service locator is properly set up before any services are accessed
-  await initDependencies();
+  // Initialize critical UI-related services
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();
+  
+  // Initialize minimal dependencies required for UI
+  await initDependencies();
 
-  // Now initialize the rest of the dependencies while the native splash screen is showing
+  // Initialize the rest of the dependencies in the background
+  // while showing the UI to the user
   if (!skipDependencyInitialization) {
-    await initializeDependencies();
+    // Start initialization but don't block UI
+    initializeDependencies().then((_) {
+      print('All dependencies initialized');
+    });
   }
+  
   await SentryFlutter.init(
     (options) => options
       ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey

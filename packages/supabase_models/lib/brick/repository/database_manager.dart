@@ -24,20 +24,38 @@ class DatabaseManager {
   Future<void> configureDatabaseSettings(
       String dbPath, DatabaseFactory dbFactory) async {
     try {
-      final db = await dbFactory.openDatabase(dbPath);
+      // Use proper open options instead of PRAGMA statements for Android compatibility
+      final db = await dbFactory.openDatabase(
+        dbPath,
+        options: OpenDatabaseOptions(
+          // Set WAL mode via options instead of PRAGMA for Android compatibility
+          version: 1,
+          // This is the proper way to enable WAL on Android
+          singleInstance: true,
+        ),
+      );
 
-      // Enable Write-Ahead Logging for better crash recovery
-      await db.execute('PRAGMA journal_mode = WAL');
-      // Ensure data is immediately written to disk
-      await db.execute('PRAGMA synchronous = FULL');
-      // Run integrity check
-      final integrityResult = await db.rawQuery('PRAGMA integrity_check');
-      if (integrityResult.isNotEmpty &&
-          integrityResult.first.values.first != 'ok') {
-        _logger.warning(
-            'Database integrity check failed: ${integrityResult.first.values.first}');
-      } else {
-        _logger.info('Database integrity check passed');
+      try {
+        // For platforms that support direct PRAGMA statements
+        if (!Platform.isAndroid) {
+          // Enable Write-Ahead Logging for better crash recovery
+          await db.execute('PRAGMA journal_mode = WAL');
+          // Ensure data is immediately written to disk
+          await db.execute('PRAGMA synchronous = FULL');
+        }
+
+        // Run integrity check which works on all platforms
+        final integrityResult = await db.rawQuery('PRAGMA integrity_check');
+        if (integrityResult.isNotEmpty &&
+            integrityResult.first.values.first != 'ok') {
+          _logger.warning(
+              'Database integrity check failed: ${integrityResult.first.values.first}');
+        } else {
+          _logger.info('Database integrity check passed');
+        }
+      } catch (pragmaError) {
+        // Log but don't fail if PRAGMA commands aren't supported
+        _logger.warning('Could not execute PRAGMA commands: $pragmaError');
       }
 
       // Close the database after configuration

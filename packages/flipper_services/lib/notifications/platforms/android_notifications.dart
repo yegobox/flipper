@@ -25,88 +25,132 @@ class AndroidNotifications extends BaseNotifications {
 
   @override
   Future<void> initialize() async {
+    // First call the parent initialization
     await super.initialize();
 
-    const initSettingsAndroid = AndroidInitializationSettings('flipper_logo');
+    // Use a microtask to slightly defer initialization to allow UI to render first
+    await Future<void>.microtask(() async {
+      const initSettingsAndroid = AndroidInitializationSettings('flipper_logo');
 
-    final initSettings = InitializationSettings(
-      android: initSettingsAndroid,
-    );
+      final initSettings = InitializationSettings(
+        android: initSettingsAndroid,
+      );
 
-    await notificationsPlugin.initialize(
-      initSettings,
-      onDidReceiveBackgroundNotificationResponse:
-          notificationBackgroundCallback,
-      onDidReceiveNotificationResponse: notificationCallback,
-    );
+      // Initialize with a timeout to prevent blocking the main thread too long
+      await notificationsPlugin
+          .initialize(
+        initSettings,
+        onDidReceiveBackgroundNotificationResponse:
+            notificationBackgroundCallback,
+        onDidReceiveNotificationResponse: notificationCallback,
+      )
+          .timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          // Log timeout but don't crash - we'll retry permission later when needed
+          print('Notification initialization timed out');
+          return;
+        },
+      );
+    });
   }
 
   @override
   Future<bool?> requestPermission() async {
-    final androidPlugin =
-        notificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    // Wrap in a microtask to prevent blocking the UI thread
+    return await Future<bool?>.microtask(() async {
+      final androidPlugin =
+          notificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
 
-    if (androidPlugin == null) return false;
+      if (androidPlugin == null) return false;
 
-    permissionGranted =
-        await androidPlugin.requestNotificationsPermission() ?? false;
-    return permissionGranted;
+      try {
+        // Add timeout to prevent indefinite waiting
+        permissionGranted = await androidPlugin
+                .requestNotificationsPermission()
+                .timeout(const Duration(seconds: 3), onTimeout: () => false) ??
+            false;
+        return permissionGranted;
+      } catch (e) {
+        print('Error requesting notification permission: $e');
+        return false;
+      }
+    });
   }
 
   @override
   Future<void> scheduleNotification(Conversation conversation) async {
-    if (!(await requestPermission())!) {
+    // Check permission first, but don't block if it fails
+    final hasPermission = await requestPermission();
+    if (hasPermission != true) {
+      print('Notification permission not granted');
       return;
     }
 
-    final createdAt = conversation.createdAt ?? DateTime.now().toLocal();
-    final String? dueDateFormatted;
+    // Prepare notification data - this could be moved to a compute function
+    // for very heavy processing if needed
+    await Future<void>.microtask(() async {
+      try {
+        final createdAt = conversation.createdAt ?? DateTime.now().toLocal();
+        final String? dueDateFormatted;
 
-    final iConversation = IConversation(
-        id: conversation.id,
-        body: conversation.body ?? "",
-        createdAt: conversation.createdAt,
-        userName: conversation.userName ?? "");
+        final iConversation = IConversation(
+            id: conversation.id,
+            body: conversation.body ?? "",
+            createdAt: conversation.createdAt,
+            userName: conversation.userName ?? "");
 
-    dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
+        dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 
-    final notification = Notification(
-      id: conversation.id.toString().codeUnitAt(0),
-      title: iConversation.body,
-      body: dueDateFormatted,
-      payload: jsonEncode(iConversation),
-    );
+        final notification = Notification(
+          id: conversation.id.toString().codeUnitAt(0),
+          title: iConversation.body,
+          body: dueDateFormatted,
+          payload: jsonEncode(iConversation),
+        );
 
-    await _scheduleNotificationMobile(notification);
+        await _scheduleNotificationMobile(notification);
+      } catch (e) {
+        print('Error scheduling notification: $e');
+      }
+    });
   }
 
   Future<void> _scheduleNotificationMobile(Notification notification) async {
-    final conversation =
-        IConversation.fromJson(jsonDecode(notification.payload!));
+    // Use a microtask to prevent blocking the main thread
+    await Future<void>.microtask(() async {
+      try {
+        final conversation =
+            IConversation.fromJson(jsonDecode(notification.payload!));
 
-    final createdAt = conversation.createdAt;
-    if (createdAt == null) {
-      return;
-    }
+        final createdAt = conversation.createdAt;
+        if (createdAt == null) {
+          return;
+        }
 
-    if (createdAt.isBefore(DateTime.now())) {
-      await showNotification(
-        id: notification.id,
-        title: notification.title,
-        body: notification.body,
-        payload: notification.payload,
-      );
-      return;
-    }
-
-    await scheduleNotificationWithSystem(
-      id: notification.id,
-      title: notification.title,
-      body: notification.body,
-      scheduledDate: createdAt,
-      payload: notification.payload,
-    );
+        if (createdAt.isBefore(DateTime.now())) {
+          // For past dates, show immediately
+          await showNotification(
+            id: notification.id,
+            title: notification.title,
+            body: notification.body,
+            payload: notification.payload,
+          );
+        } else {
+          // For future dates, schedule
+          await scheduleNotificationWithSystem(
+            id: notification.id,
+            title: notification.title,
+            body: notification.body,
+            scheduledDate: createdAt,
+            payload: notification.payload,
+          );
+        }
+      } catch (e) {
+        print('Error in _scheduleNotificationMobile: $e');
+      }
+    });
   }
 
   @override
@@ -117,17 +161,32 @@ class AndroidNotifications extends BaseNotifications {
     required DateTime scheduledDate,
     String? payload,
   }) async {
-    final notificationDetails = createPlatformNotificationDetails();
+    // Use a microtask to prevent blocking the main thread
+    await Future<void>.microtask(() async {
+      try {
+        final notificationDetails = createPlatformNotificationDetails();
 
-    await notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: payload,
-    );
+        await notificationsPlugin
+            .zonedSchedule(
+          id,
+          title,
+          body,
+          tz.TZDateTime.from(scheduledDate, tz.local),
+          notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          payload: payload,
+        )
+            .timeout(
+          const Duration(seconds: 3),
+          onTimeout: () {
+            print('Scheduling notification timed out');
+            return;
+          },
+        );
+      } catch (e) {
+        print('Error scheduling notification with system: $e');
+      }
+    });
   }
 
   @override
@@ -137,16 +196,43 @@ class AndroidNotifications extends BaseNotifications {
     required String body,
     String? payload,
   }) async {
-    id ??= generateNotificationId();
-    final notificationDetails = createPlatformNotificationDetails();
+    // Check permission but don't block if it fails
+    final hasPermission = await requestPermission();
+    if (hasPermission != true) {
+      print('Notification permission not granted');
+      return;
+    }
 
-    await notificationsPlugin.show(
-      id,
-      title,
-      body,
-      notificationDetails,
-      payload: payload,
-    );
+    // Use a microtask to prevent blocking the main thread
+    await Future<void>.microtask(() async {
+      try {
+        final notificationDetails = const NotificationDetails(
+          android: androidNotificationDetails,
+        );
+
+        // Generate a unique ID if none provided
+        final notificationId =
+            id ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+        await notificationsPlugin
+            .show(
+          notificationId,
+          title,
+          body,
+          notificationDetails,
+          payload: payload,
+        )
+            .timeout(
+          const Duration(seconds: 2),
+          onTimeout: () {
+            print('Showing notification timed out');
+            return;
+          },
+        );
+      } catch (e) {
+        print('Error showing notification: $e');
+      }
+    });
   }
 
   @override
