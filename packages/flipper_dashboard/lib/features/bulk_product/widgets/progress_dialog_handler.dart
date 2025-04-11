@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flipper_dashboard/SaveProgressDialog.dart';
 import 'package:supabase_models/brick/models/ProgressData.dart';
+import 'package:flipper_dashboard/features/bulk_product/widgets/compact_progress_dialog.dart';
 
 class ProgressDialogHandler extends StatelessWidget {
   final VoidCallback onSave;
@@ -34,15 +34,21 @@ class ProgressDialogHandler extends StatelessWidget {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return ValueListenableBuilder<ProgressData>(
-          valueListenable: progressNotifier,
-          builder: (context, progressData, child) {
-            return SaveProgressDialog(
-              progress: progressData.progress,
-              currentItem: progressData.currentItem,
-              totalItems: progressData.totalItems,
-            );
-          },
+        // Use a custom wrapper to constrain the dialog width
+        return Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 350), // Reduced width
+            child: ValueListenableBuilder<ProgressData>(
+              valueListenable: progressNotifier,
+              builder: (context, progressData, child) {
+                return CompactProgressDialog(
+                  progress: progressData.progress,
+                  currentItem: progressData.currentItem,
+                  totalItems: progressData.totalItems,
+                );
+              },
+            ),
+          ),
         );
       },
     );
