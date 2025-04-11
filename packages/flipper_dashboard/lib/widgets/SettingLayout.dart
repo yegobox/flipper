@@ -1,8 +1,7 @@
-
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';

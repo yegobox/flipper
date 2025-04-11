@@ -2,7 +2,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 
 class SettingViewModel extends CoreViewModel {

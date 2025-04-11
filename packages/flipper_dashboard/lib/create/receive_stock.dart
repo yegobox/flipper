@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';

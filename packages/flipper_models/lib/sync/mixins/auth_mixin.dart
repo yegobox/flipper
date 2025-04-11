@@ -3,7 +3,7 @@ import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
@@ -188,7 +188,7 @@ mixin AuthMixin implements AuthInterface {
             latitude: e.latitude,
             location: e.location,
             active: e.active,
-            isDefault: e.isDefault ?? false))
+            isDefault: false))
         .toList();
   }
 
@@ -198,8 +198,7 @@ mixin AuthMixin implements AuthInterface {
             id: e.serverId,
             name: e.name,
             userId: e.userId.toString(),
-            // active: e.active,
-            isDefault: e.isDefault ?? false))
+            isDefault: false))
         .toList();
   }
 

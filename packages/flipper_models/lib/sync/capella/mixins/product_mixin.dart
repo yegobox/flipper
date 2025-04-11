@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -15,7 +15,8 @@ mixin CapellaProductMixin implements ProductInterface {
 
   @override
   Stream<List<Product>> productStreams({String? prodIndex}) {
-    throw UnimplementedError('productStreams needs to be implemented for Capella');
+    throw UnimplementedError(
+        'productStreams needs to be implemented for Capella');
   }
 
   @override
@@ -25,7 +26,8 @@ mixin CapellaProductMixin implements ProductInterface {
 
   @override
   Stream<double> wholeStockValue({required int branchId}) {
-    throw UnimplementedError('wholeStockValue needs to be implemented for Capella');
+    throw UnimplementedError(
+        'wholeStockValue needs to be implemented for Capella');
   }
 
   @override
@@ -100,6 +102,23 @@ mixin CapellaProductMixin implements ProductInterface {
     double? taxblAmt,
     String? itemCd,
   }) async {
-    throw UnimplementedError('createProduct needs to be implemented for Capella');
+    throw UnimplementedError(
+        'createProduct needs to be implemented for Capella');
+  }
+
+  @override
+  FutureOr<void> updateProduct(
+      {String? productId,
+      String? name,
+      bool? isComposite,
+      String? unit,
+      String? color,
+      required int branchId,
+      required int businessId,
+      String? imageUrl,
+      String? expiryDate,
+      String? categoryId}) {
+    throw UnimplementedError(
+        'updateProduct needs to be implemented for Capella');
   }
 }

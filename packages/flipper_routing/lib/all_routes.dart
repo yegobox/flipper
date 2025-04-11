@@ -25,6 +25,7 @@ export 'package:flipper_dashboard/InventoryRequestMobileView.dart';
 export 'package:flipper_dashboard/payment/PaymentPlan.dart';
 export 'package:flipper_dashboard/payment/PaymentFinalize.dart';
 export 'package:flipper_dashboard/payment/FailedPayment.dart';
+export 'package:flipper_dashboard/internet/internet_connection_required.dart';
 
 export 'package:flipper_dashboard/AdminControl.dart';
 //

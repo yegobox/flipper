@@ -132,6 +132,7 @@ void showSnackBar(BuildContext context, String message,
 
 const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
+const String WAITING = 'waiting';
 const String PENDING = 'pending';
 const String BARCODE = 'addBarCode';
 const String CUSTOM_PRODUCT = "Custom Amount";
@@ -140,7 +141,9 @@ const String COLOR = "#e74c3c";
 const String ATTENDANCE = 'attendance';
 const String LOGIN = 'login';
 const String SELLING = 'selling';
+const String SALE = 'Sale';
 const String ORDERING = 'ordering';
+const String IN_PROGRESS = 'inProgress';
 const String COMPLETE = 'completed';
 
 const List<Color> colors = [

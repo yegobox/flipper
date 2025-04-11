@@ -15,7 +15,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -25,7 +25,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
-    on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
+    on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   /// this method will either preview or completeOrder
   Future<void> placeFinalOrder(
       {bool isShoppingFromWareHouse = true,
@@ -86,7 +86,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _markItemsAsDone(
       List<TransactionItem> items, dynamic pendingTransaction) async {
-    markItemAsDoneWithTransaction(
+    ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
       pendingTransaction: pendingTransaction,
@@ -377,7 +377,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 // Helper method to handle payment errors
   void _handlePaymentError(
       dynamic error, StackTrace stackTracke, BuildContext context) {
-    if (ProxyService.box.enableDebug()!) {
+    if ((ProxyService.box.enableDebug() ?? false)) {
       // show stackTracke instead
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         duration: Duration(seconds: 10),

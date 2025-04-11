@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'selected_provider.g.dart'; // Ensure this file is generated

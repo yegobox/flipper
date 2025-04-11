@@ -559,6 +559,7 @@ class App {}
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
 /// git commit -am "test direct-build-windows test direct-build-android"
+/// https://github.com/XcodesOrg/xcodes
 /// 
 /// git commit -am "test direct-build-windows"
 /// git commit -am "test direct-build-android"
@@ -807,6 +808,8 @@ class App {}
 // supabase functions deploy urlRedirect --no-verify-jwt=true
 // web: dart run sqflite_common_ffi_web:setup advice from: @https://github.com/GetDutchie/brick/issues/552
 // git reset --hard origin/main
-
+// something to consider in my project.
+// https://pub.dev/packages/queue
+// https://pub.dev/packages/dart_mq
 
 

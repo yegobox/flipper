@@ -4,14 +4,12 @@ import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'drawerB.dart';
 import 'customappbar.dart';
 
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 
 class MobileView extends StatefulHookConsumerWidget {
@@ -31,7 +29,6 @@ class MobileView extends StatefulHookConsumerWidget {
 }
 
 class _MobileViewState extends ConsumerState<MobileView> {
-  final _routerService = locator<RouterService>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   String transactionPeriod = "Today";

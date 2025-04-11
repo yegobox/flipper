@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   brick_offline_first_with_supabase: ^2.0.0
-  brick_sqlite: ^4.0.0
+  brick_sqlite: ^4.0.1
   brick_supabase: ^2.0.0
-  supabase_flutter: ^2.8.0
+  supabase_flutter: ^2.8.4
   sqflite_common: ^2.5.4+6 
   sqflite_common_ffi: ^2.3.4+4
   path_provider: ^2.1.5
@@ -21,6 +21,9 @@ dependencies:
   http: ^1.3.0
   mock_supabase_http_client: 0.0.3+1
   mockito: ^5.4.5
+  brick_offline_first: ^4.0.0
+  sqflite_common_ffi_web: ^1.0.0
+  flutter_blue_plus: ^1.35.3
 dependency_overrides: 
   device_info_plus: ^11.2.2
   
@@ -31,4 +34,3 @@ dev_dependencies:
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
   build_runner: ^2.4.15
-  

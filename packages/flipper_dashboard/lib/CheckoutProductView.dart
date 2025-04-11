@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -26,8 +26,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   final TextEditingController textEditController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
-  final TextEditingController receivedAmountController = TextEditingController();
-  final TextEditingController customerPhoneNumberController = TextEditingController();
+  final TextEditingController receivedAmountController =
+      TextEditingController();
+  final TextEditingController customerPhoneNumberController =
+      TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
 
   @override
@@ -44,22 +46,28 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
         backgroundColor: Theme.of(context).canvasColor,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: SearchField(
-                  controller: searchController,
-                  showAddButton: true,
-                  showDatePicker: false,
-                  showIncomingButton: true,
-                  showOrderButton: true,
-                ),
+        // Use Column with Expanded to provide bounded height constraints
+        child: Column(
+          children: [
+            // Search field at the top (not flexible)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SearchField(
+                controller: searchController,
+                showAddButton: true,
+                showDatePicker: false,
+                showIncomingButton: true,
+                showOrderButton: true,
               ),
-              ProductView.normalMode(),
-            ],
-          ),
+            ),
+            // Product view takes remaining space with bounded height
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ProductView.normalMode(),
+              ),
+            ),
+          ],
         ),
       ),
     );

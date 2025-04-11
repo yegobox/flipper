@@ -8,7 +8,7 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
+// import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
 import 'package:flipper_models/DatabaseSyncInterface.dart' as _i654;
@@ -21,12 +21,11 @@ import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
 import 'abstractions/analytic.dart' as _i271;
-import 'abstractions/dynamic_link.dart' as _i0;
 import 'abstractions/location.dart' as _i299;
 import 'abstractions/printer.dart' as _i289;
 import 'abstractions/remote.dart' as _i172;
 import 'abstractions/shareable.dart' as _i23;
-import 'abstractions/storage.dart' as _i740;
+import 'package:supabase_models/brick/repository/storage.dart' as _i740;
 import 'abstractions/system_time.dart' as _i703;
 import 'abstractions/upload.dart' as _i103;
 import 'app_service.dart' as _i403;
@@ -64,7 +63,7 @@ extension GetItInjectableX on _i174.GetIt {
     final servicesModule = _$ServicesModule();
     gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
     gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
-    gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
+    // gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
     gh.lazySingleton<_i163.SupabaseInterface>(() => servicesModule.supa);
     gh.lazySingleton<_i628.Crash>(() => servicesModule.crash);
     gh.lazySingleton<_i844.Device>(() => servicesModule.device);
@@ -73,7 +72,6 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i23.Shareable>(() => servicesModule.share);
     gh.lazySingleton<_i118.Review>(() => servicesModule.review);
     gh.lazySingleton<_i251.Messaging>(() => servicesModule.messaging);
-    gh.lazySingleton<_i0.DynamicLink>(() => servicesModule.dynamicLink);
     gh.lazySingleton<_i289.Printer>(() => servicesModule.printService);
     gh.lazySingleton<_i271.Analytic>(() => servicesModule.appAnalytic);
     gh.lazySingleton<_i923.Country>(() => servicesModule.country);

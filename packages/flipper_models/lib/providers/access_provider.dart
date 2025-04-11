@@ -1,6 +1,5 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -23,14 +22,14 @@ bool featureAccess(Ref ref,
 
     if (accesses.isEmpty) return false; // Deny access if no accesses exist
 
-    final isRestrictedToTickets = accesses.any((access) =>
-        access.featureName == AppFeature.Tickets &&
-        access.status == 'active' &&
-        (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+    // final isRestrictedToTickets = accesses.any((access) =>
+    //     access.featureName == AppFeature.Tickets &&
+    //     access.status == 'active' &&
+    //     (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 
-    if (isRestrictedToTickets && featureName != AppFeature.Tickets) {
-      return false; // Users with Tickets permission can only access Tickets
-    }
+    // if (isRestrictedToTickets && featureName != AppFeature.Tickets) {
+    //   return false; // Users with Tickets permission can only access Tickets
+    // }
 
     return accesses.any((access) =>
         access.featureName == featureName &&

@@ -1,4 +1,4 @@
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -93,7 +93,8 @@ class StatusDeliveryInfo extends StatelessWidget {
             color: Colors.purple[50],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(Icons.calendar_today, color: Colors.purple[700], size: 20),
+          child:
+              Icon(Icons.calendar_today, color: Colors.purple[700], size: 20),
         ),
         SizedBox(width: 12),
         Column(

@@ -26,7 +26,7 @@ dependencies:
   azlistview: ^2.0.0
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this
   # will increase app size.
-  mobile_scanner: ^6.0.2
+  mobile_scanner: ^7.0.0-beta.8
   cached_network_image: ^3.2.1
   flutter_slidable: ^1.3.0
   flutter_text_drawable: ^1.0.0
@@ -39,7 +39,7 @@ dependencies:
   url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^3.12.1
+  firebase_core: ^3.13.0
   cupertino_icons: ^1.0.4
   flipper_services: any
 
@@ -87,12 +87,12 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datepicker: ^28.1.41
-  syncfusion_flutter_datagrid: ^28.1.41
-  syncfusion_flutter_xlsio: ^28.1.41
-  syncfusion_flutter_datagrid_export: ^28.1.41
-  syncfusion_flutter_core: ^28.1.41
-  syncfusion_officechart: ^28.1.41
+  syncfusion_flutter_datepicker: ^29.1.37
+  syncfusion_flutter_datagrid: ^29.1.37
+  syncfusion_flutter_xlsio: ^29.1.37
+  syncfusion_flutter_datagrid_export: ^29.1.37
+  syncfusion_flutter_core: ^29.1.37
+  syncfusion_officechart: ^29.1.37
   
   flex_color_picker: ^3.7.0
   sizer: ^2.0.15
@@ -111,7 +111,7 @@ dependencies:
   flipper_mocks: any
   excel: ^4.0.6
   supabase_models: any
-  supabase_flutter: ^2.8.0
+  supabase_flutter: ^2.8.4
   uuid: ^4.5.1
   fl_chart: ^0.70.2
   flutter_typeahead: ^5.2.0
@@ -125,6 +125,7 @@ dependency_overrides:
   json_annotation: ^4.9.0
   sqlite3: ^2.7.5
   device_info_plus: ^11.2.2
+  archive: ^3.1.0
   
 
 flutter:

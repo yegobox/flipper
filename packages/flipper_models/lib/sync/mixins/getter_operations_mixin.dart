@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -22,14 +22,16 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   @override
   FutureOr<Branch?> branch({required int serverId});
   @override
-  FutureOr<List<ITransaction>> transactions({
+  Future<List<ITransaction>> transactions({
     DateTime? startDate,
+    bool fetchRemote = false,
     DateTime? endDate,
     String? status,
     String? transactionType,
     bool isCashOut = false,
     String? id,
     FilterType? filterType,
+    bool includeZeroSubTotal = false,
     int? branchId,
     bool isExpense = false,
     bool includePending = false,

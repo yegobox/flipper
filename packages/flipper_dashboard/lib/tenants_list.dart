@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 class ListTenants extends StatelessWidget {
   ListTenants(

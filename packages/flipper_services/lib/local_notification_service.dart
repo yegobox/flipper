@@ -1,6 +1,6 @@
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -22,18 +22,18 @@ class UnSupportedLocalNotification implements LNotification {
 }
 
 class LocalNotificationService implements LNotification {
-  // Initialize the NotificationsCubit instance
-  static NotificationsCubit? _notificationsCubit;
+  // Initialize the NotificationManager instance
+  static NotificationManager? _notificationManager;
 
   LocalNotificationService() {
-    // Initialize the NotificationsCubit in the constructor
-    _initNotificationsCubit();
+    // Initialize the NotificationManager in the constructor
+    _initNotificationManager();
   }
 
-  // Initialize the NotificationsCubit (ideally this should be done
+  // Initialize the NotificationManager (ideally this should be done
   // in your main function or a global setup method)
-  void _initNotificationsCubit() async {
-    _notificationsCubit = await NotificationsCubit.initialize(
+  void _initNotificationManager() async {
+    _notificationManager = await NotificationManager.create(
       flutterLocalNotificationsPlugin: flutterLocalNotificationsPlugin,
     );
   }
@@ -50,8 +50,8 @@ class LocalNotificationService implements LNotification {
         businessId: ProxyService.box.getBusinessId(),
       );
 
-      // Now you can use _notificationsCubit safely
-      await _notificationsCubit?.scheduleNotification(conversation);
+      // Now you can use _notificationManager safely
+      await _notificationManager?.scheduleNotification(conversation);
     } catch (e) {
       rethrow;
     }

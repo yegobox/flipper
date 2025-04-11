@@ -18,7 +18,7 @@ import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/ribbon.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';
@@ -47,7 +47,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         TickerProviderStateMixin,
         WidgetsBindingObserver,
         TextEditingControllersMixin,
-        TransactionMixin,
+        TransactionMixinOld,
         PreviewCartMixin,
         Refresh {
   late AnimationController _animationController;
@@ -134,7 +134,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                 height: constraints.maxHeight,
                 child: FadeTransition(
                   opacity: _animation,
-                  child: (ProxyService.box.isPosDefault()!)
+                  child: (ProxyService.box.isPosDefault() ?? true)
                       ? _buildPosDefaultContent(transaction, model)
                       : SizedBox.shrink(),
                 ),
@@ -144,7 +144,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               padding: const EdgeInsets.only(top: 160.0),
               child: FadeTransition(
                 opacity: _animation,
-                child: (ProxyService.box.isOrdersDefault()!)
+                child: (ProxyService.box.isOrdersDefault() ?? false)
                     ? _buildOrdersContent()
                     : SizedBox.shrink(),
               ),
@@ -313,7 +313,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                       model: model,
                     ),
                     Positioned(
-                      bottom: 0,
+                      bottom: 20,
                       left: 0,
                       right: 0,
                       child: Container(

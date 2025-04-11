@@ -21,7 +21,7 @@ import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
-import 'package:flipper_services/abstractions/storage.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 abstract class CapellaSyncBase extends AiStrategyImpl

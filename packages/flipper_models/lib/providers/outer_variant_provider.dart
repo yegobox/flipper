@@ -1,5 +1,5 @@
 import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:collection/collection.dart';
@@ -9,7 +9,7 @@ part 'outer_variant_provider.g.dart';
 @riverpod
 class OuterVariants extends _$OuterVariants {
   int _currentPage = 0;
-  final int _itemsPerPage = ProxyService.box.itemPerPage()!;
+  final int _itemsPerPage = ProxyService.box.itemPerPage() ?? 1000;
   bool _hasMore = true;
   bool _isLoading = false;
 

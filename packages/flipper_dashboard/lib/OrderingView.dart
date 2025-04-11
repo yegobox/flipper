@@ -9,7 +9,7 @@ import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -35,7 +35,7 @@ class OrderingView extends StatefulHookConsumerWidget {
 class ProductListScreenState extends ConsumerState<OrderingView>
     with
         Datamixer,
-        TransactionMixin,
+        TransactionMixinOld,
         TextEditingControllersMixin,
         PreviewCartMixin,
         Refresh,

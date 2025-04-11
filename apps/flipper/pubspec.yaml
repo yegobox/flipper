@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223233480+1743018014
+version: 1.170.4252223233643+1744398697
 
 
 
@@ -13,10 +13,10 @@ dependencies:
   flutter:
     sdk: flutter
   sentry: ^8.13.0
-  sentry_flutter: ^8.13.0
+  sentry_flutter: ^8.14.1
   
   firebase_crashlytics: ^4.3.4
-  flutter_local_notifications: ^19.0.0-dev.7
+  flutter_local_notifications: ^19.0.0
   intl: ^0.19.0
   injectable: ^2.5.0
   get_it: ^7.7.0
@@ -33,6 +33,7 @@ dependencies:
   image_picker: ^1.1.2
   file_picker: ^8.3.3
   firebase_ui_auth: ^1.16.1
+
   azlistview: ^2.0.0
   
   cached_network_image: ^3.2.1
@@ -49,7 +50,7 @@ dependencies:
   google_fonts: ^6.1.0
   
   number_display: ^3.0.0
-  firebase_core: ^3.12.1
+  firebase_core: ^3.13.0
   cupertino_icons: ^1.0.2
   connectivity_plus: ^6.0.5
   #google_mobile_ads: ^5.0.0
@@ -90,11 +91,11 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datepicker: ^28.1.41
-  syncfusion_flutter_datagrid: ^28.1.41
-  syncfusion_flutter_xlsio: ^28.1.41
-  syncfusion_flutter_datagrid_export: ^28.1.41
-  syncfusion_flutter_core: ^28.1.41
+  syncfusion_flutter_datepicker: ^29.1.37
+  syncfusion_flutter_datagrid: ^29.1.37
+  syncfusion_flutter_xlsio: ^29.1.37
+  syncfusion_flutter_datagrid_export: ^29.1.37
+  syncfusion_flutter_core: ^29.1.37
   flex_color_picker: ^3.7.0
 
   sizer: ^2.0.15
@@ -142,8 +143,8 @@ dependencies:
   vector_math: ^2.1.0
   xml: ">=6.3.0 <7.0.0"
   dotted_line: ^3.2.2
-  syncfusion_flutter_pdf: ^28.1.41
-  syncfusion_flutter_barcodes: ^28.1.41
+  syncfusion_flutter_pdf: ^29.1.37
+  syncfusion_flutter_barcodes: ^29.1.37
   win32: ^5.0.0
   qr: ^3.0.0
   flutter_bloc: ^8.0.1
@@ -162,11 +163,10 @@ dependencies:
   amplify_storage_s3: ^2.6.1
   shared_preferences: ^2.5.2
   easy_localization: ^3.0.7 
-  # cloud_firestore: ^5.4.3
-  supabase_flutter: ^2.8.0
+  supabase_flutter: ^2.8.4
   sqflite_common_ffi: ^2.3.4+4
   # https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
- 
+  sqflite_common_ffi_web: ^1.0.0
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
@@ -175,9 +175,10 @@ dependency_overrides:
   stacked_services: ^1.6.0
   stacked: ^3.4.2
   device_info_plus: ^11.2.2
+  firebase_ui_auth: ^1.16.1
+  firebase_dynamic_links: ^6.1.5
+  archive: ^3.1.0
   
-  
- 
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -186,7 +187,7 @@ dev_dependencies:
   patrol: ^3.14.0
   jnigen: any
   # stacked_generator:
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.3
   matcher: ^0.12.10
   injectable_generator: ^2.6.0
   integration_test:
@@ -218,7 +219,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.3630.0
+  msix_version: 1.170.3793.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
@@ -278,7 +279,7 @@ flutter_native_splash:
   # of your splash screen to a solid color.  Use background_image to set the background of your
   # splash screen to a png image.  This is useful for gradients. The image will be stretch to the
   # size of the app. Only one parameter can be used, color and background_image cannot both be set.
-  color: "##FFFFFF"
+  color: "#FFFFFF"
   #background_image: "assets/background.png"
 
   # Optional parameters are listed below.  To enable a parameter, uncomment the line by removing
@@ -301,7 +302,7 @@ flutter_native_splash:
   # parameters from above. If the image_dark parameter is specified, color_dark or
   # background_image_dark must be specified.  color_dark and background_image_dark cannot both be
   # set.
-  color_dark: "##FFFFFF"
+  color_dark: "#FFFFFF"
   #background_image_dark: "assets/dark-background.png"
   image_dark: assets/icon.png
   #branding_dark: assets/dart_dark.png
@@ -344,16 +345,16 @@ flutter_native_splash:
   # https://developer.android.com/reference/android/view/Gravity): bottom, center,
   # center_horizontal, center_vertical, clip_horizontal, clip_vertical, end, fill, fill_horizontal,
   # fill_vertical, left, right, start, or top.
-  #android_gravity: center
+  android_gravity: center
   #
   # ios_content_mode can be one of the following iOS UIView.ContentMode (see
   # https://developer.apple.com/documentation/uikit/uiview/contentmode): scaleToFill,
   # scaleAspectFit, scaleAspectFill, center, top, bottom, left, right, topLeft, topRight,
   # bottomLeft, or bottomRight.
-  #ios_content_mode: center
+  ios_content_mode: center
   #
   # web_image_mode can be one of the following modes: center, contain, stretch, and cover.
-  #web_image_mode: center
+  web_image_mode: center
 
   # The screen orientation can be set in Android with the android_screen_orientation parameter.
   # Valid parameters can be found here:
@@ -376,4 +377,3 @@ flutter_native_splash:
   #  - 'ios/Runner/Info-Release.plist'
 # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
 # dart run flutter_launcher_icons:main
-

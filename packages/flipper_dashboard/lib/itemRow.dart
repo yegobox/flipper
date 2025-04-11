@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -524,8 +524,9 @@ class _RowItemState extends ConsumerState<RowItem>
           final variant =
               await ProxyService.strategy.getVariant(id: composite.variantId!);
           if (variant != null) {
-            await model.saveTransaction(
+            await ProxyService.strategy.saveTransactionItem(
               variation: variant,
+              doneWithTransaction: false,
               amountTotal: variant.retailPrice!,
               customItem: false,
               currentStock: variant.stock?.currentStock ?? 0,
@@ -537,8 +538,9 @@ class _RowItemState extends ConsumerState<RowItem>
         }
       } else {
         // Handle non-composite product
-        await model.saveTransaction(
+        await ProxyService.strategy.saveTransactionItem(
           variation: widget.variant!,
+          doneWithTransaction: false,
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
           currentStock: widget.variant!.stock?.currentStock ?? 0,

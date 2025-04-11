@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
-import 'package:flipper_services/abstractions/storage.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 

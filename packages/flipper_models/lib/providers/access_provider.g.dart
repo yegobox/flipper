@@ -160,7 +160,6 @@ class _UserAccessesProviderElement
 
 String _$featureAccessHash() => r'ab175e76b4db8681ee30c9141f97208c170e820e';
 
-
 /// See also [featureAccess].
 @ProviderFor(featureAccess)
 const featureAccessProvider = FeatureAccessFamily();
@@ -307,9 +306,7 @@ class _FeatureAccessProviderElement extends AutoDisposeProviderElement<bool>
 }
 
 String _$featureAccessLevelHash() =>
-
     r'91f4a5e1e269cd40c1d7a910cdace428ec6a6114';
-
 
 /// See also [featureAccessLevel].
 @ProviderFor(featureAccessLevel)

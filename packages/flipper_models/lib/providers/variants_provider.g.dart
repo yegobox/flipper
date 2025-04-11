@@ -172,5 +172,153 @@ class _VariantProviderElement
   @override
   String? get key => (origin as VariantProvider).key;
 }
+
+String _$purchaseVariantHash() => r'ecdb78389cbc2826c5d271cb8c1bfd897edc3263';
+
+/// See also [purchaseVariant].
+@ProviderFor(purchaseVariant)
+const purchaseVariantProvider = PurchaseVariantFamily();
+
+/// See also [purchaseVariant].
+class PurchaseVariantFamily extends Family<AsyncValue<List<Variant>>> {
+  /// See also [purchaseVariant].
+  const PurchaseVariantFamily();
+
+  /// See also [purchaseVariant].
+  PurchaseVariantProvider call({
+    required int branchId,
+    String? purchaseId,
+  }) {
+    return PurchaseVariantProvider(
+      branchId: branchId,
+      purchaseId: purchaseId,
+    );
+  }
+
+  @override
+  PurchaseVariantProvider getProviderOverride(
+    covariant PurchaseVariantProvider provider,
+  ) {
+    return call(
+      branchId: provider.branchId,
+      purchaseId: provider.purchaseId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'purchaseVariantProvider';
+}
+
+/// See also [purchaseVariant].
+class PurchaseVariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
+  /// See also [purchaseVariant].
+  PurchaseVariantProvider({
+    required int branchId,
+    String? purchaseId,
+  }) : this._internal(
+          (ref) => purchaseVariant(
+            ref as PurchaseVariantRef,
+            branchId: branchId,
+            purchaseId: purchaseId,
+          ),
+          from: purchaseVariantProvider,
+          name: r'purchaseVariantProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$purchaseVariantHash,
+          dependencies: PurchaseVariantFamily._dependencies,
+          allTransitiveDependencies:
+              PurchaseVariantFamily._allTransitiveDependencies,
+          branchId: branchId,
+          purchaseId: purchaseId,
+        );
+
+  PurchaseVariantProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.branchId,
+    required this.purchaseId,
+  }) : super.internal();
+
+  final int branchId;
+  final String? purchaseId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Variant>> Function(PurchaseVariantRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: PurchaseVariantProvider._internal(
+        (ref) => create(ref as PurchaseVariantRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        branchId: branchId,
+        purchaseId: purchaseId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Variant>> createElement() {
+    return _PurchaseVariantProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PurchaseVariantProvider &&
+        other.branchId == branchId &&
+        other.purchaseId == purchaseId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, purchaseId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin PurchaseVariantRef on AutoDisposeFutureProviderRef<List<Variant>> {
+  /// The parameter `branchId` of this provider.
+  int get branchId;
+
+  /// The parameter `purchaseId` of this provider.
+  String? get purchaseId;
+}
+
+class _PurchaseVariantProviderElement
+    extends AutoDisposeFutureProviderElement<List<Variant>>
+    with PurchaseVariantRef {
+  _PurchaseVariantProviderElement(super.provider);
+
+  @override
+  int get branchId => (origin as PurchaseVariantProvider).branchId;
+  @override
+  String? get purchaseId => (origin as PurchaseVariantProvider).purchaseId;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

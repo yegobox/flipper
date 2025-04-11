@@ -18,6 +18,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   final Map<String, String> _selectedTaxTypes = {};
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, String> _selectedProductTypes = {};
+  final Map<String, String> _selectedCategories = {};
   bool _isLoading = false;
 
   PlatformFile? get selectedFile => _selectedFile;
@@ -26,6 +27,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   Map<String, String> get selectedItemClasses => _selectedItemClasses;
   Map<String, String> get selectedTaxTypes => _selectedTaxTypes;
   Map<String, String> get selectedProductTypes => _selectedProductTypes;
+  Map<String, String> get selectedCategories => _selectedCategories;
   Map<String, TextEditingController> get quantityControllers =>
       _quantityControllers;
   bool get isLoading => _isLoading;
@@ -189,6 +191,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     // Convert each row from the table to an Item model
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
+      String barCode = product['BarCode'] ?? '';
+      String categoryId = _selectedCategories[barCode] ?? '';
+
       return brick.Variant(
         itemCd: (await ProxyService.strategy.itemCode(
           countryCode: orgnNatCd,
@@ -198,12 +203,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
           branchId: ProxyService.box.getBranchId()!,
         )),
         bcdU: product['bcdU'] ?? '',
-        barCode: product['BarCode'] ?? '',
+        barCode: barCode,
         name: product['Name'] ?? '',
-        category: product['Category'] ?? '',
-        retailPrice: double.tryParse(product['Price']) ?? 0,
-        supplyPrice: double.tryParse(product['Price']) ?? 0,
-        quantity: double.tryParse(product['Quantity']) ?? 0,
+        category:
+            categoryId.isNotEmpty ? categoryId : (product['Category'] ?? ''),
+        retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+        supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+        quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
+        categoryId: categoryId,
       );
     }).toList();
 
@@ -231,6 +238,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
       ValueNotifier<ProgressData> progressNotifier) async {
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
+      String barCode = product['BarCode'] ?? '';
+      String categoryId = _selectedCategories[barCode] ?? '';
+
       return brick.Variant(
         itemCd: (await ProxyService.strategy.itemCode(
           countryCode: orgnNatCd,
@@ -240,12 +250,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
           branchId: ProxyService.box.getBranchId()!,
         )),
         bcdU: product['bcdU'] ?? '',
-        barCode: product['BarCode'] ?? '',
+        barCode: barCode,
         name: product['Name'] ?? '',
-        category: product['Category'] ?? '',
-        retailPrice: double.tryParse(product['Price']) ?? 0,
-        supplyPrice: double.tryParse(product['Price']) ?? 0,
-        quantity: double.tryParse(product['Quantity']) ?? 0,
+        category:
+            categoryId.isNotEmpty ? categoryId : (product['Category'] ?? ''),
+        retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+        supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+        quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
+        categoryId: categoryId,
       );
     }).toList();
     List<brick.Variant> items = await Future.wait(itemFutures);
@@ -260,17 +272,61 @@ class BulkAddProductViewModel extends ChangeNotifier {
           totalItems: totalItems,
         );
 
-        await ProxyService.strategy.processItem(
-          item: items[i],
-          quantitis: _quantityControllers
-              .map((barCode, controller) => MapEntry(barCode, controller.text)),
-          taxTypes: _selectedTaxTypes,
-          itemClasses: _selectedItemClasses,
-          itemTypes: _selectedProductTypes,
-        );
+        // Ensure we have valid values for required fields
+        String barCode = items[i].barCode ?? '';
+        if (barCode.isEmpty) {
+          barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
+          items[i].barCode = barCode;
+        }
+
+        // Make sure we have a valid name
+        if (items[i].name.isEmpty) {
+          items[i].name = 'Unnamed Product';
+        }
+
+        // Set itemNm to the same as name if it's null
+        items[i].itemNm = items[i].name;
+
+        // Ensure we have valid maps with the barcode as key
+        if (!_quantityControllers.containsKey(barCode)) {
+          _quantityControllers[barCode] = TextEditingController(text: '0');
+        }
+        if (!_selectedTaxTypes.containsKey(barCode)) {
+          _selectedTaxTypes[barCode] = 'B'; // Default tax type
+        }
+        if (!_selectedItemClasses.containsKey(barCode)) {
+          _selectedItemClasses[barCode] = ''; // Default empty item class
+        }
+        if (!_selectedProductTypes.containsKey(barCode)) {
+          _selectedProductTypes[barCode] =
+              'Raw Material'; // Default product type
+        }
+
+        try {
+          await ProxyService.strategy.processItem(
+            item: items[i],
+            quantitis: _quantityControllers.map(
+                (barCode, controller) => MapEntry(barCode, controller.text)),
+            taxTypes: _selectedTaxTypes,
+            itemClasses: _selectedItemClasses,
+            itemTypes: _selectedProductTypes,
+          );
+        } catch (processError) {
+          // Log the error but continue processing other items
+          talker.error('Error processing item ${items[i].name}: $processError');
+          // Update progress to show the error
+          progressNotifier.value = ProgressData(
+            progress:
+                'Error: ${processError.toString().substring(0, processError.toString().length > 50 ? 50 : processError.toString().length)}...',
+            currentItem: i + 1,
+            totalItems: totalItems,
+          );
+          // Wait a moment so the user can see the error
+          await Future.delayed(Duration(milliseconds: 500));
+        }
       } catch (e) {
-        talker.error(e);
-        rethrow;
+        talker.error('General error: $e');
+        // Don't rethrow, just log and continue with the next item
       }
     }
   }
@@ -309,15 +365,15 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void updateItemClass(String barCode, String? newValue) {
-    if (newValue == null) return;
+    if (newValue != null) {
+      _selectedItemClasses[barCode] = newValue;
+      notifyListeners();
+    }
+  }
 
-    _selectedItemClasses[barCode] = newValue;
-    // Update the Excel data
-    final rowIndex = _excelData!.indexWhere((row) => row['BarCode'] == barCode);
-    if (rowIndex != -1) {
-      // Extract the item class code from the selected value
-      final itemClassCode = newValue.split(' ').last;
-      _excelData![rowIndex]['ItemClass'] = itemClassCode;
+  void updateCategory(String barCode, String? newValue) {
+    if (newValue != null) {
+      _selectedCategories[barCode] = newValue;
       notifyListeners();
     }
   }

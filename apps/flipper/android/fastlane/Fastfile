@@ -11,6 +11,9 @@ platform :android do
       track: 'internal',
       aab: '../build/app/outputs/bundle/release/app-release.aab',
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
       )
   end
   desc "Promote beta track to prod"
@@ -20,6 +23,37 @@ platform :android do
       track_promote_to: 'production',
       skip_upload_changelogs: true,
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
       )
+  end
+
+  desc "Submit a new beta build to Google Play"
+  lane :beta do
+    sh "flutter build appbundle"
+
+    upload_to_play_store(
+      track: 'beta',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Submit a new production build to Google Play"
+  lane :production do
+    sh "flutter build appbundle"
+
+    upload_to_play_store(
+      track: 'production',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
   end
 end
