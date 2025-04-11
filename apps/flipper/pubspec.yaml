@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223233638+1744383638
+version: 1.170.4252223233639+1744389712
 
 
 
@@ -91,11 +91,11 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datepicker: ^28.1.41
-  syncfusion_flutter_datagrid: ^28.1.41
-  syncfusion_flutter_xlsio: ^28.1.41
-  syncfusion_flutter_datagrid_export: ^28.1.41
-  syncfusion_flutter_core: ^28.1.41
+  syncfusion_flutter_datepicker: ^29.1.37
+  syncfusion_flutter_datagrid: ^29.1.37
+  syncfusion_flutter_xlsio: ^29.1.37
+  syncfusion_flutter_datagrid_export: ^29.1.37
+  syncfusion_flutter_core: ^29.1.37
   flex_color_picker: ^3.7.0
 
   sizer: ^2.0.15
@@ -143,8 +143,8 @@ dependencies:
   vector_math: ^2.1.0
   xml: ">=6.3.0 <7.0.0"
   dotted_line: ^3.2.2
-  syncfusion_flutter_pdf: ^28.1.41
-  syncfusion_flutter_barcodes: ^28.1.41
+  syncfusion_flutter_pdf: ^29.1.37
+  syncfusion_flutter_barcodes: ^29.1.37
   win32: ^5.0.0
   qr: ^3.0.0
   flutter_bloc: ^8.0.1
@@ -219,7 +219,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.3788.0
+  msix_version: 1.170.3789.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

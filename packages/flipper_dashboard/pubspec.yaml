@@ -87,12 +87,12 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datepicker: ^28.1.41
-  syncfusion_flutter_datagrid: ^28.1.41
-  syncfusion_flutter_xlsio: ^28.1.41
-  syncfusion_flutter_datagrid_export: ^28.1.41
-  syncfusion_flutter_core: ^28.1.41
-  syncfusion_officechart: ^28.1.41
+  syncfusion_flutter_datepicker: ^29.1.37
+  syncfusion_flutter_datagrid: ^29.1.37
+  syncfusion_flutter_xlsio: ^29.1.37
+  syncfusion_flutter_datagrid_export: ^29.1.37
+  syncfusion_flutter_core: ^29.1.37
+  syncfusion_officechart: ^29.1.37
   
   flex_color_picker: ^3.7.0
   sizer: ^2.0.15
