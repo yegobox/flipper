@@ -1378,8 +1378,9 @@ class CoreSync extends AiStrategyImpl
               ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
               tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A");
         } else {
-          clearData(data: ClearData.Branch, identifier: branchE!.serverId!);
-          clearData(data: ClearData.Business, identifier: business!.serverId);
+          clearData(data: ClearData.Branch, identifier: branchE?.serverId ?? 0);
+          clearData(
+              data: ClearData.Business, identifier: business?.serverId ?? 0);
         }
       }
       final response = await flipperHttpClient.get(uri);

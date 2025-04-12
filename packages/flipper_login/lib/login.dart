@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -6,14 +5,9 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_routing/all_routes.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +15,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flutter/foundation.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 /// A stateful widget that handles user authentication and login flow
 /// Supports multiple platforms (Web, Desktop, Mobile) with different UI layouts
@@ -88,64 +81,12 @@ class _LoginState extends State<Login> {
       if (!shouldProcessLogin) return;
 
       try {
-        final userPin = await _processUserLogin(user);
-        await _completeLoginProcess(userPin, model);
+        final userPin = await model.processUserLogin(user);
+        await model.completeLoginProcess(userPin, model);
       } catch (e, s) {
-        _handleLoginError(e, s);
+        model.handleLoginError(e, s);
       }
     });
-  }
-
-  /// Process user login and retrieve PIN information
-  Future<Pin> _processUserLogin(firebase.User user) async {
-    final key = user.phoneNumber ?? user.email!;
-
-    // Get user information
-    final response = await ProxyService.strategy
-        .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
-    final iUser = IUser.fromJson(json.decode(response.body));
-
-    // Get PIN information
-    final pin = await ProxyService.strategy.getPin(
-        pinString: iUser.id.toString(), flipperHttpClient: ProxyService.http);
-
-    return Pin(
-        userId: int.parse(pin!.userId),
-        pin: pin.pin,
-        branchId: pin.branchId,
-        businessId: pin.businessId,
-        ownerName: pin.ownerName,
-        tokenUid: iUser.uid,
-        uid: user.uid,
-        phoneNumber: iUser.phoneNumber);
-  }
-
-  /// Complete the login process with the retrieved PIN
-  Future<void> _completeLoginProcess(Pin userPin, LoginViewModel model) async {
-    await ProxyService.box
-        .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
-
-    await ProxyService.strategy.login(
-        userPhone: userPin.phoneNumber!,
-        skipDefaultAppSetup: false,
-        pin: userPin,
-        flipperHttpClient: ProxyService.http);
-
-    await ProxyService.box.writeBool(key: 'authComplete', value: true);
-    model.completeLogin(userPin);
-  }
-
-  /// Handle login-related errors
-  void _handleLoginError(Object e, StackTrace s) {
-    talker.error(e, s);
-
-    if (e is NeedSignUpException || e is BusinessNotFoundException) {
-      locator<RouterService>().navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
-    } else if (e is NoPaymentPlanFound) {
-      locator<RouterService>().navigateTo(PaymentPlanUIRoute());
-      return;
-    }
-    throw e;
   }
 
   /// Determines if the current device is a desktop based on screen width

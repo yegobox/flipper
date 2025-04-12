@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
+// ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
