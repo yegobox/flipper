@@ -57,7 +57,6 @@ mixin VariantMixin implements VariantInterface {
           Where('branchId').isExactly(branchId)
         ] else ...[
           Where('branchId').isExactly(branchId),
-
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
           // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
@@ -71,19 +70,26 @@ mixin VariantMixin implements VariantInterface {
           /// 01 is waiting for approval.
           if (excludeApprovedInWaitingOrCanceledItems)
             Where('pchsSttsCd').isExactly("01"),
-
           if (purchaseId != null) Where('purchaseId').isExactly(purchaseId),
           // Apply the purchaseId filter only if includePurchases is true
           if (excludeApprovedInWaitingOrCanceledItems)
             Where('purchaseId').isNot(null),
         ]
       ]);
+
+      // Try local first
       List<Variant> variants = await repository.get<Variant>(
-        policy: fetchRemote
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: query,
       );
+
+      // If no results found locally, fetch from remote
+      if (variants.isEmpty && fetchRemote == true) {
+        variants = await repository.get<Variant>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
+          query: query,
+        );
+      }
 
       // Pagination logic (if needed)
       if (page != null && itemsPerPage != null) {
