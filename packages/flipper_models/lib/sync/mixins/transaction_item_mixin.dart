@@ -170,14 +170,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       // Date range handling
       if (startDate != null && endDate != null)
         if (startDate == endDate)
-          Where('createdAt').isBetween(
-            startDate.toIso8601String(),
-            startDate.add(const Duration(days: 1)).toIso8601String(),
-          )
+          Where('createdAt')
+              .isGreaterThanOrEqualTo(startDate.toUtc().toIso8601String())
         else
           Where('createdAt').isBetween(
-            startDate.toIso8601String(),
-            endDate.toIso8601String(),
+            startDate.toUtc().toIso8601String(),
+            endDate.toUtc().toIso8601String(),
           ),
 
       if (doneWithTransaction != null)

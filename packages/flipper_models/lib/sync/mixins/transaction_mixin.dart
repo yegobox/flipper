@@ -717,13 +717,9 @@ mixin TransactionMixin implements TransactionInterface {
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
-        // Ensure we include the entire day
-        DateTime endOfDay = startDate.add(Duration(days: 1));
-
         conditions.add(
-          Where('lastTouched').isBetween(
+          Where('lastTouched').isGreaterThanOrEqualTo(
             startDate.toUtc().toIso8601String(),
-            endOfDay.toUtc().toIso8601String(),
           ),
         );
       } else {
