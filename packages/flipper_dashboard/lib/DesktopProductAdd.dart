@@ -74,6 +74,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 
   // Helper function to check if a string is a valid hexadecimal color code
+  bool _isDisposed = false; // Add a flag to track disposal.
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Set the flag when disposing.
+    _inputTimer?.cancel();
+    productNameController.dispose();
+    retailPriceController.dispose();
+    scannedInputController.dispose();
+    supplyPriceController.dispose();
+    scannedInputFocusNode.dispose();
+    super.dispose();
+  }
+
   void _showNoProductNameToast() {
     toast('No product name!');
   }
@@ -89,6 +103,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef,
       {required String selectedProductType}) async {
+    if (_isDisposed) return; // Check if the widget is disposed.
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -215,13 +230,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         await _handleCompositeProductSave(model);
       }
     } catch (e) {
-      ref.read(loadingProvider.notifier).stopLoading();
-      toast("We did not close normally, check if your product is saved");
+      if (!_isDisposed) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        toast("We did not close normally, check if your product is saved");
+      }
       rethrow;
     }
   }
 
   Future<void> _handleCompositeProductSave(ScannViewModel model) async {
+    if (_isDisposed) return;
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -272,9 +290,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
       ref.read(loadingProvider.notifier).stopLoading();
     } catch (e) {
-      ref.read(loadingProvider.notifier).stopLoading();
-      toast("Failed to save composite product: ${e.toString()}");
-      talker.error("Error saving composite product: $e");
+      if (!_isDisposed) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        toast("Failed to save composite product: ${e.toString()}");
+        talker.error("Error saving composite product: $e");
+      }
       // Don't close the dialog automatically on error
     }
   }
@@ -282,6 +302,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product,
       {required String selectedProductType}) async {
+    if (_isDisposed) return;
     try {
       if (model.scannedVariants.isEmpty && widget.productId == null) {
         _showNoProductSavedToast();
@@ -291,8 +312,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       await _saveProductAndVariants(model, context, product,
           selectedProductType: selectedProductType);
     } catch (e) {
-      toast("Error saving product: ${e.toString()}");
-      talker.error("Error in _onSaveButtonPressed: $e");
+      if (!_isDisposed) {
+        toast("Error saving product: ${e.toString()}");
+        talker.error("Error in _onSaveButtonPressed: $e");
+      }
     }
   }
 
@@ -303,17 +326,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
   // Add a state variable to hold the selected product type
   String selectedProductType = "2";
-
-  @override
-  void dispose() {
-    _inputTimer?.cancel();
-    productNameController.dispose();
-    retailPriceController.dispose();
-    scannedInputController.dispose();
-    supplyPriceController.dispose();
-    scannedInputFocusNode.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -327,7 +339,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
           Product product =
               await model.getProduct(productId: widget.productId!);
-          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+          if (!_isDisposed) {
+            ref
+                .read(unsavedProductProvider.notifier)
+                .emitProduct(value: product);
+          }
 
           // Populate product name with the name of the product being edited
           productNameController.text = product.name;
@@ -347,9 +363,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
           // Set the selectedCategoryId from the first variant's categoryId
           if (variants.isNotEmpty && variants.first.categoryId != null) {
-            setState(() {
-              selectedCategoryId = variants.first.categoryId;
-            });
+            if (!_isDisposed) {
+              setState(() {
+                selectedCategoryId = variants.first.categoryId;
+              });
+            }
           }
 
           model.setScannedVariants(variants);
@@ -364,9 +382,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             name: TEMP_PRODUCT,
             createItemCode: false,
           );
-          ref
-              .read(unsavedProductProvider.notifier)
-              .emitProduct(value: product!);
+          if (!_isDisposed && product != null) {
+            ref
+                .read(unsavedProductProvider.notifier)
+                .emitProduct(value: product);
+          }
         }
 
         model.initialize();
@@ -408,7 +428,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 selectedValue: selectedPackageUnitValue,
                                 options: model.pkgUnits,
                                 onChanged: (String? newValue) {
-                                  if (newValue != null) {
+                                  if (!_isDisposed && newValue != null) {
                                     setState(() {
                                       selectedPackageUnitValue = newValue;
                                     });
@@ -448,7 +468,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                         options: categoryOptions,
                                         displayNames: displayNames,
                                         onChanged: (String? newValue) {
-                                          if (newValue != null) {
+                                          if (!_isDisposed &&
+                                              newValue != null) {
                                             final value = newValue.split(":");
 
                                             setState(() {
@@ -484,9 +505,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       ProductTypeDropdown(
                         selectedValue: selectedProductType,
                         onChanged: (String? newValue) {
-                          setState(() {
-                            selectedProductType = newValue!;
-                          });
+                          if (!_isDisposed && newValue != null) {
+                            setState(() {
+                              selectedProductType = newValue;
+                            });
+                          }
                         },
                       ),
                       CountryOfOriginSelector(
@@ -603,6 +626,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   children: [
                     ElevatedButton(
                       onPressed: () async {
+                        if (_isDisposed) return;
                         try {
                           if (_formKey.currentState!.validate() &&
                               !ref.watch(isCompositeProvider)) {
@@ -653,10 +677,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
                       currentColor: pickerColor,
                       onColorSelected: (Color color) {
-                        setState(() {
-                          pickerColor = color;
-                          isColorPicked = true;
-                        });
+                        if (!_isDisposed) {
+                          setState(() {
+                            pickerColor = color;
+                            isColorPicked = true;
+                          });
+                        }
                       },
                     );
                   },
@@ -666,10 +692,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   imageUrl: null,
                   currentColor: pickerColor,
                   onColorSelected: (Color color) {
-                    setState(() {
-                      pickerColor = color;
-                      isColorPicked = true;
-                    });
+                    if (!_isDisposed) {
+                      setState(() {
+                        pickerColor = color;
+                        isColorPicked = true;
+                      });
+                    }
                   },
                 ),
             ],

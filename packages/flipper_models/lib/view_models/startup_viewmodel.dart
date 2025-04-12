@@ -31,6 +31,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
+      if (ProxyService.box.getForceLogout()) {
+        await logOut();
+        _routerService.navigateTo(LoginRoute());
+        return;
+      }
       talker.warning("StartupViewModel runStartupLogic");
       // Ensure realm is initialized before proceeding.
 

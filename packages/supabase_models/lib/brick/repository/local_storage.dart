@@ -83,7 +83,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'lockPatching',
     'last_internet_connection_timestamp',
     'databaseFilename',
-    'queueFilename'
+    'queueFilename',
+    'forceLogout'
   };
 
   /// Initialize the preferences by loading from the JSON file
@@ -103,14 +104,14 @@ class SharedPreferenceStorage implements LocalStorage {
 
       // Load preferences from file
       await _loadPreferences();
-      
+
       // Ensure the file exists by saving the current cache (even if empty)
       // This is critical for fresh installs
       await _savePreferences();
     } catch (e) {
       // If there's an error, start with an empty cache
       _cache = {};
-      
+
       // Try to create the file anyway
       try {
         await _savePreferences();
@@ -181,7 +182,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> _savePreferences() async {
     try {
       final file = File(_filePath);
-      final tempFile = File('${_filePath}.tmp');
+      final tempFile = File('$_filePath.tmp');
 
       // Write to a temporary file first
       await tempFile.writeAsString(jsonEncode(_cache), flush: true);
@@ -591,6 +592,17 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> setQueueFilename(String filename) async {
     _cache['queueFilename'] = filename;
+    await _savePreferences();
+  }
+
+  @override
+  bool getForceLogout() {
+    return _cache['forceLogout'] as bool? ?? false;
+  }
+
+  @override
+  Future<void> setForceLogout(bool value) async {
+    _cache['forceLogout'] = value;
     await _savePreferences();
   }
 }

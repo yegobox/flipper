@@ -294,7 +294,8 @@ extension AccessControlWidget on Widget {
     return Consumer(
       builder: (context, ref, child) {
         final hasAccess = ref.watch(featureAccessProvider(
-            featureName: featureName, userId: ProxyService.box.getUserId()!));
+            featureName: featureName,
+            userId: ProxyService.box.getUserId() ?? 0));
         return hasAccess ? this : SizedBox.shrink();
       },
     );

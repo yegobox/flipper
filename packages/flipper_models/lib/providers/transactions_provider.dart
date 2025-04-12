@@ -31,26 +31,35 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.getBranchId();
 
+  talker.debug('transactionItemList called');
+
   // Input validation
   if (branchId == null) {
+    talker.error('Branch ID is required');
     throw StateError('Branch ID is required');
   }
 
   if (startDate == null || endDate == null) {
+    talker.warning('startDate or endDate is null, returning empty stream');
     return Stream.value([]);
   }
 
   // Keep provider alive
   ref.keepAlive();
 
+  talker.debug(
+      'Fetching transactions from $startDate to $endDate for branch $branchId');
+
   return ProxyService.strategy
       .transactionItemsStreams(
-        startDate: startDate,
-        endDate: endDate,
-        branchId: branchId,
-      )
-      .map((transactions) => transactions)
-      .handleError((error, stackTrace) {
+          startDate: startDate,
+          endDate: endDate,
+          branchId: branchId,
+          fetchRemote: true)
+      .map((transactions) {
+    talker.debug('Received ${transactions.length} transactions');
+    return transactions;
+  }).handleError((error, stackTrace) {
     talker.error('Error loading transaction items: $error');
     talker.error(stackTrace);
     throw error;

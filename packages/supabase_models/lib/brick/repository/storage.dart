@@ -89,4 +89,6 @@ abstract class LocalStorage {
 
   /// Sets the queue database filename
   Future<void> setQueueFilename(String filename);
+  Future<void> setForceLogout(bool value);
+  bool getForceLogout();
 }

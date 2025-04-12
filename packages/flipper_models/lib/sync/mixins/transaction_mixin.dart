@@ -738,7 +738,8 @@ mixin TransactionMixin implements TransactionInterface {
     if (removeAdjustmentTransactions) {
       conditions.add(Where('receiptType').isNot('adjustment'));
     }
-    final queryString = Query(where: conditions);
+    final queryString = Query(
+        where: conditions, orderBy: [OrderBy('createdAt', ascending: false)]);
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(

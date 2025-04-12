@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
@@ -26,19 +24,31 @@ class TransactionListState extends ConsumerState<TransactionList>
     final endDate = dateRange.endDate;
 
     final showDetailed = ref.watch(toggleBooleanValueProvider);
-    // Only watch the provider we need based on showPluReportWidget
-    final dataProvider = showDetailed
+
+    // Select the appropriate provider based on showDetailed.
+    final AsyncValue<List<dynamic>> dataProvider = showDetailed
         ? ref.watch(transactionItemListProvider)
         : ref.watch(transactionListProvider);
 
-    // Force refresh of the appropriate provider when the widget is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.showDetailedReport) {
-        ref.refresh(transactionItemListProvider);
-      } else {
-        ref.refresh(transactionListProvider);
+    // Refresh the data whenever showDetailed changes.
+    ref.listen<bool>(toggleBooleanValueProvider, (previous, current) {
+      if (current != previous) {
+        if (widget.showDetailedReport) {
+          ref.refresh(transactionItemListProvider);
+        } else {
+          ref.refresh(transactionListProvider);
+        }
       }
     });
+    // Conditionally cast the data based on the `showDetailed` flag.
+    List<ITransaction>? transactions = !showDetailed && dataProvider.hasValue
+        ? dataProvider.value!.cast<ITransaction>()
+        : null; // Cast only when data is available.
+
+    List<TransactionItem>? transactionItems =
+        showDetailed && dataProvider.hasValue
+            ? dataProvider.value!.cast<TransactionItem>()
+            : null; // Cast only when data is available.
 
     return Container(
       child: dataProvider.when(
@@ -59,16 +69,14 @@ class TransactionListState extends ConsumerState<TransactionList>
               ),
             );
           }
-
-          // If it is Detailed, we get gross profit as we sum up the qty * price
+          // Pass the conditionally cast data to the DataView.
           return DataView(
-            transactions: !showDetailed ? data as List<ITransaction> : null,
-            transactionItems:
-                showDetailed ? data as List<TransactionItem> : null,
+            transactions: transactions,
+            transactionItems: transactionItems,
             startDate: startDate!,
             endDate: endDate!,
             rowsPerPage: ref.read(rowsPerPageProvider),
-            showDetailedReport: ref.watch(toggleBooleanValueProvider),
+            showDetailedReport: showDetailed,
           );
         },
         loading: () => Column(
@@ -76,7 +84,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             datePicker(),
             Center(
                 child: Text(
-              'No reports available',
+              'Loading reports...', // More informative message
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey[600],
@@ -84,7 +92,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             )),
           ],
         ),
-        error: (error, stackTrace) => Center(child: Text('Error: $stackTrace')),
+        error: (error, stackTrace) => Center(child: Text('Error: $error')),
       ),
     );
   }

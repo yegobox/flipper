@@ -49,11 +49,11 @@ class ForceDataEntryService {
 
     /// bootstrap app permission for admin
     List<Access> permissions = await ProxyService.strategy
-        .access(userId: ProxyService.box.getUserId()!);
+        .access(userId: ProxyService.box.getUserId() ?? 0);
     if (permissions.isEmpty) {
       int? branchId = ProxyService.box.getBranchId();
       int? businessId = ProxyService.box.getBusinessId();
-      int userId = ProxyService.box.getUserId()!;
+      int userId = ProxyService.box.getUserId() ?? 0;
 
       /// it is empty but we might have them on cloud so check on cloud
       final doesBusinessHavePermission = await ProxyService.realmHttp
