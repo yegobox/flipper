@@ -38,6 +38,8 @@ class OuterVariants extends _$OuterVariants {
       // Fetch variants from the API with a timeout
       final variants = await ProxyService.strategy
           .variants(
+            name: searchString,
+            fetchRemote: true,
             branchId: branchId,
             page: _currentPage,
             itemsPerPage: _itemsPerPage,

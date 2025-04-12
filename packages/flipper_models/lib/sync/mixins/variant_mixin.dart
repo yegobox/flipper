@@ -35,7 +35,9 @@ mixin VariantMixin implements VariantInterface {
     bool fetchRemote = false,
   }) async {
     try {
-      final query = Query(where: [
+      final query = Query(orderBy: [
+        OrderBy('lastTouched', ascending: false)
+      ], where: [
         if (variantId != null)
           Where('id').isExactly(variantId)
         else if (name != null) ...[
@@ -307,6 +309,4 @@ mixin VariantMixin implements VariantInterface {
       return [];
     }
   }
-
-  
 }
