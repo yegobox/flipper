@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
+import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
@@ -251,23 +252,32 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   Future<void> _signInWithCredential(PhoneAuthCredential credential) async {
     try {
+      // Show Loading Dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent closing by tapping outside
+        builder: (BuildContext context) {
+          return const LoadingDialog(message: 'Finalizing authentication...');
+        },
+      );
+
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
       setState(() => _isLoading = false);
 
+      // Dismiss Loading Dialog
+      Navigator.of(context, rootNavigator: true).pop();
+
       if (user.user != null) {
         // Show success and navigate
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Authentication successful!, wait...'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 10),
-            ),
-          );
-        }
+        if (mounted) {}
       }
     } catch (e) {
+      // Dismiss Loading Dialog in case of error
+      if (Navigator.canPop(context)) {
+        // Add this check!
+        Navigator.of(context, rootNavigator: true).pop();
+      }
       setState(() => _isLoading = false);
       _showErrorSnackBar(context, 'Authentication failed: ${e.toString()}');
     }
