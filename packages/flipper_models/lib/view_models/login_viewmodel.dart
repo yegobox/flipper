@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -78,32 +76,37 @@ class LoginViewModel extends FlipperBaseModel
 
   /// Process user login and retrieve PIN information
   Future<Pin> processUserLogin(firebase.User user) async {
-    final User? myuser = await ProxyService.strategy.authUser(uuid: user.uid);
-    String key = '';
-    if (myuser == null) {
-      // fallback to old habit
-      key = user.phoneNumber ?? user.email!;
-    } else {
-      key = myuser.key!;
+    try {
+      final User? myuser = await ProxyService.strategy.authUser(uuid: user.uid);
+      String key = '';
+      if (myuser == null) {
+        // fallback to old habit
+        key = user.phoneNumber ?? user.email!;
+      } else {
+        key = myuser.key!;
+      }
+      // Get user information
+      final response = await ProxyService.strategy
+          .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
+      final iUser = IUser.fromJson(json.decode(response.body));
+
+      // Get PIN information
+      final pin = await ProxyService.strategy.getPin(
+          pinString: iUser.id.toString(), flipperHttpClient: ProxyService.http);
+
+      return Pin(
+          userId: int.parse(pin!.userId),
+          pin: pin.pin,
+          branchId: pin.branchId,
+          businessId: pin.businessId,
+          ownerName: pin.ownerName,
+          tokenUid: iUser.uid,
+          uid: user.uid,
+          phoneNumber: iUser.phoneNumber);
+    } catch (e, s) {
+      talker.error(e, s);
+      rethrow;
     }
-    // Get user information
-    final response = await ProxyService.strategy
-        .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
-    final iUser = IUser.fromJson(json.decode(response.body));
-
-    // Get PIN information
-    final pin = await ProxyService.strategy.getPin(
-        pinString: iUser.id.toString(), flipperHttpClient: ProxyService.http);
-
-    return Pin(
-        userId: int.parse(pin!.userId),
-        pin: pin.pin,
-        branchId: pin.branchId,
-        businessId: pin.businessId,
-        ownerName: pin.ownerName,
-        tokenUid: iUser.uid,
-        uid: user.uid,
-        phoneNumber: iUser.phoneNumber);
   }
 
   /// Complete the login process with the retrieved PIN
