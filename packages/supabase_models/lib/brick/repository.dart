@@ -53,7 +53,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   late final DatabaseManager _databaseManager;
   late final QueueManager _queueManager;
   late final ConnectionManager _connectionManager;
-  
+
   // Lock detection
   static bool _isBackupInProgress = false;
   static bool _isCleanupInProgress = false;
@@ -99,7 +99,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _databaseManager =
         DatabaseManager(dbFileName: dbFileName, backupManager: _backupManager);
     _queueManager = QueueManager(offlineRequestQueue);
-    _connectionManager = ConnectionManager(PlatformHelpers.getDatabaseFactory(), maxConcurrentOperations: 2);
+    _connectionManager = ConnectionManager(PlatformHelpers.getDatabaseFactory(),
+        maxConcurrentOperations: 2);
   }
 
   factory Repository() {
@@ -177,7 +178,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           _logger.warning('Database corruption detected: $e');
           // Close any existing connections before restoration
           await connectionManager.closeConnection(dbPath);
-          
+
           // Database is corrupted, try to restore from backup
           final restored = await backupManager.restoreLatestBackup(
               directory, dbPath, databaseFactoryToUse);
@@ -365,24 +366,24 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       _logger.info('Cleanup already in progress, skipping');
       return 0;
     }
-    
+
     _isCleanupInProgress = true;
-    
+
     try {
       // Check if queue manager is properly initialized
       try {
         // This will throw an exception if not properly initialized
         await _queueManager.getQueueStatus();
       } catch (e) {
-        _logger
-            .warning('Queue manager not fully initialized, skipping cleanup: $e');
+        _logger.warning(
+            'Queue manager not fully initialized, skipping cleanup: $e');
         _isCleanupInProgress = false;
         return 0;
       }
 
       // Add a longer delay before cleanup to allow any pending operations to complete
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       final result = await _queueManager.cleanupFailedRequests();
       _isCleanupInProgress = false;
       return result;
@@ -456,7 +457,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       _logger.info('Backup already in progress, skipping');
       return false;
     }
-    
+
     // Check if enough time has passed since the last backup
     if (_lastBackupTime != null) {
       final timeSinceLastBackup = DateTime.now().difference(_lastBackupTime!);
@@ -465,9 +466,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         return false;
       }
     }
-    
+
     _isBackupInProgress = true;
-    
+
     // Add a longer delay to allow any pending operations to complete
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -490,18 +491,18 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       try {
         // Close any active connections before backup
         await _databaseManager.closeAllConnections();
-        
+
         final result = await _backupManager.performPeriodicBackup(
           dbPath,
           minInterval: minInterval,
           dbFactory: dbFactory,
           currentBackupPath: dbFileName,
         );
-        
+
         if (result) {
           _lastBackupTime = DateTime.now();
         }
-        
+
         _isBackupInProgress = false;
         return result;
       } catch (e) {
