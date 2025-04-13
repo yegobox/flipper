@@ -275,6 +275,6 @@ mixin Booting {
         key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
     await ProxyService.box.writeString(
         key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey!);
+        value: user.tenants.first.businesses.first.encryptionKey ?? "");
   }
 }
