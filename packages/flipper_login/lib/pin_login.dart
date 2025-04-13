@@ -142,7 +142,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
             key: Key('PinLogin'),
             body: Stack(
               children: [
-                SizedBox(width: 85, child: back.BackButton()),
+                SizedBox(width: 85, child: back.CustomBackButton()),
                 Center(
                   child: Form(
                     key: _formKey,

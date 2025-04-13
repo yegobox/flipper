@@ -60,7 +60,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                   },
                   closeButton: CLOSEBUTTON.WIDGET,
                   isDividerVisible: false,
-                  customLeadingWidget: back.BackButton(),
+                  customLeadingWidget: back.CustomBackButton(),
                 )
               : null,
           body: SingleChildScrollView(
