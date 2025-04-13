@@ -1,6 +1,7 @@
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:supabase_models/brick/models/user.model.dart' show User;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -42,6 +43,18 @@ mixin CapellaTenantMixin implements TenantInterface {
       required HttpClientInterface flipperHttpClient,
       required String userType}) {
     // TODO: implement saveTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User> saveUser({required User user}) {
+    // TODO: implement saveUser
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User?> authUser({required String uuid}) async {
+    // TODO: implement authUser
     throw UnimplementedError();
   }
   // Repository get repository;

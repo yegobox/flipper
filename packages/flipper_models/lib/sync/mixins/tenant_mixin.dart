@@ -1,6 +1,7 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
@@ -58,5 +59,21 @@ mixin TenantMixin implements TenantInterface {
   Stream<Tenant?> getDefaultTenant({required int businessId}) {
     // Add default tenant retrieval logic here
     throw UnimplementedError();
+  }
+
+  @override
+  Future<User> saveUser({required User user}) {
+    return repository.upsert(user);
+  }
+
+  @override
+  Future<User?> authUser({required String uuid}) async {
+    return (await repository.get<User>(
+      policy: OfflineFirstGetPolicy.awaitRemote,
+      query: Query(
+        where: [Where('uuid').isExactly(uuid)],
+      ),
+    ))
+        .firstOrNull;
   }
 }

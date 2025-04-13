@@ -13,6 +13,7 @@ import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
+import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
@@ -52,6 +53,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         TransactionItemInterface,
         TransactionInterface,
         ProductInterface,
+        TenantInterface,
         CategoryInterface {
   // Repository get repository;
   // DatabaseProvider? capella;

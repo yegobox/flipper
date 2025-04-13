@@ -27,7 +27,6 @@ export 'helperModels/setting.dart';
 export 'helperModels/profile.dart';
 export 'helperModels/receipt.dart';
 export 'helperModels/social.dart';
-export 'helperModels/user.dart';
 export 'helperModels/social_token.dart';
 export 'helperModels/conversation.dart';
 export 'helperModels/business_type.dart';

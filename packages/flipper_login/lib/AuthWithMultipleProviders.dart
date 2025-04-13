@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/view_models/login_viewmodel.dart';
 // import 'package:flipper_login/apple_logo_painter.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -9,10 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'apple_logo_painter.dart';
+// import 'apple_logo_painter.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 // Constants for consistent styling
 class AppColors {
@@ -146,7 +150,13 @@ class _AuthState extends State<Auth> {
       });
 
       if (state.status == AuthStatus.success) {
-        _routerService.clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Prevent closing by tapping outside
+          builder: (BuildContext context) {
+            return const LoadingDialog(message: 'Finalizing authentication...');
+          },
+        );
       }
     });
   }
@@ -214,29 +224,42 @@ class _AuthState extends State<Auth> {
 
   Future<void> _handleAppleLogin() async {
     _authController.notifyLoading();
+
     try {
-      final provider = AppleAuthProvider();
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final oauthCredential = OAuthProvider("apple.com").credential(
+        idToken: credential.identityToken,
+        accessToken: credential.authorizationCode,
+      );
+
       final userCredential =
-          await FirebaseAuth.instance.signInWithProvider(provider);
+          await FirebaseAuth.instance.signInWithCredential(oauthCredential);
 
       if (userCredential.user != null) {
         _authController.notifySignedIn();
       } else {
         _authController.notifyError("Sign in failed");
       }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'popup-closed-by-user' ||
-          e.code == 'canceled' ||
-          e.code == 'web-context-canceled') {
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
         _authController.notifySignedOut();
       } else {
         Sentry.captureException(e, stackTrace: StackTrace.current);
-        _authController.notifyError(e.message ?? "Authentication failed");
+        _authController.notifyError("Apple authorization failed: ${e.message}");
       }
+    } on FirebaseAuthException catch (e) {
+      Sentry.captureException(e, stackTrace: StackTrace.current);
+      _authController.notifyError(e.message ?? "Authentication failed");
     } catch (e) {
       talker.warning(e);
       Sentry.captureException(e, stackTrace: StackTrace.current);
-      _authController.notifyError("Apple login failed");
+      _authController.notifyError("Apple login failed: ${e.toString()}");
     }
   }
 
@@ -246,181 +269,189 @@ class _AuthState extends State<Auth> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 48),
-
-                    // Logo
-                    Center(
-                      child: Image.asset(
-                        'assets/flipper_logo.png',
-                        package: 'flipper_login',
-                        height: 80,
-                      ),
-                    ),
-
-                    SizedBox(height: 48),
-
-                    // Heading
-                    Text(
-                      "Welcome to Flipper",
-                      style: AppStyles.heading,
-                      textAlign: TextAlign.center,
-                    ),
-
-                    SizedBox(height: 16),
-
-                    // Subheading
-                    Text(
-                      "How would you like to sign in?",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: AppColors.textLight,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-
-                    SizedBox(height: 40),
-
-                    // Error message if any
-                    if (_errorMessage != null)
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.error_outline, color: AppColors.error),
-                            SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _errorMessage!,
-                                style: TextStyle(color: AppColors.error),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.close, color: AppColors.error),
-                              onPressed: () =>
-                                  setState(() => _errorMessage = null),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    if (_errorMessage != null) SizedBox(height: 24),
-
-                    // Phone Number Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        key: Key("phoneNumberLogin"),
-                        style: AppButtons.primaryButton,
-                        onPressed: _isLoading ? null : _handlePhoneNumberLogin,
-                        icon: Icon(Icons.phone, size: 20),
-                        label: Text("Continue with Phone",
-                            style: AppStyles.buttonText),
-                      ),
-                    ),
-
-                    SizedBox(height: 16),
-
-                    // Google Button
-                    SocialLoginButton(
-                      key: Key("googleLogin"),
-                      onPressed: _isLoading ? null : _handleGoogleLogin,
-                      iconPath: 'assets/google.svg',
-                      text: 'Continue with Google',
-                    ),
-
-                    SizedBox(height: 16),
-
-                    // Microsoft Button
-                    SocialLoginButton(
-                      key: Key("microsoftLogin"),
-                      onPressed: _isLoading ? null : _handleMicrosoftLogin,
-                      iconPath: 'assets/microsoft.svg',
-                      text: 'Continue with Microsoft',
-                    ),
-
-                    SizedBox(height: 16),
-
-                    // Apple Button
-                    SocialLoginButton(
-                      key: Key("appleLogin"),
-                      onPressed: _isLoading ? null : _handleAppleLogin,
-                      customIcon: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CustomPaint(
-                          painter: AppleLogoPainter(color: Colors.black),
-                        ),
-                      ),
-                      text: 'Continue with Apple',
-                    ),
-
-                    SizedBox(height: 24),
-
-                    // Divider
-                    Row(
+    return ViewModelBuilder<LoginViewModel>.reactive(
+      viewModelBuilder: () => LoginViewModel(),
+      builder: (context, model, child) {
+        return Scaffold(
+          body: SafeArea(
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            "OR",
-                            style: TextStyle(color: AppColors.textLight),
+                        SizedBox(height: 48),
+
+                        // Logo
+                        Center(
+                          child: Image.asset(
+                            'assets/flipper_logo.png',
+                            package: 'flipper_login',
+                            height: 80,
                           ),
                         ),
-                        Expanded(child: Divider()),
+
+                        SizedBox(height: 48),
+
+                        // Heading
+                        Text(
+                          "Welcome to Flipper",
+                          style: AppStyles.heading,
+                          textAlign: TextAlign.center,
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Subheading
+                        Text(
+                          "How would you like to sign in?",
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: AppColors.textLight,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        SizedBox(height: 40),
+
+                        // Error message if any
+                        if (_errorMessage != null)
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline,
+                                    color: AppColors.error),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: TextStyle(color: AppColors.error),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon:
+                                      Icon(Icons.close, color: AppColors.error),
+                                  onPressed: () =>
+                                      setState(() => _errorMessage = null),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        if (_errorMessage != null) SizedBox(height: 24),
+
+                        // Phone Number Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            key: Key("phoneNumberLogin"),
+                            style: AppButtons.primaryButton,
+                            onPressed:
+                                _isLoading ? null : _handlePhoneNumberLogin,
+                            icon: Icon(Icons.phone, size: 20),
+                            label: Text("Continue with Phone",
+                                style: AppStyles.buttonText),
+                          ),
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Google Button
+                        SocialLoginButton(
+                          key: Key("googleLogin"),
+                          onPressed: _isLoading ? null : _handleGoogleLogin,
+                          iconPath: 'assets/google.svg',
+                          text: 'Continue with Google',
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Microsoft Button
+                        SocialLoginButton(
+                          key: Key("microsoftLogin"),
+                          onPressed: _isLoading ? null : _handleMicrosoftLogin,
+                          iconPath: 'assets/microsoft.svg',
+                          text: 'Continue with Microsoft',
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Apple Button
+                        SocialLoginButton(
+                          key: Key("appleLogin"),
+                          onPressed: _isLoading ? null : _handleAppleLogin,
+                          customIcon: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CustomPaint(
+                              painter: AppleLogoPainter(color: Colors.black),
+                            ),
+                          ),
+                          text: 'Continue with Apple',
+                        ),
+
+                        SizedBox(height: 24),
+
+                        // Divider
+                        Row(
+                          children: [
+                            Expanded(child: Divider()),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                "OR",
+                                style: TextStyle(color: AppColors.textLight),
+                              ),
+                            ),
+                            Expanded(child: Divider()),
+                          ],
+                        ),
+
+                        SizedBox(height: 24),
+
+                        // PIN Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            key: Key('pinLogin'),
+                            style: AppButtons.outlinedButton,
+                            onPressed: _isLoading ? null : _handlePinLogin,
+                            icon: Icon(Icons.pin_outlined, size: 20),
+                            label: Text('PIN Login',
+                                style: AppStyles.secondaryButtonText),
+                          ),
+                        ),
+
+                        SizedBox(height: 48),
                       ],
                     ),
-
-                    SizedBox(height: 24),
-
-                    // PIN Login Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        key: Key('pinLogin'),
-                        style: AppButtons.outlinedButton,
-                        onPressed: _isLoading ? null : _handlePinLogin,
-                        icon: Icon(Icons.pin_outlined, size: 20),
-                        label: Text('PIN Login',
-                            style: AppStyles.secondaryButtonText),
-                      ),
-                    ),
-
-                    SizedBox(height: 48),
-                  ],
-                ),
-              ),
-            ),
-
-            // Loading overlay
-            if (_isLoading)
-              Container(
-                color: Colors.black.withOpacity(0.3),
-                child: Center(
-                  child: LoadingAnimationWidget.fallingDot(
-                    color: Colors.white,
-                    size: 60,
                   ),
                 ),
-              ),
-          ],
-        ),
-      ),
+
+                // Loading overlay
+                if (_isLoading)
+                  Container(
+                    color: Colors.black.withOpacity(0.3),
+                    child: Center(
+                      child: LoadingAnimationWidget.fallingDot(
+                        color: Colors.white,
+                        size: 60,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

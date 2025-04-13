@@ -14,4 +14,5 @@ export 'package:flipper_models/view_models/setting_view_model.dart';
 export 'package:flipper_models/view_models/favorite_viewmodel.dart';
 export 'package:flipper_models/view_models/flipperBaseModel.dart';
 export 'package:flipper_models/view_models/ScannViewModel.dart';
+
 // export 'package:flipper_models/view_models/BulkAddProductViewModel.dart';

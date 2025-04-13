@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -5,21 +7,22 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_services/locator.dart' as loc;
 import 'dart:convert';
 
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:supabase_models/brick/models/user.model.dart';
 import 'dart:async';
 
 import 'package:talker_flutter/talker_flutter.dart';
 
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
-    final credential = await FirebaseAuth.instance.signInWithCustomToken(token);
+    final credential =
+        await firebase.FirebaseAuth.instance.signInWithCustomToken(token);
     talker.warning("credentials: $credential");
   }
 }
@@ -75,8 +78,14 @@ class LoginViewModel extends FlipperBaseModel
 
   /// Process user login and retrieve PIN information
   Future<Pin> processUserLogin(firebase.User user) async {
-    final key = user.phoneNumber ?? user.email!;
-
+    final User? myuser = await ProxyService.strategy.authUser(uuid: user.uid);
+    String key = '';
+    if (myuser == null) {
+      // fallback to old habit
+      key = user.phoneNumber ?? user.email!;
+    } else {
+      key = myuser.key!;
+    }
     // Get user information
     final response = await ProxyService.strategy
         .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
