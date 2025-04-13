@@ -138,7 +138,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 30),
           child: Image.asset(
-            'assets/icon.png', // Make sure to add your logo
+            'assets/flipper_logo.png', // Make sure to add your logo
             height: 80,
           ),
         ),
