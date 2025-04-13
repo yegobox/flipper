@@ -46,14 +46,22 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      final endRange =
-          startDate == endDate ? endDate.add(Duration(days: 1)) : endDate;
-      conditions.add(
-        Where('lastTouched').isBetween(
-          startDate.toIso8601String(),
-          endRange.toUtc().toIso8601String(),
-        ),
-      );
+      if (startDate == endDate) {
+        talker.info(
+            'Date Given ${startDate.toUtc().toLocal().toIso8601String()}');
+        conditions.add(
+          Where('lastTouched').isExactly(
+            startDate.toUtc().toLocal().toIso8601String(),
+          ),
+        );
+      } else {
+        conditions.add(
+          Where('lastTouched').isBetween(
+            startDate.toUtc().toLocal().toIso8601String(),
+            endDate.toUtc().toLocal().toIso8601String(),
+          ),
+        );
+      }
     }
 
     // Add ordering to fetch transactions with latest createdAt first
@@ -721,16 +729,18 @@ mixin TransactionMixin implements TransactionInterface {
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
+        talker.info(
+            'Date Given ${startDate.toUtc().toLocal().toIso8601String()}');
         conditions.add(
           Where('lastTouched').isExactly(
-            startDate.toUtc().toIso8601String(),
+            startDate.toUtc().toLocal().toIso8601String(),
           ),
         );
       } else {
         conditions.add(
           Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endDate.toUtc().toIso8601String(),
+            startDate.toUtc().toLocal().toIso8601String(),
+            endDate.toUtc().toLocal().toIso8601String(),
           ),
         );
       }
@@ -758,14 +768,16 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<bool> migrateToNewDateTime({required int branchId}) async {
     // get all transactions for the branch
-    final transactions = await repository.get<ITransaction>(
-      query: Query(where: [Where('branchId').isExactly(branchId)]),
-    );
+    // final transactions = await repository.get<ITransaction>(
+    //   query: Query(where: [Where('branchId').isExactly(branchId)]),
+    // );
     // update lastTouched for each transaction
-    for (final transaction in transactions) {
-      transaction.lastTouched = DateTime.now().toUtc().toDateOnly;
-      await repository.upsert<ITransaction>(transaction);
-    }
+    // for (final transaction in transactions) {
+    //   if (transaction.lastTouched == null) continue;
+    //   transaction.lastTouched = transaction.lastTouched!.toDateOnly;
+    //   transaction.createdAt = transaction.updatedAt!.toDateOnly;
+    //   await repository.upsert<ITransaction>(transaction);
+    // }
     return true;
   }
 }
