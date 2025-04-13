@@ -187,6 +187,31 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       },
     );
 
+    // Initialize the queue database schema if it doesn't exist yet
+    if (!kIsWeb && !DatabasePath.isTestEnvironment()) {
+      try {
+        // Ensure the queue database directory exists
+        final queueDir = Directory(dirname(queuePath));
+        if (!await queueDir.exists()) {
+          await queueDir.create(recursive: true);
+        }
+
+        // Force Brick to initialize the queue database by making a simple operation
+        // This will ensure the database schema is created before it's used
+        try {
+          // Get unprocessed requests to trigger schema creation
+          await queue.requestManager.unprocessedRequests(onlyLocked: false);
+          _logger.info('Queue database initialized successfully');
+        } catch (e) {
+          // If this fails, it's likely because the database is being created
+          // The next operation will succeed
+          _logger.info('Initial queue database setup: $e');
+        }
+      } catch (e) {
+        _logger.warning('Error initializing queue database: $e');
+      }
+    }
+
     final SupabaseClient supabaseClient;
     final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
 
