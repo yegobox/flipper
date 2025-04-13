@@ -22,6 +22,13 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   Map<String, String> tenantAllowedFeatures = {};
   int? userId;
 
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    super.dispose();
+  }
+
   void resetForm() {
     nameController.clear();
     phoneController.clear();
@@ -44,12 +51,16 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       validator: validator,
       decoration: InputDecoration(
         labelText: labelText,
-        prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
+        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12), // More rounded
+          borderSide: BorderSide.none, // Remove the default border
         ),
         filled: true,
-        fillColor: Colors.grey[100],
+        fillColor:
+            Theme.of(context).colorScheme.surfaceVariant, // Use theme color
+        contentPadding: EdgeInsets.symmetric(
+            vertical: 16, horizontal: 16), // add padding inside input
       ),
     );
   }
@@ -71,13 +82,15 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       }).toList(),
       decoration: InputDecoration(
         labelText: "Select User Type",
-        prefixIcon:
-            Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
+        prefixIcon: Icon(Icons.person_outline,
+            color: Theme.of(context).colorScheme.primary),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
         ),
         filled: true,
-        fillColor: Colors.grey[100],
+        fillColor: Theme.of(context).colorScheme.surfaceVariant,
+        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       ),
     );
   }
@@ -88,16 +101,37 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       required String phone,
       required String userType,
       required int? userId}) async {
-    return TenantOperationsMixin.addUserStatic(
-      model,
-      context,
-      editMode: editMode,
-      name: name,
-      phone: phone,
-      userType: userType,
-      userId: userId,
-      ref: ref,
-    );
+    try {
+      await TenantOperationsMixin.addUserStatic(
+        model,
+        context,
+        editMode: editMode,
+        name: name,
+        phone: phone,
+        userType: userType,
+        userId: userId,
+        ref: ref,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(editMode
+              ? 'User updated successfully!'
+              : 'User added successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (error) {
+      // Log the error to a logging service
+      debugPrint('Error adding/updating user: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add/update user. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      // Optionally, re-throw the error if you want the caller to handle it
+      rethrow;
+    }
   }
 
   void updateTenant({Tenant? tenant, String? name, required String type}) {
@@ -194,13 +228,13 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          flex: 2,
-          child: buildTenantsList(model),
+          flex: 3,
+          child: buildAddTenantForm(model, context),
         ),
         SizedBox(width: 20),
         Expanded(
-          flex: 3,
-          child: buildAddTenantForm(model, context),
+          flex: 2,
+          child: buildTenantsList(model),
         ),
       ],
     );
@@ -229,10 +263,13 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             children: [
               Text(
                 editMode ? "Edit User" : "Add New User",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary), // Use theme
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 24),
               buildTextFormField(
                 controller: nameController,
                 labelText: "Name",
@@ -259,12 +296,24 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               buildBranchDropdown(),
               SizedBox(height: 20),
               buildPermissionsSection(),
-              SizedBox(height: 20),
+              SizedBox(height: 24),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  // Customize button style
+                  padding: const EdgeInsets.all(16.0),
+                  textStyle: TextStyle(fontSize: 16),
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .primary, // Use primary color
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
                 onPressed: isAddingUser
-                    ? null
+                    ? null // Disable when processing
                     : () async {
                         if (formKey.currentState!.validate()) {
+                          formKey.currentState!.save(); // trigger onSaved
                           setState(() => isAddingUser = true);
                           try {
                             await addUser(
@@ -277,22 +326,26 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                               userId: userId,
                             );
                             resetForm();
+                          } catch (e) {
+                            // Error is already handled in the `addUser` method
                           } finally {
                             setState(() => isAddingUser = false);
                           }
                         }
                       },
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    isAddingUser
-                        ? "Processing..."
-                        : editMode
-                            ? "Update User"
-                            : "Add User",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
+                child: isAddingUser
+                    ? SizedBox(
+                        // CircularProgressIndicator with size constraint
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary), // Use correct color
+                        ),
+                      )
+                    : Text(editMode ? "Update User" : "Add User"),
               ),
             ],
           ),

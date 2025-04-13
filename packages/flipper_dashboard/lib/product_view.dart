@@ -4,6 +4,7 @@ import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -196,7 +197,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Center(child: _buildSegmentedButton(context, ref)),
+        Center(child: _buildSegmentedButton(context, ref))
+            .shouldSeeTheApp(ref, featureName: AppFeature.Stock),
         const SizedBox(height: 30),
         // Flexible container that takes up remaining space
         Expanded(

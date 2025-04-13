@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:email_validator_flutter/email_validator_flutter.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
@@ -14,9 +13,6 @@ class TenantFormMixin {
   static void resetForm() {
     nameController.clear();
     phoneController.clear();
-    // setState(() {
-    //   selectedUserType = 'Agent';
-    // });
   }
 
   static String? validatePhoneOrEmailStatic(String? value) {

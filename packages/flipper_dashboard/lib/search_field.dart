@@ -96,7 +96,9 @@ class SearchFieldState extends ConsumerState<SearchField>
           // Reduced debounce time for faster search response
           // Using a shorter debounce time (300ms) for better user experience
           // while still avoiding excessive database queries
-          _textSubject.debounceTime(const Duration(milliseconds: 3000)).listen((value) {
+          _textSubject
+              .debounceTime(const Duration(milliseconds: 3000))
+              .listen((value) {
             processDebouncedValue(value, model, widget.controller);
           });
         },
@@ -123,12 +125,13 @@ class SearchFieldState extends ConsumerState<SearchField>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   toggleSearch(),
-                  if (deviceType == 'Phone' || deviceType == 'Phablet')
-                    calc(model: model),
+                  // if (deviceType == 'Phone' || deviceType == 'Phablet')
+                  //   calc(model: model),
                   //if (deviceType != 'Phone' && deviceType != 'Phablet')
                   orders.when(
                     data: (orders) => widget.showOrderButton
-                        ? orderButton(orders)
+                        ? orderButton(orders).shouldSeeTheApp(ref,
+                            featureName: AppFeature.Orders)
                         : const SizedBox.shrink(),
                     loading: () => const SizedBox.shrink(),
                     error: (err, stack) => Text('Error: $err'),
@@ -138,8 +141,8 @@ class SearchFieldState extends ConsumerState<SearchField>
                       deviceType != 'Phablet')
                     incomingButton(),
                   if (widget.showAddButton)
-                    addButton()
-                        .shouldSeeTheApp(ref, featureName: AppFeature.Sales),
+                    addButton().eligibleToSee(
+                        ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
                   if (widget.showDatePicker) datePicker(),
                 ],
               ),
