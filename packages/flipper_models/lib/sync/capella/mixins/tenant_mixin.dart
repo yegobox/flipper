@@ -57,6 +57,18 @@ mixin CapellaTenantMixin implements TenantInterface {
     // TODO: implement authUser
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> createPin({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int pin,
+    required String branchId,
+    required String businessId,
+    required int defaultApp,
+  }) async {
+    throw UnimplementedError();
+  }
   // Repository get repository;
   // Talker get talker;
 }
