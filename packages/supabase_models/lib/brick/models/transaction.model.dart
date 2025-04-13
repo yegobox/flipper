@@ -2,6 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
+import 'extensions.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
@@ -94,7 +95,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? customerId,
     this.customerType,
     this.note,
-    this.lastTouched,
+    DateTime? lastTouched,
     int? supplierId,
     bool? ebmSynced,
     required this.isIncome,
@@ -120,5 +121,6 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
         categoryId =
             (categoryId != null && categoryId.isEmpty) ? null : categoryId,
         ebmSynced = ebmSynced ?? false,
-        createdAt = createdAt ?? DateTime.now();
+        createdAt = DateTime.now().toUtc().toDateOnly,
+        lastTouched = DateTime.now().toUtc().toDateOnly;
 }

@@ -76,4 +76,5 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       double? dcAmt}) {
     throw UnimplementedError();
   }
+  
 }

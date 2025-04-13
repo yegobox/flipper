@@ -69,6 +69,4 @@ mixin CapellaTenantMixin implements TenantInterface {
   }) async {
     throw UnimplementedError();
   }
-  // Repository get repository;
-  // Talker get talker;
 }

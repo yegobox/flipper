@@ -2086,10 +2086,22 @@ class Capella extends AiStrategyImpl
     // TODO: implement saveUser
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<void> createPin({required HttpClientInterface flipperHttpClient, required String phoneNumber, required int pin, required String branchId, required String businessId, required int defaultApp}) {
+  Future<void> createPin(
+      {required HttpClientInterface flipperHttpClient,
+      required String phoneNumber,
+      required int pin,
+      required String branchId,
+      required String businessId,
+      required int defaultApp}) {
     // TODO: implement createPin
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> migrateToNewDateTime({required int branchId}) {
+    // TODO: implement migrateToNewDateTime
     throw UnimplementedError();
   }
 }

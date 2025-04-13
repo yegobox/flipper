@@ -9,6 +9,10 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:synchronized/synchronized.dart';
 
+extension DateOnly on DateTime {
+  DateTime get toDateOnly => DateTime(year, month, day);
+}
+
 mixin TransactionMixin implements TransactionInterface {
   Repository get repository;
 
@@ -718,7 +722,7 @@ mixin TransactionMixin implements TransactionInterface {
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
         conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
+          Where('lastTouched').isExactly(
             startDate.toUtc().toIso8601String(),
           ),
         );
@@ -749,5 +753,19 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     return await repository.delete<ITransaction>(transaction);
+  }
+
+  @override
+  Future<bool> migrateToNewDateTime({required int branchId}) async {
+    // get all transactions for the branch
+    final transactions = await repository.get<ITransaction>(
+      query: Query(where: [Where('branchId').isExactly(branchId)]),
+    );
+    // update lastTouched for each transaction
+    for (final transaction in transactions) {
+      transaction.lastTouched = DateTime.now().toUtc().toDateOnly;
+      await repository.upsert<ITransaction>(transaction);
+    }
+    return true;
   }
 }
