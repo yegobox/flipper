@@ -23,6 +23,7 @@ import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
+import 'repository/connection_manager.dart';
 
 // Default values that will be used if LocalStorage is not available
 const defaultDbFileName = 'flipper_v17.sqlite';
@@ -51,6 +52,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   late final BackupManager _backupManager;
   late final DatabaseManager _databaseManager;
   late final QueueManager _queueManager;
+  late final ConnectionManager _connectionManager;
+  
+  // Lock detection
+  static bool _isBackupInProgress = false;
+  static bool _isCleanupInProgress = false;
+  static DateTime? _lastBackupTime;
 
   /// Set the storage for database configuration
   static void setConfigStorage(DatabaseConfigStorage storage) {
@@ -80,8 +87,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static String get queueName =>
       _configStorage?.getQueueFilename() ?? defaultQueueName;
 
-  // The setConfigStorage method is already defined above
-
   Repository._({
     required super.supabaseProvider,
     required super.sqliteProvider,
@@ -94,6 +99,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _databaseManager =
         DatabaseManager(dbFileName: dbFileName, backupManager: _backupManager);
     _queueManager = QueueManager(offlineRequestQueue);
+    _connectionManager = ConnectionManager(PlatformHelpers.getDatabaseFactory(), maxConcurrentOperations: 2);
   }
 
   factory Repository() {
@@ -137,6 +143,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Create database manager for initialization
       final databaseManager = DatabaseManager(dbFileName: dbFileName);
       final backupManager = BackupManager(maxBackupCount: maxBackupCount);
+      final connectionManager = ConnectionManager(databaseFactoryToUse);
 
       // Ensure the directory exists
       await databaseManager.initializeDatabaseDirectory(directory);
@@ -145,17 +152,32 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       dbPath = databaseManager.getDatabasePath(directory);
       queuePath = join(directory, queueName);
 
+      // Ensure the queue directory exists (this was in the old implementation)
+      final queueDir = Directory(dirname(queuePath));
+      if (!await queueDir.exists()) {
+        await queueDir.create(recursive: true);
+      }
+
       // Check if the database exists and verify its integrity
       if (await File(dbPath).exists()) {
         try {
-          // Try to open the database to check if it's valid
-          final db = await databaseFactoryToUse.openDatabase(
+          // Try to open the database to check if it's valid using the connection manager
+          await connectionManager.executeOperation(
             dbPath,
+            (db) async {
+              // Just query to check if database is accessible
+              await db.query('sqlite_master', limit: 1);
+              return null;
+            },
+            busyTimeout: 5000,
+            timeout: const Duration(seconds: 10),
           );
-          await db.close();
           _logger.info('Database integrity check passed');
         } catch (e) {
           _logger.warning('Database corruption detected: $e');
+          // Close any existing connections before restoration
+          await connectionManager.closeConnection(dbPath);
+          
           // Database is corrupted, try to restore from backup
           final restored = await backupManager.restoreLatestBackup(
               directory, dbPath, databaseFactoryToUse);
@@ -186,31 +208,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         }
       },
     );
-
-    // Initialize the queue database schema if it doesn't exist yet
-    if (!kIsWeb && !DatabasePath.isTestEnvironment()) {
-      try {
-        // Ensure the queue database directory exists
-        final queueDir = Directory(dirname(queuePath));
-        if (!await queueDir.exists()) {
-          await queueDir.create(recursive: true);
-        }
-
-        // Force Brick to initialize the queue database by making a simple operation
-        // This will ensure the database schema is created before it's used
-        try {
-          // Get unprocessed requests to trigger schema creation
-          await queue.requestManager.unprocessedRequests(onlyLocked: false);
-          _logger.info('Queue database initialized successfully');
-        } catch (e) {
-          // If this fails, it's likely because the database is being created
-          // The next operation will succeed
-          _logger.info('Initial queue database setup: $e');
-        }
-      } catch (e) {
-        _logger.warning('Error initializing queue database: $e');
-      }
-    }
 
     final SupabaseClient supabaseClient;
     final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
@@ -363,17 +360,37 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return 0;
     }
 
-    // Check if queue manager is properly initialized
-    try {
-      // This will throw an exception if not properly initialized
-      await _queueManager.getQueueStatus();
-    } catch (e) {
-      _logger
-          .warning('Queue manager not fully initialized, skipping cleanup: $e');
+    // Prevent concurrent cleanup operations
+    if (_isCleanupInProgress) {
+      _logger.info('Cleanup already in progress, skipping');
       return 0;
     }
+    
+    _isCleanupInProgress = true;
+    
+    try {
+      // Check if queue manager is properly initialized
+      try {
+        // This will throw an exception if not properly initialized
+        await _queueManager.getQueueStatus();
+      } catch (e) {
+        _logger
+            .warning('Queue manager not fully initialized, skipping cleanup: $e');
+        _isCleanupInProgress = false;
+        return 0;
+      }
 
-    return await _queueManager.cleanupFailedRequests();
+      // Add a longer delay before cleanup to allow any pending operations to complete
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      final result = await _queueManager.cleanupFailedRequests();
+      _isCleanupInProgress = false;
+      return result;
+    } catch (e) {
+      _logger.warning('Error during cleanup: $e');
+      _isCleanupInProgress = false;
+      return 0;
+    }
   }
 
   /// Configure the database for better crash resilience
@@ -434,8 +451,25 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return false;
     }
 
-    // Add a small delay to allow any pending operations to complete
-    await Future.delayed(const Duration(milliseconds: 100));
+    // Prevent concurrent backup operations
+    if (_isBackupInProgress) {
+      _logger.info('Backup already in progress, skipping');
+      return false;
+    }
+    
+    // Check if enough time has passed since the last backup
+    if (_lastBackupTime != null) {
+      final timeSinceLastBackup = DateTime.now().difference(_lastBackupTime!);
+      if (timeSinceLastBackup < minInterval) {
+        _logger.fine('Not enough time passed since last backup, skipping');
+        return false;
+      }
+    }
+    
+    _isBackupInProgress = true;
+    
+    // Add a longer delay to allow any pending operations to complete
+    await Future.delayed(const Duration(milliseconds: 500));
 
     try {
       // Get the database directory and path
@@ -445,6 +479,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Verify the database file exists before attempting backup
       if (!await File(dbPath).exists()) {
         _logger.info('Database file does not exist, skipping backup');
+        _isBackupInProgress = false;
         return false;
       }
 
@@ -453,20 +488,31 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
       // Use a try-catch block specifically for the backup operation
       try {
+        // Close any active connections before backup
+        await _databaseManager.closeAllConnections();
+        
         final result = await _backupManager.performPeriodicBackup(
           dbPath,
           minInterval: minInterval,
           dbFactory: dbFactory,
           currentBackupPath: dbFileName,
         );
+        
+        if (result) {
+          _lastBackupTime = DateTime.now();
+        }
+        
+        _isBackupInProgress = false;
         return result;
       } catch (e) {
         // Log the specific backup error but don't rethrow
         _logger.warning('Backup operation failed: $e');
+        _isBackupInProgress = false;
         return false;
       }
     } catch (e) {
       _logger.warning('Error during periodic database backup setup: $e');
+      _isBackupInProgress = false;
       return false;
     }
   }

@@ -6,6 +6,11 @@ import 'package:brick_offline_first/offline_queue.dart';
 class QueueManager {
   static final _logger = Logger('QueueManager');
   final OfflineRequestQueue offlineRequestQueue;
+  
+  // Batch size for processing queue operations
+  static const int _batchSize = 10;
+  // Delay between batches to prevent lock contention
+  static const Duration _batchDelay = Duration(milliseconds: 50);
 
   QueueManager(this.offlineRequestQueue);
 
@@ -32,24 +37,9 @@ class QueueManager {
       final primaryKeyColumn =
           offlineRequestQueue.requestManager.primaryKeyColumn;
 
-      // Create a list to hold the futures for deletion operations
-      final List<Future<void>> deletionFutures = [];
-
-      // Iterate through the unprocessed requests
-      for (final request in requests) {
-        // Retrieve the request ID using the primary key column
-        final requestId = request[primaryKeyColumn] as int;
-
-        // Add the deletion future to the list
-        deletionFutures.add(
-          offlineRequestQueue.requestManager
-              .deleteUnprocessedRequest(requestId),
-        );
-      }
-
-      // Wait for all deletion operations to complete
-      await Future.wait(deletionFutures);
-
+      // Process in batches to reduce lock contention
+      await _processBatches(requests, primaryKeyColumn);
+      
       _logger.info("All locked requests have been cleared.");
     } catch (e) {
       _logger.warning("An error occurred while clearing locked requests: $e");
@@ -94,29 +84,44 @@ class QueueManager {
       final primaryKeyColumn =
           offlineRequestQueue.requestManager.primaryKeyColumn;
 
-      // Create a list to hold the futures for deletion operations
-      final List<Future<void>> deletionFutures = [];
-
-      // Iterate through the locked requests
-      for (final request in requests) {
-        // Retrieve the request ID using the primary key column
-        final requestId = request[primaryKeyColumn] as int;
-
-        // Add the deletion future to the list
-        deletionFutures.add(
-          offlineRequestQueue.requestManager
-              .deleteUnprocessedRequest(requestId),
-        );
-      }
-
-      // Wait for all deletion operations to complete
-      await Future.wait(deletionFutures);
-
+      // Process in batches to reduce lock contention
+      await _processBatches(requests, primaryKeyColumn);
+      
       _logger.info("${requests.length} failed requests have been deleted.");
       return requests.length;
     } catch (e) {
       _logger.warning("An error occurred while deleting failed requests: $e");
       return 0;
+    }
+  }
+
+  /// Process requests in batches to prevent database locks
+  Future<void> _processBatches(List<Map<String, dynamic>> requests, String primaryKeyColumn) async {
+    // Calculate number of batches needed
+    final int totalBatches = (requests.length / _batchSize).ceil();
+    
+    for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+      // Calculate start and end indices for this batch
+      final int startIdx = batchIndex * _batchSize;
+      final int endIdx = (startIdx + _batchSize < requests.length) 
+          ? startIdx + _batchSize 
+          : requests.length;
+      
+      // Get the current batch of requests
+      final currentBatch = requests.sublist(startIdx, endIdx);
+      
+      // Process each request in the batch sequentially
+      for (final request in currentBatch) {
+        final requestId = request[primaryKeyColumn] as int;
+        await offlineRequestQueue.requestManager.deleteUnprocessedRequest(requestId);
+      }
+      
+      // Add a small delay between batches to prevent lock contention
+      if (batchIndex < totalBatches - 1) {
+        await Future.delayed(_batchDelay);
+      }
+      
+      _logger.fine("Processed batch ${batchIndex + 1}/$totalBatches of queue operations");
     }
   }
 
