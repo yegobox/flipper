@@ -138,6 +138,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       if (isTestEnvironment()) {
         return;
       }
+      // check there is a user logged in by getUserId()!
+      ProxyService.box.getUserId()!;
       talker.warning("StartupViewModel _allRequirementsMeets");
 
       // Check if business ID is set
