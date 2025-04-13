@@ -82,5 +82,12 @@
 
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>We need your location to support background functionality and notifications.</string>
+
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>This app requires Bluetooth access to function properly with external devices.</string>	
+
+		<key>NSBluetoothPeripheralUsageDescription</key>
+<string>This app uses Bluetooth to communicate with nearby devices.</string>
+
 	</dict>
 </plist>
