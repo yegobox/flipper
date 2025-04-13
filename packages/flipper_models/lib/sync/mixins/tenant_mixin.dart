@@ -1,11 +1,16 @@
+import 'dart:convert';
+
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:http/http.dart' as http;
 
 mixin TenantMixin implements TenantInterface {
+  String get apihub;
   Repository get repository;
 
   @override
@@ -51,8 +56,47 @@ mixin TenantMixin implements TenantInterface {
     required HttpClientInterface flipperHttpClient,
     required String userType,
   }) async {
-    // Add tenant saving logic here
-    throw UnimplementedError();
+    final data = jsonEncode({
+      "phoneNumber": phoneNumber,
+      "name": name,
+      "businessId": business.serverId,
+      "permissions": [
+        {"name": userType.toLowerCase()}
+      ],
+      "businesses": [business.toJson()],
+      "branches": [branch.toJson()]
+    });
+
+    final http.Response response = await flipperHttpClient
+        .post(Uri.parse("$apihub/v2/api/tenant"), body: data);
+
+    if (response.statusCode == 200) {
+      try {
+        ITenant jTenant = ITenant.fromRawJson(response.body);
+        await createPin(
+          flipperHttpClient: flipperHttpClient,
+          phoneNumber: phoneNumber!,
+          pin: jTenant.userId!,
+          branchId: business.serverId.toString(),
+          businessId: branch.serverId!.toString(),
+          defaultApp: 1,
+        );
+        return Tenant(
+          name: name,
+          phoneNumber: phoneNumber,
+          email: email,
+          nfcEnabled: false,
+          businessId: business.serverId,
+          userId: jTenant.userId,
+          isDefault: true,
+          pin: jTenant.userId,
+        );
+      } catch (e) {
+        rethrow;
+      }
+    } else {
+      throw InternalServerError(term: "internal server error");
+    }
   }
 
   @override
@@ -75,5 +119,30 @@ mixin TenantMixin implements TenantInterface {
       ),
     ))
         .firstOrNull;
+  }
+
+  @override
+  Future<void> createPin({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int pin,
+    required String branchId,
+    required String businessId,
+    required int defaultApp,
+  }) async {
+    final data = jsonEncode({
+      "phoneNumber": phoneNumber,
+      "pin": pin,
+      "branchId": branchId,
+      "businessId": businessId,
+      "defaultApp": defaultApp,
+    });
+
+    final http.Response response = await flipperHttpClient
+        .post(Uri.parse("$apihub/v2/api/pin"), body: data);
+
+    if (response.statusCode != 200) {
+      throw InternalServerError(term: "internal server error");
+    }
   }
 }

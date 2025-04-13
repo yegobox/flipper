@@ -136,7 +136,6 @@ class SettingViewModel extends CoreViewModel {
 
   Pin? pin;
   Future<void> createPin() async {
-    // pin = await ProxyService.isar.createPin();
     notifyListeners();
   }
 

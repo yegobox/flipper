@@ -113,21 +113,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<int> addFavorite({required Favorite data});
 
-  Future<Tenant?> saveTenant(
-      {required Business business,
-      required Branch branch,
-      String? phoneNumber,
-      String? name,
-      String? id,
-      String? email,
-      int? businessId,
-      bool? sessionActive,
-      int? branchId,
-      String? imageUrl,
-      int? pin,
-      bool? isDefault,
-      required HttpClientInterface flipperHttpClient,
-      required String userType});
+
 
   Future<List<Favorite>> getFavorites();
   Future<Favorite?> getFavoriteById({required String favId});

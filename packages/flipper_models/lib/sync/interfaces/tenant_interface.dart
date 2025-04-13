@@ -19,6 +19,14 @@ abstract class TenantInterface {
     required HttpClientInterface flipperHttpClient,
     required String userType,
   });
+  Future<void> createPin({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int pin,
+    required String branchId,
+    required String businessId,
+    required int defaultApp,
+  });
 
   Stream<Tenant?> getDefaultTenant({required int businessId});
 
