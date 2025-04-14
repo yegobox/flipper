@@ -4,7 +4,6 @@ import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
-import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
@@ -48,7 +47,7 @@ class SearchField extends StatefulHookConsumerWidget {
 }
 
 class SearchFieldState extends ConsumerState<SearchField>
-    with DateCoreWidget, HandleScannWhileSelling, Refresh {
+    with DateCoreWidget, HandleScannWhileSelling<SearchField> {
   final _textSubject = BehaviorSubject<String>();
 
   bool hasText = false;

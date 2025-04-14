@@ -13,6 +13,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   late bool hasText;
   late FocusNode focusNode;
+
   Future<void> processDebouncedValue(String value, CoreViewModel model,
       TextEditingController controller) async {
     ref.read(searchStringProvider.notifier).emitString(value: value);
@@ -106,6 +107,121 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
             );
           }
         }
+      }
+    }
+  }
+
+  Future<void> refreshTransactionItems({required String transactionId}) async {
+    try {
+      /// clear the current cart
+      ref.refresh(transactionItemsProvider(transactionId: transactionId));
+
+      // Add a small delay to ensure the refresh completes
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Refresh again to ensure the UI is updated
+      ref.refresh(transactionItemsStreamProvider(transactionId: transactionId));
+    } catch (e) {
+      debugPrint("Error refreshing transaction items: $e");
+    }
+  }
+
+  Future<void> _processTransaction(Variant variant, CoreViewModel model) async {
+    try {
+      // Get the current pending transaction
+      final pendingTransaction =
+          ref.read(pendingTransactionStreamProvider(isExpense: false));
+
+      if (pendingTransaction.hasValue && pendingTransaction.value != null) {
+        final transactionId = pendingTransaction.value!.id;
+
+        // Show a loading indicator to provide feedback to the user
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 10),
+                  Text('Adding item to cart...'),
+                ],
+              ),
+              duration: Duration(milliseconds: 500),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+
+        // STEP 1: Save the transaction item directly using the strategy
+        final success = await ProxyService.strategy.saveTransactionItem(
+          variation: variant,
+          amountTotal: variant.retailPrice!,
+          customItem: false,
+          doneWithTransaction: false,
+          pendingTransaction: pendingTransaction.value!,
+          currentStock: variant.stock!.currentStock!,
+          partOfComposite: false,
+        );
+
+        if (!success) {
+          throw Exception("Failed to save transaction item");
+        }
+
+        // STEP 2: Clear the search field
+        ref.read(searchStringProvider.notifier).emitString(value: "");
+
+        // Then refresh them to ensure the UI updates
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        ref.refresh(
+            transactionItemsStreamProvider(transactionId: transactionId));
+
+        // STEP 4: Use a global notification to force UI updates
+        // ProxyService.strategy.notify(
+        //   notification: AppNotification(
+        //     identifier: ProxyService.box.getBranchId(),
+        //     type: "transaction_update",
+        //     completed: true,
+        //     message: "Transaction item added: ${variant.name}",
+        //   ),
+        // );
+
+        // STEP 5: Show a success message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Added ${variant.name} to cart'),
+              duration: const Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } else {
+        // Handle case where there's no pending transaction
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No active transaction found. Please try again.'),
+              duration: Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Handle any errors that might occur during the process
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error adding item: ${e.toString()}'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -319,24 +435,5 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       );
       return null;
     }
-  }
-
-  Future<void> _processTransaction(Variant variant, CoreViewModel model) async {
-    final pendingTransaction =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
-
-    await ProxyService.strategy.saveTransactionItem(
-      variation: variant,
-      amountTotal: variant.retailPrice!,
-      customItem: false,
-      doneWithTransaction: true,
-      pendingTransaction: pendingTransaction.value!,
-      currentStock: variant.stock!.currentStock!,
-      partOfComposite: false,
-    );
-
-    ref.refresh(
-        transactionItemsProvider(transactionId: pendingTransaction.value!.id));
-    ref.read(searchStringProvider.notifier).emitString(value: "d");
   }
 }

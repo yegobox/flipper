@@ -1,4 +1,5 @@
 // ignore_for_file: unused_result
+import 'dart:async';
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
@@ -58,15 +59,71 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return grandTotal - discountAmount;
   }
 
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
-    ref.read(paymentMethodsProvider)[0].controller.addListener(() async {
-      await Future.delayed(Duration(seconds: 5));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         updatePaymentAmounts(transactionId: "");
       } catch (e) {}
     });
+
+    // Set up a more aggressive refresh timer for transaction items
+    // This ensures the UI stays updated even if the provider system misses updates
+    _refreshTimer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+      if (mounted) {
+        final transactionAsyncValue = ref.read(pendingTransactionStreamProvider(
+            isExpense: ProxyService.box.isOrdering() ?? false));
+
+        if (transactionAsyncValue.hasValue &&
+            transactionAsyncValue.value != null) {
+          final transactionId = transactionAsyncValue.value!.id;
+
+          // Force refresh of transaction items using multiple approaches
+          // 1. Invalidate and refresh the provider
+          ref.invalidate(
+              transactionItemsStreamProvider(transactionId: transactionId));
+          ref.refresh(
+              transactionItemsStreamProvider(transactionId: transactionId));
+              
+          // 2. Directly fetch transaction items and update state
+          _fetchAndUpdateTransactionItems(transactionId);
+        }
+      } else {
+        // Cancel the timer if the widget is no longer mounted
+        timer.cancel();
+      }
+    });
+  }
+  
+  // Cleanup timer when widget is disposed
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+  
+  // Method to directly fetch transaction items and update state
+  Future<void> _fetchAndUpdateTransactionItems(String transactionId) async {
+    try {
+      // Directly fetch transaction items from the database
+      final items = await ProxyService.strategy.transactionItems(
+        transactionId: transactionId,
+        active: true,
+      );
+      
+      // Only update if the widget is still mounted and items have changed
+      if (mounted && items.length != internalTransactionItems.length) {
+        setState(() {
+          internalTransactionItems = items;
+        });
+      }
+    } catch (e) {
+      // Silently handle errors to prevent UI disruption
+      print("Error fetching transaction items: $e");
+    }
   }
 
   void updatePaymentAmounts({required String transactionId}) {
@@ -125,11 +182,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          internalTransactionItems = ref
-                  .watch(transactionItemsStreamProvider(
-                      transactionId: transactionAsyncValue.value?.id))
-                  .value ??
-              [];
+          if (transactionAsyncValue.hasValue &&
+              transactionAsyncValue.value != null) {
+            final transactionId = transactionAsyncValue.value!.id;
+            Future.microtask(() {
+              ref.refresh(
+                  transactionItemsStreamProvider(transactionId: transactionId));
+            });
+            final transactionItemsAsync = ref.watch(
+                transactionItemsStreamProvider(transactionId: transactionId));
+            internalTransactionItems = transactionItemsAsync.value ?? [];
+          } else {
+            internalTransactionItems = [];
+          }
           return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
                   isOrdering, transactionAsyncValue, model)
@@ -570,18 +635,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Wrap(
-        // Changed from Row to Wrap
         alignment: WrapAlignment.end,
         crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8.0, // Add spacing between wrapped items
+        spacing: 8.0,
         children: [
           Text(
             'Total - Discount: ${totalAfterDiscountAndShipping.toRwf()}',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            softWrap: true, // Ensure text wraps if needed
+            softWrap: true,
           ),
           Row(
-            mainAxisSize: MainAxisSize.min, // Make row take minimum space
+            mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 icon: Icon(Icons.copy),
@@ -596,19 +660,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     ),
                   );
                 },
-                constraints: BoxConstraints.tightFor(
-                    width: 40), // Slightly smaller icon button
+                constraints: BoxConstraints.tightFor(width: 40),
               ),
               Flexible(
-                // Added Flexible to allow text to shrink if needed
                 child: Text(
                   "ID: $displayId",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
-                  overflow:
-                      TextOverflow.ellipsis, // Handle text overflow gracefully
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
