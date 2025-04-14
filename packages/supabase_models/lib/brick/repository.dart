@@ -32,13 +32,6 @@
 
 // // Interface for retrieving database configuration
 // /// This allows the Repository to get database filenames from any storage implementation
-// abstract class DatabaseConfigStorage {
-//   /// Get the main database filename
-//   String getDatabaseFilename();
-
-//   /// Get the queue filename
-//   String getQueueFilename();
-// }
 
 // /// Main repository class that serves as an entry point to the database operations
 // /// This class maintains backward compatibility with the original implementation
@@ -539,6 +532,14 @@ export 'package:brick_core/query.dart'
 const dbFileName = "flipper_v17.sqlite";
 const queueName = "brick_offline_queue_v17.sqlite";
 
+abstract class DatabaseConfigStorage {
+  /// Get the main database filename
+  String getDatabaseFilename();
+
+  /// Get the queue filename
+  String getQueueFilename();
+}
+
 class Repository extends OfflineFirstWithSupabaseRepository {
   static late Repository? _singleton;
 
@@ -662,4 +663,3 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
   }
 }
-
