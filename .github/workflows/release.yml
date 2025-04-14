@@ -274,7 +274,7 @@ jobs:
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     runs-on: windows-2022
-    needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
+    # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:

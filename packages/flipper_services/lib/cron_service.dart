@@ -26,11 +26,11 @@ class CronService {
   final List<Timer> _activeTimers = [];
 
   /// Constants for timer durations
-  static const int _counterSyncMinutes = 1;
+  // static const int _counterSyncMinutes = 40;
   static const int _isolateMessageSeconds = 40;
   static const int _analyticsSyncMinutes = 1;
-  static const int _databaseBackupMinutes = 30;
-  static const int _queueCleanupMinutes = 40;
+  // static const int _databaseBackupMinutes = 30;
+  // static const int _queueCleanupMinutes = 40;
 
   /// Schedules various tasks and timers to handle data synchronization, device publishing,
   /// and other periodic operations.
@@ -73,20 +73,20 @@ class CronService {
 
         // Hydrate essential data
         try {
-          await Future.wait<void>([
-            ProxyService.strategy
-                .ebm(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
-            ProxyService.strategy
-                .getCounters(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
-            ProxyService.strategy
-                .variants(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
-            ProxyService.strategy
-                .transactions(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
-          ]);
+          // await Future.wait<void>([
+          //   ProxyService.strategy
+          //       .ebm(branchId: branchId, fetchRemote: true)
+          //       .then((_) {}),
+          //   ProxyService.strategy
+          //       .getCounters(branchId: branchId, fetchRemote: true)
+          //       .then((_) {}),
+          //   ProxyService.strategy
+          //       .variants(branchId: branchId, fetchRemote: true)
+          //       .then((_) {}),
+          //   ProxyService.strategy
+          //       .transactions(branchId: branchId, fetchRemote: true)
+          //       .then((_) {}),
+          // ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
         }
@@ -120,20 +120,20 @@ class CronService {
     }));
 
     // Setup counter synchronization timer
-    _activeTimers.add(
-        Timer.periodic(Duration(minutes: _counterSyncMinutes), (Timer t) async {
-      try {
-        final branchId = ProxyService.box.getBranchId();
-        if (branchId != null) {
-          await ProxyService.strategy
-              .getCounters(branchId: branchId, fetchRemote: true);
-        } else {
-          talker.warning("Skipping counter sync: Branch ID is null");
-        }
-      } catch (e) {
-        talker.error("Counter sync failed: $e");
-      }
-    }));
+    // _activeTimers.add(
+    //     Timer.periodic(Duration(minutes: _counterSyncMinutes), (Timer t) async {
+    //   try {
+    //     final branchId = ProxyService.box.getBranchId();
+    //     if (branchId != null) {
+    //       await ProxyService.strategy
+    //           .getCounters(branchId: branchId, fetchRemote: true);
+    //     } else {
+    //       talker.warning("Skipping counter sync: Branch ID is null");
+    //     }
+    //   } catch (e) {
+    //     talker.error("Counter sync failed: $e");
+    //   }
+    // }));
 
     // Setup isolate message timer
     _activeTimers.add(Timer.periodic(Duration(seconds: _isolateMessageSeconds),
@@ -165,26 +165,26 @@ class CronService {
     }));
 
     // Setup periodic database backup timer
-    _activeTimers.add(Timer.periodic(Duration(minutes: _databaseBackupMinutes),
-        (Timer t) async {
-      try {
-        // Import Repository dynamically to avoid circular dependencies
-        // This is needed because Repository is in a different package
-        await _performPeriodicDatabaseBackup();
-      } catch (e, stackTrace) {
-        talker.error("Periodic database backup failed: $e", stackTrace);
-      }
-    }));
+    // _activeTimers.add(Timer.periodic(Duration(minutes: _databaseBackupMinutes),
+    //     (Timer t) async {
+    //   try {
+    //     // Import Repository dynamically to avoid circular dependencies
+    //     // This is needed because Repository is in a different package
+    //     await _performPeriodicDatabaseBackup();
+    //   } catch (e, stackTrace) {
+    //     talker.error("Periodic database backup failed: $e", stackTrace);
+    //   }
+    // }));
 
     // Setup periodic failed queue cleanup timer
-    _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
-        (Timer t) async {
-      try {
-        await _cleanupFailedQueue();
-      } catch (e, stackTrace) {
-        talker.error("Failed queue cleanup failed: $e", stackTrace);
-      }
-    }));
+    // _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
+    //     (Timer t) async {
+    //   try {
+    //     await _cleanupFailedQueue();
+    //   } catch (e, stackTrace) {
+    //     talker.error("Failed queue cleanup failed: $e", stackTrace);
+    //   }
+    // }));
   }
 
   /// Synchronizes analytics and handles patching operations
