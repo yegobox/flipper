@@ -13,15 +13,15 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   late bool hasText;
   late FocusNode focusNode;
-  void processDebouncedValue(
-      String value, CoreViewModel model, TextEditingController controller) {
+  Future<void> processDebouncedValue(
+      String value, CoreViewModel model, TextEditingController controller) async {
     ref.read(searchStringProvider.notifier).emitString(value: value);
     focusNode.requestFocus();
 
-    handleScanningMode(value, model, controller);
+    await handleScanningMode(value, model, controller);
   }
 
-  void handleScanningMode(String value, CoreViewModel model,
+  Future<void> handleScanningMode(String value, CoreViewModel model,
       TextEditingController controller) async {
     controller.clear();
     hasText = false;
@@ -51,26 +51,59 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           );
         }
 
-        List<Variant> variants = await ProxyService.strategy
-            .variants(bcd: value, branchId: ProxyService.box.getBranchId()!);
+        try {
+          // Add a timeout to prevent hanging on slow systems
+          List<Variant> variants = await ProxyService.strategy
+              .variants(bcd: value, branchId: ProxyService.box.getBranchId()!)
+              .timeout(
+                const Duration(seconds: 5),
+                onTimeout: () {
+                  // Return empty list on timeout
+                  return [];
+                },
+              );
 
-        // Dismiss the loading indicator if it's still showing
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        }
+          // Dismiss the loading indicator if it's still showing
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
 
-        if (variants.isNotEmpty) {
-          if (variants.length == 1) {
-            // If only one variant is found, proceed directly
-            Variant variant = variants.first;
-            await _processTransaction(variant, model);
-          } else {
-            // If multiple variants are found, prompt the user to select one
-            Variant? selectedVariant =
-                await _showVariantSelectionDialog(variants);
-            if (selectedVariant != null) {
-              await _processTransaction(selectedVariant, model);
+          if (variants.isNotEmpty) {
+            if (variants.length == 1) {
+              // If only one variant is found, proceed directly
+              Variant variant = variants.first;
+              await _processTransaction(variant, model);
+            } else {
+              // If multiple variants are found, prompt the user to select one
+              Variant? selectedVariant =
+                  await _showVariantSelectionDialog(variants);
+              if (selectedVariant != null) {
+                await _processTransaction(selectedVariant, model);
+              }
             }
+          } else {
+            // Show a message when no variants are found
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('No variants found for "$value"'),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          }
+        } catch (e) {
+          // Handle errors during search
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error searching for variants: ${e.toString()}'),
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           }
         }
       }

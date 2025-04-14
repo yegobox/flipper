@@ -25,6 +25,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
+import 'dart:async';
 
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({
@@ -51,6 +52,9 @@ class SearchFieldState extends ConsumerState<SearchField>
   final _textSubject = BehaviorSubject<String>();
 
   bool hasText = false;
+  bool isSearching = false;
+  Timer? _typingTimer;
+  static const _typingPauseThreshold = Duration(milliseconds: 300);
 
   @override
   void initState() {
@@ -62,7 +66,14 @@ class SearchFieldState extends ConsumerState<SearchField>
   void _handleTextChange() {
     setState(() {
       if (widget.controller.text.isNotEmpty) {
-        _textSubject.add(widget.controller.text);
+        // Cancel any existing typing timer
+        _typingTimer?.cancel();
+
+        // Start a new typing timer
+        _typingTimer = Timer(_typingPauseThreshold, () {
+          // Only add to subject if user has paused typing
+          _textSubject.add(widget.controller.text);
+        });
       }
 
       hasText = widget.controller.text.isNotEmpty;
@@ -74,6 +85,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     widget.controller.removeListener(_handleTextChange);
     focusNode.dispose();
     _textSubject.close();
+    _typingTimer?.cancel();
     super.dispose();
   }
 
@@ -93,13 +105,24 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          // Reduced debounce time for faster search response
-          // Using a shorter debounce time (300ms) for better user experience
-          // while still avoiding excessive database queries
+          // Using a very short debounce time since we already have typing detection
+          // This just prevents any potential race conditions
           _textSubject
-              .debounceTime(const Duration(milliseconds: 3000))
+              .debounceTime(const Duration(milliseconds: 100))
               .listen((value) {
-            processDebouncedValue(value, model, widget.controller);
+            if (!isSearching && value.isNotEmpty) {
+              setState(() {
+                isSearching = true;
+              });
+
+              processDebouncedValue(value, model, widget.controller).then((_) {
+                if (mounted) {
+                  setState(() {
+                    isSearching = false;
+                  });
+                }
+              });
+            }
           });
         },
         builder: (context, model, _) {
@@ -115,12 +138,22 @@ class SearchFieldState extends ConsumerState<SearchField>
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               ),
-              prefixIcon: IconButton(
-                onPressed: () {
-                  // Handle search functionality here
-                },
-                icon: Icon(FluentIcons.search_24_regular),
-              ),
+              prefixIcon: isSearching
+                  ? Container(
+                      padding: const EdgeInsets.all(8),
+                      height: 16,
+                      width: 16,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      ),
+                    )
+                  : IconButton(
+                      onPressed: () {
+                        // Handle search functionality here
+                      },
+                      icon: Icon(FluentIcons.search_24_regular),
+                    ),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
