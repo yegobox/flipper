@@ -13,8 +13,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   late bool hasText;
   late FocusNode focusNode;
-  Future<void> processDebouncedValue(
-      String value, CoreViewModel model, TextEditingController controller) async {
+  Future<void> processDebouncedValue(String value, CoreViewModel model,
+      TextEditingController controller) async {
     ref.read(searchStringProvider.notifier).emitString(value: value);
     focusNode.requestFocus();
 
@@ -56,12 +56,12 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           List<Variant> variants = await ProxyService.strategy
               .variants(bcd: value, branchId: ProxyService.box.getBranchId()!)
               .timeout(
-                const Duration(seconds: 5),
-                onTimeout: () {
-                  // Return empty list on timeout
-                  return [];
-                },
-              );
+            const Duration(seconds: 5),
+            onTimeout: () {
+              // Return empty list on timeout
+              return [];
+            },
+          );
 
           // Dismiss the loading indicator if it's still showing
           if (mounted) {
