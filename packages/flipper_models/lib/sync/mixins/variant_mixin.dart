@@ -85,10 +85,17 @@ mixin VariantMixin implements VariantInterface {
 
       // If no results found locally, fetch from remote
       if (variants.isEmpty && fetchRemote == true) {
-        variants = await repository.get<Variant>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: query,
-        );
+        try {
+          variants = await repository.get<Variant>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: query,
+          );
+        } catch (e, s) {
+          // Catch authentication or network errors but don't fail the whole operation
+          talker.error('Error fetching variants from remote: $e');
+          talker.error(s);
+          // Continue with whatever we have locally (which may be empty)
+        }
       }
 
       // Pagination logic (if needed)
