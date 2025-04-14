@@ -31,9 +31,6 @@ abstract class GetterOperationsInterface {
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period});
   Future<Plan?> getPaymentPlan({required int businessId});
-  Future<bool> hasActiveSubscription(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient});
 
   // Required methods that should be provided by other mixins
   FutureOr<Business?> getBusinessById({required int businessId});

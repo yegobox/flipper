@@ -75,7 +75,7 @@ class LoginViewModel extends FlipperBaseModel
   }
 
   /// Process user login and retrieve PIN information
-  Future<Pin> processUserLogin(firebase.User user) async {
+  Future<Map<String, dynamic>> processUserLogin(firebase.User user) async {
     try {
       final User? myuser = await ProxyService.strategy.authUser(uuid: user.uid);
       String key = '';
@@ -94,7 +94,8 @@ class LoginViewModel extends FlipperBaseModel
       final pin = await ProxyService.strategy.getPin(
           pinString: iUser.id.toString(), flipperHttpClient: ProxyService.http);
 
-      return Pin(
+      return {
+        'pin': Pin(
           userId: int.parse(pin!.userId),
           pin: pin.pin,
           branchId: pin.branchId,
@@ -102,7 +103,10 @@ class LoginViewModel extends FlipperBaseModel
           ownerName: pin.ownerName,
           tokenUid: iUser.uid,
           uid: user.uid,
-          phoneNumber: iUser.phoneNumber);
+          phoneNumber: iUser.phoneNumber
+        ),
+        'user': iUser
+      };
     } catch (e, s) {
       talker.error(e, s);
       rethrow;
@@ -110,7 +114,7 @@ class LoginViewModel extends FlipperBaseModel
   }
 
   /// Complete the login process with the retrieved PIN
-  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model) async {
+  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model, {IUser? user}) async {
     await ProxyService.box
         .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
 
@@ -118,6 +122,7 @@ class LoginViewModel extends FlipperBaseModel
         userPhone: userPin.phoneNumber!,
         skipDefaultAppSetup: false,
         pin: userPin,
+        existingUser: user,
         flipperHttpClient: ProxyService.http);
 
     await ProxyService.box.writeBool(key: 'authComplete', value: true);

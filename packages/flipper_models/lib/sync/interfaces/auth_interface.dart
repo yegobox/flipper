@@ -13,6 +13,7 @@ abstract class AuthInterface {
     bool stopAfterConfigure = false,
     required Pin pin,
     required HttpClientInterface flipperHttpClient,
+    IUser? existingUser,
   });
 
   Future<void> configureSystem(String userPhone, IUser user,
@@ -22,6 +23,11 @@ abstract class AuthInterface {
     String? phoneNumberOrEmail,
     String? password,
   });
+
+  Future<bool> hasActiveSubscription(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient,
+      required bool fetchRemote});
 
   Future<http.Response> sendLoginRequest(
     String phoneNumber,

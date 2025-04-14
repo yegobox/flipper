@@ -41,6 +41,7 @@ class CapellaSync extends CapellaSyncBase
         CapellaFavoriteMixin,
         CoreMiscellaneous,
         CapellaGetterOperationsMixin,
+       
         CapellaProductMixin,
         CapellaPurchaseMixin,
         CapellaReceiptMixin,

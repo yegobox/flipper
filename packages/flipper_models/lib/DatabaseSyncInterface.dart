@@ -7,6 +7,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
@@ -50,6 +51,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         PurchaseInterface,
         BusinessInterface,
         VariantInterface,
+        AuthInterface,
         TransactionItemInterface,
         TransactionInterface,
         ProductInterface,
@@ -112,8 +114,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required List<Variant> variations, required int branchId});
 
   Future<int> addFavorite({required Favorite data});
-
-
 
   Future<List<Favorite>> getFavorites();
   Future<Favorite?> getFavoriteById({required String favId});
@@ -340,10 +340,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required HttpClientInterface flipperHttpClient,
       required int amount});
 
-  Future<bool> hasActiveSubscription(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient,
-      required bool fetchRemote});
   Future<bool> firebaseLogin({String? token});
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required int businessId,
@@ -381,13 +377,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required int branchId,
       required String assetName,
       required String subPath});
-
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false,
-      required Pin pin,
-      required HttpClientInterface flipperHttpClient});
 
   Future<List<Branch>> branches(
       {required int businessId, bool? includeSelf = false});

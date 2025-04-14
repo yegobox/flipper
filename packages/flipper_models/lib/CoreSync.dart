@@ -16,6 +16,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
@@ -73,6 +74,7 @@ class CoreSync extends AiStrategyImpl
         TransactionMixinOld,
         BranchMixin,
         PurchaseMixin,
+        AuthMixin,
         TransactionMixin,
         BusinessMixin,
         TransactionItemMixin,
@@ -1538,39 +1540,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> hasActiveSubscription({
-    required int businessId,
-    required HttpClientInterface flipperHttpClient,
-    required bool fetchRemote,
-  }) async {
-    // if (isTestEnvironment()) return true;
-    final models.Plan? plan =
-        await getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
-
-    if (plan == null) {
-      throw NoPaymentPlanFound(
-          "No payment plan found for businessId: $businessId");
-    }
-
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
-
-    // Avoid unnecessary sync if payment is already marked as complete
-    if (!isPaymentCompletedLocally) {
-      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
-        flipperHttpClient: flipperHttpClient,
-        businessId: businessId,
-      );
-
-      // Update the plan's state or handle syncing logic here if necessary
-      if (!isPaymentComplete) {
-        throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
-      }
-    }
-
-    return true;
-  }
-
-  @override
   FutureOr<bool> isAdmin(
       {required int userId, required String appFeature}) async {
     final anyAccess = await repository.get<Access>(
@@ -1601,74 +1570,6 @@ class CoreSync extends AiStrategyImpl
       return '+$userPhone';
     }
     return userPhone;
-  }
-
-  @override
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false,
-      required Pin pin,
-      required HttpClientInterface flipperHttpClient}) async {
-    final flipperWatch? w =
-        foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
-    w?.start();
-    final String phoneNumber = _formatPhoneNumber(userPhone);
-    final IUser user =
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
-    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
-    await ProxyService.box.writeBool(key: 'authComplete', value: true);
-    if (stopAfterConfigure) return user;
-    if (!skipDefaultAppSetup) {
-      await setDefaultApp(user);
-    }
-    ProxyService.box.writeBool(key: 'pinLogin', value: false);
-    w?.log("user logged in");
-    try {
-      _hasActiveSubscription();
-    } catch (e) {
-      rethrow;
-    }
-    return user;
-  }
-
-  Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
-    await hasActiveSubscription(
-        businessId: ProxyService.box.getBusinessId()!,
-        flipperHttpClient: ProxyService.http,
-        fetchRemote: fetchRemote);
-  }
-
-  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
-      HttpClientInterface flipperHttpClient) async {
-    List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await branches(businessId: pin.businessId!);
-
-    final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
-        branchesE.isNotEmpty &&
-        !foundation.kDebugMode &&
-        !(await ProxyService.status.isInternetAvailable());
-
-    if (shouldEnableOfflineLogin) {
-      offlineLogin = true;
-      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-    }
-
-    final http.Response response =
-        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      /// path the user pin, with
-      final IUser user = IUser.fromJson(json.decode(response.body));
-      await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name);
-      ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.strategy.firebaseLogin(token: user.uid);
-      return user;
-    } else {
-      await _handleLoginError(response);
-      throw Exception("Error during login");
-    }
   }
 
   Future<http.Response> _patchPin(
@@ -3548,7 +3449,6 @@ class CoreSync extends AiStrategyImpl
       repository.upsert<Branch>(branchUpdate);
     }
   }
-
 
   @override
   Future<DatabaseSyncInterface> configureLocal(

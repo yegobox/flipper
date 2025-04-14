@@ -329,28 +329,4 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
       rethrow;
     }
   }
-
-  @override
-  Future<bool> hasActiveSubscription({
-    required int businessId,
-    required HttpClientInterface flipperHttpClient,
-  }) async {
-    if (const bool.fromEnvironment('FLUTTER_TEST_ENV') == true) return true;
-
-    final Plan? plan = await getPaymentPlan(businessId: businessId);
-    if (plan == null) {
-      throw NoPaymentPlanFound(
-          "No payment plan found for businessId: $businessId");
-    }
-
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
-    if (!isPaymentCompletedLocally) {
-      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
-        flipperHttpClient: flipperHttpClient,
-        businessId: businessId,
-      );
-      return isPaymentComplete;
-    }
-    return true;
-  }
 }

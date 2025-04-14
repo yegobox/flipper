@@ -7,6 +7,7 @@ import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
@@ -81,8 +82,10 @@ class _LoginState extends State<Login> {
       if (!shouldProcessLogin) return;
 
       try {
-        final userPin = await model.processUserLogin(user);
-        await model.completeLoginProcess(userPin, model);
+        final loginData = await model.processUserLogin(user);
+        final Pin userPin = loginData['pin'];
+        final IUser userData = loginData['user'];
+        await model.completeLoginProcess(userPin, model, user: userData);
       } catch (e, s) {
         model.handleLoginError(e, s);
       }

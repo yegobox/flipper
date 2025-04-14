@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
+import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -8,6 +9,7 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -62,52 +64,49 @@ mixin AuthMixin implements AuthInterface {
   }
 
   @override
-  Future<IUser> login({
-    required String userPhone,
-    required bool skipDefaultAppSetup,
-    bool stopAfterConfigure = false,
-    required Pin pin,
+  Future<bool> hasActiveSubscription({
+    required int businessId,
     required HttpClientInterface flipperHttpClient,
+    required bool fetchRemote,
   }) async {
-    final String phoneNumber = _formatPhoneNumber(userPhone);
-    final IUser user =
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
-    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    // if (isTestEnvironment()) return true;
+    final Plan? plan = await ProxyService.strategy
+        .getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
 
-    if (stopAfterConfigure) return user;
-    if (!skipDefaultAppSetup) {
-      await setDefaultApp(user);
+    if (plan == null) {
+      throw NoPaymentPlanFound(
+          "No payment plan found for businessId: $businessId");
     }
-    return user;
-  }
 
-  String _formatPhoneNumber(String phoneNumber) {
-    // Add phone number formatting logic here
-    return phoneNumber;
-  }
+    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
 
-  Future<void> configureSystem(String userPhone, IUser user,
-      {required bool offlineLogin}) async {
-    // Add system configuration logic here
-    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
-    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
+    // Avoid unnecessary sync if payment is already marked as complete
+    if (!isPaymentCompletedLocally) {
+      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
+        flipperHttpClient: flipperHttpClient,
+        businessId: businessId,
+      );
 
-    if (!offlineLogin) {
-      // Perform online-specific configuration
-      await firebaseLogin();
+      // Update the plan's state or handle syncing logic here if necessary
+      if (!isPaymentComplete) {
+        throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
+      }
     }
+
+    return true;
   }
 
-  Future<void> setDefaultApp(IUser user) async {
-    // Add default app setup logic here
+  Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
+    await hasActiveSubscription(
+        businessId: ProxyService.box.getBusinessId()!,
+        flipperHttpClient: ProxyService.http,
+        fetchRemote: fetchRemote);
   }
 
   Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
       HttpClientInterface flipperHttpClient) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await repository.get<Branch>(
-      query: Query(where: [Where('businessId').isExactly(pin.businessId!)]),
-    );
+    List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
     final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
         branchesE.isNotEmpty &&
@@ -134,6 +133,60 @@ mixin AuthMixin implements AuthInterface {
       await _handleLoginError(response);
       throw Exception("Error during login");
     }
+  }
+
+  @override
+  Future<IUser> login(
+      {required String userPhone,
+      required bool skipDefaultAppSetup,
+      bool stopAfterConfigure = false,
+      required Pin pin,
+      required HttpClientInterface flipperHttpClient,
+      IUser? existingUser}) async {
+    final flipperWatch? w =
+        foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
+    w?.start();
+    final String phoneNumber = _formatPhoneNumber(userPhone);
+    
+    // Use existing user data if provided, otherwise make the API call
+    final IUser user = existingUser ?? 
+        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
+        
+    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    await ProxyService.box.writeBool(key: 'authComplete', value: true);
+    if (stopAfterConfigure) return user;
+    if (!skipDefaultAppSetup) {
+      await setDefaultApp(user);
+    }
+    ProxyService.box.writeBool(key: 'pinLogin', value: false);
+    w?.log("user logged in");
+    try {
+      _hasActiveSubscription();
+    } catch (e) {
+      rethrow;
+    }
+    return user;
+  }
+
+  String _formatPhoneNumber(String phoneNumber) {
+    // Add phone number formatting logic here
+    return phoneNumber;
+  }
+
+  Future<void> configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin}) async {
+    // Add system configuration logic here
+    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
+    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
+
+    if (!offlineLogin) {
+      // Perform online-specific configuration
+      await firebaseLogin();
+    }
+  }
+
+  Future<void> setDefaultApp(IUser user) async {
+    // Add default app setup logic here
   }
 
   @override
