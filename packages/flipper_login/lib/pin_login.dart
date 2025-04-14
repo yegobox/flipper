@@ -106,23 +106,34 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
       errorMessage = e.errMsg();
     } else if (e is PinError) {
       errorMessage = e.errMsg();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          width: 250,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+          content: Text(errorMessage, style: primaryTextStyle),
+        ),
+      );
+      return;
     } else if (e is LoginChoicesException) {
+      errorMessage = e.errMsg();
       locator<RouterService>().navigateTo(LoginChoicesRoute());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          width: 250,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+          content: Text(errorMessage, style: primaryTextStyle),
+        ),
+      );
       return;
     } else {
       errorMessage = e.toString();
       await Sentry.captureException(e, stackTrace: s);
     }
     print(s);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        width: 250,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 30),
-        content: Text(errorMessage, style: primaryTextStyle),
-      ),
-    );
   }
 
   // Toggles the PIN visibility
