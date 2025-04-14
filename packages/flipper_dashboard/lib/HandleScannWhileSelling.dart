@@ -53,7 +53,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
         }
 
         try {
-          // Add a timeout to prevent hanging on slow systems
+          // First try to find locally
           List<Variant> variants = await ProxyService.strategy
               .variants(bcd: value, branchId: ProxyService.box.getBranchId()!)
               .timeout(
@@ -63,6 +63,44 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               return [];
             },
           );
+
+          // If no variants found locally, try to fetch from remote
+          if (variants.isEmpty) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      SizedBox(width: 10),
+                      Text('Searching from remote...'),
+                    ],
+                  ),
+                  duration: Duration(milliseconds: 1000),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+            
+            // Try to fetch from remote with fetchRemote flag set to true
+            variants = await ProxyService.strategy
+                .variants(
+                  bcd: value, 
+                  branchId: ProxyService.box.getBranchId()!,
+                  fetchRemote: true
+                )
+                .timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                // Return empty list on timeout
+                return [];
+              },
+            );
+          }
 
           // Dismiss the loading indicator if it's still showing
           if (mounted) {
@@ -106,6 +144,49 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               ),
             );
           }
+        }
+      }
+    } else {
+      // Not in scanning mode, but we should still search remotely if local search returns no results
+      if (value.isNotEmpty) {
+        try {
+          // First try to find locally
+          List<Variant> variants = await ProxyService.strategy
+              .variants(name: value, branchId: ProxyService.box.getBranchId()!)
+              .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              // Return empty list on timeout
+              return [];
+            },
+          );
+
+          // If no variants found locally, try to fetch from remote
+          if (variants.isEmpty) {
+            // Try to fetch from remote with fetchRemote flag set to true
+            variants = await ProxyService.strategy
+                .variants(
+                  name: value, 
+                  branchId: ProxyService.box.getBranchId()!,
+                  fetchRemote: true
+                )
+                .timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                // Return empty list on timeout
+                return [];
+              },
+            );
+            
+            // Update the UI with the results from remote
+            if (variants.isNotEmpty && mounted) {
+              // Refresh the search results by updating the search string provider
+              ref.read(searchStringProvider.notifier).emitString(value: value);
+            }
+          }
+        } catch (e) {
+          // Silently handle errors in non-scanning mode
+          print('Error searching for variants in non-scanning mode: ${e.toString()}');
         }
       }
     }

@@ -19,6 +19,7 @@ import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -316,24 +317,19 @@ class _RowItemState extends ConsumerState<RowItem>
                 return _buildImageErrorPlaceholder();
                 // return SizedBox.shrink();
               } else {
-                return Image.network(
-                  snapshot.data!,
+                return CachedNetworkImage(
+                  imageUrl: snapshot.data!,
                   width: double.infinity,
                   height: double.infinity,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                        strokeWidth: 2,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
+                  placeholder: (context, url) => const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) {
                     return _buildImageErrorPlaceholder();
                   },
                 );
@@ -343,7 +339,15 @@ class _RowItemState extends ConsumerState<RowItem>
         : FutureBuilder<String?>(
             future: getImageFilePath(imageFileName: widget.imageUrl!),
             builder: (context, snapshot) {
-              if (snapshot.hasData && snapshot.data != null) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                );
+              } else if (snapshot.hasData && snapshot.data != null) {
                 return Image.file(
                   File(snapshot.data!),
                   width: double.infinity,
