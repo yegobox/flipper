@@ -13,7 +13,7 @@ import 'package:stacked/stacked.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_ui/flipper_ui.dart';
 import 'dart:io';
-
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'internal/responsive_page.dart' as b;
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -141,10 +141,11 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
           });
           _signInWithCredential(credential);
         },
-        verificationFailed: (FirebaseAuthException e) {
+        verificationFailed: (FirebaseAuthException e) async {
           setState(() {
             _isLoading = false;
           });
+          await Sentry.captureException(e, stackTrace: e);
           _showErrorSnackBar(context,
               'Verification failed: ${e.message ?? "An unknown error occurred"}');
         },
@@ -192,10 +193,11 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
           });
           _signInWithCredential(credential);
         },
-        verificationFailed: (FirebaseAuthException e) {
+        verificationFailed: (FirebaseAuthException e) async {
           setState(() {
             _isLoading = false;
           });
+          await Sentry.captureException(e, stackTrace: e);
           _showErrorSnackBar(context,
               'Verification failed: ${e.message ?? "An unknown error occurred"}');
         },
