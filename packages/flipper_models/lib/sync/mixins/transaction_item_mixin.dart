@@ -158,33 +158,69 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     bool fetchRemote = false,
   }) {
     // Create a list of conditions for better readability and debugging
-    final List<Where> conditions = [
-      // Always include branchId since it's required
-      if (branchId != null) Where('branchId').isExactly(branchId),
+    final List<Where> conditions = [];
 
-      // Optional conditions
-      if (transactionId != null)
-        Where('transactionId').isExactly(transactionId),
-      if (requestId != null) Where('inventoryRequestId').isExactly(requestId),
+    // Always include branchId since it's required
+    if (branchId != null) {
+      conditions.add(Where('branchId').isExactly(branchId));
+    }
 
-      // Date range handling
-      if (startDate != null && endDate != null)
-        if (startDate == endDate)
-          Where('createdAt').isGreaterThanOrEqualTo(
-              startDate.toUtc().toLocal().toIso8601String())
-        else
+    // Optional conditions
+    if (transactionId != null) {
+      conditions.add(Where('transactionId').isExactly(transactionId));
+    }
+
+    if (requestId != null) {
+      conditions.add(Where('inventoryRequestId').isExactly(requestId));
+    }
+
+    // Date range handling
+    if (startDate != null && endDate != null) {
+      // Normalize dates to start of day and end of day for proper range comparison
+      final normalizedStartDate =
+          DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0)
+              .toUtc();
+
+      final normalizedEndDate =
+          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
+              .toUtc();
+
+      if (startDate.year == endDate.year &&
+          startDate.month == endDate.month &&
+          startDate.day == endDate.day) {
+        // Same day - use between with start and end of the same day
+        talker.info(
+            'Filtering transaction items for single day: ${normalizedStartDate.toIso8601String()}');
+        conditions.add(
           Where('createdAt').isBetween(
-            startDate.toUtc().toLocal().toIso8601String(),
-            endDate.toUtc().toLocal().toIso8601String(),
+            normalizedStartDate.toIso8601String(),
+            normalizedEndDate.toIso8601String(),
           ),
+        );
+      } else {
+        // Date range - use between with normalized dates
+        talker.info(
+            'Filtering transaction items from ${normalizedStartDate.toIso8601String()} to ${normalizedEndDate.toIso8601String()}');
+        conditions.add(
+          Where('createdAt').isBetween(
+            normalizedStartDate.toIso8601String(),
+            normalizedEndDate.toIso8601String(),
+          ),
+        );
+      }
+    }
 
-      if (doneWithTransaction != null)
-        Where('doneWithTransaction').isExactly(doneWithTransaction),
-      if (active != null) Where('active').isExactly(active),
-    ];
+    if (doneWithTransaction != null) {
+      conditions
+          .add(Where('doneWithTransaction').isExactly(doneWithTransaction));
+    }
+
+    if (active != null) {
+      conditions.add(Where('active').isExactly(active));
+    }
 
     // Add logging to help debug the query
-    // print('TransactionItems query conditions: $conditions');
+    talker.debug('TransactionItems query conditions: $conditions');
 
     final queryString = Query(where: conditions);
 

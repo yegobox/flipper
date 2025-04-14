@@ -46,19 +46,39 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        talker.info(
-            'Date Given ${startDate.toUtc().toLocal().toIso8601String()}');
+      // Normalize dates to start of day and end of day for proper range comparison
+      final normalizedStartDate = DateTime(
+        startDate.year, 
+        startDate.month, 
+        startDate.day, 
+        0, 0, 0
+      ).toUtc();
+      
+      final normalizedEndDate = DateTime(
+        endDate.year, 
+        endDate.month, 
+        endDate.day, 
+        23, 59, 59
+      ).toUtc();
+      
+      if (startDate.year == endDate.year && 
+          startDate.month == endDate.month && 
+          startDate.day == endDate.day) {
+        // Same day - use between with start and end of the same day
+        talker.info('Filtering transactions for single day: ${normalizedStartDate.toIso8601String()}');
         conditions.add(
-          Where('lastTouched').isExactly(
-            startDate.toUtc().toLocal().toIso8601String(),
+          Where('lastTouched').isBetween(
+            normalizedStartDate.toIso8601String(),
+            normalizedEndDate.toIso8601String(),
           ),
         );
       } else {
+        // Date range - use between with normalized dates
+        talker.info('Filtering transactions from ${normalizedStartDate.toIso8601String()} to ${normalizedEndDate.toIso8601String()}');
         conditions.add(
           Where('lastTouched').isBetween(
-            startDate.toUtc().toLocal().toIso8601String(),
-            endDate.toUtc().toLocal().toIso8601String(),
+            normalizedStartDate.toIso8601String(),
+            normalizedEndDate.toIso8601String(),
           ),
         );
       }

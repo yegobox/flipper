@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
-import 'package:flipper_dashboard/transactionList.dart';
+import 'package:flipper_dashboard/transaction_list_wrapper.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show
@@ -290,12 +290,13 @@ class IconRowState extends ConsumerState<IconRow>
       barrierDismissible: true,
       context: context,
       builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 700),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TransactionList(showDetailedReport: true),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+            maxWidth: MediaQuery.of(context).size.width * 0.95,
           ),
+          child: TransactionListWrapper(showDetailedReport: true),
         ),
       ),
     );

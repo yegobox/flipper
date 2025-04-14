@@ -121,6 +121,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
         categoryId =
             (categoryId != null && categoryId.isEmpty) ? null : categoryId,
         ebmSynced = ebmSynced ?? false,
-        createdAt = DateTime.now().toUtc().toDateOnly,
-        lastTouched = DateTime.now().toUtc().toDateOnly;
+        createdAt = createdAt?.toDateOnly ?? DateTime.now().toUtc().toDateOnly,
+        lastTouched =
+            lastTouched?.toDateOnly ?? DateTime.now().toUtc().toDateOnly;
 }

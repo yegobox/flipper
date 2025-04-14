@@ -171,10 +171,11 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? inventoryRequestId,
     required this.prc,
   })  : id = id ?? const Uuid().v4(),
-        createdAt = DateTime.now().toUtc().toDateOnly,
-        lastTouched = DateTime.now().toUtc().toDateOnly,
+        createdAt = createdAt?.toDateOnly ?? DateTime.now().toUtc().toDateOnly,
+        lastTouched =
+            lastTouched?.toDateOnly ?? DateTime.now().toUtc().toDateOnly,
         inventoryRequestId = inventoryRequest?.id,
-        updatedAt = DateTime.now().toUtc().toDateOnly;
+        updatedAt = updatedAt?.toDateOnly ?? DateTime.now().toUtc().toDateOnly;
 
   // toJson method
   Map<String, dynamic> toJson() => <String, dynamic>{

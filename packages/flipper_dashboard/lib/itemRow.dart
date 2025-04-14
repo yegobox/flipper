@@ -20,6 +20,8 @@ import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:synchronized/synchronized.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -480,6 +482,25 @@ class _RowItemState extends ConsumerState<RowItem>
     required bool isOrdering,
   }) async {
     try {
+      // Show immediate visual feedback to indicate the item is being processed
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              SizedBox(width: 10),
+              Text('Adding item to cart...'),
+            ],
+          ),
+          duration: Duration(milliseconds: 800),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
       final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;
       w?.start();
       final branchId = ProxyService.box.getBranchId()!;
@@ -493,6 +514,7 @@ class _RowItemState extends ConsumerState<RowItem>
           ref.read(pendingTransactionStreamProvider(isExpense: isOrdering));
 
       if (pendingTransaction.value == null) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         toast("Error: No active transaction");
         return;
       }
@@ -509,56 +531,85 @@ class _RowItemState extends ConsumerState<RowItem>
         /// because item of tax type D are not supposed to have stock so it can be sold without stock.
         if (widget.variant?.taxTyCd != "D" &&
             widget.variant?.stock?.currentStock == null) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           toast("You do not have enough stock");
           return;
         }
         if (widget.variant?.taxTyCd != "D" &&
             (widget.variant?.stock?.currentStock ?? 0) <= 0) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           toast("You do not have enough stock");
           return;
         }
       }
 
-      if (product != null && product.isComposite == true) {
-        // Handle composite product
-        final composites =
-            await ProxyService.strategy.composites(productId: product.id);
+      // Use a lock to prevent multiple simultaneous operations
+      final lock = Lock();
+      await lock.synchronized(() async {
+        if (product != null && product.isComposite == true) {
+          // Handle composite product
+          final composites =
+              await ProxyService.strategy.composites(productId: product.id);
 
-        for (final composite in composites) {
-          final variant =
-              await ProxyService.strategy.getVariant(id: composite.variantId!);
-          if (variant != null) {
-            await ProxyService.strategy.saveTransactionItem(
-              variation: variant,
-              doneWithTransaction: false,
-              amountTotal: variant.retailPrice!,
-              customItem: false,
-              currentStock: variant.stock?.currentStock ?? 0,
-              pendingTransaction: pendingTransaction.value!,
-              partOfComposite: true,
-              compositePrice: composite.actualPrice,
-            );
+          for (final composite in composites) {
+            final variant = await ProxyService.strategy
+                .getVariant(id: composite.variantId!);
+            if (variant != null) {
+              await ProxyService.strategy.saveTransactionItem(
+                variation: variant,
+                doneWithTransaction: false,
+                amountTotal: variant.retailPrice!,
+                customItem: false,
+                currentStock: variant.stock?.currentStock ?? 0,
+                pendingTransaction: pendingTransaction.value!,
+                partOfComposite: true,
+                compositePrice: composite.actualPrice,
+              );
+            }
           }
+        } else {
+          // Handle non-composite product
+          await ProxyService.strategy.saveTransactionItem(
+            variation: widget.variant!,
+            doneWithTransaction: false,
+            amountTotal: widget.variant?.retailPrice ?? 0,
+            customItem: false,
+            currentStock: widget.variant!.stock?.currentStock ?? 0,
+            pendingTransaction: pendingTransaction.value!,
+            partOfComposite: false,
+          );
         }
-      } else {
-        // Handle non-composite product
-        await ProxyService.strategy.saveTransactionItem(
-          variation: widget.variant!,
-          doneWithTransaction: false,
-          amountTotal: widget.variant?.retailPrice ?? 0,
-          customItem: false,
-          currentStock: widget.variant!.stock?.currentStock ?? 0,
-          pendingTransaction: pendingTransaction.value!,
-          partOfComposite: false,
-        );
-      }
+      });
+
+      // Hide the loading indicator
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Item added to cart'),
+          duration: Duration(milliseconds: 500),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Force refresh the transaction items with a small delay to ensure DB operations complete
+      await Future.delayed(Duration(milliseconds: 100));
 
       // Immediately refresh the transaction items
       await refreshTransactionItems(
           transactionId: pendingTransaction.value!.id);
 
+      // Also explicitly invalidate the provider to force a refresh
+      ref.invalidate(transactionItemsStreamProvider(
+          transactionId: pendingTransaction.value!.id));
+
       w?.log("TapOnItemAndSaveTransaction");
     } catch (e, s) {
+      // Hide the loading indicator if there was an error
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
       talker.warning("Error while clicking: $e");
       talker.error(s);
       toast("Failed to add item to cart");

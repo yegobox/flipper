@@ -171,9 +171,7 @@ class DataViewState extends ConsumerState<DataView>
       children: [
         if (widget.showDetailed) _buildReportTypeSwitch(),
         _buildRowsPerPageInput(),
-        if (widget.showDetailedReport) datePicker(),
         _buildExportButton(),
-        datePicker(),
       ],
     );
   }

@@ -11,14 +11,27 @@ part 'transactions_provider.g.dart';
 // Transactions provider
 @riverpod
 Stream<List<ITransaction>> transactions(Ref ref) {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange.startDate;
+  final endDate = dateRange.endDate;
   final branchId = ProxyService.box.getBranchId();
+  
+  talker.debug('transactions provider called');
+  
   if (branchId == null) {
     throw StateError('Branch ID is required');
   }
 
+  // Keep provider alive
+  ref.keepAlive();
+  
+  talker.debug('Fetching transactions from ${startDate?.toIso8601String() ?? 'null'} to ${endDate?.toIso8601String() ?? 'null'} for branch $branchId');
+
   return ProxyService.strategy.transactionsStream(
-    status: PARKED,
+    status: COMPLETE,
     branchId: branchId,
+    startDate: startDate,
+    endDate: endDate,
     removeAdjustmentTransactions: true,
   );
 }
