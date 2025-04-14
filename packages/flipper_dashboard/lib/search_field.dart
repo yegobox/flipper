@@ -54,7 +54,13 @@ class SearchFieldState extends ConsumerState<SearchField>
   bool hasText = false;
   bool isSearching = false;
   Timer? _typingTimer;
-  static const _typingPauseThreshold = Duration(milliseconds: 300);
+  Timer? _shortInputTimer;
+  // Increase typing pause threshold to 600ms for longer words
+  static const _typingPauseThreshold = Duration(milliseconds: 600);
+  // Longer pause threshold for very short inputs (1-2 chars)
+  static const _shortInputPauseThreshold = Duration(milliseconds: 1000);
+  // Minimum word length before auto-search triggers
+  static const _minSearchLength = 3;
 
   @override
   void initState() {
@@ -65,19 +71,47 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   void _handleTextChange() {
     setState(() {
-      if (widget.controller.text.isNotEmpty) {
-        // Cancel any existing typing timer
-        _typingTimer?.cancel();
+      final text = widget.controller.text;
 
-        // Start a new typing timer
+      if (text.isNotEmpty) {
+        // Cancel any existing timers
+        _typingTimer?.cancel();
+        _shortInputTimer?.cancel();
+
+        // Start a new typing timer for normal cases
         _typingTimer = Timer(_typingPauseThreshold, () {
-          // Only add to subject if user has paused typing
-          _textSubject.add(widget.controller.text);
+          // Special cases to handle:
+          // 1. Longer words (3+ chars)
+          // 2. Complete words (contains space)
+          // 3. Numeric input (likely a barcode or product code)
+          bool shouldSearch = text.length >= _minSearchLength ||
+              text.contains(' ') ||
+              _isNumeric(text);
+
+          if (shouldSearch) {
+            _textSubject.add(text);
+          }
         });
+
+        // For very short inputs (1-2 chars), start a longer timer
+        // This allows single character searches after a longer pause
+        if (text.length < _minSearchLength &&
+            !_isNumeric(text) &&
+            !text.contains(' ')) {
+          _shortInputTimer = Timer(_shortInputPauseThreshold, () {
+            _textSubject.add(text);
+          });
+        }
       }
 
-      hasText = widget.controller.text.isNotEmpty;
+      hasText = text.isNotEmpty;
     });
+  }
+
+  // Helper method to check if a string is numeric (likely a barcode)
+  bool _isNumeric(String str) {
+    if (str.isEmpty) return false;
+    return double.tryParse(str) != null;
   }
 
   @override
@@ -86,6 +120,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     focusNode.dispose();
     _textSubject.close();
     _typingTimer?.cancel();
+    _shortInputTimer?.cancel();
     super.dispose();
   }
 
@@ -110,7 +145,14 @@ class SearchFieldState extends ConsumerState<SearchField>
           _textSubject
               .debounceTime(const Duration(milliseconds: 100))
               .listen((value) {
-            if (!isSearching && value.isNotEmpty) {
+            // Only proceed with search if:
+            // 1. Not already searching
+            // 2. Search term is not empty
+            // 3. Current controller text matches the debounced value
+            // This ensures we don't search for outdated terms if user continued typing
+            if (!isSearching &&
+                value.isNotEmpty &&
+                widget.controller.text == value) {
               setState(() {
                 isSearching = true;
               });
