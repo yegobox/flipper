@@ -2061,8 +2061,8 @@ class CoreSync extends AiStrategyImpl
         "bhfId": await ProxyService.box.bhfId(),
         'tinNumber': business?.tinNumber,
         'encryptionKey': ProxyService.box.encryptionKey(),
-        'dbPath': path.join(
-            (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
+        // 'dbPath': path.join(
+        //     (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
       });
     } catch (e, s) {
       talker.error(e, s);

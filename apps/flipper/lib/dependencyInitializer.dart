@@ -88,11 +88,11 @@ Future<void> initializeDatabaseConfig() async {
   );
 
   // Set the storage adapter in the Repository class
-  Repository.setConfigStorage(storageAdapter);
+  // Repository.setConfigStorage(storageAdapter);
 
   // Log the configured database filenames
-  print('Database configured with main DB: ${Repository.dbFileName}');
-  print('Database configured with queue DB: ${Repository.queueName}');
+  // print('Database configured with main DB: ${Repository.dbFileName}');
+  // print('Database configured with queue DB: ${Repository.queueName}');
 }
 
 // Critical dependencies that must be initialized immediately

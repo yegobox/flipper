@@ -164,10 +164,10 @@ class BackupManager {
   }
 
   // Get the database filename from storage or use default
-  static String get dbFileName =>
-      _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
+  // static String get dbFileName =>
+  //     _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
 
-  static DatabaseConfigStorage? _configStorage;
+  // static DatabaseConfigStorage? _configStorage;
 
   /// Cleans up old backups, keeping only the most recent ones
   Future<void> cleanupOldBackups(String directory, String baseFilename,

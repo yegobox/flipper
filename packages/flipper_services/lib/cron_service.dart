@@ -421,25 +421,25 @@ class CronService {
       return;
     }
 
-    try {
-      // Add a small delay to allow any pending database operations to complete
-      await Future.delayed(const Duration(milliseconds: 500));
+    // try {
+    //   // Add a small delay to allow any pending database operations to complete
+    //   await Future.delayed(const Duration(milliseconds: 500));
 
-      // Call the performPeriodicBackup method on the Repository instance
-      final result = await repo.Repository().performPeriodicBackup(
-          // Use a longer interval to reduce backup frequency
-          minInterval: const Duration(minutes: 30));
+    // Call the performPeriodicBackup method on the Repository instance
+    // final result = await repo.Repository().performPeriodicBackup(
+    //     // Use a longer interval to reduce backup frequency
+    //     minInterval: const Duration(minutes: 30));
 
-      if (result == true) {
-        talker.info('Periodic database backup completed successfully');
-      } else {
-        talker.info(
-            'Periodic database backup skipped (not enough time passed since last backup)');
-      }
-    } catch (e, stackTrace) {
-      talker.error('Error during periodic database backup: $e', stackTrace);
-      // Don't retry immediately if there was an error
-    }
+    //   if (result == true) {
+    //     talker.info('Periodic database backup completed successfully');
+    //   } else {
+    //     talker.info(
+    //         'Periodic database backup skipped (not enough time passed since last backup)');
+    //   }
+    // } catch (e, stackTrace) {
+    //   talker.error('Error during periodic database backup: $e', stackTrace);
+    //   // Don't retry immediately if there was an error
+    // }
   }
 
   /// Performs cleanup of failed queue items
@@ -456,14 +456,14 @@ class CronService {
       await Future.delayed(const Duration(milliseconds: 500));
 
       // Call the cleanupFailedRequests method on the Repository instance
-      final deletedCount = await repo.Repository().cleanupFailedRequests();
+      // final deletedCount = await repo.Repository().cleanupFailedRequests();
 
-      if (deletedCount > 0) {
-        talker.info(
-            'Failed queue cleanup: Deleted $deletedCount failed requests');
-      } else {
-        talker.info('Failed queue cleanup: No failed requests found');
-      }
+      // if (deletedCount > 0) {
+      //   talker.info(
+      //       'Failed queue cleanup: Deleted $deletedCount failed requests');
+      // } else {
+      //   talker.info('Failed queue cleanup: No failed requests found');
+      // }
     } catch (e, stackTrace) {
       talker.error('Error during failed queue cleanup: $e', stackTrace);
       // Don't retry immediately if there was an error
