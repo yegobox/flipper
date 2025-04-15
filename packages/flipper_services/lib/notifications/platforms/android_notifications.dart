@@ -30,7 +30,7 @@ class AndroidNotifications extends BaseNotifications {
 
     // Use a microtask to slightly defer initialization to allow UI to render first
     await Future<void>.microtask(() async {
-      const initSettingsAndroid = AndroidInitializationSettings('flipper_logo');
+      const initSettingsAndroid = AndroidInitializationSettings('ic_launcher');
 
       final initSettings = InitializationSettings(
         android: initSettingsAndroid,
