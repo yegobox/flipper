@@ -54,21 +54,42 @@ class LoginViewModel extends FlipperBaseModel
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
 
+  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model, {IUser? user}) async {
+    talker.info('[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
+    try {
+      await ProxyService.box.writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
+      talker.info('[completeLoginProcess] userId written to box');
+
+      await ProxyService.strategy.login(
+        userPhone: userPin.phoneNumber!,
+        skipDefaultAppSetup: false,
+        pin: userPin,
+        existingUser: user,
+        flipperHttpClient: ProxyService.http,
+      );
+      talker.info('[completeLoginProcess] strategy.login finished');
+
+      await ProxyService.box.writeBool(key: 'authComplete', value: true);
+      talker.info('[completeLoginProcess] authComplete written to box');
+
+      // Always call completeLogin to navigate
+      await completeLogin(userPin);
+      talker.info('[completeLoginProcess] completeLogin called, navigation should occur');
+    } catch (e, s) {
+      talker.error('[completeLoginProcess] Login process failed', e, s);
+      rethrow;
+    }
+  }
+
   Future<void> completeLogin(Pin thePin) async {
+    talker.info('[completeLogin] Saving pin and initializing app');
     try {
       await ProxyService.strategy.savePin(pin: thePin);
       await appService.appInit();
+      talker.info('[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute');
       locator<RouterService>().navigateTo(StartUpViewRoute());
-      // final defaultApp = ProxyService.box.getDefaultApp();
-      // await appService.appInit();
-      // if (defaultApp == "2") {
-      //   final _routerService = locator<RouterService>();
-      //   _routerService.navigateTo(SocialHomeViewRoute());
-      // } else {
-      //   locator<RouterService>().navigateTo(FlipperAppRoute());
-      // }
     } catch (e, s) {
-      talker.error(e, s);
+      talker.error('[completeLogin] Error during navigation', e, s);
       rethrow;
     }
   }
@@ -114,23 +135,6 @@ class LoginViewModel extends FlipperBaseModel
     }
   }
 
-  /// Complete the login process with the retrieved PIN
-  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model,
-      {IUser? user}) async {
-    await ProxyService.box
-        .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
-
-    await ProxyService.strategy.login(
-        userPhone: userPin.phoneNumber!,
-        skipDefaultAppSetup: false,
-        pin: userPin,
-        existingUser: user,
-        flipperHttpClient: ProxyService.http);
-
-    await ProxyService.box.writeBool(key: 'authComplete', value: true);
-    completeLogin(userPin);
-  }
-
   /// Shared admin access logic for both login flows
   static Future<void> ensureAdminAccessIfNeeded({
     required dynamic tenant,
@@ -167,8 +171,12 @@ class LoginViewModel extends FlipperBaseModel
   void handleLoginError(Object e, StackTrace s) {
     talker.error(e, s);
 
-    if (e is NeedSignUpException || e is BusinessNotFoundException) {
+    if (e is LoginChoicesException) {
+      locator<RouterService>().navigateTo(LoginChoicesRoute());
+      return;
+    } else if (e is NeedSignUpException || e is BusinessNotFoundException) {
       locator<RouterService>().navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+      return;
     } else if (e is NoPaymentPlanFound) {
       locator<RouterService>().navigateTo(PaymentPlanUIRoute());
       return;

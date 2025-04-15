@@ -56,13 +56,6 @@ bool skipDependencyInitialization = false;
 // net info: billers
 //1.1.14
 Future<void> main() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
-
   // Flutter framework error handler
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -71,6 +64,13 @@ Future<void> main() async {
 
   // Run everything in a guarded zone
   await runZonedGuarded<Future<void>>(() async {
+    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+
     if (!skipDependencyInitialization) {
       await _initializeFirebase();
       await _initializeSupabase();

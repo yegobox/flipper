@@ -40,8 +40,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.warning("StartupViewModel runStartupLogic");
       // Ensure realm is initialized before proceeding.
 
-      await _hasActiveSubscription();
-      talker.warning("StartupViewModel Bellow hasActiveSubscription");
       await _allRequirementsMeets();
       talker.warning("StartupViewModel Below allRequirementsMeets");
       // Ensure admin access for API/onboarded users
@@ -159,10 +157,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _routerService.clearStackAndShow(LoginRoute());
   }
 
-  Future<void> _hasActiveSubscription() async {
+  Future<void> hasActiveSubscription() async {
     await ProxyService.strategy.hasActiveSubscription(
         fetchRemote: false,
-        businessId: ProxyService.box.getBusinessId()!,
+        businessId: ProxyService.box.getBusinessId()??0,
         flipperHttpClient: ProxyService.http);
   }
 

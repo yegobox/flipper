@@ -239,6 +239,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _updateBusinessPreferences(business);
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
+
+      // Check for active subscription after business is set
+      try {
+        final startupViewModel = StartupViewModel();
+        await startupViewModel.hasActiveSubscription();
+      } catch (e) {
+        talker.error('Subscription check failed: $e');
+        // Optionally, redirect to payment plan or show error here
+      }
     } catch (e) {
       log(e.toString());
       talker.error('Error setting default business: $e');
