@@ -103,15 +103,17 @@ mixin AuthMixin implements AuthInterface {
         fetchRemote: fetchRemote);
   }
 
-  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
-      HttpClientInterface flipperHttpClient) async {
+  Future<IUser> _authenticateUser(
+      String phoneNumber, Pin pin, HttpClientInterface flipperHttpClient,
+      {bool forceOffline = false}) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
     List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
-    final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
-        branchesE.isNotEmpty &&
-        !foundation.kDebugMode &&
-        !(await ProxyService.status.isInternetAvailable());
+    final bool shouldEnableOfflineLogin = forceOffline ||
+        (businessesE.isNotEmpty &&
+            branchesE.isNotEmpty &&
+            // !foundation.kDebugMode &&
+            !(await ProxyService.status.isInternetAvailable()));
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;
@@ -147,13 +149,17 @@ mixin AuthMixin implements AuthInterface {
         foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
     w?.start();
     final String phoneNumber = _formatPhoneNumber(userPhone);
-    
+
     // Use existing user data if provided, otherwise make the API call
-    final IUser user = existingUser ?? 
+    print('Before _authenticateUser');
+    final IUser user = existingUser ??
         await _authenticateUser(phoneNumber, pin, flipperHttpClient);
-        
+    print('After _authenticateUser');
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    print('After configureSystem');
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
+    print('After setting authComplete');
+
     if (stopAfterConfigure) return user;
     if (!skipDefaultAppSetup) {
       await setDefaultApp(user);
@@ -248,10 +254,25 @@ mixin AuthMixin implements AuthInterface {
   List<IBusiness> _convertBusinesses(List<Business> businesses) {
     return businesses
         .map((e) => IBusiness(
-            id: e.serverId,
-            name: e.name,
-            userId: e.userId.toString(),
-            isDefault: false))
+              id: e.serverId,
+              name: e.name ?? '',
+              userId: e.userId?.toString() ?? '',
+              currency: e.currency ?? 'RWF',
+              categoryId: e.categoryId ?? 0,
+              latitude: e.latitude ?? '0', // string
+              longitude: e.longitude ?? '0', // string
+              timeZone: e.timeZone ?? '',
+              email: e.email ?? '',
+              fullName: e.fullName ?? '',
+              tinNumber: e.tinNumber ?? 0, // int
+              bhfId: e.bhfId ?? '00',
+              dvcSrlNo: e.dvcSrlNo ?? '',
+              adrs: e.adrs ?? '',
+              taxEnabled: e.taxEnabled ?? false,
+              isDefault: e.isDefault ?? false,
+              businessTypeId: e.businessTypeId ?? 0,
+              encryptionKey: e.encryptionKey ?? '',
+            ))
         .toList();
   }
 
