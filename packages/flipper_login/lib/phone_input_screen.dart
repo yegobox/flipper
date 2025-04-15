@@ -254,22 +254,11 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   Future<void> _signInWithCredential(PhoneAuthCredential credential) async {
     try {
-      // Show Loading Dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent closing by tapping outside
-        builder: (BuildContext context) {
-          return const LoadingDialog(message: 'Finalizing authentication...');
-        },
-      );
-
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
       setState(() => _isLoading = false);
 
       // Dismiss Loading Dialog
-      Navigator.of(context, rootNavigator: true).pop();
-
       if (user.user != null) {
         // Show success and navigate
         if (mounted) {}

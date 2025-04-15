@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
+import 'package:flipper_login/LoadingDialog.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -75,6 +76,14 @@ class _LoginState extends State<Login> {
 
     firebase.FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) return;
+      // Show Loading Dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false, // Prevent closing by tapping outside
+        builder: (BuildContext context) {
+          return const LoadingDialog(message: 'Finalizing authentication...');
+        },
+      );
 
       final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
           !await ProxyService.box.authComplete();
@@ -86,7 +95,18 @@ class _LoginState extends State<Login> {
         final Pin userPin = loginData['pin'];
         final IUser userData = loginData['user'];
         await model.completeLoginProcess(userPin, model, user: userData);
+
+        // Ensure the loading dialog is closed after navigation starts
+        // WidgetsBinding.instance.addPostFrameCallback((_) {
+        //   if (mounted) {
+        //     Navigator.of(context, rootNavigator: true).pop();
+        //   }
+        // });
       } catch (e, s) {
+        // Ensure the dialog is closed on error
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
         model.handleLoginError(e, s);
       }
     });

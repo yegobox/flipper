@@ -54,10 +54,13 @@ class LoginViewModel extends FlipperBaseModel
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
 
-  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model, {IUser? user}) async {
-    talker.info('[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
+  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model,
+      {IUser? user}) async {
+    talker.info(
+        '[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
     try {
-      await ProxyService.box.writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
+      await ProxyService.box
+          .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
       talker.info('[completeLoginProcess] userId written to box');
 
       await ProxyService.strategy.login(
@@ -74,7 +77,8 @@ class LoginViewModel extends FlipperBaseModel
 
       // Always call completeLogin to navigate
       await completeLogin(userPin);
-      talker.info('[completeLoginProcess] completeLogin called, navigation should occur');
+      talker.info(
+          '[completeLoginProcess] completeLogin called, navigation should occur');
     } catch (e, s) {
       talker.error('[completeLoginProcess] Login process failed', e, s);
       rethrow;
@@ -85,8 +89,9 @@ class LoginViewModel extends FlipperBaseModel
     talker.info('[completeLogin] Saving pin and initializing app');
     try {
       await ProxyService.strategy.savePin(pin: thePin);
-      await appService.appInit();
-      talker.info('[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute');
+      await   appService.appInit();
+      talker.info(
+          '[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute');
       locator<RouterService>().navigateTo(StartUpViewRoute());
     } catch (e, s) {
       talker.error('[completeLogin] Error during navigation', e, s);
@@ -154,7 +159,7 @@ class LoginViewModel extends FlipperBaseModel
               ? tenant['branches'][0]['id'].toString()
               : null;
       final businessId = tenant['businessId'].toString();
-      if (userId != null && branchId != null && businessId != null) {
+      if (branchId != null) {
         await StartupViewModel.ensureAdminAccessForUser(
           userId: userId,
           branchId: branchId,
