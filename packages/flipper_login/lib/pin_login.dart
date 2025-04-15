@@ -60,7 +60,6 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           skipDefaultAppSetup: false,
           userPhone: pin.phoneNumber,
         );
-
         await _completeLogin(thePin);
       } catch (e, s) {
         await _handleLoginError(e, s);

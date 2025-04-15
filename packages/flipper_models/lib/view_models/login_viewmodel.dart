@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
@@ -57,8 +58,6 @@ class LoginViewModel extends FlipperBaseModel
     try {
       await ProxyService.strategy.savePin(pin: thePin);
       await appService.appInit();
-
-      // Attempt to sign in with the custom token
       locator<RouterService>().navigateTo(StartUpViewRoute());
       // final defaultApp = ProxyService.box.getDefaultApp();
       // await appService.appInit();
@@ -88,6 +87,9 @@ class LoginViewModel extends FlipperBaseModel
       // Get user information
       final response = await ProxyService.strategy
           .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
+      final userJson = json.decode(response.body);
+      final tenant = userJson['tenants']?[0];
+      await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker);
       final iUser = IUser.fromJson(json.decode(response.body));
 
       // Get PIN information
@@ -96,15 +98,14 @@ class LoginViewModel extends FlipperBaseModel
 
       return {
         'pin': Pin(
-          userId: int.parse(pin!.userId),
-          pin: pin.pin,
-          branchId: pin.branchId,
-          businessId: pin.businessId,
-          ownerName: pin.ownerName,
-          tokenUid: iUser.uid,
-          uid: user.uid,
-          phoneNumber: iUser.phoneNumber
-        ),
+            userId: int.parse(pin!.userId),
+            pin: pin.pin,
+            branchId: pin.branchId,
+            businessId: pin.businessId,
+            ownerName: pin.ownerName,
+            tokenUid: iUser.uid,
+            uid: user.uid,
+            phoneNumber: iUser.phoneNumber),
         'user': iUser
       };
     } catch (e, s) {
@@ -114,7 +115,8 @@ class LoginViewModel extends FlipperBaseModel
   }
 
   /// Complete the login process with the retrieved PIN
-  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model, {IUser? user}) async {
+  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model,
+      {IUser? user}) async {
     await ProxyService.box
         .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
 
@@ -127,6 +129,38 @@ class LoginViewModel extends FlipperBaseModel
 
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
     completeLogin(userPin);
+  }
+
+  /// Shared admin access logic for both login flows
+  static Future<void> ensureAdminAccessIfNeeded({
+    required dynamic tenant,
+    required dynamic talker,
+  }) async {
+    final List permissions =
+        tenant != null ? (tenant['permissions'] ?? []) : [];
+    final bool isAdmin = permissions
+        .any((perm) => (perm['name']?.toLowerCase() ?? '') == 'admin');
+    final _internetConnectionService = InternetConnectionService();
+    final bool isOnline =
+        await _internetConnectionService.checkInternetConnectionRequirement();
+    if (isAdmin && isOnline) {
+      final userId = tenant['userId'].toString();
+      final branchId =
+          tenant['branches'] != null && tenant['branches'].isNotEmpty
+              ? tenant['branches'][0]['id'].toString()
+              : null;
+      final businessId = tenant['businessId'].toString();
+      if (userId != null && branchId != null && businessId != null) {
+        await StartupViewModel.ensureAdminAccessForUser(
+          userId: userId,
+          branchId: branchId,
+          businessId: businessId,
+          talker: talker,
+        );
+      } else {
+        talker.error('Missing IDs for admin access assignment');
+      }
+    }
   }
 
   /// Handle login-related errors
