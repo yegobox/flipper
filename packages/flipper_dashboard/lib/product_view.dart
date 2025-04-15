@@ -85,7 +85,20 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
-    return _buildVariantList(context, model);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Add padding around the segmented button for better visual appearance
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: _buildSegmentedButton(context, ref),
+        ),
+        // Expanded to make the variant list fill the remaining space
+        Expanded(
+          child: _buildVariantList(context, model),
+        ),
+      ],
+    );
   }
 
   Widget _buildVariantList(BuildContext context, ProductViewModel model) {
@@ -197,8 +210,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Center(child: _buildSegmentedButton(context, ref))
-            .shouldSeeTheApp(ref, featureName: AppFeature.Stock),
         const SizedBox(height: 30),
         // Flexible container that takes up remaining space
         Expanded(
