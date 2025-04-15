@@ -1,7 +1,6 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +10,7 @@ import 'package:flipper_routing/app.router.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'dart:async'; // Add missing import for Timer
 
 mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
@@ -76,13 +76,13 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> handleBranchSelection({
-    required Branch branch,
-    required BuildContext context,
-    required Function(String?) setLoadingState,
+  Future<void> handleBranchSelection(
+    Branch branch,
+    BuildContext context, {
+    required void Function(String?) setLoadingState,
     required Future<void> Function(Branch) setDefaultBranch,
     required VoidCallback onComplete,
-    required Function(bool) setIsLoading, // Add this
+    required void Function(bool) setIsLoading,
   }) async {
     setLoadingState(branch.serverId?.toString());
     setIsLoading(true); // Set isLoading to true
@@ -146,191 +146,30 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> showBranchSwitchDialog({
     required BuildContext context,
-    required Future<void> Function(Branch) setDefaultBranch,
-    required Future<void> Function() onLogout,
-    required Function(String?) setLoadingState,
-    required String? loadingItemId,
-    required List<Branch> branches,
-  }) {
-    return showDialog(
+    List<Branch>? branches,
+    String? loadingItemId,
+    required Future<void> Function(Branch branch) setDefaultBranch,
+    required Future<void> Function(
+      Branch branch,
+      BuildContext context, {
+      required void Function(String? id) setLoadingState,
+      required Future<void> Function(Branch branch) setDefaultBranch,
+      required VoidCallback onComplete,
+      required void Function(bool) setIsLoading,
+    }) handleBranchSelection,
+    required VoidCallback onLogout,
+    required void Function(String? id) setLoadingState,
+  }) async {
+    await showDialog(
       context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black54,
-      builder: (BuildContext context) {
-        // Add state management for search
-        final searchController = TextEditingController();
-        final searchNotifier = ValueNotifier<String>('');
-
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 8,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
-            decoration: BoxDecoration(
-              color: DialogThemeData().backgroundColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_rounded,
-                          color: Theme.of(context).primaryColor,
-                          size: 28,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Switch Branch',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -0.5,
-                            color:
-                                Theme.of(context).textTheme.titleLarge?.color,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: () async {
-                          await showLogoutConfirmationDialog(context);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.logout_rounded,
-                                color: Theme.of(context).colorScheme.error,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Logout',
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                // Search box with functionality
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest
-                        .withValues(alpha: .5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: (value) {
-                      searchNotifier.value = value.toLowerCase();
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search branches...',
-                      border: InputBorder.none,
-                      icon: Icon(
-                        Icons.search,
-                        color: Theme.of(context).hintColor,
-                      ),
-                      suffixIcon: ValueListenableBuilder<String>(
-                        valueListenable: searchNotifier,
-                        builder: (context, searchValue, _) {
-                          return searchValue.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    searchController.clear();
-                                    searchNotifier.value = '';
-                                  },
-                                )
-                              : const SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: ValueListenableBuilder<String>(
-                    valueListenable: searchNotifier,
-                    builder: (context, searchValue, _) {
-                      final filteredBranches = branches.where((branch) {
-                        final name = branch.name?.toLowerCase() ?? '';
-                        return name.contains(searchValue);
-                      }).toList();
-
-                      if (filteredBranches.isEmpty && searchValue.isNotEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.search_off_rounded,
-                                size: 48,
-                                color: Theme.of(context).hintColor,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No branches found',
-                                style: TextStyle(
-                                  color: Theme.of(context).hintColor,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
-                      return buildBranchList(
-                        branches: filteredBranches,
-                        loadingItemId: loadingItemId,
-                        onBranchSelected: (branch, context) =>
-                            handleBranchSelection(
-                          branch: branch,
-                          context: context,
-                          setLoadingState: setLoadingState,
-                          setDefaultBranch: setDefaultBranch,
-                          onComplete: () {
-                            ref.refresh(tenantProvider);
-                            final combinedNotifier = ref.read(refreshProvider);
-                            combinedNotifier.performActions(
-                                productName: "", scanMode: true);
-                          },
-                          setIsLoading: (bool value) {},
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+      builder: (context) {
+        return _BranchSwitchDialog(
+          branches: branches,
+          loadingItemId: loadingItemId,
+          setDefaultBranch: setDefaultBranch,
+          handleBranchSelection: handleBranchSelection,
+          onLogout: onLogout,
+          setLoadingState: setLoadingState,
         );
       },
     );
@@ -479,5 +318,248 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _syncBranchWithDatabase(Branch branch) async {
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+  }
+}
+
+// Move _BranchSwitchDialog and its State outside the mixin
+class _BranchSwitchDialog extends StatefulWidget {
+  final List<Branch>? branches;
+  final String? loadingItemId;
+  final Future<void> Function(Branch branch) setDefaultBranch;
+  final Future<void> Function(
+    Branch branch,
+    BuildContext context, {
+    required void Function(String? id) setLoadingState,
+    required Future<void> Function(Branch branch) setDefaultBranch,
+    required VoidCallback onComplete,
+    required void Function(bool) setIsLoading,
+  }) handleBranchSelection;
+  final VoidCallback onLogout;
+  final void Function(String? id) setLoadingState;
+
+  const _BranchSwitchDialog({
+    Key? key,
+    this.branches,
+    this.loadingItemId,
+    required this.setDefaultBranch,
+    required this.handleBranchSelection,
+    required this.onLogout,
+    required this.setLoadingState,
+  }) : super(key: key);
+
+  @override
+  State<_BranchSwitchDialog> createState() => _BranchSwitchDialogState();
+}
+
+class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
+  late Future<List<Branch>> _branchesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.branches == null) {
+      _branchesFuture = ProxyService.strategy.branches(
+        businessId: ProxyService.box.getBusinessId()!,
+        includeSelf: false,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.branches != null) {
+      return _buildDialog(widget.branches!);
+    }
+    // If branches is null, show loader and fetch
+    return FutureBuilder<List<Branch>>(
+      future: _branchesFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(child: CircularProgressIndicator());
+        }
+        return _buildDialog(snapshot.data!);
+      },
+    );
+  }
+
+  Widget _buildDialog(List<Branch> branches) {
+    // Add state management for search
+    final searchController = TextEditingController();
+    final searchNotifier = ValueNotifier<String>('');
+
+    Timer? _debounce;
+
+    void _onSearchChanged(String value) {
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 200), () {
+        searchNotifier.value = value;
+      });
+    }
+
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
+        decoration: BoxDecoration(
+          color: DialogThemeData().backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_rounded,
+                      color: Theme.of(context).primaryColor,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Switch Branch',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
+                        color: Theme.of(context).textTheme.titleLarge?.color,
+                      ),
+                    ),
+                  ],
+                ),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      widget.onLogout();
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.logout_rounded,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Logout',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Search box with functionality
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: .5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TextField(
+                controller: searchController,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: 'Search branches...',
+                  border: InputBorder.none,
+                  icon: Icon(
+                    Icons.search,
+                    color: Theme.of(context).hintColor,
+                  ),
+                  suffixIcon: ValueListenableBuilder<String>(
+                    valueListenable: searchNotifier,
+                    builder: (context, searchValue, _) {
+                      return searchValue.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                searchController.clear();
+                                searchNotifier.value = '';
+                              },
+                            )
+                          : const SizedBox.shrink();
+                    },
+                  ),
+                ),
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ValueListenableBuilder<String>(
+                valueListenable: searchNotifier,
+                builder: (context, searchValue, _) {
+                  final int currentBusinessId =
+                      ProxyService.box.getBusinessId() ?? 0;
+                  final searchLower = searchValue.toLowerCase();
+                  final filteredBranches = branches.where((branch) {
+                    if (branch.businessId != currentBusinessId) return false;
+                    final name = branch.name?.toLowerCase() ?? '';
+                    return name.contains(searchLower);
+                  }).toList();
+
+                  if (filteredBranches.isEmpty && searchValue.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 48,
+                            color: Theme.of(context).hintColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No branches found',
+                            style: TextStyle(
+                              color: Theme.of(context).hintColor,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  // Use ListView.builder for efficiency
+                  return ListView.builder(
+                    itemCount: filteredBranches.length,
+                    itemBuilder: (context, index) {
+                      final branch = filteredBranches[index];
+                      // Replace below with your branch tile widget
+                      return ListTile(
+                        title: Text(branch.name ?? ''),
+                        // Add more details/actions as needed
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

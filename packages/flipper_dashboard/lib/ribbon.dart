@@ -186,20 +186,18 @@ class IconRowState extends ConsumerState<IconRow>
         _routerService
             .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
-        // Show branch switching dialog with logout option
+        // Show branch switch dialog instantly with a loading indicator, then load branches async
         await showBranchSwitchDialog(
           context: context,
-          branches: await ProxyService.strategy.branches(
-              businessId: ProxyService.box.getBusinessId()!,
-              includeSelf: false),
+          branches: null, // Now allowed: nullable
           loadingItemId: _loadingItemId,
           setDefaultBranch: (branch) async {
             setState(() {
-              _isLoading = true; // Correctly set loading state here
+              _isLoading = true;
             });
             handleBranchSelection(
-              branch: branch,
-              context: context,
+              branch,
+              context,
               setLoadingState: (String? id) {
                 setState(() {
                   _loadingItemId = id;
@@ -207,9 +205,9 @@ class IconRowState extends ConsumerState<IconRow>
               },
               setDefaultBranch: _setDefaultBranch,
               onComplete: () {
-                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pop();
                 setState(() {
-                  _isLoading = false; // Correctly set loading state here
+                  _isLoading = false;
                 });
               },
               setIsLoading: (bool value) {
@@ -219,6 +217,8 @@ class IconRowState extends ConsumerState<IconRow>
               },
             );
           },
+          handleBranchSelection:
+              handleBranchSelection, // Pass required argument
           onLogout: () async {
             await showLogoutConfirmationDialog(
               context,
@@ -230,6 +230,7 @@ class IconRowState extends ConsumerState<IconRow>
             });
           },
         );
+        // Now trigger branch loading in the dialog itself (modal should handle async fetch)
       }
     }
   }

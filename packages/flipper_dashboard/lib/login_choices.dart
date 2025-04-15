@@ -210,8 +210,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
     await handleBranchSelection(
-      branch: branch,
-      context: context,
+      branch,
+      context,
       setLoadingState: (String? id) {
         setState(() {
           _loadingItemId = id;
