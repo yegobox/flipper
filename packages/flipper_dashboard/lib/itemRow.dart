@@ -100,6 +100,55 @@ class _RowItemState extends ConsumerState<RowItem>
   static const double borderRadius = 8.0;
   static const double contentPadding = 12.0;
 
+  // Add cached futures to prevent rebuilding images unnecessarily
+  Future<String>? _cachedRemoteUrlFuture;
+  Future<String?>? _cachedLocalPathFuture;
+  String? _imageUrl;
+  int? _branchId;
+  final _lock = Lock();
+
+  @override
+  void initState() {
+    super.initState();
+    _initImageCache();
+  }
+
+  // Initialize the image cache when the widget is created
+  void _initImageCache() {
+    if (widget.imageUrl != null) {
+      _imageUrl = widget.imageUrl;
+      if (widget.forceRemoteUrl && widget.variant?.branchId != null) {
+        _branchId = widget.variant!.branchId!;
+        _cachedRemoteUrlFuture = _lock.synchronized(
+            () => preSignedUrl(branchId: _branchId!, imageInS3: _imageUrl!));
+      } else {
+        _cachedLocalPathFuture = _lock
+            .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(RowItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update the cache if the image URL or branch ID has changed
+    if (widget.imageUrl != oldWidget.imageUrl ||
+        (widget.variant?.branchId != oldWidget.variant?.branchId)) {
+      _imageUrl = widget.imageUrl;
+      _branchId = widget.variant?.branchId;
+
+      if (widget.imageUrl != null) {
+        if (widget.forceRemoteUrl && widget.variant?.branchId != null) {
+          _cachedRemoteUrlFuture = _lock.synchronized(
+              () => preSignedUrl(branchId: _branchId!, imageInS3: _imageUrl!));
+        } else {
+          _cachedLocalPathFuture = _lock
+              .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedItem = ref.watch(selectedItemIdProvider);
@@ -301,11 +350,16 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildImage() {
+    // If no image URL, return empty placeholder
+    if (widget.imageUrl == null) {
+      return _buildImageErrorPlaceholder();
+    }
+
+    // Use cached futures to prevent unnecessary rebuilds
     return (widget.forceRemoteUrl)
         ? FutureBuilder<String>(
-            future: preSignedUrl(
-                branchId: widget.variant!.branchId!,
-                imageInS3: widget.imageUrl!),
+            key: ValueKey('remote-${widget.variant?.id}-${widget.imageUrl}'),
+            future: _cachedRemoteUrlFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -317,13 +371,15 @@ class _RowItemState extends ConsumerState<RowItem>
                 );
               } else if (snapshot.hasError || !snapshot.hasData) {
                 return _buildImageErrorPlaceholder();
-                // return SizedBox.shrink();
               } else {
                 return CachedNetworkImage(
+                  key: ValueKey('cached-${snapshot.data}'),
                   imageUrl: snapshot.data!,
                   width: double.infinity,
                   height: double.infinity,
                   fit: BoxFit.cover,
+                  memCacheWidth: 300, // Add memory cache constraints
+                  memCacheHeight: 300,
                   placeholder: (context, url) => const Center(
                     child: SizedBox(
                       width: 24,
@@ -336,10 +392,12 @@ class _RowItemState extends ConsumerState<RowItem>
                   },
                 );
               }
+              ;
             },
           )
         : FutureBuilder<String?>(
-            future: getImageFilePath(imageFileName: widget.imageUrl!),
+            key: ValueKey('local-${widget.variant?.id}-${widget.imageUrl}'),
+            future: _cachedLocalPathFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -352,9 +410,12 @@ class _RowItemState extends ConsumerState<RowItem>
               } else if (snapshot.hasData && snapshot.data != null) {
                 return Image.file(
                   File(snapshot.data!),
+                  key: ValueKey('file-${snapshot.data}'),
                   width: double.infinity,
                   height: double.infinity,
                   fit: BoxFit.cover,
+                  cacheWidth: 300, // Add file image cache constraints
+                  cacheHeight: 300,
                   errorBuilder: (context, error, stackTrace) {
                     return _buildImageErrorPlaceholder();
                   },
