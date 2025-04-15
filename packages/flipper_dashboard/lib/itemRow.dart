@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
@@ -94,7 +95,7 @@ class RowItem extends StatefulHookConsumerWidget {
 }
 
 class _RowItemState extends ConsumerState<RowItem>
-    with Refresh, CoreMiscellaneous {
+    with Refresh, CoreMiscellaneous, SnackBarMixin {
   final _routerService = locator<RouterService>();
   // Constants for consistent sizing
   static const double borderRadius = 8.0;
@@ -544,23 +545,8 @@ class _RowItemState extends ConsumerState<RowItem>
   }) async {
     try {
       // Show immediate visual feedback to indicate the item is being processed
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              SizedBox(width: 10),
-              Text('Adding item to cart...'),
-            ],
-          ),
-          duration: Duration(milliseconds: 800),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      showCustomSnackBar(context, 'Adding item to cart...',
+          backgroundColor: Colors.black);
 
       final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;
       w?.start();
@@ -646,14 +632,7 @@ class _RowItemState extends ConsumerState<RowItem>
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Item added to cart'),
-          duration: Duration(milliseconds: 500),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.green,
-        ),
-      );
+      showCustomSnackBar(context, 'Item added to cart');
 
       // Force refresh the transaction items with a small delay to ensure DB operations complete
       await Future.delayed(Duration(milliseconds: 100));

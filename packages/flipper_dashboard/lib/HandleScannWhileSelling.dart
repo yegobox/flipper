@@ -85,14 +85,13 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                 ),
               );
             }
-            
+
             // Try to fetch from remote with fetchRemote flag set to true
             variants = await ProxyService.strategy
                 .variants(
-                  bcd: value, 
-                  branchId: ProxyService.box.getBranchId()!,
-                  fetchRemote: true
-                )
+                    bcd: value,
+                    branchId: ProxyService.box.getBranchId()!,
+                    fetchRemote: true)
                 .timeout(
               const Duration(seconds: 10),
               onTimeout: () {
@@ -166,10 +165,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
             // Try to fetch from remote with fetchRemote flag set to true
             variants = await ProxyService.strategy
                 .variants(
-                  name: value, 
-                  branchId: ProxyService.box.getBranchId()!,
-                  fetchRemote: true
-                )
+                    name: value,
+                    branchId: ProxyService.box.getBranchId()!,
+                    fetchRemote: true)
                 .timeout(
               const Duration(seconds: 10),
               onTimeout: () {
@@ -177,7 +175,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                 return [];
               },
             );
-            
+
             // Update the UI with the results from remote
             if (variants.isNotEmpty && mounted) {
               // Refresh the search results by updating the search string provider
@@ -186,7 +184,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           }
         } catch (e) {
           // Silently handle errors in non-scanning mode
-          print('Error searching for variants in non-scanning mode: ${e.toString()}');
+          print(
+              'Error searching for variants in non-scanning mode: ${e.toString()}');
         }
       }
     }
@@ -218,21 +217,20 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
         // Show a loading indicator to provide feedback to the user
         if (mounted) {
+          // showCustomSnackBar(context, );
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 10),
-                  Text('Adding item to cart...'),
-                ],
+            SnackBar(
+              margin: const EdgeInsets.only(
+                left: 350.0,
+                right: 350.0,
+                bottom: 20.0,
               ),
-              duration: Duration(milliseconds: 500),
+              content: Text('Adding item to cart..'),
+              backgroundColor: Colors.black,
               behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           );
         }
@@ -275,9 +273,17 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+              margin: const EdgeInsets.only(
+                left: 350.0,
+                right: 350.0,
+                bottom: 20.0,
+              ),
               content: Text('Added ${variant.name} to cart'),
-              duration: const Duration(seconds: 1),
+              backgroundColor: Colors.black,
               behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           );
         }
