@@ -30,7 +30,7 @@ env:
 jobs:
   unit-testing:
     name: Unit Testing
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -81,7 +81,7 @@ jobs:
           flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
   build_web_deploy_firebase:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     needs: [unit-testing]
     steps:
       - name: Checkout repository
@@ -629,7 +629,7 @@ jobs:
     name: "Google Deploy"
     needs: [unit-testing, integration-testing-windows,build_web_deploy_firebase]  # Requires Supabase to be initialized
     # runs-on: ubuntu-22.04
-    runs-on: macOS-14
+    runs-on: ubuntu-latest
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.
