@@ -217,7 +217,7 @@ class SearchFieldState extends ConsumerState<SearchField>
                   if (widget.showAddButton)
                     addButton().eligibleToSee(
                         ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
-                  if (widget.showDatePicker) datePicker(),
+                  // Remove the date picker that was unintentionally added
                 ],
               ),
             ),
