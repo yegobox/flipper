@@ -157,7 +157,7 @@ Stream<double> netProfitStream(
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
   if (branchId == null) {
-    talker.error('Branch ID is required for netProfitStream');
+    talker.error('Branch ID is required for grossProfitStream');
     throw StateError('Branch ID is required');
   }
 
@@ -165,7 +165,7 @@ Stream<double> netProfitStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    isCashOut: false,
+    isCashOut: false, // Only get income transactions
     removeAdjustmentTransactions: true,
   );
 
@@ -173,20 +173,29 @@ Stream<double> netProfitStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    isCashOut: true,
+    isCashOut: true, // Only get expense transactions
     removeAdjustmentTransactions: true,
   );
 
-  await for (final income in incomeStream) {
-    final expenses = await expensesStream.first;
-    final totalIncome = income.fold<double>(
+  await for (final incomeTransactions in incomeStream) {
+    final expenseTransactions = await expensesStream.first;
+
+    // Filter out any transactions that are marked as expenses in the income stream
+    final filteredIncome =
+        incomeTransactions.where((tx) => !(tx.isExpense ?? false)).toList();
+
+    // Calculate total from filtered income transactions
+    final totalIncome = filteredIncome.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
-    final totalExpenses = expenses.fold<double>(
+
+    // Calculate total for expense transactions
+    final totalExpenses = expenseTransactions.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
+
     yield totalIncome - totalExpenses;
   }
 }
@@ -208,15 +217,56 @@ Stream<double> grossProfitStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    isCashOut: false,
+    isCashOut: false, // Only get income transactions
     removeAdjustmentTransactions: true,
   );
 
-  await for (final income in incomeStream) {
-    final totalGrossProfit = income.fold<double>(
+  await for (final incomeTransactions in incomeStream) {
+    // Filter out any transactions that are marked as expenses in the income stream
+    final filteredIncome =
+        incomeTransactions.where((tx) => !(tx.isExpense ?? false)).toList();
+
+    // Calculate total from filtered income transactions
+    final totalIncome = filteredIncome.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
-    yield totalGrossProfit;
+
+    yield totalIncome;
+  }
+}
+
+@riverpod
+Stream<double> totalIncomeStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  int? branchId,
+}) async* {
+  branchId ??= ProxyService.box.getBranchId();
+  if (branchId == null) {
+    talker.error('Branch ID is required for totalIncomeStream');
+    throw StateError('Branch ID is required');
+  }
+
+  final transactionsStream = ProxyService.strategy.transactionsStream(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    removeAdjustmentTransactions: true,
+  );
+
+  await for (final transactions in transactionsStream) {
+    // Filter out any expense transactions directly
+    final incomeTransactions =
+        transactions.where((tx) => !(tx.isExpense ?? false)).toList();
+
+    // Calculate total income only from non-expense transactions
+    final totalIncome = incomeTransactions.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+
+    yield totalIncome;
   }
 }

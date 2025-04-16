@@ -239,7 +239,22 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ));
 
     if (key == 'C') {
-      await _handleNumberKey(key, transaction: transaction.value);
+      // Properly handle the clear key by calling the CoreViewModel's handleClearKey method
+      List<TransactionItem> items =
+          await ProxyService.strategy.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
+        transactionId: transaction.value?.id,
+        doneWithTransaction: false,
+        active: false,
+      );
+
+      widget.model.handleClearKey(items, transaction.value, () {
+        ref.read(keypadProvider.notifier).reset();
+      });
+
+      // Also reset the keypad display
+      ref.read(keypadProvider.notifier).reset();
+      HapticFeedback.lightImpact();
     } else if (key == 'Confirm') {
       await _handleConfirmKey(transaction);
     } else if (key == '+') {
@@ -257,7 +272,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
     widget.model.keypad.setCashReceived(amount: amount);
 
-    bool confirmed = await showDialog(
+    bool? dialogResult = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -297,9 +312,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     transactionType: widget.transactionType,
                     isIncome: isIncome,
                   );
+                  Navigator.of(context).pop(true); // Return true on success
                   widget.onConfirm(); // Ensure pop is called
                 } catch (e) {
                   talker.error(e);
+                  Navigator.of(context)
+                      .pop(true); // Return true even on error to close dialog
                   widget.onConfirm(); // Ensure pop is called
                 }
               },
@@ -309,7 +327,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       },
     );
 
-    if (confirmed) {
+    if (dialogResult == true) {
       widget.model.keyboardKeyPressed(
         isExpense: widget.transactionType == TransactionType.cashOut,
         key: '+',
@@ -343,41 +361,80 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     required String transactionType,
   }) async {
     widget.model.newTransactionPressed = false;
-    final isExpense = (TransactionType.cashOut == widget.transactionType);
 
-    final transaction =
-        ref.watch(pendingTransactionStreamProvider(isExpense: isExpense));
+    try {
+      // First, ensure we have a transaction by calling manageTransaction directly
+      // This follows the pattern used in QuickSellingView
+      ITransaction? pendingTransaction =
+          await ProxyService.strategy.manageTransaction(
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: transactionType,
+        isExpense: !isIncome,
+      );
 
-    widget.model.keyboardKeyPressed(
-      isExpense: widget.transactionType == TransactionType.cashOut,
-      key: '+',
-      reset: () {
-        ref.read(keypadProvider.notifier).reset();
-      },
-    );
+      if (pendingTransaction == null) {
+        talker.error("Failed to create or get a pending transaction");
+        return;
+      }
 
-    Category? category = await ProxyService.strategy
-        .activeCategory(branchId: ProxyService.box.getBranchId()!);
-    var shortestSide = MediaQuery.of(context).size.shortestSide;
-    var useMobileLayout = shortestSide < 600;
+      // Now that we have a valid transaction, we can proceed
+      widget.model.keyboardKeyPressed(
+        isExpense: !isIncome,
+        key: '+',
+        reset: () {
+          ref.read(keypadProvider.notifier).reset();
+        },
+      );
 
-    await ProxyService.strategy.collectPayment(
-      cashReceived: cashReceived,
-      branchId: ProxyService.box.getBranchId()!,
-      bhfId: (await ProxyService.box.bhfId()) ?? "00",
-      isProformaMode: ProxyService.box.isProformaMode(),
-      isTrainingMode: ProxyService.box.isTrainingMode(),
-      transaction: transaction.value!,
-      paymentType: paymentType,
-      discount: discount.toDouble(),
-      transactionType:
-          useMobileLayout ? category?.name ?? "" : TransactionType.sale,
-      directlyHandleReceipt: false,
-      isIncome: isIncome,
-      categoryId: category?.id.toString(),
-    );
+      Category? category = await ProxyService.strategy
+          .activeCategory(branchId: ProxyService.box.getBranchId()!);
+      var shortestSide = MediaQuery.of(context).size.shortestSide;
+      var useMobileLayout = shortestSide < 600;
 
-    ref.refresh(transactionItemsProvider(transactionId: transaction.value!.id));
-    ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+      // For cashbook transactions, the subtotal should be the cash received amount
+      double subTotal = cashReceived;
+
+      // Ensure the transaction is properly updated with the subtotal and marked as complete
+      ITransaction updatedTransaction =
+          await ProxyService.strategy.collectPayment(
+        cashReceived: cashReceived,
+        branchId: ProxyService.box.getBranchId()!,
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
+        isProformaMode: ProxyService.box.isProformaMode(),
+        isTrainingMode: ProxyService.box.isTrainingMode(),
+        transaction: pendingTransaction,
+        paymentType: paymentType,
+        discount: discount.toDouble(),
+        transactionType:
+            useMobileLayout ? category?.name ?? "" : TransactionType.sale,
+        directlyHandleReceipt: false,
+        isIncome: isIncome,
+        categoryId: category?.id.toString(),
+      );
+
+      // Explicitly update the transaction status to ensure it's marked as complete
+      if (updatedTransaction.status != COMPLETE) {
+        updatedTransaction.status = COMPLETE;
+        updatedTransaction.subTotal = subTotal;
+
+        // Use updateTransaction method to ensure the transaction is properly saved
+        await ProxyService.strategy.updateTransaction(
+          transaction: updatedTransaction,
+          status: COMPLETE,
+          subTotal: subTotal,
+        );
+
+        talker.info(
+            "Transaction explicitly marked as complete with subtotal: $subTotal");
+      }
+
+      // Refresh providers to update UI
+      ref.refresh(
+          transactionItemsProvider(transactionId: pendingTransaction.id));
+      ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
+    } catch (e, s) {
+      talker.error("Error in HandleTransactionFromCashBook: $e");
+      talker.error(s);
+    }
   }
 }

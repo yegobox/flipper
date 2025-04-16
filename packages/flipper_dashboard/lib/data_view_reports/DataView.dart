@@ -197,22 +197,6 @@ class DataViewState extends ConsumerState<DataView>
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final grossProfitAsync =
-                          ref.watch(grossProfitStreamProvider(
-                        startDate: widget.startDate,
-                        endDate: widget.endDate,
-                        branchId: ProxyService.box.getBranchId(),
-                      ));
-                      return _buildSummaryCard(
-                        'Total',
-                        grossProfitAsync.value ?? 0.0,
-                        grossProfitAsync.isLoading,
-                        Colors.blue,
-                      );
-                    },
-                  ),
                   const SizedBox(width: 12),
                   Consumer(
                     builder: (context, ref, _) {
@@ -329,11 +313,12 @@ class DataViewState extends ConsumerState<DataView>
   Widget _buildStickyFooter() {
     return Consumer(
       builder: (context, ref, _) {
-        final grossProfitAsync = ref.watch(grossProfitStreamProvider(
+        final totalIncomeAsync = ref.watch(totalIncomeStreamProvider(
           startDate: widget.startDate,
           endDate: widget.endDate,
           branchId: ProxyService.box.getBranchId(),
         ));
+
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -359,14 +344,14 @@ class DataViewState extends ConsumerState<DataView>
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                grossProfitAsync.isLoading
+                totalIncomeAsync.isLoading
                     ? const SizedBox(
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
-                        (grossProfitAsync.value ?? 0.0).toRwf(),
+                        (totalIncomeAsync.value ?? 0.0).toRwf(),
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
