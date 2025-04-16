@@ -49,14 +49,21 @@ class TransactionListState extends ConsumerState<TransactionList>
     });
 
     // Conditionally cast the data based on the `showDetailed` flag
-    List<ITransaction>? transactions = !showDetailed && dataProvider.hasValue
-        ? dataProvider.value!.cast<ITransaction>()
-        : null;
-
-    List<TransactionItem>? transactionItems =
-        showDetailed && dataProvider.hasValue
-            ? dataProvider.value!.cast<TransactionItem>()
-            : null;
+    List<ITransaction>? transactions;
+    List<TransactionItem>? transactionItems;
+    
+    if (dataProvider.hasValue && dataProvider.value!.isNotEmpty) {
+      try {
+        if (!showDetailed) {
+          transactions = dataProvider.value!.cast<ITransaction>();
+        } else {
+          transactionItems = dataProvider.value!.cast<TransactionItem>();
+        }
+      } catch (e) {
+        // Handle casting error gracefully
+        print("Error casting data: $e");
+      }
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {

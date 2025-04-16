@@ -193,10 +193,11 @@ class DataViewState extends ConsumerState<DataView>
               Row(
                 children: [
                   FutureBuilder<double>(
-                    future: Future.value(_exportAccurateTotal),
+                    future: Future.value(_exportAccurateTotal ?? 0.0),
                     builder: (context, snapshot) {
-                      return _buildSummaryCard('Total', snapshot.data ?? 0.0,
-                          _isLoadingTotal, Colors.blue);
+                      final safeValue = snapshot.data ?? 0.0;
+                      return _buildSummaryCard(
+                          'Total', safeValue, _isLoadingTotal, Colors.blue);
                     },
                   ),
                   const SizedBox(width: 12),
