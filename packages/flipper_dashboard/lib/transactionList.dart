@@ -240,11 +240,15 @@ class TransactionListState extends ConsumerState<TransactionList>
           return _buildEmptyState();
         }
 
+        // Ensure startDate and endDate are not null
+        final validStartDate = startDate ?? DateTime.now().subtract(const Duration(days: 7));
+        final validEndDate = endDate ?? DateTime.now();
+
         return DataView(
           transactions: transactions,
           transactionItems: transactionItems,
-          startDate: startDate!,
-          endDate: endDate!,
+          startDate: validStartDate,
+          endDate: validEndDate,
           rowsPerPage: ref.read(rowsPerPageProvider),
           showDetailedReport: showDetailed,
         );

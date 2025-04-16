@@ -342,12 +342,17 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildDataPager(BoxConstraints constraints) {
+    // Safely calculate page count to avoid null errors
+    final rowCount = _dataGridSource.rows.length;
+    final pageCount = rowCount > 0
+        ? (rowCount / widget.rowsPerPage).ceilToDouble()
+        : 1.0; // Default to at least 1 page
+
     return SizedBox(
       height: dataPagerHeight,
       child: SfDataPager(
         delegate: _dataGridSource,
-        pageCount:
-            (_dataGridSource.rows.length / widget.rowsPerPage).ceilToDouble(),
+        pageCount: pageCount,
         direction: Axis.horizontal,
         onPageNavigationEnd: (index) => setState(() => pageIndex = index),
       ),
