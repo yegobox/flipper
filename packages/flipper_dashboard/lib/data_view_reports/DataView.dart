@@ -58,11 +58,14 @@ class DataViewState extends ConsumerState<DataView>
   late DataGridSource _dataGridSource;
   int pageIndex = 0;
   final talker = TalkerFlutter.init();
+  double? _exportAccurateTotal;
+  bool _isLoadingTotal = false;
 
   @override
   void initState() {
     super.initState();
     _initializeDataSource();
+    _fetchExportAccurateTotal();
   }
 
   @override
@@ -70,6 +73,7 @@ class DataViewState extends ConsumerState<DataView>
     super.didUpdateWidget(oldWidget);
     if (_shouldUpdateDataSource(oldWidget)) {
       _initializeDataSource();
+      _fetchExportAccurateTotal();
     }
   }
 
@@ -267,11 +271,7 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildStickyFooter() {
-    // Calculate total only once and cache it
-    final double total = widget.transactions?.fold<double>(
-            0, (sum, transaction) => sum + (transaction.subTotal ?? 0)) ??
-        0;
-
+    final displayTotal = _exportAccurateTotal;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -281,11 +281,11 @@ class DataViewState extends ConsumerState<DataView>
             color: Colors.grey.withOpacity(0.3),
             spreadRadius: 2,
             blurRadius: 5,
-            offset: const Offset(0, -3), // changes position of shadow
+            offset: const Offset(0, -3),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
       child: SafeArea(
         top: false,
         child: Row(
@@ -297,13 +297,19 @@ class DataViewState extends ConsumerState<DataView>
                     fontWeight: FontWeight.bold,
                   ),
             ),
-            Text(
-              total.toRwf(),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
+            _isLoadingTotal
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    (displayTotal ?? 0).toRwf(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
                   ),
-            ),
           ],
         ),
       ),
@@ -352,6 +358,33 @@ class DataViewState extends ConsumerState<DataView>
       return StockDataSource(variants: variants, rowsPerPage: rowsPerPage);
     }
     throw Exception('No valid data source available');
+  }
+
+  Future<void> _fetchExportAccurateTotal() async {
+    setState(() {
+      _isLoadingTotal = true;
+    });
+    try {
+      final transactions = await ProxyService.strategy.transactions(
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        isExpense: false,
+        branchId: ProxyService.box.getBranchId(),
+      );
+      final total = transactions.fold<double>(
+        0,
+        (sum, transaction) => sum + (transaction.subTotal ?? 0),
+      );
+      setState(() {
+        _exportAccurateTotal = total;
+        _isLoadingTotal = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingTotal = false;
+      });
+      talker.error('Failed to fetch export-accurate total: $e');
+    }
   }
 
   Future<void> _export({String headerTitle = "Report"}) async {
