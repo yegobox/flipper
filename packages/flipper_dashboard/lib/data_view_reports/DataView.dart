@@ -221,6 +221,7 @@ class DataViewState extends ConsumerState<DataView>
               Expanded(
                 child: _buildDataGrid(constraints),
               ),
+              _buildDataPager(constraints),
               _buildStickyFooter(),
             ],
           ),
