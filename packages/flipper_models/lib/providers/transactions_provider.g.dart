@@ -526,5 +526,168 @@ class _NetProfitStreamProviderElement
   @override
   int? get branchId => (origin as NetProfitStreamProvider).branchId;
 }
+
+String _$grossProfitStreamHash() => r'f4bac82f65837ec01056a7dfec25632fea2c9563';
+
+/// See also [grossProfitStream].
+@ProviderFor(grossProfitStream)
+const grossProfitStreamProvider = GrossProfitStreamFamily();
+
+/// See also [grossProfitStream].
+class GrossProfitStreamFamily extends Family<AsyncValue<double>> {
+  /// See also [grossProfitStream].
+  const GrossProfitStreamFamily();
+
+  /// See also [grossProfitStream].
+  GrossProfitStreamProvider call({
+    required DateTime startDate,
+    required DateTime endDate,
+    int? branchId,
+  }) {
+    return GrossProfitStreamProvider(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+    );
+  }
+
+  @override
+  GrossProfitStreamProvider getProviderOverride(
+    covariant GrossProfitStreamProvider provider,
+  ) {
+    return call(
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+      branchId: provider.branchId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'grossProfitStreamProvider';
+}
+
+/// See also [grossProfitStream].
+class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
+  /// See also [grossProfitStream].
+  GrossProfitStreamProvider({
+    required DateTime startDate,
+    required DateTime endDate,
+    int? branchId,
+  }) : this._internal(
+          (ref) => grossProfitStream(
+            ref as GrossProfitStreamRef,
+            startDate: startDate,
+            endDate: endDate,
+            branchId: branchId,
+          ),
+          from: grossProfitStreamProvider,
+          name: r'grossProfitStreamProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$grossProfitStreamHash,
+          dependencies: GrossProfitStreamFamily._dependencies,
+          allTransitiveDependencies:
+              GrossProfitStreamFamily._allTransitiveDependencies,
+          startDate: startDate,
+          endDate: endDate,
+          branchId: branchId,
+        );
+
+  GrossProfitStreamProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.startDate,
+    required this.endDate,
+    required this.branchId,
+  }) : super.internal();
+
+  final DateTime startDate;
+  final DateTime endDate;
+  final int? branchId;
+
+  @override
+  Override overrideWith(
+    Stream<double> Function(GrossProfitStreamRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GrossProfitStreamProvider._internal(
+        (ref) => create(ref as GrossProfitStreamRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<double> createElement() {
+    return _GrossProfitStreamProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GrossProfitStreamProvider &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.branchId == branchId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GrossProfitStreamRef on AutoDisposeStreamProviderRef<double> {
+  /// The parameter `startDate` of this provider.
+  DateTime get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime get endDate;
+
+  /// The parameter `branchId` of this provider.
+  int? get branchId;
+}
+
+class _GrossProfitStreamProviderElement
+    extends AutoDisposeStreamProviderElement<double> with GrossProfitStreamRef {
+  _GrossProfitStreamProviderElement(super.provider);
+
+  @override
+  DateTime get startDate => (origin as GrossProfitStreamProvider).startDate;
+  @override
+  DateTime get endDate => (origin as GrossProfitStreamProvider).endDate;
+  @override
+  int? get branchId => (origin as GrossProfitStreamProvider).branchId;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

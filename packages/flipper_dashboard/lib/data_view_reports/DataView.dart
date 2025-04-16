@@ -202,11 +202,20 @@ class DataViewState extends ConsumerState<DataView>
                     },
                   ),
                   const SizedBox(width: 12),
-                  FutureBuilder<double>(
-                    future: _calculateGrossProfit(),
-                    builder: (context, snapshot) {
-                      return _buildSummaryCard('Gross Profit',
-                          snapshot.data ?? 0.0, false, Colors.green);
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final grossProfitAsync =
+                          ref.watch(grossProfitStreamProvider(
+                        startDate: widget.startDate,
+                        endDate: widget.endDate,
+                        branchId: ProxyService.box.getBranchId(),
+                      ));
+                      return _buildSummaryCard(
+                        'Gross Profit',
+                        grossProfitAsync.value ?? 0.0,
+                        grossProfitAsync.isLoading,
+                        Colors.green,
+                      );
                     },
                   ),
                   const SizedBox(width: 12),
@@ -264,7 +273,7 @@ class DataViewState extends ConsumerState<DataView>
                           strokeWidth: 2, color: color),
                     )
                   : Text(
-                      displayTotal.toStringAsFixed(2),
+                      displayTotal.toRwf(),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
