@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -209,11 +210,19 @@ class DataViewState extends ConsumerState<DataView>
                     },
                   ),
                   const SizedBox(width: 12),
-                  FutureBuilder<double>(
-                    future: _calculateNetProfit(),
-                    builder: (context, snapshot) {
-                      return _buildSummaryCard('Net Profit',
-                          snapshot.data ?? 0.0, false, Colors.purple);
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final netProfitAsync = ref.watch(netProfitStreamProvider(
+                        startDate: widget.startDate,
+                        endDate: widget.endDate,
+                        branchId: ProxyService.box.getBranchId(),
+                      ));
+                      return _buildSummaryCard(
+                        'Net Profit',
+                        netProfitAsync.value ?? 0.0,
+                        netProfitAsync.isLoading,
+                        Colors.purple,
+                      );
                     },
                   ),
                 ],

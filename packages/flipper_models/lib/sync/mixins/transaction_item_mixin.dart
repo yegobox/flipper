@@ -191,12 +191,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         // Same day - use between with start and end of the same day
         talker.info(
             'Filtering transaction items for single day: ${normalizedStartDate.toIso8601String()}');
-        conditions.add(
-          Where('createdAt').isBetween(
-            normalizedStartDate.toIso8601String(),
-            normalizedEndDate.toIso8601String(),
-          ),
-        );
+        // Instead of isBetween, use greaterThanOrEqualTo and lessThanOrEqualTo
+        conditions.add(Where('createdAt')
+            .isGreaterThanOrEqualTo(normalizedStartDate.toIso8601String()));
+        conditions.add(Where('createdAt')
+            .isLessThanOrEqualTo(normalizedEndDate.toIso8601String()));
       } else {
         // Date range - use between with normalized dates
         talker.info(
