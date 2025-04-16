@@ -23,3 +23,23 @@
   - When changing login or boot logic, always run integration tests for offline PIN login.
   - If you add fields to business/user models, provide safe defaults in both online and offline construction.
   - Document all changes related to login and offline flows here.
+
+## 2025-04-16: Repository Performance Optimization
+- **Optimized Repository initialization in `packages/supabase_models/lib/brick/repository.dart`:**
+  - Removed automatic database backup during initialization to improve startup performance
+  - Added `configureDatabase` parameter to `initializeSupabaseAndConfigure` to control database configuration timing
+  - Removed unused `ConnectionManager` to reduce overhead
+  - Reduced delay in `performPeriodicBackup` from 500ms to 100ms
+  - Improved error handling and recovery logic
+  
+- **How to maintain performance in future edits:**
+  - **DO NOT** re-enable automatic backups during initialization - backups should be explicitly called later
+  - **DO NOT** add long delays in initialization methods
+  - If you need to add new initialization steps, consider making them configurable with parameters
+  - Keep database configuration separate from essential initialization steps
+  - Use `PlatformHelpers` consistently for platform-specific code
+
+- **For maximum startup performance:**
+  - Consider passing `configureDatabase: false` to `initializeSupabaseAndConfigure` and calling `Repository().configureDatabase()` later
+  - Use `Future.microtask` for non-critical initialization as done in `_initializeSupabase()`
+  - Consider moving database operations to background isolates for heavy operations
