@@ -3,7 +3,6 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:uuid/uuid.dart';
-import 'extensions.dart';
 
 // Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count
 // https://aistudio.google.com/app/prompts/1vt4fnINIbiy_qmgSIHQHxa5YoNGXEjM9
@@ -171,11 +170,10 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? inventoryRequestId,
     required this.prc,
   })  : id = id ?? const Uuid().v4(),
-        createdAt = createdAt?.toDateOnly ?? DateTime.now().toUtc().toDateOnly,
-        lastTouched =
-            lastTouched?.toDateOnly ?? DateTime.now().toUtc().toDateOnly,
+        createdAt = createdAt ?? DateTime.now().toUtc(),
+        lastTouched = lastTouched ?? DateTime.now().toUtc(),
         inventoryRequestId = inventoryRequest?.id,
-        updatedAt = updatedAt?.toDateOnly ?? DateTime.now().toUtc().toDateOnly;
+        updatedAt = updatedAt ?? DateTime.now().toUtc();
 
   // toJson method
   Map<String, dynamic> toJson() => <String, dynamic>{

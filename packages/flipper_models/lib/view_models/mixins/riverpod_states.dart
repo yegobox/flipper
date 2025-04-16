@@ -361,20 +361,6 @@ final selectImportItemsProvider = FutureProvider.autoDispose
   return response;
 });
 
-final transactionsStreamProvider =
-    StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  // Retrieve the transaction status from the provider container, if needed
-
-  // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.strategy.transactionsStream(
-      branchId: ProxyService.box.getBranchId()!,
-      status: COMPLETE,
-      removeAdjustmentTransactions: true);
-
-  // Return the stream
-  return transactionsStream;
-});
-
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
@@ -795,7 +781,6 @@ List<ProviderBase> allProviders = [
   receivingOrdersModeProvider,
   customersProvider,
   ordersStreamProvider,
-  transactionsStreamProvider,
   unitsProvider,
   buttonIndexProvider,
   dateRangeProvider,

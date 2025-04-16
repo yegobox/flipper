@@ -8,15 +8,42 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'transactions_provider.g.dart';
 
-// Transactions provider
+// Create a standard provider for dashboard transactions with fixed date range
+final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
+  final endDate = DateTime.now();
+  final startDate = endDate.subtract(const Duration(days: 30));
+  final branchId = ProxyService.box.getBranchId();
+
+  if (branchId == null) {
+    throw StateError('Branch ID is required');
+  }
+
+  // Only log once when this provider is created
+  talker.debug('Dashboard transactions provider initialized with 30-day range');
+
+  return ProxyService.strategy.transactionsStream(
+    status: COMPLETE,
+    branchId: branchId,
+    startDate: startDate,
+    endDate: endDate,
+    removeAdjustmentTransactions: true,
+  );
+});
+
+// Transactions provider with optional date parameters
 @riverpod
 Stream<List<ITransaction>> transactions(Ref ref) {
   final dateRange = ref.watch(dateRangeProvider);
-  final startDate = dateRange.startDate;
-  final endDate = dateRange.endDate;
+  DateTime startDate = dateRange.startDate ?? DateTime.now();
+  DateTime endDate = dateRange.endDate ?? DateTime.now();
   final branchId = ProxyService.box.getBranchId();
 
-  talker.debug('transactions provider called');
+  // Create a cache key based on the parameters
+  final cacheKey =
+      '${startDate.toIso8601String()}_${endDate.toIso8601String()}_$branchId';
+
+  // Only log once per unique request
+  talker.debug('Transactions provider called with key: $cacheKey');
 
   if (branchId == null) {
     throw StateError('Branch ID is required');
@@ -24,9 +51,6 @@ Stream<List<ITransaction>> transactions(Ref ref) {
 
   // Keep provider alive
   ref.keepAlive();
-
-  talker.debug(
-      'Fetching transactions from ${startDate?.toIso8601String() ?? 'null'} to ${endDate?.toIso8601String() ?? 'null'} for branch $branchId');
 
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,

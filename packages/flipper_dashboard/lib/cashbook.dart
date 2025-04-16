@@ -1,7 +1,7 @@
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -93,7 +93,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget buildTransactionListContent(CoreViewModel model) {
-    final transactionData = ref.watch(transactionsStreamProvider);
+    // Use the dedicated dashboard transactions provider
+    final transactionData = ref.watch(dashboardTransactionsProvider);
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;

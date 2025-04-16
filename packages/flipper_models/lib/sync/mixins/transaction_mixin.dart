@@ -745,18 +745,27 @@ mixin TransactionMixin implements TransactionInterface {
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
-        talker.info(
-            'Date Given ${startDate.toUtc().toLocal().toIso8601String()}');
+        talker.info('Date Given ${startDate.toIso8601String()}');
         conditions.add(
-          Where('lastTouched').isExactly(
-            startDate.toUtc().toLocal().toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        // Add condition for the end of the same day
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       } else {
         conditions.add(
-          Where('lastTouched').isBetween(
-            startDate.toUtc().toLocal().toIso8601String(),
-            endDate.toUtc().toLocal().toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       }
@@ -765,9 +774,9 @@ mixin TransactionMixin implements TransactionInterface {
       conditions.add(Where('receiptType').isNot('adjustment'));
     }
     final queryString = Query(
-        limit: 5000,
+        // limit: 5000,
         where: conditions,
-        orderBy: [OrderBy('createdAt', ascending: false)]);
+        orderBy: [OrderBy('lastTouched', ascending: false)]);
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
