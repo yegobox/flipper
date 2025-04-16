@@ -15,17 +15,18 @@ Stream<List<ITransaction>> transactions(Ref ref) {
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.getBranchId();
-  
+
   talker.debug('transactions provider called');
-  
+
   if (branchId == null) {
     throw StateError('Branch ID is required');
   }
 
   // Keep provider alive
   ref.keepAlive();
-  
-  talker.debug('Fetching transactions from ${startDate?.toIso8601String() ?? 'null'} to ${endDate?.toIso8601String() ?? 'null'} for branch $branchId');
+
+  talker.debug(
+      'Fetching transactions from ${startDate?.toIso8601String() ?? 'null'} to ${endDate?.toIso8601String() ?? 'null'} for branch $branchId');
 
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
@@ -89,4 +90,79 @@ Stream<ITransaction> pendingTransactionStream(Ref ref,
     isExpense: isExpense,
     branchId: branchId!,
   );
+}
+
+@riverpod
+Stream<List<ITransaction>> expensesStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  int? branchId,
+}) {
+  branchId ??= ProxyService.box.getBranchId();
+  if (branchId == null) {
+    talker.error('Branch ID is required for expensesStream');
+    throw StateError('Branch ID is required');
+  }
+
+  ref.keepAlive();
+  talker.debug(
+      'Fetching expenses from $startDate to $endDate for branch $branchId');
+  return ProxyService.strategy
+      .transactionsStream(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+        isCashOut: true, // <-- This filters for expenses
+        removeAdjustmentTransactions: true,
+      )
+      .map((transactions) => transactions.cast<ITransaction>())
+      .handleError((error, stackTrace) {
+    talker.error('Error loading expense items: $error');
+    talker.error(stackTrace);
+    throw error;
+  });
+}
+
+@riverpod
+Stream<double> netProfitStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  int? branchId,
+}) async* {
+  branchId ??= ProxyService.box.getBranchId();
+  if (branchId == null) {
+    talker.error('Branch ID is required for netProfitStream');
+    throw StateError('Branch ID is required');
+  }
+
+  final incomeStream = ProxyService.strategy.transactionsStream(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    isCashOut: false,
+    removeAdjustmentTransactions: true,
+  );
+
+  final expensesStream = ProxyService.strategy.transactionsStream(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    isCashOut: true,
+    removeAdjustmentTransactions: true,
+  );
+
+  await for (final income in incomeStream) {
+    final expenses = await expensesStream.first;
+    final totalIncome = income.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+    final totalExpenses = expenses.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+    yield totalIncome - totalExpenses;
+  }
 }

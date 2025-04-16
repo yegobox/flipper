@@ -158,7 +158,7 @@ class _UserAccessesProviderElement
   int get userId => (origin as UserAccessesProvider).userId;
 }
 
-String _$featureAccessHash() => r'ab175e76b4db8681ee30c9141f97208c170e820e';
+String _$featureAccessHash() => r'b0e3bbb2971f5b62824729588423db703cced12b';
 
 /// See also [featureAccess].
 @ProviderFor(featureAccess)

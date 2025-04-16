@@ -6,7 +6,7 @@ part of 'transactions_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionsHash() => r'8c395bc328e006346a4a4b1c14d53ab9453ca862';
+String _$transactionsHash() => r'47d6ac36ea015a019657b4df5c3a34828b1b51cb';
 
 /// See also [transactions].
 @ProviderFor(transactions)
@@ -24,7 +24,7 @@ final transactionsProvider =
 // ignore: unused_element
 typedef TransactionsRef = AutoDisposeStreamProviderRef<List<ITransaction>>;
 String _$transactionItemListHash() =>
-    r'85552971ed9825743561738c79c9b409714319e1';
+    r'79136bc5c6efbcac0f105c0ef570f743aa3d0713';
 
 /// See also [transactionItemList].
 @ProviderFor(transactionItemList)
@@ -197,6 +197,334 @@ class _PendingTransactionStreamProviderElement
 
   @override
   bool get isExpense => (origin as PendingTransactionStreamProvider).isExpense;
+}
+
+String _$expensesStreamHash() => r'4854314e44df0c38869e5ac7649c9fc59c2496a6';
+
+/// See also [expensesStream].
+@ProviderFor(expensesStream)
+const expensesStreamProvider = ExpensesStreamFamily();
+
+/// See also [expensesStream].
+class ExpensesStreamFamily extends Family<AsyncValue<List<ITransaction>>> {
+  /// See also [expensesStream].
+  const ExpensesStreamFamily();
+
+  /// See also [expensesStream].
+  ExpensesStreamProvider call({
+    required DateTime startDate,
+    required DateTime endDate,
+    int? branchId,
+  }) {
+    return ExpensesStreamProvider(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+    );
+  }
+
+  @override
+  ExpensesStreamProvider getProviderOverride(
+    covariant ExpensesStreamProvider provider,
+  ) {
+    return call(
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+      branchId: provider.branchId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'expensesStreamProvider';
+}
+
+/// See also [expensesStream].
+class ExpensesStreamProvider
+    extends AutoDisposeStreamProvider<List<ITransaction>> {
+  /// See also [expensesStream].
+  ExpensesStreamProvider({
+    required DateTime startDate,
+    required DateTime endDate,
+    int? branchId,
+  }) : this._internal(
+          (ref) => expensesStream(
+            ref as ExpensesStreamRef,
+            startDate: startDate,
+            endDate: endDate,
+            branchId: branchId,
+          ),
+          from: expensesStreamProvider,
+          name: r'expensesStreamProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$expensesStreamHash,
+          dependencies: ExpensesStreamFamily._dependencies,
+          allTransitiveDependencies:
+              ExpensesStreamFamily._allTransitiveDependencies,
+          startDate: startDate,
+          endDate: endDate,
+          branchId: branchId,
+        );
+
+  ExpensesStreamProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.startDate,
+    required this.endDate,
+    required this.branchId,
+  }) : super.internal();
+
+  final DateTime startDate;
+  final DateTime endDate;
+  final int? branchId;
+
+  @override
+  Override overrideWith(
+    Stream<List<ITransaction>> Function(ExpensesStreamRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ExpensesStreamProvider._internal(
+        (ref) => create(ref as ExpensesStreamRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<ITransaction>> createElement() {
+    return _ExpensesStreamProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExpensesStreamProvider &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.branchId == branchId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ExpensesStreamRef on AutoDisposeStreamProviderRef<List<ITransaction>> {
+  /// The parameter `startDate` of this provider.
+  DateTime get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime get endDate;
+
+  /// The parameter `branchId` of this provider.
+  int? get branchId;
+}
+
+class _ExpensesStreamProviderElement
+    extends AutoDisposeStreamProviderElement<List<ITransaction>>
+    with ExpensesStreamRef {
+  _ExpensesStreamProviderElement(super.provider);
+
+  @override
+  DateTime get startDate => (origin as ExpensesStreamProvider).startDate;
+  @override
+  DateTime get endDate => (origin as ExpensesStreamProvider).endDate;
+  @override
+  int? get branchId => (origin as ExpensesStreamProvider).branchId;
+}
+
+String _$netProfitStreamHash() => r'4806ce8e2fe971872c6df150a25a2f92bd706083';
+
+/// See also [netProfitStream].
+@ProviderFor(netProfitStream)
+const netProfitStreamProvider = NetProfitStreamFamily();
+
+/// See also [netProfitStream].
+class NetProfitStreamFamily extends Family<AsyncValue<double>> {
+  /// See also [netProfitStream].
+  const NetProfitStreamFamily();
+
+  /// See also [netProfitStream].
+  NetProfitStreamProvider call({
+    required DateTime startDate,
+    required DateTime endDate,
+    int? branchId,
+  }) {
+    return NetProfitStreamProvider(
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+    );
+  }
+
+  @override
+  NetProfitStreamProvider getProviderOverride(
+    covariant NetProfitStreamProvider provider,
+  ) {
+    return call(
+      startDate: provider.startDate,
+      endDate: provider.endDate,
+      branchId: provider.branchId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'netProfitStreamProvider';
+}
+
+/// See also [netProfitStream].
+class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
+  /// See also [netProfitStream].
+  NetProfitStreamProvider({
+    required DateTime startDate,
+    required DateTime endDate,
+    int? branchId,
+  }) : this._internal(
+          (ref) => netProfitStream(
+            ref as NetProfitStreamRef,
+            startDate: startDate,
+            endDate: endDate,
+            branchId: branchId,
+          ),
+          from: netProfitStreamProvider,
+          name: r'netProfitStreamProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$netProfitStreamHash,
+          dependencies: NetProfitStreamFamily._dependencies,
+          allTransitiveDependencies:
+              NetProfitStreamFamily._allTransitiveDependencies,
+          startDate: startDate,
+          endDate: endDate,
+          branchId: branchId,
+        );
+
+  NetProfitStreamProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.startDate,
+    required this.endDate,
+    required this.branchId,
+  }) : super.internal();
+
+  final DateTime startDate;
+  final DateTime endDate;
+  final int? branchId;
+
+  @override
+  Override overrideWith(
+    Stream<double> Function(NetProfitStreamRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: NetProfitStreamProvider._internal(
+        (ref) => create(ref as NetProfitStreamRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<double> createElement() {
+    return _NetProfitStreamProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is NetProfitStreamProvider &&
+        other.startDate == startDate &&
+        other.endDate == endDate &&
+        other.branchId == branchId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, startDate.hashCode);
+    hash = _SystemHash.combine(hash, endDate.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin NetProfitStreamRef on AutoDisposeStreamProviderRef<double> {
+  /// The parameter `startDate` of this provider.
+  DateTime get startDate;
+
+  /// The parameter `endDate` of this provider.
+  DateTime get endDate;
+
+  /// The parameter `branchId` of this provider.
+  int? get branchId;
+}
+
+class _NetProfitStreamProviderElement
+    extends AutoDisposeStreamProviderElement<double> with NetProfitStreamRef {
+  _NetProfitStreamProviderElement(super.provider);
+
+  @override
+  DateTime get startDate => (origin as NetProfitStreamProvider).startDate;
+  @override
+  DateTime get endDate => (origin as NetProfitStreamProvider).endDate;
+  @override
+  int? get branchId => (origin as NetProfitStreamProvider).branchId;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
