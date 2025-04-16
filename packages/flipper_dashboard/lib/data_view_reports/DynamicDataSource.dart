@@ -43,7 +43,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         DataGridCell<String>(
           columnName: 'Name',
           value: (() {
-            final nameParts = (transactionItem.name ?? '').split('(');
+            final nameParts = (transactionItem.name).split('(');
             final name = nameParts[0].trim().toUpperCase();
             final number =
                 nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
@@ -56,7 +56,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'Price',
-          value: transactionItem.price ?? 0.0,
+          value: transactionItem.price,
         ),
         DataGridCell<double>(
           columnName: 'TaxRate',
@@ -66,11 +66,11 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'Qty',
-          value: transactionItem.qty ?? 0.0,
+          value: transactionItem.qty,
         ),
         DataGridCell<double>(
           columnName: 'TotalSales',
-          value: (transactionItem.qty ?? 0.0) * (transactionItem.price ?? 0.0),
+          value: (transactionItem.qty) * (transactionItem.price),
         ),
         DataGridCell<double>(
           columnName: 'CurrentStock',
@@ -78,8 +78,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TaxPayable',
-          value: (transactionItem.price ?? 0.0) *
-              (transactionItem.qty ?? 0.0) *
+          value: (transactionItem.price) *
+              (transactionItem.qty) *
               (((transactionItem.taxTyCd != null
                       ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
                       : 18.0) /
@@ -87,8 +87,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'GrossProfit',
-          value: (transactionItem.price ?? 0.0) * (transactionItem.qty ?? 0.0) -
-              ((transactionItem.splyAmt ?? 0.0) * (transactionItem.qty ?? 0.0)),
+          value: (transactionItem.price) * (transactionItem.qty) -
+              ((transactionItem.splyAmt ?? 0.0) * (transactionItem.qty)),
         ),
       ],
     );
