@@ -402,8 +402,7 @@ class IsolateHandler with StockPatch {
           int branchId = message['branchId'];
 
           int businessId = message['businessId'];
-          String dbPath = message['dbPath'];
-
+          String dbPath = message['dbPath'] ?? "";
           String? URI = message['URI'];
           String? bhfId = message['bhfId'];
 

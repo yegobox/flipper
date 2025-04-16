@@ -14,12 +14,14 @@ Future<void> loadSupabase() async {
         // supabaseAnonKey: 'test-key',
         supabaseUrl: AppSecrets.superbaseurl,
         supabaseAnonKey: AppSecrets.supabaseAnonKey,
+        configureDatabase: true,
       );
     } else {
       //   // Production initialization
       await Repository.initializeSupabaseAndConfigure(
         supabaseUrl: AppSecrets.superbaseurl,
         supabaseAnonKey: AppSecrets.supabaseAnonKey,
+        configureDatabase: true,
       );
     }
 
