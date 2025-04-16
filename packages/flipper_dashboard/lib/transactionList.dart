@@ -9,11 +9,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class TransactionList extends StatefulHookConsumerWidget {
   TransactionList({
-    Key? key, 
+    Key? key,
     this.showDetailedReport = true,
     this.hideHeader = false,
   }) : super(key: key);
-  
+
   final bool showDetailedReport;
   final bool hideHeader;
 
@@ -58,22 +58,20 @@ class TransactionListState extends ConsumerState<TransactionList>
             ? dataProvider.value!.cast<TransactionItem>()
             : null;
 
-    return Scaffold(
-      body: Column(
-        children: [
-          if (!widget.hideHeader) _buildHeader(startDate, endDate, showDetailed),
-          Expanded(
-            child: _buildContent(
-              dataProvider,
-              transactions,
-              transactionItems,
-              startDate,
-              endDate,
-              showDetailed,
-            ),
+    return Column(
+      children: [
+        if (!widget.hideHeader) _buildHeader(startDate, endDate, showDetailed),
+        Expanded(
+          child: _buildContent(
+            dataProvider,
+            transactions,
+            transactionItems,
+            startDate,
+            endDate,
+            showDetailed,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
