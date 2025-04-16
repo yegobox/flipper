@@ -166,3 +166,33 @@ Stream<double> netProfitStream(
     yield totalIncome - totalExpenses;
   }
 }
+
+@riverpod
+Stream<double> grossProfitStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  int? branchId,
+}) async* {
+  branchId ??= ProxyService.box.getBranchId();
+  if (branchId == null) {
+    talker.error('Branch ID is required for grossProfitStream');
+    throw StateError('Branch ID is required');
+  }
+
+  final incomeStream = ProxyService.strategy.transactionsStream(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    isCashOut: false,
+    removeAdjustmentTransactions: true,
+  );
+
+  await for (final income in incomeStream) {
+    final totalGrossProfit = income.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+    yield totalGrossProfit;
+  }
+}
