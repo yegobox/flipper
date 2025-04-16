@@ -78,12 +78,13 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TaxPayable',
-          value: (transactionItem.price) *
-              (transactionItem.qty) *
-              (((transactionItem.taxTyCd != null
-                      ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
-                      : 18.0) /
-                  118)),
+          value: double.parse(((transactionItem.price) *
+                  (transactionItem.qty) *
+                  (((transactionItem.taxTyCd != null
+                          ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
+                          : 18.0) /
+                      118)))
+              .toStringAsFixed(2)),
         ),
         DataGridCell<double>(
           columnName: 'GrossProfit',

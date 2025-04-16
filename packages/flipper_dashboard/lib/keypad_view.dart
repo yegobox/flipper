@@ -12,6 +12,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:synchronized/synchronized.dart';
 
 class KeyPadView extends StatefulHookConsumerWidget {
   final CoreViewModel model;
@@ -361,63 +362,84 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     required String transactionType,
   }) async {
     widget.model.newTransactionPressed = false;
+    final lock = Lock();
 
     try {
-      // First, ensure we have a transaction by calling manageTransaction directly
-      // This follows the pattern used in QuickSellingView
-      ITransaction? pendingTransaction =
-          await ProxyService.strategy.manageTransaction(
-        branchId: ProxyService.box.getBranchId()!,
-        transactionType: transactionType,
-        isExpense: !isIncome,
-      );
+      // Use a lock to ensure transaction operations are atomic
+      await lock.synchronized(() async {
+        // First, ensure we have a transaction by calling manageTransaction directly
+        // This follows the pattern used in QuickSellingView
+        ITransaction? pendingTransaction =
+            await ProxyService.strategy.manageTransaction(
+          branchId: ProxyService.box.getBranchId()!,
+          transactionType: transactionType,
+          isExpense: !isIncome,
+        );
 
-      if (pendingTransaction == null) {
-        talker.error("Failed to create or get a pending transaction");
-        return;
-      }
+        if (pendingTransaction == null) {
+          talker.error("Failed to create or get a pending transaction");
+          return;
+        }
 
-      // Now that we have a valid transaction, we can proceed
-      widget.model.keyboardKeyPressed(
-        isExpense: !isIncome,
-        key: '+',
-        reset: () {
-          ref.read(keypadProvider.notifier).reset();
-        },
-      );
+        // Now that we have a valid transaction, we can proceed
+        widget.model.keyboardKeyPressed(
+          isExpense: !isIncome,
+          key: '+',
+          reset: () {
+            ref.read(keypadProvider.notifier).reset();
+          },
+        );
 
-      Category? category = await ProxyService.strategy
-          .activeCategory(branchId: ProxyService.box.getBranchId()!);
-      var shortestSide = MediaQuery.of(context).size.shortestSide;
-      var useMobileLayout = shortestSide < 600;
+        Category? category = await ProxyService.strategy
+            .activeCategory(branchId: ProxyService.box.getBranchId()!);
+        var shortestSide = MediaQuery.of(context).size.shortestSide;
+        var useMobileLayout = shortestSide < 600;
 
-      // For cashbook transactions, the subtotal should be the cash received amount
-      double subTotal = cashReceived;
+        // For cashbook transactions, the subtotal should be the cash received amount
+        double subTotal = cashReceived;
 
-      // Ensure the transaction is properly updated with the subtotal and marked as complete
-      ITransaction updatedTransaction =
-          await ProxyService.strategy.collectPayment(
-        cashReceived: cashReceived,
-        branchId: ProxyService.box.getBranchId()!,
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        isProformaMode: ProxyService.box.isProformaMode(),
-        isTrainingMode: ProxyService.box.isTrainingMode(),
-        transaction: pendingTransaction,
-        paymentType: paymentType,
-        discount: discount.toDouble(),
-        transactionType:
-            useMobileLayout ? category?.name ?? "" : TransactionType.sale,
-        directlyHandleReceipt: false,
-        isIncome: isIncome,
-        categoryId: category?.id.toString(),
-      );
+        talker.info("Processing transaction with subtotal: $subTotal");
 
-      // Explicitly update the transaction status to ensure it's marked as complete
-      if (updatedTransaction.status != COMPLETE) {
+        // First update the transaction with the correct subtotal
+        await ProxyService.strategy.updateTransaction(
+          transaction: pendingTransaction,
+          subTotal: subTotal,
+        );
+
+        // Ensure the transaction is properly updated with the subtotal and marked as complete
+        ITransaction updatedTransaction =
+            await ProxyService.strategy.collectPayment(
+          cashReceived: cashReceived,
+          branchId: ProxyService.box.getBranchId()!,
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          isProformaMode: ProxyService.box.isProformaMode(),
+          isTrainingMode: ProxyService.box.isTrainingMode(),
+          transaction: pendingTransaction,
+          paymentType: paymentType,
+          discount: discount.toDouble(),
+          transactionType:
+              useMobileLayout ? category?.name ?? "" : TransactionType.sale,
+          directlyHandleReceipt: false,
+          isIncome: isIncome,
+          categoryId: category?.id.toString(),
+        );
+
+        // Always explicitly update the transaction status to ensure it's marked as complete
         updatedTransaction.status = COMPLETE;
         updatedTransaction.subTotal = subTotal;
 
         // Use updateTransaction method to ensure the transaction is properly saved
+        // Call it twice to ensure the transaction is properly saved
+        await ProxyService.strategy.updateTransaction(
+          transaction: updatedTransaction,
+          status: COMPLETE,
+          subTotal: subTotal,
+        );
+
+        // Wait a short time to ensure the first update completes
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Call update again to ensure it's properly saved
         await ProxyService.strategy.updateTransaction(
           transaction: updatedTransaction,
           status: COMPLETE,
@@ -426,12 +448,13 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
         talker.info(
             "Transaction explicitly marked as complete with subtotal: $subTotal");
-      }
 
-      // Refresh providers to update UI
-      ref.refresh(
-          transactionItemsProvider(transactionId: pendingTransaction.id));
-      ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
+        // Refresh providers to update UI
+        ref.refresh(
+            transactionItemsProvider(transactionId: pendingTransaction.id));
+        ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
+        ref.refresh(dashboardTransactionsProvider);
+      });
     } catch (e, s) {
       talker.error("Error in HandleTransactionFromCashBook: $e");
       talker.error(s);
