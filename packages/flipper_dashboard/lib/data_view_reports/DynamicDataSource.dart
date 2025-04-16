@@ -28,7 +28,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       DataGridCell<double>(
           columnName: 'CurrentStock',
           value: variant.stock?.currentStock ?? 0.0),
-      DataGridCell<double>(columnName: 'Price', value: variant.retailPrice),
+      DataGridCell<double>(
+          columnName: 'Price', value: variant.retailPrice ?? 0.0),
     ]);
   }
 
@@ -37,21 +38,25 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       cells: [
         DataGridCell<String>(
           columnName: 'ItemCode',
-          value: transactionItem.itemClsCd.toString(),
+          value: transactionItem.itemClsCd?.toString() ?? '',
         ),
         DataGridCell<String>(
           columnName: 'Name',
           value: (() {
-            final nameParts = transactionItem.name.split('(');
+            final nameParts = (transactionItem.name ?? '').split('(');
             final name = nameParts[0].trim().toUpperCase();
             final number =
                 nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
             return number.isEmpty ? name : '$name-$number';
           })(),
         ),
+        DataGridCell<String>(
+          columnName: 'Barcode',
+          value: transactionItem.bcd ?? '',
+        ),
         DataGridCell<double>(
           columnName: 'Price',
-          value: transactionItem.price,
+          value: transactionItem.price ?? 0.0,
         ),
         DataGridCell<double>(
           columnName: 'TaxRate',
@@ -61,32 +66,29 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'Qty',
-          value: transactionItem.qty,
+          value: transactionItem.qty ?? 0.0,
         ),
         DataGridCell<double>(
           columnName: 'TotalSales',
-          value: transactionItem.qty * transactionItem.price,
+          value: (transactionItem.qty ?? 0.0) * (transactionItem.price ?? 0.0),
         ),
         DataGridCell<double>(
           columnName: 'CurrentStock',
-          value: transactionItem.remainingStock,
+          value: transactionItem.remainingStock ?? 0.0,
         ),
         DataGridCell<double>(
           columnName: 'TaxPayable',
-          value: double.tryParse(
-                  ((transactionItem.price * transactionItem.qty) *
-                          ((transactionItem.taxTyCd != null
-                                  ? double.tryParse(transactionItem.taxTyCd!) ??
-                                      18.0
-                                  : 18.0) /
-                              118))
-                      .toStringAsFixed(2)) ??
-              0.0,
+          value: (transactionItem.price ?? 0.0) *
+              (transactionItem.qty ?? 0.0) *
+              (((transactionItem.taxTyCd != null
+                      ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
+                      : 18.0) /
+                  118)),
         ),
         DataGridCell<double>(
           columnName: 'GrossProfit',
-          value: transactionItem.price * transactionItem.qty -
-              (transactionItem.splyAmt ?? 0.0) * transactionItem.qty,
+          value: (transactionItem.price ?? 0.0) * (transactionItem.qty ?? 0.0) -
+              ((transactionItem.splyAmt ?? 0.0) * (transactionItem.qty ?? 0.0)),
         ),
       ],
     );
@@ -97,8 +99,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       DataGridCell<String>(
           columnName: 'Name', value: item.invoiceNumber?.toString() ?? "-"),
       DataGridCell<String>(columnName: 'Type', value: item.receiptType ?? "-"),
-      DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
-      DataGridCell<double>(columnName: 'Cash', value: item.cashReceived),
+      DataGridCell<double>(columnName: 'Amount', value: item.subTotal ?? 0.0),
+      DataGridCell<double>(columnName: 'Cash', value: item.cashReceived ?? 0.0),
     ]);
   }
 

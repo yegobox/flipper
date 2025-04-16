@@ -2,7 +2,6 @@ import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/HeaderTransactionItem.dart';
 import 'package:flipper_dashboard/Refund.dart';
-import 'package:flipper_dashboard/RowsPerPageInput.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
 
@@ -11,12 +10,9 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -60,6 +56,7 @@ class DataViewState extends ConsumerState<DataView>
   final talker = TalkerFlutter.init();
   double? _exportAccurateTotal;
   bool _isLoadingTotal = false;
+  bool _isExporting = false;
 
   @override
   void initState() {
@@ -150,99 +147,126 @@ class DataViewState extends ConsumerState<DataView>
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
-      viewModelBuilder: () => HomeViewModel(),
-      builder: (context, model, child) => LayoutBuilder(
-        builder: (context, constraint) => Column(
-          children: [
-            _buildHeader(),
-            SizedBox(
-              height: 10,
-            ),
-            Expanded(
-              child: _buildDataGrid(constraint),
-            ),
-            _buildStickyFooter(), // Place the footer *outside* the Expanded
-            _buildDataPager(constraint),
-          ],
+    final showDetailed = ref.watch(toggleBooleanValueProvider);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  _buildReportTypeSwitch(showDetailed),
+                  Spacer(),
+                  Tooltip(
+                    message: 'Export as CSV',
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: _isExporting
+                          ? Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : IconButton(
+                              icon: Icon(Icons.download_rounded),
+                              onPressed: () async {
+                                setState(() => _isExporting = true);
+                                await _export(headerTitle: "Report");
+                                setState(() => _isExporting = false);
+                              },
+                            ),
+                    ),
+                  ),
+                  Tooltip(
+                    message: 'Print',
+                    child: IconButton(
+                      icon: Icon(Icons.print),
+                      onPressed: () {
+                        // TODO: Implement print
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  FutureBuilder<double>(
+                    future: Future.value(_exportAccurateTotal),
+                    builder: (context, snapshot) {
+                      return _buildSummaryCard('Total', snapshot.data ?? 0.0,
+                          _isLoadingTotal, Colors.blue);
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  FutureBuilder<double>(
+                    future: _calculateGrossProfit(),
+                    builder: (context, snapshot) {
+                      return _buildSummaryCard('Gross Profit',
+                          snapshot.data ?? 0.0, false, Colors.green);
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  FutureBuilder<double>(
+                    future: _calculateNetProfit(),
+                    builder: (context, snapshot) {
+                      return _buildSummaryCard('Net Profit',
+                          snapshot.data ?? 0.0, false, Colors.purple);
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: _buildDataGrid(constraints),
+              ),
+              _buildStickyFooter(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSummaryCard(
+      String label, double? value, bool isLoading, Color color) {
+    final displayTotal = value ?? 0.0;
+    return Expanded(
+      child: Card(
+        color: color.withOpacity(0.07),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(label,
+                  style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+              const SizedBox(height: 6),
+              isLoading
+                  ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: color),
+                    )
+                  : Text(
+                      displayTotal.toStringAsFixed(2),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: color),
+                    ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        if (widget.showDetailed) _buildReportTypeSwitch(),
-        _buildRowsPerPageInput(),
-        _buildExportButton(),
-      ],
-    );
-  }
-
-  Widget _buildReportTypeSwitch() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      margin: const EdgeInsets.symmetric(vertical: 20.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            offset: Offset(0, 4),
-            blurRadius: 10.0,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            ref.read(toggleBooleanValueProvider) ? 'Detailed' : 'Summarized',
-            style: TextStyle(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
-            ),
-          ),
-          Switch.adaptive(
-            activeColor: Colors.blue,
-            value: ref.watch(toggleBooleanValueProvider),
-            onChanged: (value) {
-              ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-              if (ref.read(toggleBooleanValueProvider)) {
-                ref.read(rowsPerPageProvider.notifier).state = 1000;
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRowsPerPageInput() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5.0),
-      child: RowsPerPageInput(rowsPerPageProvider: rowsPerPageProvider),
-    );
-  }
-
-  Widget _buildExportButton() {
-    return SizedBox(
-      height: 40.0,
-      width: 150.0,
-      child: FlipperButton(
-        onPressed: _export,
-        height: 80,
-        text: 'Export',
-        textColor: Colors.black,
-        busy: ref.watch(isProcessingProvider),
-      ),
-    );
-  }
-
-  Widget _buildDataGrid(BoxConstraints constraint) {
+  Widget _buildDataGrid(BoxConstraints constraints) {
     return SfDataGridTheme(
       data: SfDataGridThemeData(
         headerHoverColor: Colors.yellow,
@@ -304,7 +328,7 @@ class DataViewState extends ConsumerState<DataView>
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(
-                    (displayTotal ?? 0).toRwf(),
+                    (displayTotal ?? 0.0).toRwf(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).primaryColor,
@@ -316,7 +340,7 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  Widget _buildDataPager(BoxConstraints constraint) {
+  Widget _buildDataPager(BoxConstraints constraints) {
     return SizedBox(
       height: dataPagerHeight,
       child: SfDataPager(
@@ -416,8 +440,8 @@ class DataViewState extends ConsumerState<DataView>
     );
 
     if (!isStockRecount) {
-      config.grossProfit = _calculateGrossProfit();
-      config.netProfit = _calculateNetProfit();
+      config.grossProfit = await _calculateGrossProfit();
+      config.netProfit = await _calculateNetProfit();
     }
 
     exportDataGrid(
@@ -430,23 +454,77 @@ class DataViewState extends ConsumerState<DataView>
             : "Closing balance");
   }
 
-  double _calculateGrossProfit() {
+  Future<double> _calculateGrossProfit() async {
     if (widget.transactionItems == null) return 0;
-    return widget.transactionItems!.fold<double>(
-      0.0,
-      (sum, item) => sum + ((item.qty * item.price) - (item.qty * item.price)),
-    );
+    double grossProfit = 0.0;
+    for (final item in widget.transactionItems!) {
+      // Fetch the associated variant to get the supply price
+      final variant =
+          await ProxyService.strategy.getVariant(id: item.variantId.toString());
+      final supplyPrice = variant?.supplyPrice ?? 0.0;
+      grossProfit += (item.price - supplyPrice) * item.qty;
+    }
+    return grossProfit;
   }
 
-  double _calculateNetProfit() {
+  Future<double> _calculateNetProfit() async {
     if (widget.transactionItems == null) return 0;
-    final grossProfit = _calculateGrossProfit();
-    final taxAmount = widget.transactionItems!.fold<double>(
-      0.0,
-      (sum, item) =>
-          sum +
-          (((item.qty * item.price) - (item.qty * item.price)) * 18 / 118),
+    final grossProfit = await _calculateGrossProfit();
+    // Example: Subtract total tax if you have tax calculation logic
+    double totalTax = 0.0;
+    for (final item in widget.transactionItems!) {
+      // If you have a tax field, use it here
+      // totalTax += item.taxAmount ?? 0.0;
+    }
+    return grossProfit - totalTax;
+  }
+
+  Widget _buildReportTypeSwitch(bool showDetailed) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextButton(
+            onPressed: showDetailed
+                ? () {
+                    ref
+                        .read(toggleBooleanValueProvider.notifier)
+                        .toggleReport();
+                  }
+                : null,
+            style: TextButton.styleFrom(
+              backgroundColor: !showDetailed ? Colors.blue : Colors.transparent,
+              foregroundColor: !showDetailed ? Colors.white : Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            child: Text('Summarized'),
+          ),
+          TextButton(
+            onPressed: !showDetailed
+                ? () {
+                    ref
+                        .read(toggleBooleanValueProvider.notifier)
+                        .toggleReport();
+                  }
+                : null,
+            style: TextButton.styleFrom(
+              backgroundColor: showDetailed ? Colors.blue : Colors.transparent,
+              foregroundColor: showDetailed ? Colors.white : Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+            child: Text('Detailed'),
+          ),
+        ],
+      ),
     );
-    return grossProfit - taxAmount;
   }
 }

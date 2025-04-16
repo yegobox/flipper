@@ -58,91 +58,110 @@ class TransactionListState extends ConsumerState<TransactionList>
             ? dataProvider.value!.cast<TransactionItem>()
             : null;
 
-    return Column(
-      children: [
-        if (!widget.hideHeader) _buildHeader(startDate, endDate, showDetailed),
-        Expanded(
-          child: _buildContent(
-            dataProvider,
-            transactions,
-            transactionItems,
-            startDate,
-            endDate,
-            showDetailed,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(
-      DateTime? startDate, DateTime? endDate, bool showDetailed) {
-    final formattedStartDate = startDate != null
-        ? '${startDate.day}/${startDate.month}/${startDate.year}'
-        : 'Select date';
-    final formattedEndDate = endDate != null
-        ? '${endDate.day}/${endDate.month}/${endDate.year}'
-        : '';
-    final dateRangeText = startDate != null && endDate != null
-        ? '$formattedStartDate - $formattedEndDate'
-        : formattedStartDate;
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Transaction Reports',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            children: [
+              // New card for date range and Change Date button
+              if (!widget.hideHeader)
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.calendar_today,
+                            color: Colors.blue[700], size: 22),
+                        const SizedBox(width: 10),
+                        Text(
+                          startDate != null && endDate != null
+                              ? '${startDate.day}/${startDate.month}/${startDate.year} - ${endDate.day}/${endDate.month}/${endDate.year}'
+                              : 'Select date range',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const Spacer(),
+                        OutlinedButton.icon(
+                          icon: Icon(Icons.edit_calendar, size: 18),
+                          label: Text('Change Date'),
+                          onPressed: () {
+                            // TODO: Show date range picker
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 4),
+              const SizedBox(height: 8),
+              if (!widget.hideHeader)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildReportTypeSwitch(showDetailed),
+                ),
+              const SizedBox(height: 8),
+              if (!widget.hideHeader)
                 Row(
                   children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: Colors.grey[600],
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search transactions...',
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              vertical: 0, horizontal: 12),
+                        ),
+                        style: TextStyle(fontSize: 16),
+                        onChanged: (value) {
+                          // TODO: Implement search/filter logic
+                        },
+                      ),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      dateRangeText,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(width: 12),
+                    Tooltip(
+                      message: 'Export as CSV',
+                      child: IconButton(
+                        icon: Icon(Icons.download_rounded),
+                        onPressed: () {
+                          // TODO: Implement export
+                        },
+                      ),
+                    ),
+                    Tooltip(
+                      message: 'Print',
+                      child: IconButton(
+                        icon: Icon(Icons.print),
+                        onPressed: () {
+                          // TODO: Implement print
+                        },
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: _buildContent(
+                  dataProvider,
+                  transactions,
+                  transactionItems,
+                  startDate,
+                  endDate,
+                  showDetailed,
+                ),
+              ),
+            ],
           ),
-          _buildReportTypeSwitch(showDetailed),
-          const SizedBox(width: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: datePicker(),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
