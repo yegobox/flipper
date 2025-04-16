@@ -7,29 +7,30 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'access_provider.g.dart';
 
 @riverpod
-Future<List<Access>> userAccesses(Ref ref, int userId) async {
-  return await ProxyService.strategy.access(userId: userId);
+Future<List<Access>> userAccesses(Ref ref, int userId,
+    {required String featureName}) async {
+  return await ProxyService.strategy
+      .access(userId: userId, featureName: featureName);
+}
+
+@riverpod
+Future<List<Access>> allAccesses(Ref ref, int userId) async {
+  return await ProxyService.strategy.allAccess(userId: userId);
 }
 
 @riverpod
 bool featureAccess(Ref ref,
     {required int userId, required String featureName}) {
   try {
-    final accesses = ref.watch(userAccessesProvider(userId)).value ?? [];
+    final accesses = ref
+            .watch(userAccessesProvider(userId, featureName: featureName))
+            .value ??
+        [];
     final now = DateTime.now();
 
-    talker.info("User wants to access: ${featureName}");
+    talker.info("User wants to access!: $featureName");
 
     if (accesses.isEmpty) return false; // Deny access if no accesses exist
-
-    // final isRestrictedToTickets = accesses.any((access) =>
-    //     access.featureName == AppFeature.Tickets &&
-    //     access.status == 'active' &&
-    //     (access.expiresAt == null || access.expiresAt!.isAfter(now)));
-
-    // if (isRestrictedToTickets && featureName != AppFeature.Tickets) {
-    //   return false; // Users with Tickets permission can only access Tickets
-    // }
 
     return accesses.any((access) =>
         access.featureName == featureName &&
@@ -45,7 +46,7 @@ bool featureAccess(Ref ref,
 bool featureAccessLevel(Ref ref,
     {required int userId, required String accessLevel}) {
   try {
-    final accesses = ref.watch(userAccessesProvider(userId)).value ?? [];
+    final accesses = ref.watch(allAccessesProvider(userId)).value ?? [];
     final now = DateTime.now();
 
     return accesses.any((access) =>

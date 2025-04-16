@@ -57,6 +57,8 @@ class DataViewState extends ConsumerState<DataView>
   final talker = TalkerFlutter.init();
   double? _exportAccurateTotal;
   bool _isLoadingTotal = false;
+  double? _grossProfit;
+  bool _isLoadingGrossProfit = false;
   bool _isExporting = false;
 
   @override
@@ -64,6 +66,7 @@ class DataViewState extends ConsumerState<DataView>
     super.initState();
     _initializeDataSource();
     _fetchExportAccurateTotal();
+    _fetchGrossProfit();
   }
 
   @override
@@ -72,6 +75,7 @@ class DataViewState extends ConsumerState<DataView>
     if (_shouldUpdateDataSource(oldWidget)) {
       _initializeDataSource();
       _fetchExportAccurateTotal();
+      _fetchGrossProfit();
     }
   }
 
@@ -193,12 +197,20 @@ class DataViewState extends ConsumerState<DataView>
               const SizedBox(height: 10),
               Row(
                 children: [
-                  FutureBuilder<double>(
-                    future: Future.value(_exportAccurateTotal ?? 0.0),
-                    builder: (context, snapshot) {
-                      final safeValue = snapshot.data ?? 0.0;
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final grossProfitAsync =
+                          ref.watch(grossProfitStreamProvider(
+                        startDate: widget.startDate,
+                        endDate: widget.endDate,
+                        branchId: ProxyService.box.getBranchId(),
+                      ));
                       return _buildSummaryCard(
-                          'Total', safeValue, _isLoadingTotal, Colors.blue);
+                        'Total',
+                        grossProfitAsync.value ?? 0.0,
+                        grossProfitAsync.isLoading,
+                        Colors.blue,
+                      );
                     },
                   ),
                   const SizedBox(width: 12),
@@ -315,48 +327,57 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildStickyFooter() {
-    final displayTotal = _exportAccurateTotal;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade300)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, -3),
+    return Consumer(
+      builder: (context, ref, _) {
+        final grossProfitAsync = ref.watch(grossProfitStreamProvider(
+          startDate: widget.startDate,
+          endDate: widget.endDate,
+          branchId: ProxyService.box.getBranchId(),
+        ));
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Colors.grey.shade300)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, -3),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Total:",
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+          child: SafeArea(
+            top: false,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Total:",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                grossProfitAsync.isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        (grossProfitAsync.value ?? 0.0).toRwf(),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                      ),
+              ],
             ),
-            _isLoadingTotal
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(
-                    (displayTotal ?? 0.0).toRwf(),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                  ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -433,6 +454,25 @@ class DataViewState extends ConsumerState<DataView>
         _isLoadingTotal = false;
       });
       talker.error('Failed to fetch export-accurate total: $e');
+    }
+  }
+
+  Future<void> _fetchGrossProfit() async {
+    setState(() {
+      _isLoadingGrossProfit = true;
+    });
+    try {
+      final grossProfit = await _calculateGrossProfit();
+      setState(() {
+        _grossProfit = grossProfit;
+        _isLoadingGrossProfit = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingGrossProfit = false;
+      });
+      talker.error('Failed to fetch gross profit: '
+          '$e');
     }
   }
 

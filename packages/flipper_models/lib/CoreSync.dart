@@ -7,7 +7,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/business.dart';
-import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -45,7 +44,6 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/power_sync/schema.dart';
-import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,7 +54,6 @@ import 'package:path/path.dart' as path;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
@@ -3355,7 +3352,7 @@ class CoreSync extends AiStrategyImpl
   FutureOr<List<Access>> access(
       {required int userId, String? featureName}) async {
     return await repository.get<Access>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(
         where: [
           brick.Where('userId').isExactly(userId),
@@ -4380,5 +4377,15 @@ class CoreSync extends AiStrategyImpl
         orderBy: [OrderBy('timestamp', ascending: false)],
       ),
     );
+  }
+
+  @override
+  Future<List<Access>> allAccess({required int userId}) async {
+    return (await repository.get<Access>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [Where('userId').isExactly(userId)],
+      ),
+    ));
   }
 }

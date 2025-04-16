@@ -328,6 +328,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
   FutureOr<List<Access>> access({required int userId, String? featureName});
+  Future<List<Access>> allAccess({required int userId});
   Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, String? filter});
   FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});

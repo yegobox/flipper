@@ -2106,4 +2106,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement migrateToNewDateTime
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<brick.Access>> allAccess({required int userId}) {
+    // TODO: implement allAccess
+    throw UnimplementedError();
+  }
 }
