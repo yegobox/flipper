@@ -182,7 +182,7 @@ Stream<double> netProfitStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    fetchRemote: false,
+    fetchRemote: true,
   );
 
   await for (final incomeTransactions in incomeStream) {
