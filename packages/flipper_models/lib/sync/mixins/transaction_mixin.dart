@@ -46,44 +46,37 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      // Normalize dates to start of day and end of day for proper range comparison
-      final normalizedStartDate =
-          DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0)
-              .toUtc();
-
-      final normalizedEndDate =
-          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
-              .toUtc();
-
-      if (startDate.year == endDate.year &&
-          startDate.month == endDate.month &&
-          startDate.day == endDate.day) {
-        // Same day - use between with start and end of the same day
-        talker.info(
-            'Filtering transactions for single day: ${normalizedStartDate.toIso8601String()}');
+      if (startDate == endDate) {
+        talker.info('Date Given ${startDate.toIso8601String()}');
         conditions.add(
-          Where('lastTouched').isBetween(
-            normalizedStartDate.toIso8601String(),
-            normalizedEndDate.toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        // Add condition for the end of the same day
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       } else {
-        // Date range - use between with normalized dates
-        talker.info(
-            'Filtering transactions from ${normalizedStartDate.toIso8601String()} to ${normalizedEndDate.toIso8601String()}');
         conditions.add(
-          Where('lastTouched').isBetween(
-            normalizedStartDate.toIso8601String(),
-            normalizedEndDate.toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       }
     }
 
-    // Add ordering to fetch transactions with latest createdAt first
+    // Add ordering to fetch transactions with latest lastTouched first (for consistency)
     final queryString = Query(
       where: conditions,
-      orderBy: [OrderBy('createdAt', ascending: false)],
+      orderBy: [OrderBy('lastTouched', ascending: false)],
     );
 
     // When fetchRemote is true, we need to ensure we're using alwaysHydrate policy
