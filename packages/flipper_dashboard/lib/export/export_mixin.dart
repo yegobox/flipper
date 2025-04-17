@@ -6,6 +6,7 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:syncfusion_flutter_datagrid_export/export.dart';
 
 import 'models/export_config.dart';
 import 'utils/excel_utils.dart';
@@ -34,41 +35,49 @@ mixin ExportMixin on ConsumerState {
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
       if (ProxyService.box.exportAsPdf()) {
-        // Create a PDF document
-        final PdfDocument document = PdfDocument();
-        
-        // Create a custom PDF document with header and footer
-        final details = PdfUtils.createHeaderFooterDetails(document);
-        
-        // Add header and content
-        PdfUtils.exportToPdf(details, business!, config, headerTitle: headerTitle);
-        PdfUtils.addFooter(details, config: config);
-        
-        // If we have a data grid, we could add it to the PDF here
-        // This would require custom implementation to extract data from the grid
-        // and format it as a PDF table
+        // Export to PDF using the SfDataGrid's built-in functionality
+        final PdfDocument document =
+            await workBookKey.currentState!.exportToPdfDocument(
+          fitAllColumnsInOnePage: true,
+          canRepeatHeaders: false,
+          exportStackedHeaders: false,
+          exportTableSummaries: true,
+          headerFooterExport: (headerFooterExport) {
+            PdfUtils.exportToPdf(headerFooterExport, business!, config,
+                headerTitle: headerTitle);
+            PdfUtils.addFooter(headerFooterExport, config: config);
+          },
+        );
 
         filePath = await FileUtils.savePdfFile(document);
         document.dispose();
       } else {
-        // Create an Excel workbook
+        // Create a new Excel workbook
         final excel.Workbook workbook = excel.Workbook();
-        
-        // If we have a data grid, we could export it to Excel here
-        // This would require custom implementation to extract data from the grid
-        // and format it as Excel rows and columns
-        
         final excel.Worksheet reportSheet = workbook.worksheets[0];
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
+
+        // Export the data directly from the transactions in config
+        _addTransactionsToExcel(reportSheet, config.transactions);
 
         if (!isStockRecount) {
           final drawer = await ProxyService.strategy
               .getDrawer(cashierId: ProxyService.box.getUserId()!);
-          
+
           // Create a styler instance
           final styler = ExcelUtils.createExcelStyler(workbook);
-          
-          // Use the utility classes directly
+
+          // Get the last row with data to determine where to add headers and info
+          int lastRow = 1;
+          while (reportSheet.getRangeByIndex(lastRow, 1).text != null &&
+              reportSheet.getRangeByIndex(lastRow, 1).text!.isNotEmpty) {
+            lastRow++;
+          }
+
+          // Add a few blank rows for spacing
+          lastRow += 2;
+
+          // Use the utility classes directly with the correct starting row
           await ExcelUtils.addHeaderAndInfoRows(
             reportSheet: reportSheet,
             styler: styler,
@@ -76,29 +85,31 @@ mixin ExportMixin on ConsumerState {
             business: business!,
             drawer: drawer,
             headerTitle: headerTitle,
+            startRow: lastRow,
           );
 
           ExcelUtils.addClosingBalanceRow(
-            reportSheet, 
-            styler, 
+            reportSheet,
+            styler,
             config.currencyFormat,
             bottomEndOfRowTitle: bottomEndOfRowTitle,
+            startRow: lastRow + 5, // Adjust based on header rows
           );
-          
+
           ExcelUtils.formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
             ExcelUtils.addExpensesSheet(
-              workbook, 
-              expenses, 
-              styler, 
+              workbook,
+              expenses,
+              styler,
               config.currencyFormat,
             );
           }
-          
+
           await ExcelUtils.addPaymentMethodSheet(
-            workbook, 
-            config, 
+            workbook,
+            config,
             styler,
           );
         }
@@ -114,6 +125,82 @@ mixin ExportMixin on ConsumerState {
       print('Error: $e');
       print('Stack: $s');
       rethrow;
+    }
+  }
+
+  /// Helper method to add transactions to Excel
+  void _addTransactionsToExcel(
+      excel.Worksheet sheet, List<ITransaction> transactions) {
+    print("Adding ${transactions.length} transactions to Excel");
+
+    // Define column names
+    final List<String> columnNames = [
+      'Date',
+      'Transaction ID',
+      'Customer',
+      'Total',
+      'Payment Method',
+      'Status'
+    ];
+
+    // Add header row with column names
+    for (int i = 0; i < columnNames.length; i++) {
+      sheet.getRangeByIndex(1, i + 1).setText(columnNames[i]);
+      sheet.getRangeByIndex(1, i + 1).cellStyle.backColor = '#4472C4';
+      sheet.getRangeByIndex(1, i + 1).cellStyle.fontColor = '#FFFFFF';
+      sheet.getRangeByIndex(1, i + 1).cellStyle.bold = true;
+    }
+
+    // Add data rows
+    for (int i = 0; i < transactions.length; i++) {
+      final transaction = transactions[i];
+      final rowIndex = i + 2; // Start from row 2 (after header)
+
+      // Date
+      if (transaction.createdAt != null) {
+        sheet.getRangeByIndex(rowIndex, 1).setDateTime(transaction.createdAt!);
+      } else {
+        sheet.getRangeByIndex(rowIndex, 1).setText('');
+      }
+
+      // Transaction ID
+      sheet.getRangeByIndex(rowIndex, 2).setText(transaction.id);
+
+      // Customer
+      String customerName = 'Walk-in Customer';
+      if (transaction.customerName != null &&
+          transaction.customerName!.isNotEmpty) {
+        customerName = transaction.customerName!;
+      }
+      sheet.getRangeByIndex(rowIndex, 3).setText(customerName);
+
+      // Total
+      if (transaction.cashReceived != null) {
+        sheet.getRangeByIndex(rowIndex, 4).setNumber(transaction.cashReceived!);
+        sheet.getRangeByIndex(rowIndex, 4).numberFormat = '#,##0.00';
+      } else {
+        sheet.getRangeByIndex(rowIndex, 4).setText('0.00');
+      }
+
+      // Payment Method - using paymentType instead of paymentMethodName
+      String paymentMethod = 'Cash';
+      if (transaction.paymentType != null &&
+          transaction.paymentType!.isNotEmpty) {
+        paymentMethod = transaction.paymentType!;
+      }
+      sheet.getRangeByIndex(rowIndex, 5).setText(paymentMethod);
+
+      // Status
+      String status = 'Completed';
+      if (transaction.status != null) {
+        status = transaction.status ?? 'Unknown';
+      }
+      sheet.getRangeByIndex(rowIndex, 6).setText(status);
+    }
+
+    // Auto-fit columns
+    for (int i = 1; i <= columnNames.length; i++) {
+      sheet.autoFitColumn(i);
     }
   }
 

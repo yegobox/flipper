@@ -27,15 +27,16 @@ class ExcelUtils {
     required Business business,
     required Drawers? drawer,
     required String headerTitle,
+    int startRow = 1, // Add optional startRow parameter with default value of 1
   }) async {
     final headerStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
     final infoStyle = styler.createStyle(
         fontColor: '#000000', backColor: '#E7E6E6', fontSize: 12);
 
-    reportSheet.insertRow(1);
+    reportSheet.insertRow(startRow);
     final titleRange = reportSheet.getRangeByName(
-        'A1:${String.fromCharCode(64 + reportSheet.getLastColumn())}1');
+        'A$startRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$startRow');
     titleRange.merge();
     titleRange.setText(headerTitle);
     titleRange.cellStyle = headerStyle;
@@ -57,7 +58,7 @@ class ExcelUtils {
 
     Map<String, excel.Range> namedRanges = {};
 
-    for (var i = 0, infoRow = 2; i < infoData.length; i++, infoRow++) {
+    for (var i = 0, infoRow = startRow + 1; i < infoData.length; i++, infoRow++) {
       // Insert Net Profit row just after Gross Profit
       if (infoData[i][0] == 'Gross Profit') {
         // Write Gross Profit row
@@ -125,6 +126,7 @@ class ExcelUtils {
     ExcelStyler styler,
     String currencyFormat, {
     required String bottomEndOfRowTitle,
+    int startRow = 1, // Add optional startRow parameter with default value of 1
   }) {
     final balanceStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
