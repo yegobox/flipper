@@ -213,7 +213,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     }
 
     // Add logging to help debug the query
-    talker.debug('TransactionItems query conditions: $conditions');
+    // talker.debug('TransactionItems query conditions: $conditions');
 
     final queryString = Query(
       where: conditions,

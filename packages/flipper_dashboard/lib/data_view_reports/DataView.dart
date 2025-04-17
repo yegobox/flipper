@@ -96,6 +96,11 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   void _handleCellTap(DataGridCellTapDetails details) {
+    final showDetailed = ref.read(toggleBooleanValueProvider);
+    if (showDetailed) {
+      // Do nothing in detailed view
+      return;
+    }
     try {
       final rowIndex = details.rowColumnIndex.rowIndex;
       if (rowIndex < 1) return;
