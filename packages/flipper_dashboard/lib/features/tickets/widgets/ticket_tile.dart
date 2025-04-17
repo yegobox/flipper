@@ -23,6 +23,10 @@ class TicketTile extends StatelessWidget {
     final ticketStatus =
         TicketStatusExtension.fromString(ticket.status ?? PARKED);
 
+    // Get screen width to adapt layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360; // Threshold for very small screens
+
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -35,79 +39,119 @@ class TicketTile extends StatelessWidget {
             horizontal: 16.0,
             vertical: 12.0,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left side: Ticket name and ID
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          ticket.ticketName ?? "N/A",
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 17,
-                            color: Colors.black,
-                          ),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                ticket.ticketName ?? "N/A",
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 17,
+                                  color: Colors.black,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Display ID in a smaller, subtle format
+                            Text(
+                              '(ID: ${safeSubstring(ticket.id, 0, end: 8, ellipsis: false)})',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 12,
+                                color: Colors.grey[400],
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        // Display ID in a smaller, subtle format
-                        Text(
-                          '(ID: ${safeSubstring(ticket.id, 0, end: 8, ellipsis: false)})',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 12,
-                            color: Colors.grey[400],
-                          ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            // Display time ago
+                            Text(
+                              timeago.format(ticket.updatedAt!),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Display subtotal
+                            Flexible(
+                              child: Text(
+                                'Subtotal: ${(ticket.subTotal ?? 0.0).toStringAsFixed(2)}',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: Colors.grey[800],
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        // Display time ago
-                        Text(
-                          timeago.format(ticket.updatedAt!),
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
+                  ),
+
+                  // Only show status on the right for larger screens
+                  if (!isSmallScreen)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: ticketStatus.color.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: ticketStatus.color, width: 1),
+                      ),
+                      child: Text(
+                        ticketStatus.displayName,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: ticketStatus.color,
                         ),
-                        const SizedBox(width: 12),
-                        // Display subtotal
-                        Text(
-                          'Subtotal: ${(ticket.subTotal ?? 0.0).toStringAsFixed(2)}',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
+                ],
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: ticketStatus.color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: ticketStatus.color, width: 1),
-                ),
-                child: Text(
-                  ticketStatus.displayName,
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                    color: ticketStatus.color,
+
+              // For small screens, show status below in full width
+              if (isSmallScreen)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: ticketStatus.color.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: ticketStatus.color, width: 1),
+                    ),
+                    child: Center(
+                      child: Text(
+                        ticketStatus.displayName,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: ticketStatus.color,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

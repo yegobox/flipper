@@ -373,10 +373,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               barrierDismissible: true,
               context: context,
               builder: (context) => OptionModal(
-                child: _getDeviceType(context) == "Phone" ||
-                        _getDeviceType(context) == "Phablet"
-                    ? const AddProductButtons()
-                    : const BulkAddProduct(),
+                child: BulkAddProduct(),
               ),
             );
           } else {
@@ -384,10 +381,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               barrierDismissible: true,
               context: context,
               builder: (context) => OptionModal(
-                child: _getDeviceType(context) == "Phone" ||
-                        _getDeviceType(context) == "Phablet"
-                    ? const AddProductButtons()
-                    : const ProductEntryScreen(),
+                child: ProductEntryScreen(),
               ),
             );
           }

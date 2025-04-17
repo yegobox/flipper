@@ -148,19 +148,16 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   !isOrdering ? (product?.isComposite ?? false) : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
-                if (_getDeviceType(context) != "Phone") {
-                  showDialog(
-                    barrierDismissible: false,
-                    context: context,
-                    builder: (context) => OptionModal(
-                      child: ProductEntryScreen(productId: productId),
-                    ),
-                  );
-                } else {
-                  locator<RouterService>().navigateTo(
-                    AddProductViewRoute(productId: productId),
-                  );
-                }
+                // locator<RouterService>().navigateTo(
+                //   AddProductViewRoute(productId: productId),
+                // );
+                showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => OptionModal(
+                    child: ProductEntryScreen(productId: productId),
+                  ),
+                );
               },
               delete: (productId, type) async {
                 await deleteFunc(productId, model);
