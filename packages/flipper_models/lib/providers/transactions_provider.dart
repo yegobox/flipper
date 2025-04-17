@@ -177,8 +177,17 @@ Stream<double> netProfitStream(
     removeAdjustmentTransactions: true,
   );
 
+  // Fetch all transaction items for the period, for tax computation
+  final taxItemsStream = ProxyService.strategy.transactionItemsStreams(
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    fetchRemote: false,
+  );
+
   await for (final incomeTransactions in incomeStream) {
     final expenseTransactions = await expensesStream.first;
+    final taxItems = await taxItemsStream.first;
 
     // Filter out any transactions that are marked as expenses in the income stream
     final filteredIncome =
@@ -196,7 +205,13 @@ Stream<double> netProfitStream(
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
 
-    yield totalIncome - totalExpenses;
+    // Calculate total tax payable from all transaction items in the period
+    final totalTaxPayable = taxItems.fold<double>(
+      0.0,
+      (sum, item) => sum + (item.taxAmt ?? 0.0),
+    );
+    talker.debug('Total tax payable: $totalTaxPayable');
+    yield totalIncome - totalExpenses - totalTaxPayable;
   }
 }
 

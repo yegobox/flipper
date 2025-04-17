@@ -174,36 +174,30 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       conditions.add(Where('inventoryRequestId').isExactly(requestId));
     }
 
-    // Date range handling
+    // Date range handling (match transactionsStream logic)
     if (startDate != null && endDate != null) {
-      // Normalize dates to start of day and end of day for proper range comparison
-      final normalizedStartDate =
-          DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0)
-              .toUtc();
-
-      final normalizedEndDate =
-          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
-              .toUtc();
-
-      if (startDate.year == endDate.year &&
-          startDate.month == endDate.month &&
-          startDate.day == endDate.day) {
-        // Same day - use between with start and end of the same day
-        talker.info(
-            'Filtering transaction items for single day: ${normalizedStartDate.toIso8601String()}');
-        // Instead of isBetween, use greaterThanOrEqualTo and lessThanOrEqualTo
-        conditions.add(Where('createdAt')
-            .isGreaterThanOrEqualTo(normalizedStartDate.toIso8601String()));
-        conditions.add(Where('createdAt')
-            .isLessThanOrEqualTo(normalizedEndDate.toIso8601String()));
-      } else {
-        // Date range - use between with normalized dates
-        talker.info(
-            'Filtering transaction items from ${normalizedStartDate.toIso8601String()} to ${normalizedEndDate.toIso8601String()}');
+      if (startDate == endDate) {
+        talker.info('Date Given ${startDate.toIso8601String()}');
         conditions.add(
-          Where('createdAt').isBetween(
-            normalizedStartDate.toIso8601String(),
-            normalizedEndDate.toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        // Add condition for the end of the same day
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
+          ),
+        );
+      } else {
+        conditions.add(
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       }
@@ -221,7 +215,10 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     // Add logging to help debug the query
     talker.debug('TransactionItems query conditions: $conditions');
 
-    final queryString = Query(where: conditions);
+    final queryString = Query(
+      where: conditions,
+      orderBy: [OrderBy('lastTouched', ascending: false)],
+    );
 
     // Return the stream directly from repository with mapping
     return repository.subscribe<TransactionItem>(
