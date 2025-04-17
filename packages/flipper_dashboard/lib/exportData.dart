@@ -311,22 +311,59 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ['End Date', config.endDate?.toIso8601String() ?? '-'],
       ['Opening Balance', drawer?.openingBalance ?? 0],
       ['Gross Profit', config.grossProfit],
-      ['Net Profit', config.netProfit],
+      // Net Profit row will be added below, after Gross Profit
       ['Tax Rate', taxRate],
       ['Tax Amount', taxAmount],
     ];
 
     Map<String, excel.Range> namedRanges = {};
 
-    for (var i = 0; i < infoData.length; i++) {
-      final rowIndex = i + 2;
-      reportSheet.insertRow(rowIndex);
-      reportSheet
-          .getRangeByName('A$rowIndex')
-          .setText(infoData[i][0].toString());
+    for (var i = 0, infoRow = 2; i < infoData.length; i++, infoRow++) {
+      // Insert Net Profit row just after Gross Profit
+      if (infoData[i][0] == 'Gross Profit') {
+        // Write Gross Profit row
+        reportSheet.insertRow(infoRow);
+        reportSheet
+            .getRangeByName('A$infoRow')
+            .setText(infoData[i][0].toString());
+        final cell = reportSheet.getRangeByName('B$infoRow');
+        final value = infoData[i][1];
+        try {
+          if (value is num) {
+            cell.setValue(value);
+            cell.numberFormat = config.currencyFormat;
+          } else {
+            cell.setText(value.toString());
+          }
+        } catch (e) {}
+        final infoRange = reportSheet.getRangeByName(
+            'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
+        infoRange.cellStyle = infoStyle;
+        reportSheet.workbook.names.add('GrossProfit', cell);
+        namedRanges['GrossProfit'] = cell;
 
+        // Insert Net Profit row
+        final netProfitRow = infoRow + 1;
+        reportSheet.insertRow(netProfitRow);
+        reportSheet.getRangeByName('A$netProfitRow').setText('Net Profit');
+        final netProfitCell = reportSheet.getRangeByName('B$netProfitRow');
+        // Set the formula: =GrossProfit - TotalExpenses (named range)
+        netProfitCell.setFormula('=GrossProfit - TotalExpenses');
+        netProfitCell.numberFormat = config.currencyFormat;
+        final netProfitRange = reportSheet.getRangeByName(
+            'A$netProfitRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$netProfitRow');
+        netProfitRange.cellStyle = infoStyle;
+        reportSheet.workbook.names.add('NetProfit', netProfitCell);
+        namedRanges['NetProfit'] = netProfitCell;
+        infoRow++; // Skip to next row after Net Profit
+        continue;
+      }
+      reportSheet.insertRow(infoRow);
+      reportSheet
+          .getRangeByName('A$infoRow')
+          .setText(infoData[i][0].toString());
       final value = infoData[i][1];
-      final cell = reportSheet.getRangeByName('B$rowIndex');
+      final cell = reportSheet.getRangeByName('B$infoRow');
       try {
         if (value is num) {
           cell.setValue(value);
@@ -335,18 +372,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           cell.setText(value.toString());
         }
       } catch (e) {}
-
       final infoRange = reportSheet.getRangeByName(
-          'A$rowIndex:${String.fromCharCode(64 + reportSheet.getLastColumn())}$rowIndex');
+          'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
       infoRange.cellStyle = infoStyle;
-
-      if (infoData[i][0] == 'Gross Profit') {
-        reportSheet.workbook.names.add('GrossProfit', cell);
-        namedRanges['GrossProfit'] = cell;
-      } else if (infoData[i][0] == 'Net Profit') {
-        reportSheet.workbook.names.add('NetProfit', cell);
-        namedRanges['NetProfit'] = cell;
-      }
     }
 
     return namedRanges;
@@ -361,22 +389,41 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final lastDataRow = sheet.getLastRow();
     final closingBalanceRow = lastDataRow + 1;
 
-    sheet.insertRow(closingBalanceRow);
+    // Find the column index for "Amount" (assuming always column C = 3)
+    final amountColIndex = 3; // C
+    final amountColLetter = String.fromCharCode(64 + amountColIndex);
 
+    sheet.insertRow(closingBalanceRow);
     sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
     sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
 
-    final lastColumnLetter = String.fromCharCode(64 + sheet.getLastColumn());
     final closingBalanceCell =
-        sheet.getRangeByName('$lastColumnLetter$closingBalanceRow');
+        sheet.getRangeByName('$amountColLetter$closingBalanceRow');
     closingBalanceCell.setFormula(
-        '=SUM($lastColumnLetter$firstDataRow:$lastColumnLetter$lastDataRow)');
+        '=SUM($amountColLetter$firstDataRow:$amountColLetter$lastDataRow)');
     closingBalanceCell.cellStyle = balanceStyle;
     closingBalanceCell.numberFormat = currencyFormat;
 
     sheet
         .getRangeByName(
-            'A$closingBalanceRow:$lastColumnLetter$closingBalanceRow')
+            'A$closingBalanceRow:$amountColLetter$closingBalanceRow')
+        .cellStyle = balanceStyle;
+
+    // --- ADD Net Profit row below Total Gross Profit ---
+    final netProfitRow = closingBalanceRow + 1;
+    sheet.insertRow(netProfitRow);
+    sheet.getRangeByName('A$netProfitRow').setText('Net Profit');
+    sheet.getRangeByName('A$netProfitRow').cellStyle = balanceStyle;
+
+    final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
+    // Reference the actual gross profit cell in the summary/footer, not the header named range
+    netProfitCell
+        .setFormula('=${amountColLetter}${closingBalanceRow} - TotalExpenses');
+    netProfitCell.cellStyle = balanceStyle;
+    netProfitCell.numberFormat = currencyFormat;
+
+    sheet
+        .getRangeByName('A$netProfitRow:$amountColLetter$netProfitRow')
         .cellStyle = balanceStyle;
   }
 
