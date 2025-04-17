@@ -16,6 +16,7 @@ import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:flipper_dashboard/export/models/expense.dart';
 
 class PaymentSummary {
   final String method;
@@ -210,22 +211,24 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     headerFooterExport.pdfDocumentTemplate.top = header;
   }
 
-  Future<void> exportDataGrid({
+  Future<String?> exportDataGrid({
     required ExportConfig config,
-    List<ITransaction>? expenses,
+    List<Expense>? expenses,
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,
   }) async {
+    String? filePath;
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
-      String filePath;
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
       if (ProxyService.box.exportAsPdf()) {
         final PdfDocument document =
             workBookKey.currentState!.exportToPdfDocument(
           fitAllColumnsInOnePage: true,
+          autoColumnWidth: true,
           canRepeatHeaders: false,
           exportStackedHeaders: false,
           exportTableSummaries: true,
@@ -247,7 +250,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (!isStockRecount) {
           final drawer = await ProxyService.strategy
               .getDrawer(cashierId: ProxyService.box.getUserId()!);
-          final ExcelStyler styler = ExcelStyler(workbook);
+          final styler = ExcelStyler(workbook);
 
           await _addHeaderAndInfoRows(
               reportSheet: reportSheet,
@@ -257,13 +260,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               drawer: drawer,
               headerTitle: headerTitle);
 
-          _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
+          _addClosingBalanceRow(
+              reportSheet, styler, config.currencyFormat,
               bottomEndOfRowTitle: bottomEndOfRowTitle);
           _formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
-            _addExpensesSheet(
-                workbook, expenses, styler, config.currencyFormat);
+            _addExpensesSheet(workbook, expenses, styler, config.currencyFormat);
           }
           await _addPaymentMethodSheet(workbook, config, styler);
         }
@@ -274,10 +277,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       ref.read(isProcessingProvider.notifier).stopProcessing();
       await _openOrShareFile(filePath);
+      return filePath; // Return the file path
     } catch (e, s) {
       ref.read(isProcessingProvider.notifier).stopProcessing();
-      talker.error(e);
-      talker.error(s);
+      talker.error('Error: $e');
+      talker.error('Stack: $s');
+      rethrow;
     }
   }
 
@@ -654,7 +659,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     totalPercentCell.numberFormat = '0.00%';
   }
 
-  void _addExpensesSheet(excel.Workbook workbook, List<ITransaction> expenses,
+  void _addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
       ExcelStyler styler, String currencyFormat) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
     final expenseHeaderStyle = styler.createStyle(
@@ -670,8 +675,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final rowIndex = i + 2;
       expenseSheet
           .getRangeByIndex(rowIndex, 1)
-          .setText(expenses[i].transactionType);
-      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].subTotal);
+          .setText(expenses[i].name);
+      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].amount);
     }
 
     final lastDataRow = expenseSheet.getLastRow();
@@ -779,10 +784,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   Future<void> requestPermissions() async {
-    await [
-      permission.Permission.storage,
-      permission.Permission.manageExternalStorage,
-    ].request();
+    await permission.Permission.storage.request();
+    await permission.Permission.manageExternalStorage.request();
 
     if (await permission.Permission.notification.isDenied) {
       await permission.Permission.notification.request();

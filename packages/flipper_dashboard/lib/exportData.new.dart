@@ -15,9 +15,11 @@ import 'export/utils/excel_utils.dart';
 import 'export/utils/pdf_utils.dart';
 import 'export/utils/excel_styler.dart' as new_styler;
 import 'export/utils/file_utils.dart';
+import 'export/models/expense.dart';
 // Re-export all the necessary components from the new modular structure
 export 'export/models/export_config.dart';
 export 'export/models/payment_summary.dart';
+export 'export/models/expense.dart';
 export 'export/export_mixin.dart';
 export 'export/utils/excel_styler.dart';
 
@@ -43,7 +45,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   // Export the main functionality
   Future<String?> exportDataGrid({
     required dynamic config,
-    List<ITransaction>? expenses,
+    List<Expense>? expenses,
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,

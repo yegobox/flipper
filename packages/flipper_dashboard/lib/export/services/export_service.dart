@@ -1,4 +1,4 @@
-import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -25,7 +25,7 @@ class ExportService {
   /// Exports data grid to Excel or PDF
   Future<void> exportDataGrid({
     required ExportConfig config,
-    List<ITransaction>? expenses,
+    List<Expense>? expenses,
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,
@@ -35,7 +35,7 @@ class ExportService {
       String filePath;
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-          
+
       if (ProxyService.box.exportAsPdf()) {
         final PdfDocument document =
             workBookKey.currentState!.exportToPdfDocument(
@@ -71,7 +71,8 @@ class ExportService {
               drawer: drawer,
               headerTitle: headerTitle);
 
-          ExcelUtils.addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
+          ExcelUtils.addClosingBalanceRow(
+              reportSheet, styler, config.currencyFormat,
               bottomEndOfRowTitle: bottomEndOfRowTitle);
           ExcelUtils.formatColumns(reportSheet, config.currencyFormat);
 

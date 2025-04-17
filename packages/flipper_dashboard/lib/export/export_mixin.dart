@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 
 import 'models/export_config.dart';
+import 'models/expense.dart';
 import 'utils/excel_utils.dart';
 import 'utils/file_utils.dart';
 import 'utils/pdf_utils.dart';
@@ -23,7 +24,7 @@ mixin ExportMixin on ConsumerState {
   /// This is the main entry point for exporting data
   Future<void> exportDataGrid({
     required ExportConfig config,
-    List<ITransaction>? expenses,
+    List<Expense>? expenses,
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,

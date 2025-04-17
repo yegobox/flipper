@@ -4,6 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import '../models/export_config.dart';
 import '../models/payment_summary.dart';
+import '../models/expense.dart';
 import '../utils/excel_styler.dart';
 
 /// Utility class for Excel-related operations
@@ -42,7 +43,7 @@ class ExcelUtils {
     titleRange.cellStyle = headerStyle;
 
     final taxRate = 18;
-    final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
+    final taxAmount = ((config.grossProfit ?? 0) * taxRate) / 118;
 
     final infoData = [
       ['TIN Number', business.tinNumber?.toString() ?? ''],
@@ -50,7 +51,7 @@ class ExcelUtils {
       ['Start Date', config.startDate?.toIso8601String() ?? '-'],
       ['End Date', config.endDate?.toIso8601String() ?? '-'],
       ['Opening Balance', drawer?.openingBalance ?? 0],
-      ['Gross Profit', config.grossProfit],
+      ['Gross Profit', null], // We'll set this with a formula
       // Net Profit row will be added below, after Gross Profit
       ['Tax Rate', taxRate],
       ['Tax Amount', taxAmount],
@@ -67,15 +68,34 @@ class ExcelUtils {
             .getRangeByName('A$infoRow')
             .setText(infoData[i][0].toString());
         final cell = reportSheet.getRangeByName('B$infoRow');
-        final value = infoData[i][1];
-        try {
-          if (value is num) {
-            cell.setValue(value);
-            cell.numberFormat = config.currencyFormat;
-          } else {
-            cell.setText(value.toString());
+        // Find the Amount column in the data grid (usually column C or D)
+        // We need to find the first data row and the last data row
+        
+        // Looking at the screenshot, we need to find where the actual transaction data begins
+        // This is typically after the header row with "Name", "Type", "Amount", "Cash"
+        int firstDataRow = startRow + 1;
+        for (int i = startRow; i <= reportSheet.getLastRow(); i++) {
+          final cellValue = reportSheet.getRangeByName('C$i').getText();
+          if (cellValue == 'Amount') {
+            firstDataRow = i + 1;
+            break;
           }
-        } catch (e) {}
+        }
+        
+        // Find the last row before the "Total Gross Profit" row
+        int lastDataRow = reportSheet.getLastRow();
+        for (int i = firstDataRow; i <= reportSheet.getLastRow(); i++) {
+          final cellValue = reportSheet.getRangeByName('A$i').getText();
+          if (cellValue == 'Total Gross Profit') {
+            lastDataRow = i - 1;
+            break;
+          }
+        }
+        
+        // Set formula to sum the Amount column (column C)
+        // Based on the screenshot, the Amount column is the third column (C)
+        cell.setFormula('=SUM(C$firstDataRow:C$lastDataRow)');
+        cell.numberFormat = config.currencyFormat;
         final infoRange = reportSheet.getRangeByName(
             'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
         infoRange.cellStyle = infoStyle;
@@ -412,7 +432,7 @@ class ExcelUtils {
 
   /// Adds an expenses sheet to the workbook
   static void addExpensesSheet(excel.Workbook workbook,
-      List<ITransaction> expenses, ExcelStyler styler, String currencyFormat) {
+      List<Expense> expenses, ExcelStyler styler, String currencyFormat) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
     final expenseHeaderStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
@@ -427,8 +447,8 @@ class ExcelUtils {
       final rowIndex = i + 2;
       expenseSheet
           .getRangeByIndex(rowIndex, 1)
-          .setText(expenses[i].transactionType);
-      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].subTotal);
+          .setText(expenses[i].name);
+      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].amount);
     }
 
     final lastDataRow = expenseSheet.getLastRow();

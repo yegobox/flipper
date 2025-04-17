@@ -5,7 +5,8 @@ import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
 
-import 'package:flipper_dashboard/exportData.new.dart';
+import 'package:flipper_dashboard/exportData.dart';
+import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -473,12 +474,15 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     /// Expenses these incudes purchases,import and any other type of expenses.
-    final expenses = await ProxyService.strategy.transactions(
+    final expenseTransactions = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
       branchId: ProxyService.box.getBranchId(),
     );
+    
+    // Convert transactions to Expense model
+    final expenses = Expense.fromTransactions(expenseTransactions);
 
     final sales = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
