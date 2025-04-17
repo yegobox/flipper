@@ -318,6 +318,7 @@ final transactionListProvider =
       endDate: endDate,
       removeAdjustmentTransactions: true,
       branchId: ProxyService.box.getBranchId(),
+      isCashOut: false,
       status: COMPLETE,
     );
 

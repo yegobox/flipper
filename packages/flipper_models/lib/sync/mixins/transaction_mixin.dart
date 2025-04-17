@@ -733,7 +733,9 @@ mixin TransactionMixin implements TransactionInterface {
       Where('subTotal').isGreaterThan(0),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
-      if (isCashOut) Where('isExpense').isExactly(true),
+      Where('isExpense').isExactly(isCashOut),
+      if (removeAdjustmentTransactions)
+        Where('transactionType').isNot('Adjustment'),
     ];
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
@@ -762,9 +764,6 @@ mixin TransactionMixin implements TransactionInterface {
           ),
         );
       }
-    }
-    if (removeAdjustmentTransactions) {
-      conditions.add(Where('receiptType').isNot('adjustment'));
     }
     final queryString = Query(
         // limit: 5000,
