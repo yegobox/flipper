@@ -127,8 +127,17 @@ class SearchInputWithDropdown extends ConsumerStatefulWidget {
 class _SearchInputWithDropdownState
     extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _customerTypes = ['Walk-in', 'Take Away', 'Delivery'];
-  final List<String> _saleTypes = ['Outgoing Sale', 'Incoming Return'];
+  final List<String> _customerTypes = [
+    'Shop',
+    'Walk-in',
+    'Take Away',
+    'Delivery'
+  ];
+  final List<String> _saleTypes = [
+    'Agent Sale',
+    'Outgoing Sale',
+    'Incoming Return'
+  ];
   String _selectedCustomerType = 'Walk-in';
   String _selectedSaleType = 'Outgoing- Sale';
   List<Customer> _searchResults = [];
@@ -137,9 +146,10 @@ class _SearchInputWithDropdownState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeSearchBox();
-    });
+    _initializeSearchBox();
+    // Initialize with default values
+    _selectedCustomerType = 'Walk-in';
+    _selectedSaleType = 'Outgoing- Sale';
   }
 
   @override
@@ -276,6 +286,30 @@ class _SearchInputWithDropdownState
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobileWidth = screenWidth < 600;
+
+    // Set mobile-specific defaults if on mobile
+    if (isMobileWidth) {
+      if (_selectedCustomerType == 'Walk-in') {
+        _selectedCustomerType = 'Shop';
+      }
+      if (_selectedSaleType == 'Outgoing- Sale') {
+        _selectedSaleType = 'Agent Sale';
+        // Update the stockInOutType value for Agent Sale
+        ProxyService.box.writeString(key: 'stockInOutType', value: "11");
+      }
+    } else {
+      // Ensure desktop defaults are maintained
+      if (_selectedCustomerType == 'Shop' &&
+          !_customerTypes.contains('Walk-in')) {
+        _selectedCustomerType = 'Walk-in';
+      }
+      if (_selectedSaleType == 'Agent Sale' &&
+          !_saleTypes.contains('Outgoing- Sale')) {
+        _selectedSaleType = 'Outgoing- Sale';
+        // Update the stockInOutType value for Outgoing Sale
+        ProxyService.box.writeString(key: 'stockInOutType', value: "11");
+      }
+    }
 
     return attachedCustomerFuture.when(
       data: (attachedCustomer) {
