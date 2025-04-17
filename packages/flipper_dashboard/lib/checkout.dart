@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/refresh.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -198,26 +199,41 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildPosDefaultContent(
       ITransaction transaction, CoreViewModel model) {
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _buildQuickSellingView(),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: PayableView(
-            transactionId: transaction.id,
-            mode: oldImplementationOfRiverpod.SellingMode.forSelling,
-            completeTransaction: (immediateCompletion) async {
-              await _handleCompleteTransaction(
-                  transaction, immediateCompletion);
-            },
-            model: model,
-            ticketHandler: () => handleTicketNavigation(transaction),
-          ),
-        ),
-      ],
+    final branchAsync = ref.watch(activeBranchProvider);
+    return branchAsync.when(
+      data: (branch) {
+        return FutureBuilder<bool>(
+          future: ProxyService.strategy.isBranchEnableForPayment(
+              currentBranchId: branch.id) as Future<bool>,
+          builder: (context, snapshot) {
+            final digitalPaymentEnabled = snapshot.data ?? false;
+            return ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildQuickSellingView(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: PayableView(
+                    transactionId: transaction.id,
+                    mode: oldImplementationOfRiverpod.SellingMode.forSelling,
+                    completeTransaction: (immediateCompletion) async {
+                      await _handleCompleteTransaction(
+                          transaction, immediateCompletion);
+                    },
+                    model: model,
+                    ticketHandler: () => handleTicketNavigation(transaction),
+                    digitalPaymentEnabled: digitalPaymentEnabled,
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 
@@ -318,46 +334,79 @@ class CheckOutState extends ConsumerState<CheckOut>
                       right: 0,
                       child: Container(
                         color: Colors.white,
-                        child: PayableView(
-                          transactionId: transaction.id,
-                          mode: oldImplementationOfRiverpod
-                              .SellingMode.forOrdering,
-                          wording: getCartText(transactionId: transaction.id),
-                          model: model,
-                          completeTransaction: (immediateCompletion) async {
-                            await _handleCompleteTransaction(
-                                transaction, immediateCompletion);
-                          },
-                          ticketHandler: () =>
-                              handleTicketNavigation(transaction),
-                          previewCart: () {
-                            if (Platform.isAndroid || Platform.isIOS) {
-                              BottomSheets.showBottom(
-                                context: context,
-                                ref: ref,
-                                transactionId: transaction.id,
-                                onCharge: (transactionId, total) async {
-                                  await _handleCompleteTransaction(
-                                      transaction, false);
-                                  Navigator.of(context).pop();
-                                },
-                                doneDelete: () {
-                                  ref.refresh(transactionItemsStreamProvider(
-                                      branchId: ProxyService.box.getBranchId()!,
-                                      transactionId: transaction.id));
-                                  Navigator.of(context).pop();
-                                },
-                              );
-                            } else {
-                              showPaymentModeModal(context, (provider) async {
-                                print(
-                                    'User selected Finance Provider: ${provider.name}');
-                                placeFinalOrder(
-                                    financeOption: provider,
-                                    isShoppingFromWareHouse: false,
-                                    transaction: transaction);
-                              });
-                            }
+                        child: Builder(
+                          builder: (context) {
+                            final branchAsync = ref.watch(activeBranchProvider);
+                            return branchAsync.when(
+                              data: (branch) {
+                                return FutureBuilder<bool>(
+                                  future: ProxyService.strategy
+                                          .isBranchEnableForPayment(
+                                              currentBranchId: branch.id)
+                                      as Future<bool>,
+                                  builder: (context, snapshot) {
+                                    final digitalPaymentEnabled =
+                                        snapshot.data ?? false;
+                                    return PayableView(
+                                      transactionId: transaction.id,
+                                      mode: oldImplementationOfRiverpod
+                                          .SellingMode.forOrdering,
+                                      wording: getCartText(
+                                          transactionId: transaction.id),
+                                      model: model,
+                                      completeTransaction:
+                                          (immediateCompletion) async {
+                                        await _handleCompleteTransaction(
+                                            transaction, immediateCompletion);
+                                      },
+                                      ticketHandler: () =>
+                                          handleTicketNavigation(transaction),
+                                      previewCart: () {
+                                        if (Platform.isAndroid ||
+                                            Platform.isIOS) {
+                                          BottomSheets.showBottom(
+                                            context: context,
+                                            ref: ref,
+                                            transactionId: transaction.id,
+                                            onCharge:
+                                                (transactionId, total) async {
+                                              await _handleCompleteTransaction(
+                                                  transaction, false);
+                                              Navigator.of(context).pop();
+                                            },
+                                            doneDelete: () {
+                                              ref.refresh(
+                                                  transactionItemsStreamProvider(
+                                                      branchId: ProxyService.box
+                                                          .getBranchId()!,
+                                                      transactionId:
+                                                          transaction.id));
+                                              Navigator.of(context).pop();
+                                            },
+                                          );
+                                        } else {
+                                          showPaymentModeModal(context,
+                                              (provider) async {
+                                            print(
+                                                'User selected Finance Provider: ${provider.name}');
+                                            placeFinalOrder(
+                                                financeOption: provider,
+                                                isShoppingFromWareHouse: false,
+                                                transaction: transaction);
+                                          });
+                                        }
+                                      },
+                                      digitalPaymentEnabled:
+                                          digitalPaymentEnabled,
+                                    );
+                                  },
+                                );
+                              },
+                              loading: () => const Center(
+                                  child: CircularProgressIndicator()),
+                              error: (error, stack) =>
+                                  Center(child: Text('Error: $error')),
+                            );
                           },
                         ),
                       ),

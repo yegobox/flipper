@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -255,29 +256,53 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         title: Text('Orders'),
       ),
       floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
-          ? PayableView(
-              transactionId: transactionAsyncValue.value?.id ?? "",
-              wording:
-                  "Pay ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toRwf()}",
-              mode: SellingMode.forSelling,
-              completeTransaction: (imediteCompleteTransaction) {
-                talker.warning("We are about to complete a sale");
-                transactionAsyncValue.whenData((ITransaction transaction) {
-                  startCompleteTransactionFlow(
-                      immediateCompletion: imediteCompleteTransaction,
-                      completeTransaction: () {},
-                      transaction: transaction,
-                      paymentMethods: ref.watch(paymentMethodsProvider));
-                });
-                ref.read(previewingCart.notifier).state = false;
-              },
-              model: model,
-              ticketHandler: () {
-                talker.warning("We are about to complete a ticket");
-                transactionAsyncValue.whenData((ITransaction transaction) {
-                  handleTicketNavigation(transaction);
-                });
-                ref.read(toggleProvider.notifier).state = false;
+          ? Builder(
+              builder: (context) {
+                final branchAsync = ref.watch(activeBranchProvider);
+                return branchAsync.when(
+                  data: (branch) {
+                    return FutureBuilder<bool>(
+                      future: ProxyService.strategy.isBranchEnableForPayment(
+                          currentBranchId: branch.id) as Future<bool>,
+                      builder: (context, snapshot) {
+                        final digitalPaymentEnabled = snapshot.data ?? false;
+                        return PayableView(
+                          transactionId: transactionAsyncValue.value?.id ?? "",
+                          wording:
+                              "Pay ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toRwf()}",
+                          mode: SellingMode.forSelling,
+                          completeTransaction: (imediteCompleteTransaction) {
+                            talker.warning("We are about to complete a sale");
+                            transactionAsyncValue
+                                .whenData((ITransaction transaction) {
+                              startCompleteTransactionFlow(
+                                  immediateCompletion:
+                                      imediteCompleteTransaction,
+                                  completeTransaction: () {},
+                                  transaction: transaction,
+                                  paymentMethods:
+                                      ref.watch(paymentMethodsProvider));
+                            });
+                            ref.read(previewingCart.notifier).state = false;
+                          },
+                          model: model,
+                          ticketHandler: () {
+                            talker.warning("We are about to complete a ticket");
+                            transactionAsyncValue
+                                .whenData((ITransaction transaction) {
+                              handleTicketNavigation(transaction);
+                            });
+                            ref.read(toggleProvider.notifier).state = false;
+                          },
+                          digitalPaymentEnabled: digitalPaymentEnabled,
+                        );
+                      },
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(child: Text('Error: $error')),
+                );
               },
             )
           : SizedBox.shrink(),
