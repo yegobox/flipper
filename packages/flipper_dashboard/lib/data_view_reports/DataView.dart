@@ -480,16 +480,16 @@ class DataViewState extends ConsumerState<DataView>
       isExpense: true,
       branchId: ProxyService.box.getBranchId(),
     );
-    
-    // Convert transactions to Expense model
-    final expenses = Expense.fromTransactions(expenseTransactions);
-
     final sales = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
       branchId: ProxyService.box.getBranchId(),
     );
+    // Convert transactions to Expense model
+    final expenses =
+        await Expense.fromTransactions(expenseTransactions, sales: sales);
+
     final isStockRecount =
         widget.variants != null && widget.variants!.isNotEmpty;
     final config = ExportConfig(
@@ -531,10 +531,6 @@ class DataViewState extends ConsumerState<DataView>
     final grossProfit = await _calculateGrossProfit();
     // Example: Subtract total tax if you have tax calculation logic
     double totalTax = 0.0;
-    for (final item in widget.transactionItems!) {
-      // If you have a tax field, use it here
-      // totalTax += item.taxAmount ?? 0.0;
-    }
     return grossProfit - totalTax;
   }
 
