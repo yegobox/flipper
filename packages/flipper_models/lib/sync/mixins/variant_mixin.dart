@@ -40,7 +40,7 @@ mixin VariantMixin implements VariantInterface {
       ], where: [
         if (variantId != null)
           Where('id').isExactly(variantId)
-        else if (name != null) ...[
+        else if (name != null && name.isNotEmpty) ...[
           Where('name').contains(name),
           Where('branchId').isExactly(branchId),
         ] else if (bcd != null) ...[
@@ -101,7 +101,7 @@ mixin VariantMixin implements VariantInterface {
       // Pagination logic (if needed)
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
-        return variants
+        final filtered = variants
             .where((variant) =>
                 variant.pchsSttsCd != "01" &&
                 variant.pchsSttsCd != "04" &&
@@ -109,6 +109,9 @@ mixin VariantMixin implements VariantInterface {
             .skip(offset)
             .take(itemsPerPage)
             .toList();
+        talker.info(
+            '[VariantMixin] Loaded ${filtered.length} items for page=$page, itemsPerPage=$itemsPerPage, offset=$offset');
+        return filtered;
       }
 
       return variants;
