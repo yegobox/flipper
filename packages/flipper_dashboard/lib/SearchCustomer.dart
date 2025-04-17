@@ -20,6 +20,7 @@ class CustomDropdownButton extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final String label;
   final IconData? icon;
+  final bool compact;
 
   const CustomDropdownButton({
     Key? key,
@@ -28,6 +29,7 @@ class CustomDropdownButton extends StatefulWidget {
     required this.onChanged,
     required this.label,
     this.icon,
+    this.compact = false,
   }) : super(key: key);
 
   @override
@@ -81,7 +83,9 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
       key: _dropdownKey,
       onTap: _showDropdown,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(
+            horizontal: widget.compact ? 8 : 12,
+            vertical: widget.compact ? 6 : 8),
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(8),
@@ -90,17 +94,21 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.icon != null)
-              Icon(widget.icon, size: 16, color: Colors.black54),
-            if (widget.icon != null) const SizedBox(width: 4),
-            Text(
-              widget.selectedItem,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 14,
+              Icon(widget.icon,
+                  size: widget.compact ? 14 : 16, color: Colors.black54),
+            if (widget.icon != null) SizedBox(width: widget.compact ? 2 : 4),
+            Flexible(
+              child: Text(
+                widget.selectedItem,
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: widget.compact ? 12 : 14,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.arrow_drop_down, size: 20),
+            SizedBox(width: widget.compact ? 2 : 4),
+            Icon(Icons.arrow_drop_down, size: widget.compact ? 16 : 20),
           ],
         ),
       ),
@@ -266,6 +274,9 @@ class _SearchInputWithDropdownState
       customerProvider((id: transaction.value?.customerId ?? '')),
     );
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobileWidth = screenWidth < 600;
+
     return attachedCustomerFuture.when(
       data: (attachedCustomer) {
         return Container(
@@ -273,99 +284,9 @@ class _SearchInputWithDropdownState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                readOnly: attachedCustomer != null,
-                controller: _searchController,
-                onChanged: _performSearch,
-                decoration: InputDecoration(
-                  hintText: 'Search Customer',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Customer Type Dropdown
-                      CustomDropdownButton(
-                        items: _customerTypes,
-                        selectedItem: _selectedCustomerType,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedCustomerType = newValue;
-                          });
-                        },
-                        label: 'Customer Type',
-                        icon: Icons.person,
-                      ),
-                      const SizedBox(width: 8),
-                      // Sale Type Dropdown
-                      CustomDropdownButton(
-                        items: _saleTypes,
-                        selectedItem: _selectedSaleType,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedSaleType = newValue;
-                            if (newValue == "Outgoing Sale") {
-                              ProxyService.box.writeString(
-                                  key: 'stockInOutType', value: "11");
-                            } else if (newValue == "Incoming Return") {
-                              /// TODO: The retrieved transaction should be marked as pending,
-                              /// making it the new active transaction, while the
-                              /// previously active one is parked. Then, after confirming the return,
-                              /// Final Logic Summary
-                              // ✅ Step 1: User enters receipt number.
-                              // ✅ Step 2: Retrieve transaction & items.
-                              // ✅ Step 3: Park the old transaction and activate the retrieved one (this make it to be current pending transaction).
-                              // ✅ Step 4: User confirms return → Save the return. (The Actions button has become Confirm Return)
-                              // ✅ Step 5: Restore the old pending transaction and update UI. we restore the old pending transaction.
-                              /// Flow->
-                              /// show the modal, for a user to give receipt number
-                              /// query the transaction item, using this given receipt number
-                              /// first retrieve this transaction using ProxyService.strategy.getTransaction(sarNo: 'given receiptnumber',branchId: ProxyService.box.getBranchId()!)
-                              /// then
-                              ///
-                              /// retrieve the items using the above transaction using ProxyService.strategy.transactionItems(transactionId: retrievedTransactionId)
-                              /// mark the item as not done with transaction
-                              /// mark the current pending transaction as parked and save its id temporarily
-                              /// then mark the transaction that has retrieved these item as pending (this make it the active one)
-                              /// change action button from Pay-> confirm return
-                              /// When we are deaking with return only 1 button show and it does not involves payment, it just complete transaction
-                              ///
-                              /// finally save a return.
-                              ProxyService.box.writeString(
-                                  key: 'stockInOutType', value: "03");
-                            }
-                          });
-                        },
-                        label: 'Sale Type',
-                        icon: Icons.shopping_cart,
-                      ),
-                      attachedCustomer != null
-                          ? IconButton(
-                              icon: const Icon(
-                                FluentIcons.person_delete_20_regular,
-                                color: Colors.red,
-                              ),
-                              onPressed: _removeCustomer,
-                            )
-                          : IconButton(
-                              onPressed: () {
-                                locator<RouterService>()
-                                    .navigateTo(CustomersRoute());
-                              },
-                              icon: const Icon(
-                                FluentIcons.person_add_16_regular,
-                                color: Colors.blue,
-                              ),
-                            ),
-                    ],
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                ),
-              ),
+              isMobileWidth
+                  ? _buildMobileLayout(attachedCustomer)
+                  : _buildDesktopLayout(attachedCustomer),
               const SizedBox(height: 16.0),
               if (_searchResults.isNotEmpty)
                 ListView.builder(
@@ -395,6 +316,156 @@ class _SearchInputWithDropdownState
       },
       loading: () => const SizedBox.shrink(),
       error: (err, stack) => Center(child: Text('Error: $err')),
+    );
+  }
+
+  Widget _buildMobileLayout(Customer? attachedCustomer) {
+    return Column(
+      children: [
+        TextFormField(
+          readOnly: attachedCustomer != null,
+          controller: _searchController,
+          onChanged: _performSearch,
+          decoration: InputDecoration(
+            hintText: 'Search Customer',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: attachedCustomer != null
+                ? IconButton(
+                    icon: const Icon(
+                      FluentIcons.person_delete_20_regular,
+                      color: Colors.red,
+                    ),
+                    onPressed: _removeCustomer,
+                  )
+                : IconButton(
+                    onPressed: () {
+                      locator<RouterService>().navigateTo(CustomersRoute());
+                    },
+                    icon: const Icon(
+                      FluentIcons.person_add_16_regular,
+                      color: Colors.blue,
+                    ),
+                  ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.0),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.grey[200],
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Row(
+          children: [
+            Expanded(
+              child: CustomDropdownButton(
+                items: _customerTypes,
+                selectedItem: _selectedCustomerType,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedCustomerType = newValue;
+                  });
+                },
+                label: 'Customer Type',
+                icon: Icons.person,
+                compact: true,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: CustomDropdownButton(
+                items: _saleTypes,
+                selectedItem: _selectedSaleType,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedSaleType = newValue;
+                    if (newValue == "Outgoing Sale") {
+                      ProxyService.box
+                          .writeString(key: 'stockInOutType', value: "11");
+                    } else if (newValue == "Incoming Return") {
+                      ProxyService.box
+                          .writeString(key: 'stockInOutType', value: "03");
+                    }
+                  });
+                },
+                label: 'Sale Type',
+                icon: Icons.shopping_cart,
+                compact: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(Customer? attachedCustomer) {
+    return TextFormField(
+      readOnly: attachedCustomer != null,
+      controller: _searchController,
+      onChanged: _performSearch,
+      decoration: InputDecoration(
+        hintText: 'Search Customer',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomDropdownButton(
+              items: _customerTypes,
+              selectedItem: _selectedCustomerType,
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedCustomerType = newValue;
+                });
+              },
+              label: 'Customer Type',
+              icon: Icons.person,
+            ),
+            const SizedBox(width: 8),
+            CustomDropdownButton(
+              items: _saleTypes,
+              selectedItem: _selectedSaleType,
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedSaleType = newValue;
+                  if (newValue == "Outgoing Sale") {
+                    ProxyService.box
+                        .writeString(key: 'stockInOutType', value: "11");
+                  } else if (newValue == "Incoming Return") {
+                    ProxyService.box
+                        .writeString(key: 'stockInOutType', value: "03");
+                  }
+                });
+              },
+              label: 'Sale Type',
+              icon: Icons.shopping_cart,
+            ),
+            attachedCustomer != null
+                ? IconButton(
+                    icon: const Icon(
+                      FluentIcons.person_delete_20_regular,
+                      color: Colors.red,
+                    ),
+                    onPressed: _removeCustomer,
+                  )
+                : IconButton(
+                    onPressed: () {
+                      locator<RouterService>().navigateTo(CustomersRoute());
+                    },
+                    icon: const Icon(
+                      FluentIcons.person_add_16_regular,
+                      color: Colors.blue,
+                    ),
+                  ),
+          ],
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+      ),
     );
   }
 }
