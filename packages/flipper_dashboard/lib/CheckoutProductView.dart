@@ -109,9 +109,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                   },
                 ),
               ),
-
-              // Bottom action bar
-              _buildBottomActionBar(),
             ],
           ),
         ),
@@ -197,58 +194,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
             SizedBox(height: 16),
             Text('Loading products...'),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomActionBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, -1),
-            blurRadius: 5,
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Consumer(
-          builder: (context, ref, _) {
-            final variantsAsync = ref.watch(
-                outerVariantsProvider(ProxyService.box.getBranchId() ?? 0));
-
-            return ElevatedButton(
-              onPressed: variantsAsync.maybeWhen(
-                data: (variants) => variants.isNotEmpty
-                    ? () {
-                        // Implement preview cart functionality
-                      }
-                    : null,
-                orElse: () => null,
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                minimumSize: const Size(double.infinity, 0),
-              ),
-              child: const Text(
-                'Preview Cart',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            );
-          },
         ),
       ),
     );

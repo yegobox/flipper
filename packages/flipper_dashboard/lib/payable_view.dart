@@ -33,35 +33,51 @@ class PayableView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactionsAsync = ref.watch(transactionsProvider);
+    // Get the current screen width to determine layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Threshold for switching to vertical layout
+    final isSmallScreen = screenWidth < 600;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            child: SizedBox(
-              height: 64,
-              child: TextButton(
-                style: secondaryButtonStyle,
-                onPressed: () {
-                  ticketHandler();
-                },
-                child: transactionsAsync.when(
-                  data: (transactions) => _buildTicket(
-                    tickets: transactions.length,
-                    transactions: transactions.length,
-                    context: context,
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Error: $error'),
-                ),
+      child: isSmallScreen
+          ? _buildVerticalLayout(context, ref, transactionsAsync)
+          : _buildHorizontalLayout(context, ref, transactionsAsync),
+    );
+  }
+
+  // Vertical layout for small screens and mobile
+  Widget _buildVerticalLayout(BuildContext context, WidgetRef ref,
+      AsyncValue<List<ITransaction>> transactionsAsync) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        SizedBox(
+          height: 64,
+          width: double.infinity,
+          child: TextButton(
+            style: secondaryButtonStyle,
+            onPressed: () {
+              ticketHandler();
+            },
+            child: transactionsAsync.when(
+              data: (transactions) => _buildTicket(
+                tickets: transactions.length,
+                transactions: transactions.length,
+                context: context,
+                isCompact: true,
               ),
+              loading: () => const CircularProgressIndicator(),
+              error: (error, stack) => Text('Error: $error'),
             ),
-          ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
-          const SizedBox(width: 10)
-              .shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
-          PreviewSaleButton(
+          ),
+        ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
+        const SizedBox(height: 10)
+            .shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
+        SizedBox(
+          height: 64,
+          width: double.infinity,
+          child: PreviewSaleButton(
             digitalPaymentEnabled: digitalPaymentEnabled,
             transactionId: transactionId,
             mode: mode,
@@ -69,8 +85,49 @@ class PayableView extends HookConsumerWidget {
             completeTransaction: completeTransaction,
             previewCart: previewCart,
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  // Horizontal layout for larger screens
+  Widget _buildHorizontalLayout(BuildContext context, WidgetRef ref,
+      AsyncValue<List<ITransaction>> transactionsAsync) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: SizedBox(
+            height: 64,
+            child: TextButton(
+              style: secondaryButtonStyle,
+              onPressed: () {
+                ticketHandler();
+              },
+              child: transactionsAsync.when(
+                data: (transactions) => _buildTicket(
+                  tickets: transactions.length,
+                  transactions: transactions.length,
+                  context: context,
+                  isCompact: false,
+                ),
+                loading: () => const CircularProgressIndicator(),
+                error: (error, stack) => Text('Error: $error'),
+              ),
+            ),
+          ),
+        ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
+        const SizedBox(width: 10)
+            .shouldSeeTheApp(ref, featureName: AppFeature.Tickets),
+        PreviewSaleButton(
+          digitalPaymentEnabled: digitalPaymentEnabled,
+          transactionId: transactionId,
+          mode: mode,
+          wording: wording ?? "Pay",
+          completeTransaction: completeTransaction,
+          previewCart: previewCart,
+        ),
+      ],
     );
   }
 
@@ -78,10 +135,33 @@ class PayableView extends HookConsumerWidget {
     required int tickets,
     required int transactions,
     required BuildContext context,
+    required bool isCompact,
   }) {
     final bool hasTickets = tickets > 0;
     final bool hasNoTransactions = transactions == 0;
 
+    if (isCompact) {
+      // More compact version for small screens
+      return hasTickets || hasNoTransactions
+          ? Text(
+              FLocalization.of(context).tickets,
+              textAlign: TextAlign.center,
+              style: primaryTextStyle.copyWith(
+                fontWeight: FontWeight.w400,
+                fontSize: 16,
+              ),
+            )
+          : Text(
+              FLocalization.of(context).save,
+              textAlign: TextAlign.center,
+              style: primaryTextStyle.copyWith(
+                fontWeight: FontWeight.w400,
+                fontSize: 16,
+              ),
+            );
+    }
+
+    // Original version for larger screens
     return hasTickets || hasNoTransactions
         ? Text(
             FLocalization.of(context).tickets,
