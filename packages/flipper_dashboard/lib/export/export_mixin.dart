@@ -57,7 +57,8 @@ mixin ExportMixin on ConsumerState {
         final excel.Worksheet reportSheet = workbook.worksheets[0];
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
-        // Export the data directly from the transactions in config
+        // Always manually add transaction data to ensure the Report sheet has data
+        print("Adding ${config.transactions.length} transactions to Excel");
         _addTransactionsToExcel(reportSheet, config.transactions);
 
         if (!isStockRecount) {
@@ -68,16 +69,13 @@ mixin ExportMixin on ConsumerState {
           final styler = ExcelUtils.createExcelStyler(workbook);
 
           // Get the last row with data to determine where to add headers and info
-          int lastRow = 1;
-          while (reportSheet.getRangeByIndex(lastRow, 1).text != null &&
-              reportSheet.getRangeByIndex(lastRow, 1).text!.isNotEmpty) {
-            lastRow++;
-          }
+          int lastRow = reportSheet.getLastRow();
+          print("Last row with data: $lastRow");
 
           // Add a few blank rows for spacing
           lastRow += 2;
 
-          // Use the utility classes directly with the correct starting row
+          // Add header and info rows
           await ExcelUtils.addHeaderAndInfoRows(
             reportSheet: reportSheet,
             styler: styler,
@@ -88,6 +86,7 @@ mixin ExportMixin on ConsumerState {
             startRow: lastRow,
           );
 
+          // Add closing balance row
           ExcelUtils.addClosingBalanceRow(
             reportSheet,
             styler,
@@ -96,8 +95,10 @@ mixin ExportMixin on ConsumerState {
             startRow: lastRow + 5, // Adjust based on header rows
           );
 
+          // Format columns
           ExcelUtils.formatColumns(reportSheet, config.currencyFormat);
 
+          // Add expenses sheet if available
           if (expenses != null && expenses.isNotEmpty) {
             ExcelUtils.addExpensesSheet(
               workbook,
@@ -107,6 +108,7 @@ mixin ExportMixin on ConsumerState {
             );
           }
 
+          // Add payment method sheet
           await ExcelUtils.addPaymentMethodSheet(
             workbook,
             config,
@@ -131,7 +133,10 @@ mixin ExportMixin on ConsumerState {
   /// Helper method to add transactions to Excel
   void _addTransactionsToExcel(
       excel.Worksheet sheet, List<ITransaction> transactions) {
-    print("Adding ${transactions.length} transactions to Excel");
+    if (transactions.isEmpty) {
+      print("No transactions to add to Excel");
+      return;
+    }
 
     // Define column names
     final List<String> columnNames = [
@@ -159,12 +164,14 @@ mixin ExportMixin on ConsumerState {
       // Date
       if (transaction.createdAt != null) {
         sheet.getRangeByIndex(rowIndex, 1).setDateTime(transaction.createdAt!);
+        print("Added date: ${transaction.createdAt} at row $rowIndex");
       } else {
         sheet.getRangeByIndex(rowIndex, 1).setText('');
       }
 
       // Transaction ID
       sheet.getRangeByIndex(rowIndex, 2).setText(transaction.id);
+      print("Added transaction ID: ${transaction.id} at row $rowIndex");
 
       // Customer
       String customerName = 'Walk-in Customer';
@@ -178,6 +185,7 @@ mixin ExportMixin on ConsumerState {
       if (transaction.cashReceived != null) {
         sheet.getRangeByIndex(rowIndex, 4).setNumber(transaction.cashReceived!);
         sheet.getRangeByIndex(rowIndex, 4).numberFormat = '#,##0.00';
+        print("Added total: ${transaction.cashReceived} at row $rowIndex");
       } else {
         sheet.getRangeByIndex(rowIndex, 4).setText('0.00');
       }
@@ -202,6 +210,10 @@ mixin ExportMixin on ConsumerState {
     for (int i = 1; i <= columnNames.length; i++) {
       sheet.autoFitColumn(i);
     }
+
+    print("Finished adding ${transactions.length} transactions to Excel");
+    print(
+        "Sheet now has ${sheet.getLastRow()} rows and ${sheet.getLastColumn()} columns");
   }
 
   /// Helper function for requesting permissions
