@@ -89,7 +89,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                   builder: (context, ref, _) {
                     return ref
                         .watch(outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? 0))
+                            ProxyService.box.getBranchId() ?? 0,
+                            fetchRemote: true))
                         .when(
                           data: (variants) {
                             if (variants.isEmpty) {

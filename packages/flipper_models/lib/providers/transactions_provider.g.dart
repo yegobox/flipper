@@ -364,7 +364,7 @@ class _ExpensesStreamProviderElement
   int? get branchId => (origin as ExpensesStreamProvider).branchId;
 }
 
-String _$netProfitStreamHash() => r'4806ce8e2fe971872c6df150a25a2f92bd706083';
+String _$netProfitStreamHash() => r'65379b57513ada4e739e070f25bfce289fc9a1d7';
 
 /// See also [netProfitStream].
 @ProviderFor(netProfitStream)
@@ -527,7 +527,7 @@ class _NetProfitStreamProviderElement
   int? get branchId => (origin as NetProfitStreamProvider).branchId;
 }
 
-String _$grossProfitStreamHash() => r'0aa92aa99f6ee193cea1e417c02d85b31d71183c';
+String _$grossProfitStreamHash() => r'2bcfc75a48a00bb8930f83d532f303bbe9241f40';
 
 /// See also [grossProfitStream].
 @ProviderFor(grossProfitStream)
@@ -690,7 +690,7 @@ class _GrossProfitStreamProviderElement
   int? get branchId => (origin as GrossProfitStreamProvider).branchId;
 }
 
-String _$totalIncomeStreamHash() => r'3cac71976e9f5df3dc716dca6a0a80386f2e764f';
+String _$totalIncomeStreamHash() => r'9a991821d8aa3d9db713a855407c6f30607af810';
 
 /// See also [totalIncomeStream].
 @ProviderFor(totalIncomeStream)

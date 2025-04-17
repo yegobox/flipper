@@ -14,17 +14,18 @@ class OuterVariants extends _$OuterVariants {
   bool _isLoading = false;
 
   @override
-  FutureOr<List<Variant>> build(int branchId) async {
+  FutureOr<List<Variant>> build(int branchId, {fetchRemote = false}) async {
     // Reset state when the provider is rebuilt (e.g., branchId changes)
     _currentPage = 0;
     _hasMore = true;
     _isLoading = false;
 
     // Load initial variants
-    return await _loadVariants(branchId);
+    return await _loadVariants(branchId, fetchRemote: fetchRemote);
   }
 
-  Future<List<Variant>> _loadVariants(int branchId) async {
+  Future<List<Variant>> _loadVariants(int branchId,
+      {bool fetchRemote = false}) async {
     // Early return if already loading or no more items to load
     if (_isLoading || !_hasMore) return [];
 
@@ -39,7 +40,7 @@ class OuterVariants extends _$OuterVariants {
       List<Variant> variants = await ProxyService.strategy
           .variants(
             name: searchString,
-            fetchRemote: false, // First try locally
+            fetchRemote: fetchRemote, // First try locally
             branchId: branchId,
             page: _currentPage,
             itemsPerPage: _itemsPerPage,

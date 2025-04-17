@@ -23,7 +23,7 @@ dependencies:
   mockito: ^5.4.5
   brick_offline_first: ^4.0.0
   sqflite_common_ffi_web: ^1.0.0
-  flutter_blue_plus: ^1.35.3
+  flutter_blue_plus: ^1.35.4
 dependency_overrides: 
   device_info_plus: ^11.2.2
   
