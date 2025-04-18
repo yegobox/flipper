@@ -6,32 +6,35 @@ import 'package:flutter/material.dart';
 class CustomSegmentedButton<T> extends StatelessWidget {
   final List<ButtonSegment<T>> segments;
   final Set<T> selected;
-  final void Function(Set<T>) onSelectionChanged;
+  final void Function(Set<T>)? onSelectionChanged;
   final Color? selectedBackgroundColor;
   final Color? unselectedBackgroundColor;
   final Color? selectedForegroundColor;
   final Color? unselectedForegroundColor;
   final Color? borderColor;
   final double borderRadius;
+  final bool enabled;
   
   const CustomSegmentedButton({
     Key? key,
     required this.segments,
     required this.selected,
-    required this.onSelectionChanged,
+    required void Function(Set<T>) onSelectionChanged,
     this.selectedBackgroundColor,
     this.unselectedBackgroundColor = Colors.white,
     this.selectedForegroundColor = Colors.white,
     this.unselectedForegroundColor,
     this.borderColor,
     this.borderRadius = 4.0,
-  }) : super(key: key);
+    this.enabled = true,
+  }) : onSelectionChanged = enabled ? onSelectionChanged : null,
+       super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
-    return SegmentedButton<T>(
+    Widget button = SegmentedButton<T>(
       style: ButtonStyle(
         backgroundColor: WidgetStateProperty.resolveWith<Color>(
           (Set<WidgetState> states) {
@@ -61,7 +64,16 @@ class CustomSegmentedButton<T> extends StatelessWidget {
       ),
       segments: segments,
       selected: selected,
-      onSelectionChanged: onSelectionChanged,
+      onSelectionChanged: enabled ? onSelectionChanged : null,
     );
+
+    if (!enabled) {
+      button = Opacity(
+        opacity: 0.5,
+        child: IgnorePointer(child: button),
+      );
+    }
+
+    return button;
   }
 }

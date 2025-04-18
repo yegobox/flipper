@@ -108,11 +108,13 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                   ButtonSegment<String>(
                     value: 'cart',
                     label: Text('Cart'),
+                    enabled: false,
                     icon: Icon(FluentIcons.cart_20_regular, size: 18),
                   ),
                   ButtonSegment<String>(
                     value: 'payment',
                     label: Text('Payment'),
+                    enabled: false,
                     icon: Icon(FluentIcons.payment_20_regular, size: 18),
                   ),
                 ],
