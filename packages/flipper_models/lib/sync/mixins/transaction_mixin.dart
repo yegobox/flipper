@@ -732,7 +732,7 @@ mixin TransactionMixin implements TransactionInterface {
       Where('subTotal').isGreaterThan(0),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
-      Where('isExpense').isExactly(isCashOut),
+      if (isCashOut) Where('isExpense').isExactly(isCashOut),
       if (removeAdjustmentTransactions)
         Where('transactionType').isNot('Adjustment'),
     ];
