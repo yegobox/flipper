@@ -12,7 +12,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'widgets/dropdown.dart';
 
 class Cashbook extends StatefulHookConsumerWidget {
-  Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
+  const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
   final bool isBigScreen;
 
   @override
@@ -25,154 +25,123 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) async {},
       builder: (context, model, child) {
         return Scaffold(
-          appBar: buildCustomAppBar(model),
-          body: buildBody(context, model),
+          appBar: _buildAppBar(),
+          body: _buildBody(model),
         );
       },
     );
   }
 
-  PreferredSizeWidget buildCustomAppBar(CoreViewModel model) {
+  PreferredSizeWidget _buildAppBar() {
     return AppBar(
       leading: IconButton(
-        icon: Icon(Icons.close),
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
+        icon: const Icon(Icons.close),
+        onPressed: () => Navigator.of(context).pop(),
       ),
       actions: [datePicker()],
-      title: Text('Cash Book'),
+      title: const Text('Cash Book'),
     );
   }
 
-  Widget buildBody(BuildContext context, CoreViewModel model) {
+  Widget _buildBody(CoreViewModel model) {
     return Column(
       children: [
-        buildTransactionSection(context, model),
-        const SizedBox(height: 31), // Use const for static widgets
+        Expanded(
+          child: _buildMainContent(model),
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
 
-  Widget buildDropdowns(CoreViewModel model) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0), // Add padding
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ReusableDropdown(
-            options: model.transactionPeriodOptions,
-            selectedOption: model.transactionPeriod,
-            onChanged: (String? newPeriod) {
-              model.transactionPeriod = newPeriod!;
-            },
-          ),
-          ReusableDropdown(
-            options: model.profitTypeOptions,
-            selectedOption: model.profitType,
-            onChanged: (String? newProfitType) {
-              model.profitType = newProfitType!;
-              model.notifyListeners();
-            },
-          ),
-        ],
-      ),
-    );
+  Widget _buildMainContent(CoreViewModel model) {
+    return model.newTransactionPressed
+        ? _buildTransactionEntry(model)
+        : _buildTransactionList(model);
   }
 
-  Widget buildTransactionSection(BuildContext context, CoreViewModel model) {
-    return Expanded(
-      child: model.newTransactionPressed
-          ? buildNewTransactionContent(context, model)
-          : buildTransactionListContent(model),
-    );
-  }
-
-  Widget buildTransactionListContent(CoreViewModel model) {
-    // Use the dedicated dashboard transactions provider
+  Widget _buildTransactionList(CoreViewModel model) {
     final transactionData = ref.watch(dashboardTransactionsProvider);
     final dateRange = ref.watch(dateRangeProvider);
-    final startDate = dateRange.startDate;
-    final endDate = dateRange.endDate;
+
     return Column(
       children: [
-        const SizedBox(height: 5), // Use const for static widgets
+        const SizedBox(height: 5),
         Expanded(
           child: BuildGaugeOrList(
-            startDate: startDate,
-            endDate: endDate,
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
             context: context,
             model: model,
             widgetType: 'list',
             data: transactionData,
           ),
         ),
-        buildTransactionButtons(model),
+        _buildActionButtons(model),
       ],
     );
   }
 
-  Widget buildTransactionButtons(CoreViewModel model) {
+  Widget _buildActionButtons(CoreViewModel model) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: FlipperButton(
-                text: TransactionType.cashIn,
-                color: Colors.green,
-                onPressed: () {
-                  model.newTransactionPressed = true;
-                  model.newTransactionType = TransactionType.cashIn;
-                  model.notifyListeners();
-                },
-              ),
-            ),
+          _buildTransactionButton(
+            text: TransactionType.cashIn,
+            color: Colors.green,
+            onPressed: () =>
+                _startNewTransaction(model, TransactionType.cashIn),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: FlipperButton(
-                text: TransactionType.cashOut,
-                color: const Color(0xFFFF0331),
-                onPressed: () {
-                  model.newTransactionPressed = true;
-                  model.newTransactionType = TransactionType.cashOut;
-                  model.notifyListeners();
-                },
-              ),
-            ),
+          _buildTransactionButton(
+            text: TransactionType.cashOut,
+            color: const Color(0xFFFF0331),
+            onPressed: () =>
+                _startNewTransaction(model, TransactionType.cashOut),
           ),
         ],
       ),
     );
   }
 
-  Widget buildNewTransactionContent(BuildContext context, CoreViewModel model) {
-    return Column(
-      children: [
-        Expanded(
-          child: KeyPadView.cashBookMode(
-            onConfirm: () {
-              // Handle the pop action here
-              Navigator.of(context).pop();
-              model.newTransactionPressed = false;
-              model.notifyListeners();
-            },
-            model: model,
-            isBigScreen: widget.isBigScreen,
-            accountingMode: true,
-            transactionType: model.newTransactionType,
-          ),
+  Widget _buildTransactionButton({
+    required String text,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: FlipperButton(
+          text: text,
+          color: color,
+          onPressed: onPressed,
         ),
-      ],
+      ),
     );
+  }
+
+  void _startNewTransaction(CoreViewModel model, String transactionType) {
+    model.newTransactionPressed = true;
+    model.newTransactionType = transactionType;
+    model.notifyListeners();
+  }
+
+  Widget _buildTransactionEntry(CoreViewModel model) {
+    return KeyPadView.cashBookMode(
+      onConfirm: () => _finishTransaction(model),
+      model: model,
+      isBigScreen: widget.isBigScreen,
+      accountingMode: true,
+      transactionType: model.newTransactionType,
+    );
+  }
+
+  void _finishTransaction(CoreViewModel model) {
+    Navigator.of(context).pop();
+    model.newTransactionPressed = false;
+    model.notifyListeners();
   }
 }

@@ -73,7 +73,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
               child: Icon(Icons.arrow_back_ios_new,
                   size: 16, color: colorScheme.primary),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
           title: const Text(
             'Checkout',
