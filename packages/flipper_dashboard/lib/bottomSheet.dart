@@ -152,8 +152,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
 
                               if (Navigator.of(context).canPop())
                                 Navigator.of(context).pop();
-                              if (Navigator.of(context).canPop())
-                                Navigator.of(context).pop();
                             } catch (e) {
                               completer.complete(false);
                               ScaffoldMessenger.of(context).showSnackBar(
