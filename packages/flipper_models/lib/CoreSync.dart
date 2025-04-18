@@ -3738,7 +3738,7 @@ class CoreSync extends AiStrategyImpl
   Future<bool> isBranchEnableForPayment(
       {required String currentBranchId}) async {
     final payment_status = await repository.get<BranchPaymentIntegration>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           brick.Where('branchId').isExactly(currentBranchId),
           brick.Where('isEnabled').isExactly(true),
