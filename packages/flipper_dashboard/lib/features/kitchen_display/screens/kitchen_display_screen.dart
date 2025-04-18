@@ -186,11 +186,11 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         customerChangeDue: order.customerChangeDue,
         createdAt: order.createdAt,
         receiptType: order.receiptType,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
         customerId: order.customerId,
         customerType: order.customerType,
         note: order.note,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         supplierId: order.supplierId,
         ebmSynced: order.ebmSynced,
         isIncome: order.isIncome,
@@ -215,7 +215,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
             ? null
             : (
                 toStatus == OrderStatus.inProgress && order.isLoan != true
-                  ? (order.dueDate ?? DateTime.now().add(const Duration(minutes: 30)).toUtc())
+                  ? (order.dueDate ?? DateTime.now().toUtc().add(const Duration(minutes: 30)))
                   : order.dueDate?.toUtc()
               ),
       );

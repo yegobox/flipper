@@ -177,7 +177,7 @@ class NewTicketState extends State<NewTicket> {
                                       _isLoan = val ?? false;
                                       // If checked, set default due date if not already set
                                       if (_isLoan && _dueDate == null) {
-                                        _dueDate = DateTime.now().add(const Duration(days: 7));
+                                        _dueDate = DateTime.now().toUtc().add(const Duration(days: 7));
                                       }
                                       // If unchecked, clear due date
                                       if (!_isLoan) {
@@ -200,9 +200,9 @@ class NewTicketState extends State<NewTicket> {
                                     onTap: () async {
                                       DateTime? picked = await showDatePicker(
                                         context: context,
-                                        initialDate: _dueDate ?? DateTime.now().add(const Duration(days: 7)),
-                                        firstDate: DateTime.now(),
-                                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                                        initialDate: _dueDate ?? DateTime.now().toUtc().add(const Duration(days: 7)),
+                                        firstDate: DateTime.now().toUtc(),
+                                        lastDate: DateTime.now().toUtc().add(const Duration(days: 365)),
                                       );
                                       if (picked != null) {
                                         setState(() {

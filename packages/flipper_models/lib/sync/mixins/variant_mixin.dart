@@ -158,7 +158,7 @@ mixin VariantMixin implements VariantInterface {
               active: map['active'],
               branchId: branchId,
               name: map['name'],
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               value: map['value']);
 
           // Add the unit to db
@@ -247,7 +247,7 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].supplyPrice = supplyPrice;
       }
 
-      updatables[i].lastTouched = DateTime.now().toLocal();
+      updatables[i].lastTouched = DateTime.now().toUtc();
 
       await repository.upsert<Variant>(updatables[i]);
     }
@@ -270,7 +270,7 @@ mixin VariantMixin implements VariantInterface {
       talker.debug('Fetching expired items for branch $branchId');
 
       // Calculate the date threshold for expiring soon items
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
       final expiryThreshold =
           daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
 

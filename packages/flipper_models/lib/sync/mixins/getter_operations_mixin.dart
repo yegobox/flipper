@@ -281,14 +281,14 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     DateTime temporaryDate;
 
     if (period == 'Today') {
-      DateTime tempToday = DateTime.now();
+      DateTime tempToday = DateTime.now().toUtc();
       oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
     } else if (period == 'This Week') {
-      oldDate = DateTime.now().subtract(Duration(days: 7));
+      oldDate = DateTime.now().toUtc().subtract(Duration(days: 7));
     } else if (period == 'This Month') {
-      oldDate = DateTime.now().subtract(Duration(days: 30));
+      oldDate = DateTime.now().toUtc().subtract(Duration(days: 30));
     } else {
-      oldDate = DateTime.now().subtract(Duration(days: 365));
+      oldDate = DateTime.now().toUtc().subtract(Duration(days: 365));
     }
 
     List<ITransaction> transactionsList = await transactions();

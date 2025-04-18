@@ -306,7 +306,7 @@ class TaxController<OBJ> {
 
       Receipt? receipt =
           await ProxyService.strategy.getReceipt(transactionId: transaction.id);
-      DateTime now = DateTime.now();
+      DateTime now = DateTime.now().toUtc();
 
       RwApiResponse receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
@@ -348,7 +348,7 @@ class TaxController<OBJ> {
             transactionType: transaction.transactionType,
             cashReceived: transaction.cashReceived,
             customerChangeDue: transaction.customerChangeDue,
-            createdAt: transaction.createdAt ?? DateTime.now(),
+            createdAt: transaction.createdAt ?? DateTime.now().toUtc(),
             receiptType: receiptType,
             updatedAt: transaction.updatedAt,
             customerId: transaction.customerId,
@@ -391,7 +391,7 @@ class TaxController<OBJ> {
               item: copy,
               variation: variant,
               partOfComposite: item.partOfComposite ?? false,
-              lastTouched: item.lastTouched ?? DateTime.now(),
+              lastTouched: item.lastTouched ?? DateTime.now().toUtc(),
               discount: item.discount,
               compositePrice: item.compositePrice ?? 0.0,
               quantity: item.qty,
@@ -468,7 +468,7 @@ class TaxController<OBJ> {
       totalNsSaleIncome: receiptType == "NS"
           ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal!
           : drawer.totalNsSaleIncome ?? 0,
-      openingDateTime: DateTime.now(),
+      openingDateTime: DateTime.now().toUtc(),
       open: true,
     );
   }
