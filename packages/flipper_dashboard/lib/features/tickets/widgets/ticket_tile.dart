@@ -72,6 +72,31 @@ class TicketTile extends StatelessWidget {
                                 color: Colors.grey[400],
                               ),
                             ),
+                            // LOAN BADGE
+                            if (ticket.isLoan == true) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.orange,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  'LOAN',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: Colors.orange[800],
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -106,7 +131,7 @@ class TicketTile extends StatelessWidget {
                   ),
 
                   // Only show status on the right for larger screens
-                  if (!isSmallScreen)
+                  if (!isSmallScreen && ticket.isLoan != true)
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
@@ -128,7 +153,7 @@ class TicketTile extends StatelessWidget {
               ),
 
               // For small screens, show status below in full width
-              if (isSmallScreen)
+              if (isSmallScreen && ticket.isLoan != true)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Container(
