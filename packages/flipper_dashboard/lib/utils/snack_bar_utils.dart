@@ -5,6 +5,7 @@ void showCustomSnackBarUtil(
   BuildContext context,
   String message, {
   Color? backgroundColor,
+  Duration duration = const Duration(seconds: 4),
 }) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -19,6 +20,7 @@ void showCustomSnackBarUtil(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
+      duration: duration,
     ),
   );
 }

@@ -55,6 +55,10 @@ class _OrderCardState extends ConsumerState<OrderCard> {
     // Only allow setting due date for orders in the incoming column
     bool canSetDueDate = status == OrderStatus.incoming;
 
+    // Show due date chip for non-incoming columns if due date exists
+    final bool showDueDateChip =
+        status != OrderStatus.incoming && order.dueDate != null;
+
     // Get transaction items asynchronously
     final transactionItemsAsync = ref.watch(transactionItemsProvider(order.id));
 
@@ -101,8 +105,30 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                       fontSize: 14,
                     ),
                   ),
-                  // Show due date if present
-                  if (dueDateStr != null)
+                  // Show due date chip for non-incoming columns
+                  if (showDueDateChip)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Chip(
+                        avatar: const Icon(Icons.event,
+                            size: 16, color: Colors.deepPurple),
+                        label: Text(
+                          dueDateStr != null ? dueDateStr : '',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
+                        backgroundColor: Colors.deepPurple.withOpacity(0.1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  // Existing due date display for all columns (keep for incoming)
+                  if (!showDueDateChip && dueDateStr != null)
                     Padding(
                       padding: const EdgeInsets.only(left: 10),
                       child: Row(
