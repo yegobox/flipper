@@ -14,6 +14,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
@@ -144,6 +145,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     _amountController.clear();
     _descriptionController.clear();
 
+    // Reset the keypad provider to ensure it's in a clean state
+    ref.read(keypadProvider.notifier).reset();
+
     model.newTransactionPressed = true;
     model.newTransactionType = transactionType;
     model.notifyListeners();
@@ -198,6 +202,14 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 return null;
               },
               autofocus: true,
+              onChanged: (value) {
+                // Update the keypad provider with the current amount
+                if (value.isNotEmpty && double.tryParse(value) != null) {
+                  ref.read(keypadProvider.notifier).addKey(value);
+                  // We don't need to call keyboardKeyPressed here
+                  // It will be called in _saveTransaction when needed
+                }
+              },
             ),
             const SizedBox(height: 16),
 
@@ -280,7 +292,15 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final transactionType = model.newTransactionType;
 
     try {
+      // Make sure the keypad provider is updated with the current amount
+      ref.read(keypadProvider.notifier).reset();
+      ref.read(keypadProvider.notifier).addKey(_amountController.text);
+
+      talker.info("Starting transaction save with amount: $amount");
+      talker.info("Transaction type: $transactionType, isIncome: $isIncome");
+
       await _saveTransaction(
+        model: model,
         paymentType: ProxyService.box.paymentType() ?? "Cash",
         cashReceived: amount,
         discount: 0,
@@ -312,6 +332,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Future<void> _saveTransaction({
+    required CoreViewModel model,
     required String paymentType,
     required double cashReceived,
     required int discount,
@@ -322,6 +343,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     try {
       // Use a lock to ensure transaction operations are atomic
       await _lock.synchronized(() async {
+        talker.info("Inside _lock.synchronized");
+
         // First, ensure we have a transaction by calling manageTransaction directly
         ITransaction? pendingTransaction =
             await ProxyService.strategy.manageTransaction(
@@ -335,8 +358,14 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           return;
         }
 
+        talker.info(
+            "Created pending transaction with ID: ${pendingTransaction.id}");
+
         // Now that we have a valid transaction, we can proceed
+        // CRITICAL DIFFERENCE: In the original implementation, the transactionType parameter is not passed
         // This is equivalent to the keyboardKeyPressed call in the original implementation
+
+        talker.info("Called keyboardKeyPressed with '+' key");
         HapticFeedback.lightImpact();
 
         Category? category = await ProxyService.strategy
@@ -355,6 +384,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           subTotal: subTotal,
         );
 
+        talker.info("Updated transaction with subtotal: $subTotal");
+
         // Ensure the transaction is properly updated with the subtotal and marked as complete
         ITransaction updatedTransaction =
             await ProxyService.strategy.collectPayment(
@@ -372,6 +403,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           isIncome: isIncome,
           categoryId: category?.id.toString(),
         );
+
+        talker.info(
+            "Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}");
 
         // Always explicitly update the transaction status to ensure it's marked as complete
         updatedTransaction.status = COMPLETE;
@@ -403,6 +437,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             transactionItemsProvider(transactionId: pendingTransaction.id));
         ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
         ref.refresh(dashboardTransactionsProvider);
+
+        talker.info("Transaction save completed successfully");
       });
     } catch (e, s) {
       talker.error("Error in _saveTransaction: $e");
