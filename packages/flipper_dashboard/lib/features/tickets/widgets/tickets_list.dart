@@ -19,78 +19,147 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
 
   Widget _buildTicketList(BuildContext context, List<ITransaction> tickets) {
-    return ListView.separated(
-      itemCount: tickets.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final ticket = tickets[index];
-        return TicketTile(
-          ticket: ticket,
-          onTap: () async {
-            // Show options dialog to update ticket status
-            final TicketStatus? selectedStatus = await showDialog<TicketStatus>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Update Ticket Status'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                          'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
-                      const SizedBox(height: 16),
-                      const Text('Select new status:'),
-                    ],
-                  ),
-                  actions: <Widget>[
-                    // Cancel button
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(null);
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                    // Resume button (change to PENDING)
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(null); // Close dialog
-                        _resumeOrder(
-                            ticket); // Use existing resume functionality
-                      },
-                      child: const Text('Resume Order'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.green,
-                      ),
-                    ),
-                    // Status options
-                    ...TicketStatus.values.map((status) => TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(status);
-                          },
-                          child: Text(status.displayName),
-                          style: TextButton.styleFrom(
-                            foregroundColor: status.color,
+    // Separate tickets into loan and non-loan
+    final loanTickets = tickets.where((t) => t.isLoan == true).toList();
+    final nonLoanTickets = tickets.where((t) => t.isLoan != true).toList();
+
+    return ListView(
+      children: [
+        if (loanTickets.isNotEmpty) ...[
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Text('Loan Tickets',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.deepPurple)),
+          ),
+          ...loanTickets.map((ticket) => TicketTile(
+                ticket: ticket,
+                onTap: () async {
+                  final TicketStatus? selectedStatus =
+                      await showDialog<TicketStatus>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Update Ticket Status'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                                'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
+                            const SizedBox(height: 16),
+                            const Text('Select new status:'),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                            },
+                            child: const Text('Cancel'),
                           ),
-                        )),
-                  ],
-                );
-              },
-            );
-
-            // Update ticket status if a new status was selected
-            if (selectedStatus != null) {
-              await ProxyService.strategy.updateTransaction(
-                transaction: ticket,
-                status: selectedStatus.statusValue,
-                updatedAt: DateTime.now(),
-              );
-
-              // Refresh the UI
-              setState(() {});
-            }
-          },
-        );
-      },
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                              _resumeOrder(ticket);
+                            },
+                            child: const Text('Resume Order'),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.green),
+                          ),
+                          ...TicketStatus.values.map((status) => TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(status);
+                                },
+                                child: Text(status.displayName),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: status.color),
+                              )),
+                        ],
+                      );
+                    },
+                  );
+                  if (selectedStatus != null) {
+                    await ProxyService.strategy.updateTransaction(
+                      transaction: ticket,
+                      status: selectedStatus.statusValue,
+                      updatedAt: DateTime.now(),
+                    );
+                    setState(() {});
+                  }
+                },
+              )),
+        ],
+        if (nonLoanTickets.isNotEmpty) ...[
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Text('Regular Tickets',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.blue)),
+          ),
+          ...nonLoanTickets.map((ticket) => TicketTile(
+                ticket: ticket,
+                onTap: () async {
+                  final TicketStatus? selectedStatus =
+                      await showDialog<TicketStatus>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Update Ticket Status'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                                'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
+                            const SizedBox(height: 16),
+                            const Text('Select new status:'),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                              _resumeOrder(ticket);
+                            },
+                            child: const Text('Resume Order'),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.green),
+                          ),
+                          ...TicketStatus.values.map((status) => TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(status);
+                                },
+                                child: Text(status.displayName),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: status.color),
+                              )),
+                        ],
+                      );
+                    },
+                  );
+                  if (selectedStatus != null) {
+                    await ProxyService.strategy.updateTransaction(
+                      transaction: ticket,
+                      status: selectedStatus.statusValue,
+                      updatedAt: DateTime.now(),
+                    );
+                    setState(() {});
+                  }
+                },
+              )),
+        ],
+      ],
     );
   }
 
@@ -259,12 +328,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ...inProgressTickets
       ];
 
-      // FILTER: Only show loan tickets in the Tickets screen
-      final filteredTickets =
-          allTickets.where((t) => t.isLoan == true).toList();
-
       // Sort by status priority and then by creation date (newest first)
-      filteredTickets.sort((a, b) {
+      allTickets.sort((a, b) {
         // First sort by status priority (WAITING > PARKED > ORDERING)
         final statusA = a.status;
         final statusB = b.status;
@@ -280,7 +345,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return dateB.compareTo(dateA);
       });
 
-      return filteredTickets;
+      return allTickets;
     });
   }
 }

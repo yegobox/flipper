@@ -15,50 +15,59 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
-  // Create a StreamProvider for kitchen orders
+  // Load transactions using the same approach as TicketsListMixin (tickets_list.dart)
+  // This stream matches the logic for ticket display, but filters out isLoan == true
   final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((ref) {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) {
-      return Stream.value([]);
-    }
-
-    // Create a merged stream of transactions with all three statuses
+    // Create broadcast streams for each status to allow multiple listeners
     final parkedStream = ProxyService.strategy
         .transactionsStream(
           status: PARKED,
-          branchId: branchId,
           removeAdjustmentTransactions: true,
         )
         .asBroadcastStream();
 
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
-          status: IN_PROGRESS,
-          branchId: branchId,
-          removeAdjustmentTransactions: true,
-        )
+            status: IN_PROGRESS, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
-    // Fetch transactions with WAITING status
     final waitingStream = ProxyService.strategy
-        .transactionsStream(
-          status: WAITING,
-          branchId: branchId,
-          removeAdjustmentTransactions: true,
-        )
+        .transactionsStream(status: WAITING, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
-    // We only want WAITING status transactions in the waiting column
-    // No need to fetch COMPLETE status transactions
-
-    // Merge all streams and combine their results
-    return Stream.periodic(const Duration(seconds: 1)).asyncMap((_) async {
+    // Merge streams with periodic polling (excluding COMPLETE status)
+    return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
+      // Fetch the latest data from each stream
       final parkedOrders = await parkedStream.first;
       final inProgressOrders = await inProgressStream.first;
       final waitingOrders = await waitingStream.first;
 
-      // Only include WAITING status orders in the waiting column
-      return [...parkedOrders, ...inProgressOrders, ...waitingOrders];
+      // Combine all transactions - use the same order as tickets_list.dart for consistency
+      final allOrders = [
+        ...waitingOrders,
+        ...parkedOrders,
+        ...inProgressOrders
+      ];
+
+      // FILTER: Only show non-loan tickets in the kitchen display
+      final filteredOrders = allOrders.where((t) => t.isLoan != true).toList();
+
+      // Sort by status priority and then by creation date (newest first)
+      filteredOrders.sort((a, b) {
+        final statusA = a.status;
+        final statusB = b.status;
+
+        if (statusA == WAITING && statusB != WAITING) return -1;
+        if (statusA != WAITING && statusB == WAITING) return 1;
+        if (statusA == PARKED && statusB == IN_PROGRESS) return -1;
+        if (statusA == IN_PROGRESS && statusB == PARKED) return 1;
+
+        final dateA = a.createdAt ?? DateTime(1970);
+        final dateB = b.createdAt ?? DateTime(1970);
+        return dateB.compareTo(dateA);
+      });
+
+      return filteredOrders;
     });
   });
 
@@ -169,7 +178,8 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       if (toStatus == OrderStatus.inProgress && updatedOrder.isLoan != true) {
         // If dueDate is already set, keep it; otherwise assign default 30 minutes from now
         if (updatedOrder.dueDate == null) {
-          updatedOrder.dueDate = DateTime.now().add(const Duration(minutes: 30));
+          updatedOrder.dueDate =
+              DateTime.now().add(const Duration(minutes: 30));
         }
         // Prompt chef to set/adjust dueDate before dragging (if UI support exists)
         // You may want to implement a dialog here in the future for chef to pick due date in minutes
