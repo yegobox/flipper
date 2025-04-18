@@ -35,7 +35,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   final TextEditingController customerPhoneNumberController =
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
-  String _selectedSegment = 'products';
+  String _selectedSegment = 'Items';
 
   @override
   void dispose() {
@@ -103,8 +103,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
               child: CustomSegmentedButton<String>(
                 segments: const [
                   ButtonSegment<String>(
-                    value: 'products',
-                    label: Text('Products'),
+                    value: 'Items',
+                    label: Text('Items'),
                     icon: Icon(FluentIcons.box_20_regular, size: 18),
                   ),
                   ButtonSegment<String>(
@@ -114,8 +114,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                     icon: Icon(FluentIcons.cart_20_regular, size: 18),
                   ),
                   ButtonSegment<String>(
-                    value: 'payment',
-                    label: Text('Payment'),
+                    value: 'Pay',
+                    label: Text('Pay'),
                     enabled: false,
                     icon: Icon(FluentIcons.payment_20_regular, size: 18),
                   ),
@@ -164,7 +164,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                         .when(
                           data: (variants) {
                             if (variants.isEmpty) {
-                              return _buildEmptyProductsView(context);
+                              return _buildEmptyItemsView(context);
                             }
                             return Padding(
                               padding:
@@ -186,7 +186,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
     );
   }
 
-  Widget _buildEmptyProductsView(BuildContext context) {
+  Widget _buildEmptyItemsView(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 180.0),
@@ -200,7 +200,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Products not available',
+              'Items not available',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.w500,
@@ -226,7 +226,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Error loading products',
+              'Error loading Items',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).colorScheme.error,
                     fontWeight: FontWeight.w500,
@@ -262,7 +262,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('Loading products...'),
+            Text('Loading Items...'),
           ],
         ),
       ),
