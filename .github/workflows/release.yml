@@ -313,7 +313,7 @@ jobs:
           melos bootstrap
           cd apps/flipper
           flutter clean
-          dart run msix:create -v --install-certificate false
+          dart run msix:create -v --install-certificate false --signtool-options "/fd SHA256 /td SHA256 /v"
 
       - name: Extract msix_version
         id: get_version
