@@ -1,3 +1,4 @@
+import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -50,57 +51,74 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
               Align(
                 alignment: Alignment.centerLeft,
                 child: SizedBox(
-                  width: isMobile ? double.infinity : 160,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff006AFE),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        vertical: isMobile ? 12.0 : 16.0,
-                      ),
-                      elevation: isMobile ? 1 : 0,
-                      textStyle: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w500,
-                        fontSize: buttonFontSize,
-                      ),
-                    ),
-                    onPressed: () {
-                      // Always show NewTicket dialog, regardless of widget.transaction
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return NewTicket(
-                            // Create a new ITransaction for the ticket
-                            transaction: ITransaction(
-                              branchId:
-                                  0, // Replace with actual branchId if needed
-                              status: PARKED,
-                              transactionType: '',
-                              paymentType: '',
-                              cashReceived: 0.0,
-                              customerChangeDue: 0.0,
-                              updatedAt: DateTime.now(),
-                              isIncome: true,
-                              isExpense: false,
+                  width: isMobile ? double.infinity : 220,
+                  child: Consumer(
+                    builder: (context, ref, _) {
+                      final transaction = widget.transaction;
+                      final transactionItemsAsync = transaction != null
+                          ? ref.watch(transactionItemsProvider(
+                              transactionId: transaction.id,
+                            ).future)
+                          : Future.value(<dynamic>[]);
+                      return FutureBuilder<List<dynamic>>(
+                        future: transactionItemsAsync,
+                        builder: (context, snapshot) {
+                          final itemCount =
+                              snapshot.hasData ? snapshot.data!.length : 0;
+                          return ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xff006AFE),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                vertical: isMobile ? 12.0 : 16.0,
+                              ),
+                              elevation: isMobile ? 1 : 0,
+                              textStyle: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: buttonFontSize,
+                              ),
                             ),
-                            onClose: () {
-                              Navigator.of(context).pop();
-                            },
-                          );
+                            onPressed: itemCount > 0
+                                ? () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return NewTicket(
+                                          transaction: transaction!,
+                                          onClose: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        );
+                                      },
+                                    );
+                                  }
+                                : null,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.add,
+                                    size: 18, color: Colors.white),
+                                const SizedBox(width: 6),
+                                Text(
+                                  itemCount > 0
+                                      ? 'Create Ticket for $itemCount item${itemCount > 1 ? 's' : ''}'
+                                      : 'New Ticket',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: buttonFontSize,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ).eligibleToSee(
+                              ref, [AccessLevel.ADMIN, AccessLevel.WRITE]);
                         },
                       );
                     },
-                    child: Text(
-                      'New Ticket',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w500,
-                        fontSize: buttonFontSize,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ).eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+                  ),
                 ),
               ),
               SizedBox(height: isMobile ? 16 : 24)
