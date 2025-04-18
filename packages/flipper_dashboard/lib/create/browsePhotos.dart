@@ -30,13 +30,11 @@ class Browsephotos extends StatefulHookConsumerWidget {
 
 class BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
-  late Color selectedColor;
   bool isUploading = false;
 
   @override
   void initState() {
     super.initState();
-    selectedColor = widget.currentColor;
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
@@ -53,6 +51,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
   }
 
   Future<void> _showColorPickerDialog(BuildContext context) async {
+    Color tempColor = widget.currentColor;
     final Color? newColor = await showDialog<Color>(
       context: context,
       builder: (BuildContext context) {
@@ -60,9 +59,11 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
           title: const Text('Pick a color'),
           content: SingleChildScrollView(
             child: ColorPicker(
-              color: selectedColor,
+              color: tempColor,
               onColorChanged: (Color color) {
-                selectedColor = color;
+                setState(() {
+                  tempColor = color;
+                });
               },
               pickersEnabled: const <ColorPickerType, bool>{
                 ColorPickerType.both: false,
@@ -97,7 +98,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(selectedColor);
+                Navigator.of(context).pop(tempColor);
               },
               child: const Text('OK'),
             ),
@@ -107,9 +108,6 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     );
 
     if (newColor != null) {
-      setState(() {
-        selectedColor = newColor;
-      });
       widget.onColorSelected(newColor);
     }
   }
@@ -167,7 +165,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                 height: 200,
                 decoration: BoxDecoration(
                   color: widget.imageUrl == null
-                      ? selectedColor
+                      ? widget.currentColor
                       : Colors.grey[300],
                   borderRadius: BorderRadius.circular(4),
                 ),
