@@ -42,7 +42,7 @@ class TicketTile extends StatelessWidget {
           child: Column(
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Left side: Ticket name and ID
                   Expanded(
@@ -73,35 +73,6 @@ class TicketTile extends StatelessWidget {
                                 color: Colors.grey[400],
                               ),
                             ),
-                            // LOAN BADGE
-                            if (ticket.isLoan == true)
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.topRight,
-                                  child: Container(
-                                    margin: const EdgeInsets.only(left: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: Colors.orange,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'LOAN',
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                        color: Colors.orange[800],
-                                        letterSpacing: 1.2,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -134,30 +105,55 @@ class TicketTile extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // Only show status on the right for larger screens
-                  if (!isSmallScreen && ticket.isLoan != true)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: ticketStatus.color.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: ticketStatus.color, width: 1),
-                      ),
-                      child: Text(
-                        ticketStatus.displayName,
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          color: ticketStatus.color,
-                        ),
-                      ),
-                    ),
+                  // Far right: Loan chip if loan, else status chip
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: ticket.isLoan == true
+                        ? Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.orange,
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              'LOAN',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.orange[800],
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: ticketStatus.color.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: ticketStatus.color, width: 1),
+                            ),
+                            child: Text(
+                              ticketStatus.displayName,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: ticketStatus.color,
+                              ),
+                            ),
+                          ),
+                  ),
                 ],
               ),
-
-              // For small screens, show status below in full width
+              // For small screens, show status below in full width (optional, can be kept for mobile)
               if (isSmallScreen && ticket.isLoan != true)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
