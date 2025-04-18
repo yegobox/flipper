@@ -66,6 +66,8 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 }
 
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
+  bool _isLoading = false;
+
   static void edit({
     required BuildContext context,
     required WidgetRef ref,
@@ -149,6 +151,39 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
         ];
       },
     );
+  }
+
+  Future<void> _handleCharge(String transactionId, double total) async {
+    try {
+      // Start loading
+      setState(() {
+        _isLoading = true;
+      });
+      ref.read(oldProvider.loadingProvider.notifier).startLoading();
+
+      // Call the charge function
+      await widget.onCharge(transactionId, total);
+
+      // Stop loading and close modal
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      // Handle error
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   @override
@@ -240,10 +275,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
             color: Colors.blue,
             width: double.infinity,
             text: 'Charge ${calculateTotal(items).toRwf()}',
-            onPressed: () {
-              widget.onCharge(
-                  widget.transactionIdInt.toString(), calculateTotal(items));
-            },
+            isLoading: _isLoading,
+            onPressed: _isLoading
+                ? null
+                : () => _handleCharge(
+                    widget.transactionIdInt.toString(), calculateTotal(items)),
           ),
         ],
       );
@@ -251,7 +287,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
 
     return itemsAsync.when(
       data: (items) => _buildContent(items),
-      loading: () => Center(child: Text("Loading...")),
+      loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
         child: Text(
           'Error loading items: ${error.toString()}',

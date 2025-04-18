@@ -1,11 +1,13 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -88,10 +90,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Add padding around the segmented button for better visual appearance
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: _buildSegmentedButton(context, ref),
-        ),
+        if (defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.linux)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: _buildSegmentedButton(context, ref),
+          ),
         // Expanded to make the variant list fill the remaining space
         Expanded(
           child: _buildVariantList(context, model),
@@ -220,35 +225,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildSegmentedButton(BuildContext context, WidgetRef ref) {
-    return SegmentedButton<ViewMode>(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.selected)) {
-              return Theme.of(context).colorScheme.primary;
-            }
-            return Colors.white;
-          },
-        ),
-        foregroundColor: WidgetStateProperty.resolveWith<Color>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.selected)) {
-              return Colors.white;
-            }
-            return Theme.of(context).colorScheme.primary;
-          },
-        ),
-        side: WidgetStateProperty.all(
-          BorderSide(color: Theme.of(context).colorScheme.primary),
-        ),
-        overlayColor: WidgetStateProperty.all(Colors.transparent),
-        // Add this to customize the border radius
-        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-        ),
-      ),
+    return CustomSegmentedButton<ViewMode>(
       segments: <ButtonSegment<ViewMode>>[
         ButtonSegment<ViewMode>(
           value: ViewMode.products,

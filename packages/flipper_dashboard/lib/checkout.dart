@@ -416,8 +416,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   },
                                 );
                               },
-                              loading: () => const Center(
-                                  child: CircularProgressIndicator()),
+                              loading: () =>
+                                  const Center(child: Text("Loading...")),
                               error: (error, stack) =>
                                   Center(child: Text('Error: $error')),
                             );

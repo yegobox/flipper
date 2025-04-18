@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
-import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';

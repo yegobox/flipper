@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
+import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   final TextEditingController customerPhoneNumberController =
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
+  String _selectedSegment = 'products';
 
   @override
   void dispose() {
@@ -48,6 +50,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, dynamic) {
@@ -57,16 +62,77 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            icon: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(8),
+              child: Icon(Icons.arrow_back_ios_new,
+                  size: 16, color: colorScheme.primary),
+            ),
+            onPressed: () {},
           ),
-          title: const Text('Checkout'),
-          centerTitle: true,
-          elevation: 0.5,
-          backgroundColor: Theme.of(context).canvasColor,
+          title: const Text(
+            'Checkout',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          centerTitle: false,
+          elevation: 1.0,
+          shadowColor: Colors.black12,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          actions: [
+            IconButton(
+              icon: const Icon(FluentIcons.more_vertical_20_regular),
+              onPressed: () {
+                // Show more options menu
+              },
+            ),
+          ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48.0),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: CustomSegmentedButton<String>(
+                segments: const [
+                  ButtonSegment<String>(
+                    value: 'products',
+                    label: Text('Products'),
+                    icon: Icon(FluentIcons.box_20_regular, size: 18),
+                  ),
+                  ButtonSegment<String>(
+                    value: 'cart',
+                    label: Text('Cart'),
+                    icon: Icon(FluentIcons.cart_20_regular, size: 18),
+                  ),
+                  ButtonSegment<String>(
+                    value: 'payment',
+                    label: Text('Payment'),
+                    icon: Icon(FluentIcons.payment_20_regular, size: 18),
+                  ),
+                ],
+                selected: {_selectedSegment},
+                onSelectionChanged: (Set<String> newSelection) {
+                  setState(() {
+                    _selectedSegment = newSelection.first;
+                  });
+                },
+                selectedBackgroundColor: Theme.of(context).colorScheme.primary,
+                unselectedBackgroundColor: Colors.transparent,
+                selectedForegroundColor:
+                    Theme.of(context).colorScheme.onPrimary,
+                unselectedForegroundColor:
+                    Theme.of(context).colorScheme.onSurface,
+                borderColor: Theme.of(context).colorScheme.primary,
+                borderRadius: 8.0,
+              ),
+            ),
+          ),
         ),
         body: SafeArea(
           child: Column(
