@@ -37,6 +37,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           ...loanTickets.map((ticket) => TicketTile(
                 ticket: ticket,
+                onDelete: _deleteTicket,
                 onTap: () async {
                   final TicketStatus? selectedStatus =
                       await showDialog<TicketStatus>(
@@ -104,6 +105,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           ...nonLoanTickets.map((ticket) => TicketTile(
                 ticket: ticket,
+                onDelete: _deleteTicket,
                 onTap: () async {
                   final TicketStatus? selectedStatus =
                       await showDialog<TicketStatus>(
@@ -244,6 +246,71 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ],
         ),
       );
+    }
+  }
+
+  Future<void> _deleteTicket(ITransaction ticket) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Deleting ticket...'),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Delete the transaction
+      await ProxyService.strategy.deleteTransaction(transaction: ticket);
+
+      // Close the loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ticket deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      // Close the loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      talker.error('Error deleting ticket: $e');
+      talker.error(stackTrace.toString());
+
+      // Show error dialog
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to delete ticket: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 

@@ -12,10 +12,12 @@ class TicketTile extends StatelessWidget {
     Key? key,
     required this.ticket,
     required this.onTap,
+    required this.onDelete,
   }) : super(key: key);
 
   final ITransaction ticket;
   final VoidCallback onTap;
+  final Function(ITransaction) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +73,46 @@ class TicketTile extends StatelessWidget {
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                                 color: Colors.grey[400],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Delete button
+                            InkWell(
+                              onTap: () {
+                                // Show confirmation dialog before deleting
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Delete Ticket'),
+                                      content: const Text(
+                                          'Are you sure you want to delete this ticket? This action cannot be undone.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                            onDelete(ticket);
+                                          },
+                                          child: const Text('Delete'),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              child: Icon(
+                                Icons.delete_outline,
+                                size: 20,
+                                color: Colors.red[400],
                               ),
                             ),
                           ],
