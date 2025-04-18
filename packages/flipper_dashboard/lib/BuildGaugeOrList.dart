@@ -139,12 +139,32 @@ Widget BuildGaugeOrList({
                         style: GoogleFonts.poppins(
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(
-                        DateFormat('dd/MM/yyyy').format(transaction.createdAt!),
-                        style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            // Display transaction type in a user-friendly way
+                            transaction.transactionType
+                                .toString()
+                                .split('.')
+                                .last
+                                .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
+                                .toUpperCase(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                          Text(
+                            DateFormat('dd/MM/yyyy')
+                                .format(transaction.createdAt!),
+                            style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                          ),
+                        ],
                       ),
                       trailing: Text(
                         DateFormat('HH:mm').format(transaction.createdAt!),
