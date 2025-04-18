@@ -2,7 +2,6 @@
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -136,80 +135,46 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   // Extract resume order functionality to a separate method
   Future<void> _resumeOrder(ITransaction ticket) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Resume Ticket'),
-        content: const Text('Are you sure you want to resume this ticket?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Resume'),
-          ),
-        ],
-      ),
-    );
+    try {
+      // Get all pending transactions for this branch
+      await _parkExistingPendingTransactions(excludeId: ticket.id);
+      // Set ticket status to PENDING
+      ticket.status = PENDING;
+      ticket.updatedAt = DateTime.now();
+      await ProxyService.strategy.updateTransaction(
+        transaction: ticket,
+        status: PENDING,
+        updatedAt: DateTime.now(),
+      );
 
-    if (confirm == true) {
-      try {
-        // First, park all existing PENDING transactions to prevent duplicates
-        await _parkExistingPendingTransactions(excludeId: ticket.id);
-
-        // Then, check if the ticket exists and get the latest version
-        final updatedTicket = await ProxyService.strategy.getTransaction(
-            id: ticket.id, branchId: ProxyService.box.getBranchId()!);
-        final ticketToUpdate = updatedTicket ?? ticket;
-
-        // Ensure the transaction has a valid subtotal (greater than 0)
-        final double currentSubTotal = ticketToUpdate.subTotal ?? 0.0;
-        final double safeSubTotal =
-            currentSubTotal > 0 ? currentSubTotal : 0.01;
-
-        talker.debug(
-            'Resuming ticket ${ticketToUpdate.id} from ${ticketToUpdate.status} to PENDING');
-
-        // Update the ticket status to PENDING
-        await ProxyService.strategy.updateTransaction(
-          transaction: ticketToUpdate,
-          status: PENDING,
-          updatedAt: DateTime.now(),
-          subTotal: safeSubTotal,
-        );
-
-        talker.debug(
-            'Successfully updated ticket to PENDING with subtotal: $safeSubTotal');
-
-        // Give the database a moment to update
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        // Refresh the transaction items provider to update the UI
-        ref.refresh(transactionItemsProvider(transactionId: ticket.id));
-
-        // Navigate back to the main app route
-        _routerService.clearStackAndShow(FlipperAppRoute());
-      } catch (e, stackTrace) {
-        talker.error('Error resuming ticket: $e');
-        talker.error(stackTrace.toString());
-
-        // Show error dialog to user
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Error'),
-            content: Text('Failed to resume ticket: ${e.toString()}'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
+      // Detect if on mobile and navigate to CheckoutProductView
+      final isMobile = MediaQuery.of(context).size.width < 600;
+      if (isMobile) {
+        final isBigScreen = MediaQuery.of(context).size.width > 600;
+        await _routerService
+            .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
+        return;
       }
+      // On desktop, go home or do as before
+      Navigator.of(context).pop();
+    } catch (e, stackTrace) {
+      talker.error('Error resuming ticket: $e');
+      talker.error(stackTrace.toString());
+
+      // Show error dialog to user
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Failed to resume ticket: ${e.toString()}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
