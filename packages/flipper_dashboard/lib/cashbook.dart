@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
