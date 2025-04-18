@@ -77,6 +77,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   // LOAN TICKET: Add this property to mark a transaction as a loan
   @Supabase(defaultValue: "false")
   bool? isLoan;
+  // DUE DATE: Nullable field for due date of ticket (loan or in progress)
+  DateTime? dueDate;
+
   ITransaction({
     this.ticketName,
     String? id,
@@ -117,6 +120,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.orgSarNo,
     // LOAN TICKET: Add to constructor
     bool? isLoan,
+    this.dueDate,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         subTotal = subTotal == 0.0 ? 0 : subTotal,

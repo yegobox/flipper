@@ -100,6 +100,26 @@ class TicketTile extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            // Show due date if present
+                            if (ticket.dueDate != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.event, size: 16, color: Colors.deepPurple),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      'Due: '
+                                      + ticket.dueDate!.toLocal().toString().split(' ')[0],
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ],

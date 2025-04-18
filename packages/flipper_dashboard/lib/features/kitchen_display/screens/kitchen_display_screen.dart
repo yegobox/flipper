@@ -164,6 +164,20 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       final updatedOrder = order;
       updatedOrder.status = status; // This will be PARKED for Incoming column
       updatedOrder.lastTouched = DateTime.now();
+      // DUE DATE LOGIC
+      // If moving to inProgress and not a loan, assign dueDate
+      if (toStatus == OrderStatus.inProgress && updatedOrder.isLoan != true) {
+        // If dueDate is already set, keep it; otherwise assign default 30 minutes from now
+        if (updatedOrder.dueDate == null) {
+          updatedOrder.dueDate = DateTime.now().add(const Duration(minutes: 30));
+        }
+        // Prompt chef to set/adjust dueDate before dragging (if UI support exists)
+        // You may want to implement a dialog here in the future for chef to pick due date in minutes
+      }
+      // If moving back to incoming, reset dueDate to null (unless it's a loan)
+      if (toStatus == OrderStatus.incoming && updatedOrder.isLoan != true) {
+        updatedOrder.dueDate = null;
+      }
 
       // Use the same approach as in transaction_mixin.dart to update the transaction
       // This is how transactions are updated throughout the Flipper codebase

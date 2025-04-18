@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +8,14 @@ import 'package:intl/intl.dart';
 class OrderCard extends ConsumerStatefulWidget {
   final ITransaction order;
   final Color borderColor;
+  final OrderStatus status;
   final VoidCallback? onTap;
 
   const OrderCard({
     Key? key,
     required this.order,
     required this.borderColor,
+    required this.status,
     this.onTap,
   }) : super(key: key);
 
@@ -27,6 +30,7 @@ class _OrderCardState extends ConsumerState<OrderCard> {
   Widget build(BuildContext context) {
     final order = widget.order;
     final borderColor = widget.borderColor;
+    final OrderStatus status = widget.status;
 
     // Format created time
     String createdAt = 'Unknown';
@@ -37,6 +41,19 @@ class _OrderCardState extends ConsumerState<OrderCard> {
         createdAt = order.createdAt.toString();
       }
     }
+
+    // Format due date if present
+    String? dueDateStr;
+    if (order.dueDate != null) {
+      try {
+        dueDateStr = DateFormat('yyyy-MM-dd HH:mm').format(order.dueDate!);
+      } catch (e) {
+        dueDateStr = order.dueDate.toString();
+      }
+    }
+
+    // Only allow setting due date for orders in the incoming column
+    bool canSetDueDate = status == OrderStatus.incoming;
 
     // Get transaction items asynchronously
     final transactionItemsAsync = ref.watch(transactionItemsProvider(order.id));
@@ -84,6 +101,88 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                       fontSize: 14,
                     ),
                   ),
+                  // Show due date if present
+                  if (dueDateStr != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.event,
+                              size: 16, color: Colors.deepPurple),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Due: $dueDateStr',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                              color: Colors.deepPurple,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  // Show set due date button if allowed
+                  if (canSetDueDate)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: IconButton(
+                        icon:
+                            const Icon(Icons.edit_calendar, color: Colors.blue),
+                        tooltip: 'Set Due Date',
+                        onPressed: () async {
+                          final picked = await showDialog<Duration>(
+                            context: context,
+                            builder: (context) {
+                              Duration selected = const Duration(minutes: 30);
+                              return AlertDialog(
+                                content: StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Slider(
+                                          value: selected.inMinutes.toDouble(),
+                                          min: 5,
+                                          max: 240,
+                                          divisions: 47,
+                                          label:
+                                              '${selected.inMinutes} minutes',
+                                          onChanged: (val) {
+                                            setState(() {
+                                              selected = Duration(
+                                                  minutes: val.round());
+                                            });
+                                          },
+                                        ),
+                                        Text(
+                                            'Due in ${selected.inMinutes} minutes'),
+                                      ],
+                                    );
+                                  },
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(selected),
+                                    child: const Text('Set'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              widget.order.dueDate = DateTime.now().add(picked);
+                            });
+                          }
+                        },
+                      ),
+                    ),
                 ],
               ),
 
