@@ -23,6 +23,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
+// import 'package:jni/jni.dart';
+// import 'core_java.dart'; // Import the generated JNI bindings
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -66,6 +68,15 @@ Future<void> main() async {
   await runZonedGuarded<Future<void>>(() async {
     final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+    // Test the Sum class from Java
+    // try {
+    //   final sum = Sum();
+    //   final result = sum.add(2, 2);
+    //   print('JNI Test: 2 + 2 = $result'); // Should print 4
+    // } catch (e) {
+    //   print('JNI Error: $e');
+    // }
 
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,

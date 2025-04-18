@@ -91,6 +91,8 @@ class App {}
 //  before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // ``dart run build_runner build --delete-conflicting-outputs``
+// dart run jnigen --config jnigen.yaml
+// flutter build apk --release 
 // dart run build_runner watch
 // `dart run realm generate --watch`
 // dart pub cache clean

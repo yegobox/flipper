@@ -156,7 +156,7 @@ mixin Booting {
         userId: business.userId is String
             ? int.parse(business.userId)
             : business.userId,
-        encryptionKey: business.encryptionKey!,
+        encryptionKey: business.encryptionKey ?? "",
         serverId: business.id,
         name: business.name,
         currency: business.currency,

@@ -31,8 +31,6 @@ import 'amplifyconfiguration.dart';
 
 // Import for database configuration
 // ignore: depend_on_referenced_packages
-import 'package:supabase_models/brick/repository.dart';
-// ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/storage_adapter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/local_storage.dart';
