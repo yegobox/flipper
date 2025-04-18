@@ -50,6 +50,7 @@ class TicketTile extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Flexible(
                               child: Text(
@@ -73,30 +74,34 @@ class TicketTile extends StatelessWidget {
                               ),
                             ),
                             // LOAN BADGE
-                            if (ticket.isLoan == true) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.orange,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  'LOAN',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                    color: Colors.orange[800],
-                                    letterSpacing: 1.2,
+                            if (ticket.isLoan == true)
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(left: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.orange,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'LOAN',
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: Colors.orange[800],
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ],
                           ],
                         ),
                         const SizedBox(height: 4),
