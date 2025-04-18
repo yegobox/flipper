@@ -6,7 +6,6 @@ import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
-import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -1562,154 +1561,6 @@ class CoreSync extends AiStrategyImpl
     return input.contains('@');
   }
 
-  String _formatPhoneNumber(String userPhone) {
-    if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
-      return '+$userPhone';
-    }
-    return userPhone;
-  }
-
-  Future<http.Response> _patchPin(
-      int pin, HttpClientInterface flipperHttpClient, String apihub,
-      {required String ownerName}) async {
-    return await flipperHttpClient.patch(
-      Uri.parse(apihub + '/v2/api/pin/${pin}'),
-      body: jsonEncode(<String, String?>{
-        'ownerName': ownerName,
-        'tokenUid': firebase.FirebaseAuth.instance.currentUser?.uid
-      }),
-    );
-  }
-
-  Future<void> _handleLoginError(http.Response response) async {
-    if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    } else if (response.statusCode == 500) {
-      throw PinError(term: "Not found");
-    } else {
-      throw UnknownError(term: response.statusCode.toString());
-    }
-  }
-
-  IUser _createOfflineUser(String phoneNumber, Pin pin,
-      List<Business> businesses, List<Branch> branches) {
-    return IUser(
-      token: pin.tokenUid!,
-      uid: pin.tokenUid,
-      channels: [],
-      phoneNumber: pin.phoneNumber!,
-      id: pin.userId!,
-      tenants: [
-        ITenant(
-            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
-            phoneNumber: phoneNumber,
-            permissions: [],
-            branches: _convertBranches(branches),
-            businesses: _convertBusinesses(businesses),
-            businessId: 0,
-            nfcEnabled: false,
-            userId: pin.userId!,
-            isDefault: false)
-      ],
-    );
-  }
-
-  List<IBranch> _convertBranches(List<Branch> branches) {
-    return branches
-        .map((e) => IBranch(
-            id: e.serverId,
-            name: e.name,
-            businessId: e.businessId,
-            longitude: e.longitude,
-            latitude: e.latitude,
-            location: e.location,
-            active: e.active,
-            isDefault: e.isDefault ?? false))
-        .toList();
-  }
-
-  List<IBusiness> _convertBusinesses(List<Business> businesses) {
-    return businesses
-        .map((e) => IBusiness(
-              id: e.serverId,
-              encryptionKey: e.encryptionKey ?? "",
-              name: e.name,
-              currency: e.currency,
-              categoryId: e.categoryId,
-              latitude: e.latitude,
-              longitude: e.longitude,
-              userId: e.userId.toString(),
-              timeZone: e.timeZone,
-              country: e.country,
-              businessUrl: e.businessUrl,
-              hexColor: e.hexColor,
-              imageUrl: e.imageUrl,
-              type: e.type,
-              metadata: e.metadata,
-              lastSeen: e.lastSeen,
-              firstName: e.firstName,
-              lastName: e.lastName,
-              deviceToken: e.deviceToken,
-              chatUid: e.chatUid,
-              backUpEnabled: e.backUpEnabled,
-              subscriptionPlan: e.subscriptionPlan,
-              nextBillingDate: e.nextBillingDate,
-              previousBillingDate: e.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  e.isLastSubscriptionPaymentSucceeded,
-              backupFileId: e.backupFileId,
-              email: e.email,
-              lastDbBackup: e.lastDbBackup,
-              fullName: e.fullName,
-              role: e.role,
-              tinNumber: e.tinNumber,
-              bhfId: e.bhfId,
-              dvcSrlNo: e.dvcSrlNo,
-              adrs: e.adrs,
-              taxEnabled: e.taxEnabled,
-              isDefault: e.isDefault,
-              businessTypeId: e.businessTypeId,
-            ))
-        .toList();
-  }
-
-  Future<ITransaction?> _pendingTransaction({
-    required int branchId,
-    required String transactionType,
-    required bool isExpense,
-    bool includeSubTotalCheck = true,
-  }) async {
-    try {
-      // Build the query
-      final query = brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-        brick.Where('isExpense',
-            value: isExpense, compare: brick.Compare.exact),
-        brick.Where('status', value: PENDING, compare: brick.Compare.exact),
-        brick.Where('transactionType',
-            value: transactionType, compare: brick.Compare.exact),
-        if (includeSubTotalCheck)
-          brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
-      ]);
-
-      /// Fetch transactions
-      /// keey it local localOnly this is to avoid the status to change from remote and
-      final List<ITransaction> transactions =
-          await repository.get<ITransaction>(
-        query: query,
-        policy: OfflineFirstGetPolicy.localOnly,
-      );
-
-      // Return the first transaction (if any)
-      return transactions.isNotEmpty ? transactions.last : null;
-    } catch (e, s) {
-      // Log errors (optional, replace talker with your preferred logger)
-      talker.error('Error in _pendingTransaction: $e');
-      talker.error('Stack trace: $s');
-      return null;
-    }
-  }
-
   @override
   FutureOr<void> removeCustomerFromTransaction(
       {required ITransaction transaction}) {
@@ -2214,191 +2065,10 @@ class CoreSync extends AiStrategyImpl
           talker.warning('Login not complete. Additional steps required.');
         }
       }
-
-//       /// TODO: once I enable for a user to auth using his creds maybe I will enable this
-//       /// but we have one user we keep using for auth uploads
-//       // final Map<cognito.AuthUserAttributeKey, String> userAttributes = {
-//       //   if (identifier.contains('@'))
-//       //     cognito.AuthUserAttributeKey.email: identifier,
-//       //   if (!identifier.contains('@')) ...{
-//       //     cognito.AuthUserAttributeKey.phoneNumber: identifier,
-//       //     // Provide a default email to satisfy the schema requirement
-//       //     cognito.AuthUserAttributeKey.email: 'yegobox@gmail.com',
-//       //   }
-//       // };
-
-//       // final signUpResult = await amplify.Amplify.Auth.signUp(
-//       //   username: identifier,
-//       //   password:
-//       //       identifier, // Using the identifier as the password for simplicity
-//       //   options: cognito.SignUpOptions(
-//       //     userAttributes: userAttributes,
-//       //   ),
-//       // );
-
-//       // if (signUpResult.isSignUpComplete) {
-//       //   talker.warning('User signed up successfully!');
-//       // } else {
-//       //   talker.warning('Sign up not complete. Additional steps required.');
-//       // }
-//     } on cognito.AuthException catch (e) {
-//       talker.error('Unexpected error: $e');
-//       // rethrow;
     } catch (e) {
       talker.error('Unexpected error: $e');
       // rethrow;
     }
-  }
-
-  @override
-  FutureOr<Tenant?> tenant({int? businessId, int? userId}) async {
-    if (businessId != null) {
-      return (await repository.get<Tenant>(
-              query: brick.Query(
-                  where: [brick.Where('businessId').isExactly(businessId)])))
-          .firstOrNull;
-    } else {
-      return (await repository.get<Tenant>(
-              query: brick.Query(
-                  where: [brick.Where('userId').isExactly(userId)])))
-          .firstOrNull;
-    }
-  }
-
-  @override
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
-    return repository.get<Tenant>(
-        query: brick.Query(where: [
-      brick.Where('businessId').isExactly(businessId),
-      if (excludeUserId != null) brick.Where('userId').isExactly(excludeUserId),
-    ]));
-  }
-
-  @override
-  Future<List<ext.ITenant>> tenantsFromOnline(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient}) async {
-    final http.Response response = await flipperHttpClient
-        .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
-    if (response.statusCode == 200) {
-      final tenantToAdd = <Tenant>[];
-      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
-        ITenant jTenant = tenant;
-        Tenant iTenant = Tenant(
-            isDefault: jTenant.isDefault,
-            name: jTenant.name,
-            userId: jTenant.userId,
-            businessId: jTenant.businessId,
-            nfcEnabled: jTenant.nfcEnabled ?? false,
-            email: jTenant.email,
-            phoneNumber: jTenant.phoneNumber);
-
-        for (IBusiness business in jTenant.businesses) {
-          Business biz = Business(
-              serverId: business.id,
-              userId: int.parse(business.userId),
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: false,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey);
-          Business? exist = (await repository.get<Business>(
-                  query: brick.Query(
-                      where: [brick.Where('serverId').isExactly(business.id)])))
-              .firstOrNull;
-          if (exist == null) {
-            await repository.upsert<Business>(biz);
-          }
-        }
-
-        for (IBranch brannch in jTenant.branches) {
-          Branch branch = Branch(
-              serverId: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault);
-          Branch? exist = (await repository.get<Branch>(
-                  query: brick.Query(
-                      where: [brick.Where('serverId').isExactly(brannch.id)])))
-              .firstOrNull;
-          if (exist == null) {
-            await repository.upsert<Branch>(branch);
-          }
-        }
-
-        final permissionToAdd = <LPermission>[];
-        for (ext.IPermission permission in jTenant.permissions) {
-          LPermission? exist = (await repository.get<LPermission>(
-                  query: brick.Query(
-                      where: [brick.Where('id').isExactly(permission.id)])))
-              .firstOrNull;
-          if (exist == null) {
-            final perm = LPermission(name: permission.name);
-            permissionToAdd.add(perm);
-          }
-        }
-
-        for (LPermission permission in permissionToAdd) {
-          await repository.upsert<LPermission>(permission);
-        }
-
-        Tenant? tenanti = (await repository.get<Tenant>(
-                query: brick.Query(
-                    where: [brick.Where('userId').isExactly(iTenant.userId)])))
-            .firstOrNull;
-
-        if (tenanti == null) {
-          tenantToAdd.add(iTenant);
-        }
-      }
-
-      if (tenantToAdd.isNotEmpty) {
-        for (Tenant tenant in tenantToAdd) {
-          await repository.upsert<Tenant>(tenant);
-        }
-      }
-
-      return ITenant.fromJsonList(response.body);
-    }
-    throw InternalServerException(term: "we got unexpected response");
   }
 
   @override
@@ -2531,8 +2201,8 @@ class CoreSync extends AiStrategyImpl
         double subTotalFinalized = cashReceived;
         if (isIncome) {
           // Update transaction details
-          final double subTotal = items.fold(
-              0, (num a, b) => a + (b.price * (b.qty ?? 0).toDouble()));
+          final double subTotal =
+              items.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
@@ -2704,7 +2374,7 @@ class CoreSync extends AiStrategyImpl
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
     // Setting the quantity here, after the stock patch is crucial for accuracy.
 
-    variant?.qty = item.qty?.toDouble();
+    variant?.qty = item.qty.toDouble();
     if (variant != null) {
       await _updateVariantAndPatchStock(
         variant: variant,

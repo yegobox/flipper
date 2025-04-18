@@ -202,8 +202,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
 
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
-
   bool isSubscribed({required String feature, required int businessId});
 
   Future<List<Product>> productsFuture({required int branchId});
@@ -322,7 +320,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
       {required String transactionId});
   DatabaseSyncInterface instance();
-  FutureOr<Tenant?> tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
 
@@ -386,10 +383,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<Business?> getBusiness({int? businessId});
   Future<Business?> defaultBusiness();
   FutureOr<Branch?> defaultBranch();
-
-  Future<List<ITenant>> tenantsFromOnline(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient});
 
   Future<List<Business>> getContacts();
 

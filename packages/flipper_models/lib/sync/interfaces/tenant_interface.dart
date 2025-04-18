@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 
 abstract class TenantInterface {
@@ -36,4 +39,9 @@ abstract class TenantInterface {
   Future<User> saveUser({required User user});
 
   Future<Business?> activeBusiness({int? userId});
+  FutureOr<Tenant?> tenant({int? businessId, int? userId});
+  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
+  Future<List<ITenant>> tenantsFromOnline(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient});
 }
