@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +9,7 @@ import '../../../utils/string_utils.dart';
 
 import '../models/ticket_status.dart';
 
-class TicketTile extends StatelessWidget {
+class TicketTile extends StatefulWidget {
   const TicketTile({
     Key? key,
     required this.ticket,
@@ -20,17 +22,65 @@ class TicketTile extends StatelessWidget {
   final Function(ITransaction) onDelete;
 
   @override
+  State<TicketTile> createState() => _TicketTileState();
+}
+
+class _TicketTileState extends State<TicketTile> {
+  int? _minutesRemaining;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupTimer();
+  }
+
+  void _setupTimer() {
+    _updateMinutesRemaining();
+    _timer?.cancel();
+    if (widget.ticket.dueDate != null) {
+      _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+        if (mounted) {
+          setState(_updateMinutesRemaining);
+        }
+      });
+    }
+  }
+
+  void _updateMinutesRemaining() {
+    if (widget.ticket.dueDate != null) {
+      final now = DateTime.now();
+      final diff = widget.ticket.dueDate!.toLocal().difference(now);
+      _minutesRemaining = diff.inMinutes;
+    } else {
+      _minutesRemaining = null;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TicketTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.ticket.dueDate != widget.ticket.dueDate) {
+      _setupTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Get ticket status from transaction status
+    final ticket = widget.ticket;
     final ticketStatus =
         TicketStatusExtension.fromString(ticket.status ?? PARKED);
-
-    // Get screen width to adapt layout
     final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 360; // Threshold for very small screens
+    final isSmallScreen = screenWidth < 360;
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -126,6 +176,33 @@ class TicketTile extends StatelessWidget {
                                   ],
                                 ),
                               ),
+                            // Show minutes remaining chip if dueDate exists
+                            if (ticket.dueDate != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: Chip(
+                                  avatar: const Icon(Icons.timer,
+                                      size: 16, color: Colors.deepPurple),
+                                  label: Text(
+                                    _minutesRemaining == null
+                                        ? ''
+                                        : _minutesRemaining! < 0
+                                            ? 'Overdue'
+                                            : '${_minutesRemaining!} min left',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                      color: Colors.deepPurple,
+                                    ),
+                                  ),
+                                  backgroundColor:
+                                      Colors.deepPurple.withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
                           ],
                         ),
                       ],
@@ -158,7 +235,7 @@ class TicketTile extends StatelessWidget {
                                     TextButton(
                                       onPressed: () {
                                         Navigator.of(context).pop();
-                                        onDelete(ticket);
+                                        widget.onDelete(ticket);
                                       },
                                       child: const Text('Delete'),
                                       style: TextButton.styleFrom(

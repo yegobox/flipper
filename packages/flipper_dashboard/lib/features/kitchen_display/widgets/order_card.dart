@@ -51,7 +51,7 @@ class _OrderCardState extends ConsumerState<OrderCard> {
   void _updateMinutesRemaining() {
     if (widget.order.dueDate != null) {
       final now = DateTime.now();
-      final diff = widget.order.dueDate!.difference(now);
+      final diff = widget.order.dueDate!.toLocal().difference(now);
       _minutesRemaining = diff.inMinutes;
     } else {
       _minutesRemaining = null;
@@ -224,7 +224,8 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                           );
                           if (picked != null) {
                             setState(() {
-                              widget.order.dueDate = DateTime.now().add(picked);
+                              widget.order.dueDate =
+                                  DateTime.now().add(picked).toUtc();
                             });
                           }
                         },

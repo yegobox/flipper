@@ -206,7 +206,7 @@ class NewTicketState extends State<NewTicket> {
                                       );
                                       if (picked != null) {
                                         setState(() {
-                                          _dueDate = picked;
+                                          _dueDate = picked.toUtc();
                                         });
                                       }
                                     },
@@ -277,7 +277,7 @@ class NewTicketState extends State<NewTicket> {
                                 if (_formKey.currentState!.validate()) {
                                   // Set loan value and due date on transaction before saving
                                   widget.transaction.isLoan = _isLoan;
-                                  widget.transaction.dueDate = _isLoan ? _dueDate : null;
+                                  widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
                                   model.saveTicket(
                                     ticketName: _swipeController.text,
                                     transaction: widget.transaction,

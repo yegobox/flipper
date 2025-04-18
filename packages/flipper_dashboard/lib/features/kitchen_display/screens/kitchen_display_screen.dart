@@ -215,8 +215,8 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
             ? null
             : (
                 toStatus == OrderStatus.inProgress && order.isLoan != true
-                  ? (order.dueDate ?? DateTime.now().add(const Duration(minutes: 30)))
-                  : order.dueDate
+                  ? (order.dueDate ?? DateTime.now().add(const Duration(minutes: 30)).toUtc())
+                  : order.dueDate?.toUtc()
               ),
       );
 
