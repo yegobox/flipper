@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -25,6 +27,51 @@ class OrderCard extends ConsumerStatefulWidget {
 
 class _OrderCardState extends ConsumerState<OrderCard> {
   bool _isExpanded = false;
+  int? _minutesRemaining;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupTimer();
+  }
+
+  void _setupTimer() {
+    _updateMinutesRemaining();
+    _timer?.cancel();
+    if (widget.order.dueDate != null && widget.status != OrderStatus.incoming) {
+      _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+        if (mounted) {
+          setState(_updateMinutesRemaining);
+        }
+      });
+    }
+  }
+
+  void _updateMinutesRemaining() {
+    if (widget.order.dueDate != null) {
+      final now = DateTime.now();
+      final diff = widget.order.dueDate!.difference(now);
+      _minutesRemaining = diff.inMinutes;
+    } else {
+      _minutesRemaining = null;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant OrderCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.order.dueDate != widget.order.dueDate ||
+        oldWidget.status != widget.status) {
+      _setupTimer();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +86,6 @@ class _OrderCardState extends ConsumerState<OrderCard> {
         createdAt = DateFormat('HH:mm').format(order.createdAt!);
       } catch (e) {
         createdAt = order.createdAt.toString();
-      }
-    }
-
-    // Format due date if present
-    String? dueDateStr;
-    if (order.dueDate != null) {
-      try {
-        dueDateStr = DateFormat('yyyy-MM-dd HH:mm').format(order.dueDate!);
-      } catch (e) {
-        dueDateStr = order.dueDate.toString();
       }
     }
 
@@ -105,15 +142,19 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                       fontSize: 14,
                     ),
                   ),
-                  // Show due date chip for non-incoming columns
+                  // Show minutes remaining chip for non-incoming columns
                   if (showDueDateChip)
                     Padding(
                       padding: const EdgeInsets.only(left: 10),
                       child: Chip(
-                        avatar: const Icon(Icons.event,
+                        avatar: const Icon(Icons.timer,
                             size: 16, color: Colors.deepPurple),
                         label: Text(
-                          dueDateStr != null ? dueDateStr : '',
+                          _minutesRemaining == null
+                              ? ''
+                              : _minutesRemaining! < 0
+                                  ? 'Overdue'
+                                  : '${_minutesRemaining!} min left',
                           style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 13,
@@ -125,26 +166,6 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         visualDensity: VisualDensity.compact,
-                      ),
-                    ),
-                  // Existing due date display for all columns (keep for incoming)
-                  if (!showDueDateChip && dueDateStr != null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.event,
-                              size: 16, color: Colors.deepPurple),
-                          const SizedBox(width: 3),
-                          Text(
-                            'Due: $dueDateStr',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 13,
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   // Show set due date button if allowed

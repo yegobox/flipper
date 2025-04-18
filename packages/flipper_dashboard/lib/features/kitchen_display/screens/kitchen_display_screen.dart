@@ -169,25 +169,56 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       // Get the new status string based on the destination column
       final status = _getStatusString(toStatus);
 
-      // Update the transaction properties
-      final updatedOrder = order;
-      updatedOrder.status = status; // This will be PARKED for Incoming column
-      updatedOrder.lastTouched = DateTime.now();
-      // DUE DATE LOGIC
-      // If moving to inProgress and not a loan, assign dueDate
-      if (toStatus == OrderStatus.inProgress && updatedOrder.isLoan != true) {
-        // If dueDate is already set, keep it; otherwise assign default 30 minutes from now
-        if (updatedOrder.dueDate == null) {
-          updatedOrder.dueDate =
-              DateTime.now().add(const Duration(minutes: 30));
-        }
-        // Prompt chef to set/adjust dueDate before dragging (if UI support exists)
-        // You may want to implement a dialog here in the future for chef to pick due date in minutes
-      }
-      // If moving back to incoming, reset dueDate to null (unless it's a loan)
-      if (toStatus == OrderStatus.incoming && updatedOrder.isLoan != true) {
-        updatedOrder.dueDate = null;
-      }
+      // Update the transaction properties using a new instance (do not mutate original)
+      final updatedOrder = ITransaction(
+        id: order.id,
+        ticketName: order.ticketName,
+        categoryId: order.categoryId,
+        transactionNumber: order.transactionNumber,
+        currentSaleCustomerPhoneNumber: order.currentSaleCustomerPhoneNumber,
+        reference: order.reference,
+        branchId: order.branchId,
+        status: status, // updated status
+        transactionType: order.transactionType,
+        subTotal: order.subTotal,
+        paymentType: order.paymentType,
+        cashReceived: order.cashReceived,
+        customerChangeDue: order.customerChangeDue,
+        createdAt: order.createdAt,
+        receiptType: order.receiptType,
+        updatedAt: DateTime.now(),
+        customerId: order.customerId,
+        customerType: order.customerType,
+        note: order.note,
+        lastTouched: DateTime.now(),
+        supplierId: order.supplierId,
+        ebmSynced: order.ebmSynced,
+        isIncome: order.isIncome,
+        isExpense: order.isExpense,
+        isRefunded: order.isRefunded,
+        customerName: order.customerName,
+        customerTin: order.customerTin,
+        remark: order.remark,
+        customerBhfId: order.customerBhfId,
+        receiptFileName: order.receiptFileName,
+        sarTyCd: order.sarTyCd,
+        receiptNumber: order.receiptNumber,
+        totalReceiptNumber: order.totalReceiptNumber,
+        isDigitalReceiptGenerated: order.isDigitalReceiptGenerated,
+        invoiceNumber: order.invoiceNumber,
+        sarNo: order.sarNo,
+        orgSarNo: order.orgSarNo,
+        isLoan: order.isLoan,
+        dueDate: (
+          toStatus == OrderStatus.incoming && order.isLoan != true
+        )
+            ? null
+            : (
+                toStatus == OrderStatus.inProgress && order.isLoan != true
+                  ? (order.dueDate ?? DateTime.now().add(const Duration(minutes: 30)))
+                  : order.dueDate
+              ),
+      );
 
       // Use the same approach as in transaction_mixin.dart to update the transaction
       // This is how transactions are updated throughout the Flipper codebase
