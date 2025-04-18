@@ -13,6 +13,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_dashboard/create/category_selector.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
 
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
@@ -247,7 +248,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _saveTransaction(model),
+                    onPressed: () => _handleSaveTransaction(model),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
@@ -269,7 +270,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     model.notifyListeners();
   }
 
-  Future<void> _saveTransaction(CoreViewModel model) async {
+  Future<void> _handleSaveTransaction(CoreViewModel model) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -279,74 +280,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final transactionType = model.newTransactionType;
 
     try {
-      await _lock.synchronized(() async {
-        // Get the active category
-        Category? activeCategory = await ProxyService.strategy.activeCategory(
-          branchId: ProxyService.box.getBranchId()!,
-        );
-
-        if (activeCategory == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error: No active category available'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          return;
-        }
-
-        // Create or get a pending transaction
-        ITransaction? pendingTransaction =
-            await ProxyService.strategy.manageTransaction(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionType: transactionType,
-          isExpense: !isIncome,
-        );
-
-        if (pendingTransaction == null) {
-          talker.error("Failed to create or get a pending transaction");
-          return;
-        }
-
-        // Update the transaction with the correct amount
-        await ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          subTotal: amount,
-        );
-
-        // Collect payment and complete the transaction
-        ITransaction updatedTransaction =
-            await ProxyService.strategy.collectPayment(
-          cashReceived: amount,
-          branchId: ProxyService.box.getBranchId()!,
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          isProformaMode: ProxyService.box.isProformaMode(),
-          isTrainingMode: ProxyService.box.isTrainingMode(),
-          transaction: pendingTransaction,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          discount: 0,
-          transactionType: transactionType,
-          directlyHandleReceipt: false,
-          isIncome: isIncome,
-          categoryId: activeCategory.id.toString(),
-          // TODO: Add description parameter when it becomes available
-          // description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-        );
-
-        // Ensure transaction is marked as complete
-        updatedTransaction.status = COMPLETE;
-        updatedTransaction.subTotal = amount;
-
-        // Save the updated transaction
-        await ProxyService.strategy.updateTransaction(
-          transaction: updatedTransaction,
-          status: COMPLETE,
-          subTotal: amount,
-        );
-
-        // Refresh providers
-        ref.refresh(dashboardTransactionsProvider);
-      });
+      await _saveTransaction(
+        paymentType: ProxyService.box.paymentType() ?? "Cash",
+        cashReceived: amount,
+        discount: 0,
+        isIncome: isIncome,
+        transactionType: transactionType,
+      );
 
       // Reset the form and return to the transaction list
       model.newTransactionPressed = false;
@@ -368,6 +308,106 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<void> _saveTransaction({
+    required String paymentType,
+    required double cashReceived,
+    required int discount,
+    required bool isIncome,
+    required String transactionType,
+  }) async {
+    // This implementation exactly matches HandleTransactionFromCashBook in KeyPadView
+    try {
+      // Use a lock to ensure transaction operations are atomic
+      await _lock.synchronized(() async {
+        // First, ensure we have a transaction by calling manageTransaction directly
+        ITransaction? pendingTransaction =
+            await ProxyService.strategy.manageTransaction(
+          branchId: ProxyService.box.getBranchId()!,
+          transactionType: transactionType,
+          isExpense: !isIncome,
+        );
+
+        if (pendingTransaction == null) {
+          talker.error("Failed to create or get a pending transaction");
+          return;
+        }
+
+        // Now that we have a valid transaction, we can proceed
+        // This is equivalent to the keyboardKeyPressed call in the original implementation
+        HapticFeedback.lightImpact();
+
+        Category? category = await ProxyService.strategy
+            .activeCategory(branchId: ProxyService.box.getBranchId()!);
+        var shortestSide = MediaQuery.of(context).size.shortestSide;
+        var useMobileLayout = shortestSide < 600;
+
+        // For cashbook transactions, the subtotal should be the cash received amount
+        double subTotal = cashReceived;
+
+        talker.info("Processing transaction with subtotal: $subTotal");
+
+        // First update the transaction with the correct subtotal
+        await ProxyService.strategy.updateTransaction(
+          transaction: pendingTransaction,
+          subTotal: subTotal,
+        );
+
+        // Ensure the transaction is properly updated with the subtotal and marked as complete
+        ITransaction updatedTransaction =
+            await ProxyService.strategy.collectPayment(
+          cashReceived: cashReceived,
+          branchId: ProxyService.box.getBranchId()!,
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          isProformaMode: ProxyService.box.isProformaMode(),
+          isTrainingMode: ProxyService.box.isTrainingMode(),
+          transaction: pendingTransaction,
+          paymentType: paymentType,
+          discount: discount.toDouble(),
+          transactionType:
+              useMobileLayout ? category?.name ?? "" : TransactionType.sale,
+          directlyHandleReceipt: false,
+          isIncome: isIncome,
+          categoryId: category?.id.toString(),
+        );
+
+        // Always explicitly update the transaction status to ensure it's marked as complete
+        updatedTransaction.status = COMPLETE;
+        updatedTransaction.subTotal = subTotal;
+
+        // Use updateTransaction method to ensure the transaction is properly saved
+        // Call it twice to ensure the transaction is properly saved
+        await ProxyService.strategy.updateTransaction(
+          transaction: updatedTransaction,
+          status: COMPLETE,
+          subTotal: subTotal,
+        );
+
+        // Wait a short time to ensure the first update completes
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Call update again to ensure it's properly saved
+        await ProxyService.strategy.updateTransaction(
+          transaction: updatedTransaction,
+          status: COMPLETE,
+          subTotal: subTotal,
+        );
+
+        talker.info(
+            "Transaction explicitly marked as complete with subtotal: $subTotal");
+
+        // Refresh providers to update UI
+        ref.refresh(
+            transactionItemsProvider(transactionId: pendingTransaction.id));
+        ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
+        ref.refresh(dashboardTransactionsProvider);
+      });
+    } catch (e, s) {
+      talker.error("Error in _saveTransaction: $e");
+      talker.error(s);
+      rethrow; // Rethrow to allow the caller to handle the error
     }
   }
 }
