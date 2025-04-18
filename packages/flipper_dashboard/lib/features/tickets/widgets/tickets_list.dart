@@ -294,8 +294,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ...inProgressTickets
       ];
 
+      // FILTER: Only show loan tickets in the Tickets screen
+      final filteredTickets =
+          allTickets.where((t) => t.isLoan == true).toList();
+
       // Sort by status priority and then by creation date (newest first)
-      allTickets.sort((a, b) {
+      filteredTickets.sort((a, b) {
         // First sort by status priority (WAITING > PARKED > ORDERING)
         final statusA = a.status;
         final statusB = b.status;
@@ -311,7 +315,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return dateB.compareTo(dateA);
       });
 
-      return allTickets;
+      return filteredTickets;
     });
   }
 }

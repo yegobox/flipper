@@ -108,6 +108,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
             : data['current_sale_customer_phone_number'] as String?,
     sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
     orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
+    isLoan: data['is_loan'] == null ? null : data['is_loan'] as bool? ?? false,
   );
 }
 
@@ -155,6 +156,7 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
         instance.currentSaleCustomerPhoneNumber,
     'sar_no': instance.sarNo,
     'org_sar_no': instance.orgSarNo,
+    'is_loan': instance.isLoan,
   };
 }
 
@@ -252,6 +254,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
             : data['current_sale_customer_phone_number'] as String?,
     sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
     orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
+    isLoan: data['is_loan'] == null ? null : data['is_loan'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -306,6 +309,7 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
         instance.currentSaleCustomerPhoneNumber,
     'sar_no': instance.sarNo,
     'org_sar_no': instance.orgSarNo,
+    'is_loan': instance.isLoan == null ? null : (instance.isLoan! ? 1 : 0),
   };
 }
 
@@ -467,6 +471,10 @@ class ITransactionAdapter
     'orgSarNo': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'org_sar_no',
+    ),
+    'isLoan': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_loan',
     ),
   };
   @override
@@ -702,6 +710,12 @@ class ITransactionAdapter
       columnName: 'org_sar_no',
       iterable: false,
       type: String,
+    ),
+    'isLoan': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_loan',
+      iterable: false,
+      type: bool,
     ),
   };
   @override

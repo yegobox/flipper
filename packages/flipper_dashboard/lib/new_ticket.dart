@@ -19,6 +19,7 @@ class NewTicketState extends State<NewTicket> {
   final _noteController = TextEditingController();
   bool _noteValue = false;
   bool _ticketNameValue = false;
+  bool _isLoan = false;
 
   @override
   void initState() {
@@ -35,6 +36,10 @@ class NewTicketState extends State<NewTicket> {
         widget.transaction.note!.isNotEmpty) {
       _noteController.text = widget.transaction.note!;
       _noteValue = true;
+    }
+    // Prefill loan value if available
+    if (widget.transaction.isLoan != null) {
+      _isLoan = widget.transaction.isLoan!;
     }
   }
 
@@ -232,6 +237,28 @@ class NewTicketState extends State<NewTicket> {
                                     const EdgeInsets.symmetric(vertical: 12),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            // LOAN CHECKBOX UI
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isLoan,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _isLoan = val ?? false;
+                                    });
+                                  },
+                                  activeColor: const Color(0xFF01B8E4),
+                                ),
+                                Text(
+                                  'Mark as Loan',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -278,6 +305,8 @@ class NewTicketState extends State<NewTicket> {
                         onPressed: _ticketNameValue && _noteValue
                             ? () {
                                 if (_formKey.currentState!.validate()) {
+                                  // Set loan value on transaction before saving
+                                  widget.transaction.isLoan = _isLoan;
                                   model.saveTicket(
                                     ticketName: _swipeController.text,
                                     transaction: widget.transaction,

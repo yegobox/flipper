@@ -46,13 +46,15 @@ class KitchenOrdersNotifier
     };
 
     for (final transaction in transactions) {
+      // Filter out loan tickets from the kitchen display
+      if (transaction.isLoan == true) {
+        continue;
+      }
       if (transaction.status == PARKED) {
         categorizedOrders[OrderStatus.incoming]!.add(transaction);
       } else if (transaction.status == IN_PROGRESS || transaction.status == ORDERING) {
-        // Support both new IN_PROGRESS and legacy ORDERING status
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
       } else if (transaction.status == WAITING) {
-        // Only accept WAITING status for the waiting column
         categorizedOrders[OrderStatus.waiting]!.add(transaction);
       }
     }

@@ -47,43 +47,61 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
             children: [
               SizedBox(height: isMobile ? 8 : 16),
               // New Ticket Button
-              SizedBox(
-                width: isMobile ? double.infinity : null,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff006AFE),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox(
+                  width: isMobile ? double.infinity : 160,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff006AFE),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      padding: EdgeInsets.symmetric(
+                        vertical: isMobile ? 12.0 : 16.0,
+                      ),
+                      elevation: isMobile ? 1 : 0,
+                      textStyle: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: buttonFontSize,
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(
-                      vertical: isMobile ? 12.0 : 16.0,
-                    ),
-                  ),
-                  onPressed: () {
-                    if (widget.transaction != null) {
-                      // Show NewTicket widget in a full-screen dialog
+                    onPressed: () {
+                      // Always show NewTicket dialog, regardless of widget.transaction
                       showDialog(
                         context: context,
                         builder: (context) {
                           return NewTicket(
-                            transaction: widget.transaction!,
+                            // Create a new ITransaction for the ticket
+                            transaction: ITransaction(
+                              branchId:
+                                  0, // Replace with actual branchId if needed
+                              status: PARKED,
+                              transactionType: '',
+                              paymentType: '',
+                              cashReceived: 0.0,
+                              customerChangeDue: 0.0,
+                              updatedAt: DateTime.now(),
+                              isIncome: true,
+                              isExpense: false,
+                            ),
                             onClose: () {
                               Navigator.of(context).pop();
                             },
                           );
                         },
                       );
-                    }
-                  },
-                  child: Text(
-                    'New Ticket',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      fontSize: buttonFontSize,
-                      color: Colors.white,
+                    },
+                    child: Text(
+                      'New Ticket',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: buttonFontSize,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                ).eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+                  ).eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+                ),
               ),
               SizedBox(height: isMobile ? 16 : 24)
                   .eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),

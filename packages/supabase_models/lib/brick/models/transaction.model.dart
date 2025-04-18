@@ -74,6 +74,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? currentSaleCustomerPhoneNumber;
   String? sarNo;
   String? orgSarNo;
+  // LOAN TICKET: Add this property to mark a transaction as a loan
+  @Supabase(defaultValue: "false")
+  bool? isLoan;
   ITransaction({
     this.ticketName,
     String? id,
@@ -112,7 +115,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.invoiceNumber,
     this.sarNo,
     this.orgSarNo,
+    // LOAN TICKET: Add to constructor
+    bool? isLoan,
   })  : id = id ?? const Uuid().v4(),
+        isLoan = isLoan ?? false,
         subTotal = subTotal == 0.0 ? 0 : subTotal,
         isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
         customerId =
