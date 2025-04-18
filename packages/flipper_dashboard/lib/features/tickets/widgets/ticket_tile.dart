@@ -75,46 +75,6 @@ class TicketTile extends StatelessWidget {
                                 color: Colors.grey[400],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            // Delete button
-                            InkWell(
-                              onTap: () {
-                                // Show confirmation dialog before deleting
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Delete Ticket'),
-                                      content: const Text(
-                                          'Are you sure you want to delete this ticket? This action cannot be undone.'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                            onDelete(ticket);
-                                          },
-                                          child: const Text('Delete'),
-                                          style: TextButton.styleFrom(
-                                            foregroundColor: Colors.red,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                              child: Icon(
-                                Icons.delete_outline,
-                                size: 20,
-                                color: Colors.red[400],
-                              ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -148,11 +108,15 @@ class TicketTile extends StatelessWidget {
                                 padding: const EdgeInsets.only(left: 12),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.event, size: 16, color: Colors.deepPurple),
+                                    const Icon(Icons.event,
+                                        size: 16, color: Colors.deepPurple),
                                     const SizedBox(width: 3),
                                     Text(
-                                      'Due: '
-                                      + ticket.dueDate!.toLocal().toString().split(' ')[0],
+                                      'Due: ' +
+                                          ticket.dueDate!
+                                              .toLocal()
+                                              .toString()
+                                              .split(' ')[0],
                                       style: GoogleFonts.poppins(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
@@ -170,48 +134,97 @@ class TicketTile extends StatelessWidget {
                   // Far right: Loan chip if loan, else status chip
                   Align(
                     alignment: Alignment.topRight,
-                    child: ticket.isLoan == true
-                        ? Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.orange,
-                                width: 1,
-                              ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Delete button - positioned next to the status chip
+                        ElevatedButton(
+                          onPressed: () {
+                            // Show confirmation dialog before deleting
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Delete Ticket'),
+                                  content: const Text(
+                                      'Are you sure you want to delete this ticket? This action cannot be undone.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        onDelete(ticket);
+                                      },
+                                      child: const Text('Delete'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[50],
+                            foregroundColor: Colors.red[600],
+                            padding: const EdgeInsets.all(8),
+                            minimumSize: const Size(36, 36),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text(
-                              'LOAN',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: Colors.orange[800],
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          )
-                        : Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: ticketStatus.color.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: ticketStatus.color, width: 1),
-                            ),
-                            child: Text(
-                              ticketStatus.displayName,
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: ticketStatus.color,
-                              ),
-                            ),
+                            side: BorderSide(color: Colors.red[300]!),
                           ),
+                          child: const Icon(Icons.delete_outline, size: 18),
+                        ),
+                        const SizedBox(width: 8),
+                        ticket.isLoan == true
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.orange,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  'LOAN',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.orange[800],
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: ticketStatus.color.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: ticketStatus.color, width: 1),
+                                ),
+                                child: Text(
+                                  ticketStatus.displayName,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: ticketStatus.color,
+                                  ),
+                                ),
+                              ),
+                      ],
+                    ),
                   ),
                 ],
               ),

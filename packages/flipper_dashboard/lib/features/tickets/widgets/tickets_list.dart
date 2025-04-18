@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -279,12 +280,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       // Show success message
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Ticket deleted successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showCustomSnackBarUtil(context, 'Ticket deleted successfully',
+            backgroundColor: Colors.red);
       }
     } catch (e, stackTrace) {
       // Close the loading dialog
