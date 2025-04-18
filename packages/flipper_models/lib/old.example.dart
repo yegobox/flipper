@@ -196,10 +196,10 @@
 //             product: brick.Product(
 //               color: "#e74c3c",
 //               name: item.itemNm,
-//               lastTouched: DateTime.now(),
+//               lastTouched: DateTime.now().toUtc(),
 //               branchId: ProxyService.box.getBranchId()!,
 //               businessId: ProxyService.box.getBusinessId()!,
-//               createdAt: DateTime.now(),
+//               createdAt: DateTime.now().toUtc(),
 //               spplrNm: supplier.spplrNm,
 //             ),
 //             supplyPrice: item.splyAmt,

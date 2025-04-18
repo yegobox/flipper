@@ -234,7 +234,7 @@ class CoreViewModel extends FlipperBaseModel
     if (items.isEmpty) {
       ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         discount: 0.0,
         compositePrice: 0.0,
         quantity: quantity.toInt(),
@@ -294,7 +294,7 @@ class CoreViewModel extends FlipperBaseModel
                 active: true);
         ProxyService.strategy.addTransactionItem(
           transaction: pendingTransaction,
-          lastTouched: DateTime.now(),
+          lastTouched: DateTime.now().toUtc(),
           discount: 0.0,
           compositePrice: 0.0,
           quantity: 1,
@@ -501,7 +501,7 @@ class CoreViewModel extends FlipperBaseModel
           custTin: tinNumber ?? phone,
           email: email,
           telNo: phone,
-          updatedAt: DateTime.now(),
+          updatedAt: DateTime.now().toUtc(),
           branchId: branchId,
           custNo: phone,
           regrNm: randomNumber().toString().substring(0, 5),
@@ -568,7 +568,7 @@ class CoreViewModel extends FlipperBaseModel
         status: PARKED,
         note: ticketNote,
         ticketName: ticketName,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
       );
     }
   }
@@ -836,7 +836,7 @@ class CoreViewModel extends FlipperBaseModel
     //           avatar: "",
     //           channelType: "",
     //           messageId: randomNumber().toString(),
-    //           createdAt: DateTime.now(),
+    //           createdAt: DateTime.now().toUtc(),
     //           fromNumber: tenant.phoneNumber,
     //           toNumber: tenant.phoneNumber,
     //           businessId: tenant.businessId));

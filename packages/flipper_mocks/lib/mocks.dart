@@ -910,7 +910,7 @@ final importMockData = {
 final variationMock = Variant(
     color: '#cc',
     name: 'Regular',
-    lastTouched: DateTime.now(),
+    lastTouched: DateTime.now().toUtc(),
     sku: 'sku',
     productId: "2",
     itemCd: "",
@@ -931,7 +931,7 @@ final variationMock = Variant(
 
 // stock
 final stockMock = Stock(
-  lastTouched: DateTime.now(),
+  lastTouched: DateTime.now().toUtc(),
   // variant: variationMock,
   branchId: 11,
 
@@ -946,7 +946,7 @@ final stockMock = Stock(
 final AppService _appService = getIt<AppService>();
 
 final customProductMock = Product(
-    lastTouched: DateTime.now(),
+    lastTouched: DateTime.now().toUtc(),
     name: "temp",
     businessId: _appService.businessId!,
     color: "#e74c3c",
@@ -961,7 +961,7 @@ final customProductMock = Product(
   ..createdAt = DateTime.now();
 
 final productMock = Product(
-    lastTouched: DateTime.now(),
+    lastTouched: DateTime.now().toUtc(),
     name: "temp",
     businessId: _appService.businessId!,
     color: "#e74c3c",

@@ -107,7 +107,7 @@ class ForceDataEntryService {
       accessLevel: accessLevel,
       status: status,
       userType: AccessLevel.ADMIN,
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toUtc(),
     );
   }
 
@@ -124,8 +124,8 @@ class ForceDataEntryService {
       branchId: branchId,
       active: false,
       focused: false,
-      lastTouched: DateTime.now(),
-      createdAt: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
+      createdAt: DateTime.now().toUtc(),
       deletedAt: null,
     );
   }

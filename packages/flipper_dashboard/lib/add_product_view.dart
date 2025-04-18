@@ -286,7 +286,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     // Show the date picker
     showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: DateTime.now().toUtc(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     ).then((selectedDate) {

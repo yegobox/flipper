@@ -214,7 +214,7 @@ class CoreSync extends AiStrategyImpl
               active: map['active'],
               branchId: branchId,
               name: map['name'],
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               value: map['value']);
 
           // Add the unit to db
@@ -526,7 +526,7 @@ class CoreSync extends AiStrategyImpl
 
       hsCd: hsCd ?? "",
       imptItemSttsCd: imptItemsttsCd ?? "",
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       name: product?.name ?? name,
       sku: sku.toString(),
       dcRt: 0.0,
@@ -1113,11 +1113,11 @@ class CoreSync extends AiStrategyImpl
           branchId: branchId,
           businessId: businessId,
           product: models.Product(
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               name: CUSTOM_PRODUCT,
               businessId: businessId,
               color: "#e74c3c",
-              createdAt: DateTime.now(),
+              createdAt: DateTime.now().toUtc(),
               branchId: branchId));
     }
 
@@ -1883,7 +1883,7 @@ class CoreSync extends AiStrategyImpl
 
       final newAddon = models.PlanAddon(
         addonName: addonName,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         planId: businessId,
       );
 
@@ -1937,7 +1937,7 @@ class CoreSync extends AiStrategyImpl
           isYearlyPlan: isYearlyPlan,
           rule: isYearlyPlan ? 'yearly' : 'monthly',
           totalPrice: totalPrice.toInt(),
-          createdAt: DateTime.now(),
+          createdAt: DateTime.now().toUtc(),
           numberOfPayments: numberOfPayments,
           nextBillingDate: nextBillingDate,
           paymentMethod: paymentMethod,
@@ -2007,10 +2007,10 @@ class CoreSync extends AiStrategyImpl
       product: Product(
         color: randomizeColor(),
         name: item.itemNm!,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         branchId: branchId,
         businessId: ProxyService.box.getBusinessId()!,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         spplrNm: item.spplrNm,
       ),
       supplyPrice: item.supplyPrice ?? 0,
@@ -2448,8 +2448,8 @@ class CoreSync extends AiStrategyImpl
     // build brick Counter to pass in to upsert
     for (Counter counter in counters) {
       final upCounter = models.Counter(
-        createdAt: DateTime.now(),
-        lastTouched: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
         id: counter.id,
         branchId: counter.branchId,
         curRcptNo: receiptSignature!.data?.rcptNo ?? 0,
@@ -3259,7 +3259,7 @@ class CoreSync extends AiStrategyImpl
       );
     } else {
       final newPaymentRecord = TransactionPaymentRecord(
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         amount: amount,
         transactionId: transactionId,
         paymentMethod: paymentMethod,
@@ -3283,7 +3283,7 @@ class CoreSync extends AiStrategyImpl
       required double value}) async {
     final stock = Stock(
       id: const Uuid().v4(),
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       branchId: branchId,
       currentStock: currentStock,
       rsdQty: rsdQty,
@@ -3562,7 +3562,7 @@ class CoreSync extends AiStrategyImpl
       required TransactionItem item,
       required int subBranchId}) async {
     final newStock = Stock(
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       branchId: subBranchId,
       currentStock: item.quantityRequested!.toDouble(),
       rsdQty: item.quantityRequested!.toDouble(),
@@ -3639,7 +3639,7 @@ class CoreSync extends AiStrategyImpl
         provider: financeOption,
         status: RequestStatus.pending,
         amount: transaction.subTotal!,
-        approvalDate: DateTime.now(),
+        approvalDate: DateTime.now().toUtc(),
       );
       await repository.upsert(financing);
       Branch branch = await activeBranch();
@@ -3787,10 +3787,10 @@ class CoreSync extends AiStrategyImpl
             product: Product(
               color: randomizeColor(),
               name: item.itemNm ?? item.name,
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               branchId: branchId,
               businessId: businessId,
-              createdAt: DateTime.now(),
+              createdAt: DateTime.now().toUtc(),
               spplrNm: item.spplrNm,
               barCode: item.barCode,
               categoryId: categoryId, // Set categoryId on the product
@@ -4362,7 +4362,7 @@ class CoreSync extends AiStrategyImpl
       delivered: true,
       role: role,
       conversationId: conversationId,
-      timestamp: DateTime.now(),
+      timestamp: DateTime.now().toUtc(),
       aiResponse: aiResponse,
       aiContext: aiContext,
     );

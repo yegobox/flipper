@@ -104,8 +104,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           transactionId: transaction.id,
           variantId: variation.id,
           remainingStock: currentStock - quantity,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          createdAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
           isRefunded: false, // Assuming default value
           doneWithTransaction: doneWithTransaction ?? false,
           active: true,

@@ -23,6 +23,6 @@ class AiConversation extends OfflineFirstWithSupabaseModel {
     DateTime? createdAt,
     DateTime? lastMessageAt,
   })  : id = id ?? const Uuid().v4(),
-        createdAt = createdAt ?? DateTime.now(),
+        createdAt = createdAt ?? DateTime.now().toUtc(),
         lastMessageAt = lastMessageAt ?? DateTime.now();
 }

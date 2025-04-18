@@ -522,7 +522,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     taxAmount = (taxAmount * 100).round() / 100;
 
     final itemJson = TransactionItem(
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       qty: quantity,
       discount: item.discount,
       remainingStock: item.remainingStock!,

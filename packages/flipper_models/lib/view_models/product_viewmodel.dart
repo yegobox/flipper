@@ -116,7 +116,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         branchId: ProxyService.box.getBranchId()!,
         product: Product(
           name: TEMP_PRODUCT,
-          lastTouched: DateTime.now(),
+          lastTouched: DateTime.now().toUtc(),
           businessId: ProxyService.box.getBusinessId()!,
           color: COLOR,
           branchId: ProxyService.box.getBranchId()!,

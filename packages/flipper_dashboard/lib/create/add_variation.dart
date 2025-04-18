@@ -183,7 +183,7 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
       color: model.product!.color,
       name: nameController.text,
       sku: sku,
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       itemCd: clip,
       productId: model.product!.id,
       unit: model.productService.currentUnit!,

@@ -254,7 +254,7 @@ mixin TransactionMixin implements TransactionInterface {
           true; // Lock processing for this branch
 
       transaction = ITransaction(
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         reference: randomNumber().toString(),
         transactionNumber: randomNumber().toString(),
         status: PENDING,
@@ -263,11 +263,11 @@ mixin TransactionMixin implements TransactionInterface {
         transactionType: transactionType,
         subTotal: 0.0,
         cashReceived: 0.0,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
         customerChangeDue: 0.0,
         paymentType: ProxyService.box.paymentType() ?? "Cash",
         branchId: branchId,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
       );
 
       await repository.upsert<ITransaction>(transaction);
@@ -492,7 +492,7 @@ mixin TransactionMixin implements TransactionInterface {
       await ProxyService.strategy.addTransactionItem(
         doneWithTransaction: doneWithTransaction,
         transaction: pendingTransaction,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
         quantity: updatableQty != null

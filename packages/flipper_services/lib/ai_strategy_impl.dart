@@ -41,8 +41,8 @@ class AiStrategyImpl implements AiStrategy {
       final conversation = AiConversation(
         title: title,
         branchId: branchId,
-        createdAt: DateTime.now(),
-        lastMessageAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
+        lastMessageAt: DateTime.now().toUtc(),
       );
 
       return await repository.upsert<AiConversation>(conversation);
@@ -161,7 +161,7 @@ class AiStrategyImpl implements AiStrategy {
         conversationId: conversationId,
         aiResponse: aiResponse,
         aiContext: aiContext,
-        timestamp: DateTime.now(),
+        timestamp: DateTime.now().toUtc(),
       );
 
       return await repository.upsert<Message>(message);

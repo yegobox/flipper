@@ -284,7 +284,7 @@ class TransactionListWrapperState
           showNavigationArrow: true,
           initialSelectedRange: PickerDateRange(
             startDate ?? DateTime.now().subtract(const Duration(days: 7)),
-            endDate ?? DateTime.now(),
+            endDate ?? DateTime.now().toUtc(),
           ),
           onSubmit: (_) => Navigator.pop(context),
           onCancel: () => Navigator.pop(context),

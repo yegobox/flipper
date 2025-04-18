@@ -5,10 +5,12 @@ class InventoryRequestMobileView extends StatefulWidget {
   const InventoryRequestMobileView({Key? key}) : super(key: key);
 
   @override
-  State<InventoryRequestMobileView> createState() => _InventoryRequestMobileViewState();
+  State<InventoryRequestMobileView> createState() =>
+      _InventoryRequestMobileViewState();
 }
 
-class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView> {
+class _InventoryRequestMobileViewState
+    extends State<InventoryRequestMobileView> {
   String _selectedFilter = 'all';
 
   // Mock data focusing on status
@@ -35,7 +37,7 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
     {
       'id': 'REQ002',
       'status': 'pending',
-      'createdAt': DateTime.now(),
+      'createdAt': DateTime.now().toUtc(),
       'mainBranchId': 3,
       'financing': {
         'requested': true,
@@ -91,7 +93,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
         children: [
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -115,7 +118,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: requests.length,
-              itemBuilder: (context, index) => _buildRequestCard(requests[index]),
+              itemBuilder: (context, index) =>
+                  _buildRequestCard(requests[index]),
             ),
           ),
         ],
@@ -178,7 +182,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
 
                 // ... [Previous request details remain the same] ...
 
-                if (request['financing'] != null && request['financing']['requested'] == true) ...[
+                if (request['financing'] != null &&
+                    request['financing']['requested'] == true) ...[
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 8),
@@ -214,6 +219,7 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
       ),
     );
   }
+
   Widget _buildFinancingInfo(Map<String, dynamic> financing) {
     final statusColors = {
       'approved': Colors.green,
@@ -269,7 +275,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
           'Amount: ${NumberFormat.currency(symbol: '\$').format(financing['amount'])}',
           style: TextStyle(color: Colors.grey[600]),
         ),
-        if (financing['status'] == 'approved' && financing['interestRate'] != null) ...[
+        if (financing['status'] == 'approved' &&
+            financing['interestRate'] != null) ...[
           const SizedBox(height: 4),
           Text(
             'Interest Rate: ${financing['interestRate']}%',
@@ -281,7 +288,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
             style: TextStyle(color: Colors.grey[600]),
           ),
         ],
-        if (financing['status'] == 'rejected' && financing['rejectionReason'] != null) ...[
+        if (financing['status'] == 'rejected' &&
+            financing['rejectionReason'] != null) ...[
           const SizedBox(height: 4),
           Text(
             'Reason: ${financing['rejectionReason']}',
@@ -320,7 +328,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
 
   Widget _buildDeliveryConfirmation(Map<String, dynamic> request) {
     final isDelivered = request['customerReceivedOrder'] == true;
-    final isConfirmationRequested = request['driverRequestDeliveryConfirmation'] == true;
+    final isConfirmationRequested =
+        request['driverRequestDeliveryConfirmation'] == true;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -335,8 +344,8 @@ class _InventoryRequestMobileViewState extends State<InventoryRequestMobileView>
           isDelivered
               ? 'Delivered'
               : isConfirmationRequested
-              ? 'Awaiting Confirmation'
-              : 'Pending Delivery',
+                  ? 'Awaiting Confirmation'
+                  : 'Pending Delivery',
           style: TextStyle(
             color: isDelivered ? Colors.green : Colors.orange,
           ),

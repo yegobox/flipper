@@ -87,7 +87,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                     await ProxyService.strategy.updateTransaction(
                       transaction: ticket,
                       status: selectedStatus.statusValue,
-                      updatedAt: DateTime.now(),
+                      updatedAt: DateTime.now().toUtc(),
                     );
                     setState(() {});
                   }
@@ -155,7 +155,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                     await ProxyService.strategy.updateTransaction(
                       transaction: ticket,
                       status: selectedStatus.statusValue,
-                      updatedAt: DateTime.now(),
+                      updatedAt: DateTime.now().toUtc(),
                     );
                     setState(() {});
                   }
@@ -216,7 +216,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       await ProxyService.strategy.updateTransaction(
         transaction: ticket,
         status: PENDING,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
       );
 
       // Detect if on mobile and navigate to CheckoutProductView

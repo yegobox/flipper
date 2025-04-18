@@ -69,7 +69,7 @@ class CreateMockdata {
           status: 'pending',
           transactionItems: [
             TransactionItem(
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               itemNm: "itemNm",
               price: 100,
               discount: 10,
@@ -87,7 +87,7 @@ class CreateMockdata {
           status: 'pending',
           transactionItems: [
             TransactionItem(
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               itemNm: "itemNm",
               price: 100,
               discount: 10,

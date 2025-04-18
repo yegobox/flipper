@@ -314,7 +314,7 @@ mixin PatchTransactionItem {
             totalvat: totalvat,
             totalAmount: transaction.subTotal!,
             remark: transaction.remark ?? "",
-            ocrnDt: transaction.updatedAt ?? DateTime.now(),
+            ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
             URI: URI);
 
         if (response.resultCd == "000") {

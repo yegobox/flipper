@@ -15,7 +15,7 @@ class FlipperBaseModel extends ReactiveViewModel {
       closingBalance: 0.0,
       cashierId: ProxyService.box.getUserId()!,
       tradeName: ProxyService.app.business.name,
-      openingDateTime: DateTime.now(),
+      openingDateTime: DateTime.now().toUtc(),
       open: true,
       businessId: ProxyService.box.getBusinessId(),
       branchId: ProxyService.box.getBranchId(),
