@@ -419,11 +419,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: DropdownButtonWithLabel(
+                        child: ResponsiveLayout(
+                          mobile: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              DropdownButtonWithLabel(
                                 label: "Packaging Unit",
                                 selectedValue: selectedPackageUnitValue,
                                 options: model.pkgUnits,
@@ -435,43 +435,32 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                   }
                                 },
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Consumer(
-                                // Keep consumer here
+                              const SizedBox(height: 16),
+                              Consumer(
                                 builder: (context, ref, child) {
-                                  // Watch provider inside the builder
                                   final categoryAsyncValue =
                                       ref.watch(categoryProvider);
-                                  // Use .when to handle states
                                   return categoryAsyncValue.when(
                                     data: (categories) {
-                                      // Map Category objects to a Map of id:name pairs for internal use
                                       final categoryOptions = categories
                                           .map((cat) => "${cat.id}:${cat.name}")
                                           .toList();
-
-                                      // Create a display map for showing only names in the dropdown
                                       final displayNames = Map.fromEntries(
                                           categories.map((cat) => MapEntry(
                                               "${cat.id}:${cat.name}",
                                               cat.name)));
-
                                       return DropdownButtonWithLabel(
                                         onAdd: () {
                                           showAddCategoryModal(context);
                                         },
                                         label: "Category",
                                         selectedValue: selectedCategoryId,
-                                        // Pass both the options and display names
                                         options: categoryOptions,
                                         displayNames: displayNames,
                                         onChanged: (String? newValue) {
                                           if (!_isDisposed &&
                                               newValue != null) {
                                             final value = newValue.split(":");
-
                                             setState(() {
                                               selectedCategoryId = value[0];
                                             });
@@ -489,19 +478,86 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                         DropdownButtonWithLabel(
                                       label: "Category",
                                       selectedValue: null,
-                                      options: const [], // No options on error
-                                      onChanged:
-                                          (String? _) {}, // Disable dropdown
+                                      options: const [],
+                                      onChanged: (String? _) {},
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
+                          tablet: Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonWithLabel(
+                                  label: "Packaging Unit",
+                                  selectedValue: selectedPackageUnitValue,
+                                  options: model.pkgUnits,
+                                  onChanged: (String? newValue) {
+                                    if (!_isDisposed && newValue != null) {
+                                      setState(() {
+                                        selectedPackageUnitValue = newValue;
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Consumer(
+                                  builder: (context, ref, child) {
+                                    final categoryAsyncValue =
+                                        ref.watch(categoryProvider);
+                                    return categoryAsyncValue.when(
+                                      data: (categories) {
+                                        final categoryOptions = categories
+                                            .map((cat) =>
+                                                "${cat.id}:${cat.name}")
+                                            .toList();
+                                        final displayNames = Map.fromEntries(
+                                            categories.map((cat) => MapEntry(
+                                                "${cat.id}:${cat.name}",
+                                                cat.name)));
+                                        return DropdownButtonWithLabel(
+                                          onAdd: () {
+                                            showAddCategoryModal(context);
+                                          },
+                                          label: "Category",
+                                          selectedValue: selectedCategoryId,
+                                          options: categoryOptions,
+                                          displayNames: displayNames,
+                                          onChanged: (String? newValue) {
+                                            if (!_isDisposed &&
+                                                newValue != null) {
+                                              final value = newValue.split(":");
+                                              setState(() {
+                                                selectedCategoryId = value[0];
+                                              });
+                                            }
+                                          },
+                                        );
+                                      },
+                                      loading: () => DropdownButtonWithLabel(
+                                        label: "Category",
+                                        selectedValue: null,
+                                        options: const [],
+                                        onChanged: (String? _) {},
+                                      ),
+                                      error: (err, stack) =>
+                                          DropdownButtonWithLabel(
+                                        label: "Category",
+                                        selectedValue: null,
+                                        options: const [],
+                                        onChanged: (String? _) {},
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-
-                      // _productTypeDropDown(context),
                       ProductTypeDropdown(
                         selectedValue: selectedProductType,
                         onChanged: (String? newValue) {
@@ -893,5 +949,24 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         keyboardType: TextInputType.number,
       ),
     );
+  }
+}
+
+class ResponsiveLayout extends StatelessWidget {
+  final Widget mobile;
+  final Widget tablet;
+
+  const ResponsiveLayout({
+    Key? key,
+    required this.mobile,
+    required this.tablet,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768; // or 600, depending on your preference
+
+    return isMobile ? mobile : tablet;
   }
 }
