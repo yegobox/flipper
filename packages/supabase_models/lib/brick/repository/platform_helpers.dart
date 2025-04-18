@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 // ignore: depend_on_referenced_packages
 export 'package:brick_core/query.dart'
@@ -33,7 +34,7 @@ class PlatformHelpers {
   /// Gets the appropriate database factory for the current platform
   static DatabaseFactory getDatabaseFactory() {
     if (kIsWeb) {
-      return databaseFactory;
+      return databaseFactoryFfiWeb;
     } else if (Platform.isWindows || DatabasePath.isTestEnvironment()) {
       return databaseFactoryFfi;
     } else {

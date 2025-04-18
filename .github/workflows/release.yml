@@ -46,7 +46,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: "stable"
       - run: |
           git submodule update --init
@@ -91,7 +91,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: "3.29.3" # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -163,7 +163,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
       - run: flutter doctor -v
 
@@ -223,7 +223,7 @@ jobs:
   #     - name: Setup Flutter
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.2"  # Or a version that works with your Xcode
+  #         flutter-version: "3.29.3"  # Or a version that works with your Xcode
   #         channel: stable
 
   #     - name: Setup Java
@@ -273,7 +273,7 @@ jobs:
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
-    runs-on: windows-2022
+    runs-on: windows-latest
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
@@ -285,7 +285,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
           cache: true
 
@@ -347,7 +347,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
           cache: true
 
@@ -413,7 +413,7 @@ jobs:
   #     - name: Setup Flutter
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.2"
+  #         flutter-version: "3.29.3"
   #         channel: stable
 
   #     - name: Install Dependencies
@@ -507,7 +507,7 @@ jobs:
   #     - name: Clone Flutter repository with stable channel
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.2"
+  #         flutter-version: "3.29.3"
   #         channel: stable
   #     - run: flutter doctor -v
 
@@ -635,7 +635,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.29.3" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
