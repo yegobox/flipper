@@ -133,14 +133,16 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
               ).shouldSeeTheApp(ref, featureName: "Tickets"),
               SizedBox(height: isMobile ? 8 : 16),
               // Make ticket section scrollable on mobile
-              isMobile
-                  ? SingleChildScrollView(
-                      child: SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.7,
+              Expanded(
+                child: isMobile
+                    ? Container(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.7,
+                        ),
                         child: buildTicketSection(context),
-                      ),
-                    )
-                  : buildTicketSection(context),
+                      )
+                    : buildTicketSection(context),
+              ),
             ],
           ),
         );

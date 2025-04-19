@@ -5,6 +5,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Layout; // Consider environmental compatibility
 
+import androidx.annotation.Keep;
+
 import com.zcs.sdk.DriverManager;
 import com.zcs.sdk.SdkResult;
 import com.zcs.sdk.print.PrnStrFormat;
@@ -16,6 +18,8 @@ import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+@Keep
 public class PrinterService {
 
     private static final Logger LOGGER = Logger.getLogger(PrinterService.class.getName());
