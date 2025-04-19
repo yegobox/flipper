@@ -3,13 +3,13 @@ android_sdk_config:
 
 output:
   c:
-    library_name: CoreJava
+    library_name: PrinterService
     path: src/
   dart:
-    path: lib/core_java.dart
+    path: lib/printer_service.dart
     structure: single_file
 
 source_path:
   - 'android/app/src/main/java'
 classes:
-  - 'com.external'
+  - 'com.printer'

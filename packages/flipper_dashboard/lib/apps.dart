@@ -256,18 +256,17 @@ class _AppsState extends ConsumerState<Apps> {
   }
 
   DateTime _calculateStartingDate(String transactionPeriod) {
-    DateTime now = DateTime.now();
+    DateTime now = DateTime.now().toUtc();
     if (transactionPeriod == 'Today') {
-      return DateTime(now.year, now.month, now.day);
+      return DateTime.utc(now.year, now.month, now.day);
     } else if (transactionPeriod == 'This Week') {
-      return DateTime(now.year, now.month, now.day - 7).subtract(
-          Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+      final weekday = now.weekday; // 1 (Mon) - 7 (Sun)
+      return DateTime.utc(now.year, now.month, now.day)
+          .subtract(Duration(days: weekday - 1));
     } else if (transactionPeriod == 'This Month') {
-      return DateTime(now.year, now.month - 1, now.day).subtract(
-          Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+      return DateTime.utc(now.year, now.month, 1);
     } else {
-      return DateTime(now.year - 1, now.month, now.day).subtract(
-          Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+      return DateTime.utc(now.year - 1, now.month, now.day);
     }
   }
 

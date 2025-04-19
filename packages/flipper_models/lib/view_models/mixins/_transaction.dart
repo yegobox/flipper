@@ -133,7 +133,7 @@ mixin TransactionMixinOld {
 
   Future<void> printing(Uint8List? bytes, BuildContext context) async {
     final printers = await Printing.listPrinters();
-
+    //
     if (printers.isNotEmpty) {
       Printer? pri = await Printing.pickPrinter(
           context: context, title: "List of printers");
