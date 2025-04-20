@@ -7,10 +7,10 @@ import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:collection/collection.dart';
-
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:printing/printing.dart';
-import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'dart:typed_data';
 
@@ -132,17 +132,21 @@ mixin TransactionMixinOld {
   }
 
   Future<void> printing(Uint8List? bytes, BuildContext context) async {
-    final printers = await Printing.listPrinters();
-    //
-    if (printers.isNotEmpty) {
-      Printer? pri = await Printing.pickPrinter(
-          context: context, title: "List of printers");
-      if (bytes == null) {
-        return;
-      }
+    if (Platform.isAndroid || Platform.isIOS) {
+      print("can't direct pring on ios, android using direct printer.");
+    } else {
+      final printers = await Printing.listPrinters();
+      //
+      if (printers.isNotEmpty) {
+        Printer? pri = await Printing.pickPrinter(
+            context: context, title: "List of printers");
+        if (bytes == null) {
+          return;
+        }
 
-      await Printing.directPrintPdf(
-          printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
+        await Printing.directPrintPdf(
+            printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
+      }
     }
   }
 
