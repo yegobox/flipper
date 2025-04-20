@@ -112,8 +112,16 @@ mixin AuthMixin implements AuthInterface {
     final bool shouldEnableOfflineLogin = forceOffline ||
         (businessesE.isNotEmpty &&
             branchesE.isNotEmpty &&
-            // !foundation.kDebugMode &&
             !(await ProxyService.status.isInternetAvailable()));
+
+    talker.debug("Offline login decision factors:");
+    talker.debug("- forceOffline: $forceOffline");
+    talker.debug("- businessesE not empty: ${businessesE.isNotEmpty}");
+    talker.debug("- branchesE not empty: ${branchesE.isNotEmpty}");
+    talker.debug("- kDebugMode: ${foundation.kDebugMode}");
+    talker.debug(
+        "- Internet available: ${await ProxyService.status.isInternetAvailable()}");
+    talker.debug("Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin");
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;

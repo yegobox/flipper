@@ -40,7 +40,6 @@ import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flipper_models/exceptions.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/power_sync/schema.dart';
@@ -1854,25 +1853,7 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-  @override
-  Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid}) async {
-    uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
-    final response = await flipperHttpClient.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      body:
-          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
-    );
-    final responseBody = jsonDecode(response.body);
-    talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
-    talker.warning("sendLoginRequest:token:${responseBody['token']}");
-    ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
-    ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-    await ProxyService.box
-        .writeString(key: 'bearerToken', value: responseBody['token']);
-    return response;
-  }
+
 
   @override
   Future<void> sendMessageToIsolate() async {

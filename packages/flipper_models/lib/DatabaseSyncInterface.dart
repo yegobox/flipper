@@ -390,10 +390,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required int branchId, required HttpClientInterface flipperHttpClient});
   FutureOr<Branch?> branch({required int serverId});
 
-  Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid});
-
   bool isDrawerOpen({required int cashierId, required int branchId});
   Future<Drawers?> getDrawer({required int cashierId});
 

@@ -209,22 +209,21 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
-    await handleBranchSelection(
-      branch,
-      context,
-      setLoadingState: (String? id) {
-        setState(() {
-          _loadingItemId = id;
-        });
-      },
-      setDefaultBranch: _setDefaultBranch,
-      onComplete: _completeAuthenticationFlow,
-      setIsLoading: (bool value) {
-        setState(() {
-          _isLoading = value;
-        });
-      },
-    );
+    // Set loading state for the selected branch
+    setState(() {
+      _loadingItemId = branch.serverId?.toString();
+    });
+
+    try {
+      await _setDefaultBranch(branch);
+      _completeAuthenticationFlow();
+    } catch (e) {
+      talker.error('Error handling branch selection: $e');
+    } finally {
+      setState(() {
+        _loadingItemId = null;
+      });
+    }
   }
 
   Future<void> _setDefaultBusiness(Business business) async {
@@ -258,8 +257,21 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _setDefaultBranch(Branch branch) async {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
-    _refreshBusinessAndBranchProviders();
-    return Future.value(); // Return a completed Future<void>
+
+    try {
+      // First make all branches inactive
+      await _updateAllBranchesInactive();
+      // Then set the selected branch as active and default
+      await _updateBranchActive(branch);
+      // Update branch ID in storage
+      await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+      // Refresh providers to reflect changes
+      _refreshBusinessAndBranchProviders();
+    } catch (e) {
+      talker.error('Error setting default branch: $e');
+    } finally {
+      ref.read(branchSelectionProvider.notifier).setLoading(false);
+    }
   }
 
   Future<void> _updateAllBusinessesInactive() async {
@@ -289,6 +301,20 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00")
       ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
       ..writeString(key: 'encryptionKey', value: business.encryptionKey ?? "");
+  }
+
+  Future<void> _updateAllBranchesInactive() async {
+    final branches = await ProxyService.strategy.branches(
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
+    for (final branch in branches) {
+      ProxyService.strategy.updateBranch(
+          branchId: branch.serverId!, active: false, isDefault: false);
+    }
+  }
+
+  Future<void> _updateBranchActive(Branch branch) async {
+    await ProxyService.strategy.updateBranch(
+        branchId: branch.serverId!, active: true, isDefault: true);
   }
 
   void _navigateToBranchSelection() {

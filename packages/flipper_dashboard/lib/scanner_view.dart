@@ -17,6 +17,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class ScannView extends StatefulHookConsumerWidget {
   const ScannView({
@@ -41,6 +42,7 @@ class ScannViewState extends ConsumerState<ScannView>
   final _routerService = locator<RouterService>();
   late AnimationController _animationController;
   late Animation<double> _animation;
+  ScanStatus _scanStatus = ScanStatus.idle;
 
   @override
   void initState() {
@@ -299,6 +301,46 @@ class ScannViewState extends ConsumerState<ScannView>
   }
 
   Widget _buildScanStatusBar(BuildContext context) {
+    Color backgroundColor;
+    Color iconColor;
+    IconData statusIcon;
+    String statusTitle;
+    String statusMessage;
+    bool showSpinner = false;
+
+    switch (_scanStatus) {
+      case ScanStatus.processing:
+        backgroundColor = Colors.blue.shade50;
+        iconColor = Colors.blue;
+        statusIcon = Icons.sync;
+        statusTitle = 'Processing';
+        statusMessage = 'Sending login data...';
+        showSpinner = true;
+        break;
+      case ScanStatus.success:
+        backgroundColor = Colors.green.shade50;
+        iconColor = Colors.green;
+        statusIcon = Icons.check_circle;
+        statusTitle = 'Login Successful';
+        statusMessage = 'Desktop device authenticated';
+        break;
+      case ScanStatus.failed:
+        backgroundColor = Colors.red.shade50;
+        iconColor = Colors.red;
+        statusIcon = Icons.error;
+        statusTitle = 'Login Failed';
+        statusMessage = 'Could not authenticate desktop device';
+        break;
+      case ScanStatus.idle:
+        backgroundColor = Colors.white;
+        iconColor = Colors.green;
+        statusIcon = Icons.check;
+        statusTitle = 'QR Code Detected';
+        statusMessage = 'Processing your request...';
+        showSpinner = true;
+        break;
+    }
+
     return Positioned(
       top: MediaQuery.of(context).size.height / 2 - 80,
       left: 30,
@@ -306,7 +348,7 @@ class ScannViewState extends ConsumerState<ScannView>
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -322,11 +364,11 @@ class ScannViewState extends ConsumerState<ScannView>
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.green,
+                color: iconColor,
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.check,
+                statusIcon,
                 color: Colors.white,
                 size: 16,
               ),
@@ -337,7 +379,7 @@ class ScannViewState extends ConsumerState<ScannView>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Scan Successful',
+                    statusTitle,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -345,7 +387,7 @@ class ScannViewState extends ConsumerState<ScannView>
                   ),
                   SizedBox(height: 2),
                   Text(
-                    'Processing your request...',
+                    statusMessage,
                     style: TextStyle(
                       color: Colors.black54,
                       fontSize: 13,
@@ -354,14 +396,15 @@ class ScannViewState extends ConsumerState<ScannView>
                 ],
               ),
             ),
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            if (showSpinner)
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -597,54 +640,147 @@ class ScannViewState extends ConsumerState<ScannView>
   }
 
   void scanToLogin({required String? result}) {
-    // log(result ?? "", name: 'login');
-    if (result != null && result.contains('-')) {
-      final split = result.split('-');
-      if (split.length > 1 && split[0] == 'login') {
-        _publishLoginDetails(split[1]);
-      }
+    // If there's no result or it doesn't match the login format, show error
+    if (result == null ||
+        !result.contains('-') ||
+        !result.split('-')[0].contains('login')) {
+      setState(() {
+        _scanStatus = ScanStatus.failed;
+      });
+      showToast(context, 'Invalid QR code format');
+
+      // Wait a moment to show error state before closing
+      Future.delayed(Duration(milliseconds: 1500)).then((_) {
+        if (mounted) _routerService.back();
+      });
+      return;
+    }
+
+    final split = result.split('-');
+    if (split.length > 1 && split[0] == 'login') {
+      // Check if we have network connectivity
+      Connectivity().checkConnectivity().then((connectivityResult) {
+        if (connectivityResult == ConnectivityResult.none) {
+          // We're offline, show a specific message
+          setState(() {
+            _scanStatus = ScanStatus.failed;
+          });
+          showToast(context,
+              'Cannot login via QR when offline. Please use PIN login instead.');
+
+          // Wait a moment to show error state before closing
+          Future.delayed(Duration(milliseconds: 2000)).then((_) {
+            if (mounted) _routerService.back();
+          });
+        } else {
+          // We're online, proceed with login
+          _publishLoginDetails(result);
+        }
+      });
     }
   }
 
   Future<void> _publishLoginDetails(String channel) async {
-    int userId = ProxyService.box.getUserId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-    int branchId = ProxyService.box.getBranchId()!;
-    String phone = ProxyService.box.getUserPhone()!;
-    String uid = ProxyService.box.uid();
-    String defaultApp = ProxyService.box.getDefaultApp();
-
-    PublishResult result = await ProxyService.event.publish(loginDetails: {
-      'channel': channel,
-      'userId': userId,
-      'businessId': businessId,
-      'branchId': branchId,
-      'phone': phone,
-      'defaultApp': defaultApp,
-      'uid': uid,
-      'deviceName': Platform.operatingSystem,
-      'deviceVersion': Platform.operatingSystemVersion,
-      'linkingCode': randomNumber().toString(),
+    setState(() {
+      hasScanned = true;
+      isScanning = false;
     });
-    if (!result.isError) {
-      HapticFeedback.lightImpact();
-      showToast(context, 'Login success');
-      _routerService.back();
-    } else {
-      showToast(context, 'Login failed');
-      _routerService.back();
+
+    // Vibrate on successful scan
+    HapticFeedback.mediumImpact();
+
+    try {
+      int userId = ProxyService.box.getUserId()!;
+      int businessId = ProxyService.box.getBusinessId()!;
+      int branchId = ProxyService.box.getBranchId()!;
+      String phone = ProxyService.box.getUserPhone()!;
+      String uid = ProxyService.box.uid();
+      String defaultApp = ProxyService.box.getDefaultApp();
+      String linkingCode = randomNumber().toString();
+
+      // Update UI to show we're processing
+      setState(() {
+        _scanStatus = ScanStatus.processing;
+      });
+
+      PublishResult result = await ProxyService.event.publish(loginDetails: {
+        'channel': channel,
+        'userId': userId,
+        'businessId': businessId,
+        'branchId': branchId,
+        'phone': phone,
+        'defaultApp': defaultApp,
+        'uid': uid,
+        'deviceName': Platform.operatingSystem,
+        'deviceVersion': Platform.operatingSystemVersion,
+        'linkingCode': linkingCode,
+      });
+
+      if (!result.isError) {
+        // Update UI to show success
+        setState(() {
+          _scanStatus = ScanStatus.success;
+        });
+
+        HapticFeedback.lightImpact();
+        showToast(context, 'Login success');
+
+        // Wait a moment to show success state before closing
+        await Future.delayed(Duration(milliseconds: 1500));
+        if (mounted) _routerService.back();
+      } else {
+        // Update UI to show failure
+        setState(() {
+          _scanStatus = ScanStatus.failed;
+        });
+
+        showToast(context, 'Login failed');
+
+        // Wait a moment to show failure state before closing
+        await Future.delayed(Duration(milliseconds: 1500));
+        if (mounted) _routerService.back();
+      }
+    } catch (e) {
+      // Handle any exceptions
+      setState(() {
+        _scanStatus = ScanStatus.failed;
+      });
+
+      showToast(context, 'Login error: ${e.toString()}');
+
+      // Wait a moment to show failure state before closing
+      await Future.delayed(Duration(milliseconds: 1500));
+      if (mounted) _routerService.back();
     }
   }
 
   Future<void> performIntent(Barcode barcode, CoreViewModel model) async {
+    // Set initial scan status
+    setState(() {
+      hasScanned = true;
+      isScanning = false;
+      _scanStatus = ScanStatus.idle;
+    });
+
+    // Vibrate on successful scan
+    HapticFeedback.mediumImpact();
+
+    // Process the barcode based on intent
     if (widget.intent == BARCODE) {
       model.productService.setBarcode(barcode.rawValue);
     }
-    scanToLogin(result: barcode.rawValue);
 
-    // Add delay for better UX
+    // Handle login QR code scanning
+    if (widget.intent == LOGIN) {
+      scanToLogin(result: barcode.rawValue);
+      // We'll navigate from _publishLoginDetails after showing success/failure
+      return;
+    }
+
+    // Add delay for better UX for non-login intents
     await Future.delayed(Duration(milliseconds: 1500));
 
+    // Navigate based on intent for non-login cases
     navigate(barcode.rawValue, model);
   }
 
@@ -751,3 +887,5 @@ class ScannerOverlayPainter extends CustomPainter {
     return false;
   }
 }
+
+enum ScanStatus { idle, processing, success, failed }
