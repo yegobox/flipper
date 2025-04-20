@@ -319,6 +319,11 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   Future<void> _syncBranchWithDatabase(Branch branch) async {
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
   }
+
+  // Helper method to get the current branch ID
+  int? getCurrentBranchId() {
+    return ProxyService.box.readInt(key: 'branchId');
+  }
 }
 
 // Move _BranchSwitchDialog and its State outside the mixin
@@ -386,6 +391,8 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
     // Add state management for search
     final searchController = TextEditingController();
     final searchNotifier = ValueNotifier<String>('');
+    // Get the current branch ID for comparison
+    final currentBranchId = ProxyService.box.readInt(key: 'branchId');
 
     Timer? _debounce;
 
@@ -547,10 +554,97 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                     itemCount: filteredBranches.length,
                     itemBuilder: (context, index) {
                       final branch = filteredBranches[index];
-                      // Replace below with your branch tile widget
-                      return ListTile(
-                        title: Text(branch.name ?? ''),
-                        // Add more details/actions as needed
+                      // Check if this is the current active branch
+                      final isActive = branch.serverId == currentBranchId;
+                      final isLoading =
+                          widget.loadingItemId == branch.serverId?.toString();
+
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            widget.handleBranchSelection(
+                              branch,
+                              context,
+                              setLoadingState: widget.setLoadingState,
+                              setDefaultBranch: widget.setDefaultBranch,
+                              onComplete: () {
+                                Navigator.of(context).pop();
+                              },
+                              setIsLoading: (_) {},
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on_rounded,
+                                  color: isActive
+                                      ? Theme.of(context).primaryColor
+                                      : Theme.of(context)
+                                          .iconTheme
+                                          .color
+                                          ?.withOpacity(0.7),
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        branch.name ?? '',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: isActive
+                                              ? FontWeight.w600
+                                              : FontWeight.normal,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyLarge
+                                              ?.color,
+                                        ),
+                                      ),
+                                      if (isActive) ...[
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Active Branch',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color:
+                                                Theme.of(context).primaryColor,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                                if (isLoading)
+                                  SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).primaryColor,
+                                      ),
+                                    ),
+                                  )
+                                else if (isActive)
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    color: Theme.of(context).primaryColor,
+                                    size: 24,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
                       );
                     },
                   );
