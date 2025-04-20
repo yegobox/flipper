@@ -1,7 +1,6 @@
 // This file serves as the main entry point for the Incoming Orders feature
 import 'package:flutter/material.dart';
 import 'features/incoming_orders/screens/incoming_orders_screen.dart';
-import 'features/incoming_orders/providers/incoming_orders_provider.dart';
 
 // Export all public components
 export 'features/incoming_orders/screens/incoming_orders_screen.dart';

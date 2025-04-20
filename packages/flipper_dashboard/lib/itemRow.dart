@@ -393,7 +393,6 @@ class _RowItemState extends ConsumerState<RowItem>
                   },
                 );
               }
-              ;
             },
           )
         : FutureBuilder<String?>(

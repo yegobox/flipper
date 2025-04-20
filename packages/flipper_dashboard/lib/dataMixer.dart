@@ -5,15 +5,12 @@ import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 final productProvider =
     FutureProvider.family<Product?, String>((ref, productId) async {
@@ -46,10 +43,6 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         variant: variant,
         stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
         isOrdering: isOrdering);
-  }
-
-  String _getDeviceType(BuildContext context) {
-    return DeviceType.getDeviceType(context);
   }
 
   Future<void> deleteFunc(String? productId, ProductViewModel model) async {
