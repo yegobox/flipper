@@ -385,17 +385,46 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   void _handlePaymentError(
       dynamic error, StackTrace stackTracke, BuildContext context) {
     if ((ProxyService.box.enableDebug() ?? false)) {
-      // show stackTracke instead
-      showCustomSnackBarUtil(context, stackTracke.toString(),
-          backgroundColor: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        // margin: const EdgeInsets.only(
+        //   left: 350.0,
+        //   right: 350.0,
+        //   bottom: 20.0,
+        // ),
+        duration: Duration(seconds: 10),
+        backgroundColor: Colors.red,
+        content: Text(stackTracke.toString().split('Caught Exception: ').last),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+        closeIconColor: Colors.red,
+      ));
     } else {
       String errorMessage = error.toString();
       if (error is Exception) {
         errorMessage = error.toString().split('Exception: ').last;
       }
 
-      showCustomSnackBarUtil(context, errorMessage,
-          backgroundColor: Colors.red);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        // margin: const EdgeInsets.only(
+        //   left: 350.0,
+        //   right: 350.0,
+        //   bottom: 20.0,
+        // ),
+        duration: Duration(seconds: 10),
+        backgroundColor: Colors.red,
+        content: Text(errorMessage.toString().split('Caught Exception: ').last),
+        action: SnackBarAction(
+          label: 'Close',
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+        closeIconColor: Colors.red,
+      ));
     }
   }
 

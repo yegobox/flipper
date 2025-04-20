@@ -52,6 +52,7 @@ class CapellaSync extends CapellaSyncBase
         CapellaStockMixin,
         CapellaStorageMixin,
         CapellaSystemMixin,
+        CapellaEbmMixin,
         CapellaTenantMixin,
         CapellaTransactionItemMixin,
         CapellaTransactionMixin,
