@@ -11,6 +11,7 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
@@ -56,6 +57,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         TransactionInterface,
         ProductInterface,
         TenantInterface,
+        EbmInterface,
         CategoryInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
@@ -264,10 +266,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
-
-  Future<models.Ebm?> ebm({required int branchId, bool fetchRemote = false});
-  Future<void> saveEbm(
-      {required int branchId, required String severUrl, required String bhFId});
 
   Stream<Tenant?> authState({required int branchId});
 
@@ -623,7 +621,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int subBranchId});
 
   FutureOr<void> addTransaction({required ITransaction transaction});
-  FutureOr<bool> isBranchEnableForPayment({required String currentBranchId});
+  FutureOr<bool> isBranchEnableForPayment(
+      {required String currentBranchId, bool fetchRemote = false});
   FutureOr<void> setBranchPaymentStatus(
       {required String currentBranchId, required bool status});
 

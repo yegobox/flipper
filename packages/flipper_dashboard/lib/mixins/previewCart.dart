@@ -1,9 +1,11 @@
 // ignore_for_file: unused_result
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
@@ -192,7 +194,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       if (!isValid) return;
 
       final isDigitalPaymentEnabled = await ProxyService.strategy
-          .isBranchEnableForPayment(currentBranchId: branchId);
+          // since we need to have updated EBM settings and we rely on internet for that for the bellow platfrom
+          // we haven't encountered with hydrating issue excluding windows.
+          .isBranchEnableForPayment(
+              currentBranchId: branchId,
+              fetchRemote:
+                  (Platform.isAndroid || Platform.isIOS || Platform.isMacOS));
 
       if (isDigitalPaymentEnabled && !immediateCompletion) {
         // Process digital payment only if immediateCompletion is false
@@ -379,36 +386,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       dynamic error, StackTrace stackTracke, BuildContext context) {
     if ((ProxyService.box.enableDebug() ?? false)) {
       // show stackTracke instead
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: Duration(seconds: 10),
-        backgroundColor: Colors.red,
-        content: Text(stackTracke.toString()),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-        closeIconColor: Colors.red,
-      ));
+      showCustomSnackBarUtil(context, stackTracke.toString(),
+          backgroundColor: Colors.red);
     } else {
       String errorMessage = error.toString();
       if (error is Exception) {
         errorMessage = error.toString().split('Exception: ').last;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: Duration(seconds: 10),
-        backgroundColor: Colors.red,
-        content: Text(errorMessage.toString().split('Caught Exception: ').last),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-        closeIconColor: Colors.red,
-      ));
+      showCustomSnackBarUtil(context, errorMessage,
+          backgroundColor: Colors.red);
     }
   }
 

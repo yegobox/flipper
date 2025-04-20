@@ -19,6 +19,7 @@ import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
+import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
@@ -77,6 +78,7 @@ class CoreSync extends AiStrategyImpl
         TenantMixin,
         ProductMixin,
         VariantMixin,
+        EbmMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -982,27 +984,6 @@ class CoreSync extends AiStrategyImpl
       talker.error('Error in downloading assets: $s');
       rethrow;
     }
-  }
-
-  @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
-    final repository = Repository();
-    final query =
-        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
-    final result = await repository.get<models.Ebm>(
-        query: query,
-        policy: fetchRemote == true
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    final ebm = result.firstOrNull;
-    if (ebm != null) {
-      // set it into the box
-      ProxyService.box
-          .writeString(key: 'getServerUrl', value: ebm.taxServerUrl);
-      ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
-      return ebm;
-    }
-    return null;
   }
 
   @override
@@ -2806,49 +2787,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> saveEbm({
-    required int branchId,
-    required String severUrl,
-    required String bhFId,
-  }) async {
-    final business =
-        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
-
-    if (business == null) {
-      throw Exception("Business not found");
-    }
-
-    final query = brick.Query(where: [
-      brick.Where('branchId').isExactly(branchId),
-      brick.Where('bhfId').isExactly(bhFId),
-    ]);
-
-    final ebm = await repository.get<models.Ebm>(
-      query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    final existingEbm = ebm.firstOrNull;
-
-    final updatedEbm = existingEbm ??
-        models.Ebm(
-          bhfId: bhFId,
-          tinNumber: business.tinNumber!,
-          dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
-          userId: ProxyService.box.getUserId()!,
-          taxServerUrl: severUrl,
-          businessId: business.serverId,
-          branchId: branchId,
-        );
-
-    if (existingEbm != null) {
-      updatedEbm.taxServerUrl = severUrl;
-    }
-
-    await repository.upsert(updatedEbm);
-  }
-
-  @override
   FutureOr<void> savePaymentType({
     TransactionPaymentRecord? paymentRecord,
     String? transactionId,
@@ -3736,14 +3674,15 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<bool> isBranchEnableForPayment(
-      {required String currentBranchId}) async {
+      {required String currentBranchId, bool fetchRemote = false}) async {
     final payment_status = await repository.get<BranchPaymentIntegration>(
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           brick.Where('branchId').isExactly(currentBranchId),
-          brick.Where('isEnabled').isExactly(true),
         ]));
-    return payment_status.isNotEmpty;
+    return payment_status.firstOrNull?.isEnabled ?? false;
   }
 
   @override

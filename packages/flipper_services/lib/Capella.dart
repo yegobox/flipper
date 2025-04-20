@@ -1146,12 +1146,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) {
-    // TODO: implement ebm
-    throw UnimplementedError();
-  }
-
-  @override
   Future<bool> firebaseLogin({String? token}) {
     // TODO: implement firebaseLogin
     throw UnimplementedError();
@@ -1639,7 +1633,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<bool> isBranchEnableForPayment({required String currentBranchId}) {
+  FutureOr<bool> isBranchEnableForPayment(
+      {required String currentBranchId, bool fetchRemote = false}) {
     // TODO: implement isBranchEnableForPayment
     throw UnimplementedError();
   }
@@ -2110,6 +2105,12 @@ class Capella extends AiStrategyImpl
   @override
   Future<List<brick.Access>> allAccess({required int userId}) {
     // TODO: implement allAccess
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<brick.Ebm?> ebm({required int branchId, bool fetchRemote = false}) {
+    // TODO: implement ebm
     throw UnimplementedError();
   }
 }

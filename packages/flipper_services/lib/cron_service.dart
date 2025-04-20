@@ -9,7 +9,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:supabase_models/brick/repository.dart' as repo;
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -73,20 +72,20 @@ class CronService {
 
         // Hydrate essential data
         try {
-          // await Future.wait<void>([
-          //   ProxyService.strategy
-          //       .ebm(branchId: branchId, fetchRemote: true)
-          //       .then((_) {}),
-          //   ProxyService.strategy
-          //       .getCounters(branchId: branchId, fetchRemote: true)
-          //       .then((_) {}),
-          //   ProxyService.strategy
-          //       .variants(branchId: branchId, fetchRemote: true)
-          //       .then((_) {}),
-          //   ProxyService.strategy
-          //       .transactions(branchId: branchId, fetchRemote: true)
-          //       .then((_) {}),
-          // ]);
+          await Future.wait<void>([
+            ProxyService.strategy
+                .ebm(branchId: branchId, fetchRemote: true)
+                .then((_) {}),
+            //   ProxyService.strategy
+            //       .getCounters(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
+            //   ProxyService.strategy
+            //       .variants(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
+            //   ProxyService.strategy
+            //       .transactions(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
+          ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
         }
