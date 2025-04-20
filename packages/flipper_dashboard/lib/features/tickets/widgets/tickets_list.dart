@@ -328,34 +328,32 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          return Expanded(
-            child: StreamBuilder<List<ITransaction>>(
-              stream: _getTicketsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  List<ITransaction> data = snapshot.data!;
-                  if (data.isEmpty) {
-                    return _buildNoTickets(context);
-                  }
-                  return _buildTicketList(context, data);
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 16,
-                        color: Colors.red,
-                      ),
-                    ),
-                  );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+          return StreamBuilder<List<ITransaction>>(
+            stream: _getTicketsStream(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<ITransaction>? data = snapshot.data;
+                if (data == null || data.isEmpty) {
+                  return _buildNoTickets(context);
                 }
-              },
-            ),
+                return _buildTicketList(context, data);
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error: ${snapshot.error}',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 16,
+                      color: Colors.red,
+                    ),
+                  ),
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
           );
         });
   }
