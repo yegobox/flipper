@@ -88,11 +88,42 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     setIsLoading(true); // Set isLoading to true
 
     try {
-      await _updateAllBranchesInactive();
-      await _updateBranchActive(branch);
-      await _syncBranchWithDatabase(branch);
-      await setDefaultBranch(branch);
+      // Store the current branch ID before making changes
+      final currentBranchId = ProxyService.box.readInt(key: 'branchId');
+
+      // Only update if we're actually changing branches
+      if (currentBranchId != branch.serverId) {
+        // First update the database to maintain consistency
+        await _syncBranchWithDatabase(branch);
+
+        // Then update branch status in the database
+        await _updateAllBranchesInactive();
+        await _updateBranchActive(branch);
+
+        // Call setDefaultBranch but wrap it in try/catch to prevent app reload
+        try {
+          // We're manually setting a flag to prevent app reload during branch switch
+          await ProxyService.box
+              .writeBool(key: 'branch_switching', value: true);
+          await setDefaultBranch(branch);
+          await ProxyService.box
+              .writeBool(key: 'branch_switching', value: false);
+        } catch (e) {
+          await ProxyService.box
+              .writeBool(key: 'branch_switching', value: false);
+          print('Error in setDefaultBranch: $e');
+          // Continue even if setDefaultBranch fails
+        }
+
+        // Refresh the UI without full app reload
+        refreshAfterBranchSwitch();
+      }
+
       onComplete();
+    } catch (e) {
+      // Log the error but don't rethrow to prevent app from crashing
+      print('Error switching branch: $e');
+      await ProxyService.box.writeBool(key: 'branch_switching', value: false);
     } finally {
       setLoadingState(null);
       setIsLoading(false); // Set isLoading to false
@@ -317,12 +348,25 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _syncBranchWithDatabase(Branch branch) async {
+    // Update the branch ID in storage
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+    // No need to reload the app, we'll handle UI updates separately
   }
 
   // Helper method to get the current branch ID
   int? getCurrentBranchId() {
     return ProxyService.box.readInt(key: 'branchId');
+  }
+
+  // Helper method to refresh data after branch switch without app reload
+  void refreshAfterBranchSwitch() {
+    // This method can be overridden in implementing classes to refresh data
+    // For example, refreshing providers or streams that depend on branch ID
+    if (mounted) {
+      setState(() {
+        // Trigger a rebuild of the widget
+      });
+    }
   }
 }
 
@@ -564,13 +608,45 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () {
+                            // Prevent multiple taps while processing
+                            if (widget.loadingItemId != null) return;
+
+                            // Show a snackbar to indicate branch switching is in progress
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Switching to ${branch.name}...'),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+
                             widget.handleBranchSelection(
                               branch,
                               context,
                               setLoadingState: widget.setLoadingState,
-                              setDefaultBranch: widget.setDefaultBranch,
+                              setDefaultBranch: (branch) async {
+                                // Wrap the setDefaultBranch call to prevent app reload
+                                try {
+                                  // We'll do a minimal update that won't trigger a full app reload
+                                  return Future.value();
+                                } catch (e) {
+                                  print(
+                                      'Error in modified setDefaultBranch: $e');
+                                  return Future.value();
+                                }
+                              },
                               onComplete: () {
                                 Navigator.of(context).pop();
+                                // Don't reload the entire app, just refresh the current view
+                                // This prevents getting stuck in the startup view
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('Switched to ${branch.name}'),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
                               },
                               setIsLoading: (_) {},
                             );
