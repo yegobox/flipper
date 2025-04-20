@@ -19,6 +19,8 @@ mixin DatabasePath {
       return await getDatabasesPath();
     } else if (Platform.isIOS || Platform.isMacOS) {
       final documents = await getApplicationDocumentsDirectory();
+      // print the path
+      print('Database path: ${documents.path}');
       return documents.path;
     } else {
       // For other platforms, use application documents directory

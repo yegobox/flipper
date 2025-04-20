@@ -76,9 +76,9 @@ class CronService {
             ProxyService.strategy
                 .ebm(branchId: branchId, fetchRemote: true)
                 .then((_) {}),
-            //   ProxyService.strategy
-            //       .getCounters(branchId: branchId, fetchRemote: true)
-            //       .then((_) {}),
+            ProxyService.strategy
+                .getCounters(branchId: branchId, fetchRemote: true)
+                .then((_) {}),
             //   ProxyService.strategy
             //       .variants(branchId: branchId, fetchRemote: true)
             //       .then((_) {}),
