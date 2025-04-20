@@ -1,6 +1,10 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class MyDrawer extends StatelessWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -173,23 +177,28 @@ class MyDrawer extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.dashboard),
           title: const Text('Dashboard'),
-          onTap: () => _navigateTo(context, '/dashboard'),
+          onTap: () {
+            Navigator.pop(context);
+          },
         ),
         ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('Settings'),
-          onTap: () => _navigateTo(context, '/settings'),
-        ),
-        ListTile(
-          leading: const Icon(Icons.help_outline),
-          title: const Text('Help & Support'),
-          onTap: () => _navigateTo(context, '/support'),
+          leading: const Icon(Icons.qr_code_scanner),
+          title: const Text('Scan QR Code'),
+          onTap: () {
+            locator<RouterService>()
+                .navigateTo(ScannViewRoute(intent: 'login'));
+          },
         ),
         const Divider(),
         ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Logout'),
-          onTap: () => _handleLogout(context),
+          onTap: () {
+            locator<DialogService>().showCustomDialog(
+              variant: DialogType.logOut,
+              title: 'Log out',
+            );
+          },
         ),
       ],
     );
@@ -209,17 +218,6 @@ class MyDrawer extends StatelessWidget {
 
   void _handleBranchSelection(
       BuildContext context, Business business, String branchName) {
-    Navigator.pop(context);
-  }
-
-  void _navigateTo(BuildContext context, String route) {
-    // TODO: Implement navigation
-    // Navigator.pop(context);
-    // Navigator.pushNamed(context, route);
-  }
-
-  void _handleLogout(BuildContext context) {
-    // TODO: Implement logout logic
     Navigator.pop(context);
   }
 }
