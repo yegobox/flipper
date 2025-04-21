@@ -40,13 +40,25 @@ mixin TransactionMixinOld {
       final taxExanbled = await ProxyService.strategy
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
-      final hasServerUrl = await ProxyService.box.getServerUrl() != null;
+      final ebm = await ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
       /// update transaction type
 
-      if (taxExanbled && hasServerUrl && hasUser && !isTaxServiceStoped) {
+      if (taxExanbled &&
+          ebm?.taxServerUrl != null &&
+          hasUser &&
+          !isTaxServiceStoped) {
+        ProxyService.box.writeString(
+          key: "getServerUrl",
+          value: ebm!.taxServerUrl,
+        );
+        ProxyService.box.writeString(
+          key: "bhfId",
+          value: ebm.bhfId,
+        );
         response = await handleReceiptGeneration(
             formKey: formKey,
             context: context,

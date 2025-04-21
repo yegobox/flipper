@@ -68,6 +68,42 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
   bool _isLoading = false;
+  late final TextEditingController _customerPhoneController;
+  String? _customerPhoneError;
+
+  @override
+  void initState() {
+    super.initState();
+    _customerPhoneController = TextEditingController(
+      text:
+          ProxyService.box.readString(key: 'currentSaleCustomerPhoneNumber') ??
+              '',
+    );
+    _customerPhoneController.addListener(() {
+      final value = _customerPhoneController.text;
+      ProxyService.box
+          .writeString(key: 'currentSaleCustomerPhoneNumber', value: value);
+      setState(() {}); // To update error message if needed
+    });
+  }
+
+  @override
+  void dispose() {
+    _customerPhoneController.dispose();
+    super.dispose();
+  }
+
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a phone number';
+    }
+    // Must be 9 digits, starting with 7, 8, or 9, and no leading zero
+    final phoneExp = RegExp(r'^[7-9]\d{8}$');
+    if (!phoneExp.hasMatch(value)) {
+      return 'Please enter a valid 9-digit phone number (e.g. 783054874)';
+    }
+    return null;
+  }
 
   static Future<void> edit({
     required BuildContext context,
@@ -199,12 +235,28 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
   }
 
   Future<void> _handleCharge(String transactionId, double total) async {
+    // Validate phone before charging
+    final phoneError = _validatePhone(_customerPhoneController.text);
+    setState(() {
+      _customerPhoneError = phoneError;
+    });
+    if (phoneError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(phoneError)),
+      );
+      return;
+    }
     try {
       // Start loading
       setState(() {
         _isLoading = true;
       });
       ref.read(oldProvider.loadingProvider.notifier).startLoading();
+
+      // Save phone number to ProxyService.box
+      ProxyService.box.writeString(
+          key: 'currentSaleCustomerPhoneNumber',
+          value: _customerPhoneController.text);
 
       // Call the charge function
       await widget.onCharge(transactionId, total);
@@ -277,12 +329,31 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
       );
     }
 
+    Widget _buildPhoneField() {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: TextField(
+          controller: _customerPhoneController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Customer Phone number',
+            hintText: 'Customer Phone number',
+            prefixIcon: Icon(Icons.phone, color: Colors.blue),
+            errorText: _customerPhoneError,
+            border: OutlineInputBorder(),
+          ),
+          maxLength: 9,
+        ),
+      );
+    }
+
     Widget _buildContent(List<TransactionItem> items) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SearchInputWithDropdown(),
           SizedBox(height: 16),
+          _buildPhoneField(),
           if (items.isNotEmpty)
             ...items.map((item) => _buildTransactionItem(item)).toList(),
           SizedBox(height: 16),

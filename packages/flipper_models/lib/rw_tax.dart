@@ -494,7 +494,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final repository = Repository();
 
     List<Configurations> taxConfigs = await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: Query(where: [
           Where('taxType').isExactly(item.taxTyCd ?? "B"),
           Where('branchId').isExactly(ProxyService.box.getBranchId()!),
@@ -1076,5 +1076,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .toString();
     await sendPostRequest(url, json);
     return true;
+  }
+
+  @override
+  Future<List<odm.Configurations>> taxConfigs({required int branchId}) async {
+    final repository = Repository();
+    List<Configurations> taxConfigs = await repository.get<Configurations>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: Query(where: [
+          Where('branchId').isExactly(branchId),
+        ]));
+    return taxConfigs;
   }
 }

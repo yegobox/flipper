@@ -79,6 +79,7 @@ class CronService {
             ProxyService.strategy
                 .getCounters(branchId: branchId, fetchRemote: true)
                 .then((_) {}),
+            ProxyService.tax.taxConfigs(branchId: branchId).then((_) {}),
             //   ProxyService.strategy
             //       .variants(branchId: branchId, fetchRemote: true)
             //       .then((_) {}),

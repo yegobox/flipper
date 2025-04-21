@@ -93,7 +93,10 @@ Future<void> main() async {
         ..tracesSampleRate = 1.0
         ..attachScreenshot = true,
       appRunner: () {
-        FlutterNativeSplash.remove();
+        // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FlutterNativeSplash.remove();
+        });
         runApp(
           ProviderScope(
             observers: [StateObserver()],

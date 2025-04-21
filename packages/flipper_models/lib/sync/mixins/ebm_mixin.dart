@@ -1,8 +1,11 @@
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/services/sqlite_service.dart';
+import 'package:path/path.dart' as path;
 
 mixin EbmMixin implements EbmInterface {
   Repository get repository;
@@ -53,12 +56,28 @@ mixin EbmMixin implements EbmInterface {
   @override
   Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
     final query = Query(where: [Where('branchId').isExactly(branchId)]);
-    final result = await repository.get<Ebm>(
+    var result = await repository.get<Ebm>(
       query: query,
       policy: fetchRemote
           ? OfflineFirstGetPolicy.alwaysHydrate
           : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     );
+    // If more than one result, delete all and re-fetch (ensure only one config)
+    if (result.length > 1) {
+      final dbDir = await DatabasePath.getDatabaseDirectory();
+      final dbPath = path.join(dbDir, 'flipper_v17.sqlite');
+
+      // Construct delete query: only delete where branchId matches
+      final deleteSql = 'DELETE FROM Ebm WHERE branch_id = ?';
+      SqliteService.execute(dbPath, deleteSql, [branchId]);
+      // Re-fetch after cleanup
+      result = await repository.get<Ebm>(
+        query: query,
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+    }
     final ebm = result.firstOrNull;
     // Save EBM to local storage if fetched from remote and exists
     if (fetchRemote && ebm != null) {

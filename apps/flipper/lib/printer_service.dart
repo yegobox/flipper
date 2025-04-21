@@ -52,33 +52,61 @@ class PrinterService extends jni$_.JObject {
   /// The type which includes information such as the signature of this class.
   static const nullableType = $PrinterService$NullableType();
   static const type = $PrinterService$Type();
-  static final _id_new$ = _class.constructorId(
-    r'()V',
+  static final _id_getInstance = _class.staticMethodId(
+    r'getInstance',
+    r'()Lcom/printer/PrinterService;',
   );
 
-  static final _new$ = jni$_.ProtectedJniExtensions.lookup<
+  static final _getInstance = jni$_.ProtectedJniExtensions.lookup<
           jni$_.NativeFunction<
               jni$_.JniResult Function(
                 jni$_.Pointer<jni$_.Void>,
                 jni$_.JMethodIDPtr,
-              )>>('globalEnv_NewObject')
+              )>>('globalEnv_CallStaticObjectMethod')
       .asFunction<
           jni$_.JniResult Function(
             jni$_.Pointer<jni$_.Void>,
             jni$_.JMethodIDPtr,
           )>();
 
-  /// from: `public void <init>()`
+  /// from: `synchronized static public com.printer.PrinterService getInstance()`
   /// The returned object must be released after use, by calling the [release] method.
-  factory PrinterService() {
-    return PrinterService.fromReference(
-        _new$(_class.reference.pointer, _id_new$ as jni$_.JMethodIDPtr)
-            .reference);
+  static PrinterService? getInstance() {
+    return _getInstance(
+            _class.reference.pointer, _id_getInstance as jni$_.JMethodIDPtr)
+        .object<PrinterService?>(const $PrinterService$NullableType());
+  }
+
+  static final _id_initializePrinter = _class.instanceMethodId(
+    r'initializePrinter',
+    r'()I',
+  );
+
+  static final _initializePrinter = jni$_.ProtectedJniExtensions.lookup<
+          jni$_.NativeFunction<
+              jni$_.JniResult Function(
+                jni$_.Pointer<jni$_.Void>,
+                jni$_.JMethodIDPtr,
+              )>>('globalEnv_CallIntMethod')
+      .asFunction<
+          jni$_.JniResult Function(
+            jni$_.Pointer<jni$_.Void>,
+            jni$_.JMethodIDPtr,
+          )>();
+
+  /// from: `public int initializePrinter()`
+  ///
+  /// Initialize the printer. Call this method once when your app starts.
+  ///@return status code: 0 for success, or an error code
+  int initializePrinter() {
+    return _initializePrinter(
+            reference.pointer, _id_initializePrinter as jni$_.JMethodIDPtr)
+        .integer;
   }
 
   static final _id_printNow = _class.instanceMethodId(
     r'printNow',
-    r'(Ljava/lang/String;)I',
+    r'([B)I',
   );
 
   static final _printNow = jni$_.ProtectedJniExtensions.lookup<
@@ -92,14 +120,49 @@ class PrinterService extends jni$_.JObject {
           jni$_.JniResult Function(jni$_.Pointer<jni$_.Void>,
               jni$_.JMethodIDPtr, jni$_.Pointer<jni$_.Void>)>();
 
-  /// from: `public int printNow(java.lang.String path)`
+  /// from: `public int printNow(byte[] imageData)`
+  ///
+  /// Prints an image from byte array data
+  ///@param imageData The byte array containing image data
+  ///@return Status code: 0 for success, or an error code
   int printNow(
-    jni$_.JString? path,
+    jni$_.JByteArray? imageData,
   ) {
-    final _$path = path?.reference ?? jni$_.jNullReference;
+    final _$imageData = imageData?.reference ?? jni$_.jNullReference;
     return _printNow(reference.pointer, _id_printNow as jni$_.JMethodIDPtr,
-            _$path.pointer)
+            _$imageData.pointer)
         .integer;
+  }
+
+  static final _id_toGrayscale = _class.staticMethodId(
+    r'toGrayscale',
+    r'(Landroid/graphics/Bitmap;)Landroid/graphics/Bitmap;',
+  );
+
+  static final _toGrayscale = jni$_.ProtectedJniExtensions.lookup<
+              jni$_.NativeFunction<
+                  jni$_.JniResult Function(
+                      jni$_.Pointer<jni$_.Void>,
+                      jni$_.JMethodIDPtr,
+                      jni$_.VarArgs<(jni$_.Pointer<jni$_.Void>,)>)>>(
+          'globalEnv_CallStaticObjectMethod')
+      .asFunction<
+          jni$_.JniResult Function(jni$_.Pointer<jni$_.Void>,
+              jni$_.JMethodIDPtr, jni$_.Pointer<jni$_.Void>)>();
+
+  /// from: `static public android.graphics.Bitmap toGrayscale(android.graphics.Bitmap bmpOriginal)`
+  /// The returned object must be released after use, by calling the [release] method.
+  ///
+  /// Converts a bitmap to grayscale
+  ///@param bmpOriginal The original bitmap
+  ///@return A new grayscale bitmap
+  static jni$_.JObject? toGrayscale(
+    jni$_.JObject? bmpOriginal,
+  ) {
+    final _$bmpOriginal = bmpOriginal?.reference ?? jni$_.jNullReference;
+    return _toGrayscale(_class.reference.pointer,
+            _id_toGrayscale as jni$_.JMethodIDPtr, _$bmpOriginal.pointer)
+        .object<jni$_.JObject?>(const jni$_.JObjectNullableType());
   }
 }
 

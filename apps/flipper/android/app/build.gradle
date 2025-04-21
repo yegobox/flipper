@@ -63,10 +63,10 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "rw.flipper"
-        minSdkVersion 24
+        minSdkVersion 26
         // minSdkVersion flutter.minSdkVersion
         // targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
@@ -123,5 +123,7 @@ dependencies {
     // SMART POS
     implementation files('libs/slf4j.jdk14-1.6.1.jar.jar')
     implementation files('libs/SmartPos_1.5.3_R220323.jar')
+
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
    
 }
