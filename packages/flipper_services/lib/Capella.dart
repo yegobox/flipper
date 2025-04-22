@@ -1140,6 +1140,7 @@ class Capella extends AiStrategyImpl
       required String qrCode,
       required String receiptType,
       required Counter counter,
+      required String timeReceivedFromserver,
       required int invoiceNumber}) {
     // TODO: implement createReceipt
     throw UnimplementedError();
@@ -2107,7 +2108,7 @@ class Capella extends AiStrategyImpl
     // TODO: implement allAccess
     throw UnimplementedError();
   }
-  
+
   @override
   Future<brick.Ebm?> ebm({required int branchId, bool fetchRemote = false}) {
     // TODO: implement ebm

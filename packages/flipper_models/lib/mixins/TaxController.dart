@@ -217,9 +217,13 @@ class TaxController<OBJ> {
           await print.print(
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
+            timeFromServer:
+                responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
+                    receipt.timeReceivedFromserver!,
             taxB: totalB,
             taxC: totalC,
             taxA: totalA,
+
             taxD: totalD,
             grandTotal: transaction.subTotal!,
             totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
@@ -315,17 +319,14 @@ class TaxController<OBJ> {
         counter: counter,
         URI: await ProxyService.box.getServerUrl() ?? "",
         purchaseCode: purchaseCode,
-        timeToUser: receipt?.whenCreated?.toLocal() ?? now,
+        timeToUser: now,
       );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
-        String qrCode = generateQRCode(
-            receipt?.whenCreated?.toYYYMMdd() ?? now.toYYYMMdd(),
-            receiptSignature,
-            receiptType: receiptType,
-            whenCreated: receipt?.whenCreated ?? now);
+        String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature,
+            receiptType: receiptType, whenCreated: now);
 
         /// update transaction with receipt number and total receipt number
 
@@ -400,8 +401,6 @@ class TaxController<OBJ> {
               amountTotal: item.totAmt ?? 0.0,
             );
           }
-
-          // ProxyService.strategy.realm!.add(tran);
         } else if (receiptType == "NS" ||
             receiptType == "TS" ||
             receiptType == "PS") {
@@ -486,6 +485,7 @@ class TaxController<OBJ> {
         signature: receiptSignature,
         transaction: transaction,
         qrCode: qrCode,
+        timeReceivedFromserver: receiptSignature.data!.vsdcRcptPbctDate!,
         counter: counter,
         receiptType: receiptType,
         whenCreated: whenCreated,

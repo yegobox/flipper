@@ -32,6 +32,7 @@ class Receipt extends OfflineFirstWithSupabaseModel {
   int? invcNo;
   DateTime? whenCreated;
   int? invoiceNumber;
+  DateTime? timeReceivedFromserver;
 
   Receipt({
     String? id,
@@ -53,5 +54,6 @@ class Receipt extends OfflineFirstWithSupabaseModel {
     this.invcNo,
     this.whenCreated,
     this.invoiceNumber,
+    this.timeReceivedFromserver,
   }) : id = id ?? const Uuid().v4();
 }

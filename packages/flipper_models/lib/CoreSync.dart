@@ -606,6 +606,7 @@ class CoreSync extends AiStrategyImpl
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
+      required String timeReceivedFromserver,
       required Counter counter,
       required int invoiceNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
@@ -620,6 +621,7 @@ class CoreSync extends AiStrategyImpl
         qrCode: qrCode,
         receiptType: receiptType,
         invoiceNumber: invoiceNumber,
+        timeReceivedFromserver: timeReceivedFromserver.toCompactDateTime(),
         vsdcRcptPbctDate: signature.data?.vsdcRcptPbctDate ?? "",
         sdcId: signature.data?.sdcId ?? "",
         totRcptNo: signature.data?.totRcptNo ?? 0,
@@ -1852,8 +1854,6 @@ class CoreSync extends AiStrategyImpl
       spplrItemClsCd: item.hsCd,
     );
   }
-
-
 
   @override
   Future<void> sendMessageToIsolate() async {

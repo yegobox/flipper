@@ -425,3 +425,24 @@ extension StringToTin on String {
     return RegExp(r'^\d{9}$').hasMatch(this);
   }
 }
+
+extension CompactDateTimeParser on String {
+  /// Converts a string in 'yyyyMMddHHmmss' format to a DateTime object.
+  /// Returns null if the format is invalid.
+  DateTime? toCompactDateTime() {
+    if (length != 14) return null;
+
+    try {
+      final year = int.parse(substring(0, 4));
+      final month = int.parse(substring(4, 6));
+      final day = int.parse(substring(6, 8));
+      final hour = int.parse(substring(8, 10));
+      final minute = int.parse(substring(10, 12));
+      final second = int.parse(substring(12, 14));
+
+      return DateTime(year, month, day, hour, minute, second);
+    } catch (_) {
+      return null;
+    }
+  }
+}

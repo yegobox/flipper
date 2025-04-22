@@ -236,7 +236,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String qrCode,
       required String receiptType,
       required odm.Counter counter,
-      required int invoiceNumber});
+      required int invoiceNumber, required String timeReceivedFromserver});
   Future<Receipt?> getReceipt({required String transactionId});
 
   Future<void> refund({required int itemId});
