@@ -409,7 +409,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
-        .toUtc()
         .toIso8601String()
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);

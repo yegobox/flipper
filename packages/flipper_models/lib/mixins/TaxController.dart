@@ -306,7 +306,7 @@ class TaxController<OBJ> {
 
       Receipt? receipt =
           await ProxyService.strategy.getReceipt(transactionId: transaction.id);
-      DateTime now = DateTime.now().toUtc();
+      DateTime now = DateTime.now();
 
       RwApiResponse receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
@@ -315,7 +315,7 @@ class TaxController<OBJ> {
         counter: counter,
         URI: await ProxyService.box.getServerUrl() ?? "",
         purchaseCode: purchaseCode,
-        timeToUser: receipt?.whenCreated?.toUtc() ?? now.toUtc(),
+        timeToUser: receipt?.whenCreated?.toLocal() ?? now,
       );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
