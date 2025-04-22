@@ -95,9 +95,6 @@ class PrinterService extends jni$_.JObject {
           )>();
 
   /// from: `public int initializePrinter()`
-  ///
-  /// Initialize the printer. Call this method once when your app starts.
-  ///@return status code: 0 for success, or an error code
   int initializePrinter() {
     return _initializePrinter(
             reference.pointer, _id_initializePrinter as jni$_.JMethodIDPtr)
@@ -121,10 +118,6 @@ class PrinterService extends jni$_.JObject {
               jni$_.JMethodIDPtr, jni$_.Pointer<jni$_.Void>)>();
 
   /// from: `public int printNow(byte[] imageData)`
-  ///
-  /// Prints an image from byte array data
-  ///@param imageData The byte array containing image data
-  ///@return Status code: 0 for success, or an error code
   int printNow(
     jni$_.JByteArray? imageData,
   ) {
@@ -152,10 +145,6 @@ class PrinterService extends jni$_.JObject {
 
   /// from: `static public android.graphics.Bitmap toGrayscale(android.graphics.Bitmap bmpOriginal)`
   /// The returned object must be released after use, by calling the [release] method.
-  ///
-  /// Converts a bitmap to grayscale
-  ///@param bmpOriginal The original bitmap
-  ///@return A new grayscale bitmap
   static jni$_.JObject? toGrayscale(
     jni$_.JObject? bmpOriginal,
   ) {

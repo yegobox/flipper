@@ -72,6 +72,9 @@ android {
         testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: "true"
         multiDexEnabled true
+        vectorDrawables {
+            useSupportLibrary true
+        }
 
     }
     signingConfigs {
@@ -94,6 +97,11 @@ android {
             // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             // signingConfig signingConfigs.debug
             // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
 }
@@ -121,7 +129,7 @@ dependencies {
 
 
     // SMART POS
-    implementation files('libs/slf4j.jdk14-1.6.1.jar.jar')
+//    implementation files('libs/slf4j.jdk14-1.6.1.jar.jar')
     implementation files('libs/SmartPos_1.5.3_R220323.jar')
 
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
