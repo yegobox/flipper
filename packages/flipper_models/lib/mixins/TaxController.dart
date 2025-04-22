@@ -315,7 +315,7 @@ class TaxController<OBJ> {
         counter: counter,
         URI: await ProxyService.box.getServerUrl() ?? "",
         purchaseCode: purchaseCode,
-        timeToUser: receipt?.whenCreated ?? now,
+        timeToUser: receipt?.whenCreated?.toUtc() ?? now.toUtc(),
       );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
