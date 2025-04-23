@@ -417,7 +417,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       List<TransactionItem> transactionItems = await ProxyService.strategy
           .transactionItems(
               transactionId: transaction.id,
-              branchId: ProxyService.box.getBranchId()!);
+              branchId: (await ProxyService.strategy.activeBranch()).id);
 
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount!) {

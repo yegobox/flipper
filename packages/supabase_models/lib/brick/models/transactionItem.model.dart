@@ -98,13 +98,12 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   DateTime? lastTouched;
 
-  int? branchId;
+  String? branchId;
   bool? ebmSynced;
   bool? partOfComposite;
   double? compositePrice;
 
-  // Define the relationship with StockRequest
-  // @Supabase(ignore: true)
+  @Supabase(foreignKey: 'inventory_request_id')
   InventoryRequest? inventoryRequest;
 
   // If the association will be created by the app, specify
@@ -277,7 +276,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? isrcAplcbYn,
     String? useYn,
     DateTime? lastTouched,
-    int? branchId,
+    String? branchId,
     bool? ebmSynced,
     bool? partOfComposite,
     double? compositePrice,

@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250422110248.migration.dart';
+part '20250423043938.migration.dart';
 part '20250314135245.migration.dart';
 part '20250413072827.migration.dart';
 part '20250308132353.migration.dart';
@@ -25,10 +25,12 @@ part '20250418120045.migration.dart';
 part '20250418154241.migration.dart';
 part '20250420154013.migration.dart';
 part '20250422100452.migration.dart';
+part '20250422110248.migration.dart';
+part '20250423035546.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250422110248(),
+  const Migration20250423043938(),
   const Migration20250314135245(),
   const Migration20250413072827(),
   const Migration20250308132353(),
@@ -52,11 +54,13 @@ final migrations = <Migration>{
   const Migration20250418154241(),
   const Migration20250420154013(),
   const Migration20250422100452(),
+  const Migration20250422110248(),
+  const Migration20250423035546(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250422100452,
+  20250423035546,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -591,7 +595,7 @@ final schema = Schema(
         SchemaColumn('modr_id', Column.varchar),
         SchemaColumn('modr_nm', Column.varchar),
         SchemaColumn('last_touched', Column.datetime),
-        SchemaColumn('branch_id', Column.integer),
+        SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('ebm_synced', Column.boolean),
         SchemaColumn('part_of_composite', Column.boolean),
         SchemaColumn('composite_price', Column.Double),

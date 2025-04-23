@@ -243,7 +243,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       // Properly handle the clear key by calling the CoreViewModel's handleClearKey method
       List<TransactionItem> items =
           await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: transaction.value?.id,
         doneWithTransaction: false,
         active: false,

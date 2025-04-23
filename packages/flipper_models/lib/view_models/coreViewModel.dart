@@ -137,7 +137,7 @@ class CoreViewModel extends FlipperBaseModel
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: pendingTransaction?.id,
         doneWithTransaction: false,
         active: false);
@@ -195,7 +195,7 @@ class CoreViewModel extends FlipperBaseModel
 
       List<TransactionItem> updatedItems = await ProxyService.strategy
           .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
               active: true);
@@ -269,7 +269,7 @@ class CoreViewModel extends FlipperBaseModel
 
       List<TransactionItem> items = await ProxyService.strategy
           .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
               active: true);
@@ -288,7 +288,7 @@ class CoreViewModel extends FlipperBaseModel
       } else {
         List<TransactionItem> items = await ProxyService.strategy
             .transactionItems(
-                branchId: ProxyService.box.getBranchId()!,
+                branchId: (await ProxyService.strategy.activeBranch()).id,
                 transactionId: pendingTransaction?.id,
                 doneWithTransaction: false,
                 active: true);
@@ -591,7 +591,7 @@ class CoreViewModel extends FlipperBaseModel
     if (keypad.transaction == null) return 0.0;
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: keypad.transaction!.id,
         doneWithTransaction: false,
         active: true);
@@ -662,7 +662,7 @@ class CoreViewModel extends FlipperBaseModel
     for (ITransaction completedTransaction in completedTransactions) {
       List<TransactionItem> transactionItems = await ProxyService.strategy
           .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: completedTransaction.id);
       allItems.addAll(transactionItems.toSet());
     }

@@ -578,7 +578,7 @@ mixin TransactionMixin implements TransactionInterface {
   Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
       {required String sarTyCd}) async {
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-      branchId: ProxyService.box.getBranchId()!,
+      branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: pendingTransaction.id,
       doneWithTransaction: false,
       active: true,
@@ -661,7 +661,9 @@ mixin TransactionMixin implements TransactionInterface {
 
     // update to avoid the same issue, make sure that every parameter is update correctly.
     transaction.receiptType = receiptType ?? transaction.receiptType;
-    transaction.subTotal = subTotal ?? transaction.subTotal;
+    if (subTotal != null && subTotal != 0) {
+      transaction.subTotal = subTotal;
+    }
     transaction.note = note ?? transaction.note;
     transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
@@ -686,8 +688,7 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
 
-    await repository.upsert<ITransaction>(
-        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
+    await repository.upsert<ITransaction>(transaction);
   }
 
   @override

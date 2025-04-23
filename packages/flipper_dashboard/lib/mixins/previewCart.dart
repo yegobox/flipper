@@ -51,7 +51,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final startDate = dateRange.startDate;
 
       final items = await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
@@ -109,7 +109,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   Future<void> applyDiscount(ITransaction transaction) async {
     // get items on cart
     final items = await ProxyService.strategy.transactionItems(
-      branchId: ProxyService.box.getBranchId()!,
+      branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: transaction.id,
       doneWithTransaction: false,
       active: true,

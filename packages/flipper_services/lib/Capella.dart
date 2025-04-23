@@ -1313,7 +1313,7 @@ class Capella extends AiStrategyImpl
   List<TransactionItem> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    int? branchId,
+    String? branchId,
     String? id,
     String? variantId,
     bool? active,

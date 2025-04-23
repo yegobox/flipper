@@ -123,7 +123,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.dueDate,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
-        subTotal = subTotal == 0.0 ? 0 : subTotal,
+        subTotal = subTotal ?? 0.0,
         isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
         customerId =
             (customerId != null && customerId.isEmpty) ? null : customerId,

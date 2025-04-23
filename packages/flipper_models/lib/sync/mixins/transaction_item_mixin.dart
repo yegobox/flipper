@@ -94,7 +94,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
           modrId: variation.modrId,
           modrNm: variation.modrNm,
-          branchId: ProxyService.box.getBranchId(),
+          branchId: (await ProxyService.strategy.activeBranch()).id,
           ebmSynced: false, // Assuming default value
           partOfComposite: partOfComposite,
           compositePrice: compositePrice,
@@ -123,7 +123,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       }
 
       // Upsert the item in the repository
-      repository.upsert<TransactionItem>(transactionItem);
+      await repository.upsert<TransactionItem>(transactionItem);
 
       // Fetch all items for the transaction and update their `itemSeq`
       final allItems = await repository.get<TransactionItem>(
@@ -139,6 +139,20 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       for (var i = 0; i < allItems.length; i++) {
         allItems[i].itemSeq = i + 1; // itemSeq should start from 1
         await repository.upsert<TransactionItem>(allItems[i]);
+      }
+
+      // Calculate and update the transaction's subtotal
+      double newSubTotal =
+          allItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+
+      // Only update if the subtotal has changed or is zero
+      if (transaction.subTotal == 0 || transaction.subTotal != newSubTotal) {
+        await ProxyService.strategy.updateTransaction(
+          transaction: transaction,
+          subTotal: newSubTotal,
+          updatedAt: DateTime.now(),
+          lastTouched: DateTime.now(),
+        );
       }
     } catch (e, s) {
       talker.error(s);
@@ -233,7 +247,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    int? branchId,
+    String? branchId,
     String? variantId,
     String? id,
     bool? active,

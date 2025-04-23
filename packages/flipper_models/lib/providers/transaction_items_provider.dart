@@ -14,7 +14,7 @@ Future<List<TransactionItem>> transactionItems(Ref ref,
   return await ProxyService.strategy.transactionItems(
     transactionId: transactionId,
     doneWithTransaction: doneWithTransaction,
-    branchId: branchId,
+    branchId: (await ProxyService.strategy.activeBranch()).id,
     active: true,
     fetchRemote: fetchRemote,
     requestId: requestId,

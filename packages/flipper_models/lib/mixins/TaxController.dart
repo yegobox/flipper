@@ -150,7 +150,7 @@ class TaxController<OBJ> {
           List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
             transactionId: transaction.id,
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: (await ProxyService.strategy.activeBranch()).id,
           );
           Receipt? receipt = await ProxyService.strategy
               .getReceipt(transactionId: transaction.id);
@@ -373,7 +373,7 @@ class TaxController<OBJ> {
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: (await ProxyService.strategy.activeBranch()).id,
             transactionId: transaction.id,
           );
           // copy TransactionItem

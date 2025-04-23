@@ -34,7 +34,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
       onViewModelReady: (model) async {
         List<TransactionItem> items =
             await ProxyService.strategy.transactionItems(
-          branchId: ProxyService.box.getBranchId()!,
+          branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: widget.transaction.id,
           fetchRemote: true,
         );

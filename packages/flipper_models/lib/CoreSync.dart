@@ -858,7 +858,7 @@ class CoreSync extends AiStrategyImpl
     TransactionItem item = (await transactionItems(
             id: transactionItemId.id,
             transactionId: transactionId,
-            branchId: ProxyService.box.getBranchId()!))
+            branchId: (await ProxyService.strategy.activeBranch()).id))
         .first;
     await repository.delete(item);
   }
@@ -2157,7 +2157,7 @@ class CoreSync extends AiStrategyImpl
       try {
         // Fetch transaction items
         List<TransactionItem> items = await transactionItems(
-          branchId: branchId,
+          branchId:  (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
         double subTotalFinalized = cashReceived;

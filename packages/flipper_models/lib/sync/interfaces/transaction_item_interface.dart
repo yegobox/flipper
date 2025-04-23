@@ -20,7 +20,7 @@ abstract class TransactionItemInterface {
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    int? branchId,
+    String? branchId,
     String? variantId,
     String? id,
     bool? active,
