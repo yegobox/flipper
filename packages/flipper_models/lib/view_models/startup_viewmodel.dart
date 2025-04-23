@@ -13,8 +13,10 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/view_models/migrate_db_util.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   final appService = loc.getIt<AppService>();
@@ -38,6 +40,16 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         return;
       }
       talker.warning("StartupViewModel runStartupLogic");
+
+      // --- DB Migration Step for folder rename (_db -> .db) ---
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        await migrateOldDbFiles(appDir: appDir.path, talker: talker);
+      } catch (e) {
+        talker.warning("DB migration step failed: $e");
+      }
+      // ------------------------------------------------------
+
       // Ensure realm is initialized before proceeding.
 
       await _allRequirementsMeets();
