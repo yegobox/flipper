@@ -50,7 +50,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       }
       // ------------------------------------------------------
 
-      // Ensure realm is initialized before proceeding.
+      // Ensure db is initialized before proceeding.
 
       await _allRequirementsMeets();
       talker.warning("StartupViewModel Below allRequirementsMeets");
@@ -172,7 +172,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> hasActiveSubscription() async {
     await ProxyService.strategy.hasActiveSubscription(
         fetchRemote: false,
-        businessId: ProxyService.box.getBusinessId()??0,
+        businessId: ProxyService.box.getBusinessId() ?? 0,
         flipperHttpClient: ProxyService.http);
   }
 
