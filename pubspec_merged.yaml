@@ -227,8 +227,8 @@ dependencies:
   htmltopdfwidgets:
   markdown:
   string_scanner:
-  pdf: ^3.11.1
-  printing: ^5.14.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
