@@ -403,8 +403,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get business details
     Business? business = await ProxyService.strategy.getBusiness();
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
+      // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
-        doneWithTransaction: false,
         branchId: (await ProxyService.strategy.activeBranch()).id);
 
     // Get the current date and time in the required format yyyyMMddHHmmss

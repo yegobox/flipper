@@ -407,4 +407,13 @@ mixin PurchaseMixin
     );
     return purchase.firstOrNull;
   }
+  @override
+  Future<void> hydrateDate({required String branchId})async{
+    await repository.get<ImportPurchaseDates>(
+      policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(branchId)],
+      ),
+    ); 
+  }
 }

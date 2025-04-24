@@ -2114,4 +2114,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement ebm
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> hydrateDate({required String branchId}) {
+    // TODO: implement hydrateDate
+    throw UnimplementedError();
+  }
 }
