@@ -485,18 +485,22 @@ class VariantDataSource extends DataGridSource {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (variant.lastTouched != null)
-                Padding(
-                  padding: const EdgeInsets.only(right: 6.0),
-                  child: Chip(
-                    label: Text(
-                      timeago.format(
-                        variant.lastTouched!,
-                        clock: DateTime.now(),
+                SizedBox(
+                  width: 90,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: Chip(
+                      label: Text(
+                        timeago.format(
+                          variant.lastTouched!,
+                          clock: DateTime.now(),
+                        ),
+                        style:
+                            const TextStyle(fontSize: 11, color: Colors.white),
                       ),
-                      style: const TextStyle(fontSize: 11, color: Colors.white),
+                      backgroundColor: Colors.green,
+                      visualDensity: VisualDensity.compact,
                     ),
-                    backgroundColor: Colors.green,
-                    visualDensity: VisualDensity.compact,
                   ),
                 ),
               _buildStatusWidget(variant),

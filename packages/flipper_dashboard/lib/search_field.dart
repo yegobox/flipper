@@ -322,6 +322,9 @@ class SearchFieldState extends ConsumerState<SearchField>
         return Dialog(
           backgroundColor: Colors.white,
           insetPadding: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+          ),
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.9,
