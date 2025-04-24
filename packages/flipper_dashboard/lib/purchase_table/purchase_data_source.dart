@@ -33,13 +33,16 @@ class PurchaseDataSource extends DataGridSource {
   }
 
   void _buildDataGridRows() {
-    _dataGridRows = variants.map<DataGridRow>((variant) {
+    _dataGridRows = variants.asMap().entries.map<DataGridRow>((entry) {
+      final index = entry.key;
+      final variant = entry.value;
       final loadingStates = _loadingStates[variant.id] ?? (false, false);
       final isLoadingApprove = loadingStates.$1;
       final isLoadingDecline = loadingStates.$2;
 
       return DataGridRow(
         cells: [
+          DataGridCell<int>(columnName: 'rowNumber', value: index + 1),
           DataGridCell<String>(columnName: 'Name', value: variant.name),
           DataGridCell<String>(
             columnName: 'Qty',
@@ -119,33 +122,39 @@ class PurchaseDataSource extends DataGridSource {
   DataGridRowAdapter? buildRow(DataGridRow row) {
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((dataGridCell) {
-        final value = dataGridCell.value;
-
-        switch (dataGridCell.columnName) {
-          case 'Actions':
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.center,
-              child: value as _ActionButtons,
-            );
-          case 'Name':
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.centerLeft,
-              child: Text(value.toString()),
-            );
-          case 'Qty':
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.center,
-              child: Text(value.toString()),
-            );
-          default:
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.centerRight,
-              child: Text('${value.toString()}'),
-            );
+        if (dataGridCell.columnName == 'rowNumber') {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              dataGridCell.value.toString(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          );
+        } else if (dataGridCell.columnName == 'Actions') {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            alignment: Alignment.center,
+            child: dataGridCell.value as _ActionButtons,
+          );
+        } else if (dataGridCell.columnName == 'Name') {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            alignment: Alignment.centerLeft,
+            child: Text(dataGridCell.value.toString()),
+          );
+        } else if (dataGridCell.columnName == 'Qty') {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            alignment: Alignment.center,
+            child: Text(dataGridCell.value.toString()),
+          );
+        } else {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            alignment: Alignment.centerRight,
+            child: Text('${dataGridCell.value.toString()}'),
+          );
         }
       }).toList(),
     );
