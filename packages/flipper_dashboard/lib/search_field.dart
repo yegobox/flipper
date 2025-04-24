@@ -311,15 +311,46 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handlePurchaseImport() {
-    showDialog(
+    showGeneralDialog(
       barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       context: context,
-      builder: (context) => OptionModal(
-        child: _getDeviceType(context) == "Phone" ||
-                _getDeviceType(context) == "Phablet"
-            ? const SizedBox.shrink()
-            : ImportPurchasePage(),
-      ),
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        final deviceType = _getDeviceType(context);
+        if (deviceType == "Phone" || deviceType == "Phablet") {
+          return const SizedBox.shrink();
+        }
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 1,
+            title: Text(
+              'Import & Purchase Management',
+              style: TextStyle(color: Colors.black87, fontSize: 18),
+            ),
+            leading: IconButton(
+              icon: Icon(Icons.close, color: Colors.black87),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          body: SafeArea(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.white,
+              child: ImportPurchasePage(),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
     );
   }
 

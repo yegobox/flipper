@@ -238,57 +238,62 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                     ),
                   ),
                   isImport
-                      ? Imports(
-                          futureResponse: _futureImportResponse,
-                          formKey: _importFormKey,
-                          nameController: _nameController,
-                          supplyPriceController: _supplyPriceController,
-                          retailPriceController: _retailPriceController,
-                          saveChangeMadeOnItem: _saveChangeMadeOnItem,
-                          acceptAllImport:
-                              (List<model.Variant> variants) async {
-                            for (model.Variant variant in variants) {
-                              if (!_variantMap.containsKey(variant.id) &&
-                                      variant.retailPrice == null ||
-                                  variant.supplyPrice == null ||
-                                  variant.retailPrice! <= 0 ||
-                                  variant.supplyPrice! <= 0) {
-                                toast(
-                                    "One of item to be approved does not have retail price or supply price");
+                      ? Expanded(
+                          child: Imports(
+                            futureResponse: _futureImportResponse,
+                            formKey: _importFormKey,
+                            nameController: _nameController,
+                            supplyPriceController: _supplyPriceController,
+                            retailPriceController: _retailPriceController,
+                            saveChangeMadeOnItem: _saveChangeMadeOnItem,
+                            acceptAllImport:
+                                (List<model.Variant> variants) async {
+                              for (model.Variant variant in variants) {
+                                if (!_variantMap.containsKey(variant.id) &&
+                                        variant.retailPrice == null ||
+                                    variant.supplyPrice == null ||
+                                    variant.retailPrice! <= 0 ||
+                                    variant.supplyPrice! <= 0) {
+                                  toast(
+                                      "One of item to be approved does not have retail price or supply price");
+                                  return;
+                                }
+                              }
+                              await coreViewModel.approveAllImportItems(
+                                  variants,
+                                  variantMap: _variantMap);
+                              final combinedNotifier =
+                                  ref.read(refreshProvider);
+                              combinedNotifier.performActions(
+                                  productName: "", scanMode: true);
+                            },
+                            selectItem: _selectItem,
+                            selectedItem: _selectedItem,
+                            finalItemList: finalItemList,
+                            variantMap: _variantMap,
+                            onApprove: (model.Variant item,
+                                Map<String, model.Variant> variantMap) async {
+                              final condition = variantMap.containsKey(item.id);
+                              if (!condition &&
+                                  (item.retailPrice == null ||
+                                      item.supplyPrice == null ||
+                                      item.retailPrice! <= 0 ||
+                                      item.supplyPrice! <= 0)) {
+                                toast("You need to set retail price");
                                 return;
                               }
-                            }
-                            await coreViewModel.approveAllImportItems(variants,
-                                variantMap: _variantMap);
-                            final combinedNotifier = ref.read(refreshProvider);
-                            combinedNotifier.performActions(
-                                productName: "", scanMode: true);
-                          },
-                          selectItem: _selectItem,
-                          selectedItem: _selectedItem,
-                          finalItemList: finalItemList,
-                          variantMap: _variantMap,
-                          onApprove: (model.Variant item,
-                              Map<String, model.Variant> variantMap) async {
-                            final condition = variantMap.containsKey(item.id);
-                            if (!condition &&
-                                (item.retailPrice == null ||
-                                    item.supplyPrice == null ||
-                                    item.retailPrice! <= 0 ||
-                                    item.supplyPrice! <= 0)) {
-                              toast("You need to set retail price");
-                              return;
-                            }
-                            await coreViewModel.approveImportItem(item,
-                                variantMap: variantMap);
-                            final combinedNotifier = ref.read(refreshProvider);
-                            combinedNotifier.performActions(
-                                productName: "", scanMode: true);
-                          },
-                          onReject: (model.Variant item,
-                              Map<String, model.Variant> variantMap) async {
-                            await coreViewModel.rejectImportItem(item);
-                          },
+                              await coreViewModel.approveImportItem(item,
+                                  variantMap: variantMap);
+                              final combinedNotifier =
+                                  ref.read(refreshProvider);
+                              combinedNotifier.performActions(
+                                  productName: "", scanMode: true);
+                            },
+                            onReject: (model.Variant item,
+                                Map<String, model.Variant> variantMap) async {
+                              await coreViewModel.rejectImportItem(item);
+                            },
+                          ),
                         )
                       : FutureBuilder<List<model.Purchase>>(
                           future: _futurePurchases,

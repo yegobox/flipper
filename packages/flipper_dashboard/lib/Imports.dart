@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class Imports extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;
@@ -96,7 +97,6 @@ class ImportsState extends ConsumerState<Imports> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
-          height: 400,
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<List<Variant>>(
             future: widget.futureResponse,
@@ -481,7 +481,27 @@ class VariantDataSource extends DataGridSource {
         ),
         DataGridCell<Widget>(
           columnName: 'status',
-          value: _buildStatusWidget(variant),
+          value: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (variant.lastTouched != null)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6.0),
+                  child: Chip(
+                    label: Text(
+                      timeago.format(
+                        variant.lastTouched!,
+                        clock: DateTime.now(),
+                      ),
+                      style: const TextStyle(fontSize: 11, color: Colors.white),
+                    ),
+                    backgroundColor: Colors.green,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              _buildStatusWidget(variant),
+            ],
+          ),
         ),
         DataGridCell<Widget>(
           columnName: 'Supplier',
@@ -506,7 +526,7 @@ class VariantDataSource extends DataGridSource {
           borderRadius: BorderRadius.circular(4),
         ),
         child: const Text(
-          'Waiting Approval',
+          'Wait',
           style: TextStyle(
             color: Colors.orange,
             fontWeight: FontWeight.w500,
@@ -514,7 +534,7 @@ class VariantDataSource extends DataGridSource {
         ),
       );
     }
-    return const Text('Processed');
+    return const Text('Done');
   }
 
   // Improve the _buildActionsWidget in VariantDataSource class
