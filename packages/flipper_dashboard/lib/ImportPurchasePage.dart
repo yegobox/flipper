@@ -203,164 +203,183 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            isImport
-                                ? 'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}'
-                                : 'Purchase From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
-                            style: TextStyle(fontSize: 16),
-                          ),
+              // Add LayoutBuilder to provide constraints
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Column(
+                    // Ensure the Column takes up the full height
+                    mainAxisSize: MainAxisSize.max,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                isImport
+                                    ? 'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}'
+                                    : 'Purchase From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                            Switch(
+                              value: isImport,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectItem(null);
+                                  _selectedPurchaseItem = null;
+                                  finalItemList = [];
+                                  salesList = [];
+                                  _variantMap.clear();
+                                  isImport = value;
+                                });
+                                _fetchData();
+                              },
+                            ),
+                            Text(isImport ? "Import" : "Purchase"),
+                            SizedBox(width: 10),
+                          ],
                         ),
-                        Switch(
-                          value: isImport,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectItem(null);
-                              _selectedPurchaseItem = null;
-                              finalItemList = [];
-                              salesList = [];
-                              _variantMap.clear();
-                              isImport = value;
-                            });
-                            _fetchData();
-                          },
-                        ),
-                        Text(isImport ? "Import" : "Purchase"),
-                        SizedBox(width: 10),
-                      ],
-                    ),
-                  ),
-                  isImport
-                      ? Expanded(
-                          child: Imports(
-                            futureResponse: _futureImportResponse,
-                            formKey: _importFormKey,
-                            nameController: _nameController,
-                            supplyPriceController: _supplyPriceController,
-                            retailPriceController: _retailPriceController,
-                            saveChangeMadeOnItem: _saveChangeMadeOnItem,
-                            acceptAllImport:
-                                (List<model.Variant> variants) async {
-                              for (model.Variant variant in variants) {
-                                if (!_variantMap.containsKey(variant.id) &&
-                                        variant.retailPrice == null ||
-                                    variant.supplyPrice == null ||
-                                    variant.retailPrice! <= 0 ||
-                                    variant.supplyPrice! <= 0) {
-                                  toast(
-                                      "One of item to be approved does not have retail price or supply price");
-                                  return;
-                                }
-                              }
-                              await coreViewModel.approveAllImportItems(
-                                  variants,
-                                  variantMap: _variantMap);
-                              final combinedNotifier =
-                                  ref.read(refreshProvider);
-                              combinedNotifier.performActions(
-                                  productName: "", scanMode: true);
-                            },
-                            selectItem: _selectItem,
-                            selectedItem: _selectedItem,
-                            finalItemList: finalItemList,
-                            variantMap: _variantMap,
-                            onApprove: (model.Variant item,
-                                Map<String, model.Variant> variantMap) async {
-                              final condition = variantMap.containsKey(item.id);
-                              if (!condition &&
-                                  (item.retailPrice == null ||
-                                      item.supplyPrice == null ||
-                                      item.retailPrice! <= 0 ||
-                                      item.supplyPrice! <= 0)) {
-                                toast("You need to set retail price");
-                                return;
-                              }
-                              await coreViewModel.approveImportItem(item,
-                                  variantMap: variantMap);
-                              final combinedNotifier =
-                                  ref.read(refreshProvider);
-                              combinedNotifier.performActions(
-                                  productName: "", scanMode: true);
-                            },
-                            onReject: (model.Variant item,
-                                Map<String, model.Variant> variantMap) async {
-                              await coreViewModel.rejectImportItem(item);
-                            },
-                          ),
-                        )
-                      : FutureBuilder<List<model.Purchase>>(
-                          future: _futurePurchases,
-                          builder: (context, purchaseSnapshot) {
-                            if (purchaseSnapshot.hasError) {
-                              return Center(
-                                  child:
-                                      Text('Error: ${purchaseSnapshot.error}'));
-                            }
-                            return FutureBuilder<List<model.Variant>>(
-                              future: _futurePurchaseResponse,
-                              builder: (context, variantSnapshot) {
-                                if (variantSnapshot.hasError) {
+                      ),
+                      isImport
+                          ? Expanded(
+                              child: Imports(
+                                futureResponse: _futureImportResponse,
+                                formKey: _importFormKey,
+                                nameController: _nameController,
+                                supplyPriceController: _supplyPriceController,
+                                retailPriceController: _retailPriceController,
+                                saveChangeMadeOnItem: _saveChangeMadeOnItem,
+                                acceptAllImport:
+                                    (List<model.Variant> variants) async {
+                                  for (model.Variant variant in variants) {
+                                    if (!_variantMap.containsKey(variant.id) &&
+                                            variant.retailPrice == null ||
+                                        variant.supplyPrice == null ||
+                                        variant.retailPrice! <= 0 ||
+                                        variant.supplyPrice! <= 0) {
+                                      toast(
+                                          "One of item to be approved does not have retail price or supply price");
+                                      return;
+                                    }
+                                  }
+                                  await coreViewModel.approveAllImportItems(
+                                      variants,
+                                      variantMap: _variantMap);
+                                  final combinedNotifier =
+                                      ref.read(refreshProvider);
+                                  combinedNotifier.performActions(
+                                      productName: "", scanMode: true);
+                                },
+                                selectItem: _selectItem,
+                                selectedItem: _selectedItem,
+                                finalItemList: finalItemList,
+                                variantMap: _variantMap,
+                                onApprove: (model.Variant item,
+                                    Map<String, model.Variant>
+                                        variantMap) async {
+                                  final condition =
+                                      variantMap.containsKey(item.id);
+                                  if (!condition &&
+                                      (item.retailPrice == null ||
+                                          item.supplyPrice == null ||
+                                          item.retailPrice! <= 0 ||
+                                          item.supplyPrice! <= 0)) {
+                                    toast("You need to set retail price");
+                                    return;
+                                  }
+                                  await coreViewModel.approveImportItem(item,
+                                      variantMap: variantMap);
+                                  final combinedNotifier =
+                                      ref.read(refreshProvider);
+                                  combinedNotifier.performActions(
+                                      productName: "", scanMode: true);
+                                },
+                                onReject: (model.Variant item,
+                                    Map<String, model.Variant>
+                                        variantMap) async {
+                                  await coreViewModel.rejectImportItem(item);
+                                },
+                              ),
+                            )
+                          : FutureBuilder<List<model.Purchase>>(
+                              future: _futurePurchases,
+                              builder: (context, purchaseSnapshot) {
+                                if (purchaseSnapshot.hasError) {
                                   return Center(
                                       child: Text(
-                                          'Error: ${variantSnapshot.error}'));
-                                } else if (!variantSnapshot.hasData ||
-                                    variantSnapshot.data!.isEmpty) {
-                                  return Center(
-                                      child: Text('No data available'));
-                                } else {
-                                  salesList = variantSnapshot.data!;
-                                  return Purchases(
-                                    purchases: purchaseSnapshot.data ?? [],
-                                    formKey: _importFormKey,
-                                    nameController: _nameController,
-                                    supplyPriceController:
-                                        _supplyPriceController,
-                                    retailPriceController:
-                                        _retailPriceController,
-                                    saveItemName: _saveChangeMadeOnItem,
-                                    acceptPurchases: (
-                                        {required List<model.Variant> variants,
-                                        required String pchsSttsCd,
-                                        required model.Purchase
-                                            purchase}) async {
-                                      final pendingTransaction =
-                                          await ProxyService.strategy
-                                              .manageTransaction(
-                                        transactionType:
-                                            TransactionType.adjustment,
-                                        isExpense: true,
-                                        branchId:
-                                            ProxyService.box.getBranchId()!,
-                                      );
-                                      await coreViewModel.acceptPurchase(
-                                        variants: variants,
-                                        itemMapper: itemMapper,
-                                        pendingTransaction: pendingTransaction!,
-                                        pchsSttsCd: pchsSttsCd,
-                                        purchase: purchase,
-                                      );
-                                    },
-                                    selectSale: (model.Variant? itemToAssign,
-                                            model.Variant? itemFromPurchase) =>
-                                        _asignPurchaseItem(
-                                            itemToAssign: itemToAssign!,
-                                            itemFromPurchase:
-                                                itemFromPurchase!),
-                                    variants: salesList,
-                                  );
+                                          'Error: ${purchaseSnapshot.error}'));
                                 }
+                                return FutureBuilder<List<model.Variant>>(
+                                  future: _futurePurchaseResponse,
+                                  builder: (context, variantSnapshot) {
+                                    if (variantSnapshot.hasError) {
+                                      return Center(
+                                          child: Text(
+                                              'Error: ${variantSnapshot.error}'));
+                                    } else if (!variantSnapshot.hasData ||
+                                        variantSnapshot.data!.isEmpty) {
+                                      return Center(
+                                          child: Text('No data available'));
+                                    } else {
+                                      salesList = variantSnapshot.data!;
+                                      // Wrap Purchases in a SizedBox with fixed height
+                                      return SizedBox(
+                                        height: constraints.maxHeight - 60, // Reserve space for header
+                                        child: Purchases(
+                                          purchases: purchaseSnapshot.data ?? [],
+                                          formKey: _importFormKey,
+                                          nameController: _nameController,
+                                          supplyPriceController:
+                                              _supplyPriceController,
+                                          retailPriceController:
+                                              _retailPriceController,
+                                          saveItemName: _saveChangeMadeOnItem,
+                                          acceptPurchases: (
+                                              {required List<model.Variant>
+                                                  variants,
+                                              required String pchsSttsCd,
+                                              required model.Purchase
+                                                  purchase}) async {
+                                            final pendingTransaction =
+                                                await ProxyService.strategy
+                                                    .manageTransaction(
+                                              transactionType:
+                                                  TransactionType.adjustment,
+                                              isExpense: true,
+                                              branchId:
+                                                  ProxyService.box.getBranchId()!,
+                                            );
+                                            await coreViewModel.acceptPurchase(
+                                              variants: variants,
+                                              itemMapper: itemMapper,
+                                              pendingTransaction:
+                                                  pendingTransaction!,
+                                              pchsSttsCd: pchsSttsCd,
+                                              purchase: purchase,
+                                            );
+                                          },
+                                          selectSale:
+                                              (model.Variant? itemToAssign,
+                                                      model.Variant?
+                                                          itemFromPurchase) =>
+                                                  _asignPurchaseItem(
+                                                      itemToAssign: itemToAssign!,
+                                                      itemFromPurchase:
+                                                          itemFromPurchase!),
+                                          variants: salesList,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
                               },
-                            );
-                          },
-                        ),
-                ],
+                            ),
+                    ],
+                  );
+                },
               ),
             ),
             if (isLoading) Center(child: CircularProgressIndicator()),

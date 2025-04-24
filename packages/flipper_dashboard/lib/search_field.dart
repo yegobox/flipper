@@ -311,44 +311,52 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handlePurchaseImport() {
-    showGeneralDialog(
+    showDialog(
       barrierDismissible: true,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       context: context,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (context, animation, secondaryAnimation) {
+      builder: (context) {
         final deviceType = _getDeviceType(context);
         if (deviceType == "Phone" || deviceType == "Phablet") {
           return const SizedBox.shrink();
         }
-        return Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 1,
-            title: Text(
-              'Import & Purchase Management',
-              style: TextStyle(color: Colors.black87, fontSize: 18),
-            ),
-            leading: IconButton(
-              icon: Icon(Icons.close, color: Colors.black87),
-              onPressed: () => Navigator.of(context).pop(),
+        return Dialog(
+          backgroundColor: Colors.white,
+          insetPadding: EdgeInsets.all(16),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Import & Purchase Management',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: Colors.black87),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1),
+                Expanded(
+                  child: ImportPurchasePage(),
+                ),
+              ],
             ),
           ),
-          body: SafeArea(
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              color: Colors.white,
-              child: ImportPurchasePage(),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
         );
       },
     );
