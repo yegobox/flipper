@@ -71,8 +71,9 @@
         <meta-data android:name="com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS" android:value="true" />
         <meta-data android:name="com.posthog.posthog.DEBUG" android:value="true" />
         <meta-data
-    android:name="com.tekartik.sqflite.wal_enabled"
-    android:value="true" />
+        android:name="com.tekartik.sqflite.wal_enabled"
+        android:value="true" />
+        <meta-data android:name="com.posthog.posthog.AUTO_INIT" android:value="false" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

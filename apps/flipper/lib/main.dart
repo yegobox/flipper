@@ -97,9 +97,14 @@ Future<void> main() async {
         // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           FlutterNativeSplash.remove();
-          await Posthog().screen(
-            screenName: 'Example Screen',
-          );
+          final config = PostHogConfig(AppSecrets.postHogApiKey);
+          config.host = 'https://us.i.posthog.com';
+          config.debug = true;
+          config.captureApplicationLifecycleEvents = true;
+          config.sessionReplay = true;
+          config.sessionReplayConfig.maskAllTexts = false;
+          config.sessionReplayConfig.maskAllImages = false;
+          await Posthog().setup(config);
         });
         runApp(
           ProviderScope(
