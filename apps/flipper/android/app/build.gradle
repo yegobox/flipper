@@ -76,7 +76,7 @@ android {
             useSupportLibrary true
         }
         manifestPlaceholders = [
-            ANDROID_API_KEY: project.hasProperty("ANDROID_API_KEY") ? project.property("ANDROID_API_KEY") : ""
+            POSTHOG_API_KEY: project.hasProperty("POSTHOG_API_KEY") ? project.property("POSTHOG_API_KEY") : ""
         ]
     }
     signingConfigs {
