@@ -250,6 +250,11 @@ PODS:
     - CocoaAsyncSocket (~> 7.6)
     - Flutter
     - FlutterMacOS
+  - PostHog (3.24.1)
+  - posthog_flutter (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - PostHog (~> 3.22)
   - printing (1.0.0):
     - FlutterMacOS
   - PromisesObjC (2.4.0)
@@ -330,6 +335,7 @@ DEPENDENCIES:
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
   - patrol (from `Flutter/ephemeral/.symlinks/plugins/patrol/darwin`)
+  - posthog_flutter (from `Flutter/ephemeral/.symlinks/plugins/posthog_flutter/macos`)
   - printing (from `Flutter/ephemeral/.symlinks/plugins/printing/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
@@ -370,6 +376,7 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - nanopb
+    - PostHog
     - PromisesObjC
     - PromisesSwift
     - Sentry
@@ -428,6 +435,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
   patrol:
     :path: Flutter/ephemeral/.symlinks/plugins/patrol/darwin
+  posthog_flutter:
+    :path: Flutter/ephemeral/.symlinks/plugins/posthog_flutter/macos
   printing:
     :path: Flutter/ephemeral/.symlinks/plugins/printing/macos
   screen_retriever_macos:
@@ -505,6 +514,8 @@ SPEC CHECKSUMS:
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   patrol: cf2cd48c7f3e5171610111994f7b466cd76d1f57
+  PostHog: d8fcacc4e663bc67b585aa0c58e4fa2655d70c8b
+  posthog_flutter: 6d1041c7da77eb2032c27b72df103439af64cb8c
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851

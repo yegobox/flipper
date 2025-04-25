@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'dart:developer';
 import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/posthog_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -248,7 +248,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         // Optionally, redirect to payment plan or show error here
       }
     } catch (e) {
-      log(e.toString());
+      // log(e.toString());
       talker.error('Error setting default business: $e');
     } finally {
       ref.read(businessSelectionProvider.notifier).setLoading(false);
@@ -325,6 +325,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   void _completeAuthenticationFlow() {
+    // Track login event with PosthogService
+    PosthogService.instance.capture('login_success', properties: {
+      'source': 'login_choices',
+      if (_selectedBusiness != null) 'business_id': _selectedBusiness!.serverId,
+    });
     _routerService.navigateTo(FlipperAppRoute());
   }
 

@@ -28,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_services/posthog_service.dart';
 
 enum OrderStatus { pending, approved }
 
@@ -284,6 +285,18 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Future<void> _handleCompleteTransaction(
       ITransaction transaction, bool immediateCompletion) async {
+    final startTime = transaction.createdAt!;
+    final endTime = DateTime.now().toUtc();
+    final duration = endTime.difference(startTime).inSeconds;
+    await PosthogService.instance.capture('transaction_completed', properties: {
+      'transaction_id': transaction.id,
+      'branch_id': transaction.branchId!,
+      'business_id': ProxyService.box.getBusinessId()!,
+      'created_at': startTime.toIso8601String(),
+      'completed_at': endTime.toIso8601String(),
+      'duration_seconds': duration,
+      'source': 'checkout',
+    });
     ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
     if (customerNameController.text.isEmpty) {
       ProxyService.box.remove(key: 'customerName');

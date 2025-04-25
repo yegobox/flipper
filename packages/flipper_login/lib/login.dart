@@ -11,6 +11,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/posthog_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -95,6 +96,13 @@ class _LoginState extends State<Login> {
         final Pin userPin = loginData['pin'];
         final IUser userData = loginData['user'];
         await model.completeLoginProcess(userPin, model, user: userData);
+
+        // Track login event with PosthogService
+        PosthogService.instance.capture('login_success', properties: {
+          'source': 'login_screen',
+          'user_id': user.uid,
+          'email': user.email ?? user.phoneNumber!,
+        });
 
         // Ensure the loading dialog is closed after navigation starts
         // WidgetsBinding.instance.addPostFrameCallback((_) {

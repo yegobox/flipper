@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_dis
 import 'package:flipper_dashboard/features/kitchen_display/widgets/order_column.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -157,6 +158,19 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) async {
     // toStatus is now directly passed from the OrderColumn, representing the column where the order was dropped
 
+    // Track order progress event
+    await PosthogService.instance
+        .capture('kitchen_order_status_changed', properties: {
+      'order_id': order.id,
+      'from_status': fromStatus.toString(),
+      'to_status': toStatus.toString(),
+      'is_loan': order.isLoan == true,
+      'business_id': ProxyService.box.getBusinessId()!,
+      'branch_id': ProxyService.box.getBranchId()!,
+      'timestamp': DateTime.now().toIso8601String(),
+      'source': 'kitchen_display',
+    });
+
     // Update the UI immediately
     ref.read(kitchenOrdersProvider.notifier).moveOrder(
           order,
@@ -209,15 +223,12 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         sarNo: order.sarNo,
         orgSarNo: order.orgSarNo,
         isLoan: order.isLoan,
-        dueDate: (
-          toStatus == OrderStatus.incoming && order.isLoan != true
-        )
+        dueDate: (toStatus == OrderStatus.incoming && order.isLoan != true)
             ? null
-            : (
-                toStatus == OrderStatus.inProgress && order.isLoan != true
-                  ? (order.dueDate ?? DateTime.now().toUtc().add(const Duration(minutes: 30)))
-                  : order.dueDate?.toUtc()
-              ),
+            : (toStatus == OrderStatus.inProgress && order.isLoan != true
+                ? (order.dueDate ??
+                    DateTime.now().toUtc().add(const Duration(minutes: 30)))
+                : order.dueDate?.toUtc()),
       );
 
       // Use the same approach as in transaction_mixin.dart to update the transaction
@@ -227,6 +238,17 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       // Force refresh the stream to reflect changes
       ref.invalidate(kitchenOrdersStreamProvider);
     } catch (e) {
+      // Track error event
+      await PosthogService.instance
+          .capture('kitchen_order_status_change_failed', properties: {
+        'order_id': order.id,
+        'from_status': fromStatus.toString(),
+        'to_status': toStatus.toString(),
+        'error': e.toString(),
+        'source': 'kitchen_display',
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+
       // Show error if update fails
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -238,14 +260,12 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     }
   }
 
-  // _getNextStatus method removed as we now directly pass the destination status
-
   String _getStatusString(OrderStatus status) {
     switch (status) {
       case OrderStatus.incoming:
         return PARKED;
       case OrderStatus.inProgress:
-        return IN_PROGRESS; // This is correct, but was being overridden in the updatedOrder.status assignment
+        return IN_PROGRESS;
       case OrderStatus.waiting:
         return WAITING;
     }

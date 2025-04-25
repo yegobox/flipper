@@ -14,6 +14,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'internal/responsive_page.dart' as b;
+import 'package:flipper_services/posthog_service.dart';
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
@@ -259,6 +260,13 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
       // Dismiss Loading Dialog
       if (user.user != null) {
+        // Track login event with PosthogService
+        final props = <String, Object>{
+          'source': 'phone_input_screen',
+          if (user.user?.uid != null) 'user_id': user.user!.uid,
+          if (user.user?.phoneNumber != null) 'phone': user.user!.phoneNumber??user.user!.email!,
+        };
+        PosthogService.instance.capture('login_success', properties: props);
         // Show success and navigate
         if (mounted) {}
       }

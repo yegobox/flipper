@@ -14,6 +14,7 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -207,6 +208,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
   }
 
+  Future<void> _onQuickSellComplete(ITransaction transaction) async {
+    final startTime = transaction.createdAt!;
+    final endTime = DateTime.now().toUtc();
+    final duration = endTime.difference(startTime).inSeconds;
+    PosthogService.instance.capture('quick_sell_completed', properties: {
+      'transaction_id': transaction.id,
+      'branch_id': transaction.branchId!,
+      'business_id': ProxyService.box.getBusinessId()!,
+      'created_at': startTime.toIso8601String(),
+      'completed_at': endTime.toIso8601String(),
+      'duration_seconds': duration,
+      'source': 'quick_selling_view',
+    });
+    // Place your existing completion logic here...
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
@@ -278,7 +295,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                               startCompleteTransactionFlow(
                                   immediateCompletion:
                                       imediteCompleteTransaction,
-                                  completeTransaction: () {},
+                                  completeTransaction: () async {
+                                    await _onQuickSellComplete(transaction);
+                                  },
                                   transaction: transaction,
                                   paymentMethods:
                                       ref.watch(paymentMethodsProvider));
