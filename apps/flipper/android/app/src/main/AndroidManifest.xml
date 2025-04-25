@@ -66,7 +66,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <meta-data android:name="com.posthog.posthog.API_KEY" android:value="${POSTHOG_API_KEY}" />
+        <meta-data android:name="com.posthog.posthog.POSTHOG_HOST" android:value="https://us.i.posthog.com" />
+        <meta-data android:name="com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS" android:value="true" />
+        <meta-data android:name="com.posthog.posthog.DEBUG" android:value="true" />
+        <meta-data
+    android:name="com.tekartik.sqflite.wal_enabled"
+    android:value="true" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

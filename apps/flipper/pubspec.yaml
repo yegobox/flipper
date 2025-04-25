@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223233825+1745507946
+version: 1.170.4252223233826+1745568164
 
 
 # 
@@ -170,6 +170,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.4+4
   # https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
   sqflite_common_ffi_web: ^1.0.0
+  posthog_flutter: ^4.11.0
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
@@ -223,7 +224,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.3975.0
+  msix_version: 1.170.3976.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

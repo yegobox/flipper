@@ -305,6 +305,11 @@ PODS:
     - Flutter
   - pointer_interceptor_ios (0.0.1):
     - Flutter
+  - PostHog (3.24.1)
+  - posthog_flutter (0.0.1):
+    - Flutter
+    - FlutterMacOS
+    - PostHog (~> 3.22)
   - printing (1.0.0):
     - Flutter
   - PromisesObjC (2.4.0)
@@ -393,6 +398,7 @@ DEPENDENCIES:
   - patrol (from `.symlinks/plugins/patrol/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
+  - posthog_flutter (from `.symlinks/plugins/posthog_flutter/ios`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
@@ -434,6 +440,7 @@ SPEC REPOS:
     - GTMSessionFetcher
     - nanopb
     - NewRelicAgent
+    - PostHog
     - PromisesObjC
     - PromisesSwift
     - RecaptchaInterop
@@ -513,6 +520,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
   pointer_interceptor_ios:
     :path: ".symlinks/plugins/pointer_interceptor_ios/ios"
+  posthog_flutter:
+    :path: ".symlinks/plugins/posthog_flutter/ios"
   printing:
     :path: ".symlinks/plugins/printing/ios"
   sentry_flutter:
@@ -597,6 +606,8 @@ SPEC CHECKSUMS:
   patrol: cf2cd48c7f3e5171610111994f7b466cd76d1f57
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   pointer_interceptor_ios: 508241697ff0947f853c061945a8b822463947c1
+  PostHog: d8fcacc4e663bc67b585aa0c58e4fa2655d70c8b
+  posthog_flutter: 6d1041c7da77eb2032c27b72df103439af64cb8c
   printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851

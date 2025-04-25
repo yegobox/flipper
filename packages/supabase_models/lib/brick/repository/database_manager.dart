@@ -39,19 +39,36 @@ class DatabaseManager {
       String dbPath, DatabaseFactory dbFactory) async {
     try {
       final connectionManager = _getConnectionManager(dbFactory);
-      
+
       await connectionManager.executeOperation(
         dbPath,
         (db) async {
           try {
-            // For platforms that support direct PRAGMA statements
-            if (!Platform.isAndroid) {
-              // Enable Write-Ahead Logging for better crash recovery
+            // Platform-specific PRAGMA configuration
+            if (Platform.isAndroid) {
+              // Android: Safe to use all PRAGMAs
               await db.execute('PRAGMA journal_mode = WAL');
-              // Ensure data is immediately written to disk
               await db.execute('PRAGMA synchronous = FULL');
-              // Set a busy timeout to prevent immediate lock errors
               await db.execute('PRAGMA busy_timeout = $defaultBusyTimeout');
+            } else if (Platform.isWindows) {
+              // Windows desktop: Safe to use all PRAGMAs
+              await db.execute('PRAGMA journal_mode = WAL');
+              await db.execute('PRAGMA synchronous = FULL');
+              await db.execute('PRAGMA busy_timeout = $defaultBusyTimeout');
+            } else if (Platform.isIOS || Platform.isMacOS) {
+              // iOS/macOS: Avoid WAL and busy_timeout due to iCloud and file locking issues
+              // Only set synchronous for data safety
+              await db.execute('PRAGMA synchronous = FULL');
+              // Optionally, you can wrap busy_timeout in a try/catch if you want to experiment:
+              // try {
+              //   await db.execute('PRAGMA busy_timeout = $defaultBusyTimeout');
+              // } catch (e) {
+              //   if (e.toString().contains('not an error')) {
+              //     _logger.info('Ignored harmless busy_timeout warning: $e');
+              //   } else {
+              //     rethrow;
+              //   }
+              // }
             }
 
             // Run integrity check which works on all platforms
@@ -82,7 +99,7 @@ class DatabaseManager {
       String dbPath, DatabaseFactory dbFactory) async {
     try {
       final connectionManager = _getConnectionManager(dbFactory);
-      
+
       await connectionManager.executeOperation(
         dbPath,
         (db) async {
@@ -113,11 +130,11 @@ class DatabaseManager {
       }
 
       _logger.warning('Database corruption detected, attempting restoration');
-      
+
       // Close any existing connections before restoration
       final connectionManager = _getConnectionManager(dbFactory);
       await connectionManager.closeConnection(dbPath);
-      
+
       // Database is corrupted, try to restore from backup
       final restored =
           await backupManager.restoreLatestBackup(directory, dbPath, dbFactory);
@@ -151,7 +168,7 @@ class DatabaseManager {
   String getDatabasePath(String directory) {
     return join(directory, dbFileName);
   }
-  
+
   /// Close all database connections
   Future<void> closeAllConnections() async {
     if (_connectionManager != null) {

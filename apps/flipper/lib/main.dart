@@ -23,6 +23,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -64,7 +65,7 @@ Future<void> main() async {
 
   // Run everything in a guarded zone
   await runZonedGuarded<Future<void>>(() async {
-    final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
     await SystemChrome.setPreferredOrientations([
@@ -94,8 +95,11 @@ Future<void> main() async {
         ..attachScreenshot = true,
       appRunner: () {
         // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           FlutterNativeSplash.remove();
+          await Posthog().screen(
+            screenName: 'Example Screen',
+          );
         });
         runApp(
           ProviderScope(

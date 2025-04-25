@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
@@ -14,7 +16,7 @@ class ConnectionManager {
   final int _maxConcurrentOperations;
   int _activeOperations = 0;
   bool _processingQueue = false;
-  
+
   // Default busy timeout in milliseconds (5 seconds)
   static const int defaultBusyTimeout = 5000;
 
@@ -22,7 +24,8 @@ class ConnectionManager {
       : _maxConcurrentOperations = maxConcurrentOperations;
 
   /// Get a database connection, creating it if it doesn't exist
-  Future<Database> getConnection(String path, {int busyTimeout = defaultBusyTimeout}) async {
+  Future<Database> getConnection(String path,
+      {int busyTimeout = defaultBusyTimeout}) async {
     if (_connections.containsKey(path)) {
       return _connections[path]!;
     }
@@ -34,8 +37,10 @@ class ConnectionManager {
         version: 1,
         singleInstance: true,
         onConfigure: (db) async {
-          // Set busy timeout to prevent immediate "database locked" errors
-          await db.execute('PRAGMA busy_timeout = $busyTimeout');
+          // Set busy timeout to prevent immediate "database locked" errors, except on iOS/macOS
+          if (!(Platform.isIOS || Platform.isMacOS)) {
+            await db.execute('PRAGMA busy_timeout = $busyTimeout');
+          }
         },
       ),
     );
@@ -76,10 +81,10 @@ class ConnectionManager {
       busyTimeout: busyTimeout,
       timeout: timeout,
     );
-    
+
     _operationQueue.add(pendingOp);
     _processQueue();
-    
+
     return completer.future;
   }
 
@@ -87,17 +92,18 @@ class ConnectionManager {
   void _processQueue() async {
     if (_processingQueue) return;
     _processingQueue = true;
-    
-    while (_operationQueue.isNotEmpty && _activeOperations < _maxConcurrentOperations) {
+
+    while (_operationQueue.isNotEmpty &&
+        _activeOperations < _maxConcurrentOperations) {
       final op = _operationQueue.removeFirst();
       _activeOperations++;
-      
+
       _executeOperation(op).whenComplete(() {
         _activeOperations--;
         _processQueue();
       });
     }
-    
+
     _processingQueue = false;
   }
 
@@ -105,16 +111,17 @@ class ConnectionManager {
   Future<void> _executeOperation(_PendingOperation op) async {
     try {
       final db = await getConnection(op.path, busyTimeout: op.busyTimeout);
-      
+
       // Create a timeout for the operation
       final result = await op.operation(db).timeout(
         op.timeout,
         onTimeout: () {
-          _logger.severe('Database operation timed out after ${op.timeout.inSeconds}s');
+          _logger.severe(
+              'Database operation timed out after ${op.timeout.inSeconds}s');
           throw TimeoutException('Database operation timed out', op.timeout);
         },
       );
-      
+
       op.completer.complete(result);
     } catch (e) {
       _logger.warning('Error executing database operation: $e');

@@ -689,6 +689,10 @@ jobs:
           bundler-cache: true
           # cache-version: 1
           working-directory: apps/flipper/android
+      - name: Write Posthog API Key to local.properties
+        run: |
+          echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
+        working-directory: apps/flipper
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json

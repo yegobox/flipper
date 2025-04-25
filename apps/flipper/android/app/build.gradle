@@ -75,7 +75,9 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
-
+        manifestPlaceholders = [
+            ANDROID_API_KEY: project.hasProperty("ANDROID_API_KEY") ? project.property("ANDROID_API_KEY") : ""
+        ]
     }
     signingConfigs {
        
