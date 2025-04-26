@@ -116,7 +116,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-base:18.7.0'
     implementation 'com.google.android.gms:play-services-auth:21.3.0'
     
-    implementation platform('com.google.firebase:firebase-bom:33.12.0')
+    implementation platform('com.google.firebase:firebase-bom:33.13.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-auth-ktx'
@@ -132,7 +132,7 @@ dependencies {
 
     // SMART POS
 //    implementation files('libs/slf4j.jdk14-1.6.1.jar.jar')
-    implementation files('libs/SmartPos_1.5.3_R220323.jar')
+    implementation files('libs/SmartPos_1.9.4_R250117.jar')
 
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
    
