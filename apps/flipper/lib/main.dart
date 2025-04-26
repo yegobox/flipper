@@ -23,7 +23,6 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
-import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:flipper_services/posthog_service.dart';
 
 // Function to initialize Firebase

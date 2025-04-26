@@ -436,7 +436,6 @@ class CoreSync extends AiStrategyImpl
       final superUser.User? existingUser =
           superUser.Supabase.instance.client.auth.currentUser;
 
-
       if (existingUser == null) {
         // User does not exist, proceed to sign up
         await superUser.Supabase.instance.client.auth.signUp(
@@ -2158,7 +2157,7 @@ class CoreSync extends AiStrategyImpl
       try {
         // Fetch transaction items
         List<TransactionItem> items = await transactionItems(
-          branchId:  (await ProxyService.strategy.activeBranch()).id,
+          branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
         double subTotalFinalized = cashReceived;
@@ -2258,17 +2257,16 @@ class CoreSync extends AiStrategyImpl
   }) async {
     try {
       final adjustmentTransaction = await _createAdjustmentTransaction();
-      final business = await ProxyService.strategy.getBusiness();
+      final business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final serverUrl = await ProxyService.box.getServerUrl();
 
       if (business == null) {
-        talker.warning('Business or Server URL is null, aborting update.');
-        return; // Early exit if crucial data is missing
+        throw Exception("Business not found");
       }
 
       if (adjustmentTransaction == null) {
-        talker.warning("Failed to create adjustment transaction. Aborting.");
-        return;
+        throw Exception("Failed to create adjustment transaction");
       }
       if (serverUrl != null) {
         await _processTransactionItems(
@@ -2285,6 +2283,7 @@ class CoreSync extends AiStrategyImpl
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
+      rethrow;
     }
   }
 

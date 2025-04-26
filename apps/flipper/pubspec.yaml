@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223233834+1745655782
+version: 1.170.4252223233835+1745699971
 
 
 # 
@@ -99,7 +99,7 @@ dependencies:
   syncfusion_flutter_xlsio: ^29.1.37
   syncfusion_flutter_datagrid_export: ^29.1.37
   syncfusion_flutter_core: ^29.1.37
-  flex_color_picker: ^3.7.0
+  flex_color_picker: 3.7.0
 
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12
@@ -224,7 +224,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.3984.0
+  msix_version: 1.170.3985.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
