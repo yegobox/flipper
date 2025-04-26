@@ -147,7 +147,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<String> _getStorageDirectory() async {
     if (Platform.isWindows) {
       final appDir = await getApplicationDocumentsDirectory();
-      return path.join(appDir.path, '_db');
+      return path.join(appDir.path, '.db');
     } else if (Platform.isAndroid) {
       return await getDatabasesPath();
     } else if (Platform.isIOS || Platform.isMacOS) {
@@ -156,7 +156,7 @@ class SharedPreferenceStorage implements LocalStorage {
     } else {
       // For other platforms, use application documents directory
       final appDir = await getApplicationDocumentsDirectory();
-      return path.join(appDir.path, '_db');
+      return path.join(appDir.path, '.db');
     }
   }
 
