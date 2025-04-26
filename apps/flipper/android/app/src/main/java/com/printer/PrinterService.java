@@ -43,9 +43,11 @@ public class PrinterService {
     private static final int FLOYD_STEINBERG_DITHERING = 0;
     private static final int ORDERED_DITHERING = 1;
     private static final int ATKINSON_DITHERING = 2;
+    private static final int THRESHOLD_DITHERING = 3;
+    private static final int QR_CODE_OPTIMIZED = 4;
 
-    // Default dithering method
-    private int ditheringMethod = FLOYD_STEINBERG_DITHERING;
+    // Default dithering method - better for text and QR codes
+    private int ditheringMethod = QR_CODE_OPTIMIZED;
 
     private PrinterService() {}
 
@@ -57,7 +59,7 @@ public class PrinterService {
     }
 
     public void setDitheringMethod(int method) {
-        if (method >= FLOYD_STEINBERG_DITHERING && method <= ATKINSON_DITHERING) {
+        if (method >= FLOYD_STEINBERG_DITHERING && method <= QR_CODE_OPTIMIZED) {
             this.ditheringMethod = method;
         }
     }
@@ -144,6 +146,12 @@ public class PrinterService {
                 case ATKINSON_DITHERING:
                     ditheredBitmap = applyAtkinsonDithering(resizedBitmap);
                     break;
+                case THRESHOLD_DITHERING:
+                    ditheredBitmap = applyThresholdDithering(resizedBitmap);
+                    break;
+                case QR_CODE_OPTIMIZED:
+                    ditheredBitmap = applyQRCodeOptimizedDithering(resizedBitmap);
+                    break;
                 case FLOYD_STEINBERG_DITHERING:
                 default:
                     ditheredBitmap = applyFloydSteinbergDithering(resizedBitmap);
@@ -214,9 +222,33 @@ public class PrinterService {
 
         Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bmpGrayscale);
+
+        // Create custom color matrix for enhanced contrast grayscale
+        // Uses the BT.709 luminance formula for better human perception
+        // R: 0.2126, G: 0.7152, B: 0.0722
+        ColorMatrix cm = new ColorMatrix(new float[] {
+                0.2126f, 0.7152f, 0.0722f, 0, 0,
+                0.2126f, 0.7152f, 0.0722f, 0, 0,
+                0.2126f, 0.7152f, 0.0722f, 0, 0,
+                0,       0,       0,       1, 0
+        });
+
+        // Add contrast boost for better printing
+        ColorMatrix contrastMatrix = new ColorMatrix();
+        float contrast = 1.2f; // Boost contrast by 20%
+        float intercept = (-.5f * contrast + .5f) * 255f;
+
+        contrastMatrix.set(new float[] {
+                contrast, 0, 0, 0, intercept,
+                0, contrast, 0, 0, intercept,
+                0, 0, contrast, 0, intercept,
+                0, 0, 0, 1, 0
+        });
+
+        // Apply both matrices
+        cm.postConcat(contrastMatrix);
+
         Paint paint = new Paint();
-        ColorMatrix cm = new ColorMatrix();
-        cm.setSaturation(0);
         paint.setColorFilter(new ColorMatrixColorFilter(cm));
         c.drawBitmap(bmpOriginal, 0, 0, paint);
         return bmpGrayscale;
@@ -398,5 +430,124 @@ public class PrinterService {
         int r = Color.red(pixel) + error;
         r = Math.max(0, Math.min(255, r));
         pixels[index] = Color.rgb(r, r, r);
+    }
+
+    /**
+     * Simple threshold dithering - creates sharper edges
+     * Good for text and simple graphics
+     */
+    private Bitmap applyThresholdDithering(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        // Create a mutable copy of the bitmap
+        Bitmap output = bitmap.copy(bitmap.getConfig(), true);
+
+        int[] pixels = new int[width * height];
+        output.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        // Apply simple threshold
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int index = y * width + x;
+                int pixel = pixels[index];
+                int gray = Color.red(pixel); // We only need one channel since it's grayscale
+
+                // Apply fixed threshold
+                int newValue = (gray > 127) ? 255 : 0;
+
+                pixels[index] = Color.rgb(newValue, newValue, newValue);
+            }
+        }
+
+        output.setPixels(pixels, 0, width, 0, 0, width, height);
+        return output;
+    }
+
+    /**
+     * Optimized dithering specifically for QR codes and text
+     * Uses local contrast enhancement and adaptive thresholding
+     */
+    private Bitmap applyQRCodeOptimizedDithering(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        // Create a mutable copy of the bitmap
+        Bitmap output = bitmap.copy(bitmap.getConfig(), true);
+
+        int[] pixels = new int[width * height];
+        output.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        // First pass: contrast enhancement
+        enhanceContrast(pixels, width, height);
+
+        // Window size for adaptive thresholding - smaller window means sharper edges
+        int windowSize = 5;
+
+        // Second pass: adaptive thresholding
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int index = y * width + x;
+                int centerPixel = Color.red(pixels[index]);
+
+                // Calculate local average within window
+                int sum = 0;
+                int count = 0;
+
+                for (int wy = Math.max(0, y - windowSize/2); wy < Math.min(height, y + windowSize/2 + 1); wy++) {
+                    for (int wx = Math.max(0, x - windowSize/2); wx < Math.min(width, x + windowSize/2 + 1); wx++) {
+                        sum += Color.red(pixels[wy * width + wx]);
+                        count++;
+                    }
+                }
+
+                int average = sum / count;
+
+                // Apply threshold with a slight bias for dark pixels (-5)
+                // This helps preserve QR code integrity and thin text
+                int newValue = (centerPixel > average - 5) ? 255 : 0;
+
+                pixels[index] = Color.rgb(newValue, newValue, newValue);
+            }
+        }
+
+        output.setPixels(pixels, 0, width, 0, 0, width, height);
+        return output;
+    }
+
+    /**
+     * Enhances contrast to make dark pixels darker and light pixels lighter
+     * This improves QR code and text readability
+     */
+    private void enhanceContrast(int[] pixels, int width, int height) {
+        // Find min and max values
+        int min = 255;
+        int max = 0;
+
+        for (int i = 0; i < pixels.length; i++) {
+            int gray = Color.red(pixels[i]);
+            if (gray < min) min = gray;
+            if (gray > max) max = gray;
+        }
+
+        // Don't process if already high contrast
+        if (max - min < 30) {
+            // Low contrast image - stretch the histogram
+            for (int i = 0; i < pixels.length; i++) {
+                int gray = Color.red(pixels[i]);
+
+                // Apply non-linear contrast enhancement
+                // This formula emphasizes the difference between light and dark areas
+                int newGray;
+                if (gray < 128) {
+                    newGray = gray - (gray * 20 / 100);  // Make dark pixels darker
+                } else {
+                    newGray = gray + ((255 - gray) * 20 / 100);  // Make light pixels lighter
+                }
+
+                newGray = Math.max(0, Math.min(255, newGray));
+                pixels[i] = Color.rgb(newGray, newGray, newGray);
+            }
+        }
     }
 }
