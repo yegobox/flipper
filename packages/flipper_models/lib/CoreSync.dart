@@ -436,6 +436,7 @@ class CoreSync extends AiStrategyImpl
       final superUser.User? existingUser =
           superUser.Supabase.instance.client.auth.currentUser;
 
+
       if (existingUser == null) {
         // User does not exist, proceed to sign up
         await superUser.Supabase.instance.client.auth.signUp(
