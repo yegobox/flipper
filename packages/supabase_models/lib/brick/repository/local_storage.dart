@@ -86,7 +86,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'last_internet_connection_timestamp',
     'databaseFilename',
     'queueFilename',
-    'forceLogout'
+    'forceLogout',
+    'branchIdString',
   };
 
   SharedPreferences? _webPrefs;
@@ -672,5 +673,10 @@ class SharedPreferenceStorage implements LocalStorage {
     } else {
       await _savePreferences();
     }
+  }
+
+  @override
+  String? branchIdString() {
+    return _cache['branchIdString'] as String?;
   }
 }

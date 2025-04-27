@@ -45,6 +45,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     String? transactionId,
     int? branchId,
     DateTime? startDate,
+    String? branchIdString,
     DateTime? endDate,
     bool? doneWithTransaction,
     bool? active,

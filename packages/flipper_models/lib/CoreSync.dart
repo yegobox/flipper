@@ -2507,34 +2507,7 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<void> deleteAll<T extends Object>(
       {required String tableName}) async {
-    // if (tableName == productsTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<Product>();
-    //   });
-    // }
-    // if (tableName == variantTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<Variant>();
-    //   });
-    // }
-    // if (tableName == stocksTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<Stock>();
-    //   });
-    // }
-    // if (tableName == transactionItemsTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<TransactionItem>();
-    //   });
-    // }
-    // if (tableName == stockRequestsTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<StockRequests>();
-    //   });
-    // }
-    if (tableName == transactionItemsTable) {
-      // await repository.sqliteProvider.;
-    }
+  
   }
 
   @override

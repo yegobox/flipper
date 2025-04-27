@@ -32,6 +32,7 @@ abstract class TransactionItemInterface {
     int? branchId,
     DateTime? startDate,
     DateTime? endDate,
+    String? branchIdString,
     bool? doneWithTransaction,
     bool? active,
     String? requestId,

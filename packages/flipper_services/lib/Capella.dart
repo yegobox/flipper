@@ -1474,6 +1474,7 @@ class Capella extends AiStrategyImpl
       {String? transactionId,
       int? branchId,
       DateTime? startDate,
+      String? branchIdString,
       DateTime? endDate,
       String? requestId,
       bool fetchRemote = false,
@@ -2114,7 +2115,7 @@ class Capella extends AiStrategyImpl
     // TODO: implement ebm
     throw UnimplementedError();
   }
-  
+
   @override
   Future<void> hydrateDate({required String branchId}) {
     // TODO: implement hydrateDate

@@ -9,6 +9,7 @@ abstract class LocalStorage {
   int? getBusinessId();
   int? getBusinessServerId();
   int? getBranchId();
+  String? branchIdString();
   int? getBranchServerId();
   bool? getIsTokenRegistered();
   String? getUserPhone();

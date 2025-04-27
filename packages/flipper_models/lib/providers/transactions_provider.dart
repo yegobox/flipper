@@ -68,6 +68,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.getBranchId();
+  final branchIdString = ProxyService.box.branchIdString()!;
 
   talker.debug('transactionItemList called');
 
@@ -93,6 +94,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
           startDate: startDate,
           endDate: endDate,
           branchId: branchId,
+          branchIdString: branchIdString,
           fetchRemote: false)
       .map((transactions) {
     talker.debug('Received ${transactions.length} transactions');

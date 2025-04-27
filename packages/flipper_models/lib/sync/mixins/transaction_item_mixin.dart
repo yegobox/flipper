@@ -160,10 +160,10 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     }
   }
 
-  @override
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
     int? branchId,
+    String? branchIdString,
     DateTime? startDate,
     DateTime? endDate,
     bool? doneWithTransaction,
@@ -171,77 +171,70 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     String? requestId,
     bool fetchRemote = false,
   }) {
-    // Create a list of conditions for better readability and debugging
-    final List<Where> conditions = [];
-
-    // Always include branchId since it's required
-    if (branchId != null) {
-      conditions.add(Where('branchId').isExactly(branchId));
-    }
-
-    // Optional conditions
-    if (transactionId != null) {
-      conditions.add(Where('transactionId').isExactly(transactionId));
-    }
-
-    if (requestId != null) {
-      conditions.add(Where('inventoryRequestId').isExactly(requestId));
-    }
-
-    // Date range handling (match transactionsStream logic)
-    if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        talker.info('Date Given [35m${startDate.toIso8601String()}[0m');
-        conditions.add(
-          Where('createdAt').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
-          ),
-        );
-        // Add condition for the end of the same day
-        conditions.add(
-          Where('createdAt').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
-          ),
-        );
-      } else {
-        conditions.add(
-          Where('createdAt').isLessThanOrEqualTo(
-            startDate.toIso8601String(),
-          ),
-        );
-        conditions.add(
-          Where('createdAt').isGreaterThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
-          ),
-        );
+    List<Where> _buildConditions(dynamic branchIdValue) {
+      final List<Where> conditions = [];
+      if (branchIdValue != null) {
+        conditions.add(Where('branchId').isExactly(branchIdValue));
       }
+      if (transactionId != null) {
+        conditions.add(Where('transactionId').isExactly(transactionId));
+      }
+      if (requestId != null) {
+        conditions.add(Where('inventoryRequestId').isExactly(requestId));
+      }
+      if (startDate != null && endDate != null) {
+        if (startDate == endDate) {
+          talker
+              .info('Date Given \x1B[35m${startDate.toIso8601String()}\x1B[0m');
+          conditions.add(Where('createdAt')
+              .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+          conditions.add(Where('createdAt').isLessThanOrEqualTo(
+              endDate.add(const Duration(days: 1)).toIso8601String()));
+        } else {
+          conditions.add(Where('createdAt')
+              .isLessThanOrEqualTo(startDate.toIso8601String()));
+          conditions.add(Where('createdAt').isGreaterThanOrEqualTo(
+              endDate.add(const Duration(days: 1)).toIso8601String()));
+        }
+      }
+      if (doneWithTransaction != null) {
+        conditions
+            .add(Where('doneWithTransaction').isExactly(doneWithTransaction));
+      }
+      if (active != null) {
+        conditions.add(Where('active').isExactly(active));
+      }
+      return conditions;
     }
 
-    if (doneWithTransaction != null) {
-      conditions
-          .add(Where('doneWithTransaction').isExactly(doneWithTransaction));
+    Stream<List<TransactionItem>> _branchStream(dynamic branchIdValue) {
+      final query = Query(
+        where: _buildConditions(branchIdValue),
+        orderBy: [OrderBy('createdAt', ascending: false)],
+      );
+      return repository.subscribe<TransactionItem>(
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
+      );
     }
 
-    if (active != null) {
-      conditions.add(Where('active').isExactly(active));
+    // Prefer string branchId, fallback to int, else fallback to no branchId
+    if (branchIdString != null) {
+      final stringStream = _branchStream(branchIdString);
+      if (branchId != null) {
+        final intStream = _branchStream(branchId);
+        return stringStream.asyncExpand(
+            (items) => items.isNotEmpty ? Stream.value(items) : intStream);
+      }
+      return stringStream;
     }
-
-    // Add logging to help debug the query
-    // talker.debug('TransactionItems query conditions: $conditions');
-
-    final queryString = Query(
-      where: conditions,
-      orderBy: [OrderBy('createdAt', ascending: false)],
-    );
-
-    // Return the stream directly from repository with mapping
-    final stream = repository.subscribe<TransactionItem>(
-      query: queryString,
-      policy: fetchRemote == true
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.localOnly,
-    );
-    return stream;
+    if (branchId != null) {
+      return _branchStream(branchId);
+    }
+    // No branchId provided
+    return _branchStream(null);
   }
 
   @override

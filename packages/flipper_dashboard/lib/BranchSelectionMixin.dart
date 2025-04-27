@@ -350,6 +350,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   Future<void> _syncBranchWithDatabase(Branch branch) async {
     // Update the branch ID in storage
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+    await ProxyService.box.writeString(key: 'branchIdString', value: branch.id);
     // No need to reload the app, we'll handle UI updates separately
   }
 

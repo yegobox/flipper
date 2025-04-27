@@ -381,4 +381,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement setForceLogout
     throw UnimplementedError();
   }
+  
+  @override
+  String? branchIdString() {
+    // TODO: implement branchIdString
+    throw UnimplementedError();
+  }
 }

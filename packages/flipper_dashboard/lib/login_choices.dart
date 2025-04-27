@@ -265,6 +265,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _updateBranchActive(branch);
       // Update branch ID in storage
       await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+      await ProxyService.box
+          .writeString(key: 'branchIdString', value: branch.id);
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
     } catch (e) {
