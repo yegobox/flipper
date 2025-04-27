@@ -2168,7 +2168,7 @@ class CoreSync extends AiStrategyImpl
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
-          _updateStockAndItems(items: items, branchId: branchId);
+          await _updateStockAndItems(items: items, branchId: branchId);
         }
         _updateTransactionDetails(
           transaction: transaction,
@@ -2268,18 +2268,16 @@ class CoreSync extends AiStrategyImpl
       if (adjustmentTransaction == null) {
         throw Exception("Failed to create adjustment transaction");
       }
-      if (serverUrl != null) {
-        await _processTransactionItems(
-          items: items,
-          branchId: branchId,
-          adjustmentTransaction: adjustmentTransaction,
-          business: business,
-          serverUrl: serverUrl,
-        );
+      await _processTransactionItems(
+        items: items,
+        branchId: branchId,
+        adjustmentTransaction: adjustmentTransaction,
+        business: business,
+        serverUrl: serverUrl,
+      );
 
-        // Assuming completeTransaction is defined in the same scope.
-        await completeTransaction(pendingTransaction: adjustmentTransaction);
-      }
+      // Assuming completeTransaction is defined in the same scope.
+      await completeTransaction(pendingTransaction: adjustmentTransaction);
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
@@ -2306,7 +2304,7 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    required String serverUrl,
+    String? serverUrl,
   }) async {
     for (TransactionItem item in items) {
       await _processSingleTransactionItem(
@@ -2324,7 +2322,7 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    required String serverUrl,
+    String? serverUrl,
   }) async {
     if (!item.active!) {
       repository.delete(item);
@@ -2375,19 +2373,20 @@ class CoreSync extends AiStrategyImpl
   Future<void> _updateVariantAndPatchStock({
     required Variant variant,
     required TransactionItem item,
-    required String serverUrl,
+    String? serverUrl,
   }) async {
     ProxyService.box.writeBool(key: 'lockPatching', value: true);
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
-
-    VariantPatch.patchVariant(
-      URI: serverUrl,
-      identifier: variant.id,
-      sendPort: (message) {
-        ProxyService.notification.sendLocalNotification(body: message);
-      },
-    );
+    if (serverUrl != null) {
+      VariantPatch.patchVariant(
+        URI: serverUrl,
+        identifier: variant.id,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+    }
   }
 
   Future<void> _updateStockForItem({
@@ -2418,7 +2417,7 @@ class CoreSync extends AiStrategyImpl
         item.remainingStock = finalStock;
         item.updatedAt = DateTime.now().toUtc().toLocal();
         item.lastTouched = DateTime.now().toUtc().toLocal();
-        repository.upsert<TransactionItem>(item);
+        await repository.upsert<TransactionItem>(item);
       }
     } catch (e, s) {
       talker.error(s);
@@ -2506,9 +2505,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<void> deleteAll<T extends Object>(
-      {required String tableName}) async {
-  
-  }
+      {required String tableName}) async {}
 
   @override
   FutureOr<void> updateCategory(
