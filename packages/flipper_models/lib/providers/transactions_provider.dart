@@ -157,7 +157,7 @@ Stream<double> netProfitStream(
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
   if (branchId == null) {
-    talker.error('Branch ID is required for grossProfitStream');
+    talker.error('Branch ID is required for netProfitStream');
     throw StateError('Branch ID is required');
   }
 
@@ -175,6 +175,7 @@ Stream<double> netProfitStream(
     branchId: branchId,
     isCashOut: true, // Only get expense transactions
     removeAdjustmentTransactions: true,
+    
   );
 
   // Fetch all transaction items for the period, for tax computation
@@ -183,35 +184,101 @@ Stream<double> netProfitStream(
     endDate: endDate,
     branchId: branchId,
     fetchRemote: true,
+   
   );
 
   await for (final incomeTransactions in incomeStream) {
     final expenseTransactions = await expensesStream.first;
-    final taxItems = await taxItemsStream.first;
+    final allTransactionItems = await taxItemsStream.first;
 
     // Filter out any transactions that are marked as expenses in the income stream
     final filteredIncome =
         incomeTransactions.where((tx) => !(tx.isExpense ?? false)).toList();
 
-    // Calculate total from filtered income transactions
+    // Calculate total from filtered income transactions (revenue)
     final totalIncome = filteredIncome.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
 
-    // Calculate total for expense transactions
+    // Calculate total for expense transactions (operational expenses)
     final totalExpenses = expenseTransactions.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
 
     // Calculate total tax payable from all transaction items in the period
-    final totalTaxPayable = taxItems.fold<double>(
+    final totalTaxPayable = allTransactionItems.fold<double>(
       0.0,
       (sum, item) => sum + (item.taxAmt ?? 0.0),
     );
+
+    // Calculate COGS (Cost of Goods Sold)
+    double totalCOGS = 0.0;
+
+    // Process each income transaction to calculate COGS
+    for (final transaction in filteredIncome) {
+      try {
+        // Get transaction items for this transaction
+        final transactionItems = await ProxyService.strategy.transactionItems(
+          transactionId: transaction.id,
+        );
+
+        // If transaction has items, calculate COGS based on variants
+        if (transactionItems.isNotEmpty) {
+          for (final item in transactionItems) {
+            if (item.variantId != null) {
+              try {
+                // Get the variant associated with this item
+                final variant =
+                    await ProxyService.strategy.getVariant(id: item.variantId);
+
+                if (variant != null) {
+                  // Use supply price if available, otherwise use a fallback calculation
+                  final supplyPrice = variant.supplyPrice ??
+                      (variant.retailPrice != null
+                          ? variant.retailPrice! * 0.7
+                          : 0.0);
+
+                  // Calculate COGS for this item: supply price * quantity
+                  final itemCOGS = supplyPrice * item.qty;
+                  totalCOGS += itemCOGS;
+
+                  talker.debug(
+                      'Item: ${item.name}, Qty: ${item.qty}, Supply Price: $supplyPrice, COGS: $itemCOGS');
+                }
+              } catch (e) {
+                talker
+                    .error('Error fetching variant for item ${item.name}: $e');
+                // Fallback: estimate COGS as 70% of item price
+                final itemCOGS = item.price * item.qty * 0.7;
+                totalCOGS += itemCOGS;
+                talker.debug('Using fallback COGS for ${item.name}: $itemCOGS');
+              }
+            }
+          }
+        } else {
+          // If transaction has no items, it's likely a non-inventory transaction
+          // Current implementation already handles this correctly
+          talker.debug(
+              'Transaction ${transaction.id} has no items, skipping COGS calculation');
+        }
+      } catch (e) {
+        talker.error(
+            'Error fetching items for transaction ${transaction.id}: $e');
+      }
+    }
+
+    talker.debug('Total COGS: $totalCOGS');
     talker.debug('Total tax payable: $totalTaxPayable');
-    yield totalIncome - totalExpenses - totalTaxPayable;
+    talker.debug('Total income: $totalIncome');
+    talker.debug('Total expenses: $totalExpenses');
+
+    // Net profit = Revenue - COGS - Operational Expenses - Taxes
+    final netProfit = totalIncome - totalCOGS - totalExpenses - totalTaxPayable;
+    talker.debug('Net profit: $netProfit');
+
+    yield netProfit;
   }
 }
 

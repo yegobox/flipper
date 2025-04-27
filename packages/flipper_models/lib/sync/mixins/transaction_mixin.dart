@@ -736,6 +736,8 @@ mixin TransactionMixin implements TransactionInterface {
       if (isCashOut) Where('isExpense').isExactly(isCashOut),
       if (removeAdjustmentTransactions)
         Where('transactionType').isNot('Adjustment'),
+      if (removeAdjustmentTransactions)
+        Where('transactionType').isNot('adjustment'),
     ];
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
