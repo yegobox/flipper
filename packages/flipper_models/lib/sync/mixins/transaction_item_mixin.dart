@@ -191,26 +191,26 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     // Date range handling (match transactionsStream logic)
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
-        talker.info('Date Given ${startDate.toIso8601String()}');
+        talker.info('Date Given [35m${startDate.toIso8601String()}[0m');
         conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
+          Where('createdAt').isGreaterThanOrEqualTo(
             startDate.toIso8601String(),
           ),
         );
         // Add condition for the end of the same day
         conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
+          Where('createdAt').isLessThanOrEqualTo(
             endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       } else {
         conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
+          Where('createdAt').isLessThanOrEqualTo(
             startDate.toIso8601String(),
           ),
         );
         conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
+          Where('createdAt').isGreaterThanOrEqualTo(
             endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
@@ -231,16 +231,17 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
     final queryString = Query(
       where: conditions,
-      orderBy: [OrderBy('lastTouched', ascending: false)],
+      orderBy: [OrderBy('createdAt', ascending: false)],
     );
 
     // Return the stream directly from repository with mapping
-    return repository.subscribe<TransactionItem>(
+    final stream = repository.subscribe<TransactionItem>(
       query: queryString,
       policy: fetchRemote == true
           ? OfflineFirstGetPolicy.alwaysHydrate
           : OfflineFirstGetPolicy.localOnly,
     );
+    return stream;
   }
 
   @override

@@ -372,7 +372,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     titleRange.cellStyle = headerStyle;
 
     final taxRate = 18;
-    final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
+    // final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
 
     final infoData = [
       ['TIN Number', business.tinNumber?.toString() ?? ''],

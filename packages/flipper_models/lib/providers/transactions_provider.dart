@@ -93,7 +93,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
           startDate: startDate,
           endDate: endDate,
           branchId: branchId,
-          fetchRemote: true)
+          fetchRemote: false)
       .map((transactions) {
     talker.debug('Received ${transactions.length} transactions');
     return transactions;
@@ -175,7 +175,6 @@ Stream<double> netProfitStream(
     branchId: branchId,
     isCashOut: true, // Only get expense transactions
     removeAdjustmentTransactions: true,
-    
   );
 
   // Fetch all transaction items for the period, for tax computation
@@ -184,7 +183,6 @@ Stream<double> netProfitStream(
     endDate: endDate,
     branchId: branchId,
     fetchRemote: true,
-   
   );
 
   await for (final incomeTransactions in incomeStream) {
