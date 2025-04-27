@@ -49,6 +49,11 @@ public class PrinterService {
     // Default dithering method - better for text and QR codes
     private int ditheringMethod = QR_CODE_OPTIMIZED;
 
+    // Text enhancement settings
+    private boolean enhanceTextReadability = true;
+    private int textContrast = 30; // Default contrast enhancement percentage
+    private int textSharpness = 20; // Default sharpness enhancement percentage
+
     private PrinterService() {}
 
     public static synchronized PrinterService getInstance() {
@@ -62,6 +67,12 @@ public class PrinterService {
         if (method >= FLOYD_STEINBERG_DITHERING && method <= QR_CODE_OPTIMIZED) {
             this.ditheringMethod = method;
         }
+    }
+
+    public void setTextEnhancement(boolean enhance, int contrast, int sharpness) {
+        this.enhanceTextReadability = enhance;
+        this.textContrast = Math.max(0, Math.min(100, contrast)); // Limit to 0-100%
+        this.textSharpness = Math.max(0, Math.min(100, sharpness)); // Limit to 0-100%
     }
 
     public int initializePrinter() {
@@ -235,7 +246,7 @@ public class PrinterService {
 
         // Add contrast boost for better printing
         ColorMatrix contrastMatrix = new ColorMatrix();
-        float contrast = 1.2f; // Boost contrast by 20%
+        float contrast = 1.4f; // Boost contrast by 40% (increased from 20%)
         float intercept = (-.5f * contrast + .5f) * 255f;
 
         contrastMatrix.set(new float[] {
@@ -481,8 +492,13 @@ public class PrinterService {
         // First pass: contrast enhancement
         enhanceContrast(pixels, width, height);
 
-        // Window size for adaptive thresholding - smaller window means sharper edges
-        int windowSize = 5;
+        // Apply text sharpening if enabled
+        if (enhanceTextReadability) {
+            sharpenText(pixels, width, height);
+        }
+
+        // Window size for adaptive thresholding - smaller window for sharper text
+        int windowSize = 3; // Reduced from 5 for sharper text edges
 
         // Second pass: adaptive thresholding
         for (int y = 0; y < height; y++) {
@@ -503,16 +519,85 @@ public class PrinterService {
 
                 int average = sum / count;
 
-                // Apply threshold with a slight bias for dark pixels (-5)
-                // This helps preserve QR code integrity and thin text
-                int newValue = (centerPixel > average - 5) ? 255 : 0;
+                // Apply threshold with a bias for better text preservation
+                // Increased bias for better text preservation
+                int threshold = average - 10; // Increased from -5 for better text clarity
 
+                // Apply a more aggressive threshold for text-like patterns
+                if (isLikelyText(pixels, x, y, width, height)) {
+                    threshold -= 5; // Further reduce threshold for text
+                }
+
+                int newValue = (centerPixel > threshold) ? 255 : 0;
                 pixels[index] = Color.rgb(newValue, newValue, newValue);
             }
         }
 
         output.setPixels(pixels, 0, width, 0, 0, width, height);
         return output;
+    }
+
+    /**
+     * Heuristic to detect if a pixel is likely part of text
+     * Looks for high local contrast which is typical of text
+     */
+    private boolean isLikelyText(int[] pixels, int x, int y, int width, int height) {
+        // Skip edge pixels
+        if (x < 2 || y < 2 || x >= width - 2 || y >= height - 2) {
+            return false;
+        }
+
+        // Check local contrast in a small area
+        int center = Color.red(pixels[y * width + x]);
+        int count = 0;
+
+        // Check 8 surrounding pixels
+        for (int dy = -1; dy <= 1; dy++) {
+            for (int dx = -1; dx <= 1; dx++) {
+                if (dx == 0 && dy == 0) continue;
+
+                int neighbor = Color.red(pixels[(y + dy) * width + (x + dx)]);
+                if (Math.abs(center - neighbor) > 50) { // High local contrast
+                    count++;
+                }
+            }
+        }
+
+        // If at least 3 surrounding pixels have high contrast, likely text
+        return count >= 3;
+    }
+
+    /**
+     * Applies a sharpening filter to improve text clarity
+     */
+    private void sharpenText(int[] pixels, int width, int height) {
+        // Create a copy of the pixels array
+        int[] original = pixels.clone();
+
+        // Sharpening kernel
+        // Center value is 1 + 4*amount, corners are -amount, edges are -amount
+        float amount = textSharpness / 100.0f;
+
+        // Skip the edges to avoid array bounds issues
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                int index = y * width + x;
+
+                // Apply sharpening kernel
+                float sum = original[index] * (1 + 4 * amount)
+                          - original[(y-1) * width + x] * amount
+                          - original[(y+1) * width + x] * amount
+                          - original[y * width + (x-1)] * amount
+                          - original[y * width + (x+1)] * amount;
+
+                // Clamp to valid range
+                pixels[index] = Color.rgb(
+                    Math.max(0, Math.min(255, (int)sum)),
+                    Math.max(0, Math.min(255, (int)sum)),
+                    Math.max(0, Math.min(255, (int)sum))
+                );
+            }
+        }
     }
 
     /**
@@ -530,24 +615,24 @@ public class PrinterService {
             if (gray > max) max = gray;
         }
 
-        // Don't process if already high contrast
-        if (max - min < 30) {
-            // Low contrast image - stretch the histogram
-            for (int i = 0; i < pixels.length; i++) {
-                int gray = Color.red(pixels[i]);
+        // Calculate contrast enhancement factor based on settings
+        int contrastFactor = enhanceTextReadability ? textContrast : 20;
 
-                // Apply non-linear contrast enhancement
-                // This formula emphasizes the difference between light and dark areas
-                int newGray;
-                if (gray < 128) {
-                    newGray = gray - (gray * 20 / 100);  // Make dark pixels darker
-                } else {
-                    newGray = gray + ((255 - gray) * 20 / 100);  // Make light pixels lighter
-                }
+        // Apply contrast enhancement
+        for (int i = 0; i < pixels.length; i++) {
+            int gray = Color.red(pixels[i]);
 
-                newGray = Math.max(0, Math.min(255, newGray));
-                pixels[i] = Color.rgb(newGray, newGray, newGray);
+            // Apply non-linear contrast enhancement
+            // This formula emphasizes the difference between light and dark areas
+            int newGray;
+            if (gray < 128) {
+                newGray = gray - (gray * contrastFactor / 100);  // Make dark pixels darker
+            } else {
+                newGray = gray + ((255 - gray) * contrastFactor / 100);  // Make light pixels lighter
             }
+
+            newGray = Math.max(0, Math.min(255, newGray));
+            pixels[i] = Color.rgb(newGray, newGray, newGray);
         }
     }
 }
