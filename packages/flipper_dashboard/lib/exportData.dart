@@ -306,7 +306,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               headerTitle: headerTitle);
 
           _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
-              bottomEndOfRowTitle: bottomEndOfRowTitle);
+              bottomEndOfRowTitle: bottomEndOfRowTitle, cogs: config.cogs ?? 0);
           _formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
@@ -411,7 +411,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   void _addClosingBalanceRow(
       excel.Worksheet sheet, ExcelStyler styler, String currencyFormat,
-      {required String bottomEndOfRowTitle}) {
+      {required String bottomEndOfRowTitle, required double cogs}) {
     final balanceStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
     final firstDataRow = _getFirstDataRow(sheet);
@@ -426,20 +426,17 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
     sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
 
-    final closingBalanceCell =
+    final grossProfitCell =
         sheet.getRangeByName('$amountColLetter$closingBalanceRow');
-    closingBalanceCell.setFormula(
-        '=SUM($amountColLetter$firstDataRow:$amountColLetter$lastDataRow)');
-    closingBalanceCell.cellStyle = balanceStyle;
-    closingBalanceCell.numberFormat = currencyFormat;
+    grossProfitCell.setFormula(
+        '=SUM($amountColLetter${firstDataRow}:$amountColLetter$lastDataRow)');
+    grossProfitCell.cellStyle = balanceStyle;
+    grossProfitCell.numberFormat = currencyFormat;
 
     sheet
         .getRangeByName(
             'A$closingBalanceRow:$amountColLetter$closingBalanceRow')
         .cellStyle = balanceStyle;
-
-    // Add named range for Gross Profit
-    sheet.workbook.names.add('GrossProfit', closingBalanceCell);
 
     // Add COGS row
     final cogsRow = closingBalanceRow + 1;
@@ -448,15 +445,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     sheet.getRangeByName('A$cogsRow').cellStyle = balanceStyle;
 
     final cogsCell = sheet.getRangeByName('$amountColLetter$cogsRow');
-    try {
-      if (sheet.workbook.worksheets[0].getRangeByName('B9') != null) {
-        cogsCell.setFormula('=Sheet1!B9');
-      } else {
-        cogsCell.setValue(0);
-      }
-    } catch (e) {
-      cogsCell.setValue(0);
-    }
+    cogsCell.setValue(cogs);
     cogsCell.cellStyle = balanceStyle;
     cogsCell.numberFormat = currencyFormat;
 
