@@ -6,7 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-
+// 
 mixin DeleteMixin implements DeleteInterface {
   Repository get repository;
   Future<Product?> getProduct({
