@@ -17,10 +17,10 @@ class ConnectionManager {
   int _activeOperations = 0;
   bool _processingQueue = false;
 
-  // Default busy timeout in milliseconds (5 seconds)
-  static const int defaultBusyTimeout = 5000;
+  // Default busy timeout in milliseconds (10 seconds)
+  static const int defaultBusyTimeout = 10000;
 
-  ConnectionManager(this._databaseFactory, {int maxConcurrentOperations = 3})
+  ConnectionManager(this._databaseFactory, {int maxConcurrentOperations = 1})
       : _maxConcurrentOperations = maxConcurrentOperations;
 
   /// Get a database connection, creating it if it doesn't exist
@@ -117,14 +117,18 @@ class ConnectionManager {
         op.timeout,
         onTimeout: () {
           _logger.severe(
-              'Database operation timed out after ${op.timeout.inSeconds}s');
+              'Database operation timed out after \x1B[31m${op.timeout.inSeconds}s\x1B[0m on path: \x1B[33m${op.path}\x1B[0m');
           throw TimeoutException('Database operation timed out', op.timeout);
         },
       );
 
       op.completer.complete(result);
     } catch (e) {
-      _logger.warning('Error executing database operation: $e');
+      if (e.toString().contains('database is locked')) {
+        _logger.severe('Database is locked error on path: \x1B[33m${op.path}\x1B[0m');
+      } else {
+        _logger.warning('Error executing database operation: $e');
+      }
       op.completer.completeError(e);
     }
   }

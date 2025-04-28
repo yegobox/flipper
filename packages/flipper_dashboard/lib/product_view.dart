@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
@@ -42,6 +43,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   //TODO: when is agent get this value to handle all cases where you might not be eligible to see stock.
   bool _isStockButtonEnabled = true;
 
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
@@ -49,9 +52,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _scrollListener() {
+    // Debounce scroll to avoid rapid DB queries
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      _loadMoreVariants();
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        _loadMoreVariants();
+      });
     }
   }
 
@@ -62,6 +69,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
