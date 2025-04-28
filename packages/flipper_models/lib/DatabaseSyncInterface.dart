@@ -11,6 +11,7 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 
@@ -58,6 +59,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         ProductInterface,
         TenantInterface,
         EbmInterface,
+        CustomerInterface,
         CategoryInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
@@ -184,10 +186,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   // FutureOr<Customer?> getCustomer({String? key, int? id});
   // FutureOr<List<Customer>> getCustomers({String? key, int? id});
   // Future<Customer?> getCustomerFuture({String? key, int? id});
-
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id});
-
   Stream<List<Customer>> customersStream(
       {required int branchId, String? key, String? id});
 
@@ -236,7 +234,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String qrCode,
       required String receiptType,
       required odm.Counter counter,
-      required int invoiceNumber, required String timeReceivedFromserver});
+      required int invoiceNumber,
+      required String timeReceivedFromserver});
   Future<Receipt?> getReceipt({required String transactionId});
 
   Future<void> refund({required int itemId});

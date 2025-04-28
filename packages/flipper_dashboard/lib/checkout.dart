@@ -286,17 +286,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   Future<void> _handleCompleteTransaction(
       ITransaction transaction, bool immediateCompletion) async {
     final startTime = transaction.createdAt!;
-    final endTime = DateTime.now().toUtc();
-    final duration = endTime.difference(startTime).inSeconds;
-    await PosthogService.instance.capture('transaction_completed', properties: {
-      'transaction_id': transaction.id,
-      'branch_id': transaction.branchId!,
-      'business_id': ProxyService.box.getBusinessId()!,
-      'created_at': startTime.toIso8601String(),
-      'completed_at': endTime.toIso8601String(),
-      'duration_seconds': duration,
-      'source': 'checkout',
-    });
+
     ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
     if (customerNameController.text.isEmpty) {
       ProxyService.box.remove(key: 'customerName');
@@ -312,8 +302,20 @@ class CheckOutState extends ConsumerState<CheckOut>
         completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
           await newTransaction(typeOfThisTransactionIsExpense: false);
+          final endTime = DateTime.now().toUtc();
+          final duration = endTime.difference(startTime).inSeconds;
+
           ProxyService.box
               .writeBool(key: 'transactionInProgress', value: false);
+          PosthogService.instance.capture('transaction_completed', properties: {
+            'transaction_id': transaction.id,
+            'branch_id': transaction.branchId!,
+            'business_id': ProxyService.box.getBusinessId()!,
+            'created_at': startTime.toIso8601String(),
+            'completed_at': endTime.toIso8601String(),
+            'duration_seconds': duration,
+            'source': 'checkout',
+          });
         },
         transaction: transaction,
         paymentMethods:

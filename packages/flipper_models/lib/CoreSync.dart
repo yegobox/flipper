@@ -1113,42 +1113,7 @@ class CoreSync extends AiStrategyImpl
     return variant;
   }
 
-  @override
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id}) async {
-    if (id != null) {
-      return repository.get<Customer>(
-          policy: OfflineFirstGetPolicy.localOnly,
-          query: brick.Query(where: [
-            brick.Where('id', value: id, compare: brick.Compare.exact),
-          ]));
-    }
-
-    if (key != null) {
-      final searchFields = ['custNm', 'email', 'telNo'];
-      final queries = searchFields.map((field) => brick.Query(where: [
-            brick.Where(field, value: key, compare: brick.Compare.contains),
-            brick.Where('branchId',
-                value: branchId, compare: brick.Compare.exact),
-          ]));
-
-      final results =
-          await Future.wait(queries.map((query) => repository.get<Customer>(
-                policy: OfflineFirstGetPolicy.localOnly,
-                query: query,
-              )));
-
-      return results.expand((customers) => customers).toList();
-    }
-
-    // If only branchId is provided, return all customers for that branch
-    return repository.get<Customer>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: brick.Query(where: [
-          brick.Where('branchId',
-              value: branchId, compare: brick.Compare.exact),
-        ]));
-  }
+  
 
   @override
   Stream<List<Customer>> customersStream({
