@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 // ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
+import 'package:supabase_models/brick/repository/platform_helpers.dart';
 
 /// Manages database connections to prevent locking issues
 class ConnectionManager {
@@ -20,8 +20,9 @@ class ConnectionManager {
   // Default busy timeout in milliseconds (10 seconds)
   static const int defaultBusyTimeout = 10000;
 
-  ConnectionManager(this._databaseFactory, {int maxConcurrentOperations = 1})
-      : _maxConcurrentOperations = maxConcurrentOperations;
+  ConnectionManager(this._databaseFactory, {int? maxConcurrentOperations})
+      : _maxConcurrentOperations = maxConcurrentOperations ??
+            PlatformHelpers.getRecommendedMaxConcurrentOps();
 
   /// Get a database connection, creating it if it doesn't exist
   Future<Database> getConnection(String path,
@@ -125,7 +126,8 @@ class ConnectionManager {
       op.completer.complete(result);
     } catch (e) {
       if (e.toString().contains('database is locked')) {
-        _logger.severe('Database is locked error on path: \x1B[33m${op.path}\x1B[0m');
+        _logger.severe(
+            'Database is locked error on path: \x1B[33m${op.path}\x1B[0m');
       } else {
         _logger.warning('Error executing database operation: $e');
       }

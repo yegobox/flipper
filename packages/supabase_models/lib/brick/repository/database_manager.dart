@@ -45,43 +45,23 @@ class DatabaseManager {
         (db) async {
           try {
             // Platform-specific PRAGMA configuration
-            if (Platform.isAndroid) {
-              // Android: Safe to use all PRAGMAs
+            if (Platform.isWindows) {
+              await db.execute('PRAGMA journal_mode = WAL');
+              await db.execute('PRAGMA synchronous = NORMAL');
+              await db.execute('PRAGMA cache_size = -2000'); // ~2MB cache
+            } else if (Platform.isAndroid) {
               await db.execute('PRAGMA journal_mode = WAL');
               await db.execute('PRAGMA synchronous = FULL');
-              await db.execute('PRAGMA busy_timeout = $defaultBusyTimeout');
-            } else if (Platform.isWindows) {
-              // Windows desktop: Safe to use all PRAGMAs
-              await db.execute('PRAGMA journal_mode = WAL');
-              await db.execute('PRAGMA synchronous = FULL');
-              await db.execute('PRAGMA busy_timeout = $defaultBusyTimeout');
-            } else if (Platform.isIOS || Platform.isMacOS) {
-              // iOS/macOS: Avoid WAL and busy_timeout due to iCloud and file locking issues
-              // Only set synchronous for data safety
-              await db.execute('PRAGMA synchronous = FULL');
-              // Optionally, you can wrap busy_timeout in a try/catch if you want to experiment:
-              // try {
-              //   await db.execute('PRAGMA busy_timeout = $defaultBusyTimeout');
-              // } catch (e) {
-              //   if (e.toString().contains('not an error')) {
-              //     _logger.info('Ignored harmless busy_timeout warning: $e');
-              //   } else {
-              //     rethrow;
-              //   }
-              // }
             }
-
-            // Run integrity check which works on all platforms
+            // Integrity check (all platforms)
             final integrityResult = await db.rawQuery('PRAGMA integrity_check');
-            if (integrityResult.isNotEmpty &&
-                integrityResult.first.values.first != 'ok') {
+            if (integrityResult.first.values.first != 'ok') {
               _logger.warning(
                   'Database integrity check failed: ${integrityResult.first.values.first}');
             } else {
               _logger.info('Database integrity check passed');
             }
           } catch (pragmaError) {
-            // Log but don't fail if PRAGMA commands aren't supported
             _logger.warning('Could not execute PRAGMA commands: $pragmaError');
           }
           return null;

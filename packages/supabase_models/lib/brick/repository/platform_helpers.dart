@@ -46,4 +46,10 @@ class PlatformHelpers {
   static String getInMemoryDatabasePath() {
     return inMemoryDatabasePath;
   }
+
+  /// Gets the recommended max concurrent DB operations for this platform
+  static int getRecommendedMaxConcurrentOps() {
+    if (Platform.isWindows) return 1;
+    return 3;
+  }
 }
