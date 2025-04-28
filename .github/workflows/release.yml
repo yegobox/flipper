@@ -64,6 +64,7 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
           git config --global core.autocrlf false
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
@@ -321,16 +322,16 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Create Debug Releasse
+      - name: Create Debug Release
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          tag_name: ${{ steps.get_version.outputs.version }}
           name: Debug Release ${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
-          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ github.token }} 
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
