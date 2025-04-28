@@ -19,6 +19,7 @@ import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
+import 'package:flipper_models/sync/mixins/customer_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
@@ -77,6 +78,7 @@ class CoreSync extends AiStrategyImpl
         TenantMixin,
         ProductMixin,
         VariantMixin,
+        CustomerMixin,
         EbmMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
@@ -1112,8 +1114,6 @@ class CoreSync extends AiStrategyImpl
 
     return variant;
   }
-
-  
 
   @override
   Stream<List<Customer>> customersStream({

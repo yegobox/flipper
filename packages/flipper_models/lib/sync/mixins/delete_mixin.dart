@@ -1,3 +1,5 @@
+import 'dart:async' show FutureOr;
+
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -28,7 +30,8 @@ mixin DeleteMixin implements DeleteInterface {
 
   Future<Variant?> getVariant({required String id});
   Future<Stock?> getStockById({required String id});
-  Future<List<Customer>> customers({required String id, required int branchId});
+  FutureOr<List<Customer>> customers(
+      {required int branchId, String? key, String? id});
   Future<List<InventoryRequest>> requests({required String requestId});
 
   @override
