@@ -159,6 +159,12 @@ class _RowItemState extends ConsumerState<RowItem>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // Debug the selection state
+    if (isSelected) {
+      talker.debug(
+          "Card is selected: ${widget.variant?.id ?? widget.product?.id}");
+    }
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
@@ -214,19 +220,34 @@ class _RowItemState extends ConsumerState<RowItem>
                         NO_SELECTION;
                   } else {
                     ref.read(selectedItemIdProvider.notifier).state = itemId;
+                    // Show a toast to indicate selection
+                    toast("Item selected for editing");
                   }
                 }
               },
-              child: Padding(
-                padding: const EdgeInsets.all(
-                    contentPadding - 4), // Further reduced padding
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minHeight: 80, // Fixed minimum height
-                    maxHeight: 220, // Add maximum height constraint
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(
+                        contentPadding - 4), // Further reduced padding
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        minHeight: 80, // Fixed minimum height
+                        maxHeight: 220, // Add maximum height constraint
+                      ),
+                      child:
+                          _buildItemContent(isSelected, textTheme, colorScheme),
+                    ),
                   ),
-                  child: _buildItemContent(isSelected, textTheme, colorScheme),
-                ),
+
+                  // Overlay action buttons when selected
+                  if (isSelected)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: _buildFloatingActionButtons(colorScheme),
+                    ),
+                ],
               ),
             ),
           ),
@@ -845,5 +866,48 @@ class _RowItemState extends ConsumerState<RowItem>
         _routerService.navigateTo(SellRoute(product: widget.product!));
       }
     }
+  }
+
+  Widget _buildFloatingActionButtons(ColorScheme colorScheme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Delete button
+          IconButton(
+            icon:
+                Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+            tooltip: 'Delete',
+            onPressed: () {
+              if (widget.variant != null) {
+                widget.delete(widget.variant?.productId, 'product');
+              } else if (widget.product != null) {
+                widget.delete(widget.product?.id, 'product');
+              }
+            },
+          ),
+
+          // Edit button
+          IconButton(
+            icon:
+                Icon(Icons.edit_outlined, color: colorScheme.primary, size: 20),
+            tooltip: 'Edit',
+            onPressed: () {
+              if (widget.variant != null) {
+                widget.edit(widget.variant?.productId, 'product');
+              } else if (widget.product != null) {
+                widget.edit(widget.product?.id, 'product');
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 }
