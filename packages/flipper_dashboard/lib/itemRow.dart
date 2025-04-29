@@ -216,9 +216,11 @@ class _RowItemState extends ConsumerState<RowItem>
                 }
               },
               child: Padding(
-                padding: const EdgeInsets.all(contentPadding),
+                padding:
+                    const EdgeInsets.all(contentPadding - 2), // Reduced padding
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 100),
+                  constraints: const BoxConstraints(
+                      minHeight: 80), // Reduced minimum height
                   child: _buildItemContent(isSelected, textTheme, colorScheme),
                 ),
               ),
@@ -244,9 +246,7 @@ class _RowItemState extends ConsumerState<RowItem>
         const SizedBox(height: 8),
 
         // Product Info Section - Flexible to handle varying content
-        Flexible(
-          child: _buildProductInfoSection(textTheme),
-        ),
+        _buildProductInfoSection(textTheme),
 
         // Action Buttons (only when selected)
         if (isSelected)
@@ -350,6 +350,7 @@ class _RowItemState extends ConsumerState<RowItem>
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Product name - Ensure it fits with ellipsis
         Text(
@@ -396,14 +397,14 @@ class _RowItemState extends ConsumerState<RowItem>
         widget.variant?.retailPrice != 0) {
       indicators.add(
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
             color: Colors.blue.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             (widget.variant?.retailPrice ?? 0).toRwf(),
-            style: textTheme.labelMedium?.copyWith(
+            style: textTheme.labelSmall?.copyWith(
               color: Colors.blue[700],
               fontWeight: FontWeight.w600,
             ),
@@ -416,26 +417,26 @@ class _RowItemState extends ConsumerState<RowItem>
     if (!widget.isComposite && widget.stock != 0) {
       indicators.add(
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
             color: widget.stock < 10
                 ? Colors.orange.withOpacity(0.12)
                 : Colors.green.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.inventory_2_outlined,
-                size: 12,
+                size: 10,
                 color:
                     widget.stock < 10 ? Colors.orange[700] : Colors.green[700],
               ),
               const SizedBox(width: 2),
               Text(
                 "${widget.stock}",
-                style: textTheme.labelMedium?.copyWith(
+                style: textTheme.labelSmall?.copyWith(
                   color: widget.stock < 10
                       ? Colors.orange[700]
                       : Colors.green[700],
@@ -448,10 +449,10 @@ class _RowItemState extends ConsumerState<RowItem>
       );
     }
 
-    // Use wrap to handle overflow
+    // Use wrap to handle overflow with tighter spacing
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: 4,
+      runSpacing: 4,
       children: indicators,
     );
   }
@@ -460,8 +461,8 @@ class _RowItemState extends ConsumerState<RowItem>
     return SizedBox(
       width: double.infinity,
       child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
+        spacing: 4, // Reduced spacing
+        runSpacing: 4, // Reduced spacing
         alignment: WrapAlignment.end,
         children: [
           // Delete button
@@ -504,22 +505,23 @@ class _RowItemState extends ConsumerState<RowItem>
   }) {
     return Material(
       color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(6), // Reduced radius
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6), // Reduced radius
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+              horizontal: 8, vertical: 4), // Reduced padding
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color, size: 14),
-              const SizedBox(width: 4),
+              Icon(icon, color: color, size: 12), // Smaller icon
+              const SizedBox(width: 3), // Reduced spacing
               Text(
                 label,
                 style: TextStyle(
                   color: color,
-                  fontSize: 12,
+                  fontSize: 10, // Smaller font
                   fontWeight: FontWeight.w500,
                 ),
               ),
