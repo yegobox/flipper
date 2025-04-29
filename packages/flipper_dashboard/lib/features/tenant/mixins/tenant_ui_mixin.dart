@@ -107,6 +107,9 @@ class TenantUIMixin {
     void Function(BuildContext, Tenant, FlipperBaseModel)
         showDeleteConfirmation,
   ) {
+    final bool isAdmin = tenantAccesses
+        .any((access) => (access.accessLevel?.toLowerCase() == 'admin'));
+
     return ExpansionTile(
       onExpansionChanged: (expanded) {
         if (expanded) {
@@ -129,8 +132,9 @@ class TenantUIMixin {
         mainAxisSize: MainAxisSize.min,
         children: [
           buildNfcButtonStatic(context, tenant),
-          buildDeleteButtonStatic(
-              context, tenant, model, showDeleteConfirmation),
+          if (!isAdmin)
+            buildDeleteButtonStatic(
+                context, tenant, model, showDeleteConfirmation),
         ],
       ),
       children: [
