@@ -21,6 +21,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
   int? userId;
+  Tenant? editedTenant;
 
   @override
   void dispose() {
@@ -35,6 +36,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     setState(() {
       selectedUserType = 'Agent';
       tenantAllowedFeatures.clear();
+      editMode = false;
+      userId = null;
+      editedTenant = null;
     });
   }
 
@@ -100,7 +104,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       required String name,
       required String phone,
       required String userType,
-      required int? userId}) async {
+      required int userId}) async {
     try {
       await TenantOperationsMixin.addUserStatic(
         model,
@@ -112,23 +116,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         userId: userId,
         ref: ref,
       );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(editMode
-              ? 'User updated successfully!'
-              : 'User added successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (error) {
       // Log the error to a logging service
       debugPrint('Error adding/updating user: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to add/update user. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+
       // Optionally, re-throw the error if you want the caller to handle it
       rethrow;
     }
@@ -170,7 +161,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     TenantPermissionsMixin.fillFormWithTenantDataStatic(
       tenant,
       tenantAccesses,
-      setState,
+      (fn) => setState(() {
+        editMode = true;
+        editedTenant = tenant;
+        fn();
+      }),
       tenantAllowedFeatures,
       activeFeatures,
       selectedUserType,
@@ -323,7 +318,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                               name: nameController.text,
                               phone: phoneController.text,
                               userType: selectedUserType,
-                              userId: userId,
+                              userId: editMode && editedTenant != null
+                                  ? editedTenant!.userId!
+                                  : userId!,
                             );
                             resetForm();
                           } catch (e) {

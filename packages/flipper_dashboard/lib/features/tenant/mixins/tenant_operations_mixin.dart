@@ -2,14 +2,14 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 class TenantOperationsMixin {
   // Helper function to display error messages
   static void _showError(BuildContext context, String message) {
-    showToast(context, message);
+    showCustomSnackBarUtil(context, message, backgroundColor: Colors.red[600]);
   }
 
   static Future<void> addUserStatic(
@@ -19,7 +19,7 @@ class TenantOperationsMixin {
     required String name,
     required String phone,
     required String userType,
-    required int? userId,
+    required int userId,
     required WidgetRef ref,
   }) async {
     try {
@@ -43,11 +43,10 @@ class TenantOperationsMixin {
           userType: userType,
           flipperHttpClient: ProxyService.http,
         );
-        showToast(context, 'Tenant Created Successfully');
+        showCustomSnackBarUtil(context, 'Tenant Created Successfully');
       } else {
         // Fetching an existing tenant for editing
-        newTenant = await ProxyService.strategy.getTenant(userId: userId!);
-        showToast(context, 'Tenant Fetched Successfully');
+        newTenant = await ProxyService.strategy.getTenant(userId: userId);
       }
 
       if (newTenant == null) {
@@ -57,11 +56,15 @@ class TenantOperationsMixin {
 
       await updateTenantStatic(tenant: newTenant, name: name, type: userType);
 
+      showCustomSnackBarUtil(context, 'Tenant Updated or Created Successfully');
+
       // Refresh the tenant list
       await model.loadTenants();
     } catch (e, s) {
       talker.error(s);
-      _showError(context, "An unexpected error occurred: ${e.toString()}");
+      showCustomSnackBarUtil(
+          context, "An unexpected error occurred: ${e.toString()}",
+          backgroundColor: Colors.red[600]);
       rethrow; // Re-throw to allow the calling widget to handle the error as well
     }
   }
@@ -128,7 +131,7 @@ class TenantOperationsMixin {
       model.deleteTenant(tenant); // Update local state
       model.rebuildUi(); // Rebuild the UI
 
-      showToast(context, 'Tenant deleted successfully');
+      showCustomSnackBarUtil(context, 'Tenant deleted successfully');
     } catch (e) {
       talker.error("Error deleting tenant: $e"); // Log the error
       _showError(context, 'Error deleting tenant. Please try again.');
