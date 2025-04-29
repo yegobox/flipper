@@ -465,18 +465,16 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-// Ultra-compact action buttons to prevent overflow
   Widget _buildActionButtonsSection(ColorScheme colorScheme) {
     return SizedBox(
       width: double.infinity,
-      height: 26, // Fixed height for action buttons
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
         children: [
-          // Delete button - icon only to save space
-          _buildIconButton(
+          // Delete button
+          _buildActionButton(
             icon: Icons.delete_outline,
+            label: 'Delete',
             color: colorScheme.error,
             onPressed: () {
               if (widget.variant != null) {
@@ -489,9 +487,10 @@ class _RowItemState extends ConsumerState<RowItem>
 
           const SizedBox(width: 8),
 
-          // Edit button - icon only to save space
-          _buildIconButton(
+          // Edit button
+          _buildActionButton(
             icon: Icons.edit_outlined,
+            label: 'Edit',
             color: colorScheme.primary,
             onPressed: () {
               if (widget.variant != null) {
@@ -506,6 +505,42 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Material(
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(6), // Reduced radius
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6), // Reduced radius
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: 8, vertical: 4), // Reduced padding
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 12), // Smaller icon
+              const SizedBox(width: 3), // Reduced spacing
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10, // Smaller font
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Icon-only button for even more compact display
   Widget _buildIconButton({
     required IconData icon,
     required Color color,
