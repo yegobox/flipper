@@ -187,6 +187,8 @@ class _RowItemState extends ConsumerState<RowItem>
               ),
             ],
           ),
+          // Add clipBehavior to ensure no child overflows
+          clipBehavior: Clip.antiAlias,
           child: Material(
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(cardBorderRadius),
@@ -216,11 +218,13 @@ class _RowItemState extends ConsumerState<RowItem>
                 }
               },
               child: Padding(
-                padding:
-                    const EdgeInsets.all(contentPadding - 2), // Reduced padding
+                padding: const EdgeInsets.all(
+                    contentPadding - 4), // Further reduced padding
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(
-                      minHeight: 80), // Reduced minimum height
+                    minHeight: 80, // Fixed minimum height
+                    maxHeight: 220, // Add maximum height constraint
+                  ),
                   child: _buildItemContent(isSelected, textTheme, colorScheme),
                 ),
               ),
@@ -233,28 +237,32 @@ class _RowItemState extends ConsumerState<RowItem>
 
   Widget _buildItemContent(
       bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Product Image Section - Fixed height to prevent overflow
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: _buildProductImageSection(isSelected),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Product Info Section - Flexible to handle varying content
-        _buildProductInfoSection(textTheme),
-
-        // Action Buttons (only when selected)
-        if (isSelected)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: _buildActionButtonsSection(colorScheme),
+    return SingleChildScrollView(
+      // Add SingleChildScrollView to handle any potential overflow
+      physics: const NeverScrollableScrollPhysics(), // Disable actual scrolling
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product Image Section - Fixed height to prevent overflow
+          AspectRatio(
+            aspectRatio: 16 / 10, // Slightly taller image
+            child: _buildProductImageSection(isSelected),
           ),
-      ],
+
+          const SizedBox(height: 6), // Reduced spacing
+
+          // Product Info Section - Handle varying content
+          _buildProductInfoSection(textTheme),
+
+          // Action Buttons (only when selected)
+          if (isSelected)
+            Padding(
+              padding: const EdgeInsets.only(top: 4), // Reduced top padding
+              child: _buildActionButtonsSection(colorScheme),
+            ),
+        ],
+      ),
     );
   }
 
@@ -457,18 +465,18 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
+// Ultra-compact action buttons to prevent overflow
   Widget _buildActionButtonsSection(ColorScheme colorScheme) {
     return SizedBox(
       width: double.infinity,
-      child: Wrap(
-        spacing: 4, // Reduced spacing
-        runSpacing: 4, // Reduced spacing
-        alignment: WrapAlignment.end,
+      height: 26, // Fixed height for action buttons
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Delete button
-          _buildActionButton(
+          // Delete button - icon only to save space
+          _buildIconButton(
             icon: Icons.delete_outline,
-            label: 'Delete',
             color: colorScheme.error,
             onPressed: () {
               if (widget.variant != null) {
@@ -479,10 +487,11 @@ class _RowItemState extends ConsumerState<RowItem>
             },
           ),
 
-          // Edit button
-          _buildActionButton(
+          const SizedBox(width: 8),
+
+          // Edit button - icon only to save space
+          _buildIconButton(
             icon: Icons.edit_outlined,
-            label: 'Edit',
             color: colorScheme.primary,
             onPressed: () {
               if (widget.variant != null) {
@@ -497,35 +506,23 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  Widget _buildActionButton({
+  Widget _buildIconButton({
     required IconData icon,
-    required String label,
     required Color color,
     required VoidCallback onPressed,
   }) {
     return Material(
       color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(6), // Reduced radius
+      shape: const CircleBorder(),
       child: InkWell(
-        borderRadius: BorderRadius.circular(6), // Reduced radius
+        customBorder: const CircleBorder(),
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 8, vertical: 4), // Reduced padding
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 12), // Smaller icon
-              const SizedBox(width: 3), // Reduced spacing
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 10, // Smaller font
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.all(4),
+          child: Icon(
+            icon,
+            color: color,
+            size: 14,
           ),
         ),
       ),
