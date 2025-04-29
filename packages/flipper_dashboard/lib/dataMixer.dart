@@ -121,11 +121,80 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     return productAsync.when(
       loading: () => const Text('...Loading'), // Keep the loading state
-      error: (err, stack) => Text('Error: $err'),
+      error: (err, stack) {
+        // Log the error but don't show it to the user
+        talker.error("Error fetching product data: $err");
+        talker.error(stack);
+
+        // Return a fallback UI instead of showing the error
+        return RowItem(
+          forceRemoteUrl: forceRemoteUrl,
+          isOrdering: isOrdering,
+          color: variant.color ?? "#673AB7",
+          stock: stock,
+          model: model,
+          variant: variant,
+          productName: variant.productName ?? "Unknown Product",
+          variantName: variant.name,
+          imageUrl: null, // No image available in error case
+          isComposite: false, // Default to false in error case
+          edit: (productId, type) {
+            talker.info("navigating to Edit!");
+            showDialog(
+              barrierDismissible: false,
+              context: context,
+              builder: (context) => OptionModal(
+                child: ProductEntryScreen(productId: productId),
+              ),
+            );
+          },
+          delete: (productId, type) async {
+            await deleteFunc(productId, model);
+          },
+          enableNfc: (product) {
+            // Handle NFC functionality
+          },
+        );
+      },
       data: (product) {
         return assetAsync.when(
           loading: () => const SizedBox.shrink(),
-          error: (err, stack) => Text('Error: $err'),
+          error: (err, stack) {
+            // Log the error but don't show it to the user
+            talker.error("Error fetching asset data: $err");
+            talker.error(stack);
+
+            // Return the product row without asset data
+            return RowItem(
+              forceRemoteUrl: forceRemoteUrl,
+              isOrdering: isOrdering,
+              color: variant.color ?? "#673AB7",
+              stock: stock,
+              model: model,
+              variant: variant,
+              productName: variant.productName ?? "Unknown Product",
+              variantName: variant.name,
+              imageUrl: null, // No image available in error case
+              isComposite:
+                  !isOrdering ? (product?.isComposite ?? false) : false,
+              edit: (productId, type) {
+                talker.info("navigating to Edit!");
+                showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => OptionModal(
+                    child: ProductEntryScreen(productId: productId),
+                  ),
+                );
+              },
+              delete: (productId, type) async {
+                await deleteFunc(productId, model);
+              },
+              enableNfc: (product) {
+                // Handle NFC functionality
+              },
+            );
+          },
           data: (asset) {
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
