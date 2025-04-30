@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_supabase/testing.dart';
 // import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
@@ -23,6 +24,7 @@ import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
+import 'models/counter.model.dart';
 
 // Default values that will be used if LocalStorage is not available
 const defaultDbFileName = 'flipper_v17.sqlite';
@@ -192,11 +194,19 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: PlatformHelpers.getDatabaseFactory(),
       databasePath: queuePath,
-      onReattempt: (http.Request request, dynamic object) {
+      onReattempt: (http.Request request, dynamic object) async {
         _logger.info('Reattempting offline request: ${request.url}');
+        try {
+          final statusBefore = await _singleton?._queueManager.getQueueStatus();
+          _logger.info('Queue status before deletion (onReattempt): $statusBefore');
+          await _singleton?._queueManager.deleteFailedRequests();
+          final statusAfter = await _singleton?._queueManager.getQueueStatus();
+          _logger.info('Queue status after deletion (onReattempt): $statusAfter');
+        } catch (e) {
+          _logger.severe('Error handling queue cleanup on reattempt: $e');
+        }
       },
-      onRequestException: (request, object) {
-        // Handle failed requests by logging the error
+      onRequestException: (request, object) async {
         try {
           _logger.warning('Offline request failed: ${request.url}');
         } catch (e) {
@@ -258,8 +268,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
         // Configure the database with WAL mode and other settings
         if (await File(dbPath).exists()) {
-          await _singleton!._databaseManager
-              .configureDatabaseSettings(dbPath, PlatformHelpers.getDatabaseFactory());
+          await _singleton!._databaseManager.configureDatabaseSettings(
+              dbPath, PlatformHelpers.getDatabaseFactory());
         }
       } catch (e) {
         _logger.warning('Error during database configuration: $e');
@@ -286,7 +296,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databaseFactory: PlatformHelpers.getDatabaseFactory(),
       databasePath: PlatformHelpers.getInMemoryDatabasePath(),
       onReattempt: (_, __) {},
-      onRequestException: (_, __) {},
+      onRequestException: (_, __) async {},
     );
 
     return Repository._(
@@ -511,5 +521,33 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       _isBackupInProgress = false;
       return false;
     }
+  }
+
+  @override
+  Future<TModel> upsert<TModel extends OfflineFirstWithSupabaseModel>(
+    TModel instance, {
+    OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
+    Query? query,
+  }) async {
+    if (instance is Counter) {
+      // Only upsert locally for Counter
+      return await super.upsert(instance,
+          policy: OfflineFirstUpsertPolicy.optimisticLocal, query: query);
+    }
+    return await super.upsert(instance, policy: policy, query: query);
+  }
+
+  @override
+  Future<bool> delete<TModel extends OfflineFirstWithSupabaseModel>(
+    TModel instance, {
+    OfflineFirstDeletePolicy policy = OfflineFirstDeletePolicy.optimisticLocal,
+    Query? query,
+  }) async {
+    if (instance is Counter) {
+      // Only delete locally for Counter
+      return await super.delete(instance,
+          policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
+    }
+    return await super.delete(instance, policy: policy, query: query);
   }
 }

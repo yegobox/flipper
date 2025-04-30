@@ -6,7 +6,7 @@ import 'package:brick_offline_first/offline_queue.dart';
 class QueueManager {
   static final _logger = Logger('QueueManager');
   final OfflineRequestQueue offlineRequestQueue;
-  
+
   // Batch size for processing queue operations
   static const int _batchSize = 10;
   // Delay between batches to prevent lock contention
@@ -39,7 +39,7 @@ class QueueManager {
 
       // Process in batches to reduce lock contention
       await _processBatches(requests, primaryKeyColumn);
-      
+
       _logger.info("All locked requests have been cleared.");
     } catch (e) {
       _logger.warning("An error occurred while clearing locked requests: $e");
@@ -84,9 +84,15 @@ class QueueManager {
       final primaryKeyColumn =
           offlineRequestQueue.requestManager.primaryKeyColumn;
 
+      // Log the body/data of each failed request before deletion
+      for (final request in requests) {
+        final body = request['body'] ?? request['data'] ?? request.toString();
+        _logger.info('Deleting failed queue request: $body');
+      }
+
       // Process in batches to reduce lock contention
       await _processBatches(requests, primaryKeyColumn);
-      
+
       _logger.info("${requests.length} failed requests have been deleted.");
       return requests.length;
     } catch (e) {
@@ -96,32 +102,35 @@ class QueueManager {
   }
 
   /// Process requests in batches to prevent database locks
-  Future<void> _processBatches(List<Map<String, dynamic>> requests, String primaryKeyColumn) async {
+  Future<void> _processBatches(
+      List<Map<String, dynamic>> requests, String primaryKeyColumn) async {
     // Calculate number of batches needed
     final int totalBatches = (requests.length / _batchSize).ceil();
-    
+
     for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
       // Calculate start and end indices for this batch
       final int startIdx = batchIndex * _batchSize;
-      final int endIdx = (startIdx + _batchSize < requests.length) 
-          ? startIdx + _batchSize 
+      final int endIdx = (startIdx + _batchSize < requests.length)
+          ? startIdx + _batchSize
           : requests.length;
-      
+
       // Get the current batch of requests
       final currentBatch = requests.sublist(startIdx, endIdx);
-      
+
       // Process each request in the batch sequentially
       for (final request in currentBatch) {
         final requestId = request[primaryKeyColumn] as int;
-        await offlineRequestQueue.requestManager.deleteUnprocessedRequest(requestId);
+        await offlineRequestQueue.requestManager
+            .deleteUnprocessedRequest(requestId);
       }
-      
+
       // Add a small delay between batches to prevent lock contention
       if (batchIndex < totalBatches - 1) {
         await Future.delayed(_batchDelay);
       }
-      
-      _logger.fine("Processed batch ${batchIndex + 1}/$totalBatches of queue operations");
+
+      _logger.fine(
+          "Processed batch ${batchIndex + 1}/$totalBatches of queue operations");
     }
   }
 
@@ -132,10 +141,11 @@ class QueueManager {
     try {
       // Get queue status first to log information
       final status = await getQueueStatus();
-      
+
       if (status['locked']! > 0) {
-        _logger.info("Queue cleanup: Found ${status['locked']} failed requests");
-        
+        _logger
+            .info("Queue cleanup: Found ${status['locked']} failed requests");
+
         // Delete failed requests
         final deleted = await deleteFailedRequests();
         _logger.info("Queue cleanup: Deleted $deleted failed requests");

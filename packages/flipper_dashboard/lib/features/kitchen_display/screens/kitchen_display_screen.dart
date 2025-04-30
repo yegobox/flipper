@@ -6,6 +6,7 @@ import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:async/async.dart'; // Import Async package for StreamZip
 
 class KitchenDisplayScreen extends ConsumerStatefulWidget {
   const KitchenDisplayScreen({Key? key}) : super(key: key);
@@ -16,58 +17,47 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 }
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
-  // Load transactions using the same approach as TicketsListMixin (tickets_list.dart)
-  // This stream matches the logic for ticket display, but filters out isLoan == true
-  final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((ref) {
-    // Create broadcast streams for each status to allow multiple listeners
+  // Refactored: Use a single shared kitchenOrdersStreamProvider
+  static final kitchenOrdersStreamProvider =
+      StreamProvider<List<ITransaction>>((ref) {
+    // Create a single broadcast stream for each status (shared across all consumers)
     final parkedStream = ProxyService.strategy
-        .transactionsStream(
-          status: PARKED,
-          removeAdjustmentTransactions: true,
-        )
+        .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
         .asBroadcastStream();
-
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
             status: IN_PROGRESS, removeAdjustmentTransactions: true)
         .asBroadcastStream();
-
     final waitingStream = ProxyService.strategy
         .transactionsStream(status: WAITING, removeAdjustmentTransactions: true)
         .asBroadcastStream();
 
-    // Merge streams with periodic polling (excluding COMPLETE status)
-    return Stream.periodic(const Duration(seconds: 2)).asyncMap((_) async {
-      // Fetch the latest data from each stream
-      final parkedOrders = await parkedStream.first;
-      final inProgressOrders = await inProgressStream.first;
-      final waitingOrders = await waitingStream.first;
-
+    // Instead of polling with Stream.periodic and .first, merge the streams and yield on any update
+    return StreamZip<List<ITransaction>>([
+      waitingStream,
+      parkedStream,
+      inProgressStream,
+    ]).map((lists) {
       // Combine all transactions - use the same order as tickets_list.dart for consistency
       final allOrders = [
-        ...waitingOrders,
-        ...parkedOrders,
-        ...inProgressOrders
+        ...lists[0], // waiting
+        ...lists[1], // parked
+        ...lists[2], // in progress
       ];
-
       // FILTER: Only show non-loan tickets in the kitchen display
       final filteredOrders = allOrders.where((t) => t.isLoan != true).toList();
-
       // Sort by status priority and then by creation date (newest first)
       filteredOrders.sort((a, b) {
         final statusA = a.status;
         final statusB = b.status;
-
         if (statusA == WAITING && statusB != WAITING) return -1;
         if (statusA != WAITING && statusB == WAITING) return 1;
         if (statusA == PARKED && statusB == IN_PROGRESS) return -1;
         if (statusA == IN_PROGRESS && statusB == PARKED) return 1;
-
         final dateA = a.createdAt ?? DateTime(1970);
         final dateB = b.createdAt ?? DateTime(1970);
         return dateB.compareTo(dateA);
       });
-
       return filteredOrders;
     });
   });
@@ -80,7 +70,6 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     // Listen to kitchen orders changes - must be in build method
     ref.listen(kitchenOrdersStreamProvider, (previous, next) {
       next.whenData((transactions) {
-        // Schedule the update after the current build is complete
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             ref.read(kitchenOrdersProvider.notifier).updateOrders(transactions);
@@ -97,7 +86,6 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // Force refresh
               ref.invalidate(kitchenOrdersStreamProvider);
             },
           ),
