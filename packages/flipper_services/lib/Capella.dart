@@ -1028,23 +1028,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateTenant(
-      {required String tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      int? businessId,
-      String? type,
-      int? pin,
-      int? userId,
-      int? id,
-      bool? sessionActive,
-      int? branchId}) {
-    // TODO: implement updateTenant
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateTransactionItem(
       {double? qty,
       required String transactionItemId,
@@ -1355,7 +1338,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<brick.Tenant?> saveTenant(
+  Future<brick.Tenant?> addNewTenant(
       {required brick.Business business,
       required brick.Branch branch,
       String? phoneNumber,
@@ -2127,6 +2110,23 @@ class Capella extends AiStrategyImpl
   @override
   Stream<brick.Branch> activeBranchStream() {
     // TODO: implement activeBranchStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? userId,
+      int? businessId,
+      String? type,
+      int? id,
+      int? pin,
+      bool? sessionActive,
+      int? branchId}) {
+    // TODO: implement updateTenant
     throw UnimplementedError();
   }
 }

@@ -64,31 +64,4 @@ class TenantFormMixin {
       ),
     );
   }
-
-  static Widget buildUserTypeDropdown({
-    required BuildContext context,
-    required Function(String?) onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: selectedUserType,
-      onChanged: onChanged,
-      items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: "Select User Type",
-        prefixIcon:
-            Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
-    );
-  }
 }

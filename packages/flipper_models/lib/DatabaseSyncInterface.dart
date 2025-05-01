@@ -488,19 +488,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? open,
   });
 
-  FutureOr<void> updateTenant({
-    required String tenantId,
-    String? name,
-    String? phoneNumber,
-    String? email,
-    int? businessId,
-    String? type,
-    int? pin,
-    bool? sessionActive,
-    int? branchId,
-    int? userId,
-    int? id,
-  });
+ 
 
   FutureOr<void> updateCategory({
     required String categoryId,

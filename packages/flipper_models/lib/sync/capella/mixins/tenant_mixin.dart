@@ -30,7 +30,7 @@ mixin CapellaTenantMixin implements TenantInterface {
   }
 
   @override
-  Future<Tenant?> saveTenant(
+  Future<Tenant?> addNewTenant(
       {required Business business,
       required Branch branch,
       String? phoneNumber,
@@ -90,6 +90,22 @@ mixin CapellaTenantMixin implements TenantInterface {
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement tenantsFromOnline
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? userId,
+      int? businessId,
+      String? type,
+      int? id,
+      int? pin,
+      bool? sessionActive,
+      int? branchId}) {
     throw UnimplementedError();
   }
 }

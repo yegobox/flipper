@@ -281,6 +281,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                 validator: TenantFormMixin.validatePhoneOrEmailStatic,
               ),
               SizedBox(height: 16),
+              // Use the instance dropdown to ensure correct userType wiring
               buildUserTypeDropdown(),
               SizedBox(height: 16),
               buildBranchDropdown(),

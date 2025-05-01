@@ -59,6 +59,11 @@ class TenantOperationsMixin {
             userType: userType);
       }
     }
+    // save tenant
+    await ProxyService.strategy.updateTenant(
+      userId: newTenant?.userId ?? userId!,
+      type: userType,
+    );
   }
 
   static Future<void> addUserStatic(
@@ -86,7 +91,7 @@ class TenantOperationsMixin {
       Tenant? newTenant;
       if (!editMode) {
         // Creating a new tenant
-        newTenant = await ProxyService.strategy.saveTenant(
+        newTenant = await ProxyService.strategy.addNewTenant(
           name: name,
           phoneNumber: phone,
           branch: branch,
@@ -110,7 +115,7 @@ class TenantOperationsMixin {
         newTenant,
         business,
         branch,
-        newTenant.type,
+        userType,
         tenantAllowedFeatures,
         activeFeatures,
         newTenant.userId,

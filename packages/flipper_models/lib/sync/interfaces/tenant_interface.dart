@@ -6,7 +6,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 
 abstract class TenantInterface {
-  Future<Tenant?> saveTenant({
+  Future<Tenant?> addNewTenant({
     required Business business,
     required Branch branch,
     String? phoneNumber,
@@ -44,4 +44,16 @@ abstract class TenantInterface {
   Future<List<ITenant>> tenantsFromOnline(
       {required int businessId,
       required HttpClientInterface flipperHttpClient});
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? userId,
+      int? businessId,
+      String? type,
+      int? id,
+      int? pin,
+      bool? sessionActive,
+      int? branchId});
 }

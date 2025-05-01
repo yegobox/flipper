@@ -2493,37 +2493,7 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  @override
-  Future<void> updateTenant(
-      {required String tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      int? userId,
-      int? businessId,
-      String? type,
-      int? id,
-      int? pin,
-      bool? sessionActive,
-      int? branchId}) async {
-    final tenant = (await repository.get<Tenant>(
-            query: brick.Query(where: [
-      brick.Where('id').isExactly(tenantId),
-    ])))
-        .firstOrNull;
-
-    repository.upsert<Tenant>(Tenant(
-      id: tenantId,
-      name: name ?? tenant?.name,
-      userId: userId ?? tenant?.userId,
-      phoneNumber: phoneNumber ?? tenant?.phoneNumber,
-      email: email ?? tenant?.email,
-      businessId: businessId ?? tenant?.businessId,
-      type: type ?? tenant?.type ?? "Agent",
-      pin: pin ?? tenant?.pin,
-      sessionActive: sessionActive ?? tenant?.sessionActive,
-    ));
-  }
+  
 
   @override
   Future<DatabaseSyncInterface> configureCapella(

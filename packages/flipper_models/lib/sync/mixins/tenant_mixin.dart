@@ -44,7 +44,7 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Future<Tenant?> saveTenant({
+  Future<Tenant?> addNewTenant({
     required Business business,
     required Branch branch,
     String? phoneNumber,
@@ -296,5 +296,37 @@ mixin TenantMixin implements TenantInterface {
       return ITenant.fromJsonList(response.body);
     }
     throw InternalServerException(term: "we got unexpected response");
+  }
+
+  @override
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? userId,
+      int? businessId,
+      String? type,
+      int? id,
+      int? pin,
+      bool? sessionActive,
+      int? branchId}) async {
+    final tenant = (await repository.get<Tenant>(
+            query: Query(where: [
+      Where('userId').isExactly(userId),
+    ])))
+        .firstOrNull;
+
+    repository.upsert<Tenant>(Tenant(
+      id: tenant?.id,
+      name: name ?? tenant?.name,
+      userId: userId ?? tenant?.userId,
+      phoneNumber: phoneNumber ?? tenant?.phoneNumber,
+      email: email ?? tenant?.email,
+      businessId: businessId ?? tenant?.businessId,
+      type: type ?? tenant?.type ?? "Agent",
+      pin: pin ?? tenant?.pin,
+      sessionActive: sessionActive ?? tenant?.sessionActive,
+    ));
   }
 }
