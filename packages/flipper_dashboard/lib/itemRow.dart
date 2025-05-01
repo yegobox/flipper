@@ -478,12 +478,30 @@ class _RowItemState extends ConsumerState<RowItem>
       );
     }
 
-    // Use wrap to handle overflow with tighter spacing
-    return Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: indicators,
-    );
+    // Responsive layout for stock/price indicators
+    final isMobile = MediaQuery.of(context).size.shortestSide < 600;
+    if (isMobile) {
+      // On mobile, stack vertically for visibility and reduce font size/padding
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: indicators
+            .map((w) => Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: DefaultTextStyle.merge(
+                    style: const TextStyle(fontSize: 11),
+                    child: w,
+                  ),
+                ))
+            .toList(),
+      );
+    } else {
+      // On desktop/tablet, use the original Wrap
+      return Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: indicators,
+      );
+    }
   }
 
   Widget _buildActionButtonsSection(ColorScheme colorScheme) {

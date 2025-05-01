@@ -132,10 +132,14 @@ public class PrinterService {
             Bitmap grayscaleBitmap = toGrayscaleEnhanced(bitmap);
             bitmap.recycle(); // Recycle original
 
+            // 1.5. Invert image to ensure white background and black text
+            Bitmap invertedBitmap = invertBitmap(grayscaleBitmap);
+            grayscaleBitmap.recycle();
+
             // 2. Resize if needed
-            Bitmap resizedBitmap = downscaleBitmap(grayscaleBitmap, printerWidth);
-            if (resizedBitmap != grayscaleBitmap) {
-                grayscaleBitmap.recycle();
+            Bitmap resizedBitmap = downscaleBitmap(invertedBitmap, printerWidth);
+            if (resizedBitmap != invertedBitmap) {
+                invertedBitmap.recycle();
             }
 
             // 3. Apply dithering to create 1-bit black and white image
@@ -240,7 +244,7 @@ public class PrinterService {
 
         // Add stronger contrast boost for better text visibility
         ColorMatrix contrastMatrix = new ColorMatrix();
-        float contrast = 1.4f; // Boost contrast by 40% (increased from 20%)
+        float contrast = 1.1f; // Reduced boost for less aggressive contrast
         float intercept = (-.5f * contrast + .5f) * 255f;
 
         contrastMatrix.set(new float[] {
@@ -546,7 +550,7 @@ public class PrinterService {
         // Third pass: adaptive thresholding optimized for text
         // Window size for adaptive thresholding - smaller window for sharper text
         int windowSize = 11; // Larger window for better text consistency
-        int thresholdBias = -10; // Negative bias makes text slightly bolder
+        int thresholdBias = 0; // Less aggressive bias to preserve more text
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -662,8 +666,7 @@ public class PrinterService {
                 // If not an edge, apply smoothing
                 for (int wy = Math.max(0, y - windowSize/2); wy <= Math.min(height - 1, y + windowSize/2); wy++) {
                     for (int wx = Math.max(0, x - windowSize/2); wx <= Math.min(width - 1, x + windowSize/2); wx++) {
-                        int neighborIndex = wy * width + wx;
-                        sum += Color.red(pixels[neighborIndex]);
+                        sum += Color.red(pixels[wy * width + wx]);
                         count++;
                     }
                 }
@@ -711,5 +714,21 @@ public class PrinterService {
                 pixels[i] = Color.rgb(newGray, newGray, newGray);
             }
         }
+    }
+
+    // Add a utility to invert a grayscale bitmap (white <-> black)
+    private Bitmap invertBitmap(Bitmap src) {
+        int width = src.getWidth();
+        int height = src.getHeight();
+        Bitmap inverted = Bitmap.createBitmap(width, height, src.getConfig());
+        int[] pixels = new int[width * height];
+        src.getPixels(pixels, 0, width, 0, 0, width, height);
+        for (int i = 0; i < pixels.length; i++) {
+            int gray = android.graphics.Color.red(pixels[i]);
+            int inv = 255 - gray;
+            pixels[i] = android.graphics.Color.rgb(inv, inv, inv);
+        }
+        inverted.setPixels(pixels, 0, width, 0, 0, width, height);
+        return inverted;
     }
 }

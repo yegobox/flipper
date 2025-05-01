@@ -29,7 +29,7 @@ import 'package:flipper_services/posthog_service.dart';
 Future<void> _initializeFirebase() async {
   try {
     // Don't use microtask for Firebase as critical services depend on it
-    await Firebase.initializeApp( 
+    await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('Firebase initialized successfully');
@@ -98,7 +98,7 @@ Future<void> main() async {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           FlutterNativeSplash.remove();
           // Use PosthogService singleton to initialize PostHog
-          await PosthogService.instance.initialize();
+          // await PosthogService.instance.initialize();
         });
         runApp(
           ProviderScope(

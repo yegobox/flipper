@@ -2121,4 +2121,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement hydrateDate
     throw UnimplementedError();
   }
+
+  @override
+  Stream<brick.Branch> activeBranchStream() {
+    // TODO: implement activeBranchStream
+    throw UnimplementedError();
+  }
 }

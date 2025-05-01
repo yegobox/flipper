@@ -6,7 +6,7 @@ part of 'metric_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fetchMetricsHash() => r'a549d7e068f0c43a73ae90c45f0f885d5fef7b19';
+String _$fetchMetricsHash() => r'8757db70f6144323cd6bbd7d71d33ff54ace24c2';
 
 /// Copied from Dart SDK
 class _SystemHash {

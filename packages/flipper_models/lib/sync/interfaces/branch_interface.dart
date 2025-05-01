@@ -13,4 +13,5 @@ abstract class BranchInterface {
   Future<List<Category>> categories({required int branchId});
   Stream<List<Category>> categoryStream();
   Future<Branch> activeBranch();
+  Stream<Branch> activeBranchStream();
 }
