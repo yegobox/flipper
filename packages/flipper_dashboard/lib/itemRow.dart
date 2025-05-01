@@ -247,7 +247,7 @@ class _RowItemState extends ConsumerState<RowItem>
                       right: 0,
                       top: 0,
                       child: _buildFloatingActionButtons(colorScheme),
-                    ).eligibleToSeeIfYouAre(ref, ["Admin"]),
+                    ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
                 ],
               ),
             ),

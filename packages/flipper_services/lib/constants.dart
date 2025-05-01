@@ -65,6 +65,11 @@ class AccessLevel {
   static const String READ = "read";
 }
 
+class UserType {
+  static const String ADMIN = "Admin";
+  static const String CASHIER = "Cashier";
+}
+
 class AppActions {
   static const String updated = "updated";
   static const String synchronized = "synchronized";

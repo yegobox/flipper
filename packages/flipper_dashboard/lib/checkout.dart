@@ -159,7 +159,11 @@ class CheckOutState extends ConsumerState<CheckOut>
                 color: Colors.white,
                 surfaceTintColor: Colors.white,
                 child: Column(
-                  children: [_buildIconRow(), SearchInputWithDropdown()],
+                  children: [
+                    _buildIconRow()
+                        .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+                    SearchInputWithDropdown()
+                  ],
                 ),
               ),
             ),
