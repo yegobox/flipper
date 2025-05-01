@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/mixins/customer_mixin.dart';
+import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
@@ -43,7 +44,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flipper_models/exceptions.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/power_sync/schema.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -77,6 +77,7 @@ class CoreSync extends AiStrategyImpl
         TransactionItemMixin,
         TenantMixin,
         ProductMixin,
+        DeleteMixin,
         VariantMixin,
         CustomerMixin,
         EbmMixin,
@@ -722,101 +723,6 @@ class CoreSync extends AiStrategyImpl
       talker.error(s);
       rethrow;
     }
-  }
-
-  @override
-  Future<bool> delete(
-      {required String id,
-      String? endPoint,
-      HttpClientInterface? flipperHttpClient}) async {
-    switch (endPoint) {
-      case 'product':
-        final product = await getProduct(
-            id: id,
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!);
-        if (product != null) {
-          await repository.delete<Product>(product);
-        }
-        break;
-      case 'variant':
-        try {
-          final variant = await getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId ?? "");
-
-          await repository.delete<Variant>(
-            variant,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-          await repository.delete<Stock>(
-            stock,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        } catch (e, s) {
-          final variant = await getVariant(id: id);
-          await repository.delete<Variant>(
-            variant!,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-          talker.warning(s);
-          rethrow;
-        }
-
-        break;
-
-      case 'transactionItem':
-        await deleteTransactionItemAndResequence(id: id);
-        break;
-      case 'customer':
-        final customer =
-            (await customers(id: id, branchId: ProxyService.box.getBranchId()!))
-                .firstOrNull;
-        if (customer != null) {
-          await repository.delete<Customer>(
-            customer,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        }
-        break;
-      case 'stockRequest':
-        final request = (await requests(
-          requestId: id,
-        ))
-            .firstOrNull;
-        if (request != null) {
-          // get dependent first
-          final financing = await repository.get<Financing>(
-            query: brick.Query(
-                where: [brick.Where('id').isExactly(request.financingId)]),
-          );
-          try {
-            await repository.delete<Financing>(
-              financing.first,
-              query: brick.Query(
-                  action: QueryAction.delete,
-                  where: [brick.Where('id').isExactly(financing.first.id)]),
-            );
-          } catch (e) {
-            talker.warning(e);
-          }
-          await repository.delete<InventoryRequest>(
-            request,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        }
-        break;
-    }
-    return true;
   }
 
   @override
@@ -2492,8 +2398,6 @@ class CoreSync extends AiStrategyImpl
       await repository.upsert<Category>(category);
     }
   }
-
-  
 
   @override
   Future<DatabaseSyncInterface> configureCapella(

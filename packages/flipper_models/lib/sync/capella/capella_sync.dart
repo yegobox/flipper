@@ -141,7 +141,7 @@ class CapellaSync extends CapellaSyncBase
   }
 
   @override
-  FutureOr<Tenant?> tenant({int? businessId, int? userId}) {
+  FutureOr<Tenant?> tenant({int? businessId, int? userId, String? id}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }

@@ -6,7 +6,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-// 
+
+//
 mixin DeleteMixin implements DeleteInterface {
   Repository get repository;
   Future<Product?> getProduct({
@@ -32,8 +33,7 @@ mixin DeleteMixin implements DeleteInterface {
   Future<Stock?> getStockById({required String id});
   FutureOr<List<Customer>> customers(
       {required int branchId, String? key, String? id});
-  Future<List<InventoryRequest>> requests({required String requestId});
-
+  // FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   @override
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
     try {
@@ -79,18 +79,16 @@ mixin DeleteMixin implements DeleteInterface {
   }
 
   @override
-  Future<bool> delete({
-    required String id,
-    String? endPoint,
-    HttpClientInterface? flipperHttpClient,
-  }) async {
+  Future<bool> delete(
+      {required String id,
+      String? endPoint,
+      HttpClientInterface? flipperHttpClient}) async {
     switch (endPoint) {
       case 'product':
         final product = await getProduct(
-          id: id,
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!,
-        );
+            id: id,
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!);
         if (product != null) {
           await repository.delete<Product>(product);
         }
@@ -103,52 +101,48 @@ mixin DeleteMixin implements DeleteInterface {
           await repository.delete<Variant>(
             variant,
             query: Query(
-              action: QueryAction.delete,
-              where: [Where('id').isExactly(id)],
-            ),
+                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );
           await repository.delete<Stock>(
             stock!,
             query: Query(
-              action: QueryAction.delete,
-              where: [Where('id').isExactly(id)],
-            ),
+                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );
         } catch (e, s) {
           final variant = await getVariant(id: id);
           await repository.delete<Variant>(
             variant!,
             query: Query(
-              action: QueryAction.delete,
-              where: [Where('id').isExactly(id)],
-            ),
+                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );
           talker.warning(s);
           rethrow;
         }
+
         break;
+
       case 'transactionItem':
         await deleteTransactionItemAndResequence(id: id);
         break;
       case 'customer':
-        final customer = (await customers(
-          id: id,
-          branchId: ProxyService.box.getBranchId()!,
-        ))
-            .firstOrNull;
+        final customer =
+            (await customers(id: id, branchId: ProxyService.box.getBranchId()!))
+                .firstOrNull;
         if (customer != null) {
           await repository.delete<Customer>(
             customer,
             query: Query(
-              action: QueryAction.delete,
-              where: [Where('id').isExactly(id)],
-            ),
+                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );
         }
         break;
       case 'stockRequest':
-        final request = (await requests(requestId: id)).firstOrNull;
+        final request = (await ProxyService.strategy.requests(
+          requestId: id,
+        ))
+            .firstOrNull;
         if (request != null) {
+          // get dependent first
           final financing = await repository.get<Financing>(
             query: Query(where: [Where('id').isExactly(request.financingId)]),
           );
@@ -156,13 +150,25 @@ mixin DeleteMixin implements DeleteInterface {
             await repository.delete<Financing>(
               financing.first,
               query: Query(
-                action: QueryAction.delete,
-                where: [Where('id').isExactly(financing.first.id)],
-              ),
+                  action: QueryAction.delete,
+                  where: [Where('id').isExactly(financing.first.id)]),
             );
           } catch (e) {
             talker.warning(e);
           }
+          await repository.delete<InventoryRequest>(
+            request,
+            query: Query(
+                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
+          );
+        }
+      case 'tenant':
+        //
+        final tenant = (await ProxyService.strategy.tenant(
+          id: id,
+        ));
+        if (tenant != null) {
+          await repository.delete<Tenant>(tenant);
         }
         break;
     }

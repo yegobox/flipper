@@ -839,7 +839,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Tenant? tenant({int? businessId, int? userId}) {
+  Tenant? tenant({int? businessId, int? userId, String? id}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }
@@ -2127,6 +2127,12 @@ class Capella extends AiStrategyImpl
       bool? sessionActive,
       int? branchId}) {
     // TODO: implement updateTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteTransactionItemAndResequence({required String id}) {
+    // TODO: implement deleteTransactionItemAndResequence
     throw UnimplementedError();
   }
 }

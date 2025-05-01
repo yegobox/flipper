@@ -12,6 +12,7 @@ import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
+import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 
@@ -26,7 +27,6 @@ import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -58,6 +58,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         TransactionInterface,
         ProductInterface,
         TenantInterface,
+        DeleteInterface,
         EbmInterface,
         CustomerInterface,
         CategoryInterface {
@@ -94,10 +95,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<T?> create<T>({required T data});
   Stream<double> wholeStockValue({required int branchId});
 
-  Future<bool> delete(
-      {required String id,
-      String? endPoint,
-      HttpClientInterface? flipperHttpClient});
   Future<PColor?> getColor({required String id});
 
   FutureOr<Configurations?> getByTaxType({required String taxtype});
@@ -487,8 +484,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double? closingBalance,
     bool? open,
   });
-
- 
 
   FutureOr<void> updateCategory({
     required String categoryId,

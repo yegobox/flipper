@@ -157,26 +157,27 @@ class TenantOperationsMixin {
       );
 
       // Delete associated permissions
-      List<LPermission> permissions =
-          await ProxyService.strategy.permissions(userId: tenant.userId!);
-      for (LPermission permission in permissions) {
-        await ProxyService.strategy.delete(
-          id: permission.id,
-          endPoint: 'permission',
-          flipperHttpClient: ProxyService.http,
-        );
-      }
+      //TODO: Resume this later since we are migrating to common db, in future deleting this local will do the same to the backend.
+      // List<LPermission> permissions =
+      //     await ProxyService.strategy.permissions(userId: tenant.userId!);
+      // for (LPermission permission in permissions) {
+      //   await ProxyService.strategy.delete(
+      //     id: permission.id,
+      //     endPoint: 'permission',
+      //     flipperHttpClient: ProxyService.http,
+      //   );
+      // }
 
       // Delete associated accesses
-      List<Access> accesses = await ProxyService.strategy
-          .access(userId: tenant.userId!, fetchRemote: false);
-      for (Access access in accesses) {
-        await ProxyService.strategy.delete(
-          id: access.id,
-          endPoint: 'access',
-          flipperHttpClient: ProxyService.http,
-        );
-      }
+      // List<Access> accesses = await ProxyService.strategy
+      //     .access(userId: tenant.userId!, fetchRemote: false);
+      // for (Access access in accesses) {
+      //   await ProxyService.strategy.delete(
+      //     id: access.id,
+      //     endPoint: 'access',
+      //     flipperHttpClient: ProxyService.http,
+      //   );
+      // }
 
       model.deleteTenant(tenant); // Update local state
       model.rebuildUi(); // Rebuild the UI

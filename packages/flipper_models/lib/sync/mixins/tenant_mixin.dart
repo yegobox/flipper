@@ -166,14 +166,18 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  FutureOr<Tenant?> tenant({int? businessId, int? userId}) async {
+  FutureOr<Tenant?> tenant({int? businessId, int? userId, String? id}) async {
     if (businessId != null) {
       return (await repository.get<Tenant>(
               query: Query(where: [Where('businessId').isExactly(businessId)])))
           .firstOrNull;
-    } else {
+    } else if (userId != null) {
       return (await repository.get<Tenant>(
               query: Query(where: [Where('userId').isExactly(userId)])))
+          .firstOrNull;
+    } else {
+      return (await repository.get<Tenant>(
+              query: Query(where: [Where('id').isExactly(id)])))
           .firstOrNull;
     }
   }

@@ -107,8 +107,8 @@ class TenantUIMixin {
     void Function(BuildContext, Tenant, FlipperBaseModel)
         showDeleteConfirmation,
   ) {
-    final bool currentUser =
-        tenantAccesses.any((access) => (access.userId == tenant.userId));
+    final bool currentUser = tenantAccesses
+        .any((access) => (access.userId == ProxyService.box.getUserId()));
 
     return ExpansionTile(
       onExpansionChanged: (expanded) {
