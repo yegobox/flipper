@@ -52,7 +52,7 @@ class TenantUIMixin {
   ) {
     return FutureBuilder<List<Access>>(
       future: Future.value(ProxyService.strategy
-          .access(userId: tenant.userId!, fetchRemote: false)),
+          .access(userId: tenant.userId ?? 0, fetchRemote: false)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return buildLoadingTenantTileStatic(context, tenant);
@@ -107,8 +107,8 @@ class TenantUIMixin {
     void Function(BuildContext, Tenant, FlipperBaseModel)
         showDeleteConfirmation,
   ) {
-    final bool isAdmin = tenantAccesses
-        .any((access) => (access.accessLevel?.toLowerCase() == 'admin'));
+    final bool currentUser =
+        tenantAccesses.any((access) => (access.userId == tenant.userId));
 
     return ExpansionTile(
       onExpansionChanged: (expanded) {
@@ -132,7 +132,7 @@ class TenantUIMixin {
         mainAxisSize: MainAxisSize.min,
         children: [
           buildNfcButtonStatic(context, tenant),
-          if (!isAdmin)
+          if (!currentUser)
             buildDeleteButtonStatic(
                 context, tenant, model, showDeleteConfirmation),
         ],

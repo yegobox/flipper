@@ -39,9 +39,8 @@ class FlipperBaseModel extends ReactiveViewModel {
   }
 
   Future<void> loadTenants() async {
-    List<Tenant> users = await ProxyService.strategy.tenants(
-        businessId: ProxyService.box.getBusinessId()!,
-        excludeUserId: ProxyService.box.getUserId()!);
+    List<Tenant> users = await ProxyService.strategy
+        .tenants(businessId: ProxyService.box.getBusinessId()!);
 
     Set<String> uniqueUserIds = {};
     List<Tenant> uniqueUsers = [];

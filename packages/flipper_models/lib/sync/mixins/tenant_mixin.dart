@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -67,8 +68,18 @@ mixin TenantMixin implements TenantInterface {
       "permissions": [
         {"name": userType.toLowerCase()}
       ],
-      "businesses": [business.toJson()],
-      "branches": [branch.toJson()]
+      "businesses": [
+        {
+          ...business.toJson(),
+          'id': business.serverId,
+        }
+      ],
+      "branches": [
+        {
+          ...branch.toJson(),
+          'id': branch.serverId,
+        }
+      ]
     });
 
     final http.Response response = await flipperHttpClient
@@ -85,6 +96,7 @@ mixin TenantMixin implements TenantInterface {
           businessId: branch.serverId!.toString(),
           defaultApp: 1,
         );
+
         return Tenant(
           name: name,
           phoneNumber: phoneNumber,
@@ -137,8 +149,11 @@ mixin TenantMixin implements TenantInterface {
     final data = jsonEncode({
       "phoneNumber": phoneNumber,
       "pin": pin,
-      "branchId": branchId,
-      "businessId": businessId,
+      "userId": pin.toString(),
+
+      /// TODO: parsing here is not good why not pass them as int?? to be fixed soon
+      "branchId": int.parse(branchId),
+      "businessId": int.parse(businessId),
       "defaultApp": defaultApp,
     });
 
@@ -168,7 +183,7 @@ mixin TenantMixin implements TenantInterface {
     return repository.get<Tenant>(
         query: Query(where: [
       Where('businessId').isExactly(businessId),
-      if (excludeUserId != null) Where('userId').isExactly(excludeUserId),
+      if (excludeUserId != null) Where('userId').isNot(excludeUserId),
     ]));
   }
 
@@ -318,7 +333,7 @@ mixin TenantMixin implements TenantInterface {
         .firstOrNull;
 
     repository.upsert<Tenant>(Tenant(
-      id: tenant?.id,
+      id: tenant?.id ?? tenantId,
       name: name ?? tenant?.name,
       userId: userId ?? tenant?.userId,
       phoneNumber: phoneNumber ?? tenant?.phoneNumber,

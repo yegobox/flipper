@@ -104,7 +104,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       required String name,
       required String phone,
       required String userType,
-      required int userId}) async {
+      required int? userId}) async {
     try {
       await TenantOperationsMixin.addUserStatic(
         model,
@@ -315,8 +315,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                               phone: phoneController.text,
                               userType: selectedUserType,
                               userId: editMode && editedTenant != null
-                                  ? editedTenant!.userId!
-                                  : userId!,
+                                  ? editedTenant?.userId
+                                  : null,
                             );
                             resetForm();
                           } catch (e) {

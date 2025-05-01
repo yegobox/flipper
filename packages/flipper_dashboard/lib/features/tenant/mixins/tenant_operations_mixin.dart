@@ -73,7 +73,7 @@ class TenantOperationsMixin {
     required String name,
     required String phone,
     required String userType,
-    required int userId,
+    required int? userId,
     required WidgetRef ref,
     required Map<String, String> tenantAllowedFeatures,
     required Map<String, bool> activeFeatures,
@@ -84,7 +84,8 @@ class TenantOperationsMixin {
           await ProxyService.strategy.defaultBranch();
 
       if (business == null || branch == null) {
-        _showError(context, "Default Business or Branch not found.");
+        showCustomSnackBarUtil(context, 'Business or Branch not found',
+            backgroundColor: Colors.red[600]);
         return;
       }
 
@@ -100,6 +101,18 @@ class TenantOperationsMixin {
           flipperHttpClient: ProxyService.http,
         );
         showCustomSnackBarUtil(context, 'Tenant Created Successfully');
+        // save this tenant to supabase
+        await ProxyService.strategy.updateTenant(
+          tenantId: newTenant!.id,
+          name: name,
+          phoneNumber: newTenant.phoneNumber,
+          email: '',
+          userId: newTenant.userId,
+          businessId: business.serverId,
+          type: userType,
+          pin: newTenant.userId,
+          sessionActive: true,
+        );
       } else {
         // Fetching an existing tenant for editing
         newTenant = await ProxyService.strategy.getTenant(userId: userId);
