@@ -2873,22 +2873,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<Access>> access(
-      {required int userId, String? featureName}) async {
-    return await repository.get<Access>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
-      query: brick.Query(
-        where: [
-          brick.Where('userId').isExactly(userId),
-          if (featureName != null)
-            brick.Where('featureName').isExactly(featureName),
-        ],
-        orderBy: [brick.OrderBy('id', ascending: true)],
-      ),
-    );
-  }
-
-  @override
   FutureOr<Branch> addBranch(
       {required String name,
       required int businessId,
@@ -2949,8 +2933,40 @@ class CoreSync extends AiStrategyImpl
       required String featureName,
       required String accessLevel,
       required String status,
+      required int branchId,
+      required int businessId,
       required String userType}) {
-    // TODO: implement updateAccess
+    Access access = Access(
+      id: accessId,
+      userId: userId,
+      featureName: featureName,
+      accessLevel: accessLevel,
+      status: status,
+      branchId: branchId,
+      businessId: businessId,
+      userType: userType,
+    );
+    repository.upsert(access);
+  }
+
+  @override
+  FutureOr<List<Access>> access(
+      {required int userId,
+      String? featureName,
+      required bool fetchRemote}) async {
+    return await repository.get<Access>(
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
+      query: brick.Query(
+        where: [
+          brick.Where('userId').isExactly(userId),
+          if (featureName != null)
+            brick.Where('featureName').isExactly(featureName),
+        ],
+        orderBy: [brick.OrderBy('id', ascending: true)],
+      ),
+    );
   }
 
   @override

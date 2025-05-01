@@ -321,7 +321,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Report report({required int id});
 
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
-  FutureOr<List<Access>> access({required int userId, String? featureName});
+  FutureOr<List<Access>> access(
+      {required int userId, String? featureName, required bool fetchRemote});
   Future<List<Access>> allAccess({required int userId});
   Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, String? filter});
@@ -598,6 +599,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String featureName,
       required String accessLevel,
       required String status,
+      required int branchId,
+      required int businessId,
       required String userType}) {}
 
   FutureOr<List<LPermission>> permissions({required int userId});

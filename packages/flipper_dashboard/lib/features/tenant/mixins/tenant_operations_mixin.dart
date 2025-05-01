@@ -12,6 +12,55 @@ class TenantOperationsMixin {
     showCustomSnackBarUtil(context, message, backgroundColor: Colors.red[600]);
   }
 
+  static Future<void> savePermissionsStatic(
+    Tenant? newTenant,
+    Business? business,
+    Branch? branch,
+    String userType,
+    Map<String, String> tenantAllowedFeatures,
+    Map<String, bool> activeFeatures,
+    int? userId,
+  ) async {
+    for (final entry in tenantAllowedFeatures.entries) {
+      final featureName = entry.key;
+      final accessLevel = entry.value;
+      List<Access> existingAccess = await ProxyService.strategy.access(
+          fetchRemote: false,
+          userId: newTenant?.userId ?? userId!,
+          featureName: featureName);
+      talker.warning(featureName);
+      if (existingAccess.isNotEmpty) {
+        ProxyService.strategy.updateAccess(
+          accessId: existingAccess.first.id,
+          userId: newTenant?.userId ?? userId!,
+          branchId: branch!.serverId!,
+          businessId: business!.serverId,
+          featureName: featureName,
+          accessLevel: accessLevel.toLowerCase(),
+          status: activeFeatures[featureName] != null
+              ? activeFeatures[featureName]!
+                  ? 'active'
+                  : 'inactive'
+              : 'inactive',
+          userType: userType,
+        );
+      } else {
+        await ProxyService.strategy.addAccess(
+            branchId: branch!.serverId!,
+            businessId: business!.serverId,
+            userId: newTenant?.userId ?? userId!,
+            featureName: featureName,
+            accessLevel: accessLevel.toLowerCase(),
+            status: activeFeatures[featureName] != null
+                ? activeFeatures[featureName]!
+                    ? 'active'
+                    : 'inactive'
+                : 'inactive',
+            userType: userType);
+      }
+    }
+  }
+
   static Future<void> addUserStatic(
     FlipperBaseModel model,
     BuildContext context, {
@@ -21,6 +70,8 @@ class TenantOperationsMixin {
     required String userType,
     required int userId,
     required WidgetRef ref,
+    required Map<String, String> tenantAllowedFeatures,
+    required Map<String, bool> activeFeatures,
   }) async {
     try {
       Business? business = await ProxyService.strategy.defaultBusiness();
@@ -54,8 +105,16 @@ class TenantOperationsMixin {
         return;
       }
 
-      await updateTenantStatic(tenant: newTenant, name: name, type: userType);
-
+      // Save permissions with correct values
+      await savePermissionsStatic(
+        newTenant,
+        business,
+        branch,
+        newTenant.type,
+        tenantAllowedFeatures,
+        activeFeatures,
+        newTenant.userId,
+      );
       showCustomSnackBarUtil(context, 'Tenant Updated or Created Successfully');
 
       // Refresh the tenant list
@@ -66,33 +125,6 @@ class TenantOperationsMixin {
           context, "An unexpected error occurred: ${e.toString()}",
           backgroundColor: Colors.red[600]);
       rethrow; // Re-throw to allow the calling widget to handle the error as well
-    }
-  }
-
-  static Future<void> updateTenantStatic({
-    Tenant? tenant,
-    String? name,
-    required String type,
-  }) async {
-    try {
-      if (tenant == null) {
-        talker.warning("Tenant is null, cannot update.");
-        return;
-      }
-
-      if (name != null && name.isNotEmpty) {
-        await ProxyService.strategy.updateTenant(
-          tenantId: tenant.id,
-          name: name,
-          type: type,
-          pin: tenant.userId,
-        );
-        talker.info("Tenant updated successfully.");
-      } else {
-        talker.warning("Name is null or empty, skipping update.");
-      }
-    } catch (e) {
-      talker.error(e);
     }
   }
 
@@ -118,8 +150,8 @@ class TenantOperationsMixin {
       }
 
       // Delete associated accesses
-      List<Access> accesses =
-          await ProxyService.strategy.access(userId: tenant.userId!);
+      List<Access> accesses = await ProxyService.strategy
+          .access(userId: tenant.userId!, fetchRemote: false);
       for (Access access in accesses) {
         await ProxyService.strategy.delete(
           id: access.id,

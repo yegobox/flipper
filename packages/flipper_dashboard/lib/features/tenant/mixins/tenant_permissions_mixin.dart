@@ -5,48 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class TenantPermissionsMixin {
-  static Future<void> savePermissionsStatic(
-    Tenant? newTenant,
-    Business? business,
-    Branch? branch,
-    String userType,
-    Map<String, String> tenantAllowedFeatures,
-    Map<String, bool> activeFeatures,
-    int? userId,
-  ) async {
-    tenantAllowedFeatures.forEach((featureName, accessLevel) async {
-      List<Access> existingAccess = await ProxyService.strategy.access(
-          userId: newTenant?.userId ?? userId!, featureName: featureName);
-      talker.warning(featureName);
-      if (existingAccess.isNotEmpty) {
-        ProxyService.strategy.updateAccess(
-          accessId: existingAccess.first.id,
-          userId: newTenant?.userId ?? userId!,
-          featureName: featureName,
-          accessLevel: accessLevel.toLowerCase(),
-          status: activeFeatures[featureName] != null
-              ? activeFeatures[featureName]!
-                  ? 'active'
-                  : 'inactive'
-              : 'inactive',
-          userType: userType,
-        );
-      } else {
-        ProxyService.strategy.addAccess(
-            branchId: branch!.serverId!,
-            businessId: business!.serverId,
-            userId: newTenant?.userId ?? userId!,
-            featureName: featureName,
-            accessLevel: accessLevel.toLowerCase(),
-            status: activeFeatures[featureName] != null
-                ? activeFeatures[featureName]!
-                    ? 'active'
-                    : 'inactive'
-                : 'inactive',
-            userType: userType);
-      }
-    });
-  }
+  
 
   static void fillFormWithTenantDataStatic(
     Tenant tenant,

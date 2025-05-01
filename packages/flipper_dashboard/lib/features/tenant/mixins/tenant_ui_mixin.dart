@@ -51,8 +51,8 @@ class TenantUIMixin {
         showDeleteConfirmation,
   ) {
     return FutureBuilder<List<Access>>(
-      future:
-          Future.value(ProxyService.strategy.access(userId: tenant.userId!)),
+      future: Future.value(ProxyService.strategy
+          .access(userId: tenant.userId!, fetchRemote: false)),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return buildLoadingTenantTileStatic(context, tenant);

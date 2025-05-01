@@ -275,7 +275,7 @@ extension StringToDashedString on String {
 }
 
 extension AccessInnerController on Widget {
-  Widget eligibleToSee(WidgetRef ref, List<String> accessLevels) {
+  Widget eligibleToSeeIfYouAre(WidgetRef ref, List<String> accessLevels) {
     return Consumer(
       builder: (context, ref, child) {
         for (final level in accessLevels) {

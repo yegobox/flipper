@@ -1341,6 +1341,8 @@ class Capella extends AiStrategyImpl
       {required String accessId,
       required int userId,
       required String featureName,
+      required int branchId,
+      required int businessId,
       required String accessLevel,
       required String status,
       required String userType}) {
@@ -1374,7 +1376,7 @@ class Capella extends AiStrategyImpl
 
   @override
   FutureOr<List<brick.Access>> access(
-      {required int userId, String? featureName}) {
+      {required int userId, String? featureName, required bool fetchRemote}) {
     // TODO: implement access
     throw UnimplementedError();
   }

@@ -213,22 +213,22 @@ List<ITransaction> filterTransactionsByPeriod({
   switch (period) {
     case 'Today':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(today);
       }).toList();
     case 'This Week':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(thisWeek);
       }).toList();
     case 'This Month':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(thisMonth);
       }).toList();
     case 'This Year':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(thisYear);
       }).toList();
     default:

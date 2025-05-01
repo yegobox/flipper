@@ -115,6 +115,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         userType: userType,
         userId: userId,
         ref: ref,
+        tenantAllowedFeatures: tenantAllowedFeatures,
+        activeFeatures: activeFeatures,
       );
     } catch (error) {
       // Log the error to a logging service
@@ -123,14 +125,6 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       // Optionally, re-throw the error if you want the caller to handle it
       rethrow;
     }
-  }
-
-  void updateTenant({Tenant? tenant, String? name, required String type}) {
-    TenantOperationsMixin.updateTenantStatic(
-      tenant: tenant,
-      name: name,
-      type: type,
-    );
   }
 
   Future<void> deleteTenant(
@@ -146,7 +140,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
   Future<void> savePermissions(
       Tenant? newTenant, Business? business, Branch? branch) async {
-    return TenantPermissionsMixin.savePermissionsStatic(
+    return TenantOperationsMixin.savePermissionsStatic(
       newTenant,
       business,
       branch,
@@ -164,6 +158,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       (fn) => setState(() {
         editMode = true;
         editedTenant = tenant;
+        selectedUserType = tenant.type;
         fn();
       }),
       tenantAllowedFeatures,

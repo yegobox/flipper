@@ -49,7 +49,7 @@ class ForceDataEntryService {
 
     /// bootstrap app permission for admin
     List<Access> permissions = await ProxyService.strategy
-        .access(userId: ProxyService.box.getUserId() ?? 0);
+        .access(userId: ProxyService.box.getUserId() ?? 0, fetchRemote: true);
     if (permissions.isEmpty) {
       int? branchId = ProxyService.box.getBranchId();
       int? businessId = ProxyService.box.getBusinessId();

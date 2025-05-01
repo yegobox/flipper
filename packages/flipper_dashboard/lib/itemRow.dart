@@ -10,6 +10,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -246,7 +247,7 @@ class _RowItemState extends ConsumerState<RowItem>
                       right: 0,
                       top: 0,
                       child: _buildFloatingActionButtons(colorScheme),
-                    ),
+                    ).eligibleToSeeIfYouAre(ref, ["Admin"]),
                 ],
               ),
             ),
@@ -275,13 +276,6 @@ class _RowItemState extends ConsumerState<RowItem>
 
           // Product Info Section - Handle varying content
           _buildProductInfoSection(textTheme),
-
-          // Action Buttons (only when selected)
-          if (isSelected)
-            Padding(
-              padding: const EdgeInsets.only(top: 4), // Reduced top padding
-              child: _buildActionButtonsSection(colorScheme),
-            ),
         ],
       ),
     );
@@ -474,7 +468,7 @@ class _RowItemState extends ConsumerState<RowItem>
               ),
             ],
           ),
-        ),
+        ).shouldSeeTheApp(ref, featureName: AppFeature.Stock),
       );
     }
 
@@ -504,45 +498,45 @@ class _RowItemState extends ConsumerState<RowItem>
     }
   }
 
-  Widget _buildActionButtonsSection(ColorScheme colorScheme) {
-    return SizedBox(
-      width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          // Delete button
-          _buildActionButton(
-            icon: Icons.delete_outline,
-            label: 'Delete',
-            color: colorScheme.error,
-            onPressed: () {
-              if (widget.variant != null) {
-                widget.delete(widget.variant?.productId, 'product');
-              } else if (widget.product != null) {
-                widget.delete(widget.product?.id, 'product');
-              }
-            },
-          ),
+  // Widget _buildActionButtonsSection(ColorScheme colorScheme) {
+  //   return SizedBox(
+  //     width: double.infinity,
+  //     child: Row(
+  //       mainAxisAlignment: MainAxisAlignment.end,
+  //       children: [
+  //         // Delete button
+  //         _buildActionButton(
+  //           icon: Icons.delete_outline,
+  //           label: 'Delete',
+  //           color: colorScheme.error,
+  //           onPressed: () {
+  //             if (widget.variant != null) {
+  //               widget.delete(widget.variant?.productId, 'product');
+  //             } else if (widget.product != null) {
+  //               widget.delete(widget.product?.id, 'product');
+  //             }
+  //           },
+  //         ),
 
-          const SizedBox(width: 8),
+  //         const SizedBox(width: 8),
 
-          // Edit button
-          _buildActionButton(
-            icon: Icons.edit_outlined,
-            label: 'Edit',
-            color: colorScheme.primary,
-            onPressed: () {
-              if (widget.variant != null) {
-                widget.edit(widget.variant?.productId, 'product');
-              } else if (widget.product != null) {
-                widget.edit(widget.product?.id, 'product');
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  //         // Edit button
+  //         _buildActionButton(
+  //           icon: Icons.edit_outlined,
+  //           label: 'Edit',
+  //           color: colorScheme.primary,
+  //           onPressed: () {
+  //             if (widget.variant != null) {
+  //               widget.edit(widget.variant?.productId, 'product');
+  //             } else if (widget.product != null) {
+  //               widget.edit(widget.product?.id, 'product');
+  //             }
+  //           },
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildActionButton({
     required IconData icon,

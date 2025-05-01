@@ -214,7 +214,7 @@ class SearchFieldState extends ConsumerState<SearchField>
                       deviceType != 'Phablet')
                     incomingButton(),
                   if (widget.showAddButton)
-                    addButton().eligibleToSee(
+                    addButton().eligibleToSeeIfYouAre(
                         ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
                   // Remove the date picker that was unintentionally added
                 ],

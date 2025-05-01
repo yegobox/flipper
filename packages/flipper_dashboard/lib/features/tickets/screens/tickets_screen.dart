@@ -113,7 +113,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                 ),
                               ],
                             ),
-                          ).eligibleToSee(
+                          ).eligibleToSeeIfYouAre(
                               ref, [AccessLevel.ADMIN, AccessLevel.WRITE]);
                         },
                       );
@@ -121,8 +121,8 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   ),
                 ),
               ),
-              SizedBox(height: isMobile ? 16 : 24)
-                  .eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+              SizedBox(height: isMobile ? 16 : 24).eligibleToSeeIfYouAre(
+                  ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
               Text(
                 'Tickets',
                 style: GoogleFonts.poppins(

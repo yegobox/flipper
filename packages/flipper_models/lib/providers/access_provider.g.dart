@@ -6,7 +6,7 @@ part of 'access_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userAccessesHash() => r'85031db45721354f90dd0afac7d5f119609d15a5';
+String _$userAccessesHash() => r'12c38b2214b088fa2f87efaf0415e6df26b6eec5';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -305,7 +305,136 @@ class _AllAccessesProviderElement
   int get userId => (origin as AllAccessesProvider).userId;
 }
 
-String _$featureAccessHash() => r'3463dcd719a683bfca69c6ffd41f26a7e74c660d';
+String _$tenantHash() => r'726c3ab8c9874cf7faf6c379b44e413c709f369d';
+
+/// See also [tenant].
+@ProviderFor(tenant)
+const tenantProvider = TenantFamily();
+
+/// See also [tenant].
+class TenantFamily extends Family<AsyncValue<Tenant?>> {
+  /// See also [tenant].
+  const TenantFamily();
+
+  /// See also [tenant].
+  TenantProvider call(
+    int userId,
+  ) {
+    return TenantProvider(
+      userId,
+    );
+  }
+
+  @override
+  TenantProvider getProviderOverride(
+    covariant TenantProvider provider,
+  ) {
+    return call(
+      provider.userId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'tenantProvider';
+}
+
+/// See also [tenant].
+class TenantProvider extends AutoDisposeFutureProvider<Tenant?> {
+  /// See also [tenant].
+  TenantProvider(
+    int userId,
+  ) : this._internal(
+          (ref) => tenant(
+            ref as TenantRef,
+            userId,
+          ),
+          from: tenantProvider,
+          name: r'tenantProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$tenantHash,
+          dependencies: TenantFamily._dependencies,
+          allTransitiveDependencies: TenantFamily._allTransitiveDependencies,
+          userId: userId,
+        );
+
+  TenantProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final int userId;
+
+  @override
+  Override overrideWith(
+    FutureOr<Tenant?> Function(TenantRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TenantProvider._internal(
+        (ref) => create(ref as TenantRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Tenant?> createElement() {
+    return _TenantProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TenantProvider && other.userId == userId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TenantRef on AutoDisposeFutureProviderRef<Tenant?> {
+  /// The parameter `userId` of this provider.
+  int get userId;
+}
+
+class _TenantProviderElement extends AutoDisposeFutureProviderElement<Tenant?>
+    with TenantRef {
+  _TenantProviderElement(super.provider);
+
+  @override
+  int get userId => (origin as TenantProvider).userId;
+}
+
+String _$featureAccessHash() => r'd264f7a28e48be93e323ebcc8fc95e4fcef8d45d';
 
 /// See also [featureAccess].
 @ProviderFor(featureAccess)
@@ -453,18 +582,34 @@ class _FeatureAccessProviderElement extends AutoDisposeProviderElement<bool>
 }
 
 String _$featureAccessLevelHash() =>
-    r'451ee862eb0bd1aedd815cae4d08f15e5dc1caaa';
+    r'b9c53d211f1d7a4b29be60823f8959b22150fd7c';
 
-/// See also [featureAccessLevel].
+/// this check if a user has one accessLevel required to grant him access regardles of the feature
+/// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+/// to whatever he is trying to access
+///
+/// Copied from [featureAccessLevel].
 @ProviderFor(featureAccessLevel)
 const featureAccessLevelProvider = FeatureAccessLevelFamily();
 
-/// See also [featureAccessLevel].
+/// this check if a user has one accessLevel required to grant him access regardles of the feature
+/// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+/// to whatever he is trying to access
+///
+/// Copied from [featureAccessLevel].
 class FeatureAccessLevelFamily extends Family<bool> {
-  /// See also [featureAccessLevel].
+  /// this check if a user has one accessLevel required to grant him access regardles of the feature
+  /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+  /// to whatever he is trying to access
+  ///
+  /// Copied from [featureAccessLevel].
   const FeatureAccessLevelFamily();
 
-  /// See also [featureAccessLevel].
+  /// this check if a user has one accessLevel required to grant him access regardles of the feature
+  /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+  /// to whatever he is trying to access
+  ///
+  /// Copied from [featureAccessLevel].
   FeatureAccessLevelProvider call({
     required int userId,
     required String accessLevel,
@@ -500,9 +645,17 @@ class FeatureAccessLevelFamily extends Family<bool> {
   String? get name => r'featureAccessLevelProvider';
 }
 
-/// See also [featureAccessLevel].
+/// this check if a user has one accessLevel required to grant him access regardles of the feature
+/// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+/// to whatever he is trying to access
+///
+/// Copied from [featureAccessLevel].
 class FeatureAccessLevelProvider extends AutoDisposeProvider<bool> {
-  /// See also [featureAccessLevel].
+  /// this check if a user has one accessLevel required to grant him access regardles of the feature
+  /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+  /// to whatever he is trying to access
+  ///
+  /// Copied from [featureAccessLevel].
   FeatureAccessLevelProvider({
     required int userId,
     required String accessLevel,
