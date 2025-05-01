@@ -1,12 +1,8 @@
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class TenantPermissionsMixin {
-  
-
   static void fillFormWithTenantDataStatic(
     Tenant tenant,
     List<Access> tenantAccesses,
