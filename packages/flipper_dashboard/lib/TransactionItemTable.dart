@@ -13,18 +13,63 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   List<TransactionItem> internalTransactionItems = [];
   // Add a map to track local quantities
   final Map<String, double> _localQuantities = {};
+  // Add a map to track controllers for quantity fields
+  final Map<String, TextEditingController> _quantityControllers = {};
+  // Add a map to track focus nodes for quantity fields
+  final Map<String, FocusNode> _quantityFocusNodes = {};
 
   @override
   void initState() {
     super.initState();
     // Initialize local quantities from internalTransactionItems
     _updateLocalQuantities();
+    // Initialize controllers and focus nodes
+    for (var item in internalTransactionItems) {
+      _initController(item);
+    }
   }
 
-  void _updateLocalQuantities() {
-    for (var item in internalTransactionItems) {
-      _localQuantities[item.id] = item.qty;
+  void _initController(TransactionItem item) {
+    final id = item.id;
+    final qty = item.qty;
+    // Initialize controller if needed
+    if (!_quantityControllers.containsKey(id)) {
+      _quantityControllers[id] = TextEditingController(text: qty.toString());
+    } else {
+      // Only update if value changed externally and field is NOT focused
+      final focusNode = _quantityFocusNodes[id];
+      if ((focusNode == null || !focusNode.hasFocus) &&
+          _quantityControllers[id]!.text != qty.toString()) {
+        _quantityControllers[id]!.text = qty.toString();
+      }
     }
+    // Initialize focus node if needed
+    if (!_quantityFocusNodes.containsKey(id)) {
+      _quantityFocusNodes[id] = FocusNode();
+    }
+  }
+
+  void _removeUnusedControllers() {
+    final ids = internalTransactionItems.map((e) => e.id).toSet();
+    final toRemove =
+        _quantityControllers.keys.where((id) => !ids.contains(id)).toList();
+    for (final id in toRemove) {
+      _quantityControllers[id]?.dispose();
+      _quantityControllers.remove(id);
+      _quantityFocusNodes[id]?.dispose();
+      _quantityFocusNodes.remove(id);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _quantityControllers.values) {
+      c.dispose();
+    }
+    for (final f in _quantityFocusNodes.values) {
+      f.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -32,6 +77,18 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     super.didUpdateWidget(oldWidget);
     // Update local quantities when internalTransactionItems changes
     _updateLocalQuantities();
+    // Update controllers for any new/changed items
+    for (var item in internalTransactionItems) {
+      _initController(item);
+    }
+    // Optionally remove controllers for deleted items
+    _removeUnusedControllers();
+  }
+
+  void _updateLocalQuantities() {
+    for (var item in internalTransactionItems) {
+      _localQuantities[item.id] = item.qty;
+    }
   }
 
   // Calculation methods
@@ -163,12 +220,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildQuantityField(TransactionItem item, bool isOrdering) {
-    final currentQty = _getCurrentQuantity(item);
+    _initController(item); // Ensure controller and focus node are initialized
+    final controller = _quantityControllers[item.id]!;
+    final focusNode = _quantityFocusNodes[item.id]!;
     return SizedBox(
       width: 50,
       child: TextFormField(
-        key: ValueKey('${item.id}_$currentQty'),
-        initialValue: currentQty.toString(),
+        controller: controller,
+        focusNode: focusNode,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 16),

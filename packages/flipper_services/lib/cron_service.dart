@@ -60,22 +60,20 @@ class CronService {
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
     try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        talker.error("Cannot hydrate data: Branch ID is null");
+        return;
+      }
+
+      ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
 
-        final branchId = ProxyService.box.getBranchId();
-        if (branchId == null) {
-          talker.error("Cannot hydrate data: Branch ID is null");
-          return;
-        }
-
         // Hydrate essential data
         try {
           await Future.wait<void>([
-            ProxyService.strategy
-                .ebm(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
             ProxyService.strategy
                 .getCounters(branchId: branchId, fetchRemote: true)
                 .then((_) {}),

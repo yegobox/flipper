@@ -45,14 +45,10 @@ public class PrinterService {
     private static final int ATKINSON_DITHERING = 2;
     private static final int THRESHOLD_DITHERING = 3;
     private static final int QR_CODE_OPTIMIZED = 4;
+    private static final int TEXT_OPTIMIZED = 5; // New dithering method specifically for text
 
-    // Default dithering method - better for text and QR codes
-    private int ditheringMethod = QR_CODE_OPTIMIZED;
-
-    // Text enhancement settings
-    private boolean enhanceTextReadability = true;
-    private int textContrast = 30; // Default contrast enhancement percentage
-    private int textSharpness = 20; // Default sharpness enhancement percentage
+    // Default dithering method - better for text
+    private int ditheringMethod = TEXT_OPTIMIZED;
 
     private PrinterService() {}
 
@@ -64,15 +60,9 @@ public class PrinterService {
     }
 
     public void setDitheringMethod(int method) {
-        if (method >= FLOYD_STEINBERG_DITHERING && method <= QR_CODE_OPTIMIZED) {
+        if (method >= FLOYD_STEINBERG_DITHERING && method <= TEXT_OPTIMIZED) {
             this.ditheringMethod = method;
         }
-    }
-
-    public void setTextEnhancement(boolean enhance, int contrast, int sharpness) {
-        this.enhanceTextReadability = enhance;
-        this.textContrast = Math.max(0, Math.min(100, contrast)); // Limit to 0-100%
-        this.textSharpness = Math.max(0, Math.min(100, sharpness)); // Limit to 0-100%
     }
 
     public int initializePrinter() {
@@ -138,8 +128,8 @@ public class PrinterService {
             }
 
             // Process in correct order:
-            // 1. Convert to grayscale first
-            Bitmap grayscaleBitmap = toGrayscale(bitmap);
+            // 1. Convert to grayscale first with enhanced contrast for text
+            Bitmap grayscaleBitmap = toGrayscaleEnhanced(bitmap);
             bitmap.recycle(); // Recycle original
 
             // 2. Resize if needed
@@ -162,6 +152,9 @@ public class PrinterService {
                     break;
                 case QR_CODE_OPTIMIZED:
                     ditheredBitmap = applyQRCodeOptimizedDithering(resizedBitmap);
+                    break;
+                case TEXT_OPTIMIZED:
+                    ditheredBitmap = applyTextOptimizedDithering(resizedBitmap);
                     break;
                 case FLOYD_STEINBERG_DITHERING:
                 default:
@@ -223,11 +216,12 @@ public class PrinterService {
         float scaleFactor = (float) printerWidth / (float) width;
         int newHeight = (int) (height * scaleFactor);
 
+        // Use high-quality downscaling for better text rendering
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, printerWidth, newHeight, true);
         return scaledBitmap;
     }
 
-    public static Bitmap toGrayscale(Bitmap bmpOriginal) {
+    public static Bitmap toGrayscaleEnhanced(Bitmap bmpOriginal) {
         int width = bmpOriginal.getWidth();
         int height = bmpOriginal.getHeight();
 
@@ -244,7 +238,7 @@ public class PrinterService {
                 0,       0,       0,       1, 0
         });
 
-        // Add contrast boost for better printing
+        // Add stronger contrast boost for better text visibility
         ColorMatrix contrastMatrix = new ColorMatrix();
         float contrast = 1.4f; // Boost contrast by 40% (increased from 20%)
         float intercept = (-.5f * contrast + .5f) * 255f;
@@ -457,7 +451,10 @@ public class PrinterService {
         int[] pixels = new int[width * height];
         output.getPixels(pixels, 0, width, 0, 0, width, height);
 
-        // Apply simple threshold
+        // Apply simple threshold with lower threshold value for better text readability
+        // (making more pixels black to ensure text is bold enough)
+        int threshold = 120; // Lower threshold from 127 to 120
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int index = y * width + x;
@@ -465,7 +462,7 @@ public class PrinterService {
                 int gray = Color.red(pixel); // We only need one channel since it's grayscale
 
                 // Apply fixed threshold
-                int newValue = (gray > 127) ? 255 : 0;
+                int newValue = (gray > threshold) ? 255 : 0;
 
                 pixels[index] = Color.rgb(newValue, newValue, newValue);
             }
@@ -492,13 +489,8 @@ public class PrinterService {
         // First pass: contrast enhancement
         enhanceContrast(pixels, width, height);
 
-        // Apply text sharpening if enabled
-        if (enhanceTextReadability) {
-            sharpenText(pixels, width, height);
-        }
-
-        // Window size for adaptive thresholding - smaller window for sharper text
-        int windowSize = 3; // Reduced from 5 for sharper text edges
+        // Window size for adaptive thresholding - smaller window means sharper edges
+        int windowSize = 5;
 
         // Second pass: adaptive thresholding
         for (int y = 0; y < height; y++) {
@@ -519,16 +511,10 @@ public class PrinterService {
 
                 int average = sum / count;
 
-                // Apply threshold with a bias for better text preservation
-                // Increased bias for better text preservation
-                int threshold = average - 10; // Increased from -5 for better text clarity
+                // Apply threshold with a slight bias for dark pixels (-5)
+                // This helps preserve QR code integrity and thin text
+                int newValue = (centerPixel > average - 5) ? 255 : 0;
 
-                // Apply a more aggressive threshold for text-like patterns
-                if (isLikelyText(pixels, x, y, width, height)) {
-                    threshold -= 5; // Further reduce threshold for text
-                }
-
-                int newValue = (centerPixel > threshold) ? 255 : 0;
                 pixels[index] = Color.rgb(newValue, newValue, newValue);
             }
         }
@@ -538,66 +524,157 @@ public class PrinterService {
     }
 
     /**
-     * Heuristic to detect if a pixel is likely part of text
-     * Looks for high local contrast which is typical of text
+     * NEW: Optimized dithering specifically for text readability
+     * Uses a combination of techniques to optimize text clarity on thermal printers
      */
-    private boolean isLikelyText(int[] pixels, int x, int y, int width, int height) {
-        // Skip edge pixels
-        if (x < 2 || y < 2 || x >= width - 2 || y >= height - 2) {
-            return false;
-        }
+    private Bitmap applyTextOptimizedDithering(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
 
-        // Check local contrast in a small area
-        int center = Color.red(pixels[y * width + x]);
-        int count = 0;
+        // Create a mutable copy of the bitmap
+        Bitmap output = bitmap.copy(bitmap.getConfig(), true);
 
-        // Check 8 surrounding pixels
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dy == 0) continue;
+        int[] pixels = new int[width * height];
+        output.getPixels(pixels, 0, width, 0, 0, width, height);
 
-                int neighbor = Color.red(pixels[(y + dy) * width + (x + dx)]);
-                if (Math.abs(center - neighbor) > 50) { // High local contrast
-                    count++;
+        // First pass: text-focused contrast enhancement
+        enhanceTextContrast(pixels, width, height);
+
+        // Second pass: edge-preserving smoothing to reduce noise while keeping text edges sharp
+        smoothNoisePreserveEdges(pixels, width, height);
+
+        // Third pass: adaptive thresholding optimized for text
+        // Window size for adaptive thresholding - smaller window for sharper text
+        int windowSize = 11; // Larger window for better text consistency
+        int thresholdBias = -10; // Negative bias makes text slightly bolder
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int index = y * width + x;
+                int centerPixel = Color.red(pixels[index]);
+
+                // Calculate local average within window
+                int sum = 0;
+                int count = 0;
+
+                for (int wy = Math.max(0, y - windowSize/2); wy < Math.min(height, y + windowSize/2 + 1); wy++) {
+                    for (int wx = Math.max(0, x - windowSize/2); wx < Math.min(width, x + windowSize/2 + 1); wx++) {
+                        sum += Color.red(pixels[wy * width + wx]);
+                        count++;
+                    }
                 }
+
+                int average = sum / count;
+
+                // Apply threshold with bias for better text readability
+                int newValue = (centerPixel > average + thresholdBias) ? 255 : 0;
+
+                pixels[index] = Color.rgb(newValue, newValue, newValue);
             }
         }
 
-        // If at least 3 surrounding pixels have high contrast, likely text
-        return count >= 3;
+        output.setPixels(pixels, 0, width, 0, 0, width, height);
+        return output;
     }
 
     /**
-     * Applies a sharpening filter to improve text clarity
+     * Enhances contrast specifically for text readability
      */
-    private void sharpenText(int[] pixels, int width, int height) {
-        // Create a copy of the pixels array
-        int[] original = pixels.clone();
+    private void enhanceTextContrast(int[] pixels, int width, int height) {
+        // Find min and max values
+        int min = 255;
+        int max = 0;
 
-        // Sharpening kernel
-        // Center value is 1 + 4*amount, corners are -amount, edges are -amount
-        float amount = textSharpness / 100.0f;
+        for (int i = 0; i < pixels.length; i++) {
+            int gray = Color.red(pixels[i]);
+            if (gray < min) min = gray;
+            if (gray > max) max = gray;
+        }
 
-        // Skip the edges to avoid array bounds issues
-        for (int y = 1; y < height - 1; y++) {
-            for (int x = 1; x < width - 1; x++) {
+        int range = max - min;
+        if (range <= 0) range = 1; // Avoid division by zero
+
+        // Apply stronger contrast for text
+        for (int i = 0; i < pixels.length; i++) {
+            int gray = Color.red(pixels[i]);
+
+            // For text, we want a more aggressive contrast enhancement
+            // that makes dark text darker and light backgrounds lighter
+
+            // Normalize pixel value to 0-1 range
+            float normalizedGray = (float)(gray - min) / range;
+
+            // Apply sigmoid-like contrast function for sharper text edges
+            float enhancedGray;
+            if (normalizedGray < 0.5) {
+                // Make darker pixels even darker (text)
+                enhancedGray = normalizedGray * normalizedGray * 0.8f;
+            } else {
+                // Make lighter pixels even lighter (background)
+                enhancedGray = 1.0f - (1.0f - normalizedGray) * (1.0f - normalizedGray) * 0.8f;
+            }
+
+            // Convert back to 0-255 range
+            int newGray = Math.max(0, Math.min(255, (int)(enhancedGray * 255)));
+            pixels[i] = Color.rgb(newGray, newGray, newGray);
+        }
+    }
+
+    /**
+     * Smooths noise while preserving edges - good for text
+     */
+    private void smoothNoisePreserveEdges(int[] pixels, int width, int height) {
+        // Create a copy of the pixels for the smoothing operation
+        int[] smoothedPixels = new int[pixels.length];
+        System.arraycopy(pixels, 0, smoothedPixels, 0, pixels.length);
+
+        // Small window for edge-preserving smoothing
+        int windowSize = 3;
+        float edgeThreshold = 40.0f; // Threshold to detect edges
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 int index = y * width + x;
+                int centerPixel = Color.red(pixels[index]);
 
-                // Apply sharpening kernel
-                float sum = original[index] * (1 + 4 * amount)
-                          - original[(y-1) * width + x] * amount
-                          - original[(y+1) * width + x] * amount
-                          - original[y * width + (x-1)] * amount
-                          - original[y * width + (x+1)] * amount;
+                int sum = 0;
+                int count = 0;
+                boolean isEdge = false;
 
-                // Clamp to valid range
-                pixels[index] = Color.rgb(
-                    Math.max(0, Math.min(255, (int)sum)),
-                    Math.max(0, Math.min(255, (int)sum)),
-                    Math.max(0, Math.min(255, (int)sum))
-                );
+                // Check if this pixel is part of an edge
+                for (int wy = Math.max(0, y - 1); wy <= Math.min(height - 1, y + 1); wy++) {
+                    for (int wx = Math.max(0, x - 1); wx <= Math.min(width - 1, x + 1); wx++) {
+                        int neighborPixel = Color.red(pixels[wy * width + wx]);
+                        if (Math.abs(neighborPixel - centerPixel) > edgeThreshold) {
+                            isEdge = true;
+                            break;
+                        }
+                    }
+                    if (isEdge) break;
+                }
+
+                // If it's an edge, preserve it (no smoothing)
+                if (isEdge) {
+                    smoothedPixels[index] = pixels[index];
+                    continue;
+                }
+
+                // If not an edge, apply smoothing
+                for (int wy = Math.max(0, y - windowSize/2); wy <= Math.min(height - 1, y + windowSize/2); wy++) {
+                    for (int wx = Math.max(0, x - windowSize/2); wx <= Math.min(width - 1, x + windowSize/2); wx++) {
+                        int neighborIndex = wy * width + wx;
+                        sum += Color.red(pixels[neighborIndex]);
+                        count++;
+                    }
+                }
+
+                int smoothedValue = (count > 0) ? sum / count : centerPixel;
+                smoothedPixels[index] = Color.rgb(smoothedValue, smoothedValue, smoothedValue);
             }
         }
+
+        // Copy smoothed pixels back to original array
+        System.arraycopy(smoothedPixels, 0, pixels, 0, pixels.length);
     }
 
     /**
@@ -615,24 +692,24 @@ public class PrinterService {
             if (gray > max) max = gray;
         }
 
-        // Calculate contrast enhancement factor based on settings
-        int contrastFactor = enhanceTextReadability ? textContrast : 20;
+        // Don't process if already high contrast
+        if (max - min < 30) {
+            // Low contrast image - stretch the histogram
+            for (int i = 0; i < pixels.length; i++) {
+                int gray = Color.red(pixels[i]);
 
-        // Apply contrast enhancement
-        for (int i = 0; i < pixels.length; i++) {
-            int gray = Color.red(pixels[i]);
+                // Apply non-linear contrast enhancement
+                // This formula emphasizes the difference between light and dark areas
+                int newGray;
+                if (gray < 128) {
+                    newGray = gray - (gray * 20 / 100);  // Make dark pixels darker
+                } else {
+                    newGray = gray + ((255 - gray) * 20 / 100);  // Make light pixels lighter
+                }
 
-            // Apply non-linear contrast enhancement
-            // This formula emphasizes the difference between light and dark areas
-            int newGray;
-            if (gray < 128) {
-                newGray = gray - (gray * contrastFactor / 100);  // Make dark pixels darker
-            } else {
-                newGray = gray + ((255 - gray) * contrastFactor / 100);  // Make light pixels lighter
+                newGray = Math.max(0, Math.min(255, newGray));
+                pixels[i] = Color.rgb(newGray, newGray, newGray);
             }
-
-            newGray = Math.max(0, Math.min(255, newGray));
-            pixels[i] = Color.rgb(newGray, newGray, newGray);
         }
     }
 }

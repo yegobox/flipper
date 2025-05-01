@@ -770,7 +770,7 @@ class _RowItemState extends ConsumerState<RowItem>
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       // Show success message
-      showCustomSnackBar(context, 'Item added to cart');
+      // showCustomSnackBar(context, 'Item added to cart');
 
       // Force refresh the transaction items with a small delay to ensure DB operations complete
       await Future.delayed(Duration(milliseconds: 100));
