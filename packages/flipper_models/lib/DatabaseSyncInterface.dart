@@ -371,8 +371,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String assetName,
       required String subPath});
 
-  Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   FutureOr<Business?> getBusiness({int? businessId});
@@ -391,8 +389,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<Drawers?> getDrawer({required int cashierId});
 
   Drawers? openDrawer({required Drawers drawer});
-
-  void clearData({required ClearData data, required int identifier});
 
   FutureOr<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod});
