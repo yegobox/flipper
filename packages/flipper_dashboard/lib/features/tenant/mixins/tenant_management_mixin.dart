@@ -148,6 +148,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       tenantAllowedFeatures,
       activeFeatures,
       userId,
+      phoneNumber: phoneController.text,
     );
   }
 

@@ -336,60 +336,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false}) async {
-    return await _getBranches(businessId, includeSelf!);
-  }
-
-  Future<List<Branch>> _getBranches(int businessId, bool active) async {
-    try {
-      final branches = await repository.get<Branch>(
-          query: brick.Query(where: [
-        brick.Where('businessId').isExactly(businessId),
-        brick.Or('active').isExactly(active),
-      ]));
-      return branches;
-    } catch (e, s) {
-      talker.error(e);
-      talker.error(s);
-      rethrow;
-    }
-  }
-
-  @override
-  void clearData({required ClearData data, required int identifier}) async {
-    try {
-      if (data == ClearData.Branch) {
-        // Retrieve the list of Branches to delete based on the query
-        // final query = brick.Query();
-        final List<Branch> branches = await repository.get<Branch>(
-            query: brick.Query(
-                where: [brick.Where('serverId').isExactly(identifier)]));
-
-        for (final branch in branches) {
-          await repository.delete<Branch>(branch,
-              policy: OfflineFirstDeletePolicy.optimisticLocal);
-        }
-      }
-
-      if (data == ClearData.Business) {
-        // Retrieve the list of Businesses to delete
-        final List<Business> businesses = await repository.get<Business>(
-            query: brick.Query(
-                where: [brick.Where('serverId').isExactly(identifier)]));
-
-        for (final business in businesses) {
-          await repository.delete<Business>(business);
-        }
-      }
-    } catch (e, s) {
-      // Log the error with talker
-      talker.error('Failed to clear data: $e');
-      talker.error('Stack trace: $s');
-    }
-  }
-
-  @override
   Future<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod}) async {
     drawer.open = false;
@@ -2057,6 +2003,10 @@ class CoreSync extends AiStrategyImpl
 
         // Save transaction
         transaction.status = COMPLETE;
+        // refresh transaction's date
+        transaction.updatedAt = DateTime.now().toUtc();
+        transaction.lastTouched = DateTime.now().toUtc();
+        transaction.createdAt = DateTime.now().toUtc();
         // TODO: if transactin has customerId use the customer.phone number instead.
         transaction.currentSaleCustomerPhoneNumber =
             "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
