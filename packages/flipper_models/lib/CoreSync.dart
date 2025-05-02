@@ -1963,6 +1963,8 @@ class CoreSync extends AiStrategyImpl
       );
       counter.invcNo = counter.invcNo! + 1;
       repository.upsert(upCounter);
+      // in erference https://github.com/GetDutchie/brick/issues/580#issuecomment-2845610769
+      // Repository().sqliteProvider.upsert<Counter>(upCounter);
     }
   }
 
