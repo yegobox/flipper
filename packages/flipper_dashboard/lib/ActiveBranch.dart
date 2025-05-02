@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -26,9 +27,11 @@ class CircleAvatarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String displayText = text.isEmpty 
+    String displayText = text.isEmpty
         ? 'NA'
-        : text.length >= 2 ? text.substring(0, 2).toUpperCase() : text;
+        : text.length >= 2
+            ? text.substring(0, 2).toUpperCase()
+            : text;
 
     return Container(
       width: size,
@@ -107,13 +110,14 @@ class _AdminButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final adminStatus = ref.watch(_adminStatusProvider);
     final connectivityStatus = ref.watch(connectivityStreamProvider);
-    
+
     return adminStatus.when(
       data: (isAdmin) {
         if (!isAdmin) return const SizedBox.shrink();
 
-        final backgroundColor = _getStatusColor(connectivityStatus, Theme.of(context));
-        
+        final backgroundColor =
+            _getStatusColor(connectivityStatus, Theme.of(context));
+
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: isCompact ? 4.0 : 12.0),
           child: SizedBox(
@@ -125,7 +129,8 @@ class _AdminButton extends ConsumerWidget {
                 color: Colors.white,
                 size: isCompact ? 16 : 20,
               ),
-              onPressed: () => locator<RouterService>().navigateTo(AdminControlRoute()),
+              onPressed: () =>
+                  locator<RouterService>().navigateTo(AdminControlRoute()),
               style: IconButton.styleFrom(
                 shape: CircleBorder(
                   side: BorderSide(
@@ -136,7 +141,7 @@ class _AdminButton extends ConsumerWidget {
                 backgroundColor: backgroundColor,
                 padding: EdgeInsets.zero,
               ),
-            ),
+            ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
           ),
         );
       },
@@ -154,11 +159,11 @@ class _BranchContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final connectivityStatus = ref.watch(connectivityStreamProvider);
-    
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isCompact = constraints.maxWidth < 100;
-        
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -170,7 +175,8 @@ class _BranchContent extends ConsumerWidget {
               child: CircleAvatarWidget(
                 text: branchData?.name ?? "N/A",
                 size: isCompact ? 32 : 40,
-                backgroundColor: _getStatusColor(connectivityStatus, Theme.of(context)),
+                backgroundColor:
+                    _getStatusColor(connectivityStatus, Theme.of(context)),
               ),
             ),
             if (!isCompact) const SizedBox(height: 16),
