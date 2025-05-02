@@ -39,24 +39,32 @@ class KitchenOrdersNotifier
         });
 
   void updateOrders(List<ITransaction> transactions) {
+    // Create a new map with empty lists for each status
     final Map<OrderStatus, List<ITransaction>> categorizedOrders = {
       OrderStatus.incoming: [],
       OrderStatus.inProgress: [],
       OrderStatus.waiting: [],
     };
 
+    // Only process non-loan transactions that were actually returned from the API
     for (final transaction in transactions) {
+      // Filter out loan tickets from the kitchen display
+      if (transaction.isLoan == true) {
+        continue;
+      }
+      
+      // Each transaction should only appear in one column based on its status
       if (transaction.status == PARKED) {
         categorizedOrders[OrderStatus.incoming]!.add(transaction);
       } else if (transaction.status == IN_PROGRESS || transaction.status == ORDERING) {
-        // Support both new IN_PROGRESS and legacy ORDERING status
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
       } else if (transaction.status == WAITING) {
-        // Only accept WAITING status for the waiting column
         categorizedOrders[OrderStatus.waiting]!.add(transaction);
       }
+      // Transactions with other statuses (like COMPLETE) are intentionally ignored
     }
 
+    // Replace the entire state with the new categorized orders
     state = categorizedOrders;
   }
 

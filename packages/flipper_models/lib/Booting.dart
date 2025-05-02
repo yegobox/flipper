@@ -83,7 +83,9 @@ mixin Booting {
         talker.warning(
             "Permission with userId: ${ProxyService.box.getUserId()!}");
         List<Access> hasAccess = await ProxyService.strategy.access(
-            userId: ProxyService.box.getUserId()!, featureName: feature);
+            userId: ProxyService.box.getUserId()!,
+            featureName: feature,
+            fetchRemote: true);
         if (hasAccess.isEmpty) {
           await ProxyService.strategy.addAccess(
             branchId: ProxyService.box.getBranchId()!,
@@ -108,7 +110,10 @@ mixin Booting {
       if (permission.name.toLowerCase() == 'admin') {
         for (String featureName in features) {
           final List<Access> existingAccess = await ProxyService.strategy
-              .access(userId: permission.userId, featureName: featureName);
+              .access(
+                  userId: permission.userId,
+                  featureName: featureName,
+                  fetchRemote: true);
 
           if (existingAccess.isEmpty) {
             await ProxyService.strategy.addAccess(
@@ -156,7 +161,7 @@ mixin Booting {
         userId: business.userId is String
             ? int.parse(business.userId)
             : business.userId,
-        encryptionKey: business.encryptionKey!,
+        encryptionKey: business.encryptionKey ?? "",
         serverId: business.id,
         name: business.name,
         currency: business.currency,
@@ -275,6 +280,6 @@ mixin Booting {
         key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
     await ProxyService.box.writeString(
         key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey!);
+        value: user.tenants.first.businesses.first.encryptionKey ?? "");
   }
 }

@@ -139,12 +139,32 @@ Widget BuildGaugeOrList({
                         style: GoogleFonts.poppins(
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
-                      subtitle: Text(
-                        DateFormat('dd/MM/yyyy').format(transaction.createdAt!),
-                        style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            // Display transaction type in a user-friendly way
+                            transaction.transactionType
+                                .toString()
+                                .split('.')
+                                .last
+                                .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
+                                .toUpperCase(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                          Text(
+                            DateFormat('dd/MM/yyyy')
+                                .format(transaction.createdAt!),
+                            style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                          ),
+                        ],
                       ),
                       trailing: Text(
                         DateFormat('HH:mm').format(transaction.createdAt!),
@@ -193,22 +213,22 @@ List<ITransaction> filterTransactionsByPeriod({
   switch (period) {
     case 'Today':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(today);
       }).toList();
     case 'This Week':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(thisWeek);
       }).toList();
     case 'This Month':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(thisMonth);
       }).toList();
     case 'This Year':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!;
+        final transactionDate = transaction.createdAt!.toLocal();
         return transactionDate.isAfter(thisYear);
       }).toList();
     default:

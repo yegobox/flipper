@@ -46,6 +46,12 @@ Future<Receipt> _$ReceiptFromSupabase(
             : DateTime.tryParse(data['when_created'] as String),
     invoiceNumber:
         data['invoice_number'] == null ? null : data['invoice_number'] as int?,
+    timeReceivedFromserver:
+        data['time_received_fromserver'] == null
+            ? null
+            : data['time_received_fromserver'] == null
+            ? null
+            : DateTime.tryParse(data['time_received_fromserver'] as String),
   );
 }
 
@@ -74,6 +80,8 @@ Future<Map<String, dynamic>> _$ReceiptToSupabase(
     'invc_no': instance.invcNo,
     'when_created': instance.whenCreated?.toIso8601String(),
     'invoice_number': instance.invoiceNumber,
+    'time_received_fromserver':
+        instance.timeReceivedFromserver?.toIso8601String(),
   };
 }
 
@@ -122,6 +130,12 @@ Future<Receipt> _$ReceiptFromSqlite(
             : DateTime.tryParse(data['when_created'] as String),
     invoiceNumber:
         data['invoice_number'] == null ? null : data['invoice_number'] as int?,
+    timeReceivedFromserver:
+        data['time_received_fromserver'] == null
+            ? null
+            : data['time_received_fromserver'] == null
+            ? null
+            : DateTime.tryParse(data['time_received_fromserver'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -150,6 +164,8 @@ Future<Map<String, dynamic>> _$ReceiptToSqlite(
     'invc_no': instance.invcNo,
     'when_created': instance.whenCreated?.toIso8601String(),
     'invoice_number': instance.invoiceNumber,
+    'time_received_fromserver':
+        instance.timeReceivedFromserver?.toIso8601String(),
   };
 }
 
@@ -238,6 +254,10 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
     'invoiceNumber': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'invoice_number',
+    ),
+    'timeReceivedFromserver': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'time_received_fromserver',
     ),
   };
   @override
@@ -365,6 +385,12 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
       columnName: 'invoice_number',
       iterable: false,
       type: int,
+    ),
+    'timeReceivedFromserver': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'time_received_fromserver',
+      iterable: false,
+      type: DateTime,
     ),
   };
   @override

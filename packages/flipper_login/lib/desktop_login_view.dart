@@ -57,25 +57,82 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   SizedBox(
                     height: 250.0,
                     width: 250.0,
-                    child: QrImageView(
-                      data: loginCode,
-                      version: QrVersions.auto,
-                      // embeddedImage:
-                      //     AssetImage(logoAsset, package: "flipper_login"),
-                      embeddedImageStyle: QrEmbeddedImageStyle(
-                        size: Size(logoSize, logoSize),
-                      ),
-                      size: 200.0,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        QrImageView(
+                          data: loginCode,
+                          version: QrVersions.auto,
+                          // embeddedImage:
+                          //     AssetImage(logoAsset, package: "flipper_login"),
+                          embeddedImageStyle: QrEmbeddedImageStyle(
+                            size: Size(logoSize, logoSize),
+                          ),
+                          size: 200.0,
+                        ),
+                        StreamBuilder<bool>(
+                          stream: ProxyService.event.isLoadingStream(),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData && snapshot.data == true) {
+                              // Show overlay on QR code when logging in
+                              return Container(
+                                width: 200,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CircularProgressIndicator(
+                                      color: Color(0xff006AFE),
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      'Logging in...',
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                        color: Color(0xff006AFE),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              return SizedBox.shrink();
+                            }
+                          },
+                        ),
+                      ],
                     ),
                   ),
                   StreamBuilder<bool>(
                     stream: ProxyService.event.isLoadingStream(),
                     builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data!) {
+                      if (snapshot.hasData && snapshot.data == true) {
                         // Show loader widget
-                        return Text(
-                          'Logging in ...',
-                          style: TextStyle(color: Colors.green),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: Colors.green.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              'QR Code scanned! Completing login...',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
                         );
                       } else {
                         // Show an empty container widget
@@ -164,7 +221,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   StreamBuilder<List<ConnectivityResult>>(
                     stream: Connectivity().onConnectivityChanged,
                     builder: (context, snapshot) {
-                      if (snapshot.hasData) {
+                      if (snapshot.hasData && snapshot.data != null) {
                         if (snapshot.data == ConnectivityResult.none) {
                           return const Text(
                             'Device is offline',

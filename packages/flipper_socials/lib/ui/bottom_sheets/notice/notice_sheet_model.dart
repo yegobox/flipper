@@ -18,7 +18,7 @@ class NoticeSheetModel extends BaseViewModel {
         branchId: ProxyService.box.getBranchId()!,
         isAccountSet: false,
         message: message,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         socialType: 'whatapp',
         socialUrl:
             'https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api');

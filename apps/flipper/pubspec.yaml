@@ -2,10 +2,10 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223233643+1744398697
+version: 1.170.4252223233872+1746121385
 
 
-
+# 
 environment:
   sdk: ">=3.3.4 <4.0.0"
 
@@ -15,8 +15,11 @@ dependencies:
   sentry: ^8.13.0
   sentry_flutter: ^8.14.1
   
+  # Java interop
+  jni: ^0.14.1
+  
   firebase_crashlytics: ^4.3.4
-  flutter_local_notifications: ^19.0.0
+  flutter_local_notifications: ^19.1.0
   intl: ^0.19.0
   injectable: ^2.5.0
   get_it: ^7.7.0
@@ -96,7 +99,7 @@ dependencies:
   syncfusion_flutter_xlsio: ^29.1.37
   syncfusion_flutter_datagrid_export: ^29.1.37
   syncfusion_flutter_core: ^29.1.37
-  flex_color_picker: ^3.7.0
+  flex_color_picker: 3.7.0
 
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12
@@ -130,8 +133,8 @@ dependencies:
   htmltopdfwidgets:
   markdown:
   string_scanner:
-  pdf: ^3.11.1
-  printing: ^5.14.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
@@ -167,6 +170,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.4+4
   # https://github.com/alextekartik/flutter_app_example/blob/master/demo_sqflite/tool/windows/windows_release_info.md
   sqflite_common_ffi_web: ^1.0.0
+  posthog_flutter: ^4.11.0
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
@@ -185,7 +189,8 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   msix: ^3.16.8
   patrol: ^3.14.0
-  jnigen: any
+  # Java interop code generation
+  jnigen: ^0.14.1
   # stacked_generator:
   flutter_launcher_icons: ^0.14.3
   matcher: ^0.12.10
@@ -219,7 +224,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.3793.0
+  msix_version: 1.170.4022.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

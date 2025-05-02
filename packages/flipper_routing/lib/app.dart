@@ -91,6 +91,8 @@ class App {}
 //  before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // ``dart run build_runner build --delete-conflicting-outputs``
+// dart run jnigen --config jnigen.yaml
+// flutter build apk --release 
 // dart run build_runner watch
 // `dart run realm generate --watch`
 // dart pub cache clean
@@ -811,5 +813,9 @@ class App {}
 // something to consider in my project.
 // https://pub.dev/packages/queue
 // https://pub.dev/packages/dart_mq
+// Users/your-username/Library/Containers/com.yourcompany.yourapp/Data/Documents
 
+// track this https://github.com/flutter/flutter/pull/165072 as I will use it to make one screen be a different window e.g showing KDS on different screen.
+// https://chatgpt.com/c/67f6c184-54dc-8002-b243-80433c70bf57
+// 
 

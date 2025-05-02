@@ -318,6 +318,7 @@ final transactionListProvider =
       endDate: endDate,
       removeAdjustmentTransactions: true,
       branchId: ProxyService.box.getBranchId(),
+      isCashOut: false,
       status: COMPLETE,
     );
 
@@ -359,20 +360,6 @@ final selectImportItemsProvider = FutureProvider.autoDispose
       lastRequestdate: DateTime.now().toYYYYMMddHHmmss());
 
   return response;
-});
-
-final transactionsStreamProvider =
-    StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  // Retrieve the transaction status from the provider container, if needed
-
-  // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.strategy.transactionsStream(
-      branchId: ProxyService.box.getBranchId()!,
-      status: COMPLETE,
-      removeAdjustmentTransactions: true);
-
-  // Return the stream
-  return transactionsStream;
 });
 
 final ordersStreamProvider =
@@ -795,7 +782,6 @@ List<ProviderBase> allProviders = [
   receivingOrdersModeProvider,
   customersProvider,
   ordersStreamProvider,
-  transactionsStreamProvider,
   unitsProvider,
   buttonIndexProvider,
   dateRangeProvider,

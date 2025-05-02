@@ -72,7 +72,8 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     try {
       ProxyService.box.remove(key: 'authComplete');
       if (ProxyService.box.getUserId() != null &&
-          ProxyService.box.getBusinessId() != null) {
+          ProxyService.box.getBusinessId() != null &&
+          kReleaseMode) {
         ProxyService.event.publish(loginDetails: {
           'channel': "${ProxyService.box.getUserId()!}-logout",
           'userId': ProxyService.box.getUserId(),

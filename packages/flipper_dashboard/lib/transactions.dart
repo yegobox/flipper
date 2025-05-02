@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -297,7 +298,7 @@ class TransactionsState extends ConsumerState<Transactions>
   }
 
   Widget buildList(BuildContext context, CoreViewModel model) {
-    final transactionsData = ref.watch(transactionsStreamProvider);
+    final transactionsData = ref.watch(dashboardTransactionsProvider);
     return transactionsData.when(
       data: (value) {
         final transactions = _normalTransactions(completedTransaction: value);

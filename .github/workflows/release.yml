@@ -19,7 +19,7 @@ on:
   push:
     branches:
       - main
-
+# 
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -30,7 +30,7 @@ env:
 jobs:
   unit-testing:
     name: Unit Testing
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -46,7 +46,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: "stable"
       - run: |
           git submodule update --init
@@ -64,6 +64,7 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
           git config --global core.autocrlf false
           echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
@@ -81,7 +82,7 @@ jobs:
           flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
   build_web_deploy_firebase:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: windows-2022
+    runs-on: ubuntu-latest
     needs: [unit-testing]
     steps:
       - name: Checkout repository
@@ -91,7 +92,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: "3.29.3" # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -141,6 +142,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
           channelId: pr-${{ github.event.pull_request.number }}
+          # channelId: live
           projectId: yegobox-2ee43
   integration-testing-windows:
     name: "Integration Testing Windows"
@@ -162,7 +164,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
       - run: flutter doctor -v
 
@@ -222,7 +224,7 @@ jobs:
   #     - name: Setup Flutter
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.2"  # Or a version that works with your Xcode
+  #         flutter-version: "3.29.3"  # Or a version that works with your Xcode
   #         channel: stable
 
   #     - name: Setup Java
@@ -272,8 +274,8 @@ jobs:
 
   build-and-release-windows-debug:
     name: "Build windows app-debug"
-    runs-on: windows-2022
-    needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
+    runs-on: windows-latest
+    # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
@@ -284,7 +286,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
           cache: true
 
@@ -312,7 +314,7 @@ jobs:
           melos bootstrap
           cd apps/flipper
           flutter clean
-          dart run msix:create -v --install-certificate false
+          dart run msix:create -v --install-certificate false --signtool-options "/td SHA256"
 
       - name: Extract msix_version
         id: get_version
@@ -320,16 +322,16 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Create Debug Releasse
+      - name: Create Debug Release
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          tag_name: ${{ steps.get_version.outputs.version }}
           name: Debug Release ${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
-          GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ github.token }} 
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
@@ -346,7 +348,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
           cache: true
 
@@ -390,7 +392,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ github.ref_name }}  # Or a dynamic tag based on your strategy
+          tag_name: ${{ steps.get_version.outputs.version }}
           name: Release ${{ steps.get_version.outputs.version }}
           body: |
             Production Release for Windows App Store
@@ -412,7 +414,7 @@ jobs:
   #     - name: Setup Flutter
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.2"
+  #         flutter-version: "3.29.3"
   #         channel: stable
 
   #     - name: Install Dependencies
@@ -506,7 +508,7 @@ jobs:
   #     - name: Clone Flutter repository with stable channel
   #       uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: "3.29.2"
+  #         flutter-version: "3.29.3"
   #         channel: stable
   #     - run: flutter doctor -v
 
@@ -623,19 +625,18 @@ jobs:
   #           --dart-define=FLUTTER_TEST_ENV=true \
   #           --dart-define=FORCE_TEST=true \
   #           --verbose
-
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing, integration-testing-windows,build_web_deploy_firebase]  # Requires Supabase to be initialized
     # runs-on: ubuntu-22.04
-    runs-on: macOS-14
+    runs-on: ubuntu-latest
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.29.3" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
@@ -689,6 +690,10 @@ jobs:
           bundler-cache: true
           # cache-version: 1
           working-directory: apps/flipper/android
+      - name: Write Posthog API Key to local.properties
+        run: |
+          echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
+        working-directory: apps/flipper
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json

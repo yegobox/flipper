@@ -59,6 +59,7 @@ Future<Purchase> _$PurchaseFromSupabase(
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
+    createdAt: DateTime.parse(data['created_at'] as String),
   );
 }
 
@@ -112,6 +113,7 @@ Future<Map<String, dynamic>> _$PurchaseToSupabase(
     'approved': instance.approved,
     'rejected': instance.rejected,
     'pending': instance.pending,
+    'created_at': instance.createdAt.toIso8601String(),
   };
 }
 
@@ -175,6 +177,7 @@ Future<Purchase> _$PurchaseFromSqlite(
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
+    createdAt: DateTime.parse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -221,6 +224,7 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(
     'approved': instance.approved,
     'rejected': instance.rejected,
     'pending': instance.pending,
+    'created_at': instance.createdAt.toIso8601String(),
   };
 }
 
@@ -367,6 +371,10 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'pending': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'pending',
+    ),
+    'createdAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'created_at',
     ),
   };
   @override
@@ -578,6 +586,12 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       columnName: 'pending',
       iterable: false,
       type: int,
+    ),
+    'createdAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'created_at',
+      iterable: false,
+      type: DateTime,
     ),
   };
   @override

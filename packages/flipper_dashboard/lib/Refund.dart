@@ -271,7 +271,7 @@ class _RefundState extends ConsumerState<Refund> {
           .transactionItems(
               transactionId: widget.transactionId,
               doneWithTransaction: true,
-              branchId: widget.transaction!.branchId!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               active: true);
       talker.error("Items to Refund: ${items.length}");
 

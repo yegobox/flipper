@@ -172,25 +172,19 @@ class PMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Business?>(
-      future: Future.value(ProxyService.strategy
-          .getBusiness(businessId: widget.branch.businessId)),
-      builder: (context, snapshot) {
-        return GestureDetector(
-          onLongPress: () => locator<RouterService>()
-              .navigateTo(ScannViewRoute(intent: 'login')),
-          onTap: () {
-            dialogService.showCustomDialog(
-                variant: DialogType.logOut, title: 'Log out');
-          },
-          child: GmailLikeLetter(
-            key: Key(widget.branch.id.toString()),
-            branch: widget.branch,
-            size: widget.size,
-            sessionActive: sessionActive,
-          ),
-        );
+    return GestureDetector(
+      onLongPress: () =>
+          locator<RouterService>().navigateTo(ScannViewRoute(intent: 'login')),
+      onTap: () {
+        dialogService.showCustomDialog(
+            variant: DialogType.logOut, title: 'Log out');
       },
+      child: GmailLikeLetter(
+        key: Key(widget.branch.id.toString()),
+        branch: widget.branch,
+        size: widget.size,
+        sessionActive: sessionActive,
+      ),
     );
   }
 }

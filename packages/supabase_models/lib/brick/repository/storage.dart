@@ -9,6 +9,7 @@ abstract class LocalStorage {
   int? getBusinessId();
   int? getBusinessServerId();
   int? getBranchId();
+  String? branchIdString();
   int? getBranchServerId();
   bool? getIsTokenRegistered();
   String? getUserPhone();
@@ -89,4 +90,6 @@ abstract class LocalStorage {
 
   /// Sets the queue database filename
   Future<void> setQueueFilename(String filename);
+  Future<void> setForceLogout(bool value);
+  bool getForceLogout();
 }

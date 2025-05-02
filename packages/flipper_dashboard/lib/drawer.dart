@@ -48,7 +48,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
         appBar: CustomAppBar(
           closeButton: CLOSEBUTTON.WIDGET,
           isDividerVisible: false,
-          customLeadingWidget: back.BackButton(),
+          customLeadingWidget: back.CustomBackButton(),
           onPop: () async {},
         ),
         body: Align(

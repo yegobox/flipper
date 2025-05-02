@@ -36,7 +36,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.2"
+          flutter-version: "3.29.3"
           channel: stable
           cache: true
 
@@ -79,4 +79,4 @@ jobs:
         with:
           name: windows-build
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          upload_release_asset: false
+          # upload_release_asset: false

@@ -35,10 +35,12 @@ mixin VariantMixin implements VariantInterface {
     bool fetchRemote = false,
   }) async {
     try {
-      final query = Query(where: [
+      final query = Query(orderBy: [
+        OrderBy('lastTouched', ascending: false)
+      ], where: [
         if (variantId != null)
           Where('id').isExactly(variantId)
-        else if (name != null) ...[
+        else if (name != null && name.isNotEmpty) ...[
           Where('name').contains(name),
           Where('branchId').isExactly(branchId),
         ] else if (bcd != null) ...[
@@ -55,7 +57,6 @@ mixin VariantMixin implements VariantInterface {
           Where('branchId').isExactly(branchId)
         ] else ...[
           Where('branchId').isExactly(branchId),
-
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
           // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
@@ -69,24 +70,38 @@ mixin VariantMixin implements VariantInterface {
           /// 01 is waiting for approval.
           if (excludeApprovedInWaitingOrCanceledItems)
             Where('pchsSttsCd').isExactly("01"),
-
           if (purchaseId != null) Where('purchaseId').isExactly(purchaseId),
           // Apply the purchaseId filter only if includePurchases is true
           if (excludeApprovedInWaitingOrCanceledItems)
             Where('purchaseId').isNot(null),
         ]
       ]);
+
+      // Try local first
       List<Variant> variants = await repository.get<Variant>(
-        policy: fetchRemote
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: query,
       );
+
+      // If no results found locally, fetch from remote
+      if (variants.isEmpty && fetchRemote == true) {
+        try {
+          variants = await repository.get<Variant>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: query,
+          );
+        } catch (e, s) {
+          // Catch authentication or network errors but don't fail the whole operation
+          talker.error('Error fetching variants from remote: $e');
+          talker.error(s);
+          // Continue with whatever we have locally (which may be empty)
+        }
+      }
 
       // Pagination logic (if needed)
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
-        return variants
+        final filtered = variants
             .where((variant) =>
                 variant.pchsSttsCd != "01" &&
                 variant.pchsSttsCd != "04" &&
@@ -94,6 +109,9 @@ mixin VariantMixin implements VariantInterface {
             .skip(offset)
             .take(itemsPerPage)
             .toList();
+        talker.info(
+            '[VariantMixin] Loaded ${filtered.length} items for page=$page, itemsPerPage=$itemsPerPage, offset=$offset');
+        return filtered;
       }
 
       return variants;
@@ -140,7 +158,7 @@ mixin VariantMixin implements VariantInterface {
               active: map['active'],
               branchId: branchId,
               name: map['name'],
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               value: map['value']);
 
           // Add the unit to db
@@ -229,7 +247,7 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].supplyPrice = supplyPrice;
       }
 
-      updatables[i].lastTouched = DateTime.now().toLocal();
+      updatables[i].lastTouched = DateTime.now().toUtc();
 
       await repository.upsert<Variant>(updatables[i]);
     }
@@ -252,7 +270,7 @@ mixin VariantMixin implements VariantInterface {
       talker.debug('Fetching expired items for branch $branchId');
 
       // Calculate the date threshold for expiring soon items
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
       final expiryThreshold =
           daysToExpiry != null ? now.add(Duration(days: daysToExpiry)) : now;
 
@@ -307,6 +325,4 @@ mixin VariantMixin implements VariantInterface {
       return [];
     }
   }
-
-  
 }

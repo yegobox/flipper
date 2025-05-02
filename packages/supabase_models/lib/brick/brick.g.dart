@@ -39,6 +39,7 @@ import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
 import '../brick/models/itemCode.model.dart';
 import '../brick/models/import_purchase_dates.model.dart';
+import '../brick/models/stock.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/category.model.dart';
 import '../brick/models/business_analytic.model.dart';
@@ -47,19 +48,26 @@ import '../brick/models/conversation.model.dart';
 import '../brick/models/customer_payments.model.dart';
 import '../brick/models/transaction.model.dart';
 import '../brick/models/message.model.dart';
+import '../brick/models/financing.model.dart';
 import '../brick/models/configuration.model.dart';
+import '../brick/models/branch.model.dart';
+import '../brick/models/plan_addon.model.dart';
 import '../brick/models/color.model.dart';
 import '../brick/models/branch_sms_config.model.dart';
 import '../brick/models/country.model.dart';
 import '../brick/models/BranchPaymentIntegration.model.dart';
+import '../brick/models/transactionItem.model.dart';
 import '../brick/models/permission.model.dart';
+import '../brick/models/variant.model.dart';
 import '../brick/models/purchase.model.dart';
 import '../brick/models/device.model.dart';
 import '../brick/models/variant_branch.model.dart';
 import '../brick/models/favorite.model.dart';
+import '../brick/models/composite.model.dart';
 import '../brick/models/transaction_payment_record.model.dart';
 import '../brick/models/setting.model.dart';
 import '../brick/models/tenant.model.dart';
+import '../brick/models/inventory_request.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
@@ -67,11 +75,13 @@ import '../brick/models/report.model.dart';
 import '../brick/models/appNotification.model.dart';
 import '../brick/models/discount.model.dart';
 import '../brick/models/business.model.dart';
+import '../brick/models/user.model.dart';
 import '../brick/models/sku.model.dart';
 import '../brick/models/unit.model.dart';
 import '../brick/models/location.model.dart';
 import '../brick/models/receipt.model.dart';
 import '../brick/models/token.model.dart';
+import '../brick/models/finance_provider.model.dart';
 import '../brick/models/ebm.model.dart';
 import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
@@ -117,6 +127,7 @@ part 'adapters/report_adapter.g.dart';
 part 'adapters/app_notification_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
+part 'adapters/user_adapter.g.dart';
 part 'adapters/s_k_u_adapter.g.dart';
 part 'adapters/i_unit_adapter.g.dart';
 part 'adapters/location_adapter.g.dart';
@@ -170,6 +181,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
+  User: UserAdapter(),
   SKU: SKUAdapter(),
   IUnit: IUnitAdapter(),
   Location: LocationAdapter(),
@@ -225,6 +237,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
+  User: UserAdapter(),
   SKU: SKUAdapter(),
   IUnit: IUnitAdapter(),
   Location: LocationAdapter(),

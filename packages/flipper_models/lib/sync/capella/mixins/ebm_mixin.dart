@@ -17,4 +17,13 @@ mixin CapellaEbmMixin implements EbmInterface {
     throw UnimplementedError(
         'findProductByTenantId needs to be implemented for Capella');
   }
+
+  @override
+  Future<void> saveEbm({
+    required int branchId,
+    required String severUrl,
+    required String bhFId,
+  }) async {
+    throw UnimplementedError('saveEbm needs to be implemented for Capella');
+  }
 }

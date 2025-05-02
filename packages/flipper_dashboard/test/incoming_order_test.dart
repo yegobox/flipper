@@ -115,8 +115,8 @@ void main() {
       //   branchId: '1',
       //   subBranchId: 2,
       //   status: RequestStatus.pending,
-      //   createdAt: DateTime.now(),
-      //   updatedAt: DateTime.now(),
+      //   createdAt: DateTime.now().toUtc(),
+      //   updatedAt: DateTime.now().toUtc(),
       // );
 
       // await ProxyService.strategy.saveTransactionItem(

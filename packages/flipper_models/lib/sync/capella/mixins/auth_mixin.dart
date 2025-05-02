@@ -31,6 +31,7 @@ mixin CapellaAuthMixin implements AuthInterface {
   Future<IUser> login({
     required String userPhone,
     required bool skipDefaultAppSetup,
+    IUser? existingUser,
     bool stopAfterConfigure = false,
     required Pin pin,
     required HttpClientInterface flipperHttpClient,
@@ -69,5 +70,14 @@ mixin CapellaAuthMixin implements AuthInterface {
   Future<List<Branch>> branches(
       {required int businessId, bool? includeSelf = false}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
+  }
+
+  @override
+  Future<bool> hasActiveSubscription(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient,
+      required bool fetchRemote}) async {
+    throw UnimplementedError(
+        'hasActiveSubscription needs to be implemented for Capella');
   }
 }

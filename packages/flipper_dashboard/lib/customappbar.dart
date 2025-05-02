@@ -127,8 +127,6 @@ class _CustomAppBarState extends State<CustomAppBar> {
           onPressedCallback: widget.onPop ?? () {},
           buttonName: widget.leftActionButtonName ?? '',
         );
-      default:
-        return const SizedBox.shrink();
     }
   }
 }

@@ -125,6 +125,18 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
+        columnName: 'Barcode',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Barcode', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
         columnName: 'Price',
         label: Container(
           decoration: BoxDecoration(

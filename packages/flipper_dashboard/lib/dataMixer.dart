@@ -5,15 +5,12 @@ import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 final productProvider =
     FutureProvider.family<Product?, String>((ref, productId) async {
@@ -46,10 +43,6 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         variant: variant,
         stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
         isOrdering: isOrdering);
-  }
-
-  String _getDeviceType(BuildContext context) {
-    return DeviceType.getDeviceType(context);
   }
 
   Future<void> deleteFunc(String? productId, ProductViewModel model) async {
@@ -128,11 +121,80 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     return productAsync.when(
       loading: () => const Text('...Loading'), // Keep the loading state
-      error: (err, stack) => Text('Error: $err'),
+      error: (err, stack) {
+        // Log the error but don't show it to the user
+        talker.error("Error fetching product data: $err");
+        talker.error(stack);
+
+        // Return a fallback UI instead of showing the error
+        return RowItem(
+          forceRemoteUrl: forceRemoteUrl,
+          isOrdering: isOrdering,
+          color: variant.color ?? "#673AB7",
+          stock: stock,
+          model: model,
+          variant: variant,
+          productName: variant.productName ?? "Unknown Product",
+          variantName: variant.name,
+          imageUrl: null, // No image available in error case
+          isComposite: false, // Default to false in error case
+          edit: (productId, type) {
+            talker.info("navigating to Edit!");
+            showDialog(
+              barrierDismissible: false,
+              context: context,
+              builder: (context) => OptionModal(
+                child: ProductEntryScreen(productId: productId),
+              ),
+            );
+          },
+          delete: (productId, type) async {
+            await deleteFunc(productId, model);
+          },
+          enableNfc: (product) {
+            // Handle NFC functionality
+          },
+        );
+      },
       data: (product) {
         return assetAsync.when(
           loading: () => const SizedBox.shrink(),
-          error: (err, stack) => Text('Error: $err'),
+          error: (err, stack) {
+            // Log the error but don't show it to the user
+            talker.error("Error fetching asset data: $err");
+            talker.error(stack);
+
+            // Return the product row without asset data
+            return RowItem(
+              forceRemoteUrl: forceRemoteUrl,
+              isOrdering: isOrdering,
+              color: variant.color ?? "#673AB7",
+              stock: stock,
+              model: model,
+              variant: variant,
+              productName: variant.productName ?? "Unknown Product",
+              variantName: variant.name,
+              imageUrl: null, // No image available in error case
+              isComposite:
+                  !isOrdering ? (product?.isComposite ?? false) : false,
+              edit: (productId, type) {
+                talker.info("navigating to Edit!");
+                showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => OptionModal(
+                    child: ProductEntryScreen(productId: productId),
+                  ),
+                );
+              },
+              delete: (productId, type) async {
+                await deleteFunc(productId, model);
+              },
+              enableNfc: (product) {
+                // Handle NFC functionality
+              },
+            );
+          },
           data: (asset) {
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
@@ -148,19 +210,16 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   !isOrdering ? (product?.isComposite ?? false) : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
-                if (_getDeviceType(context) != "Phone") {
-                  showDialog(
-                    barrierDismissible: false,
-                    context: context,
-                    builder: (context) => OptionModal(
-                      child: ProductEntryScreen(productId: productId),
-                    ),
-                  );
-                } else {
-                  locator<RouterService>().navigateTo(
-                    AddProductViewRoute(productId: productId),
-                  );
-                }
+                // locator<RouterService>().navigateTo(
+                //   AddProductViewRoute(productId: productId),
+                // );
+                showDialog(
+                  barrierDismissible: false,
+                  context: context,
+                  builder: (context) => OptionModal(
+                    child: ProductEntryScreen(productId: productId),
+                  ),
+                );
               },
               delete: (productId, type) async {
                 await deleteFunc(productId, model);

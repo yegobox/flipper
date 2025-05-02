@@ -25,7 +25,7 @@ class Hlc implements Comparable<Hlc> {
   Hlc.fromDate(DateTime dateTime, String nodeId)
       : this(dateTime.millisecondsSinceEpoch, 0, nodeId);
 
-  Hlc.now(String nodeId) : this.fromDate(DateTime.now(), nodeId);
+  Hlc.now(String nodeId) : this.fromDate(DateTime.now().toUtc(), nodeId);
 
   Hlc.fromLogicalTime(logicalTime, String nodeId)
       : this(logicalTime >> _shift, logicalTime & _maxCounter, nodeId);

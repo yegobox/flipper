@@ -16,6 +16,7 @@ import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
+import 'package:flipper_dashboard/export/models/expense.dart';
 
 class PaymentSummary {
   final String method;
@@ -193,39 +194,86 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     currentY += 20; // Reduced space between rows
 
     // Draw the third row of information
-    // drawLabelValuePair(
-    //     'Gross Profit:', config.grossProfit?.toRwf() ?? '', 0, currentY);
-    // drawLabelValuePair('Opening Balance:', 100.toRwf(), width * 0.5, currentY);
+    drawLabelValuePair('Opening Balance:', '0.00', 0, currentY);
+    drawLabelValuePair('Tax Rate:', '18%', width * 0.5, currentY);
 
     // Increment Y position for the next row
     currentY += 20; // Reduced space between rows
 
     // Draw the fourth row of information
-    // drawLabelValuePair(
-    //     'Net Profit:', config.netProfit?.toRwf() ?? '', 0, currentY);
-    // drawLabelValuePair('Tax Amount:', (config.grossProfit ?? 0).toRwf(),
-    // width * 0.5, currentY);
+    drawLabelValuePair('COGS:', config.cogs?.toRwf() ?? '', 0, currentY);
 
     // Set the adjusted header to the PDF document template
     headerFooterExport.pdfDocumentTemplate.top = header;
   }
 
-  Future<void> exportDataGrid({
+  Future<String?> exportDataGrid({
     required ExportConfig config,
-    List<ITransaction>? expenses,
+    List<Expense>? expenses,
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,
   }) async {
+    String? filePath;
     try {
+      // await requestPermissions();
+
+      // Calculate COGS for the transactions in the config
+      double totalCOGS = 0.0;
+      for (final transaction in config.transactions) {
+        try {
+          final transactionItems = await ProxyService.strategy.transactionItems(
+            transactionId: transaction.id,
+          );
+
+          for (final item in transactionItems) {
+            if (item.variantId == null) continue;
+            try {
+              final variant =
+                  await ProxyService.strategy.getVariant(id: item.variantId);
+
+              if (variant != null) {
+                final supplyPrice = variant.supplyPrice ??
+                    (variant.retailPrice != null
+                        ? variant.retailPrice! * 0.7
+                        : 0.0);
+
+                final itemCOGS = supplyPrice * item.qty;
+                totalCOGS += itemCOGS;
+              }
+            } catch (e) {
+              final itemCOGS = item.price * item.qty * 0.7;
+              totalCOGS += itemCOGS;
+            }
+          }
+        } catch (e) {
+          talker.error(
+              'Error fetching items for transaction ${transaction.id}: $e');
+        }
+      }
+
+      // Update config with calculated COGS
+      config = ExportConfig(
+        startDate: config.startDate,
+        endDate: config.endDate,
+        grossProfit: config.grossProfit,
+        netProfit:
+            config.grossProfit != null ? config.grossProfit! - totalCOGS : null,
+        cogs: totalCOGS,
+        currencySymbol: config.currencySymbol,
+        transactions: config.transactions,
+      );
+
+      // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       ref.read(isProcessingProvider.notifier).startProcessing();
-      String filePath;
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
       if (ProxyService.box.exportAsPdf()) {
         final PdfDocument document =
             workBookKey.currentState!.exportToPdfDocument(
           fitAllColumnsInOnePage: true,
+          autoColumnWidth: true,
           canRepeatHeaders: false,
           exportStackedHeaders: false,
           exportTableSummaries: true,
@@ -247,7 +295,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (!isStockRecount) {
           final drawer = await ProxyService.strategy
               .getDrawer(cashierId: ProxyService.box.getUserId()!);
-          final ExcelStyler styler = ExcelStyler(workbook);
+          final styler = ExcelStyler(workbook);
 
           await _addHeaderAndInfoRows(
               reportSheet: reportSheet,
@@ -258,7 +306,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               headerTitle: headerTitle);
 
           _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
-              bottomEndOfRowTitle: bottomEndOfRowTitle);
+              bottomEndOfRowTitle: bottomEndOfRowTitle, cogs: config.cogs ?? 0);
           _formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
@@ -274,10 +322,32 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       ref.read(isProcessingProvider.notifier).stopProcessing();
       await _openOrShareFile(filePath);
+      return filePath;
     } catch (e, s) {
       ref.read(isProcessingProvider.notifier).stopProcessing();
-      talker.error(e);
-      talker.error(s);
+      talker.error('Error: $e');
+      talker.error('Stack: $s');
+      return null;
+    }
+  }
+
+  Future<String> _savePdfFile(PdfDocument document) async {
+    final List<int> bytes = await document.save();
+    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+    final fileName = '${formattedDate}-Report.pdf';
+
+    try {
+      final tempDir = await getApplicationDocumentsDirectory();
+      final filePath = path.join(tempDir.path, fileName);
+      final file = File(filePath);
+
+      await file.create(recursive: true);
+      await file.writeAsBytes(bytes, flush: true);
+
+      return filePath;
+    } catch (e) {
+      talker.error('Error saving PDF file: $e');
+      rethrow;
     }
   }
 
@@ -302,7 +372,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     titleRange.cellStyle = headerStyle;
 
     final taxRate = 18;
-    final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
+    // final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
 
     final infoData = [
       ['TIN Number', business.tinNumber?.toString() ?? ''],
@@ -310,23 +380,19 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ['Start Date', config.startDate?.toIso8601String() ?? '-'],
       ['End Date', config.endDate?.toIso8601String() ?? '-'],
       ['Opening Balance', drawer?.openingBalance ?? 0],
-      ['Gross Profit', config.grossProfit],
-      ['Net Profit', config.netProfit],
       ['Tax Rate', taxRate],
-      ['Tax Amount', taxAmount],
+      ['COGS', config.cogs],
     ];
 
     Map<String, excel.Range> namedRanges = {};
 
-    for (var i = 0; i < infoData.length; i++) {
-      final rowIndex = i + 2;
-      reportSheet.insertRow(rowIndex);
+    for (var i = 0, infoRow = 2; i < infoData.length; i++, infoRow++) {
+      reportSheet.insertRow(infoRow);
       reportSheet
-          .getRangeByName('A$rowIndex')
+          .getRangeByName('A$infoRow')
           .setText(infoData[i][0].toString());
-
       final value = infoData[i][1];
-      final cell = reportSheet.getRangeByName('B$rowIndex');
+      final cell = reportSheet.getRangeByName('B$infoRow');
       try {
         if (value is num) {
           cell.setValue(value);
@@ -335,18 +401,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           cell.setText(value.toString());
         }
       } catch (e) {}
-
       final infoRange = reportSheet.getRangeByName(
-          'A$rowIndex:${String.fromCharCode(64 + reportSheet.getLastColumn())}$rowIndex');
+          'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
       infoRange.cellStyle = infoStyle;
-
-      if (infoData[i][0] == 'Gross Profit') {
-        reportSheet.workbook.names.add('GrossProfit', cell);
-        namedRanges['GrossProfit'] = cell;
-      } else if (infoData[i][0] == 'Net Profit') {
-        reportSheet.workbook.names.add('NetProfit', cell);
-        namedRanges['NetProfit'] = cell;
-      }
     }
 
     return namedRanges;
@@ -354,30 +411,68 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   void _addClosingBalanceRow(
       excel.Worksheet sheet, ExcelStyler styler, String currencyFormat,
-      {required String bottomEndOfRowTitle}) {
+      {required String bottomEndOfRowTitle, required double cogs}) {
     final balanceStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
     final firstDataRow = _getFirstDataRow(sheet);
     final lastDataRow = sheet.getLastRow();
     final closingBalanceRow = lastDataRow + 1;
 
-    sheet.insertRow(closingBalanceRow);
+    // Find the column index for "Amount" (assuming always column C = 3)
+    final amountColIndex = 3; // C
+    final amountColLetter = String.fromCharCode(64 + amountColIndex);
 
+    sheet.insertRow(closingBalanceRow);
     sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
     sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
 
-    final lastColumnLetter = String.fromCharCode(64 + sheet.getLastColumn());
-    final closingBalanceCell =
-        sheet.getRangeByName('$lastColumnLetter$closingBalanceRow');
-    closingBalanceCell.setFormula(
-        '=SUM($lastColumnLetter$firstDataRow:$lastColumnLetter$lastDataRow)');
-    closingBalanceCell.cellStyle = balanceStyle;
-    closingBalanceCell.numberFormat = currencyFormat;
+    final grossProfitCell =
+        sheet.getRangeByName('$amountColLetter$closingBalanceRow');
+    grossProfitCell.setFormula(
+        '=SUM($amountColLetter${firstDataRow}:$amountColLetter$lastDataRow)');
+    grossProfitCell.cellStyle = balanceStyle;
+    grossProfitCell.numberFormat = currencyFormat;
 
     sheet
         .getRangeByName(
-            'A$closingBalanceRow:$lastColumnLetter$closingBalanceRow')
+            'A$closingBalanceRow:$amountColLetter$closingBalanceRow')
         .cellStyle = balanceStyle;
+
+    // Add COGS row
+    final cogsRow = closingBalanceRow + 1;
+    sheet.insertRow(cogsRow);
+    sheet.getRangeByName('A$cogsRow').setText('Cost of Goods Sold (COGS)');
+    sheet.getRangeByName('A$cogsRow').cellStyle = balanceStyle;
+
+    final cogsCell = sheet.getRangeByName('$amountColLetter$cogsRow');
+    cogsCell.setValue(cogs);
+    cogsCell.cellStyle = balanceStyle;
+    cogsCell.numberFormat = currencyFormat;
+
+    sheet.getRangeByName('A$cogsRow:$amountColLetter$cogsRow').cellStyle =
+        balanceStyle;
+
+    // Add named range for COGS
+    sheet.workbook.names.add('COGSValue', cogsCell);
+
+    // Add Net Profit row (Gross Profit - COGS)
+    final netProfitRow = cogsRow + 1;
+    sheet.insertRow(netProfitRow);
+    sheet.getRangeByName('A$netProfitRow').setText('Net Profit');
+    sheet.getRangeByName('A$netProfitRow').cellStyle = balanceStyle;
+
+    final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
+    netProfitCell.setFormula(
+        '=$amountColLetter$closingBalanceRow-$amountColLetter$cogsRow');
+    netProfitCell.cellStyle = balanceStyle;
+    netProfitCell.numberFormat = currencyFormat;
+
+    sheet
+        .getRangeByName('A$netProfitRow:$amountColLetter$netProfitRow')
+        .cellStyle = balanceStyle;
+
+    // Add named range for Net Profit
+    sheet.workbook.names.add('NetProfit', netProfitCell);
   }
 
   void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
@@ -391,7 +486,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   String normalizePaymentMethod(String method) {
-    // Convert to uppercase and trim any leading/trailing whitespace
     return method.trim().toUpperCase();
   }
 
@@ -403,11 +497,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final sheetName = 'Payment Methods';
 
     try {
-      // Initialize sheet
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
       await _initializeSheet(paymentMethodSheet, styler);
 
-      // Process transactions
       final paymentData = await _processTransactions(config.transactions);
 
       if (paymentData.isEmpty) {
@@ -415,7 +507,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         return;
       }
 
-      // Write data and format sheet
       await _writeDataToSheet(
         sheet: paymentMethodSheet,
         paymentData: paymentData,
@@ -437,7 +528,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     excel.Worksheet sheet,
     ExcelStyler styler,
   ) async {
-    // Clear any existing data
     sheet.clear();
 
     final headerStyle = styler.createStyle(
@@ -446,13 +536,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       fontSize: 14,
     );
 
-    // Set headers
     sheet.getRangeByIndex(1, 1).setText('Payment Type');
     sheet.getRangeByIndex(1, 2).setText('Amount Received');
     sheet.getRangeByIndex(1, 3).setText('Transaction Count');
     sheet.getRangeByIndex(1, 4).setText('% of Total');
 
-    // Apply header style
     final headerRange = sheet.getRangeByIndex(1, 1, 1, 4);
     headerRange.cellStyle = headerStyle;
   }
@@ -488,7 +576,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       }
     }
 
-    // Sort by amount descending
     final sortedData = paymentTotals.values.toList()
       ..sort((a, b) => b.amount.compareTo(a.amount));
 
@@ -529,7 +616,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required List<PaymentSummary> paymentData,
     required ExportConfig config,
   }) async {
-    int rowIndex = 2; // Start below headers
+    int rowIndex = 2;
     final totalAmount = paymentData.fold<double>(
       0,
       (sum, data) => sum + data.amount,
@@ -537,20 +624,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     for (final data in paymentData) {
       try {
-        // Payment Type (Column A)
         sheet.getRangeByIndex(rowIndex, 1).setText(data.method);
 
-        // Amount (Column B)
         final amountCell = sheet.getRangeByIndex(rowIndex, 2);
         amountCell.setNumber(data.amount);
         amountCell.numberFormat = config.currencyFormat;
 
-        // Transaction Count (Column C)
         final countCell = sheet.getRangeByIndex(rowIndex, 3);
         countCell.setNumber(data.count.toDouble());
         countCell.numberFormat = '#,##0';
 
-        // Percentage (Column D)
         final percentCell = sheet.getRangeByIndex(rowIndex, 4);
         percentCell.setNumber(data.amount / totalAmount);
         percentCell.numberFormat = '0.00%';
@@ -564,20 +647,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void _formatSheet(excel.Worksheet sheet) {
-    // Auto-fit columns
     for (int i = 1; i <= 4; i++) {
       sheet.autoFitColumn(i);
     }
 
-    // Set minimum widths if needed
-    if (sheet.getRangeByIndex(1, 1).columnWidth < 15) {
-      sheet.getRangeByIndex(1, 1).columnWidth = 15;
-    }
-    if (sheet.getRangeByIndex(1, 2).columnWidth < 12) {
-      sheet.getRangeByIndex(1, 2).columnWidth = 12;
-    }
-
-    // Hide unused columns
     for (int col = 5; col <= sheet.getLastColumn(); col++) {
       sheet.getRangeByIndex(1, col).columnWidth = 0;
     }
@@ -588,26 +661,22 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     int lastDataRow,
     ExportConfig config,
   ) {
-    // Total label
     sheet.getRangeByIndex(lastDataRow, 1).setText('Total');
 
-    // Sum amounts
     final totalCell = sheet.getRangeByIndex(lastDataRow, 2);
     totalCell.setFormula('=SUM(B2:B${lastDataRow - 1})');
     totalCell.numberFormat = config.currencyFormat;
 
-    // Sum transaction counts
     final totalCountCell = sheet.getRangeByIndex(lastDataRow, 3);
     totalCountCell.setFormula('=SUM(C2:C${lastDataRow - 1})');
     totalCountCell.numberFormat = '#,##0';
 
-    // Total percentage (should be 100%)
     final totalPercentCell = sheet.getRangeByIndex(lastDataRow, 4);
     totalPercentCell.setNumber(1);
     totalPercentCell.numberFormat = '0.00%';
   }
 
-  void _addExpensesSheet(excel.Workbook workbook, List<ITransaction> expenses,
+  void _addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
       ExcelStyler styler, String currencyFormat) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
     final expenseHeaderStyle = styler.createStyle(
@@ -621,10 +690,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     for (int i = 0; i < expenses.length; i++) {
       final rowIndex = i + 2;
-      expenseSheet
-          .getRangeByIndex(rowIndex, 1)
-          .setText(expenses[i].transactionType);
-      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].subTotal);
+      expenseSheet.getRangeByIndex(rowIndex, 1).setText(expenses[i].name);
+      expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].amount);
     }
 
     final lastDataRow = expenseSheet.getLastRow();
@@ -641,11 +708,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     totalExpensesCell.numberFormat = currencyFormat;
 
     workbook.names.add('TotalExpenses', totalExpensesCell);
-
-    final netProfitCell = workbook.names['NetProfit'].refersToRange;
-    netProfitCell.setFormula(
-        '=${workbook.names['GrossProfit'].refersToRange.addressGlobal} - TotalExpenses');
-    netProfitCell.numberFormat = currencyFormat;
   }
 
   int _getFirstDataRow(excel.Worksheet sheet) {
@@ -669,22 +731,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       await file.create(recursive: true);
 
-      // Chunk the data if it's large
-      final chunkSize = 1024 * 1024; // 1MB chunk size (adjust as needed)
-      if (bytes.length > chunkSize) {
-        final fileStream = file.openWrite(mode: FileMode.writeOnly);
-        for (int i = 0; i < bytes.length; i += chunkSize) {
-          final end =
-              (i + chunkSize < bytes.length) ? i + chunkSize : bytes.length;
-          final chunk = bytes.sublist(i, end);
-          fileStream.add(chunk);
-        }
-        await fileStream.flush(); // Ensure all data is written to disk
-        await fileStream.close(); // Close the stream
-      } else {
-        await file.writeAsBytes(bytes, flush: true);
-      }
-
+      await file.writeAsBytes(bytes, flush: true);
       return filePath;
     } catch (e) {
       talker.error('Error saving Excel file: $e');
@@ -732,10 +779,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   Future<void> requestPermissions() async {
-    await [
-      permission.Permission.storage,
-      permission.Permission.manageExternalStorage,
-    ].request();
+    await permission.Permission.storage.request();
+    await permission.Permission.manageExternalStorage.request();
 
     if (await permission.Permission.notification.isDenied) {
       await permission.Permission.notification.request();
@@ -747,26 +792,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'pdf': 'application/pdf',
   };
-
-  Future<String> _savePdfFile(PdfDocument document) async {
-    final List<int> bytes = await document.save();
-    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '${formattedDate}-Report.pdf';
-
-    try {
-      final tempDir = await getApplicationDocumentsDirectory();
-      final filePath = path.join(tempDir.path, fileName);
-      final file = File(filePath);
-
-      await file.create(recursive: true);
-      await file.writeAsBytes(bytes, flush: true);
-
-      return filePath;
-    } catch (e) {
-      talker.error('Error saving PDF file: $e');
-      rethrow;
-    }
-  }
 }
 
 class ExcelStyler {
@@ -798,6 +823,7 @@ class ExportConfig {
   DateTime? endDate;
   double? grossProfit;
   double? netProfit;
+  double? cogs;
   String currencySymbol;
   String currencyFormat;
   final List<ITransaction> transactions;
@@ -806,6 +832,7 @@ class ExportConfig {
     this.endDate,
     this.grossProfit,
     this.netProfit,
+    this.cogs,
     this.currencySymbol = 'RF',
     required this.transactions,
   }) : currencyFormat =

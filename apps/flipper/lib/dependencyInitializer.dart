@@ -30,8 +30,9 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'amplifyconfiguration.dart';
 
 // Import for database configuration
-import 'package:supabase_models/brick/repository.dart';
+// ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/storage_adapter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/local_storage.dart';
 
 Future<void> _configureAmplify() async {
@@ -85,11 +86,11 @@ Future<void> initializeDatabaseConfig() async {
   );
 
   // Set the storage adapter in the Repository class
-  Repository.setConfigStorage(storageAdapter);
+  // Repository.setConfigStorage(storageAdapter);
 
   // Log the configured database filenames
-  print('Database configured with main DB: ${Repository.dbFileName}');
-  print('Database configured with queue DB: ${Repository.queueName}');
+  // print('Database configured with main DB: ${Repository.dbFileName}');
+  // print('Database configured with queue DB: ${Repository.queueName}');
 }
 
 // Critical dependencies that must be initialized immediately

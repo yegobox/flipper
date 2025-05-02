@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -40,6 +43,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   //TODO: when is agent get this value to handle all cases where you might not be eligible to see stock.
   bool _isStockButtonEnabled = true;
 
+  Timer? _debounce;
+
   @override
   void initState() {
     super.initState();
@@ -47,9 +52,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _scrollListener() {
+    // Debounce scroll to avoid rapid DB queries
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
-      _loadMoreVariants();
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        _loadMoreVariants();
+      });
     }
   }
 
@@ -60,6 +69,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -84,7 +94,23 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
-    return _buildVariantList(context, model);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Add padding around the segmented button for better visual appearance
+        if (defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.windows ||
+            defaultTargetPlatform == TargetPlatform.linux)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: _buildSegmentedButton(context, ref),
+          ),
+        // Expanded to make the variant list fill the remaining space
+        Expanded(
+          child: _buildVariantList(context, model),
+        ),
+      ],
+    );
   }
 
   Widget _buildVariantList(BuildContext context, ProductViewModel model) {
@@ -196,7 +222,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Center(child: _buildSegmentedButton(context, ref)),
         const SizedBox(height: 30),
         // Flexible container that takes up remaining space
         Expanded(
@@ -208,35 +233,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildSegmentedButton(BuildContext context, WidgetRef ref) {
-    return SegmentedButton<ViewMode>(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.selected)) {
-              return Theme.of(context).colorScheme.primary;
-            }
-            return Colors.white;
-          },
-        ),
-        foregroundColor: WidgetStateProperty.resolveWith<Color>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.selected)) {
-              return Colors.white;
-            }
-            return Theme.of(context).colorScheme.primary;
-          },
-        ),
-        side: WidgetStateProperty.all(
-          BorderSide(color: Theme.of(context).colorScheme.primary),
-        ),
-        overlayColor: WidgetStateProperty.all(Colors.transparent),
-        // Add this to customize the border radius
-        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-        ),
-      ),
+    return CustomSegmentedButton<ViewMode>(
       segments: <ButtonSegment<ViewMode>>[
         ButtonSegment<ViewMode>(
           value: ViewMode.products,
@@ -319,8 +316,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             onTapRowShowRefundModal: false,
             onTapRowShowRecountModal: true,
             showDetailed: false,
-            startDate: startDate ?? DateTime.now(),
-            endDate: endDate ?? DateTime.now(),
+            startDate: startDate ?? DateTime.now().toUtc(),
+            endDate: endDate ?? DateTime.now().toUtc(),
             variants: variants,
             rowsPerPage: ref.read(rowsPerPageProvider),
             showDetailedReport: true,

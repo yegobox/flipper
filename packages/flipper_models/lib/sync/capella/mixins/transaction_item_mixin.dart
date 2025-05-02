@@ -30,7 +30,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    int? branchId,
+    String? branchId,
     String? variantId,
     String? id,
     bool? active,
@@ -45,6 +45,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     String? transactionId,
     int? branchId,
     DateTime? startDate,
+    String? branchIdString,
     DateTime? endDate,
     bool? doneWithTransaction,
     bool? active,

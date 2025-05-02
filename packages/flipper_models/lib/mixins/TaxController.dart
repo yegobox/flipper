@@ -150,7 +150,7 @@ class TaxController<OBJ> {
           List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
             transactionId: transaction.id,
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: (await ProxyService.strategy.activeBranch()).id,
           );
           Receipt? receipt = await ProxyService.strategy
               .getReceipt(transactionId: transaction.id);
@@ -217,9 +217,13 @@ class TaxController<OBJ> {
           await print.print(
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
+            timeFromServer:
+                responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
+                    receipt.timeReceivedFromserver!,
             taxB: totalB,
             taxC: totalC,
             taxA: totalA,
+
             taxD: totalD,
             grandTotal: transaction.subTotal!,
             totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
@@ -304,8 +308,8 @@ class TaxController<OBJ> {
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
 
-      Receipt? receipt =
-          await ProxyService.strategy.getReceipt(transactionId: transaction.id);
+      // Receipt? receipt =
+      //     await ProxyService.strategy.getReceipt(transactionId: transaction.id);
       DateTime now = DateTime.now();
 
       RwApiResponse receiptSignature =
@@ -315,17 +319,14 @@ class TaxController<OBJ> {
         counter: counter,
         URI: await ProxyService.box.getServerUrl() ?? "",
         purchaseCode: purchaseCode,
-        timeToUser: receipt?.whenCreated ?? now,
+        timeToUser: now,
       );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
-        String qrCode = generateQRCode(
-            receipt?.whenCreated?.toYYYMMdd() ?? now.toYYYMMdd(),
-            receiptSignature,
-            receiptType: receiptType,
-            whenCreated: receipt?.whenCreated ?? now);
+        String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature,
+            receiptType: receiptType, whenCreated: now);
 
         /// update transaction with receipt number and total receipt number
 
@@ -348,7 +349,7 @@ class TaxController<OBJ> {
             transactionType: transaction.transactionType,
             cashReceived: transaction.cashReceived,
             customerChangeDue: transaction.customerChangeDue,
-            createdAt: transaction.createdAt ?? DateTime.now(),
+            createdAt: transaction.createdAt ?? DateTime.now().toUtc(),
             receiptType: receiptType,
             updatedAt: transaction.updatedAt,
             customerId: transaction.customerId,
@@ -372,7 +373,7 @@ class TaxController<OBJ> {
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: (await ProxyService.strategy.activeBranch()).id,
             transactionId: transaction.id,
           );
           // copy TransactionItem
@@ -391,7 +392,7 @@ class TaxController<OBJ> {
               item: copy,
               variation: variant,
               partOfComposite: item.partOfComposite ?? false,
-              lastTouched: item.lastTouched ?? DateTime.now(),
+              lastTouched: item.lastTouched ?? DateTime.now().toUtc(),
               discount: item.discount,
               compositePrice: item.compositePrice ?? 0.0,
               quantity: item.qty,
@@ -400,8 +401,6 @@ class TaxController<OBJ> {
               amountTotal: item.totAmt ?? 0.0,
             );
           }
-
-          // ProxyService.strategy.realm!.add(tran);
         } else if (receiptType == "NS" ||
             receiptType == "TS" ||
             receiptType == "PS") {
@@ -468,7 +467,7 @@ class TaxController<OBJ> {
       totalNsSaleIncome: receiptType == "NS"
           ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal!
           : drawer.totalNsSaleIncome ?? 0,
-      openingDateTime: DateTime.now(),
+      openingDateTime: DateTime.now().toUtc(),
       open: true,
     );
   }
@@ -486,6 +485,7 @@ class TaxController<OBJ> {
         signature: receiptSignature,
         transaction: transaction,
         qrCode: qrCode,
+        timeReceivedFromserver: receiptSignature.data!.vsdcRcptPbctDate!,
         counter: counter,
         receiptType: receiptType,
         whenCreated: whenCreated,

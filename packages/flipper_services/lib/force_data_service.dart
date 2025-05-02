@@ -49,11 +49,11 @@ class ForceDataEntryService {
 
     /// bootstrap app permission for admin
     List<Access> permissions = await ProxyService.strategy
-        .access(userId: ProxyService.box.getUserId()!);
+        .access(userId: ProxyService.box.getUserId() ?? 0, fetchRemote: true);
     if (permissions.isEmpty) {
       int? branchId = ProxyService.box.getBranchId();
       int? businessId = ProxyService.box.getBusinessId();
-      int userId = ProxyService.box.getUserId()!;
+      int userId = ProxyService.box.getUserId() ?? 0;
 
       /// it is empty but we might have them on cloud so check on cloud
       final doesBusinessHavePermission = await ProxyService.realmHttp
@@ -107,7 +107,7 @@ class ForceDataEntryService {
       accessLevel: accessLevel,
       status: status,
       userType: AccessLevel.ADMIN,
-      createdAt: DateTime.now(),
+      createdAt: DateTime.now().toUtc(),
     );
   }
 
@@ -124,8 +124,8 @@ class ForceDataEntryService {
       branchId: branchId,
       active: false,
       focused: false,
-      lastTouched: DateTime.now(),
-      createdAt: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
+      createdAt: DateTime.now().toUtc(),
       deletedAt: null,
     );
   }

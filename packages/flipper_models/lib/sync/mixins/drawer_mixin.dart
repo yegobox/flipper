@@ -14,7 +14,7 @@ mixin DrawerMixin implements DrawerInterface {
     drawer.open = false;
     drawer.cashierId = ProxyService.box.getUserId()!;
     drawer.closingBalance = eod;
-    drawer.closingDateTime = DateTime.now();
+    drawer.closingDateTime = DateTime.now().toUtc();
     return await repository.upsert(drawer);
   }
 }

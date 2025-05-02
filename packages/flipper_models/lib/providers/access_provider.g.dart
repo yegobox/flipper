@@ -6,7 +6,7 @@ part of 'access_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userAccessesHash() => r'd63db88a5b8ede79d137843430da98a26dab35b0';
+String _$userAccessesHash() => r'12c38b2214b088fa2f87efaf0415e6df26b6eec5';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -40,10 +40,12 @@ class UserAccessesFamily extends Family<AsyncValue<List<Access>>> {
 
   /// See also [userAccesses].
   UserAccessesProvider call(
-    int userId,
-  ) {
+    int userId, {
+    required String featureName,
+  }) {
     return UserAccessesProvider(
       userId,
+      featureName: featureName,
     );
   }
 
@@ -53,6 +55,7 @@ class UserAccessesFamily extends Family<AsyncValue<List<Access>>> {
   ) {
     return call(
       provider.userId,
+      featureName: provider.featureName,
     );
   }
 
@@ -75,11 +78,13 @@ class UserAccessesFamily extends Family<AsyncValue<List<Access>>> {
 class UserAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
   /// See also [userAccesses].
   UserAccessesProvider(
-    int userId,
-  ) : this._internal(
+    int userId, {
+    required String featureName,
+  }) : this._internal(
           (ref) => userAccesses(
             ref as UserAccessesRef,
             userId,
+            featureName: featureName,
           ),
           from: userAccessesProvider,
           name: r'userAccessesProvider',
@@ -91,6 +96,7 @@ class UserAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
           allTransitiveDependencies:
               UserAccessesFamily._allTransitiveDependencies,
           userId: userId,
+          featureName: featureName,
         );
 
   UserAccessesProvider._internal(
@@ -101,9 +107,11 @@ class UserAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.userId,
+    required this.featureName,
   }) : super.internal();
 
   final int userId;
+  final String featureName;
 
   @override
   Override overrideWith(
@@ -119,6 +127,7 @@ class UserAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         userId: userId,
+        featureName: featureName,
       ),
     );
   }
@@ -130,7 +139,146 @@ class UserAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
 
   @override
   bool operator ==(Object other) {
-    return other is UserAccessesProvider && other.userId == userId;
+    return other is UserAccessesProvider &&
+        other.userId == userId &&
+        other.featureName == featureName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+    hash = _SystemHash.combine(hash, featureName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin UserAccessesRef on AutoDisposeFutureProviderRef<List<Access>> {
+  /// The parameter `userId` of this provider.
+  int get userId;
+
+  /// The parameter `featureName` of this provider.
+  String get featureName;
+}
+
+class _UserAccessesProviderElement
+    extends AutoDisposeFutureProviderElement<List<Access>>
+    with UserAccessesRef {
+  _UserAccessesProviderElement(super.provider);
+
+  @override
+  int get userId => (origin as UserAccessesProvider).userId;
+  @override
+  String get featureName => (origin as UserAccessesProvider).featureName;
+}
+
+String _$allAccessesHash() => r'980941f566daf3451516ccdb9bcb74bb68069f36';
+
+/// See also [allAccesses].
+@ProviderFor(allAccesses)
+const allAccessesProvider = AllAccessesFamily();
+
+/// See also [allAccesses].
+class AllAccessesFamily extends Family<AsyncValue<List<Access>>> {
+  /// See also [allAccesses].
+  const AllAccessesFamily();
+
+  /// See also [allAccesses].
+  AllAccessesProvider call(
+    int userId,
+  ) {
+    return AllAccessesProvider(
+      userId,
+    );
+  }
+
+  @override
+  AllAccessesProvider getProviderOverride(
+    covariant AllAccessesProvider provider,
+  ) {
+    return call(
+      provider.userId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'allAccessesProvider';
+}
+
+/// See also [allAccesses].
+class AllAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
+  /// See also [allAccesses].
+  AllAccessesProvider(
+    int userId,
+  ) : this._internal(
+          (ref) => allAccesses(
+            ref as AllAccessesRef,
+            userId,
+          ),
+          from: allAccessesProvider,
+          name: r'allAccessesProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$allAccessesHash,
+          dependencies: AllAccessesFamily._dependencies,
+          allTransitiveDependencies:
+              AllAccessesFamily._allTransitiveDependencies,
+          userId: userId,
+        );
+
+  AllAccessesProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final int userId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Access>> Function(AllAccessesRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AllAccessesProvider._internal(
+        (ref) => create(ref as AllAccessesRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Access>> createElement() {
+    return _AllAccessesProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AllAccessesProvider && other.userId == userId;
   }
 
   @override
@@ -144,21 +292,149 @@ class UserAccessesProvider extends AutoDisposeFutureProvider<List<Access>> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin UserAccessesRef on AutoDisposeFutureProviderRef<List<Access>> {
+mixin AllAccessesRef on AutoDisposeFutureProviderRef<List<Access>> {
   /// The parameter `userId` of this provider.
   int get userId;
 }
 
-class _UserAccessesProviderElement
-    extends AutoDisposeFutureProviderElement<List<Access>>
-    with UserAccessesRef {
-  _UserAccessesProviderElement(super.provider);
+class _AllAccessesProviderElement
+    extends AutoDisposeFutureProviderElement<List<Access>> with AllAccessesRef {
+  _AllAccessesProviderElement(super.provider);
 
   @override
-  int get userId => (origin as UserAccessesProvider).userId;
+  int get userId => (origin as AllAccessesProvider).userId;
 }
 
-String _$featureAccessHash() => r'ab175e76b4db8681ee30c9141f97208c170e820e';
+String _$tenantHash() => r'726c3ab8c9874cf7faf6c379b44e413c709f369d';
+
+/// See also [tenant].
+@ProviderFor(tenant)
+const tenantProvider = TenantFamily();
+
+/// See also [tenant].
+class TenantFamily extends Family<AsyncValue<Tenant?>> {
+  /// See also [tenant].
+  const TenantFamily();
+
+  /// See also [tenant].
+  TenantProvider call(
+    int userId,
+  ) {
+    return TenantProvider(
+      userId,
+    );
+  }
+
+  @override
+  TenantProvider getProviderOverride(
+    covariant TenantProvider provider,
+  ) {
+    return call(
+      provider.userId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'tenantProvider';
+}
+
+/// See also [tenant].
+class TenantProvider extends AutoDisposeFutureProvider<Tenant?> {
+  /// See also [tenant].
+  TenantProvider(
+    int userId,
+  ) : this._internal(
+          (ref) => tenant(
+            ref as TenantRef,
+            userId,
+          ),
+          from: tenantProvider,
+          name: r'tenantProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$tenantHash,
+          dependencies: TenantFamily._dependencies,
+          allTransitiveDependencies: TenantFamily._allTransitiveDependencies,
+          userId: userId,
+        );
+
+  TenantProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+  }) : super.internal();
+
+  final int userId;
+
+  @override
+  Override overrideWith(
+    FutureOr<Tenant?> Function(TenantRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TenantProvider._internal(
+        (ref) => create(ref as TenantRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Tenant?> createElement() {
+    return _TenantProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TenantProvider && other.userId == userId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TenantRef on AutoDisposeFutureProviderRef<Tenant?> {
+  /// The parameter `userId` of this provider.
+  int get userId;
+}
+
+class _TenantProviderElement extends AutoDisposeFutureProviderElement<Tenant?>
+    with TenantRef {
+  _TenantProviderElement(super.provider);
+
+  @override
+  int get userId => (origin as TenantProvider).userId;
+}
+
+String _$featureAccessHash() => r'd264f7a28e48be93e323ebcc8fc95e4fcef8d45d';
 
 /// See also [featureAccess].
 @ProviderFor(featureAccess)
@@ -306,18 +582,34 @@ class _FeatureAccessProviderElement extends AutoDisposeProviderElement<bool>
 }
 
 String _$featureAccessLevelHash() =>
-    r'91f4a5e1e269cd40c1d7a910cdace428ec6a6114';
+    r'b9c53d211f1d7a4b29be60823f8959b22150fd7c';
 
-/// See also [featureAccessLevel].
+/// this check if a user has one accessLevel required to grant him access regardles of the feature
+/// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+/// to whatever he is trying to access
+///
+/// Copied from [featureAccessLevel].
 @ProviderFor(featureAccessLevel)
 const featureAccessLevelProvider = FeatureAccessLevelFamily();
 
-/// See also [featureAccessLevel].
+/// this check if a user has one accessLevel required to grant him access regardles of the feature
+/// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+/// to whatever he is trying to access
+///
+/// Copied from [featureAccessLevel].
 class FeatureAccessLevelFamily extends Family<bool> {
-  /// See also [featureAccessLevel].
+  /// this check if a user has one accessLevel required to grant him access regardles of the feature
+  /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+  /// to whatever he is trying to access
+  ///
+  /// Copied from [featureAccessLevel].
   const FeatureAccessLevelFamily();
 
-  /// See also [featureAccessLevel].
+  /// this check if a user has one accessLevel required to grant him access regardles of the feature
+  /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+  /// to whatever he is trying to access
+  ///
+  /// Copied from [featureAccessLevel].
   FeatureAccessLevelProvider call({
     required int userId,
     required String accessLevel,
@@ -353,9 +645,17 @@ class FeatureAccessLevelFamily extends Family<bool> {
   String? get name => r'featureAccessLevelProvider';
 }
 
-/// See also [featureAccessLevel].
+/// this check if a user has one accessLevel required to grant him access regardles of the feature
+/// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+/// to whatever he is trying to access
+///
+/// Copied from [featureAccessLevel].
 class FeatureAccessLevelProvider extends AutoDisposeProvider<bool> {
-  /// See also [featureAccessLevel].
+  /// this check if a user has one accessLevel required to grant him access regardles of the feature
+  /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
+  /// to whatever he is trying to access
+  ///
+  /// Copied from [featureAccessLevel].
   FeatureAccessLevelProvider({
     required int userId,
     required String accessLevel,

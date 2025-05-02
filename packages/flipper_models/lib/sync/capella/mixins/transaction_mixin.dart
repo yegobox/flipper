@@ -180,4 +180,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     throw UnimplementedError(
         'deleteTransaction needs to be implemented for Capella');
   }
+
+  @override
+  Future<bool> migrateToNewDateTime({required int branchId}) async {
+    // TODO: implement migrateToNewDateTime
+    throw UnimplementedError();
+  }
 }

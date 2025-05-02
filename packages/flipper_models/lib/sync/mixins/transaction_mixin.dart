@@ -9,6 +9,10 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:synchronized/synchronized.dart';
 
+extension DateOnly on DateTime {
+  DateTime get toDateOnly => DateTime(year, month, day);
+}
+
 mixin TransactionMixin implements TransactionInterface {
   Repository get repository;
 
@@ -33,8 +37,7 @@ mixin TransactionMixin implements TransactionInterface {
         Where('subTotal').isGreaterThan(0), // Optional condition
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
-      if (isCashOut) Where('isCashOut').isExactly(true),
-      if (isExpense) Where('isExpense').isExactly(true),
+      Where('isExpense').isExactly(isExpense),
       if (includePending) Where('status').isExactly(PENDING),
       if (filterType != null) Where('type').isExactly(filterType.toString()),
       if (transactionType != null)
@@ -42,20 +45,37 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      final endRange =
-          startDate == endDate ? endDate.add(Duration(days: 1)) : endDate;
-      conditions.add(
-        Where('lastTouched').isBetween(
-          startDate.toIso8601String(),
-          endRange.toUtc().toIso8601String(),
-        ),
-      );
+      if (startDate == endDate) {
+        talker.info('Date Given ${startDate.toIso8601String()}');
+        conditions.add(
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        // Add condition for the end of the same day
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
+          ),
+        );
+      } else {
+        conditions.add(
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
+          ),
+        );
+      }
     }
 
-    // Add ordering to fetch transactions with latest createdAt first
+    // Add ordering to fetch transactions with latest lastTouched first (for consistency)
     final queryString = Query(
       where: conditions,
-      orderBy: [OrderBy('createdAt', ascending: false)],
+      orderBy: [OrderBy('lastTouched', ascending: false)],
     );
 
     // When fetchRemote is true, we need to ensure we're using alwaysHydrate policy
@@ -234,7 +254,7 @@ mixin TransactionMixin implements TransactionInterface {
           true; // Lock processing for this branch
 
       transaction = ITransaction(
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         reference: randomNumber().toString(),
         transactionNumber: randomNumber().toString(),
         status: PENDING,
@@ -243,11 +263,11 @@ mixin TransactionMixin implements TransactionInterface {
         transactionType: transactionType,
         subTotal: 0.0,
         cashReceived: 0.0,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
         customerChangeDue: 0.0,
         paymentType: ProxyService.box.paymentType() ?? "Cash",
         branchId: branchId,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
       );
 
       await repository.upsert<ITransaction>(transaction);
@@ -472,7 +492,7 @@ mixin TransactionMixin implements TransactionInterface {
       await ProxyService.strategy.addTransactionItem(
         doneWithTransaction: doneWithTransaction,
         transaction: pendingTransaction,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
         quantity: updatableQty != null
@@ -558,7 +578,7 @@ mixin TransactionMixin implements TransactionInterface {
   Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
       {required String sarTyCd}) async {
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-      branchId: ProxyService.box.getBranchId()!,
+      branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: pendingTransaction.id,
       doneWithTransaction: false,
       active: true,
@@ -641,7 +661,9 @@ mixin TransactionMixin implements TransactionInterface {
 
     // update to avoid the same issue, make sure that every parameter is update correctly.
     transaction.receiptType = receiptType ?? transaction.receiptType;
-    transaction.subTotal = subTotal ?? transaction.subTotal;
+    if (subTotal != null && subTotal != 0) {
+      transaction.subTotal = subTotal;
+    }
     transaction.note = note ?? transaction.note;
     transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
@@ -666,8 +688,7 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
 
-    await repository.upsert<ITransaction>(
-        policy: OfflineFirstUpsertPolicy.optimisticLocal, transaction);
+    await repository.upsert<ITransaction>(transaction);
   }
 
   @override
@@ -712,33 +733,44 @@ mixin TransactionMixin implements TransactionInterface {
       Where('subTotal').isGreaterThan(0),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
-      if (isCashOut) Where('isExpense').isExactly(true),
+      if (isCashOut) Where('isExpense').isExactly(isCashOut),
+      if (removeAdjustmentTransactions)
+        Where('transactionType').isNot('Adjustment'),
+      if (removeAdjustmentTransactions)
+        Where('transactionType').isNot('adjustment'),
     ];
     // talker.warning(conditions.toString());
     if (startDate != null && endDate != null) {
       if (startDate == endDate) {
-        // Ensure we include the entire day
-        DateTime endOfDay = startDate.add(Duration(days: 1));
-
+        talker.info('Date Given ${startDate.toIso8601String()}');
         conditions.add(
-          Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endOfDay.toUtc().toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        // Add condition for the end of the same day
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       } else {
         conditions.add(
-          Where('lastTouched').isBetween(
-            startDate.toUtc().toIso8601String(),
-            endDate.toUtc().toIso8601String(),
+          Where('lastTouched').isGreaterThanOrEqualTo(
+            startDate.toIso8601String(),
+          ),
+        );
+        conditions.add(
+          Where('lastTouched').isLessThanOrEqualTo(
+            endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
       }
     }
-    if (removeAdjustmentTransactions) {
-      conditions.add(Where('receiptType').isNot('adjustment'));
-    }
-    final queryString = Query(where: conditions);
+    final queryString = Query(
+        // limit: 5000,
+        where: conditions,
+        orderBy: [OrderBy('lastTouched', ascending: false)]);
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
@@ -752,5 +784,21 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
     return await repository.delete<ITransaction>(transaction);
+  }
+
+  @override
+  Future<bool> migrateToNewDateTime({required int branchId}) async {
+    // get all transactions for the branch
+    // final transactions = await repository.get<ITransaction>(
+    //   query: Query(where: [Where('branchId').isExactly(branchId)]),
+    // );
+    // update lastTouched for each transaction
+    // for (final transaction in transactions) {
+    //   if (transaction.lastTouched == null) continue;
+    //   transaction.lastTouched = transaction.lastTouched!.toDateOnly;
+    //   transaction.createdAt = transaction.updatedAt!.toDateOnly;
+    //   await repository.upsert<ITransaction>(transaction);
+    // }
+    return true;
   }
 }

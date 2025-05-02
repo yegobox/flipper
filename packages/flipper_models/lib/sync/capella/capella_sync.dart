@@ -1,9 +1,14 @@
+import 'dart:async';
+
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:supabase_models/brick/models/tenant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
@@ -47,6 +52,7 @@ class CapellaSync extends CapellaSyncBase
         CapellaStockMixin,
         CapellaStorageMixin,
         CapellaSystemMixin,
+        CapellaEbmMixin,
         CapellaTenantMixin,
         CapellaTransactionItemMixin,
         CapellaTransactionMixin,
@@ -131,6 +137,26 @@ class CapellaSync extends CapellaSyncBase
   @override
   Future<List<BusinessType>> businessTypes() {
     // TODO: implement businessTypes
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<Tenant?> tenant({int? businessId, int? userId, String? id}) {
+    // TODO: implement tenant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
+    // TODO: implement tenants
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ITenant>> tenantsFromOnline(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement tenantsFromOnline
     throw UnimplementedError();
   }
 }

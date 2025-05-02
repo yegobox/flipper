@@ -121,4 +121,9 @@ mixin CapellaProductMixin implements ProductInterface {
     throw UnimplementedError(
         'updateProduct needs to be implemented for Capella');
   }
+
+  @override
+  Future<void> hydrateDate({required String branchId}) async {
+    throw UnimplementedError('hydrateDate needs to be implemented for Capella');
+  }
 }

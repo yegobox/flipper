@@ -6,8 +6,6 @@ import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/SessionManager.dart';
-import 'package:flipper_models/helperModels/business.dart';
-import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -16,13 +14,18 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
+import 'package:flipper_models/sync/mixins/customer_mixin.dart';
+import 'package:flipper_models/sync/mixins/delete_mixin.dart';
+import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
+import 'package:flipper_models/sync/mixins/tenant_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
@@ -39,11 +42,8 @@ import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flipper_models/exceptions.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/power_sync/schema.dart';
-import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -54,7 +54,6 @@ import 'package:path/path.dart' as path;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
@@ -72,11 +71,16 @@ class CoreSync extends AiStrategyImpl
         TransactionMixinOld,
         BranchMixin,
         PurchaseMixin,
+        AuthMixin,
         TransactionMixin,
         BusinessMixin,
         TransactionItemMixin,
+        TenantMixin,
         ProductMixin,
+        DeleteMixin,
         VariantMixin,
+        CustomerMixin,
+        EbmMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -213,7 +217,7 @@ class CoreSync extends AiStrategyImpl
               active: map['active'],
               branchId: branchId,
               name: map['name'],
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               value: map['value']);
 
           // Add the unit to db
@@ -525,7 +529,7 @@ class CoreSync extends AiStrategyImpl
 
       hsCd: hsCd ?? "",
       imptItemSttsCd: imptItemsttsCd ?? "",
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       name: product?.name ?? name,
       sku: sku.toString(),
       dcRt: 0.0,
@@ -605,6 +609,7 @@ class CoreSync extends AiStrategyImpl
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
+      required String timeReceivedFromserver,
       required Counter counter,
       required int invoiceNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
@@ -619,6 +624,7 @@ class CoreSync extends AiStrategyImpl
         qrCode: qrCode,
         receiptType: receiptType,
         invoiceNumber: invoiceNumber,
+        timeReceivedFromserver: timeReceivedFromserver.toCompactDateTime(),
         vsdcRcptPbctDate: signature.data?.vsdcRcptPbctDate ?? "",
         sdcId: signature.data?.sdcId ?? "",
         totRcptNo: signature.data?.totRcptNo ?? 0,
@@ -720,101 +726,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> delete(
-      {required String id,
-      String? endPoint,
-      HttpClientInterface? flipperHttpClient}) async {
-    switch (endPoint) {
-      case 'product':
-        final product = await getProduct(
-            id: id,
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!);
-        if (product != null) {
-          await repository.delete<Product>(product);
-        }
-        break;
-      case 'variant':
-        try {
-          final variant = await getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId ?? "");
-
-          await repository.delete<Variant>(
-            variant,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-          await repository.delete<Stock>(
-            stock,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        } catch (e, s) {
-          final variant = await getVariant(id: id);
-          await repository.delete<Variant>(
-            variant!,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-          talker.warning(s);
-          rethrow;
-        }
-
-        break;
-
-      case 'transactionItem':
-        await deleteTransactionItemAndResequence(id: id);
-        break;
-      case 'customer':
-        final customer =
-            (await customers(id: id, branchId: ProxyService.box.getBranchId()!))
-                .firstOrNull;
-        if (customer != null) {
-          await repository.delete<Customer>(
-            customer,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        }
-        break;
-      case 'stockRequest':
-        final request = (await requests(
-          requestId: id,
-        ))
-            .firstOrNull;
-        if (request != null) {
-          // get dependent first
-          final financing = await repository.get<Financing>(
-            query: brick.Query(
-                where: [brick.Where('id').isExactly(request.financingId)]),
-          );
-          try {
-            await repository.delete<Financing>(
-              financing.first,
-              query: brick.Query(
-                  action: QueryAction.delete,
-                  where: [brick.Where('id').isExactly(financing.first.id)]),
-            );
-          } catch (e) {
-            talker.warning(e);
-          }
-          await repository.delete<InventoryRequest>(
-            request,
-            query: brick.Query(
-                action: QueryAction.delete,
-                where: [brick.Where('id').isExactly(id)]),
-          );
-        }
-        break;
-    }
-    return true;
-  }
-
-  @override
   Future<void> deleteBranch(
       {required int branchId,
       required HttpClientInterface flipperHttpClient}) async {
@@ -855,7 +766,7 @@ class CoreSync extends AiStrategyImpl
     TransactionItem item = (await transactionItems(
             id: transactionItemId.id,
             transactionId: transactionId,
-            branchId: ProxyService.box.getBranchId()!))
+            branchId: (await ProxyService.strategy.activeBranch()).id))
         .first;
     await repository.delete(item);
   }
@@ -985,27 +896,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
-    final repository = Repository();
-    final query =
-        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
-    final result = await repository.get<models.Ebm>(
-        query: query,
-        policy: fetchRemote == true
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    final ebm = result.firstOrNull;
-    if (ebm != null) {
-      // set it into the box
-      ProxyService.box
-          .writeString(key: 'getServerUrl', value: ebm.taxServerUrl);
-      ProxyService.box.writeString(key: 'bhfId', value: ebm.bhfId);
-      return ebm;
-    }
-    return null;
-  }
-
-  @override
   Future<Product?> findProductByTenantId({required String tenantId}) async {
     final query = brick.Query(
         where: [brick.Where('bindedToTenantId').isExactly(tenantId)]);
@@ -1112,11 +1002,11 @@ class CoreSync extends AiStrategyImpl
           branchId: branchId,
           businessId: businessId,
           product: models.Product(
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               name: CUSTOM_PRODUCT,
               businessId: businessId,
               color: "#e74c3c",
-              createdAt: DateTime.now(),
+              createdAt: DateTime.now().toUtc(),
               branchId: branchId));
     }
 
@@ -1129,43 +1019,6 @@ class CoreSync extends AiStrategyImpl
     Variant? variant = variantResult.firstOrNull;
 
     return variant;
-  }
-
-  @override
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id}) async {
-    if (id != null) {
-      return repository.get<Customer>(
-          policy: OfflineFirstGetPolicy.localOnly,
-          query: brick.Query(where: [
-            brick.Where('id', value: id, compare: brick.Compare.exact),
-          ]));
-    }
-
-    if (key != null) {
-      final searchFields = ['custNm', 'email', 'telNo'];
-      final queries = searchFields.map((field) => brick.Query(where: [
-            brick.Where(field, value: key, compare: brick.Compare.contains),
-            brick.Where('branchId',
-                value: branchId, compare: brick.Compare.exact),
-          ]));
-
-      final results =
-          await Future.wait(queries.map((query) => repository.get<Customer>(
-                policy: OfflineFirstGetPolicy.localOnly,
-                query: query,
-              )));
-
-      return results.expand((customers) => customers).toList();
-    }
-
-    // If only branchId is provided, return all customers for that branch
-    return repository.get<Customer>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: brick.Query(where: [
-          brick.Where('branchId',
-              value: branchId, compare: brick.Compare.exact),
-        ]));
   }
 
   @override
@@ -1378,8 +1231,9 @@ class CoreSync extends AiStrategyImpl
               ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
               tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A");
         } else {
-          clearData(data: ClearData.Branch, identifier: branchE!.serverId!);
-          clearData(data: ClearData.Business, identifier: business!.serverId);
+          clearData(data: ClearData.Branch, identifier: branchE?.serverId ?? 0);
+          clearData(
+              data: ClearData.Business, identifier: business?.serverId ?? 0);
         }
       }
       final response = await flipperHttpClient.get(uri);
@@ -1535,39 +1389,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> hasActiveSubscription({
-    required int businessId,
-    required HttpClientInterface flipperHttpClient,
-    required bool fetchRemote,
-  }) async {
-    // if (isTestEnvironment()) return true;
-    final models.Plan? plan =
-        await getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
-
-    if (plan == null) {
-      throw NoPaymentPlanFound(
-          "No payment plan found for businessId: $businessId");
-    }
-
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
-
-    // Avoid unnecessary sync if payment is already marked as complete
-    if (!isPaymentCompletedLocally) {
-      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
-        flipperHttpClient: flipperHttpClient,
-        businessId: businessId,
-      );
-
-      // Update the plan's state or handle syncing logic here if necessary
-      if (!isPaymentComplete) {
-        throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
-      }
-    }
-
-    return true;
-  }
-
-  @override
   FutureOr<bool> isAdmin(
       {required int userId, required String appFeature}) async {
     final anyAccess = await repository.get<Access>(
@@ -1591,222 +1412,6 @@ class CoreSync extends AiStrategyImpl
     // You can use regular expressions or any other email validation mechanism
     // For simplicity, this example checks if the input contains '@'
     return input.contains('@');
-  }
-
-  String _formatPhoneNumber(String userPhone) {
-    if (!isEmail(userPhone) && !userPhone.startsWith('+')) {
-      return '+$userPhone';
-    }
-    return userPhone;
-  }
-
-  @override
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false,
-      required Pin pin,
-      required HttpClientInterface flipperHttpClient}) async {
-    final flipperWatch? w =
-        foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
-    w?.start();
-    final String phoneNumber = _formatPhoneNumber(userPhone);
-    final IUser user =
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
-    await configureSystem(userPhone, user, offlineLogin: offlineLogin);
-    await ProxyService.box.writeBool(key: 'authComplete', value: true);
-    if (stopAfterConfigure) return user;
-    if (!skipDefaultAppSetup) {
-      await setDefaultApp(user);
-    }
-    ProxyService.box.writeBool(key: 'pinLogin', value: false);
-    w?.log("user logged in");
-    try {
-      _hasActiveSubscription();
-    } catch (e) {
-      rethrow;
-    }
-    return user;
-  }
-
-  Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
-    await hasActiveSubscription(
-        businessId: ProxyService.box.getBusinessId()!,
-        flipperHttpClient: ProxyService.http,
-        fetchRemote: fetchRemote);
-  }
-
-  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
-      HttpClientInterface flipperHttpClient) async {
-    List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await branches(businessId: pin.businessId!);
-
-    final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
-        branchesE.isNotEmpty &&
-        !foundation.kDebugMode &&
-        !(await ProxyService.status.isInternetAvailable());
-
-    if (shouldEnableOfflineLogin) {
-      offlineLogin = true;
-      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-    }
-
-    final http.Response response =
-        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      /// path the user pin, with
-      final IUser user = IUser.fromJson(json.decode(response.body));
-      await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name);
-      ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.strategy.firebaseLogin(token: user.uid);
-      return user;
-    } else {
-      await _handleLoginError(response);
-      throw Exception("Error during login");
-    }
-  }
-
-  Future<http.Response> _patchPin(
-      int pin, HttpClientInterface flipperHttpClient, String apihub,
-      {required String ownerName}) async {
-    return await flipperHttpClient.patch(
-      Uri.parse(apihub + '/v2/api/pin/${pin}'),
-      body: jsonEncode(<String, String?>{
-        'ownerName': ownerName,
-        'tokenUid': firebase.FirebaseAuth.instance.currentUser?.uid
-      }),
-    );
-  }
-
-  Future<void> _handleLoginError(http.Response response) async {
-    if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    } else if (response.statusCode == 500) {
-      throw PinError(term: "Not found");
-    } else {
-      throw UnknownError(term: response.statusCode.toString());
-    }
-  }
-
-  IUser _createOfflineUser(String phoneNumber, Pin pin,
-      List<Business> businesses, List<Branch> branches) {
-    return IUser(
-      token: pin.tokenUid!,
-      uid: pin.tokenUid,
-      channels: [],
-      phoneNumber: pin.phoneNumber!,
-      id: pin.userId!,
-      tenants: [
-        ITenant(
-            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
-            phoneNumber: phoneNumber,
-            permissions: [],
-            branches: _convertBranches(branches),
-            businesses: _convertBusinesses(businesses),
-            businessId: 0,
-            nfcEnabled: false,
-            userId: pin.userId!,
-            isDefault: false)
-      ],
-    );
-  }
-
-  List<IBranch> _convertBranches(List<Branch> branches) {
-    return branches
-        .map((e) => IBranch(
-            id: e.serverId,
-            name: e.name,
-            businessId: e.businessId,
-            longitude: e.longitude,
-            latitude: e.latitude,
-            location: e.location,
-            active: e.active,
-            isDefault: e.isDefault ?? false))
-        .toList();
-  }
-
-  List<IBusiness> _convertBusinesses(List<Business> businesses) {
-    return businesses
-        .map((e) => IBusiness(
-              id: e.serverId,
-              encryptionKey: e.encryptionKey ?? "",
-              name: e.name,
-              currency: e.currency,
-              categoryId: e.categoryId,
-              latitude: e.latitude,
-              longitude: e.longitude,
-              userId: e.userId.toString(),
-              timeZone: e.timeZone,
-              country: e.country,
-              businessUrl: e.businessUrl,
-              hexColor: e.hexColor,
-              imageUrl: e.imageUrl,
-              type: e.type,
-              metadata: e.metadata,
-              lastSeen: e.lastSeen,
-              firstName: e.firstName,
-              lastName: e.lastName,
-              deviceToken: e.deviceToken,
-              chatUid: e.chatUid,
-              backUpEnabled: e.backUpEnabled,
-              subscriptionPlan: e.subscriptionPlan,
-              nextBillingDate: e.nextBillingDate,
-              previousBillingDate: e.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  e.isLastSubscriptionPaymentSucceeded,
-              backupFileId: e.backupFileId,
-              email: e.email,
-              lastDbBackup: e.lastDbBackup,
-              fullName: e.fullName,
-              role: e.role,
-              tinNumber: e.tinNumber,
-              bhfId: e.bhfId,
-              dvcSrlNo: e.dvcSrlNo,
-              adrs: e.adrs,
-              taxEnabled: e.taxEnabled,
-              isDefault: e.isDefault,
-              businessTypeId: e.businessTypeId,
-            ))
-        .toList();
-  }
-
-  Future<ITransaction?> _pendingTransaction({
-    required int branchId,
-    required String transactionType,
-    required bool isExpense,
-    bool includeSubTotalCheck = true,
-  }) async {
-    try {
-      // Build the query
-      final query = brick.Query(where: [
-        brick.Where('branchId', value: branchId, compare: brick.Compare.exact),
-        brick.Where('isExpense',
-            value: isExpense, compare: brick.Compare.exact),
-        brick.Where('status', value: PENDING, compare: brick.Compare.exact),
-        brick.Where('transactionType',
-            value: transactionType, compare: brick.Compare.exact),
-        if (includeSubTotalCheck)
-          brick.Where('subTotal', value: 0, compare: brick.Compare.greaterThan),
-      ]);
-
-      /// Fetch transactions
-      /// keey it local localOnly this is to avoid the status to change from remote and
-      final List<ITransaction> transactions =
-          await repository.get<ITransaction>(
-        query: query,
-        policy: OfflineFirstGetPolicy.localOnly,
-      );
-
-      // Return the first transaction (if any)
-      return transactions.isNotEmpty ? transactions.last : null;
-    } catch (e, s) {
-      // Log errors (optional, replace talker with your preferred logger)
-      talker.error('Error in _pendingTransaction: $e');
-      talker.error('Stack trace: $s');
-      return null;
-    }
   }
 
   @override
@@ -1982,7 +1587,7 @@ class CoreSync extends AiStrategyImpl
 
       final newAddon = models.PlanAddon(
         addonName: addonName,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         planId: businessId,
       );
 
@@ -2036,7 +1641,7 @@ class CoreSync extends AiStrategyImpl
           isYearlyPlan: isYearlyPlan,
           rule: isYearlyPlan ? 'yearly' : 'monthly',
           totalPrice: totalPrice.toInt(),
-          createdAt: DateTime.now(),
+          createdAt: DateTime.now().toUtc(),
           numberOfPayments: numberOfPayments,
           nextBillingDate: nextBillingDate,
           paymentMethod: paymentMethod,
@@ -2106,10 +1711,10 @@ class CoreSync extends AiStrategyImpl
       product: Product(
         color: randomizeColor(),
         name: item.itemNm!,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         branchId: branchId,
         businessId: ProxyService.box.getBusinessId()!,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         spplrNm: item.spplrNm,
       ),
       supplyPrice: item.supplyPrice ?? 0,
@@ -2119,26 +1724,6 @@ class CoreSync extends AiStrategyImpl
       spplrItemCd: item.hsCd,
       spplrItemClsCd: item.hsCd,
     );
-  }
-
-  @override
-  Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid}) async {
-    uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
-    final response = await flipperHttpClient.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      body:
-          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
-    );
-    final responseBody = jsonDecode(response.body);
-    talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
-    talker.warning("sendLoginRequest:token:${responseBody['token']}");
-    ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
-    ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-    await ProxyService.box
-        .writeString(key: 'bearerToken', value: responseBody['token']);
-    return response;
   }
 
   @override
@@ -2157,8 +1742,8 @@ class CoreSync extends AiStrategyImpl
         "bhfId": await ProxyService.box.bhfId(),
         'tinNumber': business?.tinNumber,
         'encryptionKey': ProxyService.box.encryptionKey(),
-        'dbPath': path.join(
-            (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
+        // 'dbPath': path.join(
+        //     (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
       });
     } catch (e, s) {
       talker.error(e, s);
@@ -2313,191 +1898,10 @@ class CoreSync extends AiStrategyImpl
           talker.warning('Login not complete. Additional steps required.');
         }
       }
-
-//       /// TODO: once I enable for a user to auth using his creds maybe I will enable this
-//       /// but we have one user we keep using for auth uploads
-//       // final Map<cognito.AuthUserAttributeKey, String> userAttributes = {
-//       //   if (identifier.contains('@'))
-//       //     cognito.AuthUserAttributeKey.email: identifier,
-//       //   if (!identifier.contains('@')) ...{
-//       //     cognito.AuthUserAttributeKey.phoneNumber: identifier,
-//       //     // Provide a default email to satisfy the schema requirement
-//       //     cognito.AuthUserAttributeKey.email: 'yegobox@gmail.com',
-//       //   }
-//       // };
-
-//       // final signUpResult = await amplify.Amplify.Auth.signUp(
-//       //   username: identifier,
-//       //   password:
-//       //       identifier, // Using the identifier as the password for simplicity
-//       //   options: cognito.SignUpOptions(
-//       //     userAttributes: userAttributes,
-//       //   ),
-//       // );
-
-//       // if (signUpResult.isSignUpComplete) {
-//       //   talker.warning('User signed up successfully!');
-//       // } else {
-//       //   talker.warning('Sign up not complete. Additional steps required.');
-//       // }
-//     } on cognito.AuthException catch (e) {
-//       talker.error('Unexpected error: $e');
-//       // rethrow;
     } catch (e) {
       talker.error('Unexpected error: $e');
       // rethrow;
     }
-  }
-
-  @override
-  FutureOr<Tenant?> tenant({int? businessId, int? userId}) async {
-    if (businessId != null) {
-      return (await repository.get<Tenant>(
-              query: brick.Query(
-                  where: [brick.Where('businessId').isExactly(businessId)])))
-          .firstOrNull;
-    } else {
-      return (await repository.get<Tenant>(
-              query: brick.Query(
-                  where: [brick.Where('userId').isExactly(userId)])))
-          .firstOrNull;
-    }
-  }
-
-  @override
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
-    return repository.get<Tenant>(
-        query: brick.Query(where: [
-      brick.Where('businessId').isExactly(businessId),
-      if (excludeUserId != null) brick.Where('userId').isExactly(excludeUserId),
-    ]));
-  }
-
-  @override
-  Future<List<ext.ITenant>> tenantsFromOnline(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient}) async {
-    final http.Response response = await flipperHttpClient
-        .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
-    if (response.statusCode == 200) {
-      final tenantToAdd = <Tenant>[];
-      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
-        ITenant jTenant = tenant;
-        Tenant iTenant = Tenant(
-            isDefault: jTenant.isDefault,
-            name: jTenant.name,
-            userId: jTenant.userId,
-            businessId: jTenant.businessId,
-            nfcEnabled: jTenant.nfcEnabled ?? false,
-            email: jTenant.email,
-            phoneNumber: jTenant.phoneNumber);
-
-        for (IBusiness business in jTenant.businesses) {
-          Business biz = Business(
-              serverId: business.id,
-              userId: int.parse(business.userId),
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: false,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey);
-          Business? exist = (await repository.get<Business>(
-                  query: brick.Query(
-                      where: [brick.Where('serverId').isExactly(business.id)])))
-              .firstOrNull;
-          if (exist == null) {
-            await repository.upsert<Business>(biz);
-          }
-        }
-
-        for (IBranch brannch in jTenant.branches) {
-          Branch branch = Branch(
-              serverId: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault);
-          Branch? exist = (await repository.get<Branch>(
-                  query: brick.Query(
-                      where: [brick.Where('serverId').isExactly(brannch.id)])))
-              .firstOrNull;
-          if (exist == null) {
-            await repository.upsert<Branch>(branch);
-          }
-        }
-
-        final permissionToAdd = <LPermission>[];
-        for (ext.IPermission permission in jTenant.permissions) {
-          LPermission? exist = (await repository.get<LPermission>(
-                  query: brick.Query(
-                      where: [brick.Where('id').isExactly(permission.id)])))
-              .firstOrNull;
-          if (exist == null) {
-            final perm = LPermission(name: permission.name);
-            permissionToAdd.add(perm);
-          }
-        }
-
-        for (LPermission permission in permissionToAdd) {
-          await repository.upsert<LPermission>(permission);
-        }
-
-        Tenant? tenanti = (await repository.get<Tenant>(
-                query: brick.Query(
-                    where: [brick.Where('userId').isExactly(iTenant.userId)])))
-            .firstOrNull;
-
-        if (tenanti == null) {
-          tenantToAdd.add(iTenant);
-        }
-      }
-
-      if (tenantToAdd.isNotEmpty) {
-        for (Tenant tenant in tenantToAdd) {
-          await repository.upsert<Tenant>(tenant);
-        }
-      }
-
-      return ITenant.fromJsonList(response.body);
-    }
-    throw InternalServerException(term: "we got unexpected response");
   }
 
   @override
@@ -2547,8 +1951,8 @@ class CoreSync extends AiStrategyImpl
     // build brick Counter to pass in to upsert
     for (Counter counter in counters) {
       final upCounter = models.Counter(
-        createdAt: DateTime.now(),
-        lastTouched: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
         id: counter.id,
         branchId: counter.branchId,
         curRcptNo: receiptSignature!.data?.rcptNo ?? 0,
@@ -2624,18 +2028,18 @@ class CoreSync extends AiStrategyImpl
       try {
         // Fetch transaction items
         List<TransactionItem> items = await transactionItems(
-          branchId: branchId,
+          branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
         double subTotalFinalized = cashReceived;
         if (isIncome) {
           // Update transaction details
-          final double subTotal = items.fold(
-              0, (num a, b) => a + (b.price * (b.qty ?? 0).toDouble()));
+          final double subTotal =
+              items.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
-          _updateStockAndItems(items: items, branchId: branchId);
+          await _updateStockAndItems(items: items, branchId: branchId);
         }
         _updateTransactionDetails(
           transaction: transaction,
@@ -2724,33 +2128,31 @@ class CoreSync extends AiStrategyImpl
   }) async {
     try {
       final adjustmentTransaction = await _createAdjustmentTransaction();
-      final business = await ProxyService.strategy.getBusiness();
+      final business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final serverUrl = await ProxyService.box.getServerUrl();
 
       if (business == null) {
-        talker.warning('Business or Server URL is null, aborting update.');
-        return; // Early exit if crucial data is missing
+        throw Exception("Business not found");
       }
 
       if (adjustmentTransaction == null) {
-        talker.warning("Failed to create adjustment transaction. Aborting.");
-        return;
+        throw Exception("Failed to create adjustment transaction");
       }
-      if (serverUrl != null) {
-        await _processTransactionItems(
-          items: items,
-          branchId: branchId,
-          adjustmentTransaction: adjustmentTransaction,
-          business: business,
-          serverUrl: serverUrl,
-        );
+      await _processTransactionItems(
+        items: items,
+        branchId: branchId,
+        adjustmentTransaction: adjustmentTransaction,
+        business: business,
+        serverUrl: serverUrl,
+      );
 
-        // Assuming completeTransaction is defined in the same scope.
-        await completeTransaction(pendingTransaction: adjustmentTransaction);
-      }
+      // Assuming completeTransaction is defined in the same scope.
+      await completeTransaction(pendingTransaction: adjustmentTransaction);
     } catch (e, s) {
       talker.error(s);
       talker.warning(e);
+      rethrow;
     }
   }
 
@@ -2773,7 +2175,7 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    required String serverUrl,
+    String? serverUrl,
   }) async {
     for (TransactionItem item in items) {
       await _processSingleTransactionItem(
@@ -2791,7 +2193,7 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    required String serverUrl,
+    String? serverUrl,
   }) async {
     if (!item.active!) {
       repository.delete(item);
@@ -2803,7 +2205,7 @@ class CoreSync extends AiStrategyImpl
     final variant = await ProxyService.strategy.getVariant(id: item.variantId);
     // Setting the quantity here, after the stock patch is crucial for accuracy.
 
-    variant?.qty = item.qty?.toDouble();
+    variant?.qty = item.qty.toDouble();
     if (variant != null) {
       await _updateVariantAndPatchStock(
         variant: variant,
@@ -2842,19 +2244,20 @@ class CoreSync extends AiStrategyImpl
   Future<void> _updateVariantAndPatchStock({
     required Variant variant,
     required TransactionItem item,
-    required String serverUrl,
+    String? serverUrl,
   }) async {
     ProxyService.box.writeBool(key: 'lockPatching', value: true);
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
-
-    VariantPatch.patchVariant(
-      URI: serverUrl,
-      identifier: variant.id,
-      sendPort: (message) {
-        ProxyService.notification.sendLocalNotification(body: message);
-      },
-    );
+    if (serverUrl != null) {
+      VariantPatch.patchVariant(
+        URI: serverUrl,
+        identifier: variant.id,
+        sendPort: (message) {
+          ProxyService.notification.sendLocalNotification(body: message);
+        },
+      );
+    }
   }
 
   Future<void> _updateStockForItem({
@@ -2885,7 +2288,7 @@ class CoreSync extends AiStrategyImpl
         item.remainingStock = finalStock;
         item.updatedAt = DateTime.now().toUtc().toLocal();
         item.lastTouched = DateTime.now().toUtc().toLocal();
-        repository.upsert<TransactionItem>(item);
+        await repository.upsert<TransactionItem>(item);
       }
     } catch (e, s) {
       talker.error(s);
@@ -2973,36 +2376,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<void> deleteAll<T extends Object>(
-      {required String tableName}) async {
-    // if (tableName == productsTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<Product>();
-    //   });
-    // }
-    // if (tableName == variantTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<Variant>();
-    //   });
-    // }
-    // if (tableName == stocksTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<Stock>();
-    //   });
-    // }
-    // if (tableName == transactionItemsTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<TransactionItem>();
-    //   });
-    // }
-    // if (tableName == stockRequestsTable) {
-    //   realm!.write(() {
-    //     realm!.deleteAll<StockRequests>();
-    //   });
-    // }
-    if (tableName == transactionItemsTable) {
-      // await repository.sqliteProvider.;
-    }
-  }
+      {required String tableName}) async {}
 
   @override
   FutureOr<void> updateCategory(
@@ -3023,38 +2397,6 @@ class CoreSync extends AiStrategyImpl
       category.branchId = branchId ?? category.branchId;
       await repository.upsert<Category>(category);
     }
-  }
-
-  @override
-  Future<void> updateTenant(
-      {required String tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      int? userId,
-      int? businessId,
-      String? type,
-      int? id,
-      int? pin,
-      bool? sessionActive,
-      int? branchId}) async {
-    final tenant = (await repository.get<Tenant>(
-            query: brick.Query(where: [
-      brick.Where('id').isExactly(tenantId),
-    ])))
-        .firstOrNull;
-
-    repository.upsert<Tenant>(Tenant(
-      id: tenantId,
-      name: name ?? tenant?.name,
-      userId: userId ?? tenant?.userId,
-      phoneNumber: phoneNumber ?? tenant?.phoneNumber,
-      email: email ?? tenant?.email,
-      businessId: businessId ?? tenant?.businessId,
-      type: type ?? tenant?.type ?? "Agent",
-      pin: pin ?? tenant?.pin,
-      sessionActive: sessionActive ?? tenant?.sessionActive,
-    ));
   }
 
   @override
@@ -3235,49 +2577,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> saveEbm({
-    required int branchId,
-    required String severUrl,
-    required String bhFId,
-  }) async {
-    final business =
-        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
-
-    if (business == null) {
-      throw Exception("Business not found");
-    }
-
-    final query = brick.Query(where: [
-      brick.Where('branchId').isExactly(branchId),
-      brick.Where('bhfId').isExactly(bhFId),
-    ]);
-
-    final ebm = await repository.get<models.Ebm>(
-      query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    final existingEbm = ebm.firstOrNull;
-
-    final updatedEbm = existingEbm ??
-        models.Ebm(
-          bhfId: bhFId,
-          tinNumber: business.tinNumber!,
-          dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
-          userId: ProxyService.box.getUserId()!,
-          taxServerUrl: severUrl,
-          businessId: business.serverId,
-          branchId: branchId,
-        );
-
-    if (existingEbm != null) {
-      updatedEbm.taxServerUrl = severUrl;
-    }
-
-    await repository.upsert(updatedEbm);
-  }
-
-  @override
   FutureOr<void> savePaymentType({
     TransactionPaymentRecord? paymentRecord,
     String? transactionId,
@@ -3358,7 +2657,7 @@ class CoreSync extends AiStrategyImpl
       );
     } else {
       final newPaymentRecord = TransactionPaymentRecord(
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         amount: amount,
         transactionId: transactionId,
         paymentMethod: paymentMethod,
@@ -3382,7 +2681,7 @@ class CoreSync extends AiStrategyImpl
       required double value}) async {
     final stock = Stock(
       id: const Uuid().v4(),
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       branchId: branchId,
       currentStock: currentStock,
       rsdQty: rsdQty,
@@ -3448,22 +2747,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<Access>> access(
-      {required int userId, String? featureName}) async {
-    return await repository.get<Access>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
-      query: brick.Query(
-        where: [
-          brick.Where('userId').isExactly(userId),
-          if (featureName != null)
-            brick.Where('featureName').isExactly(featureName),
-        ],
-        orderBy: [brick.OrderBy('id', ascending: true)],
-      ),
-    );
-  }
-
-  @override
   FutureOr<Branch> addBranch(
       {required String name,
       required int businessId,
@@ -3524,8 +2807,40 @@ class CoreSync extends AiStrategyImpl
       required String featureName,
       required String accessLevel,
       required String status,
+      required int branchId,
+      required int businessId,
       required String userType}) {
-    // TODO: implement updateAccess
+    Access access = Access(
+      id: accessId,
+      userId: userId,
+      featureName: featureName,
+      accessLevel: accessLevel,
+      status: status,
+      branchId: branchId,
+      businessId: businessId,
+      userType: userType,
+    );
+    repository.upsert(access);
+  }
+
+  @override
+  FutureOr<List<Access>> access(
+      {required int userId,
+      String? featureName,
+      required bool fetchRemote}) async {
+    return await repository.get<Access>(
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
+      query: brick.Query(
+        where: [
+          brick.Where('userId').isExactly(userId),
+          if (featureName != null)
+            brick.Where('featureName').isExactly(featureName),
+        ],
+        orderBy: [brick.OrderBy('id', ascending: true)],
+      ),
+    );
   }
 
   @override
@@ -3544,188 +2859,6 @@ class CoreSync extends AiStrategyImpl
 
       repository.upsert<Branch>(branchUpdate);
     }
-  }
-
-  @override
-  Future<Tenant?> saveTenant(
-      {required Business business,
-      required Branch branch,
-      String? phoneNumber,
-      String? name,
-      String? id,
-      String? email,
-      int? businessId,
-      bool? sessionActive,
-      int? branchId,
-      String? imageUrl,
-      int? pin,
-      bool? isDefault,
-      required HttpClientInterface flipperHttpClient,
-      required String userType}) async {
-    throw UnimplementedError();
-    // final data = jsonEncode({
-    //   "phoneNumber": phoneNumber,
-    //   "name": name,
-    //   "businessId": business.serverId,
-    //   "permissions": [
-    //     {"name": userType.toLowerCase()}
-    //   ],
-    //   "businesses": [business.toJson()],
-    //   "branches": [branch.toJson()]
-    // });
-
-    // final http.Response response = await flipperHttpClient
-    //     .post(Uri.parse("$apihub/v2/api/tenant"), body: data);
-
-    // if (response.statusCode == 200) {
-    //   try {
-    //     ITenant jTenant = ITenant.fromRawJson(response.body);
-    //     await _createPin(
-    //       flipperHttpClient: flipperHttpClient,
-    //       phoneNumber: phoneNumber,
-    //       pin: jTenant.userId,
-    //       branchId: business.serverId!,
-    //       businessId: branch.serverId!,
-    //       defaultApp: 1,
-    //     );
-    //     ITenant iTenant = ITenant(
-    //       businesses: jTenant.businesses,
-    //       branches: jTenant.branches,
-    //       isDefault: jTenant.isDefault,
-
-    //       permissions: jTenant.permissions,
-    //       name: jTenant.name,
-    //       businessId: jTenant.businessId,
-    //       email: jTenant.email,
-    //       userId: jTenant.userId,
-    //       nfcEnabled: jTenant.nfcEnabled,
-    //       phoneNumber: jTenant.phoneNumber,
-    //     );
-    //     final branchToAdd = <Branch>[];
-    //     final permissionToAdd = <LPermission>[];
-    //     final businessToAdd = <Business>[];
-
-    //     for (var business in jTenant.businesses) {
-    //       Business? existingBusiness = realm!
-    //           .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
-    //       if (existingBusiness == null) {
-    //         businessToAdd.add(Business(
-
-    //           serverId: business.serverId!,
-    //           userId: business.userId,
-    //           name: business.name,
-    //           currency: business.currency,
-    //           categoryId: business.categoryId,
-    //           latitude: business.latitude,
-    //           longitude: business.longitude,
-    //           timeZone: business.timeZone,
-    //           country: business.country,
-    //           businessUrl: business.businessUrl,
-    //           hexColor: business.hexColor,
-    //           imageUrl: business.imageUrl,
-    //           type: business.type,
-    //           active: business.active,
-    //           chatUid: business.chatUid,
-    //           metadata: business.metadata,
-    //           role: business.role,
-    //           lastSeen: business.lastSeen,
-    //           firstName: business.firstName,
-    //           lastName: business.lastName,
-    //           createdAt: business.createdAt,
-    //           deviceToken: business.deviceToken,
-    //           backUpEnabled: business.backUpEnabled,
-    //           subscriptionPlan: business.subscriptionPlan,
-    //           nextBillingDate: business.nextBillingDate,
-    //           previousBillingDate: business.previousBillingDate,
-    //           isLastSubscriptionPaymentSucceeded:
-    //               business.isLastSubscriptionPaymentSucceeded,
-    //           backupFileId: business.backupFileId,
-    //           email: business.email,
-    //           lastDbBackup: business.lastDbBackup,
-    //           fullName: business.fullName,
-    //           tinNumber: business.tinNumber,
-    //           bhfId: business.bhfId,
-    //           dvcSrlNo: business.dvcSrlNo,
-    //           adrs: business.adrs,
-    //           taxEnabled: business.taxEnabled,
-    //           taxServerUrl: business.taxServerUrl,
-    //           isDefault: business.isDefault,
-    //           businessTypeId: business.businessTypeId,
-    //           lastTouched: business.lastTouched,
-    //           deletedAt: business.deletedAt,
-    //           encryptionKey: business.encryptionKey,
-    //         ));
-    //       }
-    //     }
-
-    //     for (var branch in jTenant.branches) {
-    //       final existingBranch =
-    //           realm!.query<Branch>(r'serverId==$0', [branch.id]).firstOrNull;
-    //       if (existingBranch == null) {
-    //         Branch br = Branch(
-
-    //           serverId: branch.id,
-    //           name: branch.name,
-    //           businessId: branch.businessId,
-    //           active: branch.active,
-    //           lastTouched: branch.lastTouched,
-    //           latitude: branch.latitude,
-    //           longitude: branch.longitude,
-    //         );
-    //         branchToAdd.add(br);
-    //       }
-    //     }
-
-    //     for (var permission in jTenant.permissions) {
-    //       LPermission? existingPermission = realm!
-    //           .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
-    //       if (existingPermission == null) {
-    //         permissionToAdd.add(LPermission(
-
-    //           name: permission.name,
-    //           id: permission.id,
-    //           userId: permission.userId,
-    //         ));
-    //       }
-    //     }
-
-    //     Tenant? tenantToAdd;
-    //     Tenant? tenant =
-    //         realm!.query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
-    //     if (tenant == null) {
-    //       tenantToAdd = Tenant(
-
-    //         name: jTenant.name,
-    //         phoneNumber: jTenant.phoneNumber,
-    //         email: jTenant.email,
-    //         nfcEnabled: jTenant.nfcEnabled,
-    //         businessId: jTenant.businessId,
-    //         userId: jTenant.userId,
-
-    //         isDefault: jTenant.isDefault,
-    //         pin: jTenant.pin,
-    //       );
-    //       realm!.write(() {
-    //         realm!.add<Tenant>(tenantToAdd!);
-    //       });
-    //     }
-
-    //     realm!.write(() {
-    //       realm!.addAll<Business>(businessToAdd);
-    //       realm!.addAll<Branch>(branchToAdd);
-    //       realm!.write(() {
-    //         realm!.addAll<LPermission>(permissionToAdd);
-    //       });
-    //     });
-
-    //     return tenantToAdd;
-    //   } catch (e) {
-    //     talker.error(e);
-    //     rethrow;
-    //   }
-    // } else {
-    //   throw InternalServerError(term: "internal server error");
-    // }
   }
 
   @override
@@ -3843,7 +2976,7 @@ class CoreSync extends AiStrategyImpl
       required TransactionItem item,
       required int subBranchId}) async {
     final newStock = Stock(
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       branchId: subBranchId,
       currentStock: item.quantityRequested!.toDouble(),
       rsdQty: item.quantityRequested!.toDouble(),
@@ -3920,7 +3053,7 @@ class CoreSync extends AiStrategyImpl
         provider: financeOption,
         status: RequestStatus.pending,
         amount: transaction.subTotal!,
-        approvalDate: DateTime.now(),
+        approvalDate: DateTime.now().toUtc(),
       );
       await repository.upsert(financing);
       Branch branch = await activeBranch();
@@ -4068,10 +3201,10 @@ class CoreSync extends AiStrategyImpl
             product: Product(
               color: randomizeColor(),
               name: item.itemNm ?? item.name,
-              lastTouched: DateTime.now(),
+              lastTouched: DateTime.now().toUtc(),
               branchId: branchId,
               businessId: businessId,
-              createdAt: DateTime.now(),
+              createdAt: DateTime.now().toUtc(),
               spplrNm: item.spplrNm,
               barCode: item.barCode,
               categoryId: categoryId, // Set categoryId on the product
@@ -4347,14 +3480,15 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<bool> isBranchEnableForPayment(
-      {required String currentBranchId}) async {
+      {required String currentBranchId, bool fetchRemote = false}) async {
     final payment_status = await repository.get<BranchPaymentIntegration>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
         query: brick.Query(where: [
           brick.Where('branchId').isExactly(currentBranchId),
-          brick.Where('isEnabled').isExactly(true),
         ]));
-    return payment_status.isNotEmpty;
+    return payment_status.firstOrNull?.isEnabled ?? false;
   }
 
   @override
@@ -4643,7 +3777,7 @@ class CoreSync extends AiStrategyImpl
       delivered: true,
       role: role,
       conversationId: conversationId,
-      timestamp: DateTime.now(),
+      timestamp: DateTime.now().toUtc(),
       aiResponse: aiResponse,
       aiContext: aiContext,
     );
@@ -4658,5 +3792,15 @@ class CoreSync extends AiStrategyImpl
         orderBy: [OrderBy('timestamp', ascending: false)],
       ),
     );
+  }
+
+  @override
+  Future<List<Access>> allAccess({required int userId}) async {
+    return (await repository.get<Access>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [Where('userId').isExactly(userId)],
+      ),
+    ));
   }
 }

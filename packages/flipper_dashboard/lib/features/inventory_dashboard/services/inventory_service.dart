@@ -134,7 +134,7 @@ class InventoryService {
       name: variant.name,
       category: variant.categoryName ?? 'Uncategorized',
       quantity: variant.stock?.currentStock?.toInt() ?? 0,
-      expiryDate: variant.expirationDate ?? DateTime.now(),
+      expiryDate: variant.expirationDate ?? DateTime.now().toUtc(),
       location: location,
     );
   }

@@ -14,17 +14,18 @@ class OuterVariants extends _$OuterVariants {
   bool _isLoading = false;
 
   @override
-  FutureOr<List<Variant>> build(int branchId) async {
+  FutureOr<List<Variant>> build(int branchId, {fetchRemote = false}) async {
     // Reset state when the provider is rebuilt (e.g., branchId changes)
     _currentPage = 0;
     _hasMore = true;
     _isLoading = false;
 
     // Load initial variants
-    return await _loadVariants(branchId);
+    return await _loadVariants(branchId, fetchRemote: fetchRemote);
   }
 
-  Future<List<Variant>> _loadVariants(int branchId) async {
+  Future<List<Variant>> _loadVariants(int branchId,
+      {bool fetchRemote = false}) async {
     // Early return if already loading or no more items to load
     if (_isLoading || !_hasMore) return [];
 
@@ -35,15 +36,46 @@ class OuterVariants extends _$OuterVariants {
       final searchString = ref.watch(searchStringProvider);
       print('Search string: $searchString');
 
-      // Fetch variants from the API with a timeout
-      final variants = await ProxyService.strategy
+      // First try to fetch variants locally
+      List<Variant> variants = await ProxyService.strategy
           .variants(
+            name: searchString,
+            fetchRemote: fetchRemote, // First try locally
             branchId: branchId,
             page: _currentPage,
             itemsPerPage: _itemsPerPage,
           )
           .timeout(
-              const Duration(seconds: 30)); // Add a timeout to prevent hanging
+              const Duration(seconds: 10)); // Add a timeout to prevent hanging
+
+      // If no variants found locally or very few, try to fetch from remote
+      if (variants.isEmpty ||
+          (variants.length < 5 && searchString.isNotEmpty)) {
+        print('Few or no variants found locally, trying remote fetch');
+
+        try {
+          // Try to fetch from remote
+          final remoteVariants = await ProxyService.strategy
+              .variants(
+                name: searchString,
+                fetchRemote: true, // Fetch from remote
+                branchId: branchId,
+                page: _currentPage,
+                itemsPerPage: _itemsPerPage,
+              )
+              .timeout(
+                  const Duration(seconds: 30)); // Longer timeout for remote
+
+          // If we got results from remote, use those instead
+          if (remoteVariants.isNotEmpty) {
+            print('Found ${remoteVariants.length} variants from remote');
+            variants = remoteVariants;
+          }
+        } catch (e) {
+          // If remote fetch fails, continue with local results
+          print('Remote fetch failed: $e');
+        }
+      }
 
       // If search string is empty, return all variants
       if (searchString.isEmpty) {
@@ -68,7 +100,30 @@ class OuterVariants extends _$OuterVariants {
                     .contains(searchString.toLowerCase()));
       }).toList();
 
-      // If no matches, return the unfiltered list
+      // If no matches, try fetching by barcode if the search string looks like a barcode
+      if (filteredVariants.isEmpty && _isNumeric(searchString)) {
+        print('No matches found, trying barcode search for: $searchString');
+        try {
+          final barcodeVariants = await ProxyService.strategy
+              .variants(
+                bcd: searchString,
+                fetchRemote: true, // Always try remote for barcode search
+                branchId: branchId,
+              )
+              .timeout(const Duration(seconds: 20));
+
+          if (barcodeVariants.isNotEmpty) {
+            print('Found ${barcodeVariants.length} variants by barcode');
+            _currentPage++;
+            _hasMore = barcodeVariants.length == _itemsPerPage;
+            return barcodeVariants;
+          }
+        } catch (e) {
+          print('Barcode search failed: $e');
+        }
+      }
+
+      // If still no matches, return the unfiltered list
       if (filteredVariants.isEmpty) {
         print('No matches found for search string: $searchString');
         _currentPage++;
@@ -95,6 +150,12 @@ class OuterVariants extends _$OuterVariants {
     } finally {
       _isLoading = false;
     }
+  }
+
+  // Helper method to check if a string is numeric (likely a barcode)
+  bool _isNumeric(String str) {
+    if (str.isEmpty) return false;
+    return double.tryParse(str) != null;
   }
 
   Future<void> loadMore(int branchId) async {

@@ -42,6 +42,8 @@ final features = [
   AppFeature.CustomAmount,
   AppFeature.Sales,
   AppFeature.Driver,
+  AppFeature.Stock,
+  AppFeature.Tickets,
 ];
 
 class AppFeature {
@@ -54,12 +56,18 @@ class AppFeature {
   static const String Orders = "Orders";
   static const String CustomAmount = "Custom Amount";
   static const String Driver = "Driver";
+  static const String Stock = "Stock";
 }
 
 class AccessLevel {
   static const String WRITE = "write";
   static const String ADMIN = "admin";
   static const String READ = "read";
+}
+
+class UserType {
+  static const String ADMIN = "Admin";
+  static const String CASHIER = "Cashier";
 }
 
 class AppActions {

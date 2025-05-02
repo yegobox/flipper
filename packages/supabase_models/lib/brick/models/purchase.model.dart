@@ -44,6 +44,9 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   int? approved;
   int? rejected;
   int? pending;
+  @Supabase(name: 'created_at')
+  @Sqlite(index: true)
+  DateTime createdAt;
 
   Purchase({
     String? id,
@@ -78,6 +81,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
     this.rejected,
     this.pending,
     this.remark,
+    required this.createdAt,
     this.variants,
   })  : id = id ?? const Uuid().v4(),
         hasUnApprovedVariant = hasUnApprovedVariant ?? true;
@@ -111,6 +115,13 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       totTaxAmt: (json['totTaxAmt'] as num).toDouble(),
       totAmt: (json['totAmt'] as num).toDouble(),
       remark: json['remark'] as String?,
+      createdAt: json['created_at'] != null
+          ? (json['created_at'] is String
+              ? DateTime.tryParse(json['created_at']) ?? DateTime.now().toUtc()
+              : json['created_at'] is int
+                  ? DateTime.fromMillisecondsSinceEpoch(json['created_at'])
+                  : json['created_at'] as DateTime)
+          : DateTime.now().toUtc(),
       variants: (json['itemList'] as List<dynamic>)
           .map((e) => Variant.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -146,6 +157,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       'totTaxAmt': totTaxAmt,
       'totAmt': totAmt,
       'remark': remark,
+      'created_at': createdAt.toIso8601String(),
       'itemList': variants,
     };
   }

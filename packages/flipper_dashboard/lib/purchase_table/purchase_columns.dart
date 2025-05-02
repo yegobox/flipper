@@ -9,6 +9,19 @@ List<GridColumn> buildPurchaseColumns() {
 
   return [
     GridColumn(
+      columnName: 'rowNumber',
+      width: 70,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerLeft,
+        child: const Text(
+          'No.',
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ),
+    GridColumn(
       columnName: 'Name',
       width: double.nan, // Take remaining space
       label: Container(

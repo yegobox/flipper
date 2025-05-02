@@ -24,7 +24,7 @@ mixin NetworkHelper {
       );
       print('Response received: ${response.statusCode}');
       return response;
-    } on DioException catch (e) {
+    } on DioException catch (e, s) {
       print('DioException caught: ${e.message}');
 
       if (e.type == DioExceptionType.connectionTimeout) {
@@ -39,6 +39,7 @@ mixin NetworkHelper {
         throw Exception(
             'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
       } else {
+        talkerInstance?.error(s);
         throw Exception('Unexpected error occurred: ${e.message}');
       }
     } catch (e, s) {

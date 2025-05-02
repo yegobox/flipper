@@ -23,6 +23,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
+import 'package:flipper_services/posthog_service.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -56,125 +57,104 @@ bool skipDependencyInitialization = false;
 // net info: billers
 //1.1.14
 Future<void> main() async {
-  // Preserve the native splash screen until initialization is complete
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  // Flutter framework error handler
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    Sentry.captureException(details.exception, stackTrace: details.stack);
+  };
 
-  // Keep the device in portrait mode during initialization to avoid UI issues
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  // Run everything in a guarded zone
+  await runZonedGuarded<Future<void>>(() async {
+    final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Initialize the rest of the dependencies in the background
-  // while showing the UI to the user
-  if (!skipDependencyInitialization) {
-    // Initialize Firebase first as critical services depend on it
-    await _initializeFirebase();
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
 
-    // Initialize Supabase next as Repository depends on it
-    await _initializeSupabase();
+    if (!skipDependencyInitialization) {
+      await _initializeFirebase();
+      await _initializeSupabase();
+      loc.setupLocator(stackedRouter: stackedRouter);
+      setupDialogUi();
+      setupBottomSheetUi();
+      await initDependencies();
+      initializeDependencies().then((_) {
+        print('All dependencies initialized');
+      });
+    }
 
-    // Initialize critical UI-related services
-    loc.setupLocator(stackedRouter: stackedRouter);
-    setupDialogUi();
-    setupBottomSheetUi();
-
-    // Initialize minimal dependencies required for UI
-    await initDependencies();
-    // Start initialization but don't block UI
-    initializeDependencies().then((_) {
-      print('All dependencies initialized');
-    });
-  }
-
-  await SentryFlutter.init(
-    (options) => options
-      ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey
-      ..release = 'flipper@1.170.4252223232243+1723059742'
-      ..environment = 'production'
-      ..experimental.replay.sessionSampleRate = 1.0
-      ..experimental.replay.onErrorSampleRate = 1.0
-      ..tracesSampleRate = 1.0
-      ..attachScreenshot = true,
-    appRunner: () {
-      // Remove the native splash screen once the app is ready to show
-      FlutterNativeSplash.remove();
-
-      // Now run the actual app
-      runApp(
-        ProviderScope(
-          observers: [StateObserver()],
-          child: OverlaySupport.global(
-            child: Sizer(builder: (context, orientation, deviceType) {
-              return MaterialApp.router(
-                debugShowCheckedModeBanner: false,
-                title: 'flipper',
-                theme: ThemeData(
-                  textTheme: GoogleFonts.poppinsTextTheme(),
-                  brightness: Brightness.light,
-                  primaryColor: Colors.blue,
-                  colorScheme: ColorScheme.fromSeed(
-                    seedColor: const Color(0xFF00C2E8),
-                    primary: const Color(0xFF00C2E8),
-                    secondary: const Color(0xFF1D1D1D),
-                  ).copyWith(surface: Colors.white),
-                  appBarTheme: const AppBarTheme(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    elevation: 0,
+    await SentryFlutter.init(
+      (options) => options
+        ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey
+        ..release = 'flipper@1.170.4252223232243+1723059742'
+        ..environment = 'production'
+        ..experimental.replay.sessionSampleRate = 1.0
+        ..experimental.replay.onErrorSampleRate = 1.0
+        ..tracesSampleRate = 1.0
+        ..attachScreenshot = true,
+      appRunner: () {
+        // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          FlutterNativeSplash.remove();
+          // Use PosthogService singleton to initialize PostHog
+          // await PosthogService.instance.initialize();
+        });
+        runApp(
+          ProviderScope(
+            observers: [StateObserver()],
+            child: OverlaySupport.global(
+              child: Sizer(builder: (context, orientation, deviceType) {
+                return MaterialApp.router(
+                  debugShowCheckedModeBanner: false,
+                  title: 'flipper',
+                  theme: ThemeData(
+                    textTheme: GoogleFonts.poppinsTextTheme(),
+                    brightness: Brightness.light,
+                    primaryColor: Colors.blue,
+                    colorScheme: ColorScheme.fromSeed(
+                      seedColor: const Color(0xFF00C2E8),
+                      primary: const Color(0xFF00C2E8),
+                      secondary: const Color(0xFF1D1D1D),
+                    ).copyWith(surface: Colors.white),
+                    appBarTheme: const AppBarTheme(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      elevation: 0,
+                    ),
+                    cardTheme: CardTheme(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4)),
+                    ),
                   ),
-                  cardTheme: CardTheme(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4)),
-                  ),
-                ),
-                // darkTheme: ThemeData(
-                //   textTheme: GoogleFonts.poppinsTextTheme(),
-                //   brightness: Brightness.light, // Use dark brightness
-                //   primaryColor: Colors.blue,
-                //   colorScheme: ColorScheme.fromSeed(
-                //     seedColor: Colors.blue, // Set a dark theme color
-                //     brightness:
-                //         Brightness.light, // Important: Set brightness to dark
-                //     primary: Colors.blue,
-                //     secondary: Colors.grey[800]!, // Example dark secondary color
-                //   ).copyWith(
-                //       surface: Colors.grey[900]!), // Example dark surface color
-                //   appBarTheme: const AppBarTheme(
-                //     backgroundColor: Colors.black,
-                //     foregroundColor: Colors.white,
-                //     elevation: 0,
-                //   ),
-                //   cardTheme: CardTheme(
-                //     elevation: 2,
-                //     color: Colors.grey[800], // Example dark card color
-                //     shape: RoundedRectangleBorder(
-                //         borderRadius: BorderRadius.circular(4)),
-                //   ),
-                // ),
-                localizationsDelegates: [
-                  FirebaseUILocalizations.withDefaultOverrides(
-                    const LabelOverrides(),
-                  ),
-                  const FlipperLocalizationsDelegate(),
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  CountryLocalizations.delegate
-                ],
-                supportedLocales: const [
-                  Locale('en'),
-                  Locale('es'),
-                ],
-                locale: const Locale('en'),
-                themeMode: ThemeMode.system,
-                routerDelegate: stackedRouter.delegate(),
-                routeInformationParser: stackedRouter.defaultRouteParser(),
-              );
-            }),
+                  localizationsDelegates: [
+                    FirebaseUILocalizations.withDefaultOverrides(
+                      const LabelOverrides(),
+                    ),
+                    const FlipperLocalizationsDelegate(),
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    CountryLocalizations.delegate
+                  ],
+                  supportedLocales: const [
+                    Locale('en'),
+                    Locale('es'),
+                  ],
+                  locale: const Locale('en'),
+                  themeMode: ThemeMode.system,
+                  routerDelegate: stackedRouter.delegate(),
+                  routeInformationParser: stackedRouter.defaultRouteParser(),
+                );
+              }),
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
+  }, (error, stackTrace) {
+    // Catch uncaught async errors
+    Sentry.captureException(error, stackTrace: stackTrace);
+    debugPrint("Uncaught error: $error");
+  });
 }

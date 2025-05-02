@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:typed_data';
 // import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -14,6 +15,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
+import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
 // import 'package:flipper_services/proxy.dart';
@@ -676,6 +678,7 @@ class Capella extends AiStrategyImpl
   @override
   Future<extensions.IUser> login(
       {required String userPhone,
+      IUser? existingUser,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
@@ -836,7 +839,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Tenant? tenant({int? businessId, int? userId}) {
+  Tenant? tenant({int? businessId, int? userId, String? id}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }
@@ -1025,23 +1028,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateTenant(
-      {required String tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      int? businessId,
-      String? type,
-      int? pin,
-      int? userId,
-      int? id,
-      bool? sessionActive,
-      int? branchId}) {
-    // TODO: implement updateTenant
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateTransactionItem(
       {double? qty,
       required String transactionItemId,
@@ -1137,14 +1123,9 @@ class Capella extends AiStrategyImpl
       required String qrCode,
       required String receiptType,
       required Counter counter,
+      required String timeReceivedFromserver,
       required int invoiceNumber}) {
     // TODO: implement createReceipt
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) {
-    // TODO: implement ebm
     throw UnimplementedError();
   }
 
@@ -1315,7 +1296,7 @@ class Capella extends AiStrategyImpl
   List<TransactionItem> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    int? branchId,
+    String? branchId,
     String? id,
     String? variantId,
     bool? active,
@@ -1343,6 +1324,8 @@ class Capella extends AiStrategyImpl
       {required String accessId,
       required int userId,
       required String featureName,
+      required int branchId,
+      required int businessId,
       required String accessLevel,
       required String status,
       required String userType}) {
@@ -1355,7 +1338,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<brick.Tenant?> saveTenant(
+  Future<brick.Tenant?> addNewTenant(
       {required brick.Business business,
       required brick.Branch branch,
       String? phoneNumber,
@@ -1376,7 +1359,7 @@ class Capella extends AiStrategyImpl
 
   @override
   FutureOr<List<brick.Access>> access(
-      {required int userId, String? featureName}) {
+      {required int userId, String? featureName, required bool fetchRemote}) {
     // TODO: implement access
     throw UnimplementedError();
   }
@@ -1476,6 +1459,7 @@ class Capella extends AiStrategyImpl
       {String? transactionId,
       int? branchId,
       DateTime? startDate,
+      String? branchIdString,
       DateTime? endDate,
       String? requestId,
       bool fetchRemote = false,
@@ -1636,7 +1620,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<bool> isBranchEnableForPayment({required String currentBranchId}) {
+  FutureOr<bool> isBranchEnableForPayment(
+      {required String currentBranchId, bool fetchRemote = false}) {
     // TODO: implement isBranchEnableForPayment
     throw UnimplementedError();
   }
@@ -2071,6 +2056,83 @@ class Capella extends AiStrategyImpl
   @override
   Future<bool> deleteTransaction({required brick.ITransaction transaction}) {
     // TODO: implement deleteTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User?> authUser({required String uuid}) {
+    // TODO: implement authUser
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<User> saveUser({required User user}) {
+    // TODO: implement saveUser
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> createPin(
+      {required HttpClientInterface flipperHttpClient,
+      required String phoneNumber,
+      required int pin,
+      required String branchId,
+      required String businessId,
+      required int defaultApp}) {
+    // TODO: implement createPin
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> migrateToNewDateTime({required int branchId}) {
+    // TODO: implement migrateToNewDateTime
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Access>> allAccess({required int userId}) {
+    // TODO: implement allAccess
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Ebm?> ebm({required int branchId, bool fetchRemote = false}) {
+    // TODO: implement ebm
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> hydrateDate({required String branchId}) {
+    // TODO: implement hydrateDate
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<brick.Branch> activeBranchStream() {
+    // TODO: implement activeBranchStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? userId,
+      int? businessId,
+      String? type,
+      int? id,
+      int? pin,
+      bool? sessionActive,
+      int? branchId}) {
+    // TODO: implement updateTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteTransactionItemAndResequence({required String id}) {
+    // TODO: implement deleteTransactionItemAndResequence
     throw UnimplementedError();
   }
 }

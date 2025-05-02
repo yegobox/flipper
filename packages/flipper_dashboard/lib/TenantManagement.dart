@@ -32,7 +32,7 @@ class UserManagement extends ConsumerState<TenantManagement>
         return Scaffold(
           appBar: CustomAppBar(
             bottomSpacer: 80,
-            title: 'Add a user',
+            title: 'User Management',
             multi: 3,
             onPop: () async => routerService.pop(),
           ),

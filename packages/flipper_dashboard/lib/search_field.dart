@@ -4,14 +4,12 @@ import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
-import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
-import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -25,6 +23,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
+import 'dart:async';
 
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({
@@ -47,10 +46,19 @@ class SearchField extends StatefulHookConsumerWidget {
 }
 
 class SearchFieldState extends ConsumerState<SearchField>
-    with DateCoreWidget, HandleScannWhileSelling, Refresh {
+    with DateCoreWidget, HandleScannWhileSelling<SearchField> {
   final _textSubject = BehaviorSubject<String>();
 
   bool hasText = false;
+  bool isSearching = false;
+  Timer? _typingTimer;
+  Timer? _shortInputTimer;
+  // Increase typing pause threshold to 600ms for longer words
+  static const _typingPauseThreshold = Duration(milliseconds: 600);
+  // Longer pause threshold for very short inputs (1-2 chars)
+  static const _shortInputPauseThreshold = Duration(milliseconds: 1000);
+  // Minimum word length before auto-search triggers
+  static const _minSearchLength = 3;
 
   @override
   void initState() {
@@ -61,12 +69,47 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   void _handleTextChange() {
     setState(() {
-      if (widget.controller.text.isNotEmpty) {
-        _textSubject.add(widget.controller.text);
+      final text = widget.controller.text;
+
+      if (text.isNotEmpty) {
+        // Cancel any existing timers
+        _typingTimer?.cancel();
+        _shortInputTimer?.cancel();
+
+        // Start a new typing timer for normal cases
+        _typingTimer = Timer(_typingPauseThreshold, () {
+          // Special cases to handle:
+          // 1. Longer words (3+ chars)
+          // 2. Complete words (contains space)
+          // 3. Numeric input (likely a barcode or product code)
+          bool shouldSearch = text.length >= _minSearchLength ||
+              text.contains(' ') ||
+              _isNumeric(text);
+
+          if (shouldSearch) {
+            _textSubject.add(text);
+          }
+        });
+
+        // For very short inputs (1-2 chars), start a longer timer
+        // This allows single character searches after a longer pause
+        if (text.length < _minSearchLength &&
+            !_isNumeric(text) &&
+            !text.contains(' ')) {
+          _shortInputTimer = Timer(_shortInputPauseThreshold, () {
+            _textSubject.add(text);
+          });
+        }
       }
 
-      hasText = widget.controller.text.isNotEmpty;
+      hasText = text.isNotEmpty;
     });
+  }
+
+  // Helper method to check if a string is numeric (likely a barcode)
+  bool _isNumeric(String str) {
+    if (str.isEmpty) return false;
+    return double.tryParse(str) != null;
   }
 
   @override
@@ -74,6 +117,8 @@ class SearchFieldState extends ConsumerState<SearchField>
     widget.controller.removeListener(_handleTextChange);
     focusNode.dispose();
     _textSubject.close();
+    _typingTimer?.cancel();
+    _shortInputTimer?.cancel();
     super.dispose();
   }
 
@@ -93,11 +138,31 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          // Reduced debounce time for faster search response
-          // Using a shorter debounce time (300ms) for better user experience
-          // while still avoiding excessive database queries
-          _textSubject.debounceTime(const Duration(milliseconds: 300)).listen((value) {
-            processDebouncedValue(value, model, widget.controller);
+          // Using a very short debounce time since we already have typing detection
+          // This just prevents any potential race conditions
+          _textSubject
+              .debounceTime(const Duration(milliseconds: 100))
+              .listen((value) {
+            // Only proceed with search if:
+            // 1. Not already searching
+            // 2. Search term is not empty
+            // 3. Current controller text matches the debounced value
+            // This ensures we don't search for outdated terms if user continued typing
+            if (!isSearching &&
+                value.isNotEmpty &&
+                widget.controller.text == value) {
+              setState(() {
+                isSearching = true;
+              });
+
+              processDebouncedValue(value, model, widget.controller).then((_) {
+                if (mounted) {
+                  setState(() {
+                    isSearching = false;
+                  });
+                }
+              });
+            }
           });
         },
         builder: (context, model, _) {
@@ -113,22 +178,33 @@ class SearchFieldState extends ConsumerState<SearchField>
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               ),
-              prefixIcon: IconButton(
-                onPressed: () {
-                  // Handle search functionality here
-                },
-                icon: Icon(FluentIcons.search_24_regular),
-              ),
+              prefixIcon: isSearching
+                  ? Container(
+                      padding: const EdgeInsets.all(8),
+                      height: 16,
+                      width: 16,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                      ),
+                    )
+                  : IconButton(
+                      onPressed: () {
+                        // Handle search functionality here
+                      },
+                      icon: Icon(FluentIcons.search_24_regular),
+                    ),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   toggleSearch(),
-                  if (deviceType == 'Phone' || deviceType == 'Phablet')
-                    calc(model: model),
+                  // if (deviceType == 'Phone' || deviceType == 'Phablet')
+                  //   calc(model: model),
                   //if (deviceType != 'Phone' && deviceType != 'Phablet')
                   orders.when(
                     data: (orders) => widget.showOrderButton
-                        ? orderButton(orders)
+                        ? orderButton(orders).shouldSeeTheApp(ref,
+                            featureName: AppFeature.Orders)
                         : const SizedBox.shrink(),
                     loading: () => const SizedBox.shrink(),
                     error: (err, stack) => Text('Error: $err'),
@@ -138,9 +214,9 @@ class SearchFieldState extends ConsumerState<SearchField>
                       deviceType != 'Phablet')
                     incomingButton(),
                   if (widget.showAddButton)
-                    addButton()
-                        .shouldSeeTheApp(ref, featureName: AppFeature.Sales),
-                  if (widget.showDatePicker) datePicker(),
+                    addButton().eligibleToSeeIfYouAre(
+                        ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+                  // Remove the date picker that was unintentionally added
                 ],
               ),
             ),
@@ -238,12 +314,54 @@ class SearchFieldState extends ConsumerState<SearchField>
     showDialog(
       barrierDismissible: true,
       context: context,
-      builder: (context) => OptionModal(
-        child: _getDeviceType(context) == "Phone" ||
-                _getDeviceType(context) == "Phablet"
-            ? const SizedBox.shrink()
-            : ImportPurchasePage(),
-      ),
+      builder: (context) {
+        final deviceType = _getDeviceType(context);
+        if (deviceType == "Phone" || deviceType == "Phablet") {
+          return const SizedBox.shrink();
+        }
+        return Dialog(
+          backgroundColor: Colors.white,
+          insetPadding: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Import & Purchase Management',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: Colors.black87),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1),
+                Expanded(
+                  child: ImportPurchasePage(),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -296,10 +414,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               barrierDismissible: true,
               context: context,
               builder: (context) => OptionModal(
-                child: _getDeviceType(context) == "Phone" ||
-                        _getDeviceType(context) == "Phablet"
-                    ? const AddProductButtons()
-                    : const BulkAddProduct(),
+                child: BulkAddProduct(),
               ),
             );
           } else {
@@ -307,10 +422,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               barrierDismissible: true,
               context: context,
               builder: (context) => OptionModal(
-                child: _getDeviceType(context) == "Phone" ||
-                        _getDeviceType(context) == "Phablet"
-                    ? const AddProductButtons()
-                    : const ProductEntryScreen(),
+                child: ProductEntryScreen(),
               ),
             );
           }
