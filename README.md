@@ -5,6 +5,11 @@
 # Flipper
 ### Enterprise-Grade Business Software with Military-Level Encryption
 
+&ensp;
+&ensp;
+
+![Github Mockup Flipper2](https://github.com/user-attachments/assets/548911d7-96d9-43e1-9b2c-830865e78eb5)
+
 </div>
 
 ## Our Mission
@@ -14,7 +19,7 @@ Flipper delivers a comprehensive business software suite with integrated data en
 This monorepo contains our complete ecosystem:
 - Client applications for all major platforms (iOS, Android, Web, Linux, macOS, Windows)
 - Backend infrastructure powering our enterprise suite
-- Core encryption technology ensuring data protection
+- Core encryption technology ensures data protection
 
 **Experience the revolution at [flipper.rw](https://flipper.rw) or [yegobox.com](https://yegobox.com)**
 
