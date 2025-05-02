@@ -11,8 +11,8 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
   // Fetch necessary data
   final stocks = await ProxyService.strategy.stocks(branchId: branchId);
   final variants = await ProxyService.strategy.variants(branchId: branchId);
-  final transactionItems =
-      await ProxyService.strategy.transactionItems(branchId: branchId);
+  final transactionItems = await ProxyService.strategy.transactionItems(
+      branchId: (await ProxyService.strategy.activeBranch()).id);
 
   // More robust COGS calculation
   double calculateTotalCOGS(

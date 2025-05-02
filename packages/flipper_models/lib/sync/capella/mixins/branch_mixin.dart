@@ -45,4 +45,10 @@ mixin CapellaBranchMixin implements BranchInterface {
     throw UnimplementedError(
         'activeBranch needs to be implemented for Capella');
   }
+
+  @override
+  Stream<Branch> activeBranchStream() {
+    throw UnimplementedError(
+        'activeBranchStream needs to be implemented for Capella');
+  }
 }

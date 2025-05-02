@@ -74,6 +74,12 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? currentSaleCustomerPhoneNumber;
   String? sarNo;
   String? orgSarNo;
+  // LOAN TICKET: Add this property to mark a transaction as a loan
+  @Supabase(defaultValue: "false")
+  bool? isLoan;
+  // DUE DATE: Nullable field for due date of ticket (loan or in progress)
+  DateTime? dueDate;
+
   ITransaction({
     this.ticketName,
     String? id,
@@ -94,7 +100,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? customerId,
     this.customerType,
     this.note,
-    this.lastTouched,
+    DateTime? lastTouched,
     int? supplierId,
     bool? ebmSynced,
     required this.isIncome,
@@ -112,13 +118,18 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.invoiceNumber,
     this.sarNo,
     this.orgSarNo,
+    // LOAN TICKET: Add to constructor
+    bool? isLoan,
+    this.dueDate,
   })  : id = id ?? const Uuid().v4(),
-        subTotal = subTotal == 0.0 ? 0 : subTotal,
+        isLoan = isLoan ?? false,
+        subTotal = subTotal ?? 0.0,
         isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
         customerId =
             (customerId != null && customerId.isEmpty) ? null : customerId,
         categoryId =
             (categoryId != null && categoryId.isEmpty) ? null : categoryId,
         ebmSynced = ebmSynced ?? false,
-        createdAt = createdAt ?? DateTime.now();
+        createdAt = createdAt ?? DateTime.now().toUtc(),
+        lastTouched = lastTouched ?? DateTime.now().toUtc();
 }

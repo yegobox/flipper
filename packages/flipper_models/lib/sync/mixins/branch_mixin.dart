@@ -117,4 +117,19 @@ mixin BranchMixin implements BranchInterface {
       rethrow;
     }
   }
+
+  @override
+  Stream<Branch> activeBranchStream() {
+    return repository
+        .subscribe<Branch>(
+      policy: OfflineFirstGetPolicy.localOnly,
+    )
+        .map((branches) {
+      final branch = branches.firstWhere(
+        (branch) => branch.isDefault == true || branch.isDefault == 1,
+        orElse: () => throw Exception("No default branch found"),
+      );
+      return branch;
+    });
+  }
 }

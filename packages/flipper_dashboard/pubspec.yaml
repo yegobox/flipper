@@ -94,7 +94,7 @@ dependencies:
   syncfusion_flutter_core: ^29.1.37
   syncfusion_officechart: ^29.1.37
   
-  flex_color_picker: ^3.7.0
+  flex_color_picker: 3.7.0
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0

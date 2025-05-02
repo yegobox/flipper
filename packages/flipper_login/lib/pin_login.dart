@@ -60,7 +60,6 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           skipDefaultAppSetup: false,
           userPhone: pin.phoneNumber,
         );
-
         await _completeLogin(thePin);
       } catch (e, s) {
         await _handleLoginError(e, s);
@@ -106,23 +105,34 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
       errorMessage = e.errMsg();
     } else if (e is PinError) {
       errorMessage = e.errMsg();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          width: 250,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+          content: Text(errorMessage, style: primaryTextStyle),
+        ),
+      );
+      return;
     } else if (e is LoginChoicesException) {
+      errorMessage = e.errMsg();
       locator<RouterService>().navigateTo(LoginChoicesRoute());
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          width: 250,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
+          content: Text(errorMessage, style: primaryTextStyle),
+        ),
+      );
       return;
     } else {
       errorMessage = e.toString();
       await Sentry.captureException(e, stackTrace: s);
     }
     print(s);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        width: 250,
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red,
-        duration: Duration(seconds: 30),
-        content: Text(errorMessage, style: primaryTextStyle),
-      ),
-    );
   }
 
   // Toggles the PIN visibility
@@ -142,7 +152,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
             key: Key('PinLogin'),
             body: Stack(
               children: [
-                SizedBox(width: 85, child: back.BackButton()),
+                SizedBox(width: 85, child: back.CustomBackButton()),
                 Center(
                   child: Form(
                     key: _formKey,

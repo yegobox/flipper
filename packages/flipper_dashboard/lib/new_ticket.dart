@@ -19,6 +19,8 @@ class NewTicketState extends State<NewTicket> {
   final _noteController = TextEditingController();
   bool _noteValue = false;
   bool _ticketNameValue = false;
+  bool _isLoan = false;
+  DateTime? _dueDate;
 
   @override
   void initState() {
@@ -35,6 +37,14 @@ class NewTicketState extends State<NewTicket> {
         widget.transaction.note!.isNotEmpty) {
       _noteController.text = widget.transaction.note!;
       _noteValue = true;
+    }
+    // Prefill loan value if available
+    if (widget.transaction.isLoan != null) {
+      _isLoan = widget.transaction.isLoan!;
+    }
+    // Prefill dueDate if available
+    if (widget.transaction.dueDate != null) {
+      _dueDate = widget.transaction.dueDate;
     }
   }
 
@@ -111,126 +121,113 @@ class NewTicketState extends State<NewTicket> {
                 Flexible(
                   child: SingleChildScrollView(
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(20.0),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Ticket Name Field
-                            Text(
-                              'Ticket Name (or Swipe)',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
                             TextFormField(
                               controller: _swipeController,
-                              onChanged: (value) {
-                                setState(() {
-                                  _ticketNameValue = value.isNotEmpty;
-                                });
-                              },
+                              decoration: InputDecoration(
+                                labelText: 'Ticket Name',
+                                border: OutlineInputBorder(),
+                              ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return "Please enter ticket name or swipe";
                                 }
                                 return null;
                               },
-                              decoration: InputDecoration(
-                                hintText: "Enter Ticket name or Swipe",
-                                hintStyle: GoogleFonts.poppins(
-                                  color: Colors.black38,
-                                  fontSize: 14,
-                                ),
-                                prefixIcon: const Icon(
-                                  Icons.confirmation_number_outlined,
-                                  color: Color(0xFF01B8E4),
-                                ),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: Colors.grey[300]!),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                      color: Color(0xFF01B8E4)),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      const BorderSide(color: Colors.red),
-                                ),
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Note Field
-                            Text(
-                              'Note',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            TextFormField(
-                              controller: _noteController,
-                              onChanged: (value) {
+                              onChanged: (val) {
                                 setState(() {
-                                  _noteValue = value.isNotEmpty;
+                                  _ticketNameValue = val.isNotEmpty;
                                 });
                               },
+                            ),
+                            const SizedBox(height: 16),
+                            // Note Field
+                            TextFormField(
+                              controller: _noteController,
+                              decoration: InputDecoration(
+                                labelText: 'Notes',
+                                border: OutlineInputBorder(),
+                              ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return "Please enter a note";
                                 }
                                 return null;
                               },
-                              maxLines: 3,
-                              decoration: InputDecoration(
-                                hintText: "Add note",
-                                hintStyle: GoogleFonts.poppins(
-                                  color: Colors.black38,
-                                  fontSize: 14,
+                              onChanged: (val) {
+                                setState(() {
+                                  _noteValue = val.isNotEmpty;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            // Loan Checkbox
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _isLoan,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _isLoan = val ?? false;
+                                      // If checked, set default due date if not already set
+                                      if (_isLoan && _dueDate == null) {
+                                        _dueDate = DateTime.now().toUtc().add(const Duration(days: 7));
+                                      }
+                                      // If unchecked, clear due date
+                                      if (!_isLoan) {
+                                        _dueDate = null;
+                                      }
+                                    });
+                                  },
+                                  activeColor: const Color(0xFF01B8E4),
                                 ),
-                                prefixIcon: const Padding(
-                                  padding: EdgeInsets.only(bottom: 45),
-                                  child: Icon(
-                                    Icons.note_alt_outlined,
-                                    color: Color(0xFF01B8E4),
+                                Text(
+                                  'Mark as Loan',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
                                   ),
                                 ),
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: Colors.grey[300]!),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(
-                                      color: Color(0xFF01B8E4)),
-                                ),
-                                errorBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      const BorderSide(color: Colors.red),
-                                ),
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                              ),
+                                const SizedBox(width: 8),
+                                if (_isLoan)
+                                  InkWell(
+                                    onTap: () async {
+                                      DateTime? picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: _dueDate ?? DateTime.now().toUtc().add(const Duration(days: 7)),
+                                        firstDate: DateTime.now().toUtc(),
+                                        lastDate: DateTime.now().toUtc().add(const Duration(days: 365)),
+                                      );
+                                      if (picked != null) {
+                                        setState(() {
+                                          _dueDate = picked.toUtc();
+                                        });
+                                      }
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.event, color: Colors.blue, size: 20),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _dueDate != null
+                                              ? 'Due: ${_dueDate!.toLocal().toString().split(' ')[0]}'
+                                              : 'Set Due Date',
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.blue,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
                             ),
                           ],
                         ),
@@ -278,6 +275,9 @@ class NewTicketState extends State<NewTicket> {
                         onPressed: _ticketNameValue && _noteValue
                             ? () {
                                 if (_formKey.currentState!.validate()) {
+                                  // Set loan value and due date on transaction before saving
+                                  widget.transaction.isLoan = _isLoan;
+                                  widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
                                   model.saveTicket(
                                     ticketName: _swipeController.text,
                                     transaction: widget.transaction,

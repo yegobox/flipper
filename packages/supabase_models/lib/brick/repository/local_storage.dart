@@ -5,6 +5,8 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqflite.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// A robust implementation of LocalStorage that uses JSON files in the document directory
 /// This implementation is designed to be resilient to power outages and corruption
@@ -83,11 +85,31 @@ class SharedPreferenceStorage implements LocalStorage {
     'lockPatching',
     'last_internet_connection_timestamp',
     'databaseFilename',
-    'queueFilename'
+    'queueFilename',
+    'forceLogout',
+    'branchIdString',
   };
+
+  SharedPreferences? _webPrefs;
 
   /// Initialize the preferences by loading from the JSON file
   Future<LocalStorage> initializePreferences() async {
+    if (kIsWeb) {
+      // On web, use shared_preferences
+      try {
+        _webPrefs = await SharedPreferences.getInstance();
+        final jsonString = _webPrefs!.getString('flipper_preferences');
+        if (jsonString != null) {
+          _cache = jsonDecode(jsonString);
+        } else {
+          _cache = {};
+          await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        }
+      } catch (e) {
+        _cache = {};
+      }
+      return this;
+    }
     try {
       // Get the document directory (same as used by repository.dart)
       final directory = await _getStorageDirectory();
@@ -103,14 +125,14 @@ class SharedPreferenceStorage implements LocalStorage {
 
       // Load preferences from file
       await _loadPreferences();
-      
+
       // Ensure the file exists by saving the current cache (even if empty)
       // This is critical for fresh installs
       await _savePreferences();
     } catch (e) {
       // If there's an error, start with an empty cache
       _cache = {};
-      
+
       // Try to create the file anyway
       try {
         await _savePreferences();
@@ -126,7 +148,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<String> _getStorageDirectory() async {
     if (Platform.isWindows) {
       final appDir = await getApplicationDocumentsDirectory();
-      return path.join(appDir.path, '_db');
+      return path.join(appDir.path, '.db');
     } else if (Platform.isAndroid) {
       return await getDatabasesPath();
     } else if (Platform.isIOS || Platform.isMacOS) {
@@ -135,7 +157,7 @@ class SharedPreferenceStorage implements LocalStorage {
     } else {
       // For other platforms, use application documents directory
       final appDir = await getApplicationDocumentsDirectory();
-      return path.join(appDir.path, '_db');
+      return path.join(appDir.path, '.db');
     }
   }
 
@@ -181,7 +203,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> _savePreferences() async {
     try {
       final file = File(_filePath);
-      final tempFile = File('${_filePath}.tmp');
+      final tempFile = File('$_filePath.tmp');
 
       // Write to a temporary file first
       await tempFile.writeAsString(jsonEncode(_cache), flush: true);
@@ -218,14 +240,26 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeInt({required dynamic key, required int value}) async {
     if (!_isKeyAllowed(key.toString())) return;
     _cache[key.toString()] = value;
-    await _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
   }
 
   @override
-  void remove({required String key}) {
+  Future<void> remove({required String key}) async {
     if (!_isKeyAllowed(key)) return;
     _cache.remove(key);
-    _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
   }
 
   @override
@@ -352,7 +386,13 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeString({required String key, required String value}) async {
     if (!_isKeyAllowed(key)) return;
     _cache[key] = value;
-    await _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
   }
 
   @override
@@ -365,13 +405,25 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeBool({required String key, required bool value}) async {
     if (!_isKeyAllowed(key)) return;
     _cache[key] = value;
-    await _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
   }
 
   @override
   Future<void> clear() async {
     _cache.clear();
-    await _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
   }
 
   @override
@@ -579,7 +631,13 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> setDatabaseFilename(String filename) async {
     _cache['databaseFilename'] = filename;
-    await _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
   }
 
   @override
@@ -591,6 +649,34 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> setQueueFilename(String filename) async {
     _cache['queueFilename'] = filename;
-    await _savePreferences();
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
+  }
+
+  @override
+  bool getForceLogout() {
+    return _cache['forceLogout'] as bool? ?? false;
+  }
+
+  @override
+  Future<void> setForceLogout(bool value) async {
+    _cache['forceLogout'] = value;
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
+  }
+
+  @override
+  String? branchIdString() {
+    return _cache['branchIdString'] as String?;
   }
 }

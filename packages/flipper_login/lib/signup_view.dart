@@ -10,6 +10,7 @@ import 'package:overlay_support/overlay_support.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/posthog_service.dart';
 
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final username = TextFieldBloc(
@@ -138,7 +139,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 30),
           child: Image.asset(
-            'assets/icon.png', // Make sure to add your logo
+            'assets/flipper_logo.png', // Make sure to add your logo
             height: 80,
           ),
         ),

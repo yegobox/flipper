@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import 'purchase_table/purchase_columns.dart';
 import 'purchase_table/purchase_data_source.dart';
@@ -139,6 +140,22 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              if (purchase.createdAt != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Chip(
+                                    label: Text(
+                                      timeago.format(
+                                        purchase.createdAt,
+                                        clock: DateTime.now(),
+                                      ),
+                                      style: TextStyle(
+                                          fontSize: 12, color: Colors.white),
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ),
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 10,

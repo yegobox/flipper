@@ -130,14 +130,6 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  Future<bool> hasActiveSubscription(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient}) async {
-    throw UnimplementedError(
-        'hasActiveSubscription needs to be implemented for Capella');
-  }
-
-  @override
   FutureOr<Business?> getBusinessById({required int businessId}) async {
     throw UnimplementedError(
         'getBusinessById needs to be implemented for Capella');

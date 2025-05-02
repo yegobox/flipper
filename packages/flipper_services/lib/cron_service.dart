@@ -9,7 +9,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:supabase_models/brick/repository.dart' as repo;
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -26,11 +25,11 @@ class CronService {
   final List<Timer> _activeTimers = [];
 
   /// Constants for timer durations
-  static const int _counterSyncMinutes = 1;
+  // static const int _counterSyncMinutes = 40;
   static const int _isolateMessageSeconds = 40;
   static const int _analyticsSyncMinutes = 1;
-  static const int _databaseBackupMinutes = 30;
-  static const int _queueCleanupMinutes = 40;
+  // static const int _databaseBackupMinutes = 30;
+  // static const int _queueCleanupMinutes = 40;
 
   /// Schedules various tasks and timers to handle data synchronization, device publishing,
   /// and other periodic operations.
@@ -61,31 +60,34 @@ class CronService {
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
     try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        talker.error("Cannot hydrate data: Branch ID is null");
+        return;
+      }
+
+      ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
-
-        final branchId = ProxyService.box.getBranchId();
-        if (branchId == null) {
-          talker.error("Cannot hydrate data: Branch ID is null");
-          return;
-        }
 
         // Hydrate essential data
         try {
           await Future.wait<void>([
             ProxyService.strategy
-                .ebm(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
-            ProxyService.strategy
                 .getCounters(branchId: branchId, fetchRemote: true)
                 .then((_) {}),
+            ProxyService.tax.taxConfigs(branchId: branchId).then((_) {}),
             ProxyService.strategy
-                .variants(branchId: branchId, fetchRemote: true)
+                .hydrateDate(
+                    branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
-            ProxyService.strategy
-                .transactions(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
+            //   ProxyService.strategy
+            //       .variants(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
+            //   ProxyService.strategy
+            //       .transactions(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
           ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
@@ -120,20 +122,20 @@ class CronService {
     }));
 
     // Setup counter synchronization timer
-    _activeTimers.add(
-        Timer.periodic(Duration(minutes: _counterSyncMinutes), (Timer t) async {
-      try {
-        final branchId = ProxyService.box.getBranchId();
-        if (branchId != null) {
-          await ProxyService.strategy
-              .getCounters(branchId: branchId, fetchRemote: true);
-        } else {
-          talker.warning("Skipping counter sync: Branch ID is null");
-        }
-      } catch (e) {
-        talker.error("Counter sync failed: $e");
-      }
-    }));
+    // _activeTimers.add(
+    //     Timer.periodic(Duration(minutes: _counterSyncMinutes), (Timer t) async {
+    //   try {
+    //     final branchId = ProxyService.box.getBranchId();
+    //     if (branchId != null) {
+    //       await ProxyService.strategy
+    //           .getCounters(branchId: branchId, fetchRemote: true);
+    //     } else {
+    //       talker.warning("Skipping counter sync: Branch ID is null");
+    //     }
+    //   } catch (e) {
+    //     talker.error("Counter sync failed: $e");
+    //   }
+    // }));
 
     // Setup isolate message timer
     _activeTimers.add(Timer.periodic(Duration(seconds: _isolateMessageSeconds),
@@ -165,26 +167,26 @@ class CronService {
     }));
 
     // Setup periodic database backup timer
-    _activeTimers.add(Timer.periodic(Duration(minutes: _databaseBackupMinutes),
-        (Timer t) async {
-      try {
-        // Import Repository dynamically to avoid circular dependencies
-        // This is needed because Repository is in a different package
-        await _performPeriodicDatabaseBackup();
-      } catch (e, stackTrace) {
-        talker.error("Periodic database backup failed: $e", stackTrace);
-      }
-    }));
+    // _activeTimers.add(Timer.periodic(Duration(minutes: _databaseBackupMinutes),
+    //     (Timer t) async {
+    //   try {
+    //     // Import Repository dynamically to avoid circular dependencies
+    //     // This is needed because Repository is in a different package
+    //     await _performPeriodicDatabaseBackup();
+    //   } catch (e, stackTrace) {
+    //     talker.error("Periodic database backup failed: $e", stackTrace);
+    //   }
+    // }));
 
     // Setup periodic failed queue cleanup timer
-    _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
-        (Timer t) async {
-      try {
-        await _cleanupFailedQueue();
-      } catch (e, stackTrace) {
-        talker.error("Failed queue cleanup failed: $e", stackTrace);
-      }
-    }));
+    // _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
+    //     (Timer t) async {
+    //   try {
+    //     await _cleanupFailedQueue();
+    //   } catch (e, stackTrace) {
+    //     talker.error("Failed queue cleanup failed: $e", stackTrace);
+    //   }
+    // }));
   }
 
   /// Synchronizes analytics and handles patching operations
@@ -421,25 +423,25 @@ class CronService {
       return;
     }
 
-    try {
-      // Add a small delay to allow any pending database operations to complete
-      await Future.delayed(const Duration(milliseconds: 500));
+    // try {
+    //   // Add a small delay to allow any pending database operations to complete
+    //   await Future.delayed(const Duration(milliseconds: 500));
 
-      // Call the performPeriodicBackup method on the Repository instance
-      final result = await repo.Repository().performPeriodicBackup(
-          // Use a longer interval to reduce backup frequency
-          minInterval: const Duration(minutes: 30));
+    // Call the performPeriodicBackup method on the Repository instance
+    // final result = await repo.Repository().performPeriodicBackup(
+    //     // Use a longer interval to reduce backup frequency
+    //     minInterval: const Duration(minutes: 30));
 
-      if (result == true) {
-        talker.info('Periodic database backup completed successfully');
-      } else {
-        talker.info(
-            'Periodic database backup skipped (not enough time passed since last backup)');
-      }
-    } catch (e, stackTrace) {
-      talker.error('Error during periodic database backup: $e', stackTrace);
-      // Don't retry immediately if there was an error
-    }
+    //   if (result == true) {
+    //     talker.info('Periodic database backup completed successfully');
+    //   } else {
+    //     talker.info(
+    //         'Periodic database backup skipped (not enough time passed since last backup)');
+    //   }
+    // } catch (e, stackTrace) {
+    //   talker.error('Error during periodic database backup: $e', stackTrace);
+    //   // Don't retry immediately if there was an error
+    // }
   }
 
   /// Performs cleanup of failed queue items
@@ -456,14 +458,14 @@ class CronService {
       await Future.delayed(const Duration(milliseconds: 500));
 
       // Call the cleanupFailedRequests method on the Repository instance
-      final deletedCount = await repo.Repository().cleanupFailedRequests();
+      // final deletedCount = await repo.Repository().cleanupFailedRequests();
 
-      if (deletedCount > 0) {
-        talker.info(
-            'Failed queue cleanup: Deleted $deletedCount failed requests');
-      } else {
-        talker.info('Failed queue cleanup: No failed requests found');
-      }
+      // if (deletedCount > 0) {
+      //   talker.info(
+      //       'Failed queue cleanup: Deleted $deletedCount failed requests');
+      // } else {
+      //   talker.info('Failed queue cleanup: No failed requests found');
+      // }
     } catch (e, stackTrace) {
       talker.error('Error during failed queue cleanup: $e', stackTrace);
       // Don't retry immediately if there was an error

@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/tenant.dart';
+import 'package:supabase_models/brick/models/user.model.dart';
 
 abstract class TenantInterface {
-  Future<Tenant?> saveTenant({
+  Future<Tenant?> addNewTenant({
     required Business business,
     required Branch branch,
     String? phoneNumber,
@@ -18,10 +22,38 @@ abstract class TenantInterface {
     required HttpClientInterface flipperHttpClient,
     required String userType,
   });
+  Future<void> createPin({
+    required HttpClientInterface flipperHttpClient,
+    required String phoneNumber,
+    required int pin,
+    required String branchId,
+    required String businessId,
+    required int defaultApp,
+  });
 
   Stream<Tenant?> getDefaultTenant({required int businessId});
 
   Future<Branch> activeBranch();
+  Future<User?> authUser({required String uuid});
+  // save user
+  Future<User> saveUser({required User user});
 
   Future<Business?> activeBusiness({int? userId});
+  FutureOr<Tenant?> tenant({int? businessId, int? userId, String? id});
+  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
+  Future<List<ITenant>> tenantsFromOnline(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient});
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      int? userId,
+      int? businessId,
+      String? type,
+      int? id,
+      int? pin,
+      bool? sessionActive,
+      int? branchId});
 }

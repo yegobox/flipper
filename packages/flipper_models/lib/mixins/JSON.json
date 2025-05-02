@@ -1,0 +1,14 @@
+ {
+   "resultCd": "000",
+   "resultMsg": "It is succeeded",
+   "resultDt": "20250422115022",
+   "data": {
+     "rcptNo": 1680,
+     "intrlData": "VAZSFS46A3ETCMKLR52BUNTIEI",
+     "rcptSign": "GBXWTTKO3Y6MC7LF",
+     "totRcptNo": 2030,
+     "vsdcRcptPbctDate": "20250422115022",
+     "sdcId": "SDC010000052",
+     "mrcNo": "WIS00000052"
+   }
+ }

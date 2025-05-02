@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
+import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -8,6 +9,7 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -62,21 +64,120 @@ mixin AuthMixin implements AuthInterface {
   }
 
   @override
-  Future<IUser> login({
-    required String userPhone,
-    required bool skipDefaultAppSetup,
-    bool stopAfterConfigure = false,
-    required Pin pin,
+  Future<bool> hasActiveSubscription({
+    required int businessId,
     required HttpClientInterface flipperHttpClient,
+    required bool fetchRemote,
   }) async {
+    // if (isTestEnvironment()) return true;
+    final Plan? plan = await ProxyService.strategy
+        .getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
+
+    if (plan == null) {
+      throw NoPaymentPlanFound(
+          "No payment plan found for businessId: $businessId");
+    }
+
+    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
+
+    // Avoid unnecessary sync if payment is already marked as complete
+    if (!isPaymentCompletedLocally) {
+      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
+        flipperHttpClient: flipperHttpClient,
+        businessId: businessId,
+      );
+
+      // Update the plan's state or handle syncing logic here if necessary
+      if (!isPaymentComplete) {
+        throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
+      }
+    }
+
+    return true;
+  }
+
+  Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
+    await hasActiveSubscription(
+        businessId: ProxyService.box.getBusinessId()!,
+        flipperHttpClient: ProxyService.http,
+        fetchRemote: fetchRemote);
+  }
+
+  Future<IUser> _authenticateUser(
+      String phoneNumber, Pin pin, HttpClientInterface flipperHttpClient,
+      {bool forceOffline = false}) async {
+    List<Business> businessesE = await businesses(userId: pin.userId!);
+    List<Branch> branchesE = await branches(businessId: pin.businessId!);
+
+    final bool shouldEnableOfflineLogin = forceOffline ||
+        (businessesE.isNotEmpty &&
+            branchesE.isNotEmpty &&
+            !(await ProxyService.status.isInternetAvailable()));
+
+    talker.debug("Offline login decision factors:");
+    talker.debug("- forceOffline: $forceOffline");
+    talker.debug("- businessesE not empty: ${businessesE.isNotEmpty}");
+    talker.debug("- branchesE not empty: ${branchesE.isNotEmpty}");
+    talker.debug("- kDebugMode: ${foundation.kDebugMode}");
+    talker.debug(
+        "- Internet available: ${await ProxyService.status.isInternetAvailable()}");
+    talker.debug("Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin");
+
+    if (shouldEnableOfflineLogin) {
+      offlineLogin = true;
+      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+    }
+
+    final http.Response response =
+        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      /// path the user pin, with
+      final IUser user = IUser.fromJson(json.decode(response.body));
+      await _patchPin(user.id!, flipperHttpClient, apihub,
+          ownerName: user.tenants.first.name);
+      ProxyService.box.writeInt(key: 'userId', value: user.id!);
+      await ProxyService.strategy.firebaseLogin(token: user.uid);
+      return user;
+    } else {
+      await _handleLoginError(response);
+      throw Exception("Error during login");
+    }
+  }
+
+  @override
+  Future<IUser> login(
+      {required String userPhone,
+      required bool skipDefaultAppSetup,
+      bool stopAfterConfigure = false,
+      required Pin pin,
+      required HttpClientInterface flipperHttpClient,
+      IUser? existingUser}) async {
+    final flipperWatch? w =
+        foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
+    w?.start();
     final String phoneNumber = _formatPhoneNumber(userPhone);
-    final IUser user =
+
+    // Use existing user data if provided, otherwise make the API call
+    print('Before _authenticateUser');
+    final IUser user = existingUser ??
         await _authenticateUser(phoneNumber, pin, flipperHttpClient);
+    print('After _authenticateUser');
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
+    print('After configureSystem');
+    await ProxyService.box.writeBool(key: 'authComplete', value: true);
+    print('After setting authComplete');
 
     if (stopAfterConfigure) return user;
     if (!skipDefaultAppSetup) {
       await setDefaultApp(user);
+    }
+    ProxyService.box.writeBool(key: 'pinLogin', value: false);
+    w?.log("user logged in");
+    try {
+      _hasActiveSubscription();
+    } catch (e) {
+      rethrow;
     }
     return user;
   }
@@ -100,40 +201,6 @@ mixin AuthMixin implements AuthInterface {
 
   Future<void> setDefaultApp(IUser user) async {
     // Add default app setup logic here
-  }
-
-  Future<IUser> _authenticateUser(String phoneNumber, Pin pin,
-      HttpClientInterface flipperHttpClient) async {
-    List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await repository.get<Branch>(
-      query: Query(where: [Where('businessId').isExactly(pin.businessId!)]),
-    );
-
-    final bool shouldEnableOfflineLogin = businessesE.isNotEmpty &&
-        branchesE.isNotEmpty &&
-        !foundation.kDebugMode &&
-        !(await ProxyService.status.isInternetAvailable());
-
-    if (shouldEnableOfflineLogin) {
-      offlineLogin = true;
-      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-    }
-
-    final http.Response response =
-        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      /// path the user pin, with
-      final IUser user = IUser.fromJson(json.decode(response.body));
-      await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name);
-      ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.strategy.firebaseLogin(token: user.uid);
-      return user;
-    } else {
-      await _handleLoginError(response);
-      throw Exception("Error during login");
-    }
   }
 
   @override
@@ -195,10 +262,25 @@ mixin AuthMixin implements AuthInterface {
   List<IBusiness> _convertBusinesses(List<Business> businesses) {
     return businesses
         .map((e) => IBusiness(
-            id: e.serverId,
-            name: e.name,
-            userId: e.userId.toString(),
-            isDefault: false))
+              id: e.serverId,
+              name: e.name ?? '',
+              userId: e.userId?.toString() ?? '',
+              currency: e.currency ?? 'RWF',
+              categoryId: e.categoryId ?? 0,
+              latitude: e.latitude ?? '0', // string
+              longitude: e.longitude ?? '0', // string
+              timeZone: e.timeZone ?? '',
+              email: e.email ?? '',
+              fullName: e.fullName ?? '',
+              tinNumber: e.tinNumber ?? 0, // int
+              bhfId: e.bhfId ?? '00',
+              dvcSrlNo: e.dvcSrlNo ?? '',
+              adrs: e.adrs ?? '',
+              taxEnabled: e.taxEnabled ?? false,
+              isDefault: e.isDefault ?? false,
+              businessTypeId: e.businessTypeId ?? 0,
+              encryptionKey: e.encryptionKey ?? '',
+            ))
         .toList();
   }
 

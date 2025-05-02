@@ -7,12 +7,17 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+import 'package:flipper_models/sync/interfaces/customer_interface.dart';
+import 'package:flipper_models/sync/interfaces/delete_interface.dart';
+import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
+import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
@@ -22,7 +27,6 @@ import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
-import 'package:http/http.dart' as http;
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -49,9 +53,14 @@ abstract class DatabaseSyncInterface extends AiStrategy
         PurchaseInterface,
         BusinessInterface,
         VariantInterface,
+        AuthInterface,
         TransactionItemInterface,
         TransactionInterface,
         ProductInterface,
+        TenantInterface,
+        DeleteInterface,
+        EbmInterface,
+        CustomerInterface,
         CategoryInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
@@ -86,10 +95,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<T?> create<T>({required T data});
   Stream<double> wholeStockValue({required int branchId});
 
-  Future<bool> delete(
-      {required String id,
-      String? endPoint,
-      HttpClientInterface? flipperHttpClient});
   Future<PColor?> getColor({required String id});
 
   FutureOr<Configurations?> getByTaxType({required String taxtype});
@@ -110,22 +115,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required List<Variant> variations, required int branchId});
 
   Future<int> addFavorite({required Favorite data});
-
-  Future<Tenant?> saveTenant(
-      {required Business business,
-      required Branch branch,
-      String? phoneNumber,
-      String? name,
-      String? id,
-      String? email,
-      int? businessId,
-      bool? sessionActive,
-      int? branchId,
-      String? imageUrl,
-      int? pin,
-      bool? isDefault,
-      required HttpClientInterface flipperHttpClient,
-      required String userType});
 
   Future<List<Favorite>> getFavorites();
   Future<Favorite?> getFavoriteById({required String favId});
@@ -194,10 +183,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   // FutureOr<Customer?> getCustomer({String? key, int? id});
   // FutureOr<List<Customer>> getCustomers({String? key, int? id});
   // Future<Customer?> getCustomerFuture({String? key, int? id});
-
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id});
-
   Stream<List<Customer>> customersStream(
       {required int branchId, String? key, String? id});
 
@@ -213,8 +198,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
-
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
 
   bool isSubscribed({required String feature, required int businessId});
 
@@ -248,7 +231,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String qrCode,
       required String receiptType,
       required odm.Counter counter,
-      required int invoiceNumber});
+      required int invoiceNumber,
+      required String timeReceivedFromserver});
   Future<Receipt?> getReceipt({required String transactionId});
 
   Future<void> refund({required int itemId});
@@ -278,10 +262,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
-
-  Future<models.Ebm?> ebm({required int branchId, bool fetchRemote = false});
-  Future<void> saveEbm(
-      {required int branchId, required String severUrl, required String bhFId});
 
   Stream<Tenant?> authState({required int branchId});
 
@@ -334,12 +314,13 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
       {required String transactionId});
   DatabaseSyncInterface instance();
-  FutureOr<Tenant?> tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
 
   FutureOr<bool> isAdmin({required int userId, required String appFeature});
-  FutureOr<List<Access>> access({required int userId, String? featureName});
+  FutureOr<List<Access>> access(
+      {required int userId, String? featureName, required bool fetchRemote});
+  Future<List<Access>> allAccess({required int userId});
   Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, String? filter});
   FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
@@ -352,10 +333,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required HttpClientInterface flipperHttpClient,
       required int amount});
 
-  Future<bool> hasActiveSubscription(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient,
-      required bool fetchRemote});
   Future<bool> firebaseLogin({String? token});
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required int businessId,
@@ -394,13 +371,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String assetName,
       required String subPath});
 
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false,
-      required Pin pin,
-      required HttpClientInterface flipperHttpClient});
-
   Future<List<Branch>> branches(
       {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
@@ -409,10 +379,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<Business?> defaultBusiness();
   FutureOr<Branch?> defaultBranch();
 
-  Future<List<ITenant>> tenantsFromOnline(
-      {required int businessId,
-      required HttpClientInterface flipperHttpClient});
-
   Future<List<Business>> getContacts();
 
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
@@ -420,10 +386,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<void> deleteBranch(
       {required int branchId, required HttpClientInterface flipperHttpClient});
   FutureOr<Branch?> branch({required int serverId});
-
-  Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid});
 
   bool isDrawerOpen({required int cashierId, required int branchId});
   Future<Drawers?> getDrawer({required int cashierId});
@@ -523,20 +485,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     bool? open,
   });
 
-  FutureOr<void> updateTenant({
-    required String tenantId,
-    String? name,
-    String? phoneNumber,
-    String? email,
-    int? businessId,
-    String? type,
-    int? pin,
-    bool? sessionActive,
-    int? branchId,
-    int? userId,
-    int? id,
-  });
-
   FutureOr<void> updateCategory({
     required String categoryId,
     String? name,
@@ -634,6 +582,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String featureName,
       required String accessLevel,
       required String status,
+      required int branchId,
+      required int businessId,
       required String userType}) {}
 
   FutureOr<List<LPermission>> permissions({required int userId});
@@ -652,7 +602,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int subBranchId});
 
   FutureOr<void> addTransaction({required ITransaction transaction});
-  FutureOr<bool> isBranchEnableForPayment({required String currentBranchId});
+  FutureOr<bool> isBranchEnableForPayment(
+      {required String currentBranchId, bool fetchRemote = false});
   FutureOr<void> setBranchPaymentStatus(
       {required String currentBranchId, required bool status});
 

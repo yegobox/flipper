@@ -6,7 +6,7 @@ part of 'ai_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$geminiResponseHash() => r'1b640503005abdf2b11ffb60f3b620b663b47879';
+String _$geminiResponseHash() => r'f5be35204f746cda1aa02f973fa696919afa51b9';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -186,7 +186,7 @@ class _GeminiResponseProviderElement
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'1ed3ebbe1a91107df9845068b7dc85280db7e347';
+    r'a6531547f9effdec98b3c23bd636b577a6521550';
 
 abstract class _$GeminiBusinessAnalytics
     extends BuildlessAutoDisposeAsyncNotifier<String> {

@@ -154,31 +154,34 @@ class _CountryPickerState extends State<CountryPicker> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.all(16),
-        child: ElevatedButton(
-          key: const Key('Continue'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.primaryColor,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      // Alternative simpler solution
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24, top: 8),
+        child: SafeArea(
+          child: ElevatedButton(
+            key: const Key('Continue'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.primaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-          ),
-          onPressed: termsAndCondValue
-              ? () {
-                  final routerService = locator<RouterService>();
-                  routerService.navigateTo(
-                    PhoneInputScreenRoute(countryCode: pickedCountry),
-                  );
-                }
-              : null,
-          child: Text(
-            "Continue",
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w500,
-              fontSize: 18,
-              color: Colors.white,
+            onPressed: termsAndCondValue
+                ? () {
+                    final routerService = locator<RouterService>();
+                    routerService.navigateTo(
+                      PhoneInputScreenRoute(countryCode: pickedCountry),
+                    );
+                  }
+                : null,
+            child: Text(
+              "Continue",
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                fontSize: 18,
+                color: Colors.white,
+              ),
             ),
           ),
         ),

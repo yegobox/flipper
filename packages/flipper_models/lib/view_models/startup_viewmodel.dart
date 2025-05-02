@@ -12,8 +12,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/view_models/migrate_db_util.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   final appService = loc.getIt<AppService>();
@@ -31,13 +34,28 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
+      if (ProxyService.box.getForceLogout()) {
+        await logOut();
+        _routerService.navigateTo(LoginRoute());
+        return;
+      }
       talker.warning("StartupViewModel runStartupLogic");
-      // Ensure realm is initialized before proceeding.
 
-      await _hasActiveSubscription();
-      talker.warning("StartupViewModel Bellow hasActiveSubscription");
+      // --- DB Migration Step for folder rename (_db -> .db) ---
+      try {
+        final appDir = await getApplicationDocumentsDirectory();
+        await migrateOldDbFiles(appDir: appDir.path, talker: talker);
+      } catch (e) {
+        talker.warning("DB migration step failed: $e");
+      }
+      // ------------------------------------------------------
+
+      // Ensure db is initialized before proceeding.
+
       await _allRequirementsMeets();
       talker.warning("StartupViewModel Below allRequirementsMeets");
+      // Ensure admin access for API/onboarded users
+
       AppInitializer.initialize();
 
       talker.warning("StartupViewModel Below AppInitializer.initialize()");
@@ -67,6 +85,40 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
       await _handleStartupError(e, stackTrace);
+    }
+  }
+
+  /// Ensures the specified user has all required admin access for all features.
+  static Future<void> ensureAdminAccessForUser({
+    required String userId,
+    required String branchId,
+    required String businessId,
+    required dynamic talker,
+  }) async {
+    try {
+      // Use features from flipper_services/constants.dart
+      final List<String> featureNames =
+          features.map((f) => f.toString()).toList();
+      for (String feature in featureNames) {
+        talker.warning(
+            "Checking permission for userId: $userId, feature: $feature");
+        List<Access> hasAccess = await ProxyService.strategy.access(
+            userId: int.parse(userId), featureName: feature, fetchRemote: true);
+        if (hasAccess.isEmpty) {
+          await ProxyService.strategy.addAccess(
+            branchId: int.parse(branchId),
+            businessId: int.parse(businessId),
+            userId: int.parse(userId),
+            featureName: feature,
+            accessLevel: 'admin',
+            status: 'active',
+            userType: "Admin",
+          );
+          talker.info("Assigned admin access for $feature to user $userId");
+        }
+      }
+    } catch (e, stack) {
+      talker.error("Error ensuring admin access: $e\n$stack");
     }
   }
 
@@ -117,10 +169,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _routerService.clearStackAndShow(LoginRoute());
   }
 
-  Future<void> _hasActiveSubscription() async {
+  Future<void> hasActiveSubscription() async {
     await ProxyService.strategy.hasActiveSubscription(
         fetchRemote: false,
-        businessId: ProxyService.box.getBusinessId()!,
+        businessId: ProxyService.box.getBusinessId() ?? 0,
         flipperHttpClient: ProxyService.http);
   }
 
@@ -133,6 +185,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       if (isTestEnvironment()) {
         return;
       }
+      // check there is a user logged in by getUserId()!
+      ProxyService.box.getUserId()!;
       talker.warning("StartupViewModel _allRequirementsMeets");
 
       // Check if business ID is set

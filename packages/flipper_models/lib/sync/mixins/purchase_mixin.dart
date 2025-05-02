@@ -55,10 +55,10 @@ mixin PurchaseMixin
       product: Product(
         color: randomizeColor(),
         name: item.itemNm!,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         branchId: branchId,
         businessId: ProxyService.box.getBusinessId()!,
-        createdAt: DateTime.now(),
+        createdAt: DateTime.now().toUtc(),
         spplrNm: item.spplrNm,
       ),
       supplyPrice: item.supplyPrice ?? 0,
@@ -251,7 +251,11 @@ mixin PurchaseMixin
       if (response.data?.saleList?.isNotEmpty ?? false) {
         // Only process if there's data
         List<Future<void>> futures = []; // Explicitly typed for clarity
-        for (final purchase in response.data?.saleList ?? []) {
+        for (final Purchase purchase in response.data?.saleList ?? []) {
+          // Ensure createdAt is set from API or fallback to now
+
+          purchase.createdAt = DateTime.now();
+
           if (purchase.variants != null) {
             // Check if variants is null. Protect from null exception
             for (final variant in purchase.variants!) {
@@ -288,10 +292,10 @@ mixin PurchaseMixin
                     product: Product(
                       color: randomizeColor(),
                       name: variant.itemNm ?? variant.name,
-                      lastTouched: DateTime.now(),
+                      lastTouched: DateTime.now().toUtc(),
                       branchId: branchId,
                       businessId: businessId,
-                      createdAt: DateTime.now(),
+                      createdAt: DateTime.now().toUtc(),
                       spplrNm: purchase.spplrNm,
                       barCode: barCode,
                     ),
@@ -406,5 +410,15 @@ mixin PurchaseMixin
       ),
     );
     return purchase.firstOrNull;
+  }
+
+  @override
+  Future<void> hydrateDate({required String branchId}) async {
+    await repository.get<ImportPurchaseDates>(
+      policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(branchId)],
+      ),
+    );
   }
 }

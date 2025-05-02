@@ -1,8 +1,8 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -20,78 +20,149 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
 
   Widget _buildTicketList(BuildContext context, List<ITransaction> tickets) {
-    return ListView.separated(
-      itemCount: tickets.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final ticket = tickets[index];
-        return TicketTile(
-          ticket: ticket,
-          onTap: () async {
-            // Show options dialog to update ticket status
-            final TicketStatus? selectedStatus = await showDialog<TicketStatus>(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Update Ticket Status'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                          'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
-                      const SizedBox(height: 16),
-                      const Text('Select new status:'),
-                    ],
-                  ),
-                  actions: <Widget>[
-                    // Cancel button
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(null);
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                    // Resume button (change to PENDING)
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(null); // Close dialog
-                        _resumeOrder(
-                            ticket); // Use existing resume functionality
-                      },
-                      child: const Text('Resume Order'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.green,
-                      ),
-                    ),
-                    // Status options
-                    ...TicketStatus.values.map((status) => TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(status);
-                          },
-                          child: Text(status.displayName),
-                          style: TextButton.styleFrom(
-                            foregroundColor: status.color,
+    // Separate tickets into loan and non-loan
+    final loanTickets = tickets.where((t) => t.isLoan == true).toList();
+    final nonLoanTickets = tickets.where((t) => t.isLoan != true).toList();
+
+    return ListView(
+      children: [
+        if (loanTickets.isNotEmpty) ...[
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Text('Loan Tickets',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.deepPurple)),
+          ),
+          ...loanTickets.map((ticket) => TicketTile(
+                ticket: ticket,
+                onDelete: _deleteTicket,
+                onTap: () async {
+                  final TicketStatus? selectedStatus =
+                      await showDialog<TicketStatus>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Update Ticket Status'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                                'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
+                            const SizedBox(height: 16),
+                            const Text('Select new status:'),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                            },
+                            child: const Text('Cancel'),
                           ),
-                        )),
-                  ],
-                );
-              },
-            );
-
-            // Update ticket status if a new status was selected
-            if (selectedStatus != null) {
-              await ProxyService.strategy.updateTransaction(
-                transaction: ticket,
-                status: selectedStatus.statusValue,
-                updatedAt: DateTime.now(),
-              );
-
-              // Refresh the UI
-              setState(() {});
-            }
-          },
-        );
-      },
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                              _resumeOrder(ticket);
+                            },
+                            child: const Text('Resume Order'),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.green),
+                          ),
+                          ...TicketStatus.values.map((status) => TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(status);
+                                },
+                                child: Text(status.displayName),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: status.color),
+                              )),
+                        ],
+                      );
+                    },
+                  );
+                  if (selectedStatus != null) {
+                    await ProxyService.strategy.updateTransaction(
+                      transaction: ticket,
+                      status: selectedStatus.statusValue,
+                      updatedAt: DateTime.now().toUtc(),
+                    );
+                    setState(() {});
+                  }
+                },
+              )),
+        ],
+        if (nonLoanTickets.isNotEmpty) ...[
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Text('Regular Tickets',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.blue)),
+          ),
+          ...nonLoanTickets.map((ticket) => TicketTile(
+                ticket: ticket,
+                onDelete: _deleteTicket,
+                onTap: () async {
+                  final TicketStatus? selectedStatus =
+                      await showDialog<TicketStatus>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Update Ticket Status'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                                'Current status: ${TicketStatusExtension.fromString(ticket.status ?? PARKED).displayName}'),
+                            const SizedBox(height: 16),
+                            const Text('Select new status:'),
+                          ],
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(null);
+                              _resumeOrder(ticket);
+                            },
+                            child: const Text('Resume Order'),
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.green),
+                          ),
+                          ...TicketStatus.values.map((status) => TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(status);
+                                },
+                                child: Text(status.displayName),
+                                style: TextButton.styleFrom(
+                                    foregroundColor: status.color),
+                              )),
+                        ],
+                      );
+                    },
+                  );
+                  if (selectedStatus != null) {
+                    await ProxyService.strategy.updateTransaction(
+                      transaction: ticket,
+                      status: selectedStatus.statusValue,
+                      updatedAt: DateTime.now().toUtc(),
+                    );
+                    setState(() {});
+                  }
+                },
+              )),
+        ],
+      ],
     );
   }
 
@@ -136,71 +207,98 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   // Extract resume order functionality to a separate method
   Future<void> _resumeOrder(ITransaction ticket) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Resume Ticket'),
-        content: const Text('Are you sure you want to resume this ticket?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Resume'),
-          ),
-        ],
-      ),
-    );
+    try {
+      // Get all pending transactions for this branch
+      await _parkExistingPendingTransactions(excludeId: ticket.id);
+      // Set ticket status to PENDING
+      ticket.status = PENDING;
+      ticket.updatedAt = DateTime.now();
+      await ProxyService.strategy.updateTransaction(
+        transaction: ticket,
+        status: PENDING,
+        updatedAt: DateTime.now().toUtc(),
+      );
 
-    if (confirm == true) {
-      try {
-        // First, park all existing PENDING transactions to prevent duplicates
-        await _parkExistingPendingTransactions(excludeId: ticket.id);
+      // Detect if on mobile and navigate to CheckoutProductView
+      final isMobile = MediaQuery.of(context).size.width < 600;
+      if (isMobile) {
+        final isBigScreen = MediaQuery.of(context).size.width > 600;
+        await _routerService
+            .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
+        return;
+      }
+      // On desktop, go home or do as before
+      Navigator.of(context).pop();
+    } catch (e, stackTrace) {
+      talker.error('Error resuming ticket: $e');
+      talker.error(stackTrace.toString());
 
-        // Then, check if the ticket exists and get the latest version
-        final updatedTicket = await ProxyService.strategy.getTransaction(
-            id: ticket.id, branchId: ProxyService.box.getBranchId()!);
-        final ticketToUpdate = updatedTicket ?? ticket;
+      // Show error dialog to user
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: Text('Failed to resume ticket: ${e.toString()}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
 
-        // Ensure the transaction has a valid subtotal (greater than 0)
-        final double currentSubTotal = ticketToUpdate.subTotal ?? 0.0;
-        final double safeSubTotal =
-            currentSubTotal > 0 ? currentSubTotal : 0.01;
+  Future<void> _deleteTicket(ITransaction ticket) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Deleting ticket...'),
+              ],
+            ),
+          );
+        },
+      );
 
-        talker.debug(
-            'Resuming ticket ${ticketToUpdate.id} from ${ticketToUpdate.status} to PENDING');
+      // Delete the transaction
+      await ProxyService.strategy.deleteTransaction(transaction: ticket);
 
-        // Update the ticket status to PENDING
-        await ProxyService.strategy.updateTransaction(
-          transaction: ticketToUpdate,
-          status: PENDING,
-          updatedAt: DateTime.now(),
-          subTotal: safeSubTotal,
-        );
+      // Close the loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
 
-        talker.debug(
-            'Successfully updated ticket to PENDING with subtotal: $safeSubTotal');
+      // Show success message
+      if (mounted) {
+        showCustomSnackBarUtil(context, 'Ticket deleted successfully',
+            backgroundColor: Colors.red);
+      }
+    } catch (e, stackTrace) {
+      // Close the loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
 
-        // Give the database a moment to update
-        await Future.delayed(const Duration(milliseconds: 500));
+      talker.error('Error deleting ticket: $e');
+      talker.error(stackTrace.toString());
 
-        // Refresh the transaction items provider to update the UI
-        ref.refresh(transactionItemsProvider(transactionId: ticket.id));
-
-        // Navigate back to the main app route
-        _routerService.clearStackAndShow(FlipperAppRoute());
-      } catch (e, stackTrace) {
-        talker.error('Error resuming ticket: $e');
-        talker.error(stackTrace.toString());
-
-        // Show error dialog to user
+      // Show error dialog
+      if (mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Error'),
-            content: Text('Failed to resume ticket: ${e.toString()}'),
+            content: Text('Failed to delete ticket: ${e.toString()}'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -230,34 +328,32 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          return Expanded(
-            child: StreamBuilder<List<ITransaction>>(
-              stream: _getTicketsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  List<ITransaction> data = snapshot.data!;
-                  if (data.isEmpty) {
-                    return _buildNoTickets(context);
-                  }
-                  return _buildTicketList(context, data);
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 16,
-                        color: Colors.red,
-                      ),
-                    ),
-                  );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+          return StreamBuilder<List<ITransaction>>(
+            stream: _getTicketsStream(),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                List<ITransaction>? data = snapshot.data;
+                if (data == null || data.isEmpty) {
+                  return _buildNoTickets(context);
                 }
-              },
-            ),
+                return _buildTicketList(context, data);
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error: ${snapshot.error}',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 16,
+                      color: Colors.red,
+                    ),
+                  ),
+                );
+              } else {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
           );
         });
   }

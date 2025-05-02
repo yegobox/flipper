@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/ProfileFutureWidget.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,8 +69,8 @@ class _AppsState extends ConsumerState<Apps> {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  // ignore: unused_result
-                  await ref.refresh(transactionsStreamProvider);
+                  // Refresh the dashboard transactions provider
+                  ref.invalidate(dashboardTransactionsProvider);
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -203,7 +203,8 @@ class _AppsState extends ConsumerState<Apps> {
   }
 
   Widget _buildGauge(BuildContext context, WidgetRef ref) {
-    final transactionsData = ref.watch(transactionsStreamProvider);
+    // Use the dedicated dashboard transactions provider
+    final transactionsData = ref.watch(dashboardTransactionsProvider);
 
     return transactionsData.when(
       data: (value) {
@@ -255,18 +256,17 @@ class _AppsState extends ConsumerState<Apps> {
   }
 
   DateTime _calculateStartingDate(String transactionPeriod) {
-    DateTime now = DateTime.now();
+    DateTime now = DateTime.now().toUtc();
     if (transactionPeriod == 'Today') {
-      return DateTime(now.year, now.month, now.day);
+      return DateTime.utc(now.year, now.month, now.day);
     } else if (transactionPeriod == 'This Week') {
-      return DateTime(now.year, now.month, now.day - 7).subtract(
-          Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+      final weekday = now.weekday; // 1 (Mon) - 7 (Sun)
+      return DateTime.utc(now.year, now.month, now.day)
+          .subtract(Duration(days: weekday - 1));
     } else if (transactionPeriod == 'This Month') {
-      return DateTime(now.year, now.month - 1, now.day).subtract(
-          Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+      return DateTime.utc(now.year, now.month, 1);
     } else {
-      return DateTime(now.year - 1, now.month, now.day).subtract(
-          Duration(hours: now.hour, minutes: now.minute, seconds: now.second));
+      return DateTime.utc(now.year - 1, now.month, now.day);
     }
   }
 

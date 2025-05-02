@@ -116,7 +116,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         branchId: ProxyService.box.getBranchId()!,
         product: Product(
           name: TEMP_PRODUCT,
-          lastTouched: DateTime.now(),
+          lastTouched: DateTime.now().toUtc(),
           businessId: ProxyService.box.getBusinessId()!,
           color: COLOR,
           branchId: ProxyService.box.getBranchId()!,
@@ -417,7 +417,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       List<TransactionItem> transactionItems = await ProxyService.strategy
           .transactionItems(
               transactionId: transaction.id,
-              branchId: ProxyService.box.getBranchId()!);
+              branchId: (await ProxyService.strategy.activeBranch()).id);
 
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount!) {

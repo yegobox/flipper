@@ -281,14 +281,14 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     DateTime temporaryDate;
 
     if (period == 'Today') {
-      DateTime tempToday = DateTime.now();
+      DateTime tempToday = DateTime.now().toUtc();
       oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
     } else if (period == 'This Week') {
-      oldDate = DateTime.now().subtract(Duration(days: 7));
+      oldDate = DateTime.now().toUtc().subtract(Duration(days: 7));
     } else if (period == 'This Month') {
-      oldDate = DateTime.now().subtract(Duration(days: 30));
+      oldDate = DateTime.now().toUtc().subtract(Duration(days: 30));
     } else {
-      oldDate = DateTime.now().subtract(Duration(days: 365));
+      oldDate = DateTime.now().toUtc().subtract(Duration(days: 365));
     }
 
     List<ITransaction> transactionsList = await transactions();
@@ -328,29 +328,5 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
       talker.error(e);
       rethrow;
     }
-  }
-
-  @override
-  Future<bool> hasActiveSubscription({
-    required int businessId,
-    required HttpClientInterface flipperHttpClient,
-  }) async {
-    if (const bool.fromEnvironment('FLUTTER_TEST_ENV') == true) return true;
-
-    final Plan? plan = await getPaymentPlan(businessId: businessId);
-    if (plan == null) {
-      throw NoPaymentPlanFound(
-          "No payment plan found for businessId: $businessId");
-    }
-
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
-    if (!isPaymentCompletedLocally) {
-      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
-        flipperHttpClient: flipperHttpClient,
-        businessId: businessId,
-      );
-      return isPaymentComplete;
-    }
-    return true;
   }
 }

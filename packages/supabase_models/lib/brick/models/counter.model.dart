@@ -10,10 +10,6 @@ class Counter extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String id;
-
-  // @Supabase(foreignKey: 'branch_id')
-  // final Branch branch;
-
   final int? businessId;
   final int? branchId;
   final String? receiptType;
@@ -22,13 +18,6 @@ class Counter extends OfflineFirstWithSupabaseModel {
   int? invcNo;
   final DateTime? lastTouched;
   final DateTime? createdAt;
-
-  // If the association will be created by the app, specify
-  // a field that maps directly to the foreign key column
-  // so that Brick can notify Supabase of the association.
-  // @Sqlite(ignore: true)
-  // int get branchId => branch.id;
-
   Counter({
     String? id,
     required this.branchId,

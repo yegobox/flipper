@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'dart:developer';
 import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/posthog_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -209,22 +209,21 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
-    await handleBranchSelection(
-      branch: branch,
-      context: context,
-      setLoadingState: (String? id) {
-        setState(() {
-          _loadingItemId = id;
-        });
-      },
-      setDefaultBranch: _setDefaultBranch,
-      onComplete: _completeAuthenticationFlow,
-      setIsLoading: (bool value) {
-        setState(() {
-          _isLoading = value;
-        });
-      },
-    );
+    // Set loading state for the selected branch
+    setState(() {
+      _loadingItemId = branch.serverId?.toString();
+    });
+
+    try {
+      await _setDefaultBranch(branch);
+      _completeAuthenticationFlow();
+    } catch (e) {
+      talker.error('Error handling branch selection: $e');
+    } finally {
+      setState(() {
+        _loadingItemId = null;
+      });
+    }
   }
 
   Future<void> _setDefaultBusiness(Business business) async {
@@ -239,8 +238,17 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _updateBusinessPreferences(business);
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
+
+      // Check for active subscription after business is set
+      try {
+        final startupViewModel = StartupViewModel();
+        await startupViewModel.hasActiveSubscription();
+      } catch (e) {
+        talker.error('Subscription check failed: $e');
+        // Optionally, redirect to payment plan or show error here
+      }
     } catch (e) {
-      log(e.toString());
+      // log(e.toString());
       talker.error('Error setting default business: $e');
     } finally {
       ref.read(businessSelectionProvider.notifier).setLoading(false);
@@ -249,8 +257,23 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _setDefaultBranch(Branch branch) async {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
-    _refreshBusinessAndBranchProviders();
-    return Future.value(); // Return a completed Future<void>
+
+    try {
+      // First make all branches inactive
+      await _updateAllBranchesInactive();
+      // Then set the selected branch as active and default
+      await _updateBranchActive(branch);
+      // Update branch ID in storage
+      await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+      await ProxyService.box
+          .writeString(key: 'branchIdString', value: branch.id);
+      // Refresh providers to reflect changes
+      _refreshBusinessAndBranchProviders();
+    } catch (e) {
+      talker.error('Error setting default branch: $e');
+    } finally {
+      ref.read(branchSelectionProvider.notifier).setLoading(false);
+    }
   }
 
   Future<void> _updateAllBusinessesInactive() async {
@@ -282,6 +305,20 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       ..writeString(key: 'encryptionKey', value: business.encryptionKey ?? "");
   }
 
+  Future<void> _updateAllBranchesInactive() async {
+    final branches = await ProxyService.strategy.branches(
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
+    for (final branch in branches) {
+      ProxyService.strategy.updateBranch(
+          branchId: branch.serverId!, active: false, isDefault: false);
+    }
+  }
+
+  Future<void> _updateBranchActive(Branch branch) async {
+    await ProxyService.strategy.updateBranch(
+        branchId: branch.serverId!, active: true, isDefault: true);
+  }
+
   void _navigateToBranchSelection() {
     setState(() {
       _isSelectingBranch = true;
@@ -290,6 +327,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   void _completeAuthenticationFlow() {
+    // Track login event with PosthogService
+    PosthogService.instance.capture('login_success', properties: {
+      'source': 'login_choices',
+      if (_selectedBusiness != null) 'business_id': _selectedBusiness!.serverId,
+    });
     _routerService.navigateTo(FlipperAppRoute());
   }
 

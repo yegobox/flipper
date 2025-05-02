@@ -61,7 +61,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   Future<List<TransactionItem>> _getActiveTransactionItems(
       ITransaction transaction) async {
     return await ProxyService.strategy.transactionItems(
-      branchId: ProxyService.box.getBranchId()!,
+      branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: transaction.id,
       doneWithTransaction: false,
       active: true,

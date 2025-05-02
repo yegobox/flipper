@@ -125,7 +125,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       // Query active, done items only
       final items = await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: transaction.id,
         doneWithTransaction: true,
         active: true,
@@ -403,9 +403,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get business details
     Business? business = await ProxyService.strategy.getBusiness();
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
+      // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
-        // doneWithTransaction: true,
-        branchId: ProxyService.box.getBranchId()!);
+        branchId: (await ProxyService.strategy.activeBranch()).id);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
@@ -494,7 +494,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final repository = Repository();
 
     List<Configurations> taxConfigs = await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: Query(where: [
           Where('taxType').isExactly(item.taxTyCd ?? "B"),
           Where('branchId').isExactly(ProxyService.box.getBranchId()!),
@@ -522,7 +522,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     taxAmount = (taxAmount * 100).round() / 100;
 
     final itemJson = TransactionItem(
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
       qty: quantity,
       discount: item.discount,
       remainingStock: item.remainingStock!,
@@ -1076,5 +1076,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .toString();
     await sendPostRequest(url, json);
     return true;
+  }
+
+  @override
+  Future<List<odm.Configurations>> taxConfigs({required int branchId}) async {
+    final repository = Repository();
+    List<Configurations> taxConfigs = await repository.get<Configurations>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: Query(where: [
+          Where('branchId').isExactly(branchId),
+        ]));
+    return taxConfigs;
   }
 }

@@ -5,7 +5,7 @@ final variationMock = Variant(
   color: '#cc',
   itemCd: "",
   sku: 'sku',
-  lastTouched: DateTime.now(),
+  lastTouched: DateTime.now().toUtc(),
   productId: "2",
   unit: 'Per Item',
   productName: 'Custom Amount',

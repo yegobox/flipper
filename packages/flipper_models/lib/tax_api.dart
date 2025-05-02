@@ -79,4 +79,6 @@ abstract class TaxApi {
 
   Future<RwApiResponse> updateImportItems(
       {required Variant item, required String URI});
+
+  Future<List<Configurations>> taxConfigs({required int branchId});
 }

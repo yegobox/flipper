@@ -169,7 +169,7 @@ dependencies:
   geocode: ^1.0.3
   firebase_analytics: ^11.4.4
   firebase_crashlytics: ^4.3.4
-  location: ^6.0.2
+  location: ^8.0.0
   google_sign_in: ^6.2.2
   http: ">=0.13.0 <2.0.0"
   path_provider: ^2.1.5
@@ -182,7 +182,7 @@ dependencies:
   
   shared_preferences: ^2.5.2
   newrelic_mobile: ^1.1.7
-  flutter_local_notifications: ^19.0.0
+  flutter_local_notifications: ^19.1.0
   
   window_manager: ^0.4.0
   launcher_entry: ^0.1.1
@@ -227,8 +227,8 @@ dependencies:
   htmltopdfwidgets:
   markdown:
   string_scanner:
-  pdf: ^3.11.1
-  printing: ^5.14.0
+  pdf: ^3.11.3
+  printing: ^5.14.2
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0

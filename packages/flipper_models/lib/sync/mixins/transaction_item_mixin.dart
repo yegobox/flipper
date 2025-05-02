@@ -94,7 +94,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
           modrId: variation.modrId,
           modrNm: variation.modrNm,
-          branchId: ProxyService.box.getBranchId(),
+          branchId: (await ProxyService.strategy.activeBranch()).id,
           ebmSynced: false, // Assuming default value
           partOfComposite: partOfComposite,
           compositePrice: compositePrice,
@@ -104,8 +104,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           transactionId: transaction.id,
           variantId: variation.id,
           remainingStock: currentStock - quantity,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          createdAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
           isRefunded: false, // Assuming default value
           doneWithTransaction: doneWithTransaction ?? false,
           active: true,
@@ -123,7 +123,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       }
 
       // Upsert the item in the repository
-      repository.upsert<TransactionItem>(transactionItem);
+      await repository.upsert<TransactionItem>(transactionItem);
 
       // Fetch all items for the transaction and update their `itemSeq`
       final allItems = await repository.get<TransactionItem>(
@@ -140,16 +140,30 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         allItems[i].itemSeq = i + 1; // itemSeq should start from 1
         await repository.upsert<TransactionItem>(allItems[i]);
       }
+
+      // Calculate and update the transaction's subtotal
+      double newSubTotal =
+          allItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+
+      // Only update if the subtotal has changed or is zero
+      if (transaction.subTotal == 0 || transaction.subTotal != newSubTotal) {
+        await ProxyService.strategy.updateTransaction(
+          transaction: transaction,
+          subTotal: newSubTotal,
+          updatedAt: DateTime.now(),
+          lastTouched: DateTime.now(),
+        );
+      }
     } catch (e, s) {
       talker.error(s);
       rethrow;
     }
   }
 
-  @override
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
     int? branchId,
+    String? branchIdString,
     DateTime? startDate,
     DateTime? endDate,
     bool? doneWithTransaction,
@@ -157,53 +171,77 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     String? requestId,
     bool fetchRemote = false,
   }) {
-    // Create a list of conditions for better readability and debugging
-    final List<Where> conditions = [
-      // Always include branchId since it's required
-      if (branchId != null) Where('branchId').isExactly(branchId),
+    List<Where> _buildConditions(dynamic branchIdValue) {
+      final List<Where> conditions = [];
+      if (branchIdValue != null) {
+        conditions.add(Where('branchId').isExactly(branchIdValue));
+      }
+      if (transactionId != null) {
+        conditions.add(Where('transactionId').isExactly(transactionId));
+      }
+      if (requestId != null) {
+        conditions.add(Where('inventoryRequestId').isExactly(requestId));
+      }
+      if (startDate != null && endDate != null) {
+        if (startDate == endDate) {
+          talker
+              .info('Date Given \x1B[35m${startDate.toIso8601String()}\x1B[0m');
+          conditions.add(Where('createdAt')
+              .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+          conditions.add(Where('createdAt').isLessThanOrEqualTo(
+              endDate.add(const Duration(days: 1)).toIso8601String()));
+        } else {
+          conditions.add(Where('createdAt')
+              .isLessThanOrEqualTo(startDate.toIso8601String()));
+          conditions.add(Where('createdAt').isGreaterThanOrEqualTo(
+              endDate.add(const Duration(days: 1)).toIso8601String()));
+        }
+      }
+      if (doneWithTransaction != null) {
+        conditions
+            .add(Where('doneWithTransaction').isExactly(doneWithTransaction));
+      }
+      if (active != null) {
+        conditions.add(Where('active').isExactly(active));
+      }
+      return conditions;
+    }
 
-      // Optional conditions
-      if (transactionId != null)
-        Where('transactionId').isExactly(transactionId),
-      if (requestId != null) Where('inventoryRequestId').isExactly(requestId),
+    Stream<List<TransactionItem>> _branchStream(dynamic branchIdValue) {
+      final query = Query(
+        where: _buildConditions(branchIdValue),
+        orderBy: [OrderBy('createdAt', ascending: false)],
+      );
+      return repository.subscribe<TransactionItem>(
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
+      );
+    }
 
-      // Date range handling
-      if (startDate != null && endDate != null)
-        if (startDate == endDate)
-          Where('createdAt').isBetween(
-            startDate.toIso8601String(),
-            startDate.add(const Duration(days: 1)).toIso8601String(),
-          )
-        else
-          Where('createdAt').isBetween(
-            startDate.toIso8601String(),
-            endDate.toIso8601String(),
-          ),
-
-      if (doneWithTransaction != null)
-        Where('doneWithTransaction').isExactly(doneWithTransaction),
-      if (active != null) Where('active').isExactly(active),
-    ];
-
-    // Add logging to help debug the query
-    // print('TransactionItems query conditions: $conditions');
-
-    final queryString = Query(where: conditions);
-
-    // Return the stream directly from repository with mapping
-    return repository.subscribe<TransactionItem>(
-      query: queryString,
-      policy: fetchRemote == true
-          ? OfflineFirstGetPolicy.alwaysHydrate
-          : OfflineFirstGetPolicy.localOnly,
-    );
+    // Prefer string branchId, fallback to int, else fallback to no branchId
+    if (branchIdString != null) {
+      final stringStream = _branchStream(branchIdString);
+      if (branchId != null) {
+        final intStream = _branchStream(branchId);
+        return stringStream.asyncExpand(
+            (items) => items.isNotEmpty ? Stream.value(items) : intStream);
+      }
+      return stringStream;
+    }
+    if (branchId != null) {
+      return _branchStream(branchId);
+    }
+    // No branchId provided
+    return _branchStream(null);
   }
 
   @override
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
-    int? branchId,
+    String? branchId,
     String? variantId,
     String? id,
     bool? active,

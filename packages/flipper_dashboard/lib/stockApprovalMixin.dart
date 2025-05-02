@@ -297,7 +297,7 @@ mixin StockRequestApprovalLogic {
     try {
       await ProxyService.strategy.updateStockRequest(
         stockRequestId: request.id,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
         status: isFullyApproved
             ? RequestStatus.approved
             : RequestStatus.partiallyApproved,
@@ -727,7 +727,7 @@ mixin StockRequestApprovalLogic {
             value: (existingVariant.stock!.currentStock! + approvedQuantity) *
                 existingVariant.retailPrice!,
             rsdQty: existingVariant.stock!.currentStock! + approvedQuantity,
-            lastTouched: DateTime.now(),
+            lastTouched: DateTime.now().toUtc(),
             ebmSynced: false,
           );
         } else {
@@ -816,7 +816,7 @@ mixin StockRequestApprovalLogic {
         currentStock: updatedStock,
         value: updatedStock * variant.retailPrice!,
         rsdQty: updatedStock,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         ebmSynced: false,
       );
     } catch (e, s) {

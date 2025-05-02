@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
+import 'dart:async';
 
 class BottomSheets {
   static void showBottom({
@@ -66,15 +67,59 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 }
 
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
-  static void edit({
+  bool _isLoading = false;
+  late final TextEditingController _customerPhoneController;
+  String? _customerPhoneError;
+
+  @override
+  void initState() {
+    super.initState();
+    _customerPhoneController = TextEditingController(
+      text:
+          ProxyService.box.readString(key: 'currentSaleCustomerPhoneNumber') ??
+              '',
+    );
+    _customerPhoneController.addListener(() {
+      final value = _customerPhoneController.text;
+      ProxyService.box
+          .writeString(key: 'currentSaleCustomerPhoneNumber', value: value);
+      setState(() {}); // To update error message if needed
+    });
+  }
+
+  @override
+  void dispose() {
+    _customerPhoneController.dispose();
+    super.dispose();
+  }
+
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a phone number';
+    }
+    // Must be 9 digits, starting with 7, 8, or 9, and no leading zero
+    final phoneExp = RegExp(r'^[7-9]\d{8}$');
+    if (!phoneExp.hasMatch(value)) {
+      return 'Please enter a valid 9-digit phone number (e.g. 783054874)';
+    }
+    return null;
+  }
+
+  static Future<void> edit({
     required BuildContext context,
     required WidgetRef ref,
     required TransactionItem transactionItem,
     required Function doneDelete,
     required String transactionId,
-  }) {
+  }) async {
     TextEditingController newQtyController = TextEditingController();
     newQtyController.text = transactionItem.qty.toString();
+    double localQty = transactionItem.qty.toDouble();
+    double localTotal = localQty * transactionItem.price;
+
+    // Create a completer to signal when the edit is complete
+    final completer = Completer<bool>();
+
     WoltModalSheet.show<void>(
       context: context,
       pageListBuilder: (BuildContext context) {
@@ -83,72 +128,159 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
             hasSabGradient: false,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: newQtyController,
-                    decoration: InputDecoration(
-                      labelText: 'Quantity',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: StatefulBuilder(
+                builder: (context, setModalState) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'Price: ${transactionItem.price.toString()}',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      TextFormField(
+                        controller: newQtyController,
+                        keyboardType:
+                            TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          labelText: 'Quantity',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (val) {
+                          final qty = double.tryParse(val) ?? 0;
+                          setModalState(() {
+                            localQty = qty;
+                            localTotal = localQty * transactionItem.price;
+                          });
+                        },
                       ),
-                      Text(
-                        'Total: ${0.toRwf()}',
-                        style: TextStyle(color: Colors.grey[600]),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Price: ${transactionItem.price.toString()}',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            'Total: ${localTotal.toRwf()}',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                      FlipperButton(
+                        color: Colors.blue,
+                        width: double.infinity,
+                        text: 'Done',
+                        onPressed: () async {
+                          final qty = double.tryParse(newQtyController.text);
+                          if (qty != null && qty != 0) {
+                            try {
+                              await ProxyService.strategy.updateTransactionItem(
+                                qty: qty,
+                                transactionItemId: transactionItem.id,
+                              );
+
+                              // Force refresh the provider
+                              await ref.refresh(transactionItemsProvider(
+                                transactionId: transactionId,
+                                branchId: ProxyService.box.getBranchId()!,
+                              ).future);
+
+                              // Complete with success
+                              completer.complete(true);
+
+                              if (Navigator.of(context).canPop())
+                                Navigator.of(context).pop();
+                            } catch (e) {
+                              completer.complete(false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Error updating quantity: ${e.toString()}')),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      FlipperIconButton(
+                        icon: Icons.delete,
+                        iconColor: Colors.red,
+                        textColor: Colors.red,
+                        text: 'Remove Product',
+                        onPressed: () {
+                          ProxyService.strategy.deleteItemFromCart(
+                            transactionItemId: transactionItem,
+                            transactionId: transactionId,
+                          );
+                          Navigator.of(context).pop();
+                          doneDelete();
+                        },
                       ),
                     ],
-                  ),
-                  SizedBox(height: 20),
-                  FlipperButton(
-                    color: Colors.blue,
-                    width: double.infinity,
-                    text: 'Done',
-                    onPressed: () {
-                      if (double.tryParse(newQtyController.text) != null &&
-                          double.tryParse(newQtyController.text) != 0) {
-                        ProxyService.strategy.updateTransactionItem(
-                            qty: double.tryParse(newQtyController.text),
-                            transactionItemId: transactionItem.id);
-
-                        ref.refresh(transactionItemsProvider(
-                            transactionId: transactionId,
-                            branchId: ProxyService.box.getBranchId()!));
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  FlipperIconButton(
-                    icon: Icons.delete,
-                    iconColor: Colors.red,
-                    textColor: Colors.red,
-                    text: 'Remove Product',
-                    onPressed: () {
-                      ProxyService.strategy.deleteItemFromCart(
-                        transactionItemId: transactionItem,
-                        transactionId: transactionId,
-                      );
-                      Navigator.of(context).pop();
-                      doneDelete();
-                    },
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           )
         ];
       },
     );
+
+    // Wait for the edit to complete
+    await completer.future;
+
+    // Ensure the parent widget rebuilds with the updated data
+    ref.invalidate(transactionItemsProvider(
+      transactionId: transactionId,
+      branchId: ProxyService.box.getBranchId()!,
+    ));
+  }
+
+  Future<void> _handleCharge(String transactionId, double total) async {
+    // Validate phone before charging
+    final phoneError = _validatePhone(_customerPhoneController.text);
+    setState(() {
+      _customerPhoneError = phoneError;
+    });
+    if (phoneError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(phoneError)),
+      );
+      return;
+    }
+    try {
+      // Start loading
+      setState(() {
+        _isLoading = true;
+      });
+      ref.read(oldProvider.loadingProvider.notifier).startLoading();
+
+      // Save phone number to ProxyService.box
+      ProxyService.box.writeString(
+          key: 'currentSaleCustomerPhoneNumber',
+          value: _customerPhoneController.text);
+
+      // Call the charge function
+      await widget.onCharge(transactionId, total);
+
+      // Stop loading and close modal
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      // Handle error
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
   }
 
   @override
@@ -158,7 +290,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
         branchId: ProxyService.box.getBranchId()!));
 
     double calculateTotal(List<TransactionItem> items) {
-      return items.fold(0, (sum, item) => sum + item.price);
+      return items.fold(0, (sum, item) => sum + (item.price * item.qty));
     }
 
     Widget _buildTransactionItem(TransactionItem transactionItem) {
@@ -197,12 +329,31 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
       );
     }
 
+    Widget _buildPhoneField() {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12.0),
+        child: TextField(
+          controller: _customerPhoneController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Customer Phone number',
+            hintText: 'Customer Phone number',
+            prefixIcon: Icon(Icons.phone, color: Colors.blue),
+            errorText: _customerPhoneError,
+            border: OutlineInputBorder(),
+          ),
+          maxLength: 9,
+        ),
+      );
+    }
+
     Widget _buildContent(List<TransactionItem> items) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           SearchInputWithDropdown(),
           SizedBox(height: 16),
+          _buildPhoneField(),
           if (items.isNotEmpty)
             ...items.map((item) => _buildTransactionItem(item)).toList(),
           SizedBox(height: 16),
@@ -240,10 +391,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
             color: Colors.blue,
             width: double.infinity,
             text: 'Charge ${calculateTotal(items).toRwf()}',
-            onPressed: () {
-              widget.onCharge(
-                  widget.transactionIdInt.toString(), calculateTotal(items));
-            },
+            isLoading: _isLoading,
+            onPressed: _isLoading
+                ? null
+                : () => _handleCharge(
+                    widget.transactionIdInt.toString(), calculateTotal(items)),
           ),
         ],
       );
@@ -251,7 +403,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
 
     return itemsAsync.when(
       data: (items) => _buildContent(items),
-      loading: () => Center(child: Text("Loading...")),
+      loading: () => Center(child: CircularProgressIndicator()),
       error: (error, stack) => Center(
         child: Text(
           'Error loading items: ${error.toString()}',

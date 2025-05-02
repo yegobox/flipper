@@ -2,6 +2,7 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     // https://github.com/incrediblezayed/file_saver/issues/86
 }

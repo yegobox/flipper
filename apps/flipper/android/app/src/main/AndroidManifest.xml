@@ -1,12 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="rw.flipper" xmlns:tools="http://schemas.android.com/tools">
+          package="rw.flipper" xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Explicitly remove these permissions if they are added by dependencies -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
 
     <!-- Your existing permissions -->
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!--    <uses-permission android:name="android.permission.CAMERA" />-->
     <uses-permission android:name="android.permission.NFC" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -21,7 +21,7 @@
         android:allowBackup="false"
         android:label="flipper"
         android:fullBackupContent="false"
-        android:name="${applicationName}"
+
         android:icon="@mipmap/launcher_icon">
         <!-- https://github.com/Levi-Lesches/flutter_local_notifications/blob/readme-refactor/flutter_local_notifications/docs/android-setup.md -->
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
@@ -66,9 +66,29 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <meta-data android:name="com.posthog.posthog.API_KEY" android:value="${POSTHOG_API_KEY}" />
+        <meta-data android:name="com.posthog.posthog.POSTHOG_HOST" android:value="https://us.i.posthog.com" />
+        <meta-data android:name="com.posthog.posthog.TRACK_APPLICATION_LIFECYCLE_EVENTS" android:value="true" />
+        <meta-data android:name="com.posthog.posthog.DEBUG" android:value="true" />
+        <meta-data
+        android:name="com.tekartik.sqflite.wal_enabled"
+        android:value="true" />
+        <meta-data android:name="com.posthog.posthog.AUTO_INIT" android:value="false" />
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Add FileProvider configuration -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            tools:replace="android:authorities">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths"
+                tools:replace="android:resource" />
+        </provider>
     </application>
 </manifest>

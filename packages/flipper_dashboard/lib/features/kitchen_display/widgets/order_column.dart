@@ -115,6 +115,7 @@ class OrderColumn extends StatelessWidget {
                                 child: OrderCard(
                                   order: order,
                                   borderColor: color,
+                                  status: status,
                                 ),
                               ),
                             ),
@@ -123,11 +124,13 @@ class OrderColumn extends StatelessWidget {
                               child: OrderCard(
                                 order: order,
                                 borderColor: color,
+                                status: status,
                               ),
                             ),
                             child: OrderCard(
                               order: order,
                               borderColor: color,
+                              status: status,
                             ),
                           );
                         },

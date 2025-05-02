@@ -77,5 +77,23 @@
 		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>We need your location to provide accurate services while using the app.</string>
+
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>We need your location to support background functionality and notifications.</string>
+
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>This app requires Bluetooth access to function properly with external devices.</string>	
+
+		<key>NSBluetoothPeripheralUsageDescription</key>
+		<string>This app uses Bluetooth to communicate with nearby devices.</string>
+		<key>com.posthog.posthog.API_KEY</key>
+		<string>$(POSTHOG_API_KEY)</string>
+		<key>com.posthog.posthog.POSTHOG_HOST</key>
+		<string>https://us.i.posthog.com</string>
+		<key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
+		<true/>
+
 	</dict>
 </plist>

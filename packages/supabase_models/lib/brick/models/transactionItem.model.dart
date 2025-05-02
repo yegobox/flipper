@@ -98,13 +98,12 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   DateTime? lastTouched;
 
-  int? branchId;
+  String? branchId;
   bool? ebmSynced;
   bool? partOfComposite;
   double? compositePrice;
 
-  // Define the relationship with StockRequest
-  // @Supabase(ignore: true)
+  @Supabase(foreignKey: 'inventory_request_id')
   InventoryRequest? inventoryRequest;
 
   // If the association will be created by the app, specify
@@ -137,7 +136,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.regrNm,
     this.modrId,
     this.modrNm,
-    required this.lastTouched,
+    DateTime? lastTouched,
     this.branchId,
     this.ebmSynced,
     this.partOfComposite,
@@ -170,9 +169,10 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? inventoryRequestId,
     required this.prc,
   })  : id = id ?? const Uuid().v4(),
-        createdAt = DateTime.now(),
+        createdAt = createdAt ?? DateTime.now().toUtc(),
+        lastTouched = lastTouched ?? DateTime.now().toUtc(),
         inventoryRequestId = inventoryRequest?.id,
-        updatedAt = DateTime.now();
+        updatedAt = updatedAt ?? DateTime.now().toUtc();
 
   // toJson method
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -276,7 +276,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? isrcAplcbYn,
     String? useYn,
     DateTime? lastTouched,
-    int? branchId,
+    String? branchId,
     bool? ebmSynced,
     bool? partOfComposite,
     double? compositePrice,

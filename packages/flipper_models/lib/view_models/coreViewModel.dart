@@ -137,7 +137,7 @@ class CoreViewModel extends FlipperBaseModel
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: pendingTransaction?.id,
         doneWithTransaction: false,
         active: false);
@@ -195,7 +195,7 @@ class CoreViewModel extends FlipperBaseModel
 
       List<TransactionItem> updatedItems = await ProxyService.strategy
           .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
               active: true);
@@ -234,7 +234,7 @@ class CoreViewModel extends FlipperBaseModel
     if (items.isEmpty) {
       ProxyService.strategy.addTransactionItem(
         transaction: pendingTransaction,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
         discount: 0.0,
         compositePrice: 0.0,
         quantity: quantity.toInt(),
@@ -269,7 +269,7 @@ class CoreViewModel extends FlipperBaseModel
 
       List<TransactionItem> items = await ProxyService.strategy
           .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
               active: true);
@@ -288,13 +288,13 @@ class CoreViewModel extends FlipperBaseModel
       } else {
         List<TransactionItem> items = await ProxyService.strategy
             .transactionItems(
-                branchId: ProxyService.box.getBranchId()!,
+                branchId: (await ProxyService.strategy.activeBranch()).id,
                 transactionId: pendingTransaction?.id,
                 doneWithTransaction: false,
                 active: true);
         ProxyService.strategy.addTransactionItem(
           transaction: pendingTransaction,
-          lastTouched: DateTime.now(),
+          lastTouched: DateTime.now().toUtc(),
           discount: 0.0,
           compositePrice: 0.0,
           quantity: 1,
@@ -501,7 +501,7 @@ class CoreViewModel extends FlipperBaseModel
           custTin: tinNumber ?? phone,
           email: email,
           telNo: phone,
-          updatedAt: DateTime.now(),
+          updatedAt: DateTime.now().toUtc(),
           branchId: branchId,
           custNo: phone,
           regrNm: randomNumber().toString().substring(0, 5),
@@ -568,7 +568,7 @@ class CoreViewModel extends FlipperBaseModel
         status: PARKED,
         note: ticketNote,
         ticketName: ticketName,
-        updatedAt: DateTime.now(),
+        updatedAt: DateTime.now().toUtc(),
       );
     }
   }
@@ -591,7 +591,7 @@ class CoreViewModel extends FlipperBaseModel
     if (keypad.transaction == null) return 0.0;
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: keypad.transaction!.id,
         doneWithTransaction: false,
         active: true);
@@ -662,7 +662,7 @@ class CoreViewModel extends FlipperBaseModel
     for (ITransaction completedTransaction in completedTransactions) {
       List<TransactionItem> transactionItems = await ProxyService.strategy
           .transactionItems(
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: completedTransaction.id);
       allItems.addAll(transactionItems.toSet());
     }
@@ -836,7 +836,7 @@ class CoreViewModel extends FlipperBaseModel
     //           avatar: "",
     //           channelType: "",
     //           messageId: randomNumber().toString(),
-    //           createdAt: DateTime.now(),
+    //           createdAt: DateTime.now().toUtc(),
     //           fromNumber: tenant.phoneNumber,
     //           toNumber: tenant.phoneNumber,
     //           businessId: tenant.businessId));

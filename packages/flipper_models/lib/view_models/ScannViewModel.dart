@@ -60,7 +60,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
                     currentStock: existingVariant.stock!.currentStock,
                     rsdQty: existingVariant.stock!.rsdQty,
                     value: existingVariant.stock!.value,
-                    lastTouched: DateTime.now(),
+                    lastTouched: DateTime.now().toUtc(),
                   )
                 : null,
             taxPercentage: existingVariant.taxPercentage,
@@ -157,7 +157,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<DateTime?> pickDate(BuildContext context) async {
     return await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: DateTime.now().toUtc(),
       firstDate: DateTime(2023),
       lastDate: DateTime(2100),
     );
@@ -206,8 +206,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     log((await ProxyService.box.bhfId()).toString(), name: "ScannViewModel");
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
-    EBMenabled = ProxyService.box.tin() != -1 &&
-        (await ProxyService.box.bhfId())!.isNotEmpty;
+    final bhfId = await ProxyService.box.bhfId();
+    EBMenabled = ProxyService.box.tin() != -1 && (bhfId?.isNotEmpty ?? false);
+
     log(EBMenabled.toString(), name: "ScannViewModel");
     notifyListeners();
   }
@@ -266,7 +267,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       productName: product.name,
       branchId: branchId,
 
-      lastTouched: DateTime.now(),
+      lastTouched: DateTime.now().toUtc(),
     );
     final stock = Stock(
       currentStock: 1,
@@ -306,7 +307,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         color: COLOR,
         businessId: businessId,
         branchId: branchId,
-        lastTouched: DateTime.now(),
+        lastTouched: DateTime.now().toUtc(),
       ),
       skipRegularVariant: true,
     );
@@ -366,7 +367,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
                   currentStock: newQuantity,
                   rsdQty: newQuantity,
                   value: newQuantity * (scannedVariant.retailPrice ?? 0.0),
-                  lastTouched: DateTime.now(),
+                  lastTouched: DateTime.now().toUtc(),
                 )
               : null,
           taxPercentage: scannedVariant.taxPercentage,
@@ -406,7 +407,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           regrNm: scannedVariant.regrNm,
           modrId: scannedVariant.modrId,
           modrNm: scannedVariant.modrNm,
-          lastTouched: DateTime.now(),
+          lastTouched: DateTime.now().toUtc(),
           supplyPrice: scannedVariant.supplyPrice,
           retailPrice: scannedVariant.retailPrice,
           spplrItemClsCd: scannedVariant.spplrItemClsCd,

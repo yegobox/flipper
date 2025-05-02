@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:email_validator_flutter/email_validator_flutter.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
@@ -14,9 +13,6 @@ class TenantFormMixin {
   static void resetForm() {
     nameController.clear();
     phoneController.clear();
-    // setState(() {
-    //   selectedUserType = 'Agent';
-    // });
   }
 
   static String? validatePhoneOrEmailStatic(String? value) {
@@ -60,33 +56,6 @@ class TenantFormMixin {
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
-    );
-  }
-
-  static Widget buildUserTypeDropdown({
-    required BuildContext context,
-    required Function(String?) onChanged,
-  }) {
-    return DropdownButtonFormField<String>(
-      value: selectedUserType,
-      onChanged: onChanged,
-      items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
-          .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: "Select User Type",
-        prefixIcon:
-            Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),

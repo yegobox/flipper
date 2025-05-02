@@ -31,6 +31,10 @@ class TableVariants extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check the screen size to determine whether to use mobile or desktop layout
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768; // Common breakpoint for mobile
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
@@ -49,25 +53,9 @@ class TableVariants extends StatelessWidget {
                   ),
                 ],
               ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: constraints.maxWidth,
-                  ),
-                  child: DataTable(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!, width: 1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    columnSpacing: 12, // Adjust spacing between columns
-                    columns: _buildColumns(),
-                    rows: model.scannedVariants.reversed.map((variant) {
-                      return _buildRow(context, model, variant);
-                    }).toList(),
-                  ),
-                ),
-              ),
+              child: isMobile
+                  ? _buildMobileLayout(context, constraints)
+                  : _buildDesktopLayout(context, constraints),
             ),
             // Show delete button only if at least one item is selected
             if (model.scannedVariants
@@ -80,6 +68,173 @@ class TableVariants extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDesktopLayout(BuildContext context, BoxConstraints constraints) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: constraints.maxWidth,
+        ),
+        child: DataTable(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!, width: 1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          columnSpacing: 12, // Adjust spacing between columns
+          columns: _buildColumns(),
+          rows: model.scannedVariants.reversed.map((variant) {
+            return _buildRow(context, model, variant);
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, BoxConstraints constraints) {
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: model.scannedVariants.length,
+      itemBuilder: (context, index) {
+        final variant = model.scannedVariants.reversed.toList()[index];
+        return _buildMobileCard(context, variant);
+      },
+    );
+  }
+
+  Widget _buildMobileCard(BuildContext context, Variant variant) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: ExpansionTile(
+        title: Row(
+          children: [
+            Checkbox(
+              value: model.isSelected(variant.id),
+              onChanged: (value) => model.toggleSelect(variant.id),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    variant.bcd ?? variant.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Price: ${variant.retailPrice?.toStringAsFixed(2) ?? ''}',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.redAccent),
+              onPressed: () => model.removeVariant(id: variant.id),
+            ),
+          ],
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildMobileInfoRow(
+                    'Quantity',
+                    QuantityCell(
+                      quantity: variant.stock?.currentStock,
+                      onEdit: () {
+                        showEditQuantityDialog(
+                          context,
+                          variant,
+                          model,
+                          () {
+                            FocusScope.of(context)
+                                .requestFocus(scannedInputFocusNode);
+                          },
+                        );
+                      },
+                    )),
+                _buildMobileInfoRow(
+                    'Tax',
+                    TaxDropdown(
+                      selectedValue: variant.taxTyCd,
+                      options: ["A", "B", "C", "D"],
+                      onChanged: (newValue) =>
+                          model.updateTax(variant, newValue),
+                    )),
+                _buildMobileInfoRow(
+                    'Discount',
+                    TextFormField(
+                      controller: model.getDiscountController(variant.id),
+                      decoration: const InputDecoration(suffixText: '%'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    )),
+                _buildMobileInfoRow(
+                    'Unit',
+                    UnitOfMeasureDropdown(
+                      items: units.map((e) => e.name ?? '').toList(),
+                      selectedItem: variant.unit,
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          onUnitOfMeasureChanged?.call(newValue);
+                        }
+                      },
+                    )),
+                _buildMobileInfoRow(
+                    'Classification',
+                    UniversalProductDropdown(
+                      context: context,
+                      model: model,
+                      variant: variant,
+                      unitsAsyncValue: unversalProducts,
+                    )),
+                _buildMobileInfoRow(
+                    'Expiration',
+                    TextFormField(
+                      controller: model.getDateController(variant.id),
+                      decoration: InputDecoration(
+                        suffixIcon: const Icon(Icons.calendar_today),
+                        hintText: variant.expirationDate != null
+                            ? DateFormat('MMMM dd, yyyy')
+                                .format(variant.expirationDate!)
+                            : 'Select Date',
+                      ),
+                      readOnly: true,
+                      onTap: () async {
+                        final date = await model.pickDate(context);
+                        if (date != null) {
+                          onDateChanged(variant.id, date);
+                          model.updateDateController(variant.id, date);
+                        }
+                      },
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileInfoRow(String label, Widget widget) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: widget),
+        ],
+      ),
     );
   }
 
@@ -172,7 +327,7 @@ class TableVariants extends StatelessWidget {
         )),
         DataCell(
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 150), // Limit width
+            constraints: const BoxConstraints(maxWidth: 150), // Limit width
             child: UniversalProductDropdown(
               context: context,
               model: model,
