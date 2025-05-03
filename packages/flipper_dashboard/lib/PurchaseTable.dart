@@ -140,22 +140,21 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (purchase.createdAt != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: Chip(
-                                    label: Text(
-                                      timeago.format(
-                                        purchase.createdAt,
-                                        clock: DateTime.now(),
-                                      ),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.white),
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: Chip(
+                                  label: Text(
+                                    timeago.format(
+                                      purchase.createdAt,
+                                      clock: DateTime.now(),
                                     ),
-                                    backgroundColor: Colors.green,
-                                    visualDensity: VisualDensity.compact,
+                                    style: TextStyle(
+                                        fontSize: 12, color: Colors.white),
                                   ),
+                                  backgroundColor: Colors.green,
+                                  visualDensity: VisualDensity.compact,
                                 ),
+                              ),
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 10,

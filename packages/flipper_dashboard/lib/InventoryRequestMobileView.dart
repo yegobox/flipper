@@ -193,8 +193,8 @@ class _InventoryRequestMobileViewState
             ),
           ),
           const Divider(height: 1),
-          ButtonBar(
-            buttonPadding: const EdgeInsets.symmetric(horizontal: 16),
+          OverflowBar(
+            //buttonPadding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
               if (request['status'] == 'fulfilled') ...[
                 _buildDeliveryConfirmation(request),
