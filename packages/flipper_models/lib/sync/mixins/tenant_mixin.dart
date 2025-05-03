@@ -8,7 +8,6 @@ import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';

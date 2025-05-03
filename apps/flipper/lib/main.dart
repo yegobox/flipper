@@ -24,6 +24,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/posthog_service.dart';
+import 'dart:developer' as developer;
+
+// Memory tracking variables
+bool _memoryTrackingEnabled = true;
+Timer? _memoryTrackingTimer;
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -48,6 +53,40 @@ Future<void> _initializeSupabase() async {
     });
   } catch (e) {
     print('Supabase initialization error: $e');
+  }
+}
+
+// Function to start memory tracking
+void _startMemoryTracking() {
+  if (!_memoryTrackingEnabled || !kDebugMode) return;
+
+  _memoryTrackingTimer?.cancel();
+  _memoryTrackingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    _trackMemoryUsage();
+  });
+
+  developer.log('Memory tracking started', name: 'MemoryTracker');
+}
+
+// Function to track memory usage
+void _trackMemoryUsage() {
+  final info = WidgetsBinding.instance.runtimeType.toString();
+  developer.log('Memory tracking: $info', name: 'MemoryTracker');
+
+  // Force a GC to get more accurate readings
+  if (kDebugMode) {
+    developer.log('Forcing GC for memory tracking', name: 'MemoryTracker');
+  }
+
+  // Log memory info from VM
+  try {
+    developer.Timeline.startSync('getMemoryInfo');
+    developer.postEvent('memory', {'command': 'collect'});
+    developer.Timeline.finishSync();
+
+    developer.log('Memory tracking completed', name: 'MemoryTracker');
+  } catch (e) {
+    developer.log('Error tracking memory: $e', name: 'MemoryTracker');
   }
 }
 
@@ -86,7 +125,7 @@ Future<void> main() async {
 
     await SentryFlutter.init(
       (options) => options
-        ..dsn = kDebugMode ? AppSecrets.sentryKey : AppSecrets.sentryKey
+        ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey
         ..release = 'flipper@1.170.4252223232243+1723059742'
         ..environment = 'production'
         ..experimental.replay.sessionSampleRate = 1.0
@@ -99,6 +138,11 @@ Future<void> main() async {
           FlutterNativeSplash.remove();
           // Use PosthogService singleton to initialize PostHog
           await PosthogService.instance.initialize();
+
+          // Start memory tracking after app initialization
+          if (kDebugMode) {
+            _startMemoryTracking();
+          }
         });
         runApp(
           ProviderScope(

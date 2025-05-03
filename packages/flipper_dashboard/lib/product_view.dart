@@ -282,25 +282,49 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   Widget _buildProductGrid(
       BuildContext context, ProductViewModel model, List<Variant> variants) {
-    return GridView.builder(
-      controller: _scrollController,
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        mainAxisSpacing: 5.0,
-        crossAxisSpacing: 2.0,
-      ),
-      itemCount: variants.length,
-      itemBuilder: (context, index) {
-        return buildVariantRow(
-          forceRemoteUrl: false,
-          context: context,
-          model: model,
-          variant: variants[index],
-          isOrdering: false,
-        );
-      },
-      physics: const AlwaysScrollableScrollPhysics(),
-    );
+    // Check if the current platform is mobile
+    final bool isMobile = defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+
+    // Use ListView for mobile platforms and GridView for desktop platforms
+    if (isMobile) {
+      return ListView.builder(
+        controller: _scrollController,
+        itemCount: variants.length,
+        itemBuilder: (context, index) {
+          return buildVariantRow(
+            forceRemoteUrl: false,
+            context: context,
+            model: model,
+            variant: variants[index],
+            isOrdering: false,
+            forceListView: true,
+          );
+        },
+        physics: const AlwaysScrollableScrollPhysics(),
+      );
+    } else {
+      return GridView.builder(
+        controller: _scrollController,
+        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: 200,
+          mainAxisSpacing: 5.0,
+          crossAxisSpacing: 2.0,
+        ),
+        itemCount: variants.length,
+        itemBuilder: (context, index) {
+          return buildVariantRow(
+            forceRemoteUrl: false,
+            context: context,
+            model: model,
+            variant: variants[index],
+            isOrdering: false,
+            forceListView: false, // Explicitly set to false for desktop
+          );
+        },
+        physics: const AlwaysScrollableScrollPhysics(),
+      );
+    }
   }
 
   Widget _buildStockView(

@@ -277,7 +277,7 @@ class SharedPreferenceStorage implements LocalStorage {
     final userId = _cache['userId'];
     if (userId is String) {
       final parsedUserId = int.tryParse(userId);
-      return parsedUserId ?? null;
+      return parsedUserId;
     } else if (userId is int) {
       return userId;
     }

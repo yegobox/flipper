@@ -24,6 +24,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:flipper_services/DeviceType.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -65,6 +66,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool isComposite;
   final bool isOrdering;
   final bool forceRemoteUrl;
+  final bool forceListView;
 
   const RowItem({
     Key? key,
@@ -73,6 +75,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.variantName,
     required this.stock,
     required this.forceRemoteUrl,
+    required this.forceListView,
     this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
@@ -160,6 +163,13 @@ class _RowItemState extends ConsumerState<RowItem>
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // Check if we should use list view mode
+    final deviceType = DeviceType.getDeviceType(context);
+    final bool useListView = deviceType == 'Phone' ||
+        (widget.forceListView &&
+            deviceType !=
+                'Desktop'); // Use list view on phones or when forced (except on desktop)
+
     // Debug the selection state
     if (isSelected) {
       talker.debug(
@@ -236,8 +246,11 @@ class _RowItemState extends ConsumerState<RowItem>
                         minHeight: 80, // Fixed minimum height
                         maxHeight: 220, // Add maximum height constraint
                       ),
-                      child:
-                          _buildItemContent(isSelected, textTheme, colorScheme),
+                      child: useListView
+                          ? _buildListItemContent(
+                              isSelected, textTheme, colorScheme)
+                          : _buildItemContent(
+                              isSelected, textTheme, colorScheme),
                     ),
                   ),
 
@@ -278,6 +291,64 @@ class _RowItemState extends ConsumerState<RowItem>
           _buildProductInfoSection(textTheme),
         ],
       ),
+    );
+  }
+
+  Widget _buildListItemContent(
+      bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Product Image - Smaller fixed size for list view
+        SizedBox(
+          width: 70,
+          height: 70,
+          child: _buildProductImageSection(isSelected),
+        ),
+
+        const SizedBox(width: 12),
+
+        // Product Info - Expanded to take remaining space
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Product name
+              Text(
+                widget.productName.isNotEmpty
+                    ? widget.productName
+                    : "Unnamed Product",
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 4),
+
+              // Variant name (if different from product name)
+              if (widget.variantName != widget.productName &&
+                  widget.variantName.isNotEmpty)
+                Text(
+                  widget.variantName,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[600],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+              const SizedBox(height: 8),
+
+              // Price and stock info
+              _buildPriceAndStockInfo(textTheme),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -474,7 +545,7 @@ class _RowItemState extends ConsumerState<RowItem>
 
     // Responsive layout for stock/price indicators
     final isMobile = MediaQuery.of(context).size.shortestSide < 600;
-    if (isMobile) {
+    if (widget.forceListView || isMobile) {
       // On mobile, stack vertically for visibility and reduce font size/padding
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
