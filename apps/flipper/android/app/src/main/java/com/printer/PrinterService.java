@@ -128,43 +128,18 @@ public class PrinterService {
             }
 
             // Process in correct order:
-            // 1. Convert to grayscale first with enhanced contrast for text
-            Bitmap grayscaleBitmap = toGrayscaleEnhanced(bitmap);
+            // 1. Convert to grayscale with proper contrast for thermal printing
+            Bitmap grayscaleBitmap = toGrayscaleForThermal(bitmap);
             bitmap.recycle(); // Recycle original
 
-            // 1.5. Invert image to ensure white background and black text
-            Bitmap invertedBitmap = invertBitmap(grayscaleBitmap);
-            grayscaleBitmap.recycle();
-
             // 2. Resize if needed
-            Bitmap resizedBitmap = downscaleBitmap(invertedBitmap, printerWidth);
-            if (resizedBitmap != invertedBitmap) {
-                invertedBitmap.recycle();
+            Bitmap resizedBitmap = downscaleBitmap(grayscaleBitmap, printerWidth);
+            if (resizedBitmap != grayscaleBitmap) {
+                grayscaleBitmap.recycle();
             }
 
-            // 3. Apply dithering to create 1-bit black and white image
-            Bitmap ditheredBitmap;
-            switch (ditheringMethod) {
-                case ORDERED_DITHERING:
-                    ditheredBitmap = applyOrderedDithering(resizedBitmap);
-                    break;
-                case ATKINSON_DITHERING:
-                    ditheredBitmap = applyAtkinsonDithering(resizedBitmap);
-                    break;
-                case THRESHOLD_DITHERING:
-                    ditheredBitmap = applyThresholdDithering(resizedBitmap);
-                    break;
-                case QR_CODE_OPTIMIZED:
-                    ditheredBitmap = applyQRCodeOptimizedDithering(resizedBitmap);
-                    break;
-                case TEXT_OPTIMIZED:
-                    ditheredBitmap = applyTextOptimizedDithering(resizedBitmap);
-                    break;
-                case FLOYD_STEINBERG_DITHERING:
-                default:
-                    ditheredBitmap = applyFloydSteinbergDithering(resizedBitmap);
-                    break;
-            }
+            // 3. Apply dithering optimized for thermal printing
+            Bitmap ditheredBitmap = applyThermalPrinterDithering(resizedBitmap);
             resizedBitmap.recycle();
 
             if (mPrinter == null) {
@@ -207,6 +182,73 @@ public class PrinterService {
             Log.e(TAG, "Unexpected error during printing", e);
             return ERROR_GENERAL_EXCEPTION;
         }
+    }
+    private Bitmap applyThermalPrinterDithering(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        // Create a mutable copy of the bitmap
+        Bitmap output = bitmap.copy(bitmap.getConfig(), true);
+
+        int[] pixels = new int[width * height];
+        output.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        // Thermal printer threshold - critical value!
+        // For thermal printers, we need higher threshold to avoid over-darkening
+        int threshold = 160; // Higher threshold (0-255) means less black dots
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int index = y * width + x;
+                int pixel = pixels[index];
+                int gray = Color.red(pixel); // Using red channel as grayscale value
+
+                // Simple threshold - keep paper white (255) when pixel is above threshold
+                int newValue = (gray > threshold) ? 255 : 0;
+                pixels[index] = Color.rgb(newValue, newValue, newValue);
+            }
+        }
+
+        output.setPixels(pixels, 0, width, 0, 0, width, height);
+        return output;
+    }
+    private static Bitmap toGrayscaleForThermal(Bitmap bmpOriginal) {
+        int width = bmpOriginal.getWidth();
+        int height = bmpOriginal.getHeight();
+
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+
+        // For thermal printers, we need proper contrast but avoid over-darkening
+        // Uses the BT.709 luminance formula: R: 0.2126, G: 0.7152, B: 0.0722
+        ColorMatrix cm = new ColorMatrix(new float[] {
+                0.2126f, 0.7152f, 0.0722f, 0, 0,
+                0.2126f, 0.7152f, 0.0722f, 0, 0,
+                0.2126f, 0.7152f, 0.0722f, 0, 0,
+                0,       0,       0,       1, 0
+        });
+
+        // Moderate contrast enhancement for better readability
+        // without making everything too dark
+        ColorMatrix contrastMatrix = new ColorMatrix();
+        float contrast = 1.3f; // Moderate contrast
+        float brightness = -10f; // Slight darkening
+        float intercept = (-.5f * contrast + .5f) * 255f + brightness;
+
+        contrastMatrix.set(new float[] {
+                contrast, 0, 0, 0, intercept,
+                0, contrast, 0, 0, intercept,
+                0, 0, contrast, 0, intercept,
+                0, 0, 0, 1, 0
+        });
+
+        // Apply both matrices
+        cm.postConcat(contrastMatrix);
+
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(cm));
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
     }
 
     private Bitmap downscaleBitmap(Bitmap bitmap, int printerWidth) {
