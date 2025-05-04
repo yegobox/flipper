@@ -67,11 +67,7 @@ class AppIconsGrid extends ConsumerWidget {
         await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;
       case "Credits":
-        // Navigate to the Credits page or show credits dialog
-        // For now, we'll just show a snackbar as a placeholder
-        ScaffoldMessenger.of(ref.context).showSnackBar(
-          const SnackBar(content: Text('Credits feature coming soon!')),
-        );
+        await _routerService.navigateTo(CreditAppRoute());
         break;
       default:
         await _routerService
