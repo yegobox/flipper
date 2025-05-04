@@ -68,6 +68,7 @@ import 'all_routes.dart';
     CustomRoute(page: PaymentPlanUI),
     CustomRoute(page: PaymentFinalize),
     CustomRoute(page: WaitingOrdersPlaced),
+    CustomRoute(page: CreditApp),
     //
   ],
   dependencies: [
