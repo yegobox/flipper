@@ -81,7 +81,9 @@ class _RefundState extends ConsumerState<Refund> {
                         if (purchaseCodeReceived) {
                           // Proceed with refund
                           if (widget.transaction!.receiptType == "TS") {
-                            await proceed(receiptType: "TR");
+                            // await proceed(receiptType: "TR");
+                            toast("Can not refund a training receipt");
+                            return;
                           }
                           if (widget.transaction!.receiptType == "PS") {
                             toast("Can not refund a proforma");
@@ -96,11 +98,14 @@ class _RefundState extends ConsumerState<Refund> {
                         }
                       } else {
                         if (widget.transaction!.receiptType == "TS") {
-                          await proceed(receiptType: "TR");
+                          // await proceed(receiptType: "TR");
+                          toast("Can not refund a training receipt");
+                          return;
                         } else if (widget.transaction!.receiptType! == "CS") {
                           await proceed(receiptType: "CR");
-                        } else if (widget.transaction!.receiptType == "TS") {
-                          await proceed(receiptType: "TS");
+                        } else if (widget.transaction!.receiptType == "PS") {
+                          toast("Can not refund a proforma");
+                          return;
                         } else if (widget.transaction!.receiptType == "PS") {
                           toast("Can not refund a proforma");
                           return;
