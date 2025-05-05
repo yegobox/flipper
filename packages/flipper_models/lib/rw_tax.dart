@@ -403,7 +403,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get business details
     Business? business = await ProxyService.strategy.getBusiness();
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-      // never pass in isDoneTransaction param here!
+        // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
         branchId: (await ProxyService.strategy.activeBranch()).id);
 
@@ -725,6 +725,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "salesSttsCd": "02",
       "cfmDt": date,
       "salesDt": date.substring(0, 8),
+      // "stockRlsDt": timeToUse.toYYYYMMddHHmmss(),
       "stockRlsDt": date,
       "totItemCnt": itemsList.length,
 
