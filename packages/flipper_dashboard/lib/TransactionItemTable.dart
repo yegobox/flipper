@@ -224,15 +224,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final controller = _quantityControllers[item.id]!;
     final focusNode = _quantityFocusNodes[item.id]!;
     return SizedBox(
-      width: 50,
+      width: 70,
       child: TextFormField(
         controller: controller,
         focusNode: focusNode,
-        keyboardType: TextInputType.number,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           border: OutlineInputBorder(
             borderSide: BorderSide.none,
             borderRadius: BorderRadius.circular(4),
@@ -241,6 +241,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           filled: true,
         ),
         onChanged: (value) => _updateQuantity(item, value, isOrdering),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Enter quantity';
+          }
+          final parsed = double.tryParse(value);
+          if (parsed == null || parsed < 0) {
+            return 'Invalid quantity';
+          }
+          return null;
+        },
       ),
     );
   }
@@ -310,13 +320,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       TransactionItem item, String value, bool isOrdering) async {
     if (!item.partOfComposite!) {
       final trimmedValue = value.trim();
-      final doubleValue = double.tryParse(trimmedValue) ??
-          int.tryParse(trimmedValue)?.toDouble();
-      if (doubleValue != null) {
-        final newQty = doubleValue.toInt();
-        if (doubleValue == newQty.toDouble() && newQty >= 0) {
-          await _updateQuantityBoth(item, doubleValue, isOrdering);
-        }
+      final doubleValue = double.tryParse(trimmedValue);
+      if (doubleValue != null && doubleValue >= 0) {
+        await _updateQuantityBoth(item, doubleValue, isOrdering);
       }
     }
   }
