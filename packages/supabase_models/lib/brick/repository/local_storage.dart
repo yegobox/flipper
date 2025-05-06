@@ -660,18 +660,50 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool getForceLogout() {
-    return _cache['forceLogout'] as bool? ?? false;
+    try {
+      // Check if the key exists in the cache
+      if (_cache.containsKey('forceLogout')) {
+        // Try to get the value as a bool
+        final value = _cache['forceLogout'];
+        if (value is bool) {
+          return value;
+        } else {
+          // If the value is not a bool, log the issue and reset it
+          print('Warning: forceLogout value is not a bool: $value');
+          _cache['forceLogout'] = false;
+          _savePreferences(); // Save the corrected value
+          return false;
+        }
+      }
+      // If the key doesn't exist, return false
+      return false;
+    } catch (e) {
+      // If any error occurs, log it and return false
+      print('Error getting forceLogout value: $e');
+      return false;
+    }
   }
 
   @override
   Future<void> setForceLogout(bool value) async {
-    _cache['forceLogout'] = value;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+    try {
+      print('Setting forceLogout to: $value');
+      _cache['forceLogout'] = value;
+
+      // Save the preferences immediately
+      if (kIsWeb) {
+        if (_webPrefs != null) {
+          await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+          print('Saved forceLogout to web preferences: $value');
+        } else {
+          print('Warning: _webPrefs is null, could not save forceLogout');
+        }
+      } else {
+        await _savePreferences();
+        print('Saved forceLogout to preferences: $value');
       }
-    } else {
-      await _savePreferences();
+    } catch (e) {
+      print('Error setting forceLogout value: $e');
     }
   }
 
