@@ -352,7 +352,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         qty: newQty,
         incrementQty: false,
         quantityRequested: newQty.toInt(),
-        splyAmt: item.splyAmt ?? item.price,
       );
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     } catch (e) {
@@ -404,7 +403,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           await ProxyService.strategy.updateTransactionItem(
             transactionItemId: item.id,
             price: doubleValue,
-            splyAmt: item.splyAmt ?? item.price,
             qty: item.qty,
           );
           _refreshTransactionItems(isOrdering,

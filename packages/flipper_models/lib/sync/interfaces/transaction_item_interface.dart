@@ -39,7 +39,6 @@ abstract class TransactionItemInterface {
     bool fetchRemote = false,
   });
 
- 
   FutureOr<void> updateTransactionItem({
     double? qty,
     required String transactionItemId,
@@ -53,7 +52,6 @@ abstract class TransactionItemInterface {
     bool? incrementQty,
     double? price,
     double? prc,
-    required double splyAmt,
     bool? doneWithTransaction,
     int? quantityShipped,
     double? taxblAmt,

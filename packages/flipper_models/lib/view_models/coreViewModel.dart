@@ -157,7 +157,6 @@ class CoreViewModel extends FlipperBaseModel
           ProxyService.strategy.updateTransactionItem(
             transactionItemId: item.id,
             active: true,
-            splyAmt: item.splyAmt ?? item.price,
           );
         }
 
@@ -281,7 +280,6 @@ class CoreViewModel extends FlipperBaseModel
         ProxyService.strategy.updateTransactionItem(
           transactionItemId: existTransactionItem.id,
           qty: existTransactionItem.qty + 1,
-          splyAmt: existTransactionItem.splyAmt ?? existTransactionItem.price,
           price: amount,
           prc: amount,
         );
@@ -319,7 +317,6 @@ class CoreViewModel extends FlipperBaseModel
         transactionItemId: items.last.id,
         taxAmt: double.parse((amount * 18 / 118).toStringAsFixed(2)),
         price: amount,
-        splyAmt: items.last.splyAmt ?? items.last.price,
         prc: double.parse((amount * 18 / 118).toStringAsFixed(2)),
       );
 

@@ -688,7 +688,6 @@ mixin StockRequestApprovalLogic {
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
         quantityApproved: approvedQuantity,
-        splyAmt: item.splyAmt ?? item.price,
       );
     } catch (e, s) {
       talker.error('Error in _processPartialApprovalItem', e, s);
