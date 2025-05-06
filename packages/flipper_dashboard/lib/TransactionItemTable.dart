@@ -17,6 +17,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, TextEditingController> _quantityControllers = {};
   // Add a map to track focus nodes for quantity fields
   final Map<String, FocusNode> _quantityFocusNodes = {};
+  // Add a map to track controllers for price fields
+  final Map<String, TextEditingController> _priceControllers = {};
+  // Add a map to track focus nodes for price fields
+  final Map<String, FocusNode> _priceFocusNodes = {};
 
   @override
   void initState() {
@@ -32,20 +36,33 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _initController(TransactionItem item) {
     final id = item.id;
     final qty = item.qty;
-    // Initialize controller if needed
+    // Initialize quantity controller if needed
     if (!_quantityControllers.containsKey(id)) {
       _quantityControllers[id] = TextEditingController(text: qty.toString());
     } else {
-      // Only update if value changed externally and field is NOT focused
       final focusNode = _quantityFocusNodes[id];
       if ((focusNode == null || !focusNode.hasFocus) &&
           _quantityControllers[id]!.text != qty.toString()) {
         _quantityControllers[id]!.text = qty.toString();
       }
     }
-    // Initialize focus node if needed
     if (!_quantityFocusNodes.containsKey(id)) {
       _quantityFocusNodes[id] = FocusNode();
+    }
+    // Initialize price controller if needed
+    final price = item.price;
+    if (!_priceControllers.containsKey(id)) {
+      _priceControllers[id] =
+          TextEditingController(text: price.toStringAsFixed(2));
+    } else {
+      final focusNode = _priceFocusNodes[id];
+      if ((focusNode == null || !focusNode.hasFocus) &&
+          _priceControllers[id]!.text != price.toStringAsFixed(2)) {
+        _priceControllers[id]!.text = price.toStringAsFixed(2);
+      }
+    }
+    if (!_priceFocusNodes.containsKey(id)) {
+      _priceFocusNodes[id] = FocusNode();
     }
   }
 
@@ -58,6 +75,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _quantityControllers.remove(id);
       _quantityFocusNodes[id]?.dispose();
       _quantityFocusNodes.remove(id);
+      _priceControllers[id]?.dispose();
+      _priceControllers.remove(id);
+      _priceFocusNodes[id]?.dispose();
+      _priceFocusNodes.remove(id);
     }
   }
 
@@ -67,6 +88,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       c.dispose();
     }
     for (final f in _quantityFocusNodes.values) {
+      f.dispose();
+    }
+    for (final c in _priceControllers.values) {
+      c.dispose();
+    }
+    for (final f in _priceFocusNodes.values) {
       f.dispose();
     }
     super.dispose();
@@ -157,7 +184,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     return TableRow(
       children: [
         _buildTableCell(_getItemName(item)),
-        _buildTableCell(_getItemPrice(item)),
+        _buildPriceCell(item, isOrdering),
         _buildQuantityCell(item, isOrdering),
         _buildTableCell(_getItemTotal(item)),
         _buildDeleteButton(item, isOrdering),
@@ -232,7 +259,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           border: OutlineInputBorder(
             borderSide: BorderSide.none,
             borderRadius: BorderRadius.circular(4),
@@ -251,6 +279,46 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           }
           return null;
         },
+      ),
+    );
+  }
+
+  Widget _buildPriceCell(TransactionItem item, bool isOrdering) {
+    _initController(item); // Ensure controller and focus node are initialized
+    final controller = _priceControllers[item.id]!;
+    final focusNode = _priceFocusNodes[item.id]!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: SizedBox(
+        width: 70,
+        child: TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 16),
+          decoration: InputDecoration(
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            fillColor: Colors.grey[200],
+            filled: true,
+          ),
+          onChanged: (value) => _updatePrice(item, value, isOrdering),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Enter price';
+            }
+            final parsed = double.tryParse(value);
+            if (parsed == null || parsed < 0) {
+              return 'Invalid price';
+            }
+            return null;
+          },
+        ),
       ),
     );
   }
@@ -323,6 +391,33 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       final doubleValue = double.tryParse(trimmedValue);
       if (doubleValue != null && doubleValue >= 0) {
         await _updateQuantityBoth(item, doubleValue, isOrdering);
+      }
+    }
+  }
+
+  Future<void> _updatePrice(
+      TransactionItem item, String value, bool isOrdering) async {
+    if (!item.partOfComposite!) {
+      final trimmedValue = value.trim();
+      final doubleValue = double.tryParse(trimmedValue);
+      if (doubleValue != null && doubleValue >= 0) {
+        setState(() {
+          item.price = doubleValue;
+        });
+        try {
+          await ProxyService.strategy.updateTransactionItem(
+            transactionItemId: item.id,
+            price: doubleValue,
+          );
+          _refreshTransactionItems(isOrdering,
+              transactionId: item.transactionId!);
+        } catch (e) {
+          setState(() {
+            // Optionally revert to old price if error
+            _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
+          });
+          talker.error(e);
+        }
       }
     }
   }
