@@ -39,24 +39,26 @@ abstract class TransactionItemInterface {
     bool fetchRemote = false,
   });
 
-  FutureOr<void> updateTransactionItem(
-      {double? qty,
-      required String transactionItemId,
-      double? discount,
-      bool? active,
-      double? taxAmt,
-      int? quantityApproved,
-      int? quantityRequested,
-      bool? ebmSynced,
-      bool? isRefunded,
-      bool? incrementQty,
-      double? price,
-      double? prc,
-      double? splyAmt,
-      bool? doneWithTransaction,
-      int? quantityShipped,
-      double? taxblAmt,
-      double? totAmt,
-      double? dcRt,
-      double? dcAmt});
+ 
+  FutureOr<void> updateTransactionItem({
+    double? qty,
+    required String transactionItemId,
+    double? discount,
+    bool? active,
+    double? taxAmt,
+    int? quantityApproved,
+    int? quantityRequested,
+    bool? ebmSynced,
+    bool? isRefunded,
+    bool? incrementQty,
+    double? price,
+    double? prc,
+    required double splyAmt,
+    bool? doneWithTransaction,
+    int? quantityShipped,
+    double? taxblAmt,
+    double? totAmt,
+    double? dcRt,
+    double? dcAmt,
+  });
 }
