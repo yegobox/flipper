@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 enum ViewMode { products, stocks }
 
@@ -131,6 +132,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             setState(() {
               // Trigger a rebuild with the new branch data
               print('Rebuilding ProductView with new branch data');
+              // Show a snackbar to notify the user
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                showCustomSnackBarUtil(
+                  context,
+                  'Products refreshed for new branch',
+                  duration: const Duration(seconds: 2),
+                );
+              }
             });
           }
         });
