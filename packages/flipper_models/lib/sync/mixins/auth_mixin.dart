@@ -5,6 +5,7 @@ import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
@@ -207,12 +208,62 @@ mixin AuthMixin implements AuthInterface {
             await ProxyService.box.writeString(
                 key: 'encryptionKey',
                 value: selectedBusiness.encryptionKey ?? "");
+
+            // Mark the business as active and default
+            await ProxyService.strategy.updateBusiness(
+              businessId: selectedBusiness.serverId,
+              active: true,
+              isDefault: true,
+            );
+          }
+
+          // Only throw LoginChoicesException if there are multiple businesses
+          // This ensures the login_choices.dart screen is shown only when necessary
+          if (businesses.length > 1) {
+            // Store a flag to indicate we're coming from login
+            await ProxyService.box.writeBool(key: 'from_login', value: true);
+            throw LoginChoicesException(term: 'business');
+          } else if (businesses.length == 1) {
+            // If there's only one business, check if there are multiple branches
+            final branches =
+                await this.branches(businessId: selectedBusiness!.serverId);
+
+            // Only go to login_choices if there are multiple branches
+            if (branches.length > 1) {
+              await ProxyService.box.writeBool(key: 'from_login', value: true);
+              throw LoginChoicesException(term: 'branch');
+            }
+
+            // If there's only one branch, set it as active and default
+            if (branches.length == 1) {
+              final branch = branches.first;
+              await ProxyService.strategy.updateBranch(
+                branchId: branch.serverId!,
+                active: true,
+                isDefault: true,
+              );
+
+              // Update branch ID in storage
+              await ProxyService.box
+                  .writeInt(key: 'branchId', value: branch.serverId!);
+              await ProxyService.box
+                  .writeString(key: 'branchIdString', value: branch.id);
+
+              // No need to throw exception - continue with login flow
+              talker
+                  .debug("Single business and branch - skipping login_choices");
+            }
           }
         } catch (e) {
+          if (e is LoginChoicesException) {
+            // Re-throw this specific exception to ensure proper navigation
+            rethrow;
+          }
           talker.error("Error setting business preferences: $e");
         }
       }
 
+      // Handle the case where pin already has a branchId (for backward compatibility)
       if (pin.branchId != null && pin.businessId != null) {
         talker.debug("Setting branchId to ${pin.branchId}");
         await ProxyService.box.writeInt(key: 'branchId', value: pin.branchId!);
@@ -239,6 +290,13 @@ mixin AuthMixin implements AuthInterface {
             talker.debug("Setting branchIdString to ${selectedBranch.id}");
             await ProxyService.box
                 .writeString(key: 'branchIdString', value: selectedBranch.id);
+
+            // Set the branch as active and default
+            await ProxyService.strategy.updateBranch(
+              branchId: selectedBranch.serverId!,
+              active: true,
+              isDefault: true,
+            );
           }
         } catch (e) {
           talker.error("Error setting branch ID string: $e");

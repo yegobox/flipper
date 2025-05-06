@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
@@ -144,7 +145,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       await ProxyService.box.writeInt(key: 'active_branch_id', value: branchId);
 
       // Force refresh of branch providers
-      ref.invalidate(branchesProvider((includeSelf: true)));
+      ref.invalidate(branchesProvider((includeSelf: false)));
 
       // Trigger a search refresh to force variant reload
       // First emit "search" to trigger the refresh
@@ -158,11 +159,10 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       // Show a snackbar to indicate the branch switch
       if (context.mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Branch switched. Refreshing data...'),
-            duration: const Duration(seconds: 2),
-          ),
+        showCustomSnackBarUtil(
+          context,
+          'Branch switched. Refreshing data...',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
@@ -376,7 +376,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: false);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
@@ -405,7 +405,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     // This method refreshes data after branch switch without requiring a full app reload
     try {
       // Force a refresh of branch providers
-      ref.invalidate(branchesProvider((includeSelf: true)));
+      ref.invalidate(branchesProvider((includeSelf: false)));
 
       // Set a flag in storage to indicate a branch switch occurred
       // This can be used by other widgets to detect when they should refresh
@@ -417,11 +417,10 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       // Show a snackbar to indicate the branch switch
       if (context.mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Branch switched. Refreshing data...'),
-            duration: const Duration(seconds: 2),
-          ),
+        showCustomSnackBarUtil(
+          context,
+          'Branch switched. Refreshing data...',
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
@@ -861,13 +860,10 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                           onTap: () {
                             // Prevent multiple taps while processing
                             if (widget.loadingItemId != null) return;
-
-                            // Show a snackbar to indicate branch switching is in progress
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Switching to ${branch.name}...'),
-                                duration: const Duration(seconds: 1),
-                              ),
+                            showCustomSnackBarUtil(
+                              context,
+                              'Switching to ${branch.name}...',
+                              duration: const Duration(seconds: 2),
                             );
 
                             widget.handleBranchSelection(
@@ -890,12 +886,10 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                 // Don't reload the entire app, just refresh the current view
                                 // This prevents getting stuck in the startup view
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Switched to ${branch.name}'),
-                                      duration: const Duration(seconds: 2),
-                                    ),
+                                  showCustomSnackBarUtil(
+                                    context,
+                                    'Switched to ${branch.name}',
+                                    duration: const Duration(seconds: 2),
                                   );
                                 }
                               },
