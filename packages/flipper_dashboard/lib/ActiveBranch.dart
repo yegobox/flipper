@@ -172,11 +172,36 @@ class _BranchContent extends ConsumerWidget {
                 horizontal: isCompact ? 4.0 : 12.0,
                 vertical: 4.0,
               ),
-              child: CircleAvatarWidget(
-                text: branchData?.name ?? "N/A",
-                size: isCompact ? 32 : 40,
-                backgroundColor:
-                    _getStatusColor(connectivityStatus, Theme.of(context)),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Tooltip(
+                  message: branchData?.name ?? "Branch not available",
+                  preferBelow: false,
+                  verticalOffset: 20,
+                  decoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  textStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  child: CircleAvatarWidget(
+                    text: branchData?.name ?? "N/A",
+                    size: isCompact ? 32 : 40,
+                    backgroundColor:
+                        _getStatusColor(connectivityStatus, Theme.of(context)),
+                  ),
+                ),
               ),
             ),
             if (!isCompact) const SizedBox(height: 16),
