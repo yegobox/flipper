@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -36,19 +37,25 @@ class ProductView extends StatefulHookConsumerWidget {
 
 class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+  Timer? _debounce;
+  Timer? _branchSwitchTimer;
+  int _lastCheckedBranchSwitchTimestamp = 0;
 
   ViewMode _selectedStatus = ViewMode.products;
   //TODO: when is agent get this value to handle all cases where you might not be eligible to see stock.
   bool _isStockButtonEnabled = true;
 
-  Timer? _debounce;
-
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+    _loadInitialProducts();
+
+    // Set up a timer to periodically check for branch switches
+    _branchSwitchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _checkForBranchSwitch();
+    });
   }
 
   void _scrollListener() {
@@ -70,9 +77,71 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   @override
   void dispose() {
     _debounce?.cancel();
-    _searchFocusNode.dispose();
+    _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _branchSwitchTimer?.cancel();
     super.dispose();
+  }
+
+  void _checkForBranchSwitch() {
+    // Check if the branch_switched flag is set
+    final branchSwitched =
+        ProxyService.box.readBool(key: 'branch_switched') ?? false;
+    final lastSwitchTimestamp =
+        ProxyService.box.readInt(key: 'last_branch_switch_timestamp') ?? 0;
+    final activeBranchId =
+        ProxyService.box.readInt(key: 'active_branch_id') ?? 0;
+
+    // Only refresh if the branch was switched and we haven't processed this switch yet
+    if (branchSwitched &&
+        lastSwitchTimestamp > _lastCheckedBranchSwitchTimestamp) {
+      _lastCheckedBranchSwitchTimestamp = lastSwitchTimestamp;
+
+      // Reset the flag
+      ProxyService.box.writeBool(key: 'branch_switched', value: false);
+
+      // Refresh the variants for the new branch
+      _refreshVariantsForCurrentBranch(activeBranchId);
+    }
+  }
+
+  void _refreshVariantsForCurrentBranch([int? specificBranchId]) {
+    final branchId = specificBranchId ?? ProxyService.box.getBranchId() ?? 0;
+    if (branchId > 0) {
+      print('Refreshing variants for branch ID: $branchId');
+
+      // Force clear the provider cache for this branch
+      try {
+        // Invalidate and refresh the variant providers
+        ref.invalidate(outerVariantsProvider(branchId));
+        ref.invalidate(productsProvider(branchId));
+
+        // Use the searchStringProvider to trigger a refresh
+        // First emit "search" to trigger the refresh
+        ref.read(searchStringProvider.notifier).emitString(value: "search");
+        // Then clear it to reset the search state
+        ref.read(searchStringProvider.notifier).emitString(value: "");
+
+        // Force reload initial products with a small delay to ensure state is updated
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _loadInitialProducts();
+
+          // Explicitly refresh the UI
+          if (mounted) {
+            setState(() {
+              // Trigger a rebuild with the new branch data
+              print('Rebuilding ProductView with new branch data');
+            });
+          }
+        });
+      } catch (e) {
+        print('Error refreshing providers: $e');
+      }
+    }
+  }
+
+  void _loadInitialProducts() {
+    ref.read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
   }
 
   @override
@@ -87,10 +156,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         return _buildMainContent(context, model);
       },
     );
-  }
-
-  void _loadInitialProducts() {
-    ref.read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {

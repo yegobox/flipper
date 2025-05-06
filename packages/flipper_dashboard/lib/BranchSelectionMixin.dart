@@ -1,6 +1,8 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,8 +117,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
           // Continue even if setDefaultBranch fails
         }
 
-        // Refresh the UI without full app reload
-        refreshAfterBranchSwitch();
+        // Force refresh of all branch-dependent data
+        // This is critical to ensure variants are refreshed
+        await _forceRefreshAfterBranchSwitch(branch.serverId!);
       }
 
       onComplete();
@@ -127,6 +130,43 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     } finally {
       setLoadingState(null);
       setIsLoading(false); // Set isLoading to false
+    }
+  }
+
+  // New method to force refresh after branch switch
+  Future<void> _forceRefreshAfterBranchSwitch(int branchId) async {
+    try {
+      // Set flags to trigger refresh in other components
+      await ProxyService.box.writeBool(key: 'branch_switched', value: true);
+      await ProxyService.box.writeInt(
+          key: 'last_branch_switch_timestamp',
+          value: DateTime.now().millisecondsSinceEpoch);
+      await ProxyService.box.writeInt(key: 'active_branch_id', value: branchId);
+
+      // Force refresh of branch providers
+      ref.invalidate(branchesProvider((includeSelf: true)));
+
+      // Trigger a search refresh to force variant reload
+      // First emit "search" to trigger the refresh
+      ref.read(searchStringProvider.notifier).emitString(value: "search");
+      // Then clear it to reset the search state
+      ref.read(searchStringProvider.notifier).emitString(value: "");
+
+      // Directly call refreshAfterBranchSwitch to ensure UI updates
+      refreshAfterBranchSwitch();
+
+      // Show a snackbar to indicate the branch switch
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Branch switched. Refreshing data...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error in _forceRefreshAfterBranchSwitch: $e');
     }
   }
 
@@ -362,8 +402,33 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   // Helper method to refresh data after branch switch without app reload
   void refreshAfterBranchSwitch() {
-    // This method can be overridden in implementing classes to refresh data
-    // For example, refreshing providers or streams that depend on branch ID
+    // This method refreshes data after branch switch without requiring a full app reload
+    try {
+      // Force a refresh of branch providers
+      ref.invalidate(branchesProvider((includeSelf: true)));
+
+      // Set a flag in storage to indicate a branch switch occurred
+      // This can be used by other widgets to detect when they should refresh
+      ProxyService.box.writeBool(key: 'branch_switched', value: true);
+      ProxyService.box.writeInt(
+          key: 'last_branch_switch_timestamp',
+          value: DateTime.now().millisecondsSinceEpoch);
+
+      // Show a snackbar to indicate the branch switch
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Branch switched. Refreshing data...'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error refreshing after branch switch: $e');
+    }
+
+    // Trigger a rebuild of the widget
     if (mounted) {
       setState(() {
         // Trigger a rebuild of the widget
