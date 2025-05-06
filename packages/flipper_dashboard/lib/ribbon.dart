@@ -187,7 +187,7 @@ class IconRowState extends ConsumerState<IconRow>
             .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
       } else {
         // Show branch switch dialog instantly with a loading indicator, then load branches async
-        await showBranchSwitchDialog(
+        showBranchSwitchDialog(
           context: context,
           branches: null, // Now allowed: nullable
           loadingItemId: _loadingItemId,

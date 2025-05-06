@@ -191,6 +191,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required VoidCallback onLogout,
     required void Function(String? id) setLoadingState,
   }) async {
+    // Show dialog immediately without waiting for branches
     await showDialog(
       context: context,
       builder: (context) {
@@ -402,34 +403,218 @@ class _BranchSwitchDialog extends StatefulWidget {
 }
 
 class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
-  late Future<List<Branch>> _branchesFuture;
+  bool _isLoading = false;
+  List<Branch>? _branches;
 
   @override
   void initState() {
     super.initState();
-    if (widget.branches == null) {
-      _branchesFuture = ProxyService.strategy.branches(
+    _branches = widget.branches;
+
+    // If branches weren't provided, fetch them immediately
+    if (_branches == null) {
+      _isLoading = true;
+      _fetchBranches();
+    }
+  }
+
+  Future<void> _fetchBranches() async {
+    try {
+      final branches = await ProxyService.strategy.branches(
         businessId: ProxyService.box.getBusinessId()!,
         includeSelf: false,
       );
+
+      if (mounted) {
+        setState(() {
+          _branches = branches;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      // Show error if needed
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.branches != null) {
-      return _buildDialog(widget.branches!);
-    }
-    // If branches is null, show loader and fetch
-    return FutureBuilder<List<Branch>>(
-      future: _branchesFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-        return _buildDialog(snapshot.data!);
-      },
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
+        decoration: BoxDecoration(
+          color: DialogThemeData().backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: _isLoading && _branches == null
+            ? _buildLoadingContent()
+            : _buildDialogContent(),
+      ),
     );
+  }
+
+  Widget _buildLoadingContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: Theme.of(context).primaryColor,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Switch Branch',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
+                  ),
+                ),
+              ],
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  widget.onLogout();
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.logout_rounded,
+                        color: Theme.of(context).colorScheme.error,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 40),
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Loading branches...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDialogContent() {
+    if (_branches == null || _branches!.isEmpty) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on_rounded,
+                    color: Theme.of(context).primaryColor,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Switch Branch',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
+                    ),
+                  ),
+                ],
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    widget.onLogout();
+                  },
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.logout_rounded,
+                          color: Theme.of(context).colorScheme.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+          Center(
+            child: Text(
+              'No branches available',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return _buildDialog(_branches!);
   }
 
   Widget _buildDialog(List<Branch> branches) {
