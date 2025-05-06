@@ -18,7 +18,7 @@ on:
       - main
   push:
     branches:
-      - main
+      - dev
 # 
 env:
   URL: ${{ secrets.DB_URL }}
@@ -201,6 +201,7 @@ jobs:
   
   build-and-release-windows-debug:
     name: "Build windows app-debug"
+    
     runs-on: windows-latest
     # needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
