@@ -175,6 +175,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
                               await ProxyService.strategy.updateTransactionItem(
                                 qty: qty,
                                 transactionItemId: transactionItem.id,
+                                splyAmt: transactionItem.splyAmt ??
+                                    transactionItem.price,
                               );
 
                               // Force refresh the provider

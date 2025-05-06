@@ -84,6 +84,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
       transactionItemId: item.id,
       dcRt: discountRate,
       dcAmt: itemDiscountAmount,
+      splyAmt: item.splyAmt ?? item.price,
     );
   }
 }

@@ -531,7 +531,7 @@ mixin TransactionMixin implements TransactionInterface {
       price: variation.retailPrice!,
       totAmt: variation.retailPrice! * quantity,
       prc: item.prc + variation.retailPrice! * quantity,
-      splyAmt: variation.supplyPrice,
+      splyAmt: variation.supplyPrice ?? variation.retailPrice!,
       active: true,
       quantityRequested: quantity.toInt(),
       quantityShipped: 0,
@@ -569,6 +569,7 @@ mixin TransactionMixin implements TransactionInterface {
           await ProxyService.strategy.updateTransactionItem(
             transactionItemId: inactiveItem.id,
             doneWithTransaction: true,
+            splyAmt: inactiveItem.splyAmt ?? inactiveItem.price,
           );
         }
       }

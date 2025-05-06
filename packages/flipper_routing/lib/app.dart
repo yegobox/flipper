@@ -820,3 +820,4 @@ class App {}
 // https://chatgpt.com/c/67f6c184-54dc-8002-b243-80433c70bf57
 // 
 
+// https://search.google.com/u/1/search-console?resource_id=sc-domain%3Ayegobox.com

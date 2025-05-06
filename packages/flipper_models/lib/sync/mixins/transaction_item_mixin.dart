@@ -281,7 +281,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       bool? incrementQty,
       double? price,
       double? prc,
-      double? splyAmt,
+      required double splyAmt,
       bool? doneWithTransaction,
       int? quantityShipped,
       double? taxblAmt,
@@ -298,7 +298,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.discount = discount ?? item.discount;
       item.active = active ?? item.active;
       item.price = price ?? item.price;
-      item.prc = prc ?? item.prc;
+      item.prc = prc ?? item.price;
       item.taxAmt = taxAmt ?? item.taxAmt;
       item.isRefunded = isRefunded ?? item.isRefunded;
       item.ebmSynced = ebmSynced ?? item.ebmSynced;
@@ -307,10 +307,19 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.quantityRequested = incrementQty == true
           ? (item.qty + 1).toInt()
           : qty?.toInt() ?? item.qty.toInt();
-      item.splyAmt = splyAmt ?? item.splyAmt;
+      Variant? variant =
+          await ProxyService.strategy.getVariant(id: item.variantId);
+      double currentQty = qty ?? item.qty;
+      item.splyAmt = (variant?.supplyPrice ?? 1) * currentQty;
+      talker.info('qty: $currentQty');
+      talker.info('supplyPrice: ${variant?.supplyPrice}');
+      talker.info('splyAmt: ${item.splyAmt}');
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
-      item.taxblAmt = taxblAmt ?? item.taxblAmt;
-      item.totAmt = totAmt ?? item.totAmt;
+      // Fix the calculation for taxblAmt and totAmt to properly factor in quantity
+      item.taxblAmt = taxblAmt ?? ((variant?.retailPrice ?? 1) * currentQty);
+      item.totAmt = totAmt ?? ((variant?.retailPrice ?? 1) * currentQty);
+      talker.info('taxblAmt: ${item.taxblAmt}');
+      talker.info('totAmt: ${item.totAmt}');
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
       repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
