@@ -281,7 +281,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       bool? incrementQty,
       double? price,
       double? prc,
-      required double splyAmt,
       bool? doneWithTransaction,
       int? quantityShipped,
       double? taxblAmt,
