@@ -131,9 +131,15 @@ mixin TransactionMixinOld {
             branchId: ProxyService.box.getBranchId()!))
         .firstOrNull;
 
-    await ProxyService.strategy.updateTransaction(
+    // Explicitly set the transaction status to COMPLETE
+    transaction.status = COMPLETE;
+    transaction.updatedAt = DateTime.now().toUtc();
+    transaction.lastTouched = DateTime.now().toUtc();
+    //removed await to speed up the process
+    ProxyService.strategy.updateTransaction(
       transaction: transaction,
       sarTyCd: "11",
+      status: COMPLETE,
       customerName: customer == null
           ? ProxyService.box.customerName() ?? "N/A"
           : customerNameController.text,

@@ -69,8 +69,9 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           value: transactionItem.qty,
         ),
         DataGridCell<double>(
-          columnName: 'TotalSales',
-          value: (transactionItem.qty) * (transactionItem.price),
+          columnName: 'Profit Made',
+          value: (transactionItem.price) * (transactionItem.qty) -
+              (transactionItem.splyAmt ?? 0.0),
         ),
         DataGridCell<double>(
           columnName: 'CurrentStock',
@@ -89,7 +90,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         DataGridCell<double>(
           columnName: 'GrossProfit',
           value: (transactionItem.price) * (transactionItem.qty) -
-              ((transactionItem.splyAmt ?? 0.0) * (transactionItem.qty)),
+              (transactionItem.splyAmt ?? 0.0),
         ),
       ],
     );
