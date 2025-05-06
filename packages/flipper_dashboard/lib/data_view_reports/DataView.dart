@@ -56,10 +56,6 @@ class DataViewState extends ConsumerState<DataView>
   late DataGridSource _dataGridSource;
   int pageIndex = 0;
   final talker = TalkerFlutter.init();
-  double? _exportAccurateTotal;
-  bool _isLoadingTotal = false;
-  double? _grossProfit;
-  bool _isLoadingGrossProfit = false;
   bool _isExporting = false;
 
   @override
@@ -67,7 +63,6 @@ class DataViewState extends ConsumerState<DataView>
     super.initState();
     _initializeDataSource();
     _fetchExportAccurateTotal();
-    _fetchGrossProfit();
   }
 
   @override
@@ -76,7 +71,6 @@ class DataViewState extends ConsumerState<DataView>
     if (_shouldUpdateDataSource(oldWidget)) {
       _initializeDataSource();
       _fetchExportAccurateTotal();
-      _fetchGrossProfit();
     }
   }
 
@@ -422,9 +416,7 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Future<void> _fetchExportAccurateTotal() async {
-    setState(() {
-      _isLoadingTotal = true;
-    });
+    setState(() {});
     try {
       final transactions = await ProxyService.strategy.transactions(
         startDate: widget.startDate,
@@ -432,38 +424,14 @@ class DataViewState extends ConsumerState<DataView>
         isExpense: false,
         branchId: ProxyService.box.getBranchId(),
       );
-      final total = transactions.fold<double>(
+      transactions.fold<double>(
         0,
         (sum, transaction) => sum + (transaction.subTotal ?? 0),
       );
-      setState(() {
-        _exportAccurateTotal = total;
-        _isLoadingTotal = false;
-      });
+      setState(() {});
     } catch (e) {
-      setState(() {
-        _isLoadingTotal = false;
-      });
+      setState(() {});
       talker.error('Failed to fetch export-accurate total: $e');
-    }
-  }
-
-  Future<void> _fetchGrossProfit() async {
-    setState(() {
-      _isLoadingGrossProfit = true;
-    });
-    try {
-      final grossProfit = await _calculateGrossProfit();
-      setState(() {
-        _grossProfit = grossProfit;
-        _isLoadingGrossProfit = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingGrossProfit = false;
-      });
-      talker.error('Failed to fetch gross profit: '
-          '$e');
     }
   }
 

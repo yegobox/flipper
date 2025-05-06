@@ -688,8 +688,8 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
-
-    await repository.upsert<ITransaction>(transaction);
+    //removed await to speed up the process
+    repository.upsert<ITransaction>(transaction);
   }
 
   @override
