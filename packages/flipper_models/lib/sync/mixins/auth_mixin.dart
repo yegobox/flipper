@@ -171,6 +171,79 @@ mixin AuthMixin implements AuthInterface {
     if (stopAfterConfigure) return user;
     if (!skipDefaultAppSetup) {
       await setDefaultApp(user);
+
+      // Ensure business and branch IDs are set in storage
+      // This is critical for when a user logs in again
+      if (pin.businessId != null) {
+        talker.debug("Setting businessId to ${pin.businessId}");
+        await ProxyService.box
+            .writeInt(key: 'businessId', value: pin.businessId!);
+
+        // Also set business preferences
+        try {
+          final businesses = await this.businesses(userId: pin.userId!);
+          Business? selectedBusiness;
+
+          // Find the matching business or use the first one if none matches
+          for (final business in businesses) {
+            if (business.serverId == pin.businessId) {
+              selectedBusiness = business;
+              break;
+            }
+          }
+
+          // If no match found, use the first business if available
+          if (selectedBusiness == null && businesses.isNotEmpty) {
+            selectedBusiness = businesses.first;
+          }
+
+          if (selectedBusiness != null) {
+            talker.debug(
+                "Setting business preferences for ${selectedBusiness.name}");
+            await ProxyService.box.writeString(
+                key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
+            await ProxyService.box
+                .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
+            await ProxyService.box.writeString(
+                key: 'encryptionKey',
+                value: selectedBusiness.encryptionKey ?? "");
+          }
+        } catch (e) {
+          talker.error("Error setting business preferences: $e");
+        }
+      }
+
+      if (pin.branchId != null && pin.businessId != null) {
+        talker.debug("Setting branchId to ${pin.branchId}");
+        await ProxyService.box.writeInt(key: 'branchId', value: pin.branchId!);
+
+        try {
+          // Get the branch ID string if available
+          final branches = await this.branches(businessId: pin.businessId!);
+          Branch? selectedBranch;
+
+          // Find the matching branch or use the first one if none matches
+          for (final branch in branches) {
+            if (branch.serverId == pin.branchId) {
+              selectedBranch = branch;
+              break;
+            }
+          }
+
+          // If no match found, use the first branch if available
+          if (selectedBranch == null && branches.isNotEmpty) {
+            selectedBranch = branches.first;
+          }
+
+          if (selectedBranch != null) {
+            talker.debug("Setting branchIdString to ${selectedBranch.id}");
+            await ProxyService.box
+                .writeString(key: 'branchIdString', value: selectedBranch.id);
+          }
+        } catch (e) {
+          talker.error("Error setting branch ID string: $e");
+        }
+      }
     }
     ProxyService.box.writeBool(key: 'pinLogin', value: false);
     w?.log("user logged in");
