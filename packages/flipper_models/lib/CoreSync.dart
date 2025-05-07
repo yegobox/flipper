@@ -1168,7 +1168,7 @@ class CoreSync extends AiStrategyImpl
             await branch(serverId: localPin.firstOrNull!.branchId!);
         if (branchE != null || business != null) {
           return IPin(
-              id: int.tryParse(localPin.firstOrNull?.id ?? "0"),
+              id: localPin.firstOrNull?.id,
               pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
               userId: localPin.firstOrNull!.userId!.toString(),
               phoneNumber: localPin.firstOrNull!.phoneNumber!,
@@ -1731,7 +1731,7 @@ class CoreSync extends AiStrategyImpl
         /// when signup, save the businessId on fly, this can be overriden later.
         ProxyService.box.writeInt(
             key: 'businessId',
-            value: ITenant.fromJsonList(response.body).first.id!);
+            value: ITenant.fromJsonList(response.body).first.businessId!);
       } catch (e) {}
       return ITenant.fromJsonList(response.body);
     } else {

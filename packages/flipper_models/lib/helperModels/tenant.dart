@@ -6,7 +6,7 @@ part 'tenant.g.dart';
 
 @JsonSerializable()
 class ITenant {
-  int? id;
+  String? id;
   String name;
   String? phoneNumber;
   dynamic email;
