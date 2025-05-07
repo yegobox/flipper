@@ -718,8 +718,9 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  void reDownloadAsset() {
+  Future<void> reDownloadAsset() {
     // TODO: implement reDownloadAsset
+    throw UnimplementedError();
   }
 
   @override
