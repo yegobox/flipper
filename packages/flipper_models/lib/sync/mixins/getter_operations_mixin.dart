@@ -175,7 +175,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
             await branch(serverId: localPin.firstOrNull!.branchId!);
         if (branchE != null || business != null) {
           return IPin(
-            id: int.tryParse(localPin.firstOrNull?.id ?? "0"),
+            id: localPin.firstOrNull?.id,
             pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
             userId: localPin.firstOrNull!.userId!.toString(),
             phoneNumber: localPin.firstOrNull!.phoneNumber!,
