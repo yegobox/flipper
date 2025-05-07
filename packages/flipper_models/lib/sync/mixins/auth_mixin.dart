@@ -64,7 +64,7 @@ mixin AuthMixin implements AuthInterface {
 
   @override
   Future<bool> hasActiveSubscription({
-    required String businessId,
+    required int businessId,
     required HttpClientInterface flipperHttpClient,
     required bool fetchRemote,
   }) async {
@@ -176,7 +176,7 @@ mixin AuthMixin implements AuthInterface {
       if (pin.businessId != null) {
         talker.debug("Setting businessId to ${pin.businessId}");
         await ProxyService.box
-            .writeString(key: 'businessId', value: pin.businessId!);
+            .writeInt(key: 'businessId', value: pin.businessId!);
 
         // Also set business preferences
         try {
@@ -225,7 +225,7 @@ mixin AuthMixin implements AuthInterface {
           } else if (businesses.length == 1) {
             // If there's only one business, check if there are multiple branches
             final branches =
-                await this.branches(businessId: selectedBusiness!.id);
+                await this.branches(businessId: selectedBusiness!.serverId);
 
             // Only go to login_choices if there are multiple branches
             if (branches.length > 1) {
