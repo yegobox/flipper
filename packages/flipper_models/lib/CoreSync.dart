@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
-import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -14,6 +12,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
@@ -50,7 +49,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:path/path.dart' as path;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -77,6 +75,7 @@ class CoreSync extends AiStrategyImpl
         TransactionItemMixin,
         TenantMixin,
         ProductMixin,
+        AssetMixin,
         DeleteMixin,
         VariantMixin,
         CustomerMixin,
@@ -725,122 +724,6 @@ class CoreSync extends AiStrategyImpl
     return Future.value(200);
   }
 
-  final sessionManager = SessionManager();
-  @override
-  Future<Stream<double>> downloadAsset(
-      {required int branchId,
-      required String assetName,
-      required String subPath}) async {
-    Directory directoryPath = await getSupportDir();
-
-    final filePath = path.join(directoryPath.path, assetName);
-
-    final file = File(filePath);
-    if (await file.exists()) {
-      talker.warning('File Exist: ${file.path}');
-      return Stream.value(100.0); // Return a stream indicating 100% completion
-    }
-    talker.warning("file to Download:$filePath");
-    if (!await sessionManager.isAuthenticated()) {
-      await sessionManager.signIn("yegobox@gmail.com");
-      if (!await sessionManager.isAuthenticated()) {
-        throw Exception('Failed to authenticate');
-      }
-    }
-    final storagePath = amplify.StoragePath.fromString(
-        'public/${subPath}-$branchId/$assetName');
-    try {
-      // Create a stream controller to manage the progress
-      final progressController = StreamController<double>();
-      // Start the download process
-      final operation = amplify.Amplify.Storage.downloadFile(
-        path: storagePath,
-        localFile: amplify.AWSFile.fromPath(filePath),
-        onProgress: (progress) {
-          // Calculate the progress percentage
-          final percentageCompleted =
-              (progress.fractionCompleted * 100).toInt();
-          // Add the progress to the stream
-          progressController.sink.add(percentageCompleted.toDouble());
-        },
-      );
-      // Listen for the download completion
-      operation.result.then((_) {
-        progressController.close();
-        talker.warning("Downloaded file at path ${storagePath}");
-      }).catchError((error) async {
-        progressController.addError(error);
-        progressController.close();
-      });
-      return progressController.stream;
-    } catch (e) {
-      talker.error('Error downloading file: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"}) async {
-    try {
-      talker.info("About to call downloadAssetSave");
-      int branchId = ProxyService.box.getBranchId()!;
-
-      if (assetName != null) {
-        return downloadAsset(
-            branchId: branchId, assetName: assetName, subPath: subPath!);
-      }
-
-      List<Assets> assets = await repository.get(
-          query: brick.Query(
-              where: [brick.Where('branchId').isExactly(branchId)]));
-
-      StreamController<double> progressController = StreamController<double>();
-
-      for (Assets asset in assets) {
-        if (asset.assetName != null) {
-          // Get the download stream
-          Stream<double> downloadStream = await downloadAsset(
-              branchId: branchId,
-              assetName: asset.assetName!,
-              subPath: subPath!);
-
-          // Listen to the download stream and add its events to the main controller
-          downloadStream.listen((progress) {
-            print('Download progress for ${asset.assetName}: $progress');
-            progressController.add(progress);
-          }, onError: (error) {
-            // Handle errors in the download stream
-            talker.error(
-                'Error in download stream for ${asset.assetName}: $error');
-            progressController.addError(error);
-          });
-        } else {
-          talker.warning('Asset name is null for asset: ${asset.id}');
-        }
-      }
-
-      // Close the stream controller when all downloads are finished
-      Future.wait(assets.map((asset) => asset.assetName != null
-          ? downloadAsset(
-              branchId: branchId,
-              assetName: asset.assetName!,
-              subPath: subPath!)
-          : Future.value(Stream.empty()))).then((_) {
-        progressController.close();
-      }).catchError((error) {
-        talker.error('Error in downloading assets: $error');
-        progressController.close();
-      });
-
-      return progressController.stream;
-    } catch (e, s) {
-      talker.error('Error in downloading assets: $e');
-      talker.error('Error in downloading assets: $s');
-      rethrow;
-    }
-  }
-
   @override
   Future<Product?> findProductByTenantId({required String tenantId}) async {
     final query = brick.Query(
@@ -860,19 +743,6 @@ class CoreSync extends AiStrategyImpl
     return repository.subscribe<Variant>(query: query);
   }
 
-  @override
-  FutureOr<Assets?> getAsset({String? assetName, String? productId}) async {
-    final repository = Repository();
-    final query = brick.Query(
-        where: assetName != null
-            ? [brick.Where('assetName').isExactly(assetName)]
-            : productId != null
-                ? [brick.Where('productId').isExactly(productId)]
-                : throw Exception("no asset"));
-    final result = await repository.get<models.Assets>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return result.firstOrNull;
-  }
 
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
@@ -2270,26 +2140,6 @@ class CoreSync extends AiStrategyImpl
     ));
   }
 
-  @override
-  Future<void> addAsset(
-      {required String productId,
-      required assetName,
-      required int branchId,
-      required int businessId}) async {
-    final asset = await repository.get<Assets>(
-        query: brick.Query(where: [
-      brick.Where('productId').isExactly(productId),
-      brick.Where('assetName').isExactly(assetName),
-    ]));
-    if (asset.firstOrNull == null) {
-      await repository.upsert<Assets>(Assets(
-        assetName: assetName,
-        productId: productId,
-        branchId: branchId,
-        businessId: businessId,
-      ));
-    }
-  }
 
   @override
   Future<void> addCategory(
@@ -3279,10 +3129,7 @@ class CoreSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  void reDownloadAsset() {
-    // TODO: implement reDownloadAsset
-  }
+  
 
   @override
   Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
