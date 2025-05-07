@@ -2738,7 +2738,7 @@ class CoreSync extends AiStrategyImpl
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
       return await repository.upsert<Branch>(Branch(
-        serverId: remoteBranch.id,
+        serverId: remoteBranch.serverId,
         location: location,
         description: description,
         name: name,

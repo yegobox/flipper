@@ -211,7 +211,7 @@ mixin TenantMixin implements TenantInterface {
 
         for (IBusiness business in jTenant.businesses) {
           Business biz = Business(
-              serverId: business.id,
+              serverId: business.serverId,
               userId: int.parse(business.userId),
               name: business.name,
               currency: business.currency,
@@ -263,7 +263,7 @@ mixin TenantMixin implements TenantInterface {
 
         for (IBranch brannch in jTenant.branches) {
           Branch branch = Branch(
-              serverId: brannch.id,
+              serverId: brannch.serverId,
               active: brannch.active,
               description: brannch.description,
               name: brannch.name,
