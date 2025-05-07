@@ -21,6 +21,7 @@ part 'business.g.dart';
 class IBusiness extends IJsonSerializable {
   IBusiness({
     required this.id,
+    required this.serverId,
     this.name,
     this.currency,
     this.categoryId,
@@ -73,6 +74,7 @@ class IBusiness extends IJsonSerializable {
   IBusiness.copy(IBusiness original,
       {bool? active, String? encryptionKey, String? name})
       : id = original.id,
+        serverId = original.serverId,
         name = name ?? original.name,
         encryptionKey = encryptionKey ?? original.encryptionKey,
         backUpEnabled = original.backUpEnabled,
@@ -97,7 +99,8 @@ class IBusiness extends IJsonSerializable {
         type = original.type,
         userId = original.userId,
         validCurrency = original.validCurrency;
-  int id;
+  String id;
+  int serverId;
   String? name;
   String? currency;
   dynamic categoryId;
