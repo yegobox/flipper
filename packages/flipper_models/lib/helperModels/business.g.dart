@@ -8,6 +8,7 @@ part of 'business.dart';
 
 IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       id: json['id'] as String,
+      serverId: (json['serverId'] as num).toInt(),
       name: json['name'] as String?,
       currency: json['currency'] as String?,
       categoryId: json['categoryId'],
@@ -66,8 +67,7 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       ..deletedAt = json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String)
-      ..action = json['action'] as String
-      ..serverId = (json['serverId'] as num).toInt();
+      ..action = json['action'] as String;
 
 Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
       'lastTouched': instance.lastTouched?.toIso8601String(),
