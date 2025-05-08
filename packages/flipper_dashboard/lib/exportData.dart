@@ -130,10 +130,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Create fonts
     final PdfStandardFont titleFont =
         PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
-    final PdfStandardFont headerFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11);
-    final PdfStandardFont headerBoldFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
 
     header.graphics.drawRectangle(
       brush: PdfSolidBrush(PdfColor(68, 114, 196)), // Blue background
@@ -151,59 +147,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         lineAlignment: PdfVerticalAlignment.middle,
       ),
     );
-
-    // Define the vertical offset for content positioning
-    double currentY = 40; // Start closer to the title for compact spacing
-
-    // Increment the Y position for the next content block
-    currentY += 20; // Reduced space between sections
-
-    // Helper function to draw a label-value pair
-    void drawLabelValuePair(String label, String value, double x, double y) {
-      // Draw the label in bold
-      header.graphics.drawString(
-        label,
-        headerBoldFont,
-        bounds: Rect.fromLTWH(x, y, width * 0.2, 20),
-      );
-
-      // Draw the value next to the label
-      header.graphics.drawString(
-        value,
-        headerFont,
-        bounds: Rect.fromLTWH(x + width * 0.2, y, width * 0.3, 20),
-      );
-    }
-
-    // Draw the first row of information
-    drawLabelValuePair(
-        'TIN Number:', business.tinNumber?.toString() ?? '', 0, currentY);
-    drawLabelValuePair('Start Date:', config.startDate?.toYYYMMdd() ?? '',
-        width * 0.5, currentY);
-
-    // Increment Y position for the next row
-    currentY += 20; // Reduced space between rows
-
-    // Draw the second row of information
-    drawLabelValuePair('BHF ID:', '00', 0, currentY);
-    drawLabelValuePair(
-        'End Date:', config.endDate?.toYYYMMdd() ?? '', width * 0.5, currentY);
-
-    // Increment Y position for the next row
-    currentY += 20; // Reduced space between rows
-
-    // Draw the third row of information
-    drawLabelValuePair('Opening Balance:', '0.00', 0, currentY);
-    drawLabelValuePair('Tax Rate:', '18%', width * 0.5, currentY);
-
-    // Increment Y position for the next row
-    currentY += 20; // Reduced space between rows
-
-    // Draw the fourth row of information
-    drawLabelValuePair('COGS:', config.cogs?.toRwf() ?? '', 0, currentY);
-
-    // Set the adjusted header to the PDF document template
-    headerFooterExport.pdfDocumentTemplate.top = header;
   }
 
   Future<String?> exportDataGrid({
@@ -289,15 +232,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         filePath = await _savePdfFile(document);
         document.dispose();
       } else {
-        // Create a new workbook directly - this approach works regardless of DataGrid state
         excel.Workbook workbook = excel.Workbook();
 
         try {
-          // If DataGrid state is available, try to use it
           if (workBookKey.currentState != null) {
             try {
               workbook = workBookKey.currentState!.exportToExcelWorkbook();
-              talker.info('Successfully exported using DataGrid state');
             } catch (e) {
               // If we get an error, create a fresh workbook
               talker.warning('Error using DataGrid export: $e');
@@ -444,22 +384,22 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         }
 
         if (!isStockRecount) {
-          final drawer = await ProxyService.strategy
-              .getDrawer(cashierId: ProxyService.box.getUserId()!);
+          // final drawer = await ProxyService.strategy
+          //     .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final styler = ExcelStyler(workbook);
 
-          await _addHeaderAndInfoRows(
-              reportSheet: reportSheet,
-              styler: styler,
-              config: config,
-              business: business!,
-              drawer: drawer,
-              headerTitle: headerTitle);
+          // await _addHeaderAndInfoRows(
+          //     reportSheet: reportSheet,
+          //     styler: styler,
+          //     config: config,
+          //     business: business!,
+          //     drawer: drawer,
+          //     headerTitle: headerTitle);
 
-          _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
-              bottomEndOfRowTitle: bottomEndOfRowTitle,
-              cogs: config.cogs ?? 0,
-              config: config);
+          // _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
+          //     bottomEndOfRowTitle: bottomEndOfRowTitle,
+          //     cogs: config.cogs ?? 0,
+          //     config: config);
           _formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
@@ -502,159 +442,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       talker.error('Error saving PDF file: $e');
       rethrow;
     }
-  }
-
-  Future<Map<String, excel.Range>> _addHeaderAndInfoRows({
-    required excel.Worksheet reportSheet,
-    required ExcelStyler styler,
-    required ExportConfig config,
-    required Business business,
-    required Drawers? drawer,
-    required String headerTitle,
-  }) async {
-    final headerStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-    final infoStyle = styler.createStyle(
-        fontColor: '#000000', backColor: '#E7E6E6', fontSize: 12);
-
-    reportSheet.insertRow(1);
-    final titleRange = reportSheet.getRangeByName(
-        'A1:${String.fromCharCode(64 + reportSheet.getLastColumn())}1');
-    titleRange.merge();
-    titleRange.setText(headerTitle);
-    titleRange.cellStyle = headerStyle;
-
-    final taxRate = 18;
-    // final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
-
-    final infoData = [
-      ['TIN Number', business.tinNumber?.toString() ?? ''],
-      ['BHF ID', await ProxyService.box.bhfId() ?? '00'],
-      ['Start Date', config.startDate?.toIso8601String() ?? '-'],
-      ['End Date', config.endDate?.toIso8601String() ?? '-'],
-      ['Opening Balance', drawer?.openingBalance ?? 0],
-      ['Tax Rate', taxRate],
-      ['COGS', config.cogs],
-    ];
-
-    Map<String, excel.Range> namedRanges = {};
-
-    for (var i = 0, infoRow = 2; i < infoData.length; i++, infoRow++) {
-      reportSheet.insertRow(infoRow);
-      reportSheet
-          .getRangeByName('A$infoRow')
-          .setText(infoData[i][0].toString());
-      final value = infoData[i][1];
-      final cell = reportSheet.getRangeByName('B$infoRow');
-      try {
-        if (value is num) {
-          cell.setValue(value);
-          cell.numberFormat = config.currencyFormat;
-        } else {
-          cell.setText(value.toString());
-        }
-      } catch (e) {}
-      final infoRange = reportSheet.getRangeByName(
-          'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
-      infoRange.cellStyle = infoStyle;
-    }
-
-    return namedRanges;
-  }
-
-  void _addClosingBalanceRow(
-      excel.Worksheet sheet, ExcelStyler styler, String currencyFormat,
-      {required String bottomEndOfRowTitle,
-      required double cogs,
-      ExportConfig? config}) {
-    final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
-    final firstDataRow = _getFirstDataRow(sheet);
-    final lastDataRow = sheet.getLastRow();
-    final closingBalanceRow = lastDataRow + 1;
-
-    // Find the column index for "Amount" (assuming always column C = 3)
-    final amountColIndex = 3; // C
-    final amountColLetter = String.fromCharCode(64 + amountColIndex);
-
-    sheet.insertRow(closingBalanceRow);
-    sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
-    sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
-
-    final grossProfitCell =
-        sheet.getRangeByName('$amountColLetter$closingBalanceRow');
-    grossProfitCell.setFormula(
-        '=SUM($amountColLetter${firstDataRow}:$amountColLetter$lastDataRow)');
-    grossProfitCell.cellStyle = balanceStyle;
-    grossProfitCell.numberFormat = currencyFormat;
-
-    sheet
-        .getRangeByName(
-            'A$closingBalanceRow:$amountColLetter$closingBalanceRow')
-        .cellStyle = balanceStyle;
-
-    // Add COGS row
-    final cogsRow = closingBalanceRow + 1;
-    sheet.insertRow(cogsRow);
-    sheet.getRangeByName('A$cogsRow').setText('Cost of Goods Sold (COGS)');
-    sheet.getRangeByName('A$cogsRow').cellStyle = balanceStyle;
-
-    final cogsCell = sheet.getRangeByName('$amountColLetter$cogsRow');
-    cogsCell.setValue(cogs);
-    cogsCell.cellStyle = balanceStyle;
-    cogsCell.numberFormat = currencyFormat;
-
-    sheet.getRangeByName('A$cogsRow:$amountColLetter$cogsRow').cellStyle =
-        balanceStyle;
-
-    // Add named range for COGS
-    sheet.workbook.names.add('COGSValue', cogsCell);
-
-    // Add Net Profit row
-    final netProfitRow = cogsRow + 1;
-    sheet.insertRow(netProfitRow);
-    sheet.getRangeByName('A$netProfitRow').setText('Net Profit');
-    sheet.getRangeByName('A$netProfitRow').cellStyle = balanceStyle;
-
-    final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
-
-    // Calculate net profit as the sum of the gross profit column
-    // Find the gross profit column index
-    int grossProfitColIndex = -1;
-    for (int col = 1; col <= sheet.getLastColumn(); col++) {
-      final header = sheet.getRangeByIndex(1, col).getText();
-      if (header == 'GrossProfit') {
-        grossProfitColIndex = col;
-        break;
-      }
-    }
-
-    if (grossProfitColIndex != -1) {
-      // Sum the gross profit column
-      final firstDataRow = _getFirstDataRow(sheet);
-      final lastDataRow = sheet.getLastRow() - 2; // Exclude the total row
-
-      // Use a SUM formula to calculate the total gross profit
-      final grossProfitColLetter = _getExcelColumnName(grossProfitColIndex);
-      netProfitCell.setFormula(
-          '=SUM($grossProfitColLetter$firstDataRow:$grossProfitColLetter$lastDataRow)');
-    } else {
-      // Calculate net profit as gross profit - COGS
-      // Get the gross profit from the cell we just created earlier
-      final grossProfitFormula =
-          "=$amountColLetter$closingBalanceRow-$amountColLetter$cogsRow";
-      netProfitCell.setFormula(grossProfitFormula);
-    }
-
-    netProfitCell.cellStyle = balanceStyle;
-    netProfitCell.numberFormat = currencyFormat;
-
-    sheet
-        .getRangeByName('A$netProfitRow:$amountColLetter$netProfitRow')
-        .cellStyle = balanceStyle;
-
-    // Add named range for Net Profit
-    sheet.workbook.names.add('NetProfit', netProfitCell);
   }
 
   void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
@@ -892,15 +679,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     workbook.names.add('TotalExpenses', totalExpensesCell);
   }
 
-  int _getFirstDataRow(excel.Worksheet sheet) {
-    for (int i = 1; i <= sheet.getLastRow(); i++) {
-      if (sheet.getRangeByName('A$i').getText() == '') {
-        return i + 1;
-      }
-    }
-    return 2;
-  }
-
   Future<String> _saveExcelFile(excel.Workbook workbook) async {
     final List<int> bytes = workbook.saveAsStream();
     final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
@@ -1033,17 +811,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'pdf': 'application/pdf',
   };
-
-  /// Converts a column index to Excel column name (e.g., 1 -> A, 2 -> B, 27 -> AA)
-  String _getExcelColumnName(int columnIndex) {
-    String columnName = '';
-    while (columnIndex > 0) {
-      int remainder = (columnIndex - 1) % 26;
-      columnName = String.fromCharCode(65 + remainder) + columnName;
-      columnIndex = (columnIndex - 1) ~/ 26;
-    }
-    return columnName;
-  }
 }
 
 class ExcelStyler {
@@ -1088,6 +855,5 @@ class ExportConfig {
     this.currencySymbol = 'RF',
     required this.transactions,
   }) : currencyFormat =
-            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"' ??
-                r'#,##0.00';
+            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
 }

@@ -25,14 +25,15 @@ class TransactionList extends StatefulHookConsumerWidget {
 class TransactionListState extends ConsumerState<TransactionList>
     with WidgetsBindingObserver, DateCoreWidget {
   // Use a late initialized key to ensure it's created fresh when needed
-  late final GlobalKey<SfDataGridState> workBookKey;
-  
+  late GlobalKey<SfDataGridState> workBookKey;
+
   @override
   void initState() {
     super.initState();
     // Initialize the key
     workBookKey = GlobalKey<SfDataGridState>();
   }
+
   @override
   Widget build(BuildContext context) {
     final dateRange = ref.watch(dateRangeProvider);
