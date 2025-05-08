@@ -158,6 +158,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required GlobalKey<SfDataGridState> workBookKey,
     List<dynamic>? manualData, // Added parameter for manual data export
     List<String>? columnNames, // Added parameter for column names
+    required bool showProfitCalculations,
   }) async {
     String? filePath;
     try {
@@ -386,22 +387,33 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (!isStockRecount) {
           final styler = ExcelStyler(workbook);
 
-          _formatColumns(reportSheet, config.currencyFormat);
+          // Only format columns with profit calculations if showProfitCalculations is true
+          if (showProfitCalculations) {
+            _formatColumns(reportSheet, config.currencyFormat);
+          } else {
+            // Just auto-fit columns without adding profit calculations
+            for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
+              reportSheet.autoFitColumn(i);
+            }
+            talker.debug('Auto-fitting columns without profit calculations');
+          }
 
-          // First add the expenses sheet if there are expenses
+          // First add the expenses sheet if there are expenses and we're showing profit calculations
           bool hasExpensesSheet = false;
-          if (expenses != null && expenses.isNotEmpty) {
+          if (showProfitCalculations &&
+              expenses != null &&
+              expenses.isNotEmpty) {
             _addExpensesSheet(
                 workbook, expenses, styler, config.currencyFormat);
             hasExpensesSheet = true;
           }
 
-          // Then add the Net Profit row to the report sheet if we have expenses
-          if (hasExpensesSheet) {
+          // Then add the Net Profit row to the report sheet if we have expenses and showing profit calculations
+          if (showProfitCalculations && hasExpensesSheet) {
             _addNetProfitRow(reportSheet, workbook, config.currencyFormat);
           }
 
-          // Finally add the payment method sheet
+          // Always add the payment method sheet regardless of profit calculations
           await _addPaymentMethodSheet(workbook, config, styler);
         }
 
