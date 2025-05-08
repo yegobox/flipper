@@ -445,13 +445,75 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
+    // Format currency columns
     for (int row = 1; row <= sheet.getLastRow(); row++) {
       sheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
     }
 
+    // Auto-fit all columns for better readability
     for (int i = 1; i <= sheet.getLastColumn(); i++) {
       sheet.autoFitColumn(i);
     }
+
+    // Add GrossProfit sum at the end of all rows
+    final lastRow = sheet.getLastRow();
+    final lastColumn = sheet.getLastColumn();
+
+    // Find the GrossProfit column - typically column 9 based on the formatting above
+    // But let's look for a header with 'GrossProfit' or 'Gross Profit' to be sure
+    int grossProfitColumn = 9; // Default based on currency formatting
+
+    // Check if we can find a better match for the GrossProfit column by header name
+    for (int col = 1; col <= lastColumn; col++) {
+      final cellValue = sheet.getRangeByIndex(1, col).getText();
+      if (cellValue != null &&
+          (cellValue.toLowerCase().contains('gross') &&
+              cellValue.toLowerCase().contains('profit'))) {
+        grossProfitColumn = col;
+        break;
+      }
+    }
+
+    // Add a total row at the bottom
+    final totalRowIndex = lastRow + 2; // Leave one blank row
+
+    // Create a style for the total row
+    final style = sheet.workbook.styles.add('GrossProfitTotalStyle');
+    style.fontName = 'Calibri';
+    style.fontSize = 12;
+    style.bold = true;
+    style.hAlign = excel.HAlignType.right;
+    style.borders.top.lineStyle = excel.LineStyle.thin;
+    style.borders.bottom.lineStyle = excel.LineStyle.double;
+
+    // Add 'Total Gross Profit:' label
+    sheet
+        .getRangeByIndex(totalRowIndex, grossProfitColumn - 1)
+        .setText('Total Gross Profit:');
+    sheet.getRangeByIndex(totalRowIndex, grossProfitColumn - 1).cellStyle =
+        style;
+
+    // Add the SUM formula for the GrossProfit column
+    final sumCell = sheet.getRangeByIndex(totalRowIndex, grossProfitColumn);
+    sumCell.setFormula(
+        '=SUM(${_getColumnLetter(grossProfitColumn)}2:${_getColumnLetter(grossProfitColumn)}$lastRow)');
+    sumCell.numberFormat = currencyFormat;
+    sumCell.cellStyle = style;
+
+    // Auto-fit the columns again after adding the total row
+    sheet.autoFitColumn(grossProfitColumn - 1);
+    sheet.autoFitColumn(grossProfitColumn);
+  }
+
+  // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
+  String _getColumnLetter(int columnIndex) {
+    String columnLetter = '';
+    while (columnIndex > 0) {
+      int remainder = (columnIndex - 1) % 26;
+      columnLetter = String.fromCharCode(65 + remainder) + columnLetter;
+      columnIndex = (columnIndex - remainder - 1) ~/ 26;
+    }
+    return columnLetter;
   }
 
   String normalizePaymentMethod(String method) {
