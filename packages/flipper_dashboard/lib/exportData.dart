@@ -457,7 +457,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               headerTitle: headerTitle);
 
           _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
-              bottomEndOfRowTitle: bottomEndOfRowTitle, cogs: config.cogs ?? 0);
+              bottomEndOfRowTitle: bottomEndOfRowTitle,
+              cogs: config.cogs ?? 0,
+              config: config);
           _formatColumns(reportSheet, config.currencyFormat);
 
           if (expenses != null && expenses.isNotEmpty) {
@@ -562,7 +564,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   void _addClosingBalanceRow(
       excel.Worksheet sheet, ExcelStyler styler, String currencyFormat,
-      {required String bottomEndOfRowTitle, required double cogs}) {
+      {required String bottomEndOfRowTitle,
+      required double cogs,
+      ExportConfig? config}) {
     final balanceStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
     final firstDataRow = _getFirstDataRow(sheet);
@@ -606,15 +610,42 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Add named range for COGS
     sheet.workbook.names.add('COGSValue', cogsCell);
 
-    // Add Net Profit row (Gross Profit - COGS)
+    // Add Net Profit row
     final netProfitRow = cogsRow + 1;
     sheet.insertRow(netProfitRow);
     sheet.getRangeByName('A$netProfitRow').setText('Net Profit');
     sheet.getRangeByName('A$netProfitRow').cellStyle = balanceStyle;
 
     final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
-    netProfitCell.setFormula(
-        '=$amountColLetter$closingBalanceRow-$amountColLetter$cogsRow');
+
+    // Calculate net profit as the sum of the gross profit column
+    // Find the gross profit column index
+    int grossProfitColIndex = -1;
+    for (int col = 1; col <= sheet.getLastColumn(); col++) {
+      final header = sheet.getRangeByIndex(1, col).getText();
+      if (header == 'GrossProfit') {
+        grossProfitColIndex = col;
+        break;
+      }
+    }
+
+    if (grossProfitColIndex != -1) {
+      // Sum the gross profit column
+      final firstDataRow = _getFirstDataRow(sheet);
+      final lastDataRow = sheet.getLastRow() - 2; // Exclude the total row
+
+      // Use a SUM formula to calculate the total gross profit
+      final grossProfitColLetter = _getExcelColumnName(grossProfitColIndex);
+      netProfitCell.setFormula(
+          '=SUM($grossProfitColLetter$firstDataRow:$grossProfitColLetter$lastDataRow)');
+    } else {
+      // Calculate net profit as gross profit - COGS
+      // Get the gross profit from the cell we just created earlier
+      final grossProfitFormula =
+          "=$amountColLetter$closingBalanceRow-$amountColLetter$cogsRow";
+      netProfitCell.setFormula(grossProfitFormula);
+    }
+
     netProfitCell.cellStyle = balanceStyle;
     netProfitCell.numberFormat = currencyFormat;
 
@@ -1002,6 +1033,17 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'pdf': 'application/pdf',
   };
+
+  /// Converts a column index to Excel column name (e.g., 1 -> A, 2 -> B, 27 -> AA)
+  String _getExcelColumnName(int columnIndex) {
+    String columnName = '';
+    while (columnIndex > 0) {
+      int remainder = (columnIndex - 1) % 26;
+      columnName = String.fromCharCode(65 + remainder) + columnName;
+      columnIndex = (columnIndex - 1) ~/ 26;
+    }
+    return columnName;
+  }
 }
 
 class ExcelStyler {
