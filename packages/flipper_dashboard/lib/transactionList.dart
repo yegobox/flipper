@@ -270,6 +270,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           endDate: validEndDate,
           rowsPerPage: ref.read(rowsPerPageProvider),
           showDetailedReport: showDetailed,
+          showDetailed: showDetailed, // Match with showDetailedReport
           workBookKey: workBookKey, // Use the persistent key
         );
       },
