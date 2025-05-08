@@ -384,28 +384,24 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         }
 
         if (!isStockRecount) {
-          // final drawer = await ProxyService.strategy
-          //     .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final styler = ExcelStyler(workbook);
 
-          // await _addHeaderAndInfoRows(
-          //     reportSheet: reportSheet,
-          //     styler: styler,
-          //     config: config,
-          //     business: business!,
-          //     drawer: drawer,
-          //     headerTitle: headerTitle);
-
-          // _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
-          //     bottomEndOfRowTitle: bottomEndOfRowTitle,
-          //     cogs: config.cogs ?? 0,
-          //     config: config);
           _formatColumns(reportSheet, config.currencyFormat);
 
+          // First add the expenses sheet if there are expenses
+          bool hasExpensesSheet = false;
           if (expenses != null && expenses.isNotEmpty) {
             _addExpensesSheet(
                 workbook, expenses, styler, config.currencyFormat);
+            hasExpensesSheet = true;
           }
+
+          // Then add the Net Profit row to the report sheet if we have expenses
+          if (hasExpensesSheet) {
+            _addNetProfitRow(reportSheet, workbook, config.currencyFormat);
+          }
+
+          // Finally add the payment method sheet
           await _addPaymentMethodSheet(workbook, config, styler);
         }
 
@@ -504,79 +500,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     sheet.autoFitColumn(grossProfitColumn - 1);
     sheet.autoFitColumn(grossProfitColumn);
 
-    // Always add Net Profit row below Gross Profit
-    try {
-      final netProfitRowIndex = totalRowIndex + 1;
-
-      // Create a style for the Net Profit row
-      final netProfitStyle = sheet.workbook.styles.add('NetProfitTotalStyle');
-      netProfitStyle.fontName = 'Calibri';
-      netProfitStyle.fontSize = 12;
-      netProfitStyle.bold = true;
-      netProfitStyle.hAlign = excel.HAlignType.right;
-      netProfitStyle.borders.top.lineStyle = excel.LineStyle.thin;
-      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
-      netProfitStyle.backColor =
-          '#E2EFDA'; // Light green background for Net Profit
-
-      // Add 'Net Profit:' label
-      sheet
-          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
-          .setText('Net Profit:');
-      sheet
-          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
-          .cellStyle = netProfitStyle;
-
-      // Add the formula to calculate Net Profit
-      final netProfitCell =
-          sheet.getRangeByIndex(netProfitRowIndex, grossProfitColumn);
-
-      // Skip checking for named ranges since we know they're not working
-      // Instead, directly look for the Expenses sheet
-      final expensesSheet = _findWorksheetByName(sheet.workbook, 'Expenses');
-      final hasExpensesSheet = expensesSheet != null;
-
-      if (hasExpensesSheet) {
-        // Try to calculate total directly from the Expenses sheet
-        final lastExpenseRow = expensesSheet.getLastRow();
-        if (lastExpenseRow > 1) {
-          // Find the total expenses cell which is in the row below the last expense item
-          final totalExpensesRowIndex = lastExpenseRow + 1;
-
-          // Create a direct cell reference formula to subtract expenses from gross profit
-          // This is the most reliable approach when working with multiple sheets
-          final formula =
-              '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
-          netProfitCell.setFormula(formula);
-
-          // Add detailed logging to help with troubleshooting
-          talker.debug('Created Net Profit formula: $formula');
-          talker.debug(
-              'Referencing Gross Profit cell: ${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
-          talker.debug(
-              'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex');
-        } else {
-          // No expense data, use gross profit as net profit
-          netProfitCell.setFormula(
-              '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
-          talker.debug('No expense data found, Net Profit equals Gross Profit');
-        }
-      } else {
-        // No Expenses sheet at all, use gross profit as net profit
-        netProfitCell.setFormula(
-            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
-        talker.debug('No Expenses sheet found, Net Profit equals Gross Profit');
-      }
-
-      netProfitCell.numberFormat = currencyFormat;
-      netProfitCell.cellStyle = netProfitStyle;
-
-      // Auto-fit the columns again after adding the Net Profit row
-      sheet.autoFitColumn(grossProfitColumn - 1);
-      sheet.autoFitColumn(grossProfitColumn);
-    } catch (e) {
-      talker.error('Error adding Net Profit row: $e');
-    }
+    // Note: Net Profit calculation is now handled by the _addNetProfitRow method
+    // which is called after the Expenses sheet has been created
   }
 
   // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
@@ -602,6 +527,95 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       }
     }
     return null;
+  }
+
+  // Add Net Profit row to the report sheet after the Expenses sheet has been created
+  void _addNetProfitRow(excel.Worksheet reportSheet, excel.Workbook workbook,
+      String currencyFormat) {
+    try {
+      // Find the last row in the report sheet (where the Gross Profit is)
+      final lastRow = reportSheet.getLastRow();
+      final totalRowIndex = lastRow;
+
+      // Find the column with the Gross Profit value (typically column 9 based on currency formatting)
+      int grossProfitColumn = 9;
+
+      // Check if we can find a better match for the GrossProfit column by header name
+      for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
+        final cellValue = reportSheet.getRangeByIndex(1, col).getText();
+        if (cellValue != null &&
+            (cellValue.toLowerCase().contains('gross') &&
+                cellValue.toLowerCase().contains('profit'))) {
+          grossProfitColumn = col;
+          break;
+        }
+      }
+
+      // Add Net Profit row below Gross Profit
+      final netProfitRowIndex = totalRowIndex + 1;
+
+      // Create a style for the Net Profit row
+      final netProfitStyle = workbook.styles.add('NetProfitTotalStyle');
+      netProfitStyle.fontName = 'Calibri';
+      netProfitStyle.fontSize = 12;
+      netProfitStyle.bold = true;
+      netProfitStyle.hAlign = excel.HAlignType.right;
+      netProfitStyle.borders.top.lineStyle = excel.LineStyle.thin;
+      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
+      netProfitStyle.backColor =
+          '#E2EFDA'; // Light green background for Net Profit
+
+      // Add 'Net Profit:' label
+      reportSheet
+          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
+          .setText('Net Profit:');
+      reportSheet
+          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
+          .cellStyle = netProfitStyle;
+
+      // Get the Net Profit cell
+      final netProfitCell =
+          reportSheet.getRangeByIndex(netProfitRowIndex, grossProfitColumn);
+
+      // Find the Expenses sheet which we know exists at this point
+      final expensesSheet = _findWorksheetByName(workbook, 'Expenses');
+      if (expensesSheet != null) {
+        // Get the last row in the Expenses sheet
+        final lastExpenseRow = expensesSheet.getLastRow();
+        // The total expenses are in the cell below the last expense item
+        final totalExpensesRowIndex = lastExpenseRow;
+
+        // Create a direct cell reference formula to subtract expenses from gross profit
+        final formula =
+            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
+
+        // This is a properly constructed Dart string with proper interpolation
+        netProfitCell.setFormula(formula);
+
+        // Log the formula for debugging
+        talker.debug('Created Net Profit formula: $formula');
+        talker.debug(
+            'Referencing Gross Profit cell: ${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+        talker.debug(
+            'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex');
+      } else {
+        // This shouldn't happen since we only call this method when the Expenses sheet exists
+        talker.error('Expenses sheet not found when adding Net Profit row');
+        // Fallback to just using the Gross Profit value
+        netProfitCell.setFormula(
+            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+      }
+
+      // Apply formatting to the Net Profit cell
+      netProfitCell.numberFormat = currencyFormat;
+      netProfitCell.cellStyle = netProfitStyle;
+
+      // Auto-fit the columns after adding the Net Profit row
+      reportSheet.autoFitColumn(grossProfitColumn - 1);
+      reportSheet.autoFitColumn(grossProfitColumn);
+    } catch (e) {
+      talker.error('Error adding Net Profit row: $e');
+    }
   }
 
   Future<void> _addPaymentMethodSheet(
