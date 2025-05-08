@@ -121,11 +121,11 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
-  syncfusion_flutter_datepicker: ^29.1.37
-  syncfusion_flutter_datagrid: ^29.1.37
-  syncfusion_flutter_xlsio: ^29.1.37
-  syncfusion_flutter_datagrid_export: ^29.1.37
-  syncfusion_flutter_core: ^29.1.37
+  syncfusion_flutter_datepicker: ^29.1.41
+  syncfusion_flutter_datagrid: ^29.1.41
+  syncfusion_flutter_xlsio: ^29.1.41
+  syncfusion_flutter_datagrid_export: ^29.1.41
+  syncfusion_flutter_core: ^29.1.41
   
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12

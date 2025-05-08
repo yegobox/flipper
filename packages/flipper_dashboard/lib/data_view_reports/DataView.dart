@@ -14,7 +14,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
+import 'package:overlay_support/overlay_support.dart' show toast;
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -23,6 +23,7 @@ import 'package:flipper_dashboard/data_view_reports/StockRecount.dart';
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
     super.key,
+    required this.workBookKey,
     this.variants,
     this.transactions,
     required this.startDate,
@@ -45,6 +46,7 @@ class DataView extends StatefulHookConsumerWidget {
   final bool showDetailed;
   final bool onTapRowShowRefundModal;
   final bool onTapRowShowRecountModal;
+  final GlobalKey<SfDataGridState> workBookKey;
 
   @override
   DataViewState createState() => DataViewState();
@@ -54,6 +56,7 @@ class DataViewState extends ConsumerState<DataView>
     with ExportMixin, DateCoreWidget, Headers {
   static const double dataPagerHeight = 60;
   late DataGridSource _dataGridSource;
+
   int pageIndex = 0;
   final talker = TalkerFlutter.init();
   bool _isExporting = false;
@@ -81,6 +84,7 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   void _initializeDataSource() {
+    // Create the data source based on current view mode
     _dataGridSource = _buildDataGridSource(
       showDetailed: widget.showDetailedReport,
       transactionItems: widget.transactionItems,
@@ -88,6 +92,13 @@ class DataViewState extends ConsumerState<DataView>
       variants: widget.variants,
       rowsPerPage: widget.rowsPerPage,
     );
+    
+    // Force a rebuild after data source changes to ensure the DataGrid is properly initialized
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    }
   }
 
   void _handleCellTap(DataGridCellTapDetails details) {
@@ -177,7 +188,9 @@ class DataViewState extends ConsumerState<DataView>
                               icon: Icon(Icons.download_rounded),
                               onPressed: () async {
                                 setState(() => _isExporting = true);
-                                await _export(headerTitle: "Report");
+                                await _export(
+                                    headerTitle: "Report",
+                                    workBookKey: widget.workBookKey);
                                 setState(() => _isExporting = false);
                               },
                             ),
@@ -283,6 +296,9 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildDataGrid(BoxConstraints constraints) {
+    // Ensure the data source is properly initialized with the current view mode
+    _initializeDataSource();
+    
     return SfDataGridTheme(
       data: SfDataGridThemeData(
         headerHoverColor: Colors.yellow,
@@ -293,10 +309,10 @@ class DataViewState extends ConsumerState<DataView>
         rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
       ),
       child: SfDataGrid(
+        key: widget.workBookKey,
         selectionMode: SelectionMode.multiple,
         allowSorting: true,
         allowColumnsResizing: true,
-        key: workBookKey,
         source: _dataGridSource,
         allowFiltering: true,
         highlightRowOnHover: true,
@@ -435,9 +451,38 @@ class DataViewState extends ConsumerState<DataView>
     }
   }
 
-  Future<void> _export({String headerTitle = "Report"}) async {
+  Future<void> _export(
+      {String headerTitle = "Report",
+      required GlobalKey<SfDataGridState> workBookKey}) async {
+    // Check if we're in detailed view mode
+    final showDetailed = widget.showDetailedReport;
+    
+    // For detailed view, we'll use a direct export approach instead of relying on the DataGrid state
+    if (showDetailed) {
+      talker.info('Using direct export for detailed view');
+      await _exportDirectly(headerTitle: headerTitle);
+      return;
+    }
+    
+    // For summarized view, try to use the DataGrid state
     if (workBookKey.currentState == null) {
-      toast("Error: Workbook is null");
+      talker.warning('DataGrid state is null, waiting for initialization...');
+      
+      // Force a rebuild of the UI and wait for it to complete
+      if (mounted) {
+        // Re-initialize the data source with current view mode
+        _initializeDataSource();
+        setState(() {});
+        
+        // Give the UI time to rebuild
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+    
+    // Check again after waiting
+    if (workBookKey.currentState == null) {
+      talker.warning('DataGrid state still null after waiting, using direct export');
+      await _exportDirectly(headerTitle: headerTitle);
       return;
     }
 
@@ -472,6 +517,7 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     exportDataGrid(
+        workBookKey: workBookKey,
         isStockRecount: isStockRecount,
         config: config,
         headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
@@ -501,6 +547,102 @@ class DataViewState extends ConsumerState<DataView>
     double totalTax = 0.0;
     return grossProfit - totalTax;
   }
+  
+  /// Direct export method that doesn't rely on the DataGrid state
+  /// This is used as a fallback when the DataGrid state is null
+  Future<void> _exportDirectly({required String headerTitle}) async {
+    talker.info('Starting direct export process');
+    
+    // Fetch expense transactions for the report
+    final expenseTransactions = await ProxyService.strategy.transactions(
+      startDate: widget.startDate,
+      endDate: widget.endDate,
+      isExpense: true,
+      branchId: ProxyService.box.getBranchId(),
+    );
+    
+    final sales = await ProxyService.strategy.transactions(
+      startDate: widget.startDate,
+      endDate: widget.endDate,
+      isExpense: false,
+      branchId: ProxyService.box.getBranchId(),
+    );
+    
+    // Convert transactions to Expense model
+    final expenses = await Expense.fromTransactions(expenseTransactions, sales: sales);
+
+    final isStockRecount = widget.variants != null && widget.variants!.isNotEmpty;
+    
+    // Create export config
+    final config = ExportConfig(
+      transactions: sales,
+      endDate: widget.endDate,
+      startDate: widget.startDate,
+    );
+
+    if (!isStockRecount) {
+      config.grossProfit = await _calculateGrossProfit();
+      config.netProfit = await _calculateNetProfit();
+    }
+    
+    // Extract data and column names from the data source for manual export
+    List<dynamic> manualData = [];
+    List<String> columnNames = [];
+    List<Map<String, dynamic>> preparedData = [];
+    
+    // Get data from the appropriate data source based on view type
+    if (_dataGridSource is TransactionItemDataSource) {
+      // Use transaction items directly from widget
+      manualData = widget.transactionItems ?? [];
+      
+      // Get column names from the headers
+      final headers = _getTableHeaders();
+      columnNames = headers.map((col) => col.columnName).toList();
+      
+      // Prepare data with explicit mapping to ensure all columns are included
+      for (final item in manualData) {
+        if (item is TransactionItem) {
+          final Map<String, dynamic> rowData = {};
+          
+          // Map all the columns explicitly based on the actual TransactionItem properties
+          rowData['ItemCode'] = item.id;
+          rowData['Name'] = item.name;
+          rowData['Barcode'] = item.bcd ?? '';
+          rowData['Price'] = item.price;
+          rowData['TaxRate'] = 18.0; // Default tax rate
+          rowData['Qty'] = item.qty;
+          rowData['TotalSales'] = item.price * item.qty; // profit made
+          rowData['CurrentStock'] = item.remainingStock ?? 0.0;
+          rowData['TaxPayable'] = item.taxAmt ?? (item.price * item.qty * 0.18); // Calculate tax if not available
+          rowData['GrossProfit'] = (item.price * item.qty) - (item.splyAmt ?? (item.price * item.qty * 0.7)); // Estimate gross profit
+          
+          preparedData.add(rowData);
+        }
+      }
+      
+      talker.info('Prepared ${preparedData.length} transaction items for export with ${columnNames.length} columns');
+      manualData = preparedData;
+    } else if (_dataGridSource is TransactionDataSource) {
+      // Use transactions directly from widget
+      manualData = widget.transactions ?? [];
+      
+      // Get column names from the headers
+      columnNames = _getTableHeaders().map((col) => col.columnName).toList();
+      talker.info('Prepared ${manualData.length} transactions for export with ${columnNames.length} columns');
+    }
+    
+    // Use the exportDataGrid method with our config and manual data
+    await exportDataGrid(
+      workBookKey: widget.workBookKey, // Use the widget's key
+      isStockRecount: isStockRecount,
+      config: config,
+      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+      expenses: expenses,
+      bottomEndOfRowTitle: widget.showDetailedReport ? "Total Gross Profit" : "Closing balance",
+      manualData: manualData,
+      columnNames: columnNames
+    );
+  }
 
   Widget _buildReportTypeSwitch(bool showDetailed) {
     return Container(
@@ -514,10 +656,15 @@ class DataViewState extends ConsumerState<DataView>
         children: [
           TextButton(
             onPressed: showDetailed
-                ? () {
+                ? () async {
+                    // Toggle the report view
                     ref
                         .read(toggleBooleanValueProvider.notifier)
                         .toggleReport();
+
+                    // Give the UI time to update and rebuild the DataGrid
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (mounted) setState(() {});
                   }
                 : null,
             style: TextButton.styleFrom(
@@ -531,10 +678,15 @@ class DataViewState extends ConsumerState<DataView>
           ),
           TextButton(
             onPressed: !showDetailed
-                ? () {
+                ? () async {
+                    // Toggle the report view
                     ref
                         .read(toggleBooleanValueProvider.notifier)
                         .toggleReport();
+
+                    // Give the UI time to update and rebuild the DataGrid
+                    await Future.delayed(const Duration(milliseconds: 100));
+                    if (mounted) setState(() {});
                   }
                 : null,
             style: TextButton.styleFrom(

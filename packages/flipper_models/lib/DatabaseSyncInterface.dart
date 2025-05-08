@@ -505,11 +505,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String tableName,
   });
 
-  FutureOr<void> addAsset(
-      {required String productId,
-      required assetName,
-      required int branchId,
-      required int businessId});
+
 
   FutureOr<void> addCategory({
     required String name,

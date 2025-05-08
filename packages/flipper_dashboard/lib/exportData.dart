@@ -31,7 +31,6 @@ class PaymentSummary {
 }
 
 mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
   void addFooter(DataGridPdfHeaderFooterExportDetails headerFooterExport,
       {required ExportConfig config}) {
     final double width = headerFooterExport.pdfPage.getClientSize().width;
@@ -213,6 +212,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,
+    required GlobalKey<SfDataGridState> workBookKey,
+    List<dynamic>? manualData, // Added parameter for manual data export
+    List<String>? columnNames, // Added parameter for column names
   }) async {
     String? filePath;
     try {
@@ -287,10 +289,159 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         filePath = await _savePdfFile(document);
         document.dispose();
       } else {
-        final excel.Workbook workbook =
-            workBookKey.currentState!.exportToExcelWorkbook();
+        // Create a new workbook directly - this approach works regardless of DataGrid state
+        excel.Workbook workbook = excel.Workbook();
+
+        try {
+          // If DataGrid state is available, try to use it
+          if (workBookKey.currentState != null) {
+            try {
+              workbook = workBookKey.currentState!.exportToExcelWorkbook();
+              talker.info('Successfully exported using DataGrid state');
+            } catch (e) {
+              // If we get an error, create a fresh workbook
+              talker.warning('Error using DataGrid export: $e');
+              workbook = excel.Workbook();
+              talker.info('Created fresh workbook after DataGrid export error');
+            }
+          } else {
+            // For detailed view, we need to create a workbook manually
+            talker.warning(
+                'DataGrid state is null, using manual workbook creation');
+
+            // Keep using the manually created workbook
+            // We'll add the data to it in the subsequent steps
+          }
+        } catch (e) {
+          talker.error('Error during export preparation: $e');
+          // Ensure we have a valid workbook to continue with
+          workbook = excel.Workbook();
+        }
+
+        // Get the worksheet from the workbook
         final excel.Worksheet reportSheet = workbook.worksheets[0];
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
+
+        // Check if we have manual data to populate the workbook with
+        if (manualData != null &&
+            manualData.isNotEmpty &&
+            columnNames != null &&
+            columnNames.isNotEmpty) {
+          talker.info(
+              'Populating workbook with manual data (${manualData.length} rows)');
+
+          // Create a proper header style that matches DataGrid export
+          final headerStyle = workbook.styles.add('HeaderStyle');
+          headerStyle.fontName = 'Calibri';
+          headerStyle.fontSize = 11;
+          headerStyle.bold = true;
+          headerStyle.hAlign = excel.HAlignType.center;
+          headerStyle.vAlign = excel.VAlignType.center;
+          headerStyle.backColor =
+              '#D9D9D9'; // Light gray background like DataGrid export
+          headerStyle.fontColor = '#000000'; // Black text like DataGrid export
+          headerStyle.borders.all.lineStyle = excel.LineStyle.thin;
+          headerStyle.borders.all.color = '#A6A6A6';
+
+          // Create a data cell style that matches DataGrid export
+          final dataStyle = workbook.styles.add('DataStyle');
+          dataStyle.fontName = 'Calibri';
+          dataStyle.fontSize = 11;
+          dataStyle.hAlign = excel.HAlignType.left;
+          dataStyle.vAlign = excel.VAlignType.center;
+          dataStyle.borders.all.lineStyle = excel.LineStyle.thin;
+          dataStyle.borders.all.color = '#A6A6A6';
+
+          // Create a numeric cell style
+          final numericStyle = workbook.styles.add('NumericStyle');
+          numericStyle.fontName = 'Calibri';
+          numericStyle.fontSize = 11;
+          numericStyle.hAlign = excel.HAlignType.right;
+          numericStyle.vAlign = excel.VAlignType.center;
+          numericStyle.numberFormat = '#,##0.00';
+          numericStyle.borders.all.lineStyle = excel.LineStyle.thin;
+          numericStyle.borders.all.color = '#A6A6A6';
+
+          // Add column headers
+          for (int i = 0; i < columnNames.length; i++) {
+            final cell = reportSheet.getRangeByIndex(1, i + 1);
+            cell.setText(columnNames[i]);
+            cell.cellStyle = headerStyle;
+
+            // Set column width to match DataGrid export (auto-fit will be applied later)
+            reportSheet.setColumnWidthInPixels(
+                i + 1, 120); // Initial width before auto-fit
+          }
+
+          // Add data rows
+          for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
+            final item = manualData[rowIndex];
+            Map<String, dynamic> rowData;
+
+            try {
+              // Try to convert the item to a map
+              rowData = item is Map ? item : item.toJson();
+            } catch (e) {
+              // If toJson() fails, create a map with basic properties
+              rowData = {};
+
+              // Attempt to extract common properties based on column names
+              for (String colName in columnNames) {
+                try {
+                  // Try to access the property directly
+                  final value = _getItemProperty(item, colName);
+                  rowData[colName] = value;
+                } catch (e) {
+                  rowData[colName] = ''; // Default empty value
+                }
+              }
+            }
+
+            // Add each cell in the row
+            for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
+              final colName = columnNames[colIndex];
+              final cell =
+                  reportSheet.getRangeByIndex(rowIndex + 2, colIndex + 1);
+
+              // Get the value for this column
+              var value = rowData[colName];
+              if (value == null) {
+                // Try to find a matching key regardless of case
+                final matchingKey = rowData.keys.firstWhere(
+                  (k) => k.toString().toLowerCase() == colName.toLowerCase(),
+                  orElse: () => '',
+                );
+                if (matchingKey.isNotEmpty) {
+                  value = rowData[matchingKey];
+                }
+              }
+
+              // Format and set the cell value
+              if (value is num) {
+                cell.setNumber(value.toDouble());
+                cell.cellStyle = numericStyle;
+              } else if (value is DateTime) {
+                cell.setDateTime(value);
+                cell.numberFormat = 'yyyy-mm-dd hh:mm:ss';
+                cell.cellStyle = dataStyle;
+              } else {
+                cell.setText(value?.toString() ?? '');
+                cell.cellStyle = dataStyle;
+              }
+            }
+          }
+
+          // Auto-fit columns for better readability
+          for (int i = 1; i <= columnNames.length; i++) {
+            reportSheet.autoFitColumn(i);
+          }
+        } else {
+          // Add a header row to ensure the workbook has some content
+          if (workbook.worksheets[0].getLastRow() < 1) {
+            talker.info('Adding basic structure to empty workbook');
+            reportSheet.getRangeByName('A1').setText('Report');
+          }
+        }
 
         if (!isStockRecount) {
           final drawer = await ProxyService.strategy
@@ -776,6 +927,65 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   String _lookupMimeType(String filePath) {
     final mimeType = _mimeTypes[filePath.split('.').last];
     return mimeType ?? 'application/octet-stream';
+  }
+
+  /// Helper method to safely get a property from an object by name
+  dynamic _getItemProperty(dynamic item, String propertyName) {
+    if (item == null) return '';
+
+    try {
+      // For map-like objects, try to access property as a key
+      if (item is Map) {
+        // Try exact match first
+        if (item.containsKey(propertyName)) {
+          return item[propertyName] ?? '';
+        }
+
+        // Try case-insensitive match
+        final lowerKey = propertyName.toLowerCase();
+        for (final key in item.keys) {
+          if (key.toString().toLowerCase() == lowerKey) {
+            return item[key] ?? '';
+          }
+        }
+      }
+
+      // Try to convert the object to a map using toJson if available
+      try {
+        // Use dynamic invocation to call toJson if it exists
+        final jsonData = item.toJson();
+        if (jsonData is Map) {
+          // Try exact match first
+          if (jsonData.containsKey(propertyName)) {
+            return jsonData[propertyName] ?? '';
+          }
+
+          // Try case-insensitive match
+          final lowerKey = propertyName.toLowerCase();
+          for (final key in jsonData.keys) {
+            if (key.toString().toLowerCase() == lowerKey) {
+              return jsonData[key] ?? '';
+            }
+          }
+        }
+      } catch (_) {
+        // toJson not available, continue with other approaches
+      }
+
+      // Try common properties by name using dynamic access
+      try {
+        // This uses dynamic invocation which bypasses static type checking
+        // It will throw if the property doesn't exist at runtime
+        return item[propertyName] ?? '';
+      } catch (_) {
+        // Property doesn't exist, continue with other approaches
+      }
+
+      // Last resort: try to convert to string
+      return item.toString();
+    } catch (e) {
+      return ''; // Return empty string if property access fails
+    }
   }
 
   Future<void> requestPermissions() async {
