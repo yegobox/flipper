@@ -371,8 +371,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             }
           }
 
-          // Auto-fit columns for better readability
-          for (int i = 1; i <= columnNames.length; i++) {
+          // Auto-fit all columns for better readability
+          for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
             reportSheet.autoFitColumn(i);
           }
         } else {
@@ -450,6 +450,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     for (int i = 1; i <= sheet.getLastColumn(); i++) {
       sheet.autoFitColumn(i);
     }
+
+    // Ensure all columns are properly sized
+    talker.debug('Auto-fitting all columns in the report sheet');
 
     // Add GrossProfit sum at the end of all rows
     final lastRow = sheet.getLastRow();
@@ -610,9 +613,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       netProfitCell.numberFormat = currencyFormat;
       netProfitCell.cellStyle = netProfitStyle;
 
-      // Auto-fit the columns after adding the Net Profit row
-      reportSheet.autoFitColumn(grossProfitColumn - 1);
-      reportSheet.autoFitColumn(grossProfitColumn);
+      // Auto-fit all columns after adding the Net Profit row
+      for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
+        reportSheet.autoFitColumn(i);
+      }
     } catch (e) {
       talker.error('Error adding Net Profit row: $e');
     }
@@ -776,12 +780,23 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void _formatSheet(excel.Worksheet sheet) {
-    for (int i = 1; i <= 4; i++) {
+    // Auto-fit all columns that have data
+    for (int i = 1; i <= sheet.getLastColumn(); i++) {
       sheet.autoFitColumn(i);
     }
 
+    // Hide any empty columns beyond our data
     for (int col = 5; col <= sheet.getLastColumn(); col++) {
-      sheet.getRangeByIndex(1, col).columnWidth = 0;
+      bool isEmpty = true;
+      for (int row = 1; row <= sheet.getLastRow(); row++) {
+        if (sheet.getRangeByIndex(row, col).getText()?.isNotEmpty == true) {
+          isEmpty = false;
+          break;
+        }
+      }
+      if (isEmpty) {
+        sheet.getRangeByIndex(1, col).columnWidth = 0;
+      }
     }
   }
 
@@ -833,7 +848,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     totalExpensesCell.numberFormat = currencyFormat;
 
     // Auto-fit all columns for better readability
-    for (int i = 1; i <= 2; i++) {
+    for (int i = 1; i <= expenseSheet.getLastColumn(); i++) {
       expenseSheet.autoFitColumn(i);
     }
 
