@@ -503,6 +503,80 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Auto-fit the columns again after adding the total row
     sheet.autoFitColumn(grossProfitColumn - 1);
     sheet.autoFitColumn(grossProfitColumn);
+
+    // Always add Net Profit row below Gross Profit
+    try {
+      final netProfitRowIndex = totalRowIndex + 1;
+
+      // Create a style for the Net Profit row
+      final netProfitStyle = sheet.workbook.styles.add('NetProfitTotalStyle');
+      netProfitStyle.fontName = 'Calibri';
+      netProfitStyle.fontSize = 12;
+      netProfitStyle.bold = true;
+      netProfitStyle.hAlign = excel.HAlignType.right;
+      netProfitStyle.borders.top.lineStyle = excel.LineStyle.thin;
+      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
+      netProfitStyle.backColor =
+          '#E2EFDA'; // Light green background for Net Profit
+
+      // Add 'Net Profit:' label
+      sheet
+          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
+          .setText('Net Profit:');
+      sheet
+          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
+          .cellStyle = netProfitStyle;
+
+      // Add the formula to calculate Net Profit
+      final netProfitCell =
+          sheet.getRangeByIndex(netProfitRowIndex, grossProfitColumn);
+
+      // Skip checking for named ranges since we know they're not working
+      // Instead, directly look for the Expenses sheet
+      final expensesSheet = _findWorksheetByName(sheet.workbook, 'Expenses');
+      final hasExpensesSheet = expensesSheet != null;
+
+      if (hasExpensesSheet) {
+        // Try to calculate total directly from the Expenses sheet
+        final lastExpenseRow = expensesSheet.getLastRow();
+        if (lastExpenseRow > 1) {
+          // Find the total expenses cell which is in the row below the last expense item
+          final totalExpensesRowIndex = lastExpenseRow + 1;
+
+          // Create a direct cell reference formula to subtract expenses from gross profit
+          // This is the most reliable approach when working with multiple sheets
+          final formula =
+              '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
+          netProfitCell.setFormula(formula);
+
+          // Add detailed logging to help with troubleshooting
+          talker.debug('Created Net Profit formula: $formula');
+          talker.debug(
+              'Referencing Gross Profit cell: ${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+          talker.debug(
+              'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex');
+        } else {
+          // No expense data, use gross profit as net profit
+          netProfitCell.setFormula(
+              '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+          talker.debug('No expense data found, Net Profit equals Gross Profit');
+        }
+      } else {
+        // No Expenses sheet at all, use gross profit as net profit
+        netProfitCell.setFormula(
+            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+        talker.debug('No Expenses sheet found, Net Profit equals Gross Profit');
+      }
+
+      netProfitCell.numberFormat = currencyFormat;
+      netProfitCell.cellStyle = netProfitStyle;
+
+      // Auto-fit the columns again after adding the Net Profit row
+      sheet.autoFitColumn(grossProfitColumn - 1);
+      sheet.autoFitColumn(grossProfitColumn);
+    } catch (e) {
+      talker.error('Error adding Net Profit row: $e');
+    }
   }
 
   // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
@@ -518,6 +592,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   String normalizePaymentMethod(String method) {
     return method.trim().toUpperCase();
+  }
+
+  // Helper method to find a worksheet by name
+  excel.Worksheet? _findWorksheetByName(excel.Workbook workbook, String name) {
+    for (int i = 0; i < workbook.worksheets.count; i++) {
+      if (workbook.worksheets[i].name == name) {
+        return workbook.worksheets[i];
+      }
+    }
+    return null;
   }
 
   Future<void> _addPaymentMethodSheet(
@@ -710,34 +794,36 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   void _addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
       ExcelStyler styler, String currencyFormat) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
-    final expenseHeaderStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-    final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
 
+    // Add headers without styling
     expenseSheet.getRangeByIndex(1, 1).setText('Expense');
     expenseSheet.getRangeByIndex(1, 2).setText('Amount');
-    expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = expenseHeaderStyle;
 
+    // Add expense data
     for (int i = 0; i < expenses.length; i++) {
       final rowIndex = i + 2;
       expenseSheet.getRangeByIndex(rowIndex, 1).setText(expenses[i].name);
       expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].amount);
+
+      // Set number format for amount column without styling
+      expenseSheet.getRangeByIndex(rowIndex, 2).numberFormat = currencyFormat;
     }
 
     final lastDataRow = expenseSheet.getLastRow();
 
-    for (int i = 1; i <= 2; i++) {
-      expenseSheet.autoFitColumn(i);
-    }
-
+    // Add total row without styling
     expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Expenses');
 
     final totalExpensesCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
     totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
-    totalExpensesCell.cellStyle = balanceStyle;
     totalExpensesCell.numberFormat = currencyFormat;
 
+    // Auto-fit all columns for better readability
+    for (int i = 1; i <= 2; i++) {
+      expenseSheet.autoFitColumn(i);
+    }
+
+    // Create named range for the total expenses cell
     workbook.names.add('TotalExpenses', totalExpensesCell);
   }
 
