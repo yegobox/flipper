@@ -280,7 +280,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           headerStyle.backColor =
               '#D9D9D9'; // Light gray background like DataGrid export
           headerStyle.fontColor = '#000000'; // Black text like DataGrid export
-          headerStyle.borders.all.lineStyle = excel.LineStyle.thin;
+          headerStyle.borders.all.lineStyle = excel.LineStyle.none;
           headerStyle.borders.all.color = '#A6A6A6';
 
           // Create a data cell style that matches DataGrid export
@@ -289,17 +289,17 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           dataStyle.fontSize = 11;
           dataStyle.hAlign = excel.HAlignType.left;
           dataStyle.vAlign = excel.VAlignType.center;
-          dataStyle.borders.all.lineStyle = excel.LineStyle.thin;
+          dataStyle.borders.all.lineStyle = excel.LineStyle.none;
           dataStyle.borders.all.color = '#A6A6A6';
 
           // Create a numeric cell style
           final numericStyle = workbook.styles.add('NumericStyle');
           numericStyle.fontName = 'Calibri';
           numericStyle.fontSize = 11;
-          numericStyle.hAlign = excel.HAlignType.right;
+          numericStyle.hAlign = excel.HAlignType.left;
           numericStyle.vAlign = excel.VAlignType.center;
           numericStyle.numberFormat = '#,##0.00';
-          numericStyle.borders.all.lineStyle = excel.LineStyle.thin;
+          numericStyle.borders.all.lineStyle = excel.LineStyle.none;
           numericStyle.borders.all.color = '#A6A6A6';
 
           // Add column headers
@@ -478,9 +478,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     style.fontName = 'Calibri';
     style.fontSize = 12;
     style.bold = true;
-    style.hAlign = excel.HAlignType.right;
-    style.borders.top.lineStyle = excel.LineStyle.thin;
-    style.borders.bottom.lineStyle = excel.LineStyle.double;
+    style.hAlign = excel.HAlignType.left;
+    style.borders.top.lineStyle = excel.LineStyle.none;
+    style.borders.bottom.lineStyle = excel.LineStyle.thin;
 
     // Add 'Total Gross Profit:' label
     sheet
@@ -559,9 +559,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       netProfitStyle.fontName = 'Calibri';
       netProfitStyle.fontSize = 12;
       netProfitStyle.bold = true;
-      netProfitStyle.hAlign = excel.HAlignType.right;
-      netProfitStyle.borders.top.lineStyle = excel.LineStyle.thin;
-      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
+      netProfitStyle.hAlign = excel.HAlignType.left;
+      netProfitStyle.borders.top.lineStyle = excel.LineStyle.none;
+      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.none;
       netProfitStyle.backColor =
           '#E2EFDA'; // Light green background for Net Profit
 
