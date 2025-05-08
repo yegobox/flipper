@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum ViewMode { products, stocks }
 
@@ -409,9 +410,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       DateTime? startDate,
       DateTime? endDate,
       WidgetRef ref) {
+    final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
     return variants.isEmpty
         ? const Center(child: Text("No stock data available"))
         : DataView(
+            workBookKey: workBookKey,
             onTapRowShowRefundModal: false,
             onTapRowShowRecountModal: true,
             showDetailed: false,

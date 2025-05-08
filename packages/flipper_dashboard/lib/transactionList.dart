@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 class TransactionList extends StatefulHookConsumerWidget {
   TransactionList({
@@ -23,6 +24,15 @@ class TransactionList extends StatefulHookConsumerWidget {
 
 class TransactionListState extends ConsumerState<TransactionList>
     with WidgetsBindingObserver, DateCoreWidget {
+  // Use a late initialized key to ensure it's created fresh when needed
+  late final GlobalKey<SfDataGridState> workBookKey;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the key
+    workBookKey = GlobalKey<SfDataGridState>();
+  }
   @override
   Widget build(BuildContext context) {
     final dateRange = ref.watch(dateRangeProvider);
@@ -51,7 +61,7 @@ class TransactionListState extends ConsumerState<TransactionList>
     // Conditionally cast the data based on the `showDetailed` flag
     List<ITransaction>? transactions;
     List<TransactionItem>? transactionItems;
-    
+
     if (dataProvider.hasValue && dataProvider.value!.isNotEmpty) {
       try {
         if (!showDetailed) {
@@ -248,7 +258,8 @@ class TransactionListState extends ConsumerState<TransactionList>
         }
 
         // Ensure startDate and endDate are not null
-        final validStartDate = startDate ?? DateTime.now().subtract(const Duration(days: 7));
+        final validStartDate =
+            startDate ?? DateTime.now().subtract(const Duration(days: 7));
         final validEndDate = endDate ?? DateTime.now();
 
         return DataView(
@@ -258,6 +269,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           endDate: validEndDate,
           rowsPerPage: ref.read(rowsPerPageProvider),
           showDetailedReport: showDetailed,
+          workBookKey: workBookKey, // Use the persistent key
         );
       },
       loading: () => _buildLoadingState(),
