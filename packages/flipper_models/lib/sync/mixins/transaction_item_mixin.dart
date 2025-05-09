@@ -182,18 +182,33 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       if (requestId != null) {
         conditions.add(Where('inventoryRequestId').isExactly(requestId));
       }
-      if (startDate != null && endDate != null) {
-        if (startDate == endDate) {
-          talker
-              .info('Date Given \x1B[35m${startDate.toIso8601String()}\x1B[0m');
+      // Handle date filtering with proper support for single date scenarios
+      if (startDate != null || endDate != null) {
+        // Case 1: Both dates provided (date range)
+        if (startDate != null && endDate != null) {
+          talker.info(
+              'Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m');
+
+          // startDate is the lower bound (inclusive)
           conditions.add(Where('createdAt')
               .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+
+          // endDate + 1 day is the upper bound (inclusive) to include all entries on the end date
           conditions.add(Where('createdAt').isLessThanOrEqualTo(
               endDate.add(const Duration(days: 1)).toIso8601String()));
-        } else {
+        }
+        // Case 2: Only startDate provided (everything from this date onwards)
+        else if (startDate != null) {
+          talker.info(
+              'From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards');
           conditions.add(Where('createdAt')
-              .isLessThanOrEqualTo(startDate.toIso8601String()));
-          conditions.add(Where('createdAt').isGreaterThanOrEqualTo(
+              .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+        }
+        // Case 3: Only endDate provided (everything up to this date)
+        else if (endDate != null) {
+          talker
+              .info('Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m');
+          conditions.add(Where('createdAt').isLessThanOrEqualTo(
               endDate.add(const Duration(days: 1)).toIso8601String()));
         }
       }

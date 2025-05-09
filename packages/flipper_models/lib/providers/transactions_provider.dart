@@ -184,12 +184,18 @@ Stream<double> netProfitStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    fetchRemote: true,
+    fetchRemote: false, // Changed to false to match other streams and avoid unnecessary network calls
   );
 
   await for (final incomeTransactions in incomeStream) {
+    // Log the number of income transactions for debugging
+    talker.debug('Net Profit: Found ${incomeTransactions.length} income transactions');
+    
     final expenseTransactions = await expensesStream.first;
+    talker.debug('Net Profit: Found ${expenseTransactions.length} expense transactions');
+    
     final allTransactionItems = await taxItemsStream.first;
+    talker.debug('Net Profit: Found ${allTransactionItems.length} transaction items');
 
     // Filter out any transactions that are marked as expenses in the income stream
     final filteredIncome =
@@ -274,7 +280,14 @@ Stream<double> netProfitStream(
 
     // Net profit = Revenue - COGS - Operational Expenses - Taxes
     final netProfit = totalIncome - totalCOGS - totalExpenses - totalTaxPayable;
-    talker.debug('Net profit: $netProfit');
+    
+    // Detailed logging for debugging the calculation
+    talker.debug('Net Profit Calculation:');
+    talker.debug('  Total Income: $totalIncome');
+    talker.debug('  Total COGS: $totalCOGS');
+    talker.debug('  Total Expenses: $totalExpenses');
+    talker.debug('  Total Tax Payable: $totalTaxPayable');
+    talker.debug('  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit');
 
     yield netProfit;
   }
