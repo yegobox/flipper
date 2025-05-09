@@ -39,23 +39,28 @@ class TransactionListState extends ConsumerState<TransactionList>
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
+
+    // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
 
-    // Select the appropriate provider based on showDetailed
-    final AsyncValue<List<dynamic>> dataProvider = showDetailed
-        ? ref.watch(transactionItemListProvider)
-        : ref.watch(transactionListProvider);
+    // Use a key to force rebuild when the toggle changes
+    final AsyncValue<List<dynamic>> dataProvider;
 
-    // Refresh the data whenever showDetailed changes
+    // Select and refresh the appropriate provider based on showDetailed
+    if (showDetailed) {
+      // For detailed view, use transactionItemListProvider
+      dataProvider = ref.watch(transactionItemListProvider);
+    } else {
+      // For summary view, use transactionListProvider
+      dataProvider = ref.watch(transactionListProvider);
+    }
+
+    // Listen for toggle changes to ensure data is refreshed
     ref.listen<bool>(toggleBooleanValueProvider, (previous, current) {
       if (current != previous) {
-        if (widget.showDetailedReport) {
-          // ignore: unused_result
-          ref.refresh(transactionItemListProvider);
-        } else {
-          // ignore: unused_result
-          ref.refresh(transactionListProvider);
-        }
+        // Always refresh both providers to ensure data is up-to-date
+        ref.invalidate(transactionItemListProvider);
+        ref.invalidate(transactionListProvider);
       }
     });
 
@@ -197,7 +202,10 @@ class TransactionListState extends ConsumerState<TransactionList>
             showDetailed,
             () {
               if (!showDetailed) {
+                // Toggle the report and immediately invalidate both providers
                 ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+                ref.invalidate(transactionItemListProvider);
+                ref.invalidate(transactionListProvider);
               }
             },
           ),
@@ -206,7 +214,10 @@ class TransactionListState extends ConsumerState<TransactionList>
             !showDetailed,
             () {
               if (showDetailed) {
+                // Toggle the report and immediately invalidate both providers
                 ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+                ref.invalidate(transactionItemListProvider);
+                ref.invalidate(transactionListProvider);
               }
             },
           ),
