@@ -44,10 +44,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
             doneWithTransaction ?? transactionItem.doneWithTransaction;
         // Check if retailPrice is not null before performing calculations
         if (variation?.retailPrice != null) {
-          transactionItem.taxblAmt =
-              variation!.retailPrice! * quantity; // Recalculate taxblAmt
-          transactionItem.totAmt =
-              variation.retailPrice! * quantity; // Recalculate totAmt
+          // Ensure precise calculation for decimal quantities
+          transactionItem.taxblAmt = (variation!.retailPrice! * quantity)
+              .toDouble(); // Recalculate taxblAmt with explicit double conversion
+          transactionItem.totAmt = (variation.retailPrice! * quantity)
+              .toDouble(); // Recalculate totAmt with explicit double conversion
           transactionItem.remainingStock = currentStock - quantity;
         } else {
           // Handle the case where retailPrice is null
@@ -57,10 +58,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       } else {
         // Create a new `TransactionItem` from the `variation` object
         final double price = variation!.retailPrice!;
-        final double taxblAmt = price * quantity;
+        // Ensure precise calculation for decimal quantities
+        final double taxblAmt = (price * quantity).toDouble();
         final double taxAmt =
             double.parse((amountTotal * 18 / 118).toStringAsFixed(2));
-        final double totAmt = price * quantity;
+        // Ensure precise calculation for decimal quantities
+        final double totAmt = (price * quantity).toDouble();
         final double dcAmt =
             (price * (variation.qty ?? 1.0)) * (variation.dcRt ?? 0.0);
 
@@ -330,8 +333,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       talker.info('splyAmt: ${item.splyAmt}');
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
       // Fix the calculation for taxblAmt and totAmt to properly factor in quantity
-      item.taxblAmt = taxblAmt ?? ((variant?.retailPrice ?? 1) * currentQty);
-      item.totAmt = totAmt ?? ((variant?.retailPrice ?? 1) * currentQty);
+      // Ensure precise calculation for decimal quantities
+      item.taxblAmt =
+          taxblAmt ?? ((variant?.retailPrice ?? 1) * currentQty).toDouble();
+      item.totAmt =
+          totAmt ?? ((variant?.retailPrice ?? 1) * currentQty).toDouble();
       talker.info('taxblAmt: ${item.taxblAmt}');
       talker.info('totAmt: ${item.totAmt}');
       item.doneWithTransaction =

@@ -743,7 +743,6 @@ class CoreSync extends AiStrategyImpl
     return repository.subscribe<Variant>(query: query);
   }
 
-
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
     final repository = Repository();
@@ -1859,7 +1858,7 @@ class CoreSync extends AiStrategyImpl
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
           await _updateStockAndItems(items: items, branchId: branchId);
         }
-        _updateTransactionDetails(
+        await _updateTransactionDetails(
           transaction: transaction,
           isIncome: isIncome,
           cashReceived: cashReceived,
@@ -1904,7 +1903,7 @@ class CoreSync extends AiStrategyImpl
     throw Exception("transaction is null");
   }
 
-  void _updateTransactionDetails({
+  Future<void> _updateTransactionDetails({
     required ITransaction transaction,
     required bool isIncome,
     required double cashReceived,
@@ -1914,7 +1913,7 @@ class CoreSync extends AiStrategyImpl
     required bool isTrainingMode,
     required String transactionType,
     String? categoryId,
-  }) {
+  }) async {
     final now = DateTime.now().toUtc().toLocal();
 
     // Update transaction properties using the = operator
@@ -1936,6 +1935,7 @@ class CoreSync extends AiStrategyImpl
     if (categoryId != null) {
       transaction.categoryId = categoryId;
     }
+    await repository.upsert(transaction);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
@@ -2139,7 +2139,6 @@ class CoreSync extends AiStrategyImpl
       createdAt: createdAt,
     ));
   }
-
 
   @override
   Future<void> addCategory(
@@ -3128,8 +3127,6 @@ class CoreSync extends AiStrategyImpl
     // TODO: implement productsFuture
     throw UnimplementedError();
   }
-
-  
 
   @override
   Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
