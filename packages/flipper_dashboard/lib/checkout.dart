@@ -291,7 +291,10 @@ class CheckOutState extends ConsumerState<CheckOut>
       ITransaction transaction, bool immediateCompletion) async {
     final startTime = transaction.createdAt!;
 
+    // Set flags to prevent UI flicker during transaction completion
     ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: true);
+
     if (customerNameController.text.isEmpty) {
       ProxyService.box.remove(key: 'customerName');
       ProxyService.box.remove(key: 'getRefundReason');
@@ -327,8 +330,10 @@ class CheckOutState extends ConsumerState<CheckOut>
       );
       // await newTransaction();
       await newTransaction(typeOfThisTransactionIsExpense: false);
-      ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+      ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
     } catch (e) {
+      // Reset flags in case of error
+      ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
       ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
       ref.read(payButtonStateProvider.notifier).stopLoading();
       await refreshTransactionItems(transactionId: transaction.id);

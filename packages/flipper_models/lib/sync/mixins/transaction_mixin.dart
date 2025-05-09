@@ -739,26 +739,41 @@ mixin TransactionMixin implements TransactionInterface {
         Where('transactionType').isNot('adjustment'),
     ];
     // talker.warning(conditions.toString());
-    if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        talker.info('Date Given ${startDate.toIso8601String()}');
+    // Handle date filtering with proper support for single date scenarios
+    if (startDate != null || endDate != null) {
+      // Case 1: Both dates provided (date range)
+      if (startDate != null && endDate != null) {
+        talker.info(
+            'Transaction Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m');
+
+        // startDate is the lower bound (inclusive)
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
             startDate.toIso8601String(),
           ),
         );
-        // Add condition for the end of the same day
+
+        // endDate + 1 day is the upper bound (inclusive) to include all entries on the end date
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
             endDate.add(const Duration(days: 1)).toIso8601String(),
           ),
         );
-      } else {
+      }
+      // Case 2: Only startDate provided (everything from this date onwards)
+      else if (startDate != null) {
+        talker.info(
+            'Transactions From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards');
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
             startDate.toIso8601String(),
           ),
         );
+      }
+      // Case 3: Only endDate provided (everything up to this date)
+      else if (endDate != null) {
+        talker.info(
+            'Transactions Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m');
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
             endDate.add(const Duration(days: 1)).toIso8601String(),

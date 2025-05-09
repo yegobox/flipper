@@ -63,6 +63,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Timer? _refreshTimer;
   bool _isRefreshing = false;
+  bool _transactionCompleting = false;
 
   @override
   void initState() {
@@ -72,6 +73,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         updatePaymentAmounts(transactionId: "");
       } catch (e) {}
     });
+
+    // Listen for transaction completion flag
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
     // Set up a more efficient refresh timer for transaction items
     // Use a longer interval on low-resource systems to reduce overhead
@@ -83,6 +87,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     _refreshTimer =
         Timer.periodic(Duration(milliseconds: refreshInterval), (timer) {
       if (mounted) {
+        // Check if a transaction is currently being completed
+        _transactionCompleting = ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
+        
+        // Skip refresh if transaction is in the process of being completed
+        if (_transactionCompleting) {
+          return;
+        }
+        
         final transactionAsyncValue = ref.read(pendingTransactionStreamProvider(
             isExpense: ProxyService.box.isOrdering() ?? false));
 
@@ -112,8 +124,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Method to directly fetch transaction items and update state
   Future<void> _fetchAndUpdateTransactionItems(String transactionId) async {
-    // Prevent concurrent refreshes
-    if (_isRefreshing) return;
+    // Prevent concurrent refreshes or refreshes during transaction completion
+    if (_isRefreshing || _transactionCompleting) return;
+
+    // Double-check transaction completion status to avoid race conditions
+    final isCompleting = ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
+    if (isCompleting) {
+      return;
+    }
 
     _isRefreshing = true;
     try {
@@ -124,7 +142,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
 
       // Only update if the widget is still mounted and items have changed
-      if (mounted) {
+      if (mounted && !_transactionCompleting) {
         // Compare item counts and specific items to avoid unnecessary updates
         final shouldUpdate = items.length != internalTransactionItems.length ||
             _itemsHaveChanged(items, internalTransactionItems);
