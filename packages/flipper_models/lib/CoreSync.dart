@@ -1570,6 +1570,7 @@ class CoreSync extends AiStrategyImpl
   Future<List<ext.ITenant>> signup(
       {required Map business,
       required HttpClientInterface flipperHttpClient}) async {
+    talker.info("Signup request: ${jsonEncode(business)}");
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
     if (response.statusCode == 200) {

@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_login/LoadingDialog.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/login_viewmodel.dart';
+import 'package:flipper_services/posthog_service.dart';
+import 'package:flipper_services/proxy.dart';
 // import 'package:flipper_login/apple_logo_painter.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -139,10 +143,13 @@ class _AuthState extends State<Auth> {
   final _authController = AuthController();
   bool _isLoading = false;
   String? _errorMessage;
+  late LoginViewModel _loginViewModel;
 
   @override
   void initState() {
     super.initState();
+    _loginViewModel = LoginViewModel();
+    
     _authController.authState.listen((state) {
       setState(() {
         _isLoading = state.status == AuthStatus.loading;
@@ -157,6 +164,44 @@ class _AuthState extends State<Auth> {
             return const LoadingDialog(message: 'Finalizing authentication...');
           },
         );
+        
+        // Set up Firebase auth state listener to handle the complete login process
+        _handleAuthStateChanges();
+      }
+    });
+  }
+
+  /// Handles user authentication state changes and login flow
+  Future<void> _handleAuthStateChanges() async {
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      if (user == null) return;
+      
+      final bool pinLoginEnabled = (await ProxyService.box.pinLogin()) ?? false;
+      final bool authIsComplete = (await ProxyService.box.authComplete());
+      final bool shouldProcessLogin = !pinLoginEnabled && !authIsComplete;
+
+      if (!shouldProcessLogin) return;
+
+      try {
+        final loginData = await _loginViewModel.processUserLogin(user);
+        final Pin userPin = loginData['pin'];
+        final IUser userData = loginData['user'];
+        await _loginViewModel.completeLoginProcess(userPin, _loginViewModel, user: userData);
+
+        // Track login event with PosthogService
+        PosthogService.instance.capture('login_success', properties: {
+          'source': 'auth_screen',
+          'user_id': user.uid,
+          'email': user.email ?? user.phoneNumber!,
+        });
+        
+        // Note: The loading dialog will be closed automatically during navigation
+      } catch (e, s) {
+        // Ensure the dialog is closed on error
+        if (mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+        _loginViewModel.handleLoginError(e, s);
       }
     });
   }
@@ -270,7 +315,7 @@ class _AuthState extends State<Auth> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<LoginViewModel>.reactive(
-      viewModelBuilder: () => LoginViewModel(),
+      viewModelBuilder: () => _loginViewModel,
       builder: (context, model, child) {
         return Scaffold(
           body: SafeArea(
