@@ -82,12 +82,12 @@ class CronService {
                 .hydrateDate(
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
-            //   ProxyService.strategy
-            //       .variants(branchId: branchId, fetchRemote: true)
-            //       .then((_) {}),
-            //   ProxyService.strategy
-            //       .transactions(branchId: branchId, fetchRemote: true)
-            //       .then((_) {}),
+            ProxyService.strategy
+                .variants(branchId: branchId, fetchRemote: true)
+                .then((_) {}),
+            ProxyService.strategy
+                .transactions(branchId: branchId, fetchRemote: true)
+                .then((_) {}),
           ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
