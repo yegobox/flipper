@@ -88,13 +88,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         Timer.periodic(Duration(milliseconds: refreshInterval), (timer) {
       if (mounted) {
         // Check if a transaction is currently being completed
-        _transactionCompleting = ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
-        
+        _transactionCompleting =
+            ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
+
         // Skip refresh if transaction is in the process of being completed
         if (_transactionCompleting) {
           return;
         }
-        
+
         final transactionAsyncValue = ref.read(pendingTransactionStreamProvider(
             isExpense: ProxyService.box.isOrdering() ?? false));
 
@@ -128,7 +129,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if (_isRefreshing || _transactionCompleting) return;
 
     // Double-check transaction completion status to avoid race conditions
-    final isCompleting = ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
+    final isCompleting =
+        ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
     if (isCompleting) {
       return;
     }

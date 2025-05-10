@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -213,6 +214,16 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   }
 
   Widget _buildErrorView(BuildContext context, Object error) {
+    // Show error in the standardized snackbar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBarUtil(
+        context,
+        'Error loading items: ${error.toString()}',
+        backgroundColor: Colors.red[600],
+        duration: const Duration(seconds: 5),
+      );
+    });
+    
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 180),

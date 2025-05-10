@@ -228,7 +228,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) async {
+      {required int branchId, required String receiptType, required bool fetchRemote}) async {
     talker.warning("Using capella");
     throw UnimplementedError();
     // try {

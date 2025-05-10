@@ -314,6 +314,8 @@ class CheckOutState extends ConsumerState<CheckOut>
 
           ProxyService.box
               .writeBool(key: 'transactionInProgress', value: false);
+          ProxyService.box
+              .writeBool(key: 'transactionCompleting', value: false);
           PosthogService.instance.capture('transaction_completed', properties: {
             'transaction_id': transaction.id,
             'branch_id': transaction.branchId!,
@@ -328,9 +330,8 @@ class CheckOutState extends ConsumerState<CheckOut>
         paymentMethods:
             ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );
-      // await newTransaction();
-      await newTransaction(typeOfThisTransactionIsExpense: false);
-      ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+      // No need to call newTransaction here as it's already called in the completeTransaction callback
+      // This prevents creating a new transaction when there's an error in the flow
     } catch (e) {
       // Reset flags in case of error
       ProxyService.box.writeBool(key: 'transactionCompleting', value: false);

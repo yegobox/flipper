@@ -6,7 +6,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:collection/collection.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -36,7 +35,6 @@ mixin TransactionMixinOld {
       required Function onComplete,
       required double discount}) async {
     try {
-      final bhfId = (await ProxyService.box.bhfId()) ?? "00";
       final taxExanbled = await ProxyService.strategy
           .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
       RwApiResponse? response;
@@ -59,19 +57,6 @@ mixin TransactionMixinOld {
           key: "bhfId",
           value: ebm.bhfId,
         );
-        await updateCustomerTransaction(
-          transaction,
-          bhfId: bhfId,
-          customerNameController.text,
-          customerNameController,
-          amount,
-          onComplete: onComplete,
-          categoryId ?? "",
-          transactionType,
-          paymentType,
-          discount,
-        );
-        // Now generate the receipt only after successful transaction completion
         response = await handleReceiptGeneration(
           formKey: formKey,
           context: context,
@@ -81,75 +66,25 @@ mixin TransactionMixinOld {
         if (response.resultCd != "000") {
           throw Exception("Invalid response from server");
         }
+
+        // Only complete the transaction after successful tax service response
+        await _completeTransactionAfterTaxValidation(transaction);
       } else {
-        await updateCustomerTransaction(
-          transaction,
-          bhfId: bhfId,
-          customerNameController.text,
-          customerNameController,
-          amount,
-          categoryId,
-          transactionType,
-          paymentType,
-          onComplete: onComplete,
-          discount,
-        );
+        // For non-tax enabled scenarios, complete the transaction here
+        await _completeTransactionAfterTaxValidation(transaction);
       }
+
+      // Call onComplete callback after successful transaction completion
+      onComplete();
+
       if (response == null) {
         return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
       }
       return response;
     } catch (e) {
+      talker.error('Error in finalizePayment: $e');
       rethrow;
     }
-  }
-
-  Future<void> updateCustomerTransaction(
-      ITransaction transaction,
-      String customerName,
-      TextEditingController customerNameController,
-      double amount,
-      String? categoryId,
-      String transactionType,
-      String paymentType,
-      double discount,
-      {required Function onComplete,
-      required String bhfId}) async {
-    await ProxyService.strategy.collectPayment(
-      branchId: ProxyService.box.getBranchId()!,
-      isProformaMode: ProxyService.box.isProformaMode(),
-      isTrainingMode: ProxyService.box.isTrainingMode(),
-      bhfId: bhfId,
-      cashReceived: amount,
-      transaction: transaction,
-      categoryId: categoryId,
-      transactionType: transactionType,
-      isIncome: true,
-      paymentType: paymentType,
-      discount: discount,
-      directlyHandleReceipt: false,
-    );
-    Customer? customer = (await ProxyService.strategy.customers(
-            id: transaction.customerId,
-            branchId: ProxyService.box.getBranchId()!))
-        .firstOrNull;
-
-    // Explicitly set the transaction status to COMPLETE
-    transaction.status = COMPLETE;
-    transaction.updatedAt = DateTime.now().toUtc();
-    transaction.lastTouched = DateTime.now().toUtc();
-    //removed await to speed up the process
-    ProxyService.strategy.updateTransaction(
-      transaction: transaction,
-      sarTyCd: "11",
-      status: COMPLETE,
-      customerName: customer == null
-          ? ProxyService.box.customerName() ?? "N/A"
-          : customerNameController.text,
-      customerTin: customer == null
-          ? ProxyService.box.currentSaleCustomerPhoneNumber()
-          : customer.custTin,
-    );
   }
 
   Future<void> printing(Uint8List? bytes, BuildContext context) async {
@@ -243,7 +178,56 @@ mixin TransactionMixinOld {
             ProxyService.notification.sendLocalNotification(body: "Stock IO");
           },
         );
-      } catch (e) {}
+      } catch (e) {
+        // Rethrow the error instead of silently catching it
+        // This ensures the transaction isn't marked as complete when there's an error
+        talker.error('Error completing transaction: $e');
+        rethrow;
+      }
+    }
+  }
+
+  /// Completes the transaction after tax validation has succeeded
+  /// This ensures we only mark the transaction as complete after we've received
+  /// a successful response from the tax service
+  Future<void> _completeTransactionAfterTaxValidation(
+      ITransaction transaction) async {
+    try {
+      final bhfId = (await ProxyService.box.bhfId()) ?? "00";
+      final amount = double.tryParse(
+              ProxyService.box.readString(key: 'receivedAmount') ?? "0") ??
+          0;
+      final discount = double.tryParse(
+              ProxyService.box.readString(key: 'discountRate') ?? "0") ??
+          0;
+      final paymentType = ProxyService.box.paymentType() ?? "Cash";
+      final transactionType = transaction.receiptType ?? TransactionType.sale;
+
+      // First collect the payment
+      await ProxyService.strategy.collectPayment(
+        branchId: ProxyService.box.getBranchId()!,
+        isProformaMode: ProxyService.box.isProformaMode(),
+        isTrainingMode: ProxyService.box.isTrainingMode(),
+        bhfId: bhfId,
+        cashReceived: amount,
+        transaction: transaction,
+        categoryId: transaction.categoryId,
+        transactionType: transactionType,
+        isIncome: true,
+        paymentType: paymentType,
+        discount: discount,
+        directlyHandleReceipt: false,
+      );
+
+      // Clean up temporary storage
+      ProxyService.box.remove(key: 'pendingCustomerName');
+      ProxyService.box.remove(key: 'pendingCustomerTin');
+
+      talker.debug(
+          'Transaction ${transaction.id} completed successfully after tax validation');
+    } catch (e) {
+      talker.error('Error in _completeTransactionAfterTaxValidation: $e');
+      rethrow;
     }
   }
 }
