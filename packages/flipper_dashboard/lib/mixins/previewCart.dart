@@ -387,11 +387,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       dynamic error, StackTrace stackTracke, BuildContext context) {
     if ((ProxyService.box.enableDebug() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        // margin: const EdgeInsets.only(
-        //   left: 350.0,
-        //   right: 350.0,
-        //   bottom: 20.0,
-        // ),
         duration: Duration(seconds: 10),
         backgroundColor: Colors.red,
         content: Text(stackTracke.toString().split('Caught Exception: ').last),
@@ -410,11 +405,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        // margin: const EdgeInsets.only(
-        //   left: 350.0,
-        //   right: 350.0,
-        //   bottom: 20.0,
-        // ),
         duration: Duration(seconds: 10),
         backgroundColor: Colors.red,
         content: Text(errorMessage.toString().split('Caught Exception: ').last),
