@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -294,8 +296,9 @@ class TaxController<OBJ> {
   }) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
-      List<brick.Counter> counters = await ProxyService.strategy
-          .getCounters(branchId: ProxyService.box.getBranchId()!);
+      List<brick.Counter> counters = await ProxyService.strategy.getCounters(
+          branchId: ProxyService.box.getBranchId()!,
+          fetchRemote: !Platform.isWindows);
       brick.Counter? counter = await ProxyService.strategy
           .getCounter(branchId: branchId, receiptType: receiptType);
       if (counter == null) {
