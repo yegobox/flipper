@@ -384,39 +384,28 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
 // Helper method to handle payment errors
   void _handlePaymentError(
-      dynamic error, StackTrace stackTracke, BuildContext context) {
+    dynamic error, StackTrace stackTrace, BuildContext context) {
+    String errorMessage;
+  
     if ((ProxyService.box.enableDebug() ?? false)) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: Duration(seconds: 10),
-        backgroundColor: Colors.red,
-        content: Text(stackTracke.toString().split('Caught Exception: ').last),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-        closeIconColor: Colors.red,
-      ));
+      // In debug mode, show the stack trace
+      errorMessage = stackTrace.toString().split('Caught Exception: ').last;
     } else {
-      String errorMessage = error.toString();
+      // In production mode, show a user-friendly error message
+      errorMessage = error.toString();
       if (error is Exception) {
         errorMessage = error.toString().split('Exception: ').last;
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        duration: Duration(seconds: 10),
-        backgroundColor: Colors.red,
-        content: Text(errorMessage.toString().split('Caught Exception: ').last),
-        action: SnackBarAction(
-          label: 'Close',
-          onPressed: () {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          },
-        ),
-        closeIconColor: Colors.red,
-      ));
+      errorMessage = errorMessage.toString().split('Caught Exception: ').last;
     }
+  
+    // Use the standardized snackbar utility
+    showCustomSnackBarUtil(
+      context,
+      errorMessage,
+      backgroundColor: Colors.red[600],
+      duration: const Duration(seconds: 10),
+    );
   }
 
   Future<void> additionalInformationIsRequiredToCompleteTransaction({
