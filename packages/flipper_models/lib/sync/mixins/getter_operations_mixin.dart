@@ -7,7 +7,6 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -176,7 +175,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
             await branch(serverId: localPin.firstOrNull!.branchId!);
         if (branchE != null || business != null) {
           return IPin(
-            id: int.tryParse(localPin.firstOrNull?.id ?? "0"),
+            id: localPin.firstOrNull?.id,
             pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
             userId: localPin.firstOrNull!.userId!.toString(),
             phoneNumber: localPin.firstOrNull!.phoneNumber!,

@@ -203,7 +203,7 @@ class TransactionListWrapperState
           padding: const EdgeInsets.all(8),
           constraints: const BoxConstraints(),
           style: IconButton.styleFrom(
-            backgroundColor: colorScheme.surfaceVariant.withOpacity(0.2),
+            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.2),
             shape: const CircleBorder(),
           ),
         ),
@@ -240,7 +240,7 @@ class TransactionListWrapperState
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
             ),
-            backgroundColor: colorScheme.surfaceVariant.withOpacity(0.3),
+            backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
           ),
           monthViewSettings: DateRangePickerMonthViewSettings(
             viewHeaderStyle: DateRangePickerViewHeaderStyle(

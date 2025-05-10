@@ -161,13 +161,13 @@ class SignupViewModel extends ReactiveViewModel {
   Future<void> saveBusinessId(List<ITenant> tenants) {
     return ProxyService.box.writeInt(
       key: 'businessId',
-      value: tenants.first.businesses.first.id,
+      value: tenants.first.businesses.first.serverId,
     );
   }
 
   Future<Business?> getBusiness(List<ITenant> tenants) async {
     return await ProxyService.strategy
-        .getBusiness(businessId: tenants.first.businesses.first.id);
+        .getBusiness(businessId: tenants.first.businesses.first.serverId);
   }
 
   Future<List<Branch>> getBranches(Business business) async {

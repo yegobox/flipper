@@ -16,7 +16,7 @@ class IPin {
     required this.ownerName,
     required this.tokenUid,
   });
-  int? id;
+  String? id;
   late String userId;
   late String phoneNumber;
   late int pin;

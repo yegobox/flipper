@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flipper_models/secrets.dart' as secrets;
+
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -119,6 +121,13 @@ class FlipperHttpClient implements HttpClientInterface {
       'userId': userId?.toString() ?? "",
     };
 
+    // Add basic authentication using credentials from AppSecrets
+    final credentials =
+        '${secrets.AppSecrets.username}:${secrets.AppSecrets.password}';
+    final encodedCredentials = base64Encode(utf8.encode(credentials));
+    headers['Authorization'] = 'Basic $encodedCredentials';
+
+    // If token exists, it will override the basic auth (keeping this for backward compatibility)
     if (token != null) {
       headers['Authorization'] = token;
     }

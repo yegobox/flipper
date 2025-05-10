@@ -63,8 +63,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static void setConfigStorage(DatabaseConfigStorage storage) {
     _configStorage = storage;
     _logger.info('Database configuration storage set');
-    _logger.info('Using database filename: ${dbFileName}');
-    _logger.info('Using queue filename: ${queueName}');
+    _logger.info('Using database filename: $dbFileName');
+    _logger.info('Using queue filename: $queueName');
   }
 
   /// Get the shared preference storage instance

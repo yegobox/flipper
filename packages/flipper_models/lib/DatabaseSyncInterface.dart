@@ -21,6 +21,7 @@ import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
@@ -60,6 +61,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         TenantInterface,
         DeleteInterface,
         EbmInterface,
+        AssetInterface,
         CustomerInterface,
         CategoryInterface {
   // Repository get repository;
@@ -282,10 +284,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
-  Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"});
+
   Future<bool> removeS3File({required String fileName});
-  FutureOr<Assets?> getAsset({String? assetName, String? productId});
+
   Future<void> amplifyLogout();
   Future<List<Product>> getProducts(
       {String? key, int? prodIndex, required int branchId});
@@ -366,13 +367,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int mainBranchId,
       required FinanceProvider financeOption});
 
-  Future<Stream<double>> downloadAsset(
-      {required int branchId,
-      required String assetName,
-      required String subPath});
-
-  Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   FutureOr<Business?> getBusiness({int? businessId});
@@ -391,8 +385,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<Drawers?> getDrawer({required int cashierId});
 
   Drawers? openDrawer({required Drawers drawer});
-
-  void clearData({required ClearData data, required int identifier});
 
   FutureOr<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod});
@@ -421,7 +413,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<void> sendMessageToIsolate();
   Future<void> spawnIsolate(dynamic isolateHandler);
-  void reDownloadAsset();
 
   Future<void> processItem({
     required Variant item,
@@ -441,28 +432,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double? value,
     DateTime? lastTouched,
     bool appending = false,
-  });
-
-  FutureOr<void> updateTransactionItem({
-    double? qty,
-    required String transactionItemId,
-    double? discount,
-    bool? active,
-    double? taxAmt,
-    int? quantityApproved,
-    int? quantityRequested,
-    bool? ebmSynced,
-    bool? isRefunded,
-    bool? incrementQty,
-    double? price,
-    double? prc,
-    double? splyAmt,
-    bool? doneWithTransaction,
-    int? quantityShipped,
-    double? taxblAmt,
-    double? totAmt,
-    double? dcRt,
-    double? dcAmt,
   });
 
   void updateCounters({
@@ -536,11 +505,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String tableName,
   });
 
-  FutureOr<void> addAsset(
-      {required String productId,
-      required assetName,
-      required int branchId,
-      required int businessId});
+
 
   FutureOr<void> addCategory({
     required String name,

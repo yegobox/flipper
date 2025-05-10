@@ -364,7 +364,7 @@ class _ExpensesStreamProviderElement
   int? get branchId => (origin as ExpensesStreamProvider).branchId;
 }
 
-String _$netProfitStreamHash() => r'6e139debe2bcda8bd5ec68aa21d5e7495bffd5da';
+String _$netProfitStreamHash() => r'82ec0abc9af0bc71972c0cfebd42c1c68ceb34c1';
 
 /// See also [netProfitStream].
 @ProviderFor(netProfitStream)

@@ -134,10 +134,11 @@ mixin Booting {
   Future<void> addOrUpdateBranches(List<IBranch> branches,
       {required bool usenewVersion}) async {
     for (IBranch branch in branches) {
-      Branch? exist = await ProxyService.strategy.branch(serverId: branch.id!);
+      Branch? exist =
+          await ProxyService.strategy.branch(serverId: branch.serverId!);
       if (exist == null) {
         await ProxyService.strategy.addBranch(
-          serverId: branch.id,
+          serverId: branch.serverId!,
           location: branch.location ?? "",
           description: branch.description,
           name: branch.name!,
@@ -162,7 +163,7 @@ mixin Booting {
             ? int.parse(business.userId)
             : business.userId,
         encryptionKey: business.encryptionKey ?? "",
-        serverId: business.id,
+        serverId: business.serverId,
         name: business.name,
         currency: business.currency,
         categoryId: business.categoryId,
@@ -263,8 +264,8 @@ mixin Booting {
             value: user.tenants.first.permissions.first.name);
       }
     }
-    int? branchId = user.tenants.first.branches.first.id;
-    int? businessId = user.tenants.first.businesses.first.id;
+    int? branchId = user.tenants.first.branches.first.serverId;
+    int? businessId = user.tenants.first.businesses.first.serverId;
     if (branchId == null) {
       // get any local saved branch
       Branch branch = await ProxyService.strategy.activeBranch();

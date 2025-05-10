@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart';
 
 class ShopIconWithStatus extends StatefulWidget {
   final double width;

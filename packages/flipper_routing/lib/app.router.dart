@@ -132,6 +132,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    CreditAppRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.CreditApp(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     AddProductViewRoute.name: (routeData) {
       final args = routeData.argsAs<AddProductViewArgs>(
           orElse: () => const AddProductViewArgs());
@@ -681,6 +689,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/inventory-request-mobile-view',
         ),
         _i4.RouteConfig(
+          CreditAppRoute.name,
+          path: '/credit-app',
+        ),
+        _i4.RouteConfig(
           AddProductViewRoute.name,
           path: '/add-product-view',
         ),
@@ -1009,6 +1021,18 @@ class CountryPickerRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'CountryPicker';
+}
+
+/// generated route for
+/// [_i1.CreditApp  ]
+class CreditAppRoute extends _i4.PageRouteInfo<void> {
+  const CreditAppRoute()
+      : super(
+          CreditAppRoute.name,
+          path: '/credit-app',
+        );
+
+  static const String name = 'CreditApp';
 }
 
 /// generated route for

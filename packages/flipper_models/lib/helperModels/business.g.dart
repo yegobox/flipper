@@ -7,7 +7,8 @@ part of 'business.dart';
 // **************************************************************************
 
 IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
-      id: (json['id'] as num).toInt(),
+      id: json['id'] as String,
+      serverId: (json['serverId'] as num).toInt(),
       name: json['name'] as String?,
       currency: json['currency'] as String?,
       categoryId: json['categoryId'],
@@ -73,6 +74,7 @@ Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'action': instance.action,
       'id': instance.id,
+      'serverId': instance.serverId,
       'name': instance.name,
       'currency': instance.currency,
       'categoryId': instance.categoryId,

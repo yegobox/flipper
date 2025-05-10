@@ -8,7 +8,6 @@ import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -212,7 +211,7 @@ mixin TenantMixin implements TenantInterface {
 
         for (IBusiness business in jTenant.businesses) {
           Business biz = Business(
-              serverId: business.id,
+              serverId: business.serverId,
               userId: int.parse(business.userId),
               name: business.name,
               currency: business.currency,
@@ -264,7 +263,7 @@ mixin TenantMixin implements TenantInterface {
 
         for (IBranch brannch in jTenant.branches) {
           Branch branch = Branch(
-              serverId: brannch.id,
+              serverId: brannch.serverId,
               active: brannch.active,
               description: brannch.description,
               name: brannch.name,

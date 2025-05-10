@@ -34,7 +34,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^1.0.0
   build_runner: ^2.4.15
-
+  # stacked_generator: ^2.0.0-pre.1
   # stacked_generator:
   #   git:
   #     url: https://github.com/richard457/generator

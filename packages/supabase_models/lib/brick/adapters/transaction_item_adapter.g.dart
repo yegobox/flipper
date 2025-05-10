@@ -9,41 +9,49 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
   return TransactionItem(
     id: data['id'] as String?,
     name: data['name'] as String,
-    quantityRequested: data['quantity_requested'] == null
-        ? null
-        : data['quantity_requested'] as int?,
-    quantityApproved: data['quantity_approved'] == null
-        ? null
-        : data['quantity_approved'] as int?,
-    quantityShipped: data['quantity_shipped'] == null
-        ? null
-        : data['quantity_shipped'] as int?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
+    quantityRequested:
+        data['quantity_requested'] == null
+            ? null
+            : data['quantity_requested'] as int?,
+    quantityApproved:
+        data['quantity_approved'] == null
+            ? null
+            : data['quantity_approved'] as int?,
+    quantityShipped:
+        data['quantity_shipped'] == null
+            ? null
+            : data['quantity_shipped'] as int?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
     variantId:
         data['variant_id'] == null ? null : data['variant_id'] as String?,
     qty: data['qty'] as double,
     price: data['price'] as double,
     discount: data['discount'] as double,
-    remainingStock: data['remaining_stock'] == null
-        ? null
-        : data['remaining_stock'] as double?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    remainingStock:
+        data['remaining_stock'] == null
+            ? null
+            : data['remaining_stock'] as double?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
-    updatedAt: data['updated_at'] == null
-        ? null
-        : data['updated_at'] == null
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
             ? null
             : DateTime.tryParse(data['updated_at'] as String),
     isRefunded:
         data['is_refunded'] == null ? null : data['is_refunded'] as bool?,
-    doneWithTransaction: data['done_with_transaction'] == null
-        ? null
-        : data['done_with_transaction'] as bool?,
+    doneWithTransaction:
+        data['done_with_transaction'] == null
+            ? null
+            : data['done_with_transaction'] as bool?,
     active: data['active'] == null ? null : data['active'] as bool?,
     dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
     dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as double?,
@@ -84,29 +92,34 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
     modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
     modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
-    partOfComposite: data['part_of_composite'] == null
-        ? null
-        : data['part_of_composite'] as bool?,
-    compositePrice: data['composite_price'] == null
-        ? null
-        : data['composite_price'] as double?,
-    inventoryRequest: data['inventory_request'] == null
-        ? null
-        : await InventoryRequestAdapter().fromSupabase(
-            data['inventory_request'],
-            provider: provider,
-            repository: repository,
-          ),
-    inventoryRequestId: data['inventory_request_id'] == null
-        ? null
-        : data['inventory_request_id'] as String?,
+    partOfComposite:
+        data['part_of_composite'] == null
+            ? null
+            : data['part_of_composite'] as bool?,
+    compositePrice:
+        data['composite_price'] == null
+            ? null
+            : data['composite_price'] as double?,
+    inventoryRequest:
+        data['inventory_request'] == null
+            ? null
+            : await InventoryRequestAdapter().fromSupabase(
+              data['inventory_request'],
+              provider: provider,
+              repository: repository,
+            ),
+    inventoryRequestId:
+        data['inventory_request_id'] == null
+            ? null
+            : data['inventory_request_id'] as String?,
   );
 }
 
@@ -170,13 +183,14 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
     'composite_price': instance.compositePrice,
-    'inventory_request': instance.inventoryRequest != null
-        ? await InventoryRequestAdapter().toSupabase(
-            instance.inventoryRequest!,
-            provider: provider,
-            repository: repository,
-          )
-        : null,
+    'inventory_request':
+        instance.inventoryRequest != null
+            ? await InventoryRequestAdapter().toSupabase(
+              instance.inventoryRequest!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
     'inventory_request_id': instance.inventoryRequestId,
   };
 }
@@ -189,40 +203,48 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
   return TransactionItem(
     id: data['id'] as String,
     name: data['name'] as String,
-    quantityRequested: data['quantity_requested'] == null
-        ? null
-        : data['quantity_requested'] as int?,
-    quantityApproved: data['quantity_approved'] == null
-        ? null
-        : data['quantity_approved'] as int?,
-    quantityShipped: data['quantity_shipped'] == null
-        ? null
-        : data['quantity_shipped'] as int?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
+    quantityRequested:
+        data['quantity_requested'] == null
+            ? null
+            : data['quantity_requested'] as int?,
+    quantityApproved:
+        data['quantity_approved'] == null
+            ? null
+            : data['quantity_approved'] as int?,
+    quantityShipped:
+        data['quantity_shipped'] == null
+            ? null
+            : data['quantity_shipped'] as int?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
     variantId:
         data['variant_id'] == null ? null : data['variant_id'] as String?,
     qty: data['qty'] as double,
     price: data['price'] as double,
     discount: data['discount'] as double,
-    remainingStock: data['remaining_stock'] == null
-        ? null
-        : data['remaining_stock'] as double?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    remainingStock:
+        data['remaining_stock'] == null
+            ? null
+            : data['remaining_stock'] as double?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
-    updatedAt: data['updated_at'] == null
-        ? null
-        : data['updated_at'] == null
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
             ? null
             : DateTime.tryParse(data['updated_at'] as String),
     isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
-    doneWithTransaction: data['done_with_transaction'] == null
-        ? null
-        : data['done_with_transaction'] == 1,
+    doneWithTransaction:
+        data['done_with_transaction'] == null
+            ? null
+            : data['done_with_transaction'] == 1,
     active: data['active'] == null ? null : data['active'] == 1,
     dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
     dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as double?,
@@ -263,35 +285,38 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
     modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
     modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-    partOfComposite: data['part_of_composite'] == null
-        ? null
-        : data['part_of_composite'] == 1,
-    compositePrice: data['composite_price'] == null
-        ? null
-        : data['composite_price'] as double?,
-    inventoryRequest: data['inventory_request_InventoryRequest_brick_id'] ==
-            null
-        ? null
-        : (data['inventory_request_InventoryRequest_brick_id'] > -1
-            ? (await repository?.getAssociation<InventoryRequest>(
-                Query.where(
-                  'primaryKey',
-                  data['inventory_request_InventoryRequest_brick_id'] as int,
-                  limit1: true,
-                ),
-              ))
-                ?.first
-            : null),
-    inventoryRequestId: data['inventory_request_id'] == null
-        ? null
-        : data['inventory_request_id'] as String?,
+    partOfComposite:
+        data['part_of_composite'] == null
+            ? null
+            : data['part_of_composite'] == 1,
+    compositePrice:
+        data['composite_price'] == null
+            ? null
+            : data['composite_price'] as double?,
+    inventoryRequest:
+        data['inventory_request_InventoryRequest_brick_id'] == null
+            ? null
+            : (data['inventory_request_InventoryRequest_brick_id'] > -1
+                ? (await repository?.getAssociation<InventoryRequest>(
+                  Query.where(
+                    'primaryKey',
+                    data['inventory_request_InventoryRequest_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    inventoryRequestId:
+        data['inventory_request_id'] == null
+            ? null
+            : data['inventory_request_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -316,9 +341,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'updated_at': instance.updatedAt?.toIso8601String(),
     'is_refunded':
         instance.isRefunded == null ? null : (instance.isRefunded! ? 1 : 0),
-    'done_with_transaction': instance.doneWithTransaction == null
-        ? null
-        : (instance.doneWithTransaction! ? 1 : 0),
+    'done_with_transaction':
+        instance.doneWithTransaction == null
+            ? null
+            : (instance.doneWithTransaction! ? 1 : 0),
     'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'dc_rt': instance.dcRt,
     'dc_amt': instance.dcAmt,
@@ -357,9 +383,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'branch_id': instance.branchId,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
-    'part_of_composite': instance.partOfComposite == null
-        ? null
-        : (instance.partOfComposite! ? 1 : 0),
+    'part_of_composite':
+        instance.partOfComposite == null
+            ? null
+            : (instance.partOfComposite! ? 1 : 0),
     'composite_price': instance.compositePrice,
     'inventory_request_InventoryRequest_brick_id':
         instance.inventoryRequest != null
@@ -602,7 +629,7 @@ class TransactionItemAdapter
     ),
     'inventoryRequest': const RuntimeSupabaseColumnDefinition(
       association: true,
-      columnName: 'stock_requests',
+      columnName: 'inventory_request',
       associationType: InventoryRequest,
       associationIsNullable: true,
       foreignKey: 'inventory_request_id',
@@ -988,43 +1015,39 @@ class TransactionItemAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     TransactionItem input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<TransactionItem> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     TransactionItem input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

@@ -38,7 +38,8 @@ mixin BranchMixin implements BranchInterface {
       return await repository.get<Branch>(
         query: Query(where: [
           Where('businessId').isExactly(businessId),
-          Where('active').isExactly(active),
+          //if we are given active and is true then we return only
+          if (active) Where('active').isExactly(active),
         ]),
       );
     } catch (e, s) {

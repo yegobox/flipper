@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' as helper;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -94,15 +95,13 @@ class EventService
         isLoadingStream(isLoading: true);
         LoginData loginData = LoginData.fromMap(envelope.payload);
 
-        await ProxyService.box
+        ProxyService.box
             .writeInt(key: 'businessId', value: loginData.businessId);
-        await ProxyService.box.writeString(key: 'uid', value: loginData.uid);
-        await ProxyService.box
-            .writeInt(key: 'branchId', value: loginData.branchId);
-        await ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
-        await ProxyService.box
-            .writeString(key: 'userPhone', value: loginData.phone);
-        await ProxyService.box
+        // ProxyService.box.writeString(key: 'uid', value: loginData.uid);
+        ProxyService.box.writeInt(key: 'branchId', value: loginData.branchId);
+        ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
+        ProxyService.box.writeString(key: 'userPhone', value: loginData.phone);
+        ProxyService.box
             .writeString(key: 'defaultApp', value: loginData.defaultApp);
 
         // get the device name and version
@@ -114,27 +113,26 @@ class EventService
 
         Device? device = await ProxyService.strategy.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
-        try {
-          if (device == null) {
-            await ProxyService.strategy.create(
-                data: Device(
-                    pubNubPublished: false,
-                    branchId: loginData.branchId,
-                    businessId: loginData.businessId,
-                    defaultApp: loginData.defaultApp,
-                    phone: loginData.phone,
-                    userId: loginData.userId,
-                    linkingCode: loginData.linkingCode,
-                    deviceName: deviceName,
-                    deviceVersion: deviceVersion));
-          }
-          // await FirebaseAuth.instance.signInAnonymously();
-          /// uid is token linked with the user
-          await tokenLogin(loginData.uid);
-          keepTryingPublishDevice();
-        } catch (e) {}
+        if (device == null) {
+          ProxyService.strategy.create(
+              data: Device(
+                  pubNubPublished: false,
+                  branchId: loginData.branchId,
+                  businessId: loginData.businessId,
+                  defaultApp: loginData.defaultApp,
+                  phone: loginData.phone,
+                  userId: loginData.userId,
+                  linkingCode: loginData.linkingCode,
+                  deviceName: deviceName,
+                  deviceVersion: deviceVersion));
+        }
+        // await FirebaseAuth.instance.signInAnonymously();
+        /// uid is token linked with the user
+        await tokenLogin(loginData.uid);
+        keepTryingPublishDevice();
       });
     } catch (e) {
+      talker.error(e);
       rethrow;
     }
   }

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 class Imports extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;

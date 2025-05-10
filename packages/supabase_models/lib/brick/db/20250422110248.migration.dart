@@ -10,26 +10,26 @@ part of 'schema.g.dart';
 // The migration version must **always** mirror the file name
 
 const List<MigrationCommand> _migration_20250422110248_up = [
-  DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
-  DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
-  DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
-  DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
-  DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
-  InsertForeignKey('Financing', 'FinanceProvider', foreignKeyColumn: 'provider_FinanceProvider_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('Variant', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('InventoryRequest', 'Branch', foreignKeyColumn: 'branch_Branch_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('InventoryRequest', 'Financing', foreignKeyColumn: 'financing_Financing_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  CreateIndex(columns: ['branch_id'], onTable: 'BranchSmsConfig', unique: true)
+  // DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
+  // DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
+  // DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
+  // DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
+  // DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
+  // InsertForeignKey('Financing', 'FinanceProvider', foreignKeyColumn: 'provider_FinanceProvider_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('Variant', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('InventoryRequest', 'Branch', foreignKeyColumn: 'branch_Branch_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('InventoryRequest', 'Financing', foreignKeyColumn: 'financing_Financing_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // CreateIndex(columns: ['branch_id'], onTable: 'BranchSmsConfig', unique: true)
 ];
 
 const List<MigrationCommand> _migration_20250422110248_down = [
-  DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
-  DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
-  DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
-  DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
-  DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
-  DropIndex('index_BranchSmsConfig_on_branch_id')
+  // DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
+  // DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
+  // DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
+  // DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
+  // DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
+  // DropIndex('index_BranchSmsConfig_on_branch_id')
 ];
 
 //
@@ -43,9 +43,9 @@ const List<MigrationCommand> _migration_20250422110248_down = [
 )
 class Migration20250422110248 extends Migration {
   const Migration20250422110248()
-    : super(
-        version: 20250422110248,
-        up: _migration_20250422110248_up,
-        down: _migration_20250422110248_down,
-      );
+      : super(
+          version: 20250422110248,
+          up: _migration_20250422110248_up,
+          down: _migration_20250422110248_down,
+        );
 }

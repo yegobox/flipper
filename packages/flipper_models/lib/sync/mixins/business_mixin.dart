@@ -110,7 +110,7 @@ mixin BusinessMixin implements BusinessInterface {
       int id = randomNumber();
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(
-          serverId: iBusiness.id,
+          serverId: iBusiness.serverId,
           name: iBusiness.name,
           userId: int.parse(iBusiness.userId),
           createdAt: DateTime.now());
@@ -124,7 +124,7 @@ mixin BusinessMixin implements BusinessInterface {
 
   @override
   Future<void> addBusiness(
-      {required int id,
+      {required String id,
       required int userId,
       required int serverId,
       String? name,
@@ -175,6 +175,7 @@ mixin BusinessMixin implements BusinessInterface {
       repository.upsert<Business>(exist);
     } else {
       repository.upsert<Business>(Business(
+        id: id,
         serverId: serverId,
         name: name,
         currency: currency,

@@ -1,1 +1,82 @@
-{"apiKey":"AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA","authDomain":"yegobox-2ee43.firebaseapp.com","databaseURL":"https://yegobox-2ee43.firebaseio.com","projectId":"yegobox-2ee43","storageBucket":"yegobox-2ee43.appspot.com","messagingSenderId":"672237316015","appId":"1:672237316015:web:e289bfb5c92506c1c2715a","measurementId":"G-88GKL70K3K","hosting":{"public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"],"rewrites":[{"source":"**","destination":"/index.html"}]},"emulators":{"hosting":{"port":5000},"ui":{"enabled":true},"singleProjectMode":true,"firestore":{"port":8081},"auth":{"port":9099}},"firestore":{"rules":"firestore.rules"},"flutter":{"platforms":{"android":{"default":{"projectId":"yegobox-2ee43","appId":"1:672237316015:android:91a268289c17c5a3c2715a","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"yegobox-2ee43","appId":"1:672237316015:ios:23dcec7a3450cf16c2715a","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"yegobox-2ee43","appId":"1:672237316015:ios:23dcec7a3450cf16c2715a","uploadDebugSymbols":true,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"yegobox-2ee43","configurations":{"android":"1:672237316015:android:91a268289c17c5a3c2715a","ios":"1:672237316015:ios:23dcec7a3450cf16c2715a","macos":"1:672237316015:ios:23dcec7a3450cf16c2715a","web":"1:672237316015:web:e289bfb5c92506c1c2715a","windows":"1:672237316015:web:e3325a147549a1a1c2715a"}}}}}}
+{
+    "apiKey": "AIzaSyCpnbw9i23T0237jgd2ladtPgsGYbmioqA",
+    "authDomain": "auth.yegobox.com",
+    "databaseURL": "https://yegobox-2ee43.firebaseio.com",
+    "projectId": "yegobox-2ee43",
+    "storageBucket": "yegobox-2ee43.appspot.com",
+    "messagingSenderId": "672237316015",
+    "appId": "1:672237316015:web:e289bfb5c92506c1c2715a",
+    "measurementId": "G-88GKL70K3K",
+    "hosting": {
+        "authDomain": "auth.yegobox.com",
+        "public": "build/web",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
+    },
+    "emulators": {
+        "hosting": {
+            "port": 5000
+        },
+        "ui": {
+            "enabled": true
+        },
+        "singleProjectMode": true,
+        "firestore": {
+            "port": 8081
+        },
+        "auth": {
+            "port": 9099
+        }
+    },
+    "firestore": {
+        "rules": "firestore.rules"
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "yegobox-2ee43",
+                    "appId": "1:672237316015:android:91a268289c17c5a3c2715a",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "yegobox-2ee43",
+                    "appId": "1:672237316015:ios:23dcec7a3450cf16c2715a",
+                    "uploadDebugSymbols": true,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "macos": {
+                "default": {
+                    "projectId": "yegobox-2ee43",
+                    "appId": "1:672237316015:ios:23dcec7a3450cf16c2715a",
+                    "uploadDebugSymbols": true,
+                    "fileOutput": "macos/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "yegobox-2ee43",
+                    "configurations": {
+                        "android": "1:672237316015:android:91a268289c17c5a3c2715a",
+                        "ios": "1:672237316015:ios:23dcec7a3450cf16c2715a",
+                        "macos": "1:672237316015:ios:23dcec7a3450cf16c2715a",
+                        "web": "1:672237316015:web:e289bfb5c92506c1c2715a",
+                        "windows": "1:672237316015:web:e3325a147549a1a1c2715a"
+                    }
+                }
+            }
+        }
+    }
+}

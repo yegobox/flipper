@@ -10,6 +10,7 @@ part 'branch.g.dart';
 class IBranch extends IJsonSerializable {
   IBranch({
     this.id,
+    this.serverId,
     this.active,
     this.description,
     this.name,
@@ -35,7 +36,8 @@ class IBranch extends IJsonSerializable {
         latitude = other.latitude,
         longitude = other.longitude,
         updatedAt = other.updatedAt;
-  int? id;
+  String? id;
+  int? serverId;
   bool? active;
   String? description;
   String? name;

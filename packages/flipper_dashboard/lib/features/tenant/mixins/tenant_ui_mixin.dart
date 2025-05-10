@@ -228,7 +228,7 @@ class TenantUIMixin {
   }
 
   static Widget buildBranchDropdownStatic(BuildContext context, WidgetRef ref) {
-    final asyncBranches = ref.watch(branchesProvider((includeSelf: false)));
+    final asyncBranches = ref.watch(branchesProvider((includeSelf: false,)));
     final selectedBranch = ref.watch(selectedBranchProvider);
 
     return asyncBranches.when(

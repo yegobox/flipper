@@ -184,12 +184,18 @@ Stream<double> netProfitStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    fetchRemote: true,
+    fetchRemote: false, // Changed to false to match other streams and avoid unnecessary network calls
   );
 
   await for (final incomeTransactions in incomeStream) {
+    // Log the number of income transactions for debugging
+    talker.debug('Net Profit: Found ${incomeTransactions.length} income transactions');
+    
     final expenseTransactions = await expensesStream.first;
+    talker.debug('Net Profit: Found ${expenseTransactions.length} expense transactions');
+    
     final allTransactionItems = await taxItemsStream.first;
+    talker.debug('Net Profit: Found ${allTransactionItems.length} transaction items');
 
     // Filter out any transactions that are marked as expenses in the income stream
     final filteredIncome =
@@ -229,28 +235,26 @@ Stream<double> netProfitStream(
           for (final item in transactionItems) {
             if (item.variantId != null) {
               try {
-                // Get the variant associated with this item
-                final variant =
-                    await ProxyService.strategy.getVariant(id: item.variantId);
+                // Check if splyAmt is available
+                if (item.splyAmt != null) {
+                  // splyAmt already includes quantity as per our fix in transaction_item_mixin.dart
+                  // So we just add it directly to totalCOGS
+                  totalCOGS += item.splyAmt!;
 
-                if (variant != null) {
-                  // Use supply price if available, otherwise use a fallback calculation
-                  final supplyPrice = variant.supplyPrice ??
-                      (variant.retailPrice != null
-                          ? variant.retailPrice! * 0.7
-                          : 0.0);
-
-                  // Calculate COGS for this item: supply price * quantity
-                  final itemCOGS = supplyPrice * item.qty;
+                  talker.debug(
+                      'Item: ${item.name}, Qty: ${item.qty}, Supply Amount: ${item.splyAmt}, COGS: ${item.splyAmt}');
+                } else {
+                  // Fallback: estimate COGS as 70% of item price * quantity
+                  final itemCOGS = item.price * item.qty * 0.7;
                   totalCOGS += itemCOGS;
 
                   talker.debug(
-                      'Item: ${item.name}, Qty: ${item.qty}, Supply Price: $supplyPrice, COGS: $itemCOGS');
+                      'Item: ${item.name}, Qty: ${item.qty}, Using fallback calculation, COGS: $itemCOGS');
                 }
               } catch (e) {
                 talker
-                    .error('Error fetching variant for item ${item.name}: $e');
-                // Fallback: estimate COGS as 70% of item price
+                    .error('Error calculating COGS for item ${item.name}: $e');
+                // Fallback: estimate COGS as 70% of item price * quantity
                 final itemCOGS = item.price * item.qty * 0.7;
                 totalCOGS += itemCOGS;
                 talker.debug('Using fallback COGS for ${item.name}: $itemCOGS');
@@ -276,7 +280,14 @@ Stream<double> netProfitStream(
 
     // Net profit = Revenue - COGS - Operational Expenses - Taxes
     final netProfit = totalIncome - totalCOGS - totalExpenses - totalTaxPayable;
-    talker.debug('Net profit: $netProfit');
+    
+    // Detailed logging for debugging the calculation
+    talker.debug('Net Profit Calculation:');
+    talker.debug('  Total Income: $totalIncome');
+    talker.debug('  Total COGS: $totalCOGS');
+    talker.debug('  Total Expenses: $totalExpenses');
+    talker.debug('  Total Tax Payable: $totalTaxPayable');
+    talker.debug('  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit');
 
     yield netProfit;
   }

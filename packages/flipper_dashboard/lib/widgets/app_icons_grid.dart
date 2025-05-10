@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_dashboard/CreditIcon.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -65,6 +66,9 @@ class AppIconsGrid extends ConsumerWidget {
       case "Orders":
         await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;
+      case "Credits":
+        await _routerService.navigateTo(CreditAppRoute());
+        break;
       default:
         await _routerService
             .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
@@ -115,6 +119,14 @@ class AppIconsGrid extends ConsumerWidget {
         'page': "Support",
         'label': "Support",
         'feature': 'Support'
+      },
+      {
+        'icon': Icons.credit_card,
+        'color': Colors.orange,
+        'page': "Credits",
+        'label': "Credits",
+        'feature': 'Credits',
+        'isSpecial': true
       }
     ];
 
@@ -145,6 +157,18 @@ class AppIconsGrid extends ConsumerWidget {
 
   Widget _buildAppCard(Map<String, dynamic> app,
       {required bool isBigScreen, required WidgetRef ref}) {
+    // Special handling for Credits app
+    if (app['isSpecial'] == true && app['page'] == "Credits") {
+      return _CreditsAppCard(
+        app: app,
+        isBigScreen: isBigScreen,
+        onTap: () async {
+          HapticFeedback.lightImpact();
+          await _navigateToPage(app['page'], ref, app['feature']);
+        },
+      );
+    }
+
     return Card(
       elevation: 1,
       shadowColor: Colors.black26,
@@ -177,6 +201,76 @@ class AppIconsGrid extends ConsumerWidget {
                 app['label'],
                 style: GoogleFonts.poppins(
                   fontSize: isBigScreen ? 11 : 12,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Separate widget for Credits app card to handle its own state
+class _CreditsAppCard extends StatefulWidget {
+  final Map<String, dynamic> app;
+  final bool isBigScreen;
+  final VoidCallback onTap;
+
+  const _CreditsAppCard({
+    Key? key,
+    required this.app,
+    required this.isBigScreen,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  State<_CreditsAppCard> createState() => _CreditsAppCardState();
+}
+
+class _CreditsAppCardState extends State<_CreditsAppCard> {
+  // Local instance of CreditData - in a real app, you'd get this from a repository or service
+  final CreditData _creditData = CreditData();
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate some credits for demo purposes
+    _creditData.buyCredits(350);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 1,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Colors.grey[200]!, width: 1),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: widget.onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CreditIconWidget(
+              credits: _creditData.availableCredits,
+              maxCredits: _creditData.maxCredits,
+              size: widget.isBigScreen ? 30 : 40,
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                widget.app['label'],
+                style: GoogleFonts.poppins(
+                  fontSize: widget.isBigScreen ? 11 : 12,
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[800],
                 ),

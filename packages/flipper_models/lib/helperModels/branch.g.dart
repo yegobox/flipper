@@ -7,7 +7,8 @@ part of 'branch.dart';
 // **************************************************************************
 
 IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as String?,
+      serverId: (json['serverId'] as num?)?.toInt(),
       active: json['active'] as bool?,
       description: json['description'] as String?,
       name: json['name'] as String?,
@@ -35,6 +36,7 @@ Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'action': instance.action,
       'id': instance.id,
+      'serverId': instance.serverId,
       'active': instance.active,
       'description': instance.description,
       'name': instance.name,

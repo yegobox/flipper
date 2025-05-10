@@ -34,7 +34,7 @@ class Tenant extends OfflineFirstWithSupabaseModel {
   ///but used in ui to achieve some functionality
 
   bool isLongPressed = false;
-  String type = "Agent";
+  String? type;
   Tenant({
     String? id,
     this.name,

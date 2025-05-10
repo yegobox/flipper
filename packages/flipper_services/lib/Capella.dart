@@ -718,8 +718,9 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  void reDownloadAsset() {
+  Future<void> reDownloadAsset() {
     // TODO: implement reDownloadAsset
+    throw UnimplementedError();
   }
 
   @override
@@ -1995,7 +1996,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<void> addBusiness(
-      {required int id,
+      {required String id,
       required int userId,
       required int serverId,
       String? name,

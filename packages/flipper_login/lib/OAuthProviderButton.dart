@@ -1,20 +1,11 @@
 // 1. First, let's define an improved OAuthProviderButton widget
-import 'dart:async';
-import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flipper_login/apple_logo_painter.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 // import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OAuthProviderButton extends StatelessWidget {
   final OAuthButtonVariant variant;

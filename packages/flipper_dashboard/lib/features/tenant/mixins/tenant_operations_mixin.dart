@@ -19,8 +19,9 @@ class TenantOperationsMixin {
     String userType,
     Map<String, String> tenantAllowedFeatures,
     Map<String, bool> activeFeatures,
-    int? userId,
-  ) async {
+    int? userId, {
+    required String phoneNumber,
+  }) async {
     for (final entry in tenantAllowedFeatures.entries) {
       final featureName = entry.key;
       final accessLevel = entry.value;
@@ -63,6 +64,7 @@ class TenantOperationsMixin {
     await ProxyService.strategy.updateTenant(
       userId: newTenant?.userId ?? userId!,
       type: userType,
+      phoneNumber: phoneNumber,
     );
   }
 
@@ -132,6 +134,7 @@ class TenantOperationsMixin {
         tenantAllowedFeatures,
         activeFeatures,
         newTenant.userId,
+        phoneNumber: phone,
       );
       showCustomSnackBarUtil(context, 'Tenant Updated or Created Successfully');
 

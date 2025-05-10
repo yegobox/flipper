@@ -154,8 +154,10 @@ class CoreViewModel extends FlipperBaseModel
 
         for (TransactionItem item in items) {
           item.active = true;
-          ProxyService.strategy
-              .updateTransactionItem(transactionItemId: item.id, active: true);
+          ProxyService.strategy.updateTransactionItem(
+            transactionItemId: item.id,
+            active: true,
+          );
         }
 
         // ProxyService.keypad.reset();
