@@ -299,8 +299,10 @@ class TaxController<OBJ> {
       List<brick.Counter> counters = await ProxyService.strategy.getCounters(
           branchId: ProxyService.box.getBranchId()!,
           fetchRemote: !Platform.isWindows);
-      brick.Counter? counter = await ProxyService.strategy
-          .getCounter(branchId: branchId, receiptType: receiptType);
+      brick.Counter? counter = await ProxyService.strategy.getCounter(
+          branchId: branchId,
+          receiptType: receiptType,
+          fetchRemote: !Platform.isWindows);
       if (counter == null) {
         throw Exception(
             "Counter have not been initialized, call +250783054874");

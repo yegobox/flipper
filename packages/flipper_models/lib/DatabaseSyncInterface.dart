@@ -242,7 +242,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType});
+      {required int branchId, required String receiptType, required bool fetchRemote});
   Future<String?> getPlatformDeviceId();
 
   Future<bool> bindProduct(

@@ -766,14 +766,19 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) async {
+      {required int branchId,
+      required String receiptType,
+      required bool fetchRemote}) async {
     final repository = brick.Repository();
     final query = brick.Query(where: [
       brick.Where('branchId').isExactly(branchId),
       brick.Where('receiptType').isExactly(receiptType),
     ]);
     final counter = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly);
     return counter.firstOrNull;
   }
 
