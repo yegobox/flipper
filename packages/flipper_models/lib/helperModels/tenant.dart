@@ -19,6 +19,7 @@ class ITenant {
   int? userId;
   int? pin;
   bool? isDefault;
+  String? type;
 
   ITenant({
     this.id,
@@ -34,6 +35,7 @@ class ITenant {
     this.userId,
     this.pin,
     this.isDefault,
+    this.type,
   });
   factory ITenant.fromRawJson(String str) => ITenant.fromJson(json.decode(str));
 

@@ -61,8 +61,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           borderSide: BorderSide.none, // Remove the default border
         ),
         filled: true,
-        fillColor:
-            Theme.of(context).colorScheme.surfaceContainerHighest, // Use theme color
+        fillColor: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest, // Use theme color
         contentPadding: EdgeInsets.symmetric(
             vertical: 16, horizontal: 16), // add padding inside input
       ),
@@ -159,7 +160,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       (fn) => setState(() {
         editMode = true;
         editedTenant = tenant;
-        selectedUserType = tenant.type;
+        selectedUserType = tenant.type ?? 'Agent';
         fn();
       }),
       tenantAllowedFeatures,

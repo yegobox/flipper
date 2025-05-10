@@ -26,6 +26,7 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       userId: (json['userId'] as num?)?.toInt(),
       pin: (json['pin'] as num?)?.toInt(),
       isDefault: json['isDefault'] as bool?,
+      type: json['type'] as String?,
     );
 
 Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
@@ -42,4 +43,5 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'userId': instance.userId,
       'pin': instance.pin,
       'isDefault': instance.isDefault,
+      'type': instance.type,
     };
