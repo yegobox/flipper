@@ -20,6 +20,7 @@ import com.zcs.sdk.print.PrnStrFormat;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 @Keep
 public class PrinterService {
@@ -39,17 +40,6 @@ public class PrinterService {
     private boolean isInitialized = false;
     private int printerWidth = 384; // Default width for 58mm printer
 
-    // Dithering constants
-    private static final int FLOYD_STEINBERG_DITHERING = 0;
-    private static final int ORDERED_DITHERING = 1;
-    private static final int ATKINSON_DITHERING = 2;
-    private static final int THRESHOLD_DITHERING = 3;
-    private static final int QR_CODE_OPTIMIZED = 4;
-    private static final int TEXT_OPTIMIZED = 5; // New dithering method specifically for text
-
-    // Default dithering method - better for text
-    private int ditheringMethod = TEXT_OPTIMIZED;
-
     private PrinterService() {}
 
     public static synchronized PrinterService getInstance() {
@@ -59,11 +49,6 @@ public class PrinterService {
         return instance;
     }
 
-    public void setDitheringMethod(int method) {
-        if (method >= FLOYD_STEINBERG_DITHERING && method <= TEXT_OPTIMIZED) {
-            this.ditheringMethod = method;
-        }
-    }
 
     public int initializePrinter() {
         try {
@@ -109,7 +94,6 @@ public class PrinterService {
 
         if (!isInitialized) {
             int result = initializePrinter();
-            Log.w(TAG, "Result when initializing printer: " + result);
             if (result != SdkResult.SDK_OK) return result;
             if (printerWidth <= 0) {
                 Log.e(TAG, "Printer width is invalid or not initialized.");
@@ -119,62 +103,39 @@ public class PrinterService {
 
         try (InputStream inputStream = new ByteArrayInputStream(imageData)) {
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inScaled = false; // Disable scaling during decoding
+            options.inScaled = false;
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, options);
-
             if (bitmap == null) {
                 Log.e(TAG, "Failed to decode image");
                 return ERROR_BITMAP_DECODE;
             }
 
-            // Process in correct order:
-            // 1. Convert to grayscale with proper contrast for thermal printing
-            Bitmap grayscaleBitmap = toGrayscaleForThermal(bitmap);
-            bitmap.recycle(); // Recycle original
+            // 1. Resize to printer width – keeps memory usage predictable
+            Bitmap resizedBitmap = resizeToPrinterWidth(bitmap, printerWidth);
+            bitmap.recycle();
 
-            // 2. Resize if needed
-            Bitmap resizedBitmap = downscaleBitmap(grayscaleBitmap, printerWidth);
-            if (resizedBitmap != grayscaleBitmap) {
-                grayscaleBitmap.recycle();
+            // 2. Convert the scaled image to grayscale
+            Bitmap grayscaleBitmap = toSimpleGrayscale(resizedBitmap);
+            if (grayscaleBitmap != resizedBitmap) {
+                resizedBitmap.recycle();
             }
 
-            // 3. Apply dithering optimized for thermal printing
-            Bitmap ditheredBitmap = applyThermalPrinterDithering(resizedBitmap);
-            resizedBitmap.recycle();
+            // 3. Apply simple threshold
+            Bitmap thresholded = applySimpleThreshold(grayscaleBitmap); // 160 is a safe threshold
+            if (thresholded != grayscaleBitmap) grayscaleBitmap.recycle();
 
             if (mPrinter == null) {
-                Log.e(TAG, "Printer not initialized properly");
-                ditheredBitmap.recycle();
+                thresholded.recycle();
                 return ERROR_DEVICE_CONNECTION;
             }
 
-            int status = mPrinter.getPrinterStatus();
-            if (status == SdkResult.SDK_PRN_STATUS_PAPEROUT) {
-                Log.w(TAG, "Out of paper before printing");
-                ditheredBitmap.recycle();
-                return status;
-            }
-
             PrnStrFormat format = new PrnStrFormat();
-            mPrinter.setPrintAppendBitmap(ditheredBitmap, Layout.Alignment.ALIGN_CENTER);
-            // Add some space after the image
-            mPrinter.setPrintAppendString(" ", format);
-            mPrinter.setPrintAppendString(" ", format);
+            mPrinter.setPrintAppendBitmap(thresholded, Layout.Alignment.ALIGN_CENTER);
             mPrinter.setPrintAppendString(" ", format);
 
             int printResult = mPrinter.setPrintStart();
-            ditheredBitmap.recycle();
-
-            if (printResult == SdkResult.SDK_PRN_STATUS_PAPEROUT) {
-                Log.w(TAG, "Paper out during print");
-            } else if (printResult != SdkResult.SDK_PRN_STATUS_PRINTING) {
-                Log.e(TAG, "Printing failed with status: " + printResult);
-            } else {
-                Log.i(TAG, "Printing started successfully");
-            }
-
+            thresholded.recycle();
             return printResult;
-
         } catch (IOException e) {
             Log.e(TAG, "IO error during printing", e);
             return ERROR_GENERAL_EXCEPTION;
@@ -183,12 +144,53 @@ public class PrinterService {
             return ERROR_GENERAL_EXCEPTION;
         }
     }
+
+    // Simple grayscale conversion
+    private Bitmap toSimpleGrayscale(Bitmap bmpOriginal) {
+        int width = bmpOriginal.getWidth();
+        int height = bmpOriginal.getHeight();
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        Paint paint = new Paint();
+        paint.setColorFilter(new ColorMatrixColorFilter(cm));
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
+    }
+
+    // Resize to printer width if needed
+    private Bitmap resizeToPrinterWidth(Bitmap bitmap, int printerWidth) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        if (width <= printerWidth) return bitmap;
+        float scale = (float) printerWidth / width;
+        int newHeight = (int) (height * scale);
+        return Bitmap.createScaledBitmap(bitmap, printerWidth, newHeight, true);
+    }
+
+    // Simple thresholding for thermal printers
+    private Bitmap applySimpleThreshold(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        Bitmap output = bitmap.copy(Objects.requireNonNull(bitmap.getConfig()), true);
+        int[] pixels = new int[width * height];
+        output.getPixels(pixels, 0, width, 0, 0, width, height);
+        for (int i = 0; i < pixels.length; i++) {
+            int gray = Color.red(pixels[i]);
+            int bw = (gray > 160) ? 255 : 0;
+            pixels[i] = Color.rgb(bw, bw, bw);
+        }
+        output.setPixels(pixels, 0, width, 0, 0, width, height);
+        return output;
+    }
+
     private Bitmap applyThermalPrinterDithering(Bitmap bitmap) {
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
 
         // Create a mutable copy of the bitmap
-        Bitmap output = bitmap.copy(bitmap.getConfig(), true);
+        Bitmap output = bitmap.copy(Objects.requireNonNull(bitmap.getConfig()), true);
 
         int[] pixels = new int[width * height];
         output.getPixels(pixels, 0, width, 0, 0, width, height);
