@@ -59,38 +59,41 @@ mixin TransactionMixinOld {
           key: "bhfId",
           value: ebm.bhfId,
         );
+        await updateCustomerTransaction(
+          transaction,
+          bhfId: bhfId,
+          customerNameController.text,
+          customerNameController,
+          amount,
+          onComplete: onComplete,
+          categoryId ?? "",
+          transactionType,
+          paymentType,
+          discount,
+        );
+        // Now generate the receipt only after successful transaction completion
         response = await handleReceiptGeneration(
-            formKey: formKey,
-            context: context,
-            transaction: transaction,
-            purchaseCode: purchaseCode);
+          formKey: formKey,
+          context: context,
+          transaction: transaction,
+          purchaseCode: purchaseCode,
+        );
         if (response.resultCd != "000") {
           throw Exception("Invalid response from server");
-        } else {
-          updateCustomerTransaction(
-              transaction,
-              bhfId: bhfId,
-              customerNameController.text,
-              customerNameController,
-              amount,
-              onComplete: onComplete,
-              categoryId ?? "",
-              transactionType,
-              paymentType,
-              discount);
         }
       } else {
-        updateCustomerTransaction(
-            transaction,
-            bhfId: bhfId,
-            customerNameController.text,
-            customerNameController,
-            amount,
-            categoryId,
-            transactionType,
-            paymentType,
-            onComplete: onComplete,
-            discount);
+        await updateCustomerTransaction(
+          transaction,
+          bhfId: bhfId,
+          customerNameController.text,
+          customerNameController,
+          amount,
+          categoryId,
+          transactionType,
+          paymentType,
+          onComplete: onComplete,
+          discount,
+        );
       }
       if (response == null) {
         return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
