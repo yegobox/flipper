@@ -369,22 +369,34 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // Mock implementation - does nothing
     return;
   }
-  
+
   @override
   bool getForceLogout() {
     // TODO: implement getForceLogout
     throw UnimplementedError();
   }
-  
+
   @override
   Future<void> setForceLogout(bool value) {
     // TODO: implement setForceLogout
     throw UnimplementedError();
   }
-  
+
   @override
   String? branchIdString() {
     // TODO: implement branchIdString
+    throw UnimplementedError();
+  }
+
+  @override
+  String paymentMethodCode(String paymentMethod) {
+    // TODO: implement paymentMethodCode
+    throw UnimplementedError();
+  }
+
+  @override
+  String pmtTyCd() {
+    // TODO: implement pmtTyCd
     throw UnimplementedError();
   }
 }

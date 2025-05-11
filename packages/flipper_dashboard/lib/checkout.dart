@@ -226,6 +226,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                     completeTransaction: (immediateCompletion) async {
                       await _handleCompleteTransaction(
                           transaction, immediateCompletion);
+                     
                     },
                     model: model,
                     ticketHandler: () => handleTicketNavigation(transaction),

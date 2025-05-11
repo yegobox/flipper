@@ -105,11 +105,13 @@ class NavigationPurpose {
 
 // Lists
 const List<String> paymentTypes = [
-  'Cash',
-  'MOMO MTN',
-  'Card',
-  'Credit',
-  'Bank'
+  'CASH',
+  'CREDIT',
+  'CASH/CREDIT',
+  'BANK CHECK',
+  'DEBIT&CREDIT CARD',
+  'MOBILE MONEY',
+  'OTHER'
 ];
 
 List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
