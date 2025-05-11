@@ -69,7 +69,7 @@ mixin TransactionMixinOld {
 
         // Only complete the transaction after successful tax service response
         await _completeTransactionAfterTaxValidation(transaction);
-        
+
         onComplete();
       } else {
         // For non-tax enabled scenarios, complete the transaction here
@@ -208,7 +208,7 @@ mixin TransactionMixinOld {
       final transactionType = transaction.receiptType ?? TransactionType.sale;
 
       // First collect the payment
-      await ProxyService.strategy.collectPayment(
+      ProxyService.strategy.collectPayment(
         branchId: ProxyService.box.getBranchId()!,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
