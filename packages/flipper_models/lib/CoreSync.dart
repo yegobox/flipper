@@ -1862,9 +1862,9 @@ class CoreSync extends AiStrategyImpl
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
           /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
-          await _updateStockAndItems(items: items, branchId: branchId);
+          _updateStockAndItems(items: items, branchId: branchId);
         }
-        await _updateTransactionDetails(
+        _updateTransactionDetails(
           transaction: transaction,
           isIncome: isIncome,
           cashReceived: cashReceived,
@@ -1941,7 +1941,9 @@ class CoreSync extends AiStrategyImpl
     if (categoryId != null) {
       transaction.categoryId = categoryId;
     }
-    await repository.upsert(transaction);
+
+    /// removed await
+    repository.upsert(transaction);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
