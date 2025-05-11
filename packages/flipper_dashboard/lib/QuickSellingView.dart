@@ -647,7 +647,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                     method: newValue,
                                   ),
                                   transactionId: transactionId);
-                          // save the payment method.
+
+                          // Save the payment method code in ProxyService.box
+                          // Map payment methods to their corresponding codes:
+                          // Cash: 01
+                          // Credit Card: 02
+                          // CASH/CREDIT: 03
+                          // BANK CHECK: 04
+                          // DEBIT&CREDIT CARD: 05
+                          // MOBILE MONEY: 06
+                          // OTHER: 07
+                          final paymentMethodCode =
+                              ProxyService.box.paymentMethodCode(newValue);
+                          ProxyService.box.writeString(
+                              key: 'pmtTyCd', value: paymentMethodCode);
                         });
                       }
                     },
@@ -704,7 +717,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     setState(() {
       ref
           .read(paymentMethodsProvider)
-          .add(Payment(amount: 0.0, method: 'Cash'));
+          .add(Payment(amount: 0.0, method: 'CASH'));
       ref.read(paymentMethodsProvider).last.controller.addListener(
           () => updatePaymentAmounts(transactionId: transactionId));
 

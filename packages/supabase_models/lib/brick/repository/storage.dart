@@ -33,6 +33,17 @@ abstract class LocalStorage {
   Future<void> clear();
   Future<bool> authComplete();
   String transactionId();
+  String pmtTyCd();
+
+  /// Returns the payment method code for a given payment method name
+  /// Cash: 01
+  /// Credit Card: 02
+  /// CASH/CREDIT: 03
+  /// BANK CHECK: 04
+  /// DEBIT&CREDIT CARD: 05
+  /// MOBILE MONEY: 06
+  /// OTHER: 07
+  String paymentMethodCode(String paymentMethod);
 
   /// firebase token, we take uid from logged in device (mobile)
   /// then we send it back to server and get equivalent token uid

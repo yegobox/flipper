@@ -711,7 +711,7 @@ class Payment {
 class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
   PaymentMethodsNotifier()
       : super([
-          Payment(amount: 0.0, method: 'Cash'),
+          Payment(amount: 0.0, method: 'CASH'),
         ]);
 
   // Method to add a payment method

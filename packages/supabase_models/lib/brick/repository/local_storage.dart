@@ -21,6 +21,7 @@ class SharedPreferenceStorage implements LocalStorage {
   // Set of allowed keys (same as the original implementation)
   static const Set<String> _allowedKeys = {
     'branchId',
+    'pmtTyCd',
     'businessId',
     'userId',
     'userPhone',
@@ -710,5 +711,33 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? branchIdString() {
     return _cache['branchIdString'] as String?;
+  }
+
+  @override
+  String paymentMethodCode(String paymentMethod) {
+    // Map payment method names to their corresponding codes
+    switch (paymentMethod.toUpperCase()) {
+      case 'CASH':
+        return '01';
+      case 'CREDIT':
+      case 'CREDIT CARD':
+        return '02';
+      case 'CASH/CREDIT':
+        return '03';
+      case 'BANK CHECK':
+        return '04';
+      case 'DEBIT&CREDIT CARD':
+        return '05';
+      case 'MOBILE MONEY':
+        return '06';
+      case 'OTHER':
+      default:
+        return '07';
+    }
+  }
+
+  @override
+  String pmtTyCd() {
+    return _cache['pmtTyCd'] as String? ?? "01";
   }
 }

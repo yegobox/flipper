@@ -713,7 +713,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");
-
+    final pmtTyCd = ProxyService.box.pmtTyCd();
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
@@ -721,7 +721,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "orgInvcNo": 0,
       "salesTyCd": receiptCodes['salesTyCd'],
       "rcptTyCd": receiptCodes['rcptTyCd'],
-      "pmtTyCd": "01",
+      "pmtTyCd": pmtTyCd,
       "salesSttsCd": "02",
       "cfmDt": date,
       "salesDt": date.substring(0, 8),

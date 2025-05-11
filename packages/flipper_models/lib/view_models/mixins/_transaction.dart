@@ -69,13 +69,13 @@ mixin TransactionMixinOld {
 
         // Only complete the transaction after successful tax service response
         await _completeTransactionAfterTaxValidation(transaction);
+        
+        onComplete();
       } else {
         // For non-tax enabled scenarios, complete the transaction here
         await _completeTransactionAfterTaxValidation(transaction);
+        onComplete();
       }
-
-      // Call onComplete callback after successful transaction completion
-      onComplete();
 
       if (response == null) {
         return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
@@ -84,6 +84,10 @@ mixin TransactionMixinOld {
     } catch (e) {
       talker.error('Error in finalizePayment: $e');
       rethrow;
+    } finally {
+      // Always call onComplete to ensure the loading state is reset
+      // This ensures the pay button stops loading even if there's an error
+      onComplete();
     }
   }
 
