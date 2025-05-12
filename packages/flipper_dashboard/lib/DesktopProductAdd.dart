@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
 import 'package:flipper_dashboard/DropdownButtonWithLabel.dart';
 import 'package:flipper_dashboard/FieldCompositeActivated.dart';
@@ -764,7 +764,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
           suffixIcon: (Platform.isAndroid || Platform.isIOS)
               ? IconButton(
-                  icon: const Icon(Icons.qr_code_scanner, color: Colors.blue),
+                  icon: Icon(FluentIcons.camera_20_regular, color: Colors.blue),
                   onPressed: () async {
                     // Open scanner and get result
                     final result = await Navigator.push(
