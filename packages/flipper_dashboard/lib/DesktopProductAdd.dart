@@ -26,6 +26,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
 import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
+import 'package:flipper_dashboard/scanner_view.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -761,6 +762,74 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             borderRadius: BorderRadius.circular(8.0),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+          suffixIcon: (Platform.isAndroid || Platform.isIOS)
+              ? IconButton(
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.blue),
+                  onPressed: () async {
+                    // Open scanner and get result
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ScannView(intent: BARCODE),
+                      ),
+                    );
+                    if (result != null &&
+                        result is String &&
+                        result.trim().isNotEmpty) {
+                      scannedInputController.text = result.trim();
+                      // Trigger the same logic as manual submit
+                      FocusScope.of(context)
+                          .requestFocus(_scannedInputFocusNode);
+                      // Manually call onFieldSubmitted
+                      if (_formKey.currentState!.validate()) {
+                        _inputTimer?.cancel();
+                        talker.warning(
+                            "Starting timer for barcode: " + result.trim());
+                        _inputTimer = Timer(const Duration(seconds: 1), () {
+                          talker.warning(
+                              "Timer completed for barcode: " + result.trim());
+                          if (result.trim().isNotEmpty) {
+                            if (productRef == null) {
+                              toast(
+                                  "Invalid product reference. Please select or create a product first.");
+                              talker.error(
+                                  "Attempted to scan barcode with null productRef. Skipping scan.");
+                              return;
+                            }
+                            try {
+                              model.onScanItem(
+                                countryCode:
+                                    countryOfOriginController.text.isEmpty ==
+                                            true
+                                        ? "RW"
+                                        : countryOfOriginController.text,
+                                editmode: widget.productId != null,
+                                barCode: result.trim(),
+                                retailPrice: double.tryParse(
+                                        retailPriceController.text) ??
+                                    0,
+                                supplyPrice: double.tryParse(
+                                        supplyPriceController.text) ??
+                                    0,
+                                isTaxExempted: false,
+                                product: productRef, // safe, checked above
+                              );
+                              talker
+                                  .warning("onAddVariant called successfully");
+                            } catch (e, s) {
+                              talker.error("Error in onAddVariant: $e", s);
+                              toast(
+                                  "We faced unexpected error, close this window and open again");
+                            }
+                            scannedInputController.clear();
+                            _scannedInputFocusNode.requestFocus();
+                          }
+                        });
+                      }
+                    }
+                  },
+                )
+              : null,
         ),
         textInputAction: TextInputAction.done,
         validator: (value) {
