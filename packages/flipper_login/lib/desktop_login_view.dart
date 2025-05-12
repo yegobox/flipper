@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/desktop_login_status.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 // Once open time someone else solved issue: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5#diff-5ca3a4f36b6e5b25b9776be6945ade02382219f8f0a7c8ec1ecd1ccc018c73aaR19
@@ -70,10 +71,13 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                           ),
                           size: 200.0,
                         ),
-                        StreamBuilder<bool>(
-                          stream: ProxyService.event.isLoadingStream(),
+                        StreamBuilder<DesktopLoginStatus>(
+                          stream: ProxyService.event.desktopLoginStatusStream(),
                           builder: (context, snapshot) {
-                            if (snapshot.hasData && snapshot.data == true) {
+                            final status = snapshot.data;
+                            if (status == null || status.state == DesktopLoginState.idle) {
+                              return SizedBox.shrink();
+                            } else if (status.state == DesktopLoginState.loading) {
                               // Show overlay on QR code when logging in
                               return Container(
                                 width: 200,
@@ -100,6 +104,71 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                   ],
                                 ),
                               );
+                            } else if (status.state == DesktopLoginState.failure) {
+                              // Show error overlay
+                              return Container(
+                                width: 200,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.redAccent, width: 2),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.error_outline, color: Colors.red, size: 32),
+                                    SizedBox(height: 12),
+                                    Text(
+                                      'Login failed',
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      status.message ?? 'An error occurred. Please try again.',
+                                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(height: 16),
+                                    OutlinedButton(
+                                      onPressed: () {
+                                        // Retry: re-subscribe to login event
+                                        ProxyService.event.subscribeLoginEvent(channel: loginCode.split('-')[1]);
+                                      },
+                                      child: Text('Retry', style: TextStyle(color: Color(0xff006AFE))),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else if (status.state == DesktopLoginState.success) {
+                              // Optionally, show a brief success overlay (could also auto-redirect)
+                              return Container(
+                                width: 200,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.check_circle_outline, color: Colors.green, size: 32),
+                                    SizedBox(height: 12),
+                                    Text(
+                                      'Login successful!',
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                        color: Colors.green,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
                             } else {
                               return SizedBox.shrink();
                             }
@@ -108,21 +177,21 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                       ],
                     ),
                   ),
-                  StreamBuilder<bool>(
-                    stream: ProxyService.event.isLoadingStream(),
+                  StreamBuilder<DesktopLoginStatus>(
+                    stream: ProxyService.event.desktopLoginStatusStream(),
                     builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data == true) {
-                        // Show loader widget
+                      final status = snapshot.data;
+                      if (status == null || status.state == DesktopLoginState.idle) {
+                        return SizedBox.shrink();
+                      } else if (status.state == DesktopLoginState.loading) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.green.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: Colors.green.withOpacity(0.3)),
+                              border: Border.all(color: Colors.green.withOpacity(0.3)),
                             ),
                             child: Text(
                               'QR Code scanned! Completing login...',
@@ -134,8 +203,47 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                             ),
                           ),
                         );
+                      } else if (status.state == DesktopLoginState.failure) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              'Login failed. Please try again.',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        );
+                      } else if (status.state == DesktopLoginState.success) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              'Login successful! Redirecting...',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ),
+                        );
                       } else {
-                        // Show an empty container widget
                         return SizedBox.shrink();
                       }
                     },

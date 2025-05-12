@@ -1,3 +1,5 @@
+import 'package:flipper_services/desktop_login_status.dart'
+    show DesktopLoginStatus;
 import 'package:pubnub/pubnub.dart';
 
 abstract class EventInterface {
@@ -7,6 +9,10 @@ abstract class EventInterface {
   PubNub connect();
   void subscribeToMessages({required String channel});
   void subscribeToDeviceEvent({required String channel});
+
+  /// Emits login state for desktop login (idle, loading, success, failure, with optional message)
+  Stream<DesktopLoginStatus> desktopLoginStatusStream();
+
   Stream<bool> isLoadingStream({bool? isLoading});
   Future<void> keepTryingPublishDevice();
 }
