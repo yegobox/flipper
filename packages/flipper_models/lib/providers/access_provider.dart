@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -21,7 +23,8 @@ Future<List<Access>> allAccesses(Ref ref, int userId) async {
 
 @riverpod
 Future<Tenant?> tenant(Ref ref, int userId) async {
-  return await ProxyService.strategy.tenant(userId: userId);
+  return await ProxyService.strategy
+      .tenant(userId: userId, fetchRemote: !Platform.isWindows);
 }
 
 @riverpod

@@ -20,9 +20,15 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
-    final credential =
-        await firebase.FirebaseAuth.instance.signInWithCustomToken(token);
-    talker.warning("credentials: $credential");
+    try {
+      final credential =
+          await firebase.FirebaseAuth.instance.signInWithCustomToken(token);
+
+      talker.warning("credentials: $credential");
+    } catch (e) {
+      talker.error(e);
+      rethrow;
+    }
   }
 }
 
@@ -89,7 +95,7 @@ class LoginViewModel extends FlipperBaseModel
     talker.info('[completeLogin] Saving pin and initializing app');
     try {
       await ProxyService.strategy.savePin(pin: thePin);
-      await   appService.appInit();
+      await appService.appInit();
       talker.info(
           '[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute');
       locator<RouterService>().navigateTo(StartUpViewRoute());

@@ -228,7 +228,9 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType, required bool fetchRemote}) async {
+      {required int branchId,
+      required String receiptType,
+      required bool fetchRemote}) async {
     talker.warning("Using capella");
     throw UnimplementedError();
     // try {
@@ -840,7 +842,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Tenant? tenant({int? businessId, int? userId, String? id}) {
+  Tenant? tenant(
+      {int? businessId, int? userId, String? id, required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart' as helper;
@@ -15,6 +16,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'login_event.dart';
 import 'dart:io';
+import 'package:flipper_services/desktop_login_status.dart';
 
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 
@@ -24,12 +26,21 @@ String loginDataToMap(LoginData data) => json.encode(data.toMap());
 /// [LOGIN] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
 /// [device] this channel is used to send device details to other end
+
 class EventService
     with TokenLogin, CoreMiscellaneous
     implements EventInterface {
   final _routerService = locator<RouterService>();
   final nub.Keyset keySet;
   nub.PubNub? pubnub;
+
+  // Desktop login state stream controller
+  final _desktopLoginStatusController =
+      StreamController<DesktopLoginStatus>.broadcast();
+
+  @override
+  Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
+      _desktopLoginStatusController.stream;
 
   EventService({required String userId})
       : keySet = nub.Keyset(
@@ -38,6 +49,8 @@ class EventService
           userId: nub.UserId(userId),
         ) {
     pubnub = nub.PubNub(defaultKeyset: keySet);
+    _desktopLoginStatusController
+        .add(DesktopLoginStatus(DesktopLoginState.idle));
   }
 
   @override
@@ -92,48 +105,60 @@ class EventService
     try {
       nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
       subscription.messages.listen((envelope) async {
-        isLoadingStream(isLoading: true);
-        LoginData loginData = LoginData.fromMap(envelope.payload);
+        _desktopLoginStatusController
+            .add(DesktopLoginStatus(DesktopLoginState.loading));
+        try {
+          LoginData loginData = LoginData.fromMap(envelope.payload);
 
-        ProxyService.box
-            .writeInt(key: 'businessId', value: loginData.businessId);
-        // ProxyService.box.writeString(key: 'uid', value: loginData.uid);
-        ProxyService.box.writeInt(key: 'branchId', value: loginData.branchId);
-        ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
-        ProxyService.box.writeString(key: 'userPhone', value: loginData.phone);
-        ProxyService.box
-            .writeString(key: 'defaultApp', value: loginData.defaultApp);
+          ProxyService.box
+              .writeInt(key: 'businessId', value: loginData.businessId);
+          // ProxyService.box.writeString(key: 'uid', value: loginData.uid);
+          ProxyService.box.writeInt(key: 'branchId', value: loginData.branchId);
+          ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
+          ProxyService.box
+              .writeString(key: 'userPhone', value: loginData.phone);
+          ProxyService.box
+              .writeString(key: 'defaultApp', value: loginData.defaultApp);
 
-        // get the device name and version
-        String deviceName = Platform.operatingSystem;
+          // get the device name and version
+          String deviceName = Platform.operatingSystem;
 
-        // Get the device version.
-        String deviceVersion = Platform.version;
-        // publish the device name and version
+          // Get the device version.
+          String deviceVersion = Platform.version;
+          // publish the device name and version
 
-        Device? device = await ProxyService.strategy.getDevice(
-            phone: loginData.phone, linkingCode: loginData.linkingCode);
-        if (device == null) {
-          ProxyService.strategy.create(
-              data: Device(
-                  pubNubPublished: false,
-                  branchId: loginData.branchId,
-                  businessId: loginData.businessId,
-                  defaultApp: loginData.defaultApp,
-                  phone: loginData.phone,
-                  userId: loginData.userId,
-                  linkingCode: loginData.linkingCode,
-                  deviceName: deviceName,
-                  deviceVersion: deviceVersion));
+          Device? device = await ProxyService.strategy.getDevice(
+              phone: loginData.phone, linkingCode: loginData.linkingCode);
+          if (device == null) {
+            ProxyService.strategy.create(
+                data: Device(
+                    pubNubPublished: false,
+                    branchId: loginData.branchId,
+                    businessId: loginData.businessId,
+                    defaultApp: loginData.defaultApp,
+                    phone: loginData.phone,
+                    userId: loginData.userId,
+                    linkingCode: loginData.linkingCode,
+                    deviceName: deviceName,
+                    deviceVersion: deviceVersion));
+          }
+          // await FirebaseAuth.instance.signInAnonymously();
+          /// uid is token linked with the user
+          await tokenLogin(loginData.uid);
+          keepTryingPublishDevice();
+          _desktopLoginStatusController
+              .add(DesktopLoginStatus(DesktopLoginState.success));
+        } catch (e) {
+          talker.error(e);
+          _desktopLoginStatusController.add(DesktopLoginStatus(
+              DesktopLoginState.failure,
+              message: e.toString()));
         }
-        // await FirebaseAuth.instance.signInAnonymously();
-        /// uid is token linked with the user
-        await tokenLogin(loginData.uid);
-        keepTryingPublishDevice();
       });
     } catch (e) {
       talker.error(e);
-      rethrow;
+      _desktopLoginStatusController.add(
+          DesktopLoginStatus(DesktopLoginState.failure, message: e.toString()));
     }
   }
 

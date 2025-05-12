@@ -1,4 +1,5 @@
 import 'dart:async' show FutureOr;
+import 'dart:io';
 
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -165,6 +166,7 @@ mixin DeleteMixin implements DeleteInterface {
       case 'tenant':
         //
         final tenant = (await ProxyService.strategy.tenant(
+          fetchRemote: !Platform.isWindows,
           id: id,
         ));
         if (tenant != null) {
