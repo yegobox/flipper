@@ -222,6 +222,8 @@ class CronService {
     if (ProxyService.box.transactionInProgress() ||
         isTaxServiceStopped == null ||
         isTaxServiceStopped) {
+      talker.info(
+          "Skipping patching: Transaction in progress or tax service stopped");
       return;
     }
     final uri = await ProxyService.box.getServerUrl();
@@ -231,10 +233,10 @@ class CronService {
     }
 
     // Only proceed if patching is not locked
-    if (ProxyService.box.lockPatching()) {
-      talker.info("Patching is locked, skipping");
-      return;
-    }
+    // if (ProxyService.box.lockPatching()) {
+    //   talker.info("Patching is locked, skipping");
+    //   return;
+    // }
 
     // Notification callback for patching operations
     final notificationCallback = (String message) {
@@ -245,6 +247,13 @@ class CronService {
     try {
       await VariantPatch.patchVariant(
         URI: uri,
+        sendPort: notificationCallback,
+      );
+        CustomerPatch.patchCustomer(
+        URI: uri,
+        branchId: ProxyService.box.getBranchId()!,
+        bhfId: (await ProxyService.box.bhfId())!,
+        tinNumber: ProxyService.box.tin(),
         sendPort: notificationCallback,
       );
     } catch (e) {

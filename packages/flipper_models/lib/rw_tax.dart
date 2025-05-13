@@ -204,7 +204,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .toString();
 
       /// update the remaining stock of this item in rra
-      variant.rsdQty = variant.stock?.currentStock;
+      if (variant.stock?.currentStock != null) {
+        // Truncate/round to 2 decimal places for RRA compatibility
+        variant.rsdQty =
+            double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
+      } else {
+        variant.rsdQty = null;
+      }
       if (variant.tin == null) {
         return RwApiResponse(resultCd: "000", resultMsg: "Missing TIN number");
       }
@@ -225,7 +231,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
       }
 
-      variant.rsdQty = variant.stock!.currentStock;
+      variant.rsdQty =
+          double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
       talker.warning("RSD QTY: ${variant.toJson()}");
       Response response = await sendPostRequest(url, variant.toJson());
 
