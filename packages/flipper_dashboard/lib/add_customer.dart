@@ -212,14 +212,15 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                             // TIN Field
                             BoxInputField(
                               controller: _tinNumberController,
-                              placeholder: 'TIN Number (Optional)',
+                              placeholder: 'TIN Number (Required)',
                               leading: const Icon(Icons.numbers_outlined),
                               // keyboardType: TextInputType.number,
                               validatorFunc: (value) {
-                                if (value != null && value.isNotEmpty) {
-                                  if (!isNumeric(value)) {
-                                    return 'TIN should be a number';
-                                  }
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'TIN is required';
+                                }
+                                if (!isNumeric(value)) {
+                                  return 'TIN should be a number';
                                 }
                                 return null;
                               },
@@ -236,52 +237,55 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                       height: 56,
                       child: ElevatedButton(
                         onPressed: isLoading
-                            ? null
-                            : () async {
-                                if (AddCustomer._formKey.currentState!
-                                    .validate()) {
-                                  setState(() => isLoading = true);
-                                  try {
-                                    await model.addCustomer(
-                                      customerType: selectedCustomerTypeValue,
-                                      email: _emailController.text,
-                                      phone: _phoneController.text,
-                                      name: _nameController.text,
-                                      tinNumber: _tinNumberController.text
-                                              .trim()
-                                              .isEmpty
-                                          ? null
-                                          : _tinNumberController.text,
-                                      transactionId: widget.transactionId,
-                                    );
-                                    final URI =
-                                        await ProxyService.box.getServerUrl();
-                                    final tinNumber = ProxyService.box.tin();
-                                    final bhfId =
-                                        await ProxyService.box.bhfId();
-                                    final branchId =
-                                        ProxyService.box.getBranchId()!;
+  ? null
+  : () async {
+      if (AddCustomer._formKey.currentState!.validate()) {
+        setState(() => isLoading = true);
+        try {
+          await model.addCustomer(
+            customerType: selectedCustomerTypeValue,
+            email: _emailController.text,
+            phone: _phoneController.text,
+            name: _nameController.text,
+            tinNumber: _tinNumberController.text,
+            transactionId: widget.transactionId,
+          );
+          final URI = await ProxyService.box.getServerUrl();
+          final tinNumber = ProxyService.box.tin();
+          final bhfId = await ProxyService.box.bhfId();
+          final branchId = ProxyService.box.getBranchId()!;
 
-                                    CustomerPatch.patchCustomer(
-                                      URI: URI!,
-                                      tinNumber: tinNumber,
-                                      bhfId: bhfId!,
-                                      branchId: branchId,
-                                      sendPort: (message) {
-                                        ProxyService.notification
-                                            .sendLocalNotification(
-                                                body: message);
-                                      },
-                                    );
+          CustomerPatch.patchCustomer(
+            URI: URI!,
+            tinNumber: tinNumber,
+            bhfId: bhfId!,
+            branchId: branchId,
+            sendPort: (message) {
+              ProxyService.notification.sendLocalNotification(body: message);
+            },
+          );
 
-                                    ref.refresh(customersProvider);
-                                    Navigator.maybePop(context);
-                                    model.getTransactionById();
-                                  } finally {
-                                    setState(() => isLoading = false);
-                                  }
-                                }
-                              },
+          ref.refresh(customersProvider);
+          Navigator.maybePop(context);
+          model.getTransactionById();
+        } catch (e) {
+          // Show error to user
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString().isNotEmpty ? e.toString() : 'Failed to add customer',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        } finally {
+          setState(() => isLoading = false);
+        }
+      }
+    },
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

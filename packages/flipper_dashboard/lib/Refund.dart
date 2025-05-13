@@ -81,8 +81,8 @@ class _RefundState extends ConsumerState<Refund> {
                         if (purchaseCodeReceived) {
                           // Proceed with refund
                           if (widget.transaction!.receiptType == "TS") {
-                            // await proceed(receiptType: "TR");
-                            toast("Can not refund a training receipt");
+                            await proceed(receiptType: "TR");
+                            // toast("Can not refund a training receipt");
                             return;
                           }
                           if (widget.transaction!.receiptType == "PS") {
@@ -98,8 +98,8 @@ class _RefundState extends ConsumerState<Refund> {
                         }
                       } else {
                         if (widget.transaction!.receiptType == "TS") {
-                          // await proceed(receiptType: "TR");
-                          toast("Can not refund a training receipt");
+                          await proceed(receiptType: "TR");
+                          // toast("Can not refund a training receipt");
                           return;
                         } else if (widget.transaction!.receiptType! == "CS") {
                           await proceed(receiptType: "CR");
