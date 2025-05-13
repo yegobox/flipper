@@ -82,12 +82,12 @@ class CronService {
                 .hydrateDate(
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
-            ProxyService.strategy
-                .variants(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
-            ProxyService.strategy
-                .transactions(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
+            //   ProxyService.strategy
+            //       .variants(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
+            //   ProxyService.strategy
+            //       .transactions(branchId: branchId, fetchRemote: true)
+            //       .then((_) {}),
           ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
@@ -222,8 +222,6 @@ class CronService {
     if (ProxyService.box.transactionInProgress() ||
         isTaxServiceStopped == null ||
         isTaxServiceStopped) {
-      talker.info(
-          "Skipping patching: Transaction in progress or tax service stopped");
       return;
     }
     final uri = await ProxyService.box.getServerUrl();
@@ -232,8 +230,7 @@ class CronService {
       return;
     }
 
-    // Only proceed if patching is not locked, this is important to avoid updating things
-    // in wrong order never remove this thing here.
+    // Only proceed if patching is not locked
     if (ProxyService.box.lockPatching()) {
       talker.info("Patching is locked, skipping");
       return;
@@ -250,26 +247,21 @@ class CronService {
         URI: uri,
         sendPort: notificationCallback,
       );
-      CustomerPatch.patchCustomer(
-        URI: uri,
-        branchId: ProxyService.box.getBranchId()!,
-        bhfId: (await ProxyService.box.bhfId())!,
-        tinNumber: ProxyService.box.tin(),
-        sendPort: notificationCallback,
-      );
     } catch (e) {
       talker.error("Variant patching failed: $e");
     }
 
     // Patch transaction items
     try {
-      final tinNumber = ProxyService.box.tin();
       final bhfId = await ProxyService.box.bhfId();
-
       if (bhfId == null) {
         talker.warning("Skipping transaction item patching: BHF ID is null");
         return;
       }
+
+      /// as I was testing realized callin this here might cause race condition
+      /// the method should be called intentionally.
+      final tinNumber = ProxyService.box.tin();
 
       await PatchTransactionItem.patchTransactionItem(
         tinNumber: tinNumber,
