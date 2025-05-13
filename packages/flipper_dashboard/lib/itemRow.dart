@@ -798,13 +798,17 @@ class _RowItemState extends ConsumerState<RowItem>
       if (!isOrdering) {
         /// because item of tax type D are not supposed to have stock so it can be sold without stock.
         if (widget.variant?.taxTyCd != "D" &&
-            widget.variant?.stock?.currentStock == null) {
+
+            /// itemTyCd is 3 it is a service
+            widget.variant?.stock?.currentStock == null &&
+            widget.variant?.itemTyCd != "3") {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           toast("You do not have enough stock");
           return;
         }
         if (widget.variant?.taxTyCd != "D" &&
-            (widget.variant?.stock?.currentStock ?? 0) <= 0) {
+            (widget.variant?.stock?.currentStock ?? 0) <= 0 &&
+            widget.variant?.itemTyCd != "3") {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           toast("You do not have enough stock");
           return;

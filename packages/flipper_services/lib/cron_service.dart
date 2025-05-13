@@ -232,11 +232,12 @@ class CronService {
       return;
     }
 
-    // Only proceed if patching is not locked
-    // if (ProxyService.box.lockPatching()) {
-    //   talker.info("Patching is locked, skipping");
-    //   return;
-    // }
+    // Only proceed if patching is not locked, this is important to avoid updating things
+    // in wrong order never remove this thing here.
+    if (ProxyService.box.lockPatching()) {
+      talker.info("Patching is locked, skipping");
+      return;
+    }
 
     // Notification callback for patching operations
     final notificationCallback = (String message) {
@@ -249,7 +250,7 @@ class CronService {
         URI: uri,
         sendPort: notificationCallback,
       );
-        CustomerPatch.patchCustomer(
+      CustomerPatch.patchCustomer(
         URI: uri,
         branchId: ProxyService.box.getBranchId()!,
         bhfId: (await ProxyService.box.bhfId())!,
