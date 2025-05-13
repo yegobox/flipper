@@ -122,10 +122,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .toString();
       final mod = randomNumber().toString();
       final sar = randomNumber();
-
+      final branchId = (await ProxyService.strategy.activeBranch()).id;
       // Query active, done items only
       final items = await ProxyService.strategy.transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
+        branchId: branchId,
         transactionId: transaction.id,
         doneWithTransaction: true,
         active: true,
@@ -175,6 +175,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       if (!custTin.isValidTin()) {
         json.remove('custTin');
       }
+      talker.info(json);
       Response response = await sendPostRequest(url, json);
 
       final data = RwApiResponse.fromJson(
