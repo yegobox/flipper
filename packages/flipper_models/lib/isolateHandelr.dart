@@ -254,17 +254,23 @@ mixin PatchTransactionItem {
       {required String URI,
       required Function(String) sendPort,
       required int tinNumber,
+      String? identifier,
       required String bhfId}) async {
     final branchId = ProxyService.box.getBranchId();
     final transactions = await repository.get<ITransaction>(
-        query: brick.Query(where: [
-      Where('ebmSynced').isExactly(false),
-      Where('status').isExactly(COMPLETE),
-      Or('status').isExactly(PARKED),
-      Where('customerName').isNot(null),
-      Where('customerTin').isNot(null),
-      Where('branchId').isExactly(branchId)
-    ]));
+        query: brick.Query(
+            where: identifier != null
+                ? [
+                    Where('id').isExactly(identifier),
+                  ]
+                : [
+                    Where('ebmSynced').isExactly(false),
+                    Where('status').isExactly(COMPLETE),
+                    Or('status').isExactly(PARKED),
+                    Where('customerName').isNot(null),
+                    Where('customerTin').isNot(null),
+                    Where('branchId').isExactly(branchId)
+                  ]));
     for (ITransaction transaction in transactions) {
       double taxB = 0;
 
@@ -291,9 +297,6 @@ mixin PatchTransactionItem {
           transaction.customerTin == null ||
           transaction.sarNo == null ||
           transaction.ebmSynced!) {
-        // for this to not eat up the budget next time mark it as synced
-        transaction.ebmSynced = true;
-        await repository.upsert(transaction);
         continue;
       }
       try {

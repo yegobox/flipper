@@ -171,7 +171,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String transactionType,
     String? categoryId,
     bool directlyHandleReceipt = false,
-    required bool isIncome,
+    required bool isIncome, String? customerName, String? customerTin,
   });
 
   Future<Setting?> getSetting({required int businessId});

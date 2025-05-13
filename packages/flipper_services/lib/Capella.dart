@@ -1084,6 +1084,8 @@ class Capella extends AiStrategyImpl
       required double discount,
       required int branchId,
       required String bhfId,
+      String? customerName,
+      String? customerTin,
       required bool isProformaMode,
       required bool isTrainingMode,
       required String transactionType,

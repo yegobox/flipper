@@ -214,7 +214,7 @@ mixin TransactionMixin implements TransactionInterface {
           cashReceived: 0.0,
           updatedAt: now,
           customerChangeDue: 0.0,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
+          paymentType: ProxyService.box.paymentType() ?? "CASH",
           branchId: branchId,
           createdAt: now,
         );

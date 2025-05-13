@@ -68,12 +68,14 @@ mixin TransactionMixinOld {
         }
 
         // Only complete the transaction after successful tax service response
-        await _completeTransactionAfterTaxValidation(transaction);
+        await _completeTransactionAfterTaxValidation(transaction,
+            customerName: customerNameController.text);
 
         onComplete();
       } else {
         // For non-tax enabled scenarios, complete the transaction here
-        await _completeTransactionAfterTaxValidation(transaction);
+        await _completeTransactionAfterTaxValidation(transaction,
+            customerName: customerNameController.text);
         onComplete();
       }
 
@@ -194,8 +196,8 @@ mixin TransactionMixinOld {
   /// Completes the transaction after tax validation has succeeded
   /// This ensures we only mark the transaction as complete after we've received
   /// a successful response from the tax service
-  Future<void> _completeTransactionAfterTaxValidation(
-      ITransaction transaction) async {
+  Future<void> _completeTransactionAfterTaxValidation(ITransaction transaction,
+      {required String customerName}) async {
     try {
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
       final amount = double.tryParse(
@@ -204,15 +206,24 @@ mixin TransactionMixinOld {
       final discount = double.tryParse(
               ProxyService.box.readString(key: 'discountRate') ?? "0") ??
           0;
-      final paymentType = ProxyService.box.paymentType() ?? "Cash";
+      final paymentType = ProxyService.box.paymentType() ?? "CASH";
       final transactionType = transaction.receiptType ?? TransactionType.sale;
-
+      Customer? customer = (await ProxyService.strategy.customers(
+              id: transaction.customerId,
+              branchId: ProxyService.box.getBranchId()!))
+          .firstOrNull;
       // First collect the payment
       ProxyService.strategy.collectPayment(
         branchId: ProxyService.box.getBranchId()!,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
         bhfId: bhfId,
+        customerName: customer == null
+            ? ProxyService.box.customerName() ?? "N/A"
+            : customerName,
+        customerTin: customer == null
+            ? ProxyService.box.currentSaleCustomerPhoneNumber()
+            : customer.custTin,
         cashReceived: amount,
         transaction: transaction,
         categoryId: transaction.categoryId,
@@ -222,7 +233,7 @@ mixin TransactionMixinOld {
         discount: discount,
         directlyHandleReceipt: false,
       );
-
+      // final tinNumber = ProxyService.box.tin();
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');
       ProxyService.box.remove(key: 'pendingCustomerTin');

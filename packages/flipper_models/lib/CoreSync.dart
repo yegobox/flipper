@@ -1575,7 +1575,6 @@ class CoreSync extends AiStrategyImpl
   Future<List<ext.ITenant>> signup(
       {required Map business,
       required HttpClientInterface flipperHttpClient}) async {
-    talker.info("Signup request: ${jsonEncode(business)}");
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
     if (response.statusCode == 200) {
@@ -1846,6 +1845,8 @@ class CoreSync extends AiStrategyImpl
     String? categoryId,
     bool directlyHandleReceipt = false,
     required bool isIncome,
+    String? customerName,
+    String? customerTin,
   }) async {
     if (transaction != null) {
       try {
@@ -1861,8 +1862,10 @@ class CoreSync extends AiStrategyImpl
               items.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
-          /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
-          _updateStockAndItems(items: items, branchId: branchId);
+
+          /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
+          /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
+          await _updateStockAndItems(items: items, branchId: branchId);
         }
         _updateTransactionDetails(
           transaction: transaction,
@@ -1874,6 +1877,8 @@ class CoreSync extends AiStrategyImpl
           isTrainingMode: isTrainingMode,
           transactionType: transactionType,
           categoryId: categoryId,
+          customerName: customerName,
+          customerTin: customerTin,
         );
 
         // Save transaction
@@ -1909,7 +1914,9 @@ class CoreSync extends AiStrategyImpl
     throw Exception("transaction is null");
   }
 
-  Future<void> _updateTransactionDetails({
+  /// customerName and customerTin are optional
+  /// but for transactions that need to sync with ebm they need them otherwise they will be skipped.
+  void _updateTransactionDetails({
     required ITransaction transaction,
     required bool isIncome,
     required double cashReceived,
@@ -1919,7 +1926,9 @@ class CoreSync extends AiStrategyImpl
     required bool isTrainingMode,
     required String transactionType,
     String? categoryId,
-  }) async {
+    String? customerName,
+    String? customerTin,
+  }) {
     final now = DateTime.now().toUtc().toLocal();
 
     // Update transaction properties using the = operator
@@ -1936,14 +1945,13 @@ class CoreSync extends AiStrategyImpl
     transaction.createdAt = now;
     transaction.transactionType = transactionType;
     transaction.lastTouched = now;
+    transaction.customerName = customerName;
+    transaction.customerTin = customerTin;
 
     // Optionally update categoryId if provided
     if (categoryId != null) {
       transaction.categoryId = categoryId;
     }
-
-    /// removed await
-    repository.upsert(transaction);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
