@@ -147,37 +147,66 @@ class CustomersState extends ConsumerState<Customers> {
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      margin: EdgeInsets.all(16),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Material(
+        elevation: 6,
+        borderRadius: BorderRadius.circular(0),
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: Offset(0, 5),
+        child: FocusScope(
+          child: Focus(
+            onFocusChange: (hasFocus) => setState(() {}),
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(0),
+                border: Border.all(
+                  color: FocusScope.of(context).hasFocus
+                      ? Colors.blue
+                      : Colors.transparent,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 14,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                style: TextStyle(fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: 'Search for a customer',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 8),
+                    child: Icon(Icons.search, color: Colors.blue, size: 26),
+                  ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear,
+                              color: Colors.redAccent, size: 22),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged("");
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+                ),
+                onChanged: (value) {
+                  _onSearchChanged(value);
+                  setState(() {});
+                },
+              ),
+            ),
           ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Search for a customer',
-          prefixIcon: Icon(Icons.search, color: Colors.grey),
-          suffixIcon: IconButton(
-            icon: Icon(Icons.clear, color: Colors.grey),
-            onPressed: () {
-              _searchController.clear();
-              _onSearchChanged("");
-            },
-          ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
-        onChanged: (value) {
-          _onSearchChanged(value);
-        },
       ),
     );
   }
