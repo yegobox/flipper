@@ -266,6 +266,7 @@ class CustomersState extends ConsumerState<Customers> {
 
     if (filteredCustomers.isEmpty) {
       showModalBottomSheet(
+        showDragHandle: true,
         context: context,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),

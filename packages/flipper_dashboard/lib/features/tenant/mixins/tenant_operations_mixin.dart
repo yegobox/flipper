@@ -153,7 +153,7 @@ class TenantOperationsMixin {
       Tenant tenant, FlipperBaseModel model, BuildContext context) async {
     try {
       // Delete the tenant
-      await ProxyService.strategy.delete(
+      await ProxyService.strategy.flipperDelete(
         id: tenant.id,
         endPoint: 'tenant',
         flipperHttpClient: ProxyService.http,

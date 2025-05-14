@@ -259,7 +259,7 @@ class ActionRow extends ConsumerWidget
                   );
 
                   // Then delete the request
-                  await ProxyService.strategy.delete(
+                  await ProxyService.strategy.flipperDelete(
                     id: request.id,
                     endPoint: 'stockRequest',
                   );

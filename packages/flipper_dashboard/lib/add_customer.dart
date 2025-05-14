@@ -11,6 +11,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -237,55 +238,72 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                       height: 56,
                       child: ElevatedButton(
                         onPressed: isLoading
-  ? null
-  : () async {
-      if (AddCustomer._formKey.currentState!.validate()) {
-        setState(() => isLoading = true);
-        try {
-          await model.addCustomer(
-            customerType: selectedCustomerTypeValue,
-            email: _emailController.text,
-            phone: _phoneController.text,
-            name: _nameController.text,
-            tinNumber: _tinNumberController.text,
-            transactionId: widget.transactionId,
-          );
-          final URI = await ProxyService.box.getServerUrl();
-          final tinNumber = ProxyService.box.tin();
-          final bhfId = await ProxyService.box.bhfId();
-          final branchId = ProxyService.box.getBranchId()!;
+                            ? null
+                            : () async {
+                                if (AddCustomer._formKey.currentState!
+                                    .validate()) {
+                                  setState(() => isLoading = true);
+                                  try {
+                                    await model.addCustomer(
+                                      customerType: selectedCustomerTypeValue,
+                                      email: _emailController.text,
+                                      phone: _phoneController.text,
+                                      name: _nameController.text,
+                                      tinNumber: _tinNumberController.text,
+                                      transactionId: widget.transactionId,
+                                    );
+                                    final URI =
+                                        await ProxyService.box.getServerUrl();
+                                    final tinNumber = ProxyService.box.tin();
+                                    final bhfId =
+                                        await ProxyService.box.bhfId();
+                                    final branchId =
+                                        ProxyService.box.getBranchId()!;
 
-          CustomerPatch.patchCustomer(
-            URI: URI!,
-            tinNumber: tinNumber,
-            bhfId: bhfId!,
-            branchId: branchId,
-            sendPort: (message) {
-              ProxyService.notification.sendLocalNotification(body: message);
-            },
-          );
+                                    CustomerPatch.patchCustomer(
+                                      URI: URI!,
+                                      tinNumber: tinNumber,
+                                      bhfId: bhfId!,
+                                      branchId: branchId,
+                                      sendPort: (message) {
+                                        ProxyService.notification
+                                            .sendLocalNotification(
+                                                body: message);
+                                      },
+                                    );
 
-          ref.refresh(customersProvider);
-          Navigator.maybePop(context);
-          model.getTransactionById();
-        } catch (e) {
-          // Show error to user
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  e.toString().isNotEmpty ? e.toString() : 'Failed to add customer',
-                  style: const TextStyle(color: Colors.white),
-                ),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        } finally {
-          setState(() => isLoading = false);
-        }
-      }
-    },
+                                    ref.refresh(customersProvider);
+                                    Navigator.of(context).pop();
+                                    // Show success snack bar after closing modal using root navigator context
+                                    Future.delayed(
+                                        const Duration(milliseconds: 100), () {
+                                      showCustomSnackBarUtil(
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .context,
+                                        'Customer added successfully!',
+                                        backgroundColor: Colors.green[600],
+                                      );
+                                    });
+                                    model.getTransactionById();
+                                  } catch (e) {
+                                    // Show error to user
+                                    if (mounted) {
+                                      showCustomSnackBarUtil(
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .context,
+                                        e.toString().isNotEmpty
+                                            ? e.toString()
+                                            : 'Failed to add customer',
+                                        backgroundColor: Colors.red,
+                                      );
+                                    }
+                                  } finally {
+                                    setState(() => isLoading = false);
+                                  }
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

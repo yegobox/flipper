@@ -189,7 +189,7 @@ class TableVariants extends StatelessWidget {
                       context: context,
                       model: model,
                       variant: variant,
-                      unitsAsyncValue: unversalProducts,
+                      universalProducts: unversalProducts,
                     )),
                 _buildMobileInfoRow(
                     'Expiration',
@@ -332,7 +332,7 @@ class TableVariants extends StatelessWidget {
               context: context,
               model: model,
               variant: variant,
-              unitsAsyncValue: unversalProducts,
+              universalProducts: unversalProducts,
             ),
           ),
         ),

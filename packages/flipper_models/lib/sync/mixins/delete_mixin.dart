@@ -80,7 +80,7 @@ mixin DeleteMixin implements DeleteInterface {
   }
 
   @override
-  Future<bool> delete(
+  Future<bool> flipperDelete(
       {required String id,
       String? endPoint,
       HttpClientInterface? flipperHttpClient}) async {

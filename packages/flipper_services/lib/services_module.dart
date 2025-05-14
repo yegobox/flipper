@@ -42,6 +42,7 @@ import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/status.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'WindowLocationService.dart';
 import 'WindowsBlueToothPrinterService.dart';
@@ -253,7 +254,7 @@ abstract class ServicesModule {
     if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
       https = MockHttpClient();
     } else {
-      https = FlipperHttpClient(httP.Client());
+      https = DefaultFlipperHttpClient(httP.Client(), Repository());
     }
     return https;
   }

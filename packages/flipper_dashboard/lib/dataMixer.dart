@@ -60,7 +60,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       if (canDelete) {
         if (product == null) {
-          ProxyService.strategy.delete(id: variant.id, endPoint: 'variant');
+          ProxyService.strategy
+              .flipperDelete(id: variant.id, endPoint: 'variant');
           ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
 
           return;
@@ -70,7 +71,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           List<Composite> composites =
               await ProxyService.strategy.composites(productId: productId);
           for (Composite composite in composites) {
-            await ProxyService.strategy.delete(
+            await ProxyService.strategy.flipperDelete(
                 id: composite.id,
                 endPoint: 'composite',
                 flipperHttpClient: ProxyService.http);
@@ -91,8 +92,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             Assets? asset = await ProxyService.strategy
                 .getAsset(assetName: product.imageUrl!);
             if (asset != null) {
-              await ProxyService.strategy
-                  .delete(id: asset.id, flipperHttpClient: ProxyService.http);
+              await ProxyService.strategy.flipperDelete(
+                  id: asset.id, flipperHttpClient: ProxyService.http);
             }
           }
         } else {

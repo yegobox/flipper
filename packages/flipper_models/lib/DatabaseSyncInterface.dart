@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -15,7 +16,7 @@ import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
@@ -57,6 +58,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         AuthInterface,
         TransactionItemInterface,
         TransactionInterface,
+        HttpClientInterface,
         ProductInterface,
         TenantInterface,
         DeleteInterface,
@@ -95,6 +97,18 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<List<PColor>> colors({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   FutureOr<T?> create<T>({required T data});
+  Future<http.StreamedResponse> send(http.BaseRequest request);
+  Future<http.Response> get(Uri url, {Map<String, String>? headers});
+  Future<http.Response> post(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> patch(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> getUniversalProducts(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
   Stream<double> wholeStockValue({required int branchId});
 
   Future<PColor?> getColor({required String id});
@@ -171,7 +185,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String transactionType,
     String? categoryId,
     bool directlyHandleReceipt = false,
-    required bool isIncome, String? customerName, String? customerTin,
+    required bool isIncome,
+    String? customerName,
+    String? customerTin,
   });
 
   Future<Setting?> getSetting({required int businessId});
@@ -242,7 +258,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType, required bool fetchRemote});
+      {required int branchId,
+      required String receiptType,
+      required bool fetchRemote});
   Future<String?> getPlatformDeviceId();
 
   Future<bool> bindProduct(
@@ -504,8 +522,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<void> deleteAll<T extends Object>({
     required String tableName,
   });
-
-
 
   FutureOr<void> addCategory({
     required String name,

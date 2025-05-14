@@ -70,6 +70,7 @@ class CoreSync extends AiStrategyImpl
         BranchMixin,
         PurchaseMixin,
         AuthMixin,
+        FlipperHttpClient,
         TransactionMixin,
         BusinessMixin,
         TransactionItemMixin,
