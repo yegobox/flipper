@@ -25,12 +25,88 @@ class CustomersState extends ConsumerState<Customers> {
   final TextEditingController _searchController = TextEditingController();
   final _routerService = locator<RouterService>();
 
+  // --- Paging State ---
+  final ScrollController _scrollController = ScrollController();
+  List<Customer> displayedCustomers = [];
+  bool isLoadingMore = false;
+  bool hasMore = true;
+  int pageSize = 30;
+  String lastSearch = '';
+  int currentPage = 0;
+
+  bool _hasLoadedInitialCustomers = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // If scrolled near the bottom, try to load more
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !isLoadingMore &&
+        hasMore) {
+      _loadMoreCustomers();
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    lastSearch = value;
+    currentPage = 0;
+    hasMore = true;
+    displayedCustomers.clear();
+    _hasLoadedInitialCustomers = false; // Reset flag so paging can re-init
+    _loadInitialCustomers();
+  }
+
+  Future<void> _loadInitialCustomers() async {
+    final customers = ref.read(customersProvider.notifier).filterCustomers(
+          ref.read(customersProvider).asData?.value ?? [],
+          lastSearch,
+        );
+    setState(() {
+      displayedCustomers = customers.take(pageSize).toList();
+      hasMore = customers.length > pageSize;
+      currentPage = 1;
+    });
+  }
+
+  Future<void> _loadMoreCustomers() async {
+    if (isLoadingMore || !hasMore) return;
+    setState(() {
+      isLoadingMore = true;
+    });
+    await Future.delayed(Duration(milliseconds: 300)); // Simulate loading
+    final customers = ref.read(customersProvider.notifier).filterCustomers(
+          ref.read(customersProvider).asData?.value ?? [],
+          lastSearch,
+        );
+    final nextPage =
+        customers.skip(currentPage * pageSize).take(pageSize).toList();
+    setState(() {
+      displayedCustomers.addAll(nextPage);
+      isLoadingMore = false;
+      hasMore = customers.length > displayedCustomers.length;
+      currentPage += 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
     final customersRef = ref.watch(customersProvider);
     final transaction =
         ref.watch(pendingTransactionStreamProvider(isExpense: false));
+
+    // Listen for provider data becoming available and trigger initial load only once
+    ref.listen<AsyncValue<List<Customer>>>(customersProvider, (previous, next) {
+      if (next is AsyncData<List<Customer>> && !_hasLoadedInitialCustomers) {
+        _hasLoadedInitialCustomers = true;
+        _loadInitialCustomers();
+      }
+    });
 
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -59,8 +135,7 @@ class CustomersState extends ConsumerState<Customers> {
             children: [
               _buildSearchBar(),
               Expanded(
-                child:
-                    _buildCustomerList(customersRef, model, transaction.value!),
+                child: _buildCustomerList(model, transaction.value!),
               ),
               _buildAddButton(context, model, customersRef, searchKeyword,
                   transaction.value!.id),
@@ -94,39 +169,75 @@ class CustomersState extends ConsumerState<Customers> {
             icon: Icon(Icons.clear, color: Colors.grey),
             onPressed: () {
               _searchController.clear();
-              ref
-                  .read(customerSearchStringProvider.notifier)
-                  .emitString(value: "");
+              _onSearchChanged("");
             },
           ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
         onChanged: (value) {
-          ref
-              .read(customerSearchStringProvider.notifier)
-              .emitString(value: value);
+          _onSearchChanged(value);
         },
       ),
     );
   }
 
-  Widget _buildCustomerList(AsyncValue<List<Customer>> customersRef,
-      CoreViewModel model, ITransaction transaction) {
-    return customersRef.when(
-      data: (customers) => ListView.builder(
-        itemCount: customers.length,
-        itemBuilder: (context, index) {
-          final customer = customers[index];
-          return _buildCustomerCard(customer, model, transaction);
-        },
-      ),
-      error: (error, stackTrace) => Center(
-        child: Text('Error: $error', style: TextStyle(color: Colors.red)),
-      ),
-      loading: () => Center(
-        child: CircularProgressIndicator(),
-      ),
+  Widget _buildCustomerList(CoreViewModel model, ITransaction transaction) {
+    if (displayedCustomers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_off, size: 48, color: Colors.grey[400]),
+            SizedBox(height: 16),
+            Text('No customers found',
+                style: TextStyle(color: Colors.grey[600])),
+            SizedBox(height: 8),
+            ElevatedButton(
+              onPressed: () {
+                // Quick add: open add customer modal with search text
+                showModalBottomSheet(
+                  showDragHandle: true,
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(10.0)),
+                  ),
+                  isScrollControlled: true,
+                  builder: (BuildContext context) {
+                    return Padding(
+                      padding: MediaQuery.of(context).viewInsets,
+                      child: AddCustomer(
+                        transactionId: ref
+                            .watch(pendingTransactionStreamProvider(
+                                isExpense: false))
+                            .value!
+                            .id,
+                        searchedKey: _searchController.text,
+                      ),
+                    );
+                  },
+                );
+              },
+              child: Text('Add "${_searchController.text}" as new customer'),
+            )
+          ],
+        ),
+      );
+    }
+    return ListView.builder(
+      controller: _scrollController,
+      itemCount: displayedCustomers.length + (hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == displayedCustomers.length) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final customer = displayedCustomers[index];
+        return _buildCustomerCard(customer, model, transaction);
+      },
     );
   }
 
