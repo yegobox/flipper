@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -9,6 +10,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -60,6 +62,15 @@ class CronService {
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
     try {
+      final uri = await ProxyService.box.getServerUrl();
+      ProxyService.http
+          .getUniversalProducts(Uri.parse('${uri}itemClass/selectItemsClass'),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode({
+                "tin": "999909695",
+                "bhfId": "00",
+                "lastReqDt": "20190523000000",
+              }));
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) {
         talker.error("Cannot hydrate data: Branch ID is null");

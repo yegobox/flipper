@@ -190,7 +190,7 @@ class CoreViewModel extends FlipperBaseModel
       // ProxyService.keypad.reset();
       reset();
       TransactionItem itemToDelete = items.last;
-      await ProxyService.strategy.delete(
+      await ProxyService.strategy.flipperDelete(
           id: itemToDelete.id,
           endPoint: 'transactionItem',
           flipperHttpClient: ProxyService.http);
@@ -619,7 +619,7 @@ class CoreViewModel extends FlipperBaseModel
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
       {required String id, required BuildContext context}) async {
-    await ProxyService.strategy.delete(
+    await ProxyService.strategy.flipperDelete(
         id: id,
         endPoint: 'transactionItem',
         flipperHttpClient: ProxyService.http);
@@ -708,14 +708,14 @@ class CoreViewModel extends FlipperBaseModel
         transactionType: TransactionType.sale,
         isExpense: false);
     if (transaction?.customerId == null) {
-      await ProxyService.strategy.delete(
+      await ProxyService.strategy.flipperDelete(
           id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
       callback("customer deleted");
     } else {
       /// first detach the customer from trans
       ProxyService.strategy
           .updateTransaction(transaction: transaction, customerId: null);
-      ProxyService.strategy.delete(
+      ProxyService.strategy.flipperDelete(
           id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
 
       callback("customer deleted");

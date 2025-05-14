@@ -433,7 +433,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   Future<void> _deleteSingleItem(TransactionItem item, bool isOrdering) async {
     try {
       await ProxyService.strategy
-          .delete(id: item.id, endPoint: 'transactionItem');
+          .flipperDelete(id: item.id, endPoint: 'transactionItem');
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     } catch (e) {
       talker.error(e);
@@ -455,7 +455,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             .getTransactionItem(variantId: composite.variantId!);
         if (deletableItem != null) {
           ProxyService.strategy
-              .delete(id: deletableItem.id, endPoint: 'transactionItem');
+              .flipperDelete(id: deletableItem.id, endPoint: 'transactionItem');
         }
       }
     } catch (e) {}

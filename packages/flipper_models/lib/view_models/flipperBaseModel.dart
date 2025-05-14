@@ -50,7 +50,8 @@ class FlipperBaseModel extends ReactiveViewModel {
         uniqueUserIds.add(user.id);
         uniqueUsers.add(user);
       } else {
-        await ProxyService.strategy.delete(id: user.id, endPoint: 'tenant');
+        await ProxyService.strategy
+            .flipperDelete(id: user.id, endPoint: 'tenant');
       }
     }
 

@@ -250,7 +250,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         .firstOrNull;
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
-      ProxyService.strategy.delete(
+      ProxyService.strategy.flipperDelete(
           id: id, endPoint: 'variation', flipperHttpClient: ProxyService.http);
       //this will reload the variations remain
       getProduct();
@@ -360,7 +360,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       for (Variant variation in variations) {
         //get stock->delete
         /// deleting variant is supposed to cascade delete stock
-        await ProxyService.strategy.delete(
+        await ProxyService.strategy.flipperDelete(
             id: variation.id,
             endPoint: 'variant',
             flipperHttpClient: ProxyService.http);
@@ -372,7 +372,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         }
       }
       //then delete the product
-      await ProxyService.strategy.delete(
+      await ProxyService.strategy.flipperDelete(
           id: productId,
           endPoint: 'product',
           flipperHttpClient: ProxyService.http);
@@ -402,7 +402,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   }
 
   void deleteDiscount({id}) {
-    ProxyService.strategy.delete(
+    ProxyService.strategy.flipperDelete(
         id: id, endPoint: 'discount', flipperHttpClient: ProxyService.http);
   }
 
