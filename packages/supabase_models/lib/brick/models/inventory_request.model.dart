@@ -15,6 +15,7 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   final String id;
   int? mainBranchId;
   int? subBranchId;
+  // Use fk_branch_id relationship for PostgREST
   @Supabase(foreignKey: 'branch_id')
   Branch? branch;
   // the requester same as subBranchId but this will use uuid representation of the subBranchId

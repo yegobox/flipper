@@ -1,8 +1,6 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -402,6 +400,7 @@ class CustomersState extends ConsumerState<Customers> {
                     onPressed: () {
                       // Open add customer modal
                       showModalBottomSheet(
+                        constraints: BoxConstraints(maxHeight: 50),
                         showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
@@ -410,15 +409,20 @@ class CustomersState extends ConsumerState<Customers> {
                         ),
                         isScrollControlled: true,
                         builder: (BuildContext context) {
-                          return Padding(
+                          return SingleChildScrollView(
                             padding: MediaQuery.of(context).viewInsets,
-                            child: AddCustomer(
-                              transactionId: ref
-                                  .watch(pendingTransactionStreamProvider(
-                                      isExpense: false))
-                                  .value!
-                                  .id,
-                              searchedKey: '',
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AddCustomer(
+                                  transactionId: ref
+                                      .watch(pendingTransactionStreamProvider(
+                                          isExpense: false))
+                                      .value!
+                                      .id,
+                                  searchedKey: '',
+                                ),
+                              ],
                             ),
                           );
                         },
