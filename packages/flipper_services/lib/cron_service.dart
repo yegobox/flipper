@@ -10,7 +10,6 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -278,6 +277,13 @@ class CronService {
         tinNumber: tinNumber,
         bhfId: bhfId,
         URI: uri,
+        sendPort: notificationCallback,
+      );
+      CustomerPatch.patchCustomer(
+        URI: uri,
+        tinNumber: tinNumber,
+        bhfId: bhfId,
+        branchId: ProxyService.box.getBranchId()!,
         sendPort: notificationCallback,
       );
     } catch (e) {

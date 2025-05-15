@@ -8,14 +8,13 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
 
-import 'package:sqlite3/sqlite3.dart'
-    if (dart.library.html) 'package:flipper_models/web_sqlite_stub.dart';
+// import 'package:sqlite3/sqlite3.dart'
+//     if (dart.library.html) 'package:flipper_models/web_sqlite_stub.dart';
 
 final repository = Repository();
 mixin VariantPatch {

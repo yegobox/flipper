@@ -12,6 +12,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/desktop_login_status.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Once open time someone else solved issue: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5#diff-5ca3a4f36b6e5b25b9776be6945ade02382219f8f0a7c8ec1ecd1ccc018c73aaR19
 //
@@ -285,6 +286,50 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                               fontWeight: FontWeight.w400,
                               fontSize: 15,
                               color: Colors.black))),
+                  SizedBox(height: 30),
+                  // Companion app download section
+                  SizedBox(
+                    width: 380,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Don't have the Flipper app? Download it:",
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // iOS App Store link
+                                launchUrl(Uri.parse('https://apps.apple.com/app/idXXXXXXXXX'));
+                              },
+                              child: Image.network(
+                                'https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg',
+                                height: 40,
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () {
+                                // Google Play Store link
+                                launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=com.flipper.app'));
+                              },
+                              child: Image.network(
+                                'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg',
+                                height: 40,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   SizedBox(height: 30),
                   SizedBox(
                     height: 40,
