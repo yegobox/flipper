@@ -909,17 +909,43 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Device?> getDevice(
       {required String phone, required String linkingCode}) async {
-    final query = brick.Query(where: [
-      brick.Where('phone', value: phone, compare: brick.Compare.exact),
-      brick.Where(
-        'linkingCode',
-        value: linkingCode,
-        compare: brick.Compare.exact,
-      ),
-    ]);
-    final List<Device> fetchedDevices =
-        await repository.get<Device>(query: query);
-    return fetchedDevices.firstOrNull;
+    try {
+      final query = brick.Query(where: [
+        brick.Where('phone', value: phone, compare: brick.Compare.exact),
+        brick.Where(
+          'linkingCode',
+          value: linkingCode,
+          compare: brick.Compare.exact,
+        ),
+      ]);
+      final List<Device> fetchedDevices = await repository.get<Device>(
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist, query: query);
+      return fetchedDevices.firstOrNull;
+    } catch (e) {
+      // Log the error but don't throw it up the stack
+      talker.error('Error in getDevice: $e');
+
+      // Try a fallback query with just linkingCode if available
+      if (linkingCode.isNotEmpty) {
+        try {
+          final fallbackQuery = brick.Query(where: [
+            brick.Where(
+              'linkingCode',
+              value: linkingCode,
+              compare: brick.Compare.exact,
+            ),
+          ]);
+          final List<Device> devices =
+              await repository.get<Device>(query: fallbackQuery);
+          return devices.firstOrNull;
+        } catch (fallbackError) {
+          talker.error('Fallback query also failed: $fallbackError');
+        }
+      }
+
+      // Return null instead of throwing an exception
+      return null;
+    }
   }
 
   @override
