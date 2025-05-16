@@ -73,7 +73,61 @@ Connect with our growing community of developers, users, and partners:
 
 [![Twitter](.github/assets/twitter.svg)](https://twitter.com/Flipperio) &nbsp; [![Mastodon](.github/assets/mastodon.svg)](https://fosstodon.org/@Flipper)
 
+
 Visit our community hub: [yegobox.com/community](https://yegobox.com/community)
+
+## Contributing to Flipper
+
+We welcome contributions from the community! Here's how you can get involved:
+
+1. **Contact Us First**: Before starting work on a contribution, please email us at info@yegobox.com with your proposal or idea.
+
+2. **Fork & Pull Request**: Standard GitHub workflow - fork the repository, make your changes, and submit a pull request.
+
+3. **Code Style**: Follow the existing code style and patterns in the project.
+
+4. **Testing**: Ensure your changes include appropriate tests and don't break existing functionality.
+
+## Repository Setup
+
+### Getting Started
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yegobox/flipper.git
+   cd flipper
+   ```
+
+2. **Setup Melos** (required for monorepo management):
+   ```bash
+   dart pub global activate melos 6.3.2
+   melos bootstrap
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   flutter pub get
+   ```
+
+### Manual Configuration
+
+Some files need to be manually created or copied due to security or configuration reasons:
+
+1. **Secret Files**: The following files contain sensitive information and need to be manually copied or created:
+   - `packages/flipper_models/lib/secrets.dart` (contains `AppSecrets` class with API keys and endpoints)
+   - `apps/flipper/lib/firebase_options.dart` (contains `DefaultFirebaseOptions` class with Firebase configuration)
+
+2. **API Keys**: You'll need to obtain and configure your own API keys for services like:
+   - Payment gateways (PayStack)
+   - Cloud storage
+   - Analytics
+   - Firebase
+   - Sentry
+   - Supabase
+
+3. **Local Database**: Initial database configuration files may need to be manually set up.
+
+These files are not included in the repository for security reasons. For templates and detailed setup instructions, please contact info@yegobox.com.
 
 ---
 
