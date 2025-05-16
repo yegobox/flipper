@@ -1498,6 +1498,35 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Pin?> savePin({required Pin pin}) async {
     try {
+      // First check if a PIN with this userId already exists
+      final existingPins = await repository.get<Pin>(
+        query:
+            brick.Query(where: [brick.Where('userId').isExactly(pin.userId)]),
+      );
+
+      if (existingPins.isNotEmpty) {
+        // Update the existing PIN instead of creating a new one
+        Pin existingPin = existingPins.first;
+
+        // Since we can't modify the ID (it's final), we'll update the existing PIN's fields
+        // and then use that object instead of the new one
+        existingPin.phoneNumber = pin.phoneNumber;
+        existingPin.branchId = pin.branchId;
+        existingPin.businessId = pin.businessId;
+        existingPin.ownerName = pin.ownerName;
+        existingPin.tokenUid = pin.tokenUid;
+        existingPin.uid = pin.uid;
+
+        // Use the existing PIN object with updated fields
+        pin = existingPin;
+
+        talker.debug(
+            "Updating existing PIN with userId: ${pin.userId}, ID: ${pin.id}");
+      } else {
+        talker.debug("Creating new PIN with userId: ${pin.userId}");
+      }
+
+      // Use upsert with a query to ensure we're updating the right record
       final query = brick.Query.where('userId', pin.userId, limit1: true);
       final savedPin = await repository.upsert(
         pin,
@@ -1506,6 +1535,7 @@ class CoreSync extends AiStrategyImpl
 
       return savedPin;
     } catch (e, s) {
+      talker.error("Error saving PIN: $e");
       talker.error(s.toString());
       rethrow;
     }
