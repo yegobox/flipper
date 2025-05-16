@@ -139,7 +139,8 @@ class CoreSync extends AiStrategyImpl
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy.getPinLocal(userId: userId);
+    final pinLocal = await ProxyService.strategy
+        .getPinLocal(userId: userId, alwaysHydrate: true);
     try {
       token ??= pinLocal?.tokenUid;
 
@@ -1081,9 +1082,12 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Pin?> getPinLocal({required int userId}) async {
+  FutureOr<Pin?> getPinLocal(
+      {required int userId, required bool alwaysHydrate}) async {
     return (await repository.get<Pin>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            policy: alwaysHydrate
+                ? OfflineFirstGetPolicy.awaitRemote
+                : OfflineFirstGetPolicy.localOnly,
             query:
                 brick.Query(where: [brick.Where('userId').isExactly(userId)])))
         .firstOrNull;
@@ -3302,12 +3306,32 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> updatePin(
       {required int userId, String? phoneNumber, String? tokenUid}) async {
-    List<Pin> pin = await repository.get<Pin>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
-    if (pin.isNotEmpty) {
-      Pin myPin = pin.first;
-      myPin.phoneNumber = phoneNumber;
-      repository.upsert(myPin);
+    try {
+      List<Pin> pins = await repository.get<Pin>(
+          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+
+      if (pins.isNotEmpty) {
+        Pin myPin = pins.first;
+
+        // Update the PIN with new information if provided
+        if (phoneNumber != null) {
+          myPin.phoneNumber = phoneNumber;
+        }
+
+        // Update the tokenUid if provided
+        if (tokenUid != null) {
+          myPin.tokenUid = tokenUid;
+        }
+
+        talker.debug(
+            "Updating PIN for userId: $userId with tokenUid: ${tokenUid ?? 'unchanged'}");
+        await repository.upsert(myPin);
+      } else {
+        talker.warning("No PIN found for userId: $userId. Cannot update.");
+      }
+    } catch (e, s) {
+      talker.error("Error updating PIN: $e");
+      talker.error(s.toString());
     }
   }
 

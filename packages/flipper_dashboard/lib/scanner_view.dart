@@ -704,7 +704,8 @@ class ScannViewState extends ConsumerState<ScannView>
         _scanStatus = ScanStatus.processing;
       });
       // get the pin
-      final pin = await ProxyService.strategy.getPinLocal(userId: userId);
+      final pin = await ProxyService.strategy
+          .getPinLocal(userId: userId, alwaysHydrate: false);
 
       PublishResult result = await ProxyService.event.publish(loginDetails: {
         'channel': channel,

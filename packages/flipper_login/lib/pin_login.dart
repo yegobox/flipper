@@ -8,6 +8,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked/stacked.dart';
@@ -44,14 +45,36 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
         // Update local authentication
         await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
 
-        final thePin = Pin(
-          userId: int.tryParse(pin.userId),
-          pin: int.tryParse(pin.userId),
-          branchId: pin.branchId,
-          businessId: pin.businessId,
-          ownerName: pin.ownerName,
-          phoneNumber: pin.phoneNumber,
-        );
+        // Check if a PIN with this userId already exists in the local database
+        final userId = int.tryParse(pin.userId);
+        final existingPin = await ProxyService.strategy
+            .getPinLocal(userId: userId!, alwaysHydrate: false);
+
+        Pin thePin;
+        if (existingPin != null) {
+          // Update the existing PIN instead of creating a new one
+          thePin = existingPin;
+
+          // Update fields with the latest information
+          thePin.phoneNumber = pin.phoneNumber;
+          thePin.branchId = pin.branchId;
+          thePin.businessId = pin.businessId;
+          thePin.ownerName = pin.ownerName;
+
+          print(
+              "Using existing PIN with userId: ${pin.userId}, ID: ${thePin.id}");
+        } else {
+          // Create a new PIN if none exists
+          thePin = Pin(
+            userId: userId,
+            pin: userId,
+            branchId: pin.branchId,
+            businessId: pin.businessId,
+            ownerName: pin.ownerName,
+            phoneNumber: pin.phoneNumber,
+          );
+          print("Creating new PIN with userId: ${pin.userId}");
+        }
 
         await ProxyService.strategy.login(
           pin: thePin,
@@ -81,6 +104,19 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
   // Handle the login completion flow (redirect after login)
   Future<void> _completeLogin(Pin thePin) async {
     try {
+      // Get the current Firebase user's UID
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final uid = currentUser?.uid;
+
+      // If we have a valid UID from Firebase but the PIN doesn't have it,
+      // update the PIN with the UID to prevent duplicates
+      if (uid != null && thePin.uid != uid) {
+        print("Updating PIN with Firebase UID: $uid");
+        thePin.uid = uid;
+        thePin.tokenUid = uid; // Also update tokenUid to ensure consistency
+      }
+
+      // Save the PIN with the updated UID
       await ProxyService.strategy.savePin(pin: thePin);
       await loc.getIt<AppService>().appInit();
       final defaultApp = ProxyService.box.getDefaultApp();
