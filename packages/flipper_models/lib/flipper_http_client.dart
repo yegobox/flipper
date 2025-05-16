@@ -1,10 +1,27 @@
 import 'dart:convert';
 
+import 'package:flipper_models/helperModels/UniversalProduct.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/secrets.dart' as secrets;
+
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:http/retry.dart';
+import 'package:supabase_models/brick/models/universalProduct.model.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+class DefaultFlipperHttpClient with FlipperHttpClient {
+  final http.Client _client;
+  @override
+  final Repository repository;
+
+  DefaultFlipperHttpClient(this._client, this.repository);
+
+  @override
+  http.Client get _inner => _client;
+}
 
 abstract class HttpClientInterface {
   Future<http.StreamedResponse> send(http.BaseRequest request);
@@ -17,12 +34,16 @@ abstract class HttpClientInterface {
       {Map<String, String>? headers, Object? body, Encoding? encoding});
   Future<http.Response> delete(Uri url,
       {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> getUniversalProducts(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
 }
 
-class FlipperHttpClient implements HttpClientInterface {
-  final http.Client _inner;
+/// Mixin for HTTP client logic. Requires the implementing class to provide an http.Client via the `_inner` getter.
+mixin FlipperHttpClient implements HttpClientInterface {
+  Repository get repository;
 
-  FlipperHttpClient(this._inner);
+  /// The underlying http.Client instance must be provided by the implementing class.
+  http.Client get _inner;
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -119,10 +140,48 @@ class FlipperHttpClient implements HttpClientInterface {
       'userId': userId?.toString() ?? "",
     };
 
+    // Add basic authentication using credentials from AppSecrets
+    final credentials =
+        '${secrets.AppSecrets.username}:${secrets.AppSecrets.password}';
+    final encodedCredentials = base64Encode(utf8.encode(credentials));
+    headers['Authorization'] = 'Basic $encodedCredentials';
+
+    // If token exists, it will override the basic auth (keeping this for backward compatibility)
     if (token != null) {
       headers['Authorization'] = token;
     }
 
     return headers;
+  }
+
+  @override
+  Future<http.Response> getUniversalProducts(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+    final response = await http.post(url, headers: headers, body: body);
+    final jsonResponse = json.decode(response.body);
+
+    if (jsonResponse is Map<String, dynamic> &&
+        jsonResponse['data'] is Map<String, dynamic> &&
+        jsonResponse['data']['itemClsList'] is List) {
+      final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
+      UniversalProduct product = UniversalProduct.fromJson(itemClsList[0]);
+      final result = await repository.get<UnversalProduct>(
+          query: Query(
+              where: [Where('item_cls_cd').isExactly(product.itemClsCd)]));
+      if (result.isEmpty) {
+        repository.upsert<UnversalProduct>(UnversalProduct(
+          itemClsCd: product.itemClsCd,
+          itemClsNm: product.itemClsNm,
+          itemClsLvl: product.itemClsLvl,
+          taxTyCd: product.taxTyCd,
+          mjrTgYn: product.mjrTgYn,
+          useYn: product.useYn,
+          businessId: product.businessId,
+          branchId: product.branchId,
+        ));
+        talker.info("UniversalProduct added: ${product.itemClsCd}");
+      }
+    }
+    return response;
   }
 }

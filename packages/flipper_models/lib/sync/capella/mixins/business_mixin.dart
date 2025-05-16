@@ -53,7 +53,7 @@ mixin CapellaBusinessMixin implements BusinessInterface {
 
   @override
   Future<void> addBusiness(
-      {required int id,
+      {required String id,
       required int userId,
       required int serverId,
       String? name,

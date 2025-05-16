@@ -674,7 +674,9 @@ class ScannViewState extends ConsumerState<ScannView>
           });
         } else {
           // We're online, proceed with login
-          _publishLoginDetails(result);
+          // we get login-<linkingCode> so we need to get the linkingCode
+          // pass the linkingCode to the publishLoginDetails function which is split[1]
+          _publishLoginDetails(split[1]);
         }
       });
     }

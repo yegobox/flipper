@@ -31,7 +31,6 @@ class PaymentSummary {
 }
 
 mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
   void addFooter(DataGridPdfHeaderFooterExportDetails headerFooterExport,
       {required ExportConfig config}) {
     final double width = headerFooterExport.pdfPage.getClientSize().width;
@@ -131,10 +130,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Create fonts
     final PdfStandardFont titleFont =
         PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
-    final PdfStandardFont headerFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11);
-    final PdfStandardFont headerBoldFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
 
     header.graphics.drawRectangle(
       brush: PdfSolidBrush(PdfColor(68, 114, 196)), // Blue background
@@ -152,59 +147,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         lineAlignment: PdfVerticalAlignment.middle,
       ),
     );
-
-    // Define the vertical offset for content positioning
-    double currentY = 40; // Start closer to the title for compact spacing
-
-    // Increment the Y position for the next content block
-    currentY += 20; // Reduced space between sections
-
-    // Helper function to draw a label-value pair
-    void drawLabelValuePair(String label, String value, double x, double y) {
-      // Draw the label in bold
-      header.graphics.drawString(
-        label,
-        headerBoldFont,
-        bounds: Rect.fromLTWH(x, y, width * 0.2, 20),
-      );
-
-      // Draw the value next to the label
-      header.graphics.drawString(
-        value,
-        headerFont,
-        bounds: Rect.fromLTWH(x + width * 0.2, y, width * 0.3, 20),
-      );
-    }
-
-    // Draw the first row of information
-    drawLabelValuePair(
-        'TIN Number:', business.tinNumber?.toString() ?? '', 0, currentY);
-    drawLabelValuePair('Start Date:', config.startDate?.toYYYMMdd() ?? '',
-        width * 0.5, currentY);
-
-    // Increment Y position for the next row
-    currentY += 20; // Reduced space between rows
-
-    // Draw the second row of information
-    drawLabelValuePair('BHF ID:', '00', 0, currentY);
-    drawLabelValuePair(
-        'End Date:', config.endDate?.toYYYMMdd() ?? '', width * 0.5, currentY);
-
-    // Increment Y position for the next row
-    currentY += 20; // Reduced space between rows
-
-    // Draw the third row of information
-    drawLabelValuePair('Opening Balance:', '0.00', 0, currentY);
-    drawLabelValuePair('Tax Rate:', '18%', width * 0.5, currentY);
-
-    // Increment Y position for the next row
-    currentY += 20; // Reduced space between rows
-
-    // Draw the fourth row of information
-    drawLabelValuePair('COGS:', config.cogs?.toRwf() ?? '', 0, currentY);
-
-    // Set the adjusted header to the PDF document template
-    headerFooterExport.pdfDocumentTemplate.top = header;
   }
 
   Future<String?> exportDataGrid({
@@ -213,6 +155,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool isStockRecount = false,
     required String headerTitle,
     required String bottomEndOfRowTitle,
+    required GlobalKey<SfDataGridState> workBookKey,
+    List<dynamic>? manualData, // Added parameter for manual data export
+    List<String>? columnNames, // Added parameter for column names
+    required bool showProfitCalculations,
   }) async {
     String? filePath;
     try {
@@ -287,32 +233,187 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         filePath = await _savePdfFile(document);
         document.dispose();
       } else {
-        final excel.Workbook workbook =
-            workBookKey.currentState!.exportToExcelWorkbook();
+        excel.Workbook workbook = excel.Workbook();
+
+        try {
+          if (workBookKey.currentState != null) {
+            try {
+              workbook = workBookKey.currentState!.exportToExcelWorkbook();
+            } catch (e) {
+              // If we get an error, create a fresh workbook
+              talker.warning('Error using DataGrid export: $e');
+              workbook = excel.Workbook();
+              talker.info('Created fresh workbook after DataGrid export error');
+            }
+          } else {
+            // For detailed view, we need to create a workbook manually
+            talker.warning(
+                'DataGrid state is null, using manual workbook creation');
+
+            // Keep using the manually created workbook
+            // We'll add the data to it in the subsequent steps
+          }
+        } catch (e) {
+          talker.error('Error during export preparation: $e');
+          // Ensure we have a valid workbook to continue with
+          workbook = excel.Workbook();
+        }
+
+        // Get the worksheet from the workbook
         final excel.Worksheet reportSheet = workbook.worksheets[0];
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
+        // Check if we have manual data to populate the workbook with
+        if (manualData != null &&
+            manualData.isNotEmpty &&
+            columnNames != null &&
+            columnNames.isNotEmpty) {
+          talker.info(
+              'Populating workbook with manual data (${manualData.length} rows)');
+
+          // Create a proper header style that matches DataGrid export
+          final headerStyle = workbook.styles.add('HeaderStyle');
+          headerStyle.fontName = 'Calibri';
+          headerStyle.fontSize = 11;
+          headerStyle.bold = true;
+          headerStyle.hAlign = excel.HAlignType.center;
+          headerStyle.vAlign = excel.VAlignType.center;
+          headerStyle.backColor =
+              '#D9D9D9'; // Light gray background like DataGrid export
+          headerStyle.fontColor = '#000000'; // Black text like DataGrid export
+          headerStyle.borders.all.lineStyle = excel.LineStyle.none;
+          headerStyle.borders.all.color = '#A6A6A6';
+
+          // Create a data cell style that matches DataGrid export
+          final dataStyle = workbook.styles.add('DataStyle');
+          dataStyle.fontName = 'Calibri';
+          dataStyle.fontSize = 11;
+          dataStyle.hAlign = excel.HAlignType.left;
+          dataStyle.vAlign = excel.VAlignType.center;
+          dataStyle.borders.all.lineStyle = excel.LineStyle.none;
+          dataStyle.borders.all.color = '#A6A6A6';
+
+          // Create a numeric cell style
+          final numericStyle = workbook.styles.add('NumericStyle');
+          numericStyle.fontName = 'Calibri';
+          numericStyle.fontSize = 11;
+          numericStyle.hAlign = excel.HAlignType.left;
+          numericStyle.vAlign = excel.VAlignType.center;
+          numericStyle.numberFormat = '#,##0.00';
+          numericStyle.borders.all.lineStyle = excel.LineStyle.none;
+          numericStyle.borders.all.color = '#A6A6A6';
+
+          // Add column headers
+          for (int i = 0; i < columnNames.length; i++) {
+            final cell = reportSheet.getRangeByIndex(1, i + 1);
+            cell.setText(columnNames[i]);
+            cell.cellStyle = headerStyle;
+
+            // Set column width to match DataGrid export (auto-fit will be applied later)
+            reportSheet.setColumnWidthInPixels(
+                i + 1, 120); // Initial width before auto-fit
+          }
+
+          // Add data rows
+          for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
+            final item = manualData[rowIndex];
+            Map<String, dynamic> rowData;
+
+            try {
+              // Try to convert the item to a map
+              rowData = item is Map ? item : item.toJson();
+            } catch (e) {
+              // If toJson() fails, create a map with basic properties
+              rowData = {};
+
+              // Attempt to extract common properties based on column names
+              for (String colName in columnNames) {
+                try {
+                  // Try to access the property directly
+                  final value = _getItemProperty(item, colName);
+                  rowData[colName] = value;
+                } catch (e) {
+                  rowData[colName] = ''; // Default empty value
+                }
+              }
+            }
+
+            // Add each cell in the row
+            for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
+              final colName = columnNames[colIndex];
+              final cell =
+                  reportSheet.getRangeByIndex(rowIndex + 2, colIndex + 1);
+
+              // Get the value for this column
+              var value = rowData[colName];
+              if (value == null) {
+                // Try to find a matching key regardless of case
+                final matchingKey = rowData.keys.firstWhere(
+                  (k) => k.toString().toLowerCase() == colName.toLowerCase(),
+                  orElse: () => '',
+                );
+                if (matchingKey.isNotEmpty) {
+                  value = rowData[matchingKey];
+                }
+              }
+
+              // Format and set the cell value
+              if (value is num) {
+                cell.setNumber(value.toDouble());
+                cell.cellStyle = numericStyle;
+              } else if (value is DateTime) {
+                cell.setDateTime(value);
+                cell.numberFormat = 'yyyy-mm-dd hh:mm:ss';
+                cell.cellStyle = dataStyle;
+              } else {
+                cell.setText(value?.toString() ?? '');
+                cell.cellStyle = dataStyle;
+              }
+            }
+          }
+
+          // Auto-fit all columns for better readability
+          for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
+            reportSheet.autoFitColumn(i);
+          }
+        } else {
+          // Add a header row to ensure the workbook has some content
+          if (workbook.worksheets[0].getLastRow() < 1) {
+            talker.info('Adding basic structure to empty workbook');
+            reportSheet.getRangeByName('A1').setText('Report');
+          }
+        }
+
         if (!isStockRecount) {
-          final drawer = await ProxyService.strategy
-              .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final styler = ExcelStyler(workbook);
 
-          await _addHeaderAndInfoRows(
-              reportSheet: reportSheet,
-              styler: styler,
-              config: config,
-              business: business!,
-              drawer: drawer,
-              headerTitle: headerTitle);
+          // Only format columns with profit calculations if showProfitCalculations is true
+          if (showProfitCalculations) {
+            _formatColumns(reportSheet, config.currencyFormat);
+          } else {
+            // Just auto-fit columns without adding profit calculations
+            for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
+              reportSheet.autoFitColumn(i);
+            }
+            talker.debug('Auto-fitting columns without profit calculations');
+          }
 
-          _addClosingBalanceRow(reportSheet, styler, config.currencyFormat,
-              bottomEndOfRowTitle: bottomEndOfRowTitle, cogs: config.cogs ?? 0);
-          _formatColumns(reportSheet, config.currencyFormat);
-
-          if (expenses != null && expenses.isNotEmpty) {
+          // First add the expenses sheet if there are expenses and we're showing profit calculations
+          bool hasExpensesSheet = false;
+          if (showProfitCalculations &&
+              expenses != null &&
+              expenses.isNotEmpty) {
             _addExpensesSheet(
                 workbook, expenses, styler, config.currencyFormat);
+            hasExpensesSheet = true;
           }
+
+          // Then add the Net Profit row to the report sheet if we have expenses and showing profit calculations
+          if (showProfitCalculations && hasExpensesSheet) {
+            _addNetProfitRow(reportSheet, workbook, config.currencyFormat);
+          }
+
+          // Always add the payment method sheet regardless of profit calculations
           await _addPaymentMethodSheet(workbook, config, styler);
         }
 
@@ -351,142 +452,186 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  Future<Map<String, excel.Range>> _addHeaderAndInfoRows({
-    required excel.Worksheet reportSheet,
-    required ExcelStyler styler,
-    required ExportConfig config,
-    required Business business,
-    required Drawers? drawer,
-    required String headerTitle,
-  }) async {
-    final headerStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-    final infoStyle = styler.createStyle(
-        fontColor: '#000000', backColor: '#E7E6E6', fontSize: 12);
-
-    reportSheet.insertRow(1);
-    final titleRange = reportSheet.getRangeByName(
-        'A1:${String.fromCharCode(64 + reportSheet.getLastColumn())}1');
-    titleRange.merge();
-    titleRange.setText(headerTitle);
-    titleRange.cellStyle = headerStyle;
-
-    final taxRate = 18;
-    // final taxAmount = (config.grossProfit ?? 0 * taxRate) / 118;
-
-    final infoData = [
-      ['TIN Number', business.tinNumber?.toString() ?? ''],
-      ['BHF ID', await ProxyService.box.bhfId() ?? '00'],
-      ['Start Date', config.startDate?.toIso8601String() ?? '-'],
-      ['End Date', config.endDate?.toIso8601String() ?? '-'],
-      ['Opening Balance', drawer?.openingBalance ?? 0],
-      ['Tax Rate', taxRate],
-      ['COGS', config.cogs],
-    ];
-
-    Map<String, excel.Range> namedRanges = {};
-
-    for (var i = 0, infoRow = 2; i < infoData.length; i++, infoRow++) {
-      reportSheet.insertRow(infoRow);
-      reportSheet
-          .getRangeByName('A$infoRow')
-          .setText(infoData[i][0].toString());
-      final value = infoData[i][1];
-      final cell = reportSheet.getRangeByName('B$infoRow');
-      try {
-        if (value is num) {
-          cell.setValue(value);
-          cell.numberFormat = config.currencyFormat;
-        } else {
-          cell.setText(value.toString());
-        }
-      } catch (e) {}
-      final infoRange = reportSheet.getRangeByName(
-          'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
-      infoRange.cellStyle = infoStyle;
-    }
-
-    return namedRanges;
-  }
-
-  void _addClosingBalanceRow(
-      excel.Worksheet sheet, ExcelStyler styler, String currencyFormat,
-      {required String bottomEndOfRowTitle, required double cogs}) {
-    final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
-    final firstDataRow = _getFirstDataRow(sheet);
-    final lastDataRow = sheet.getLastRow();
-    final closingBalanceRow = lastDataRow + 1;
-
-    // Find the column index for "Amount" (assuming always column C = 3)
-    final amountColIndex = 3; // C
-    final amountColLetter = String.fromCharCode(64 + amountColIndex);
-
-    sheet.insertRow(closingBalanceRow);
-    sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
-    sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
-
-    final grossProfitCell =
-        sheet.getRangeByName('$amountColLetter$closingBalanceRow');
-    grossProfitCell.setFormula(
-        '=SUM($amountColLetter${firstDataRow}:$amountColLetter$lastDataRow)');
-    grossProfitCell.cellStyle = balanceStyle;
-    grossProfitCell.numberFormat = currencyFormat;
-
-    sheet
-        .getRangeByName(
-            'A$closingBalanceRow:$amountColLetter$closingBalanceRow')
-        .cellStyle = balanceStyle;
-
-    // Add COGS row
-    final cogsRow = closingBalanceRow + 1;
-    sheet.insertRow(cogsRow);
-    sheet.getRangeByName('A$cogsRow').setText('Cost of Goods Sold (COGS)');
-    sheet.getRangeByName('A$cogsRow').cellStyle = balanceStyle;
-
-    final cogsCell = sheet.getRangeByName('$amountColLetter$cogsRow');
-    cogsCell.setValue(cogs);
-    cogsCell.cellStyle = balanceStyle;
-    cogsCell.numberFormat = currencyFormat;
-
-    sheet.getRangeByName('A$cogsRow:$amountColLetter$cogsRow').cellStyle =
-        balanceStyle;
-
-    // Add named range for COGS
-    sheet.workbook.names.add('COGSValue', cogsCell);
-
-    // Add Net Profit row (Gross Profit - COGS)
-    final netProfitRow = cogsRow + 1;
-    sheet.insertRow(netProfitRow);
-    sheet.getRangeByName('A$netProfitRow').setText('Net Profit');
-    sheet.getRangeByName('A$netProfitRow').cellStyle = balanceStyle;
-
-    final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
-    netProfitCell.setFormula(
-        '=$amountColLetter$closingBalanceRow-$amountColLetter$cogsRow');
-    netProfitCell.cellStyle = balanceStyle;
-    netProfitCell.numberFormat = currencyFormat;
-
-    sheet
-        .getRangeByName('A$netProfitRow:$amountColLetter$netProfitRow')
-        .cellStyle = balanceStyle;
-
-    // Add named range for Net Profit
-    sheet.workbook.names.add('NetProfit', netProfitCell);
-  }
-
   void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
+    // Format currency columns
     for (int row = 1; row <= sheet.getLastRow(); row++) {
       sheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
     }
 
+    // Auto-fit all columns for better readability
     for (int i = 1; i <= sheet.getLastColumn(); i++) {
       sheet.autoFitColumn(i);
     }
+
+    // Ensure all columns are properly sized
+    talker.debug('Auto-fitting all columns in the report sheet');
+
+    // Add GrossProfit sum at the end of all rows
+    final lastRow = sheet.getLastRow();
+    final lastColumn = sheet.getLastColumn();
+
+    // Find the GrossProfit column - typically column 9 based on the formatting above
+    // But let's look for a header with 'GrossProfit' or 'Gross Profit' to be sure
+    int grossProfitColumn = 9; // Default based on currency formatting
+
+    // Check if we can find a better match for the GrossProfit column by header name
+    for (int col = 1; col <= lastColumn; col++) {
+      final cellValue = sheet.getRangeByIndex(1, col).getText();
+      if (cellValue != null &&
+          (cellValue.toLowerCase().contains('gross') &&
+              cellValue.toLowerCase().contains('profit'))) {
+        grossProfitColumn = col;
+        break;
+      }
+    }
+
+    // Add a total row at the bottom
+    final totalRowIndex = lastRow + 2; // Leave one blank row
+
+    // Create a style for the total row
+    final style = sheet.workbook.styles.add('GrossProfitTotalStyle');
+    style.fontName = 'Calibri';
+    style.fontSize = 12;
+    style.bold = true;
+    style.hAlign = excel.HAlignType.left;
+    style.borders.top.lineStyle = excel.LineStyle.none;
+    style.borders.bottom.lineStyle = excel.LineStyle.thin;
+
+    // Add 'Total Gross Profit:' label
+    sheet
+        .getRangeByIndex(totalRowIndex, grossProfitColumn - 1)
+        .setText('Total Gross Profit:');
+    sheet.getRangeByIndex(totalRowIndex, grossProfitColumn - 1).cellStyle =
+        style;
+
+    // Add the SUM formula for the GrossProfit column
+    final sumCell = sheet.getRangeByIndex(totalRowIndex, grossProfitColumn);
+    sumCell.setFormula(
+        '=SUM(${_getColumnLetter(grossProfitColumn)}2:${_getColumnLetter(grossProfitColumn)}$lastRow)');
+    sumCell.numberFormat = currencyFormat;
+    sumCell.cellStyle = style;
+
+    // Auto-fit the columns again after adding the total row
+    sheet.autoFitColumn(grossProfitColumn - 1);
+    sheet.autoFitColumn(grossProfitColumn);
+
+    // Note: Net Profit calculation is now handled by the _addNetProfitRow method
+    // which is called after the Expenses sheet has been created
+  }
+
+  // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
+  String _getColumnLetter(int columnIndex) {
+    String columnLetter = '';
+    while (columnIndex > 0) {
+      int remainder = (columnIndex - 1) % 26;
+      columnLetter = String.fromCharCode(65 + remainder) + columnLetter;
+      columnIndex = (columnIndex - remainder - 1) ~/ 26;
+    }
+    return columnLetter;
   }
 
   String normalizePaymentMethod(String method) {
     return method.trim().toUpperCase();
+  }
+
+  // Helper method to find a worksheet by name
+  excel.Worksheet? _findWorksheetByName(excel.Workbook workbook, String name) {
+    for (int i = 0; i < workbook.worksheets.count; i++) {
+      if (workbook.worksheets[i].name == name) {
+        return workbook.worksheets[i];
+      }
+    }
+    return null;
+  }
+
+  // Add Net Profit row to the report sheet after the Expenses sheet has been created
+  void _addNetProfitRow(excel.Worksheet reportSheet, excel.Workbook workbook,
+      String currencyFormat) {
+    try {
+      // Find the last row in the report sheet (where the Gross Profit is)
+      final lastRow = reportSheet.getLastRow();
+      final totalRowIndex = lastRow;
+
+      // Find the column with the Gross Profit value (typically column 9 based on currency formatting)
+      int grossProfitColumn = 9;
+
+      // Check if we can find a better match for the GrossProfit column by header name
+      for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
+        final cellValue = reportSheet.getRangeByIndex(1, col).getText();
+        if (cellValue != null &&
+            (cellValue.toLowerCase().contains('gross') &&
+                cellValue.toLowerCase().contains('profit'))) {
+          grossProfitColumn = col;
+          break;
+        }
+      }
+
+      // Add Net Profit row below Gross Profit
+      final netProfitRowIndex = totalRowIndex + 1;
+
+      // Create a style for the Net Profit row
+      final netProfitStyle = workbook.styles.add('NetProfitTotalStyle');
+      netProfitStyle.fontName = 'Calibri';
+      netProfitStyle.fontSize = 12;
+      netProfitStyle.bold = true;
+      netProfitStyle.hAlign = excel.HAlignType.left;
+      netProfitStyle.borders.top.lineStyle = excel.LineStyle.none;
+      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.none;
+      netProfitStyle.backColor =
+          '#E2EFDA'; // Light green background for Net Profit
+
+      // Add 'Net Profit:' label
+      reportSheet
+          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
+          .setText('Net Profit:');
+      reportSheet
+          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
+          .cellStyle = netProfitStyle;
+
+      // Get the Net Profit cell
+      final netProfitCell =
+          reportSheet.getRangeByIndex(netProfitRowIndex, grossProfitColumn);
+
+      // Find the Expenses sheet which we know exists at this point
+      final expensesSheet = _findWorksheetByName(workbook, 'Expenses');
+      if (expensesSheet != null) {
+        // Get the last row in the Expenses sheet
+        final lastExpenseRow = expensesSheet.getLastRow();
+        // The total expenses are in the cell below the last expense item
+        final totalExpensesRowIndex = lastExpenseRow;
+
+        // Create a direct cell reference formula to subtract expenses from gross profit
+        final formula =
+            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
+
+        // This is a properly constructed Dart string with proper interpolation
+        netProfitCell.setFormula(formula);
+
+        // Log the formula for debugging
+        talker.debug('Created Net Profit formula: $formula');
+        talker.debug(
+            'Referencing Gross Profit cell: ${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+        talker.debug(
+            'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex');
+      } else {
+        // This shouldn't happen since we only call this method when the Expenses sheet exists
+        talker.error('Expenses sheet not found when adding Net Profit row');
+        // Fallback to just using the Gross Profit value
+        netProfitCell.setFormula(
+            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+      }
+
+      // Apply formatting to the Net Profit cell
+      netProfitCell.numberFormat = currencyFormat;
+      netProfitCell.cellStyle = netProfitStyle;
+
+      // Auto-fit all columns after adding the Net Profit row
+      for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
+        reportSheet.autoFitColumn(i);
+      }
+    } catch (e) {
+      talker.error('Error adding Net Profit row: $e');
+    }
   }
 
   Future<void> _addPaymentMethodSheet(
@@ -647,12 +792,23 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   void _formatSheet(excel.Worksheet sheet) {
-    for (int i = 1; i <= 4; i++) {
+    // Auto-fit all columns that have data
+    for (int i = 1; i <= sheet.getLastColumn(); i++) {
       sheet.autoFitColumn(i);
     }
 
+    // Hide any empty columns beyond our data
     for (int col = 5; col <= sheet.getLastColumn(); col++) {
-      sheet.getRangeByIndex(1, col).columnWidth = 0;
+      bool isEmpty = true;
+      for (int row = 1; row <= sheet.getLastRow(); row++) {
+        if (sheet.getRangeByIndex(row, col).getText()?.isNotEmpty == true) {
+          isEmpty = false;
+          break;
+        }
+      }
+      if (isEmpty) {
+        sheet.getRangeByIndex(1, col).columnWidth = 0;
+      }
     }
   }
 
@@ -679,44 +835,37 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   void _addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
       ExcelStyler styler, String currencyFormat) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
-    final expenseHeaderStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
-    final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
 
+    // Add headers without styling
     expenseSheet.getRangeByIndex(1, 1).setText('Expense');
     expenseSheet.getRangeByIndex(1, 2).setText('Amount');
-    expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = expenseHeaderStyle;
 
+    // Add expense data
     for (int i = 0; i < expenses.length; i++) {
       final rowIndex = i + 2;
       expenseSheet.getRangeByIndex(rowIndex, 1).setText(expenses[i].name);
       expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].amount);
+
+      // Set number format for amount column without styling
+      expenseSheet.getRangeByIndex(rowIndex, 2).numberFormat = currencyFormat;
     }
 
     final lastDataRow = expenseSheet.getLastRow();
 
-    for (int i = 1; i <= 2; i++) {
-      expenseSheet.autoFitColumn(i);
-    }
-
+    // Add total row without styling
     expenseSheet.getRangeByIndex(lastDataRow + 1, 1).setText('Total Expenses');
 
     final totalExpensesCell = expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
     totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
-    totalExpensesCell.cellStyle = balanceStyle;
     totalExpensesCell.numberFormat = currencyFormat;
 
-    workbook.names.add('TotalExpenses', totalExpensesCell);
-  }
-
-  int _getFirstDataRow(excel.Worksheet sheet) {
-    for (int i = 1; i <= sheet.getLastRow(); i++) {
-      if (sheet.getRangeByName('A$i').getText() == '') {
-        return i + 1;
-      }
+    // Auto-fit all columns for better readability
+    for (int i = 1; i <= expenseSheet.getLastColumn(); i++) {
+      expenseSheet.autoFitColumn(i);
     }
-    return 2;
+
+    // Create named range for the total expenses cell
+    workbook.names.add('TotalExpenses', totalExpensesCell);
   }
 
   Future<String> _saveExcelFile(excel.Workbook workbook) async {
@@ -778,6 +927,65 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return mimeType ?? 'application/octet-stream';
   }
 
+  /// Helper method to safely get a property from an object by name
+  dynamic _getItemProperty(dynamic item, String propertyName) {
+    if (item == null) return '';
+
+    try {
+      // For map-like objects, try to access property as a key
+      if (item is Map) {
+        // Try exact match first
+        if (item.containsKey(propertyName)) {
+          return item[propertyName] ?? '';
+        }
+
+        // Try case-insensitive match
+        final lowerKey = propertyName.toLowerCase();
+        for (final key in item.keys) {
+          if (key.toString().toLowerCase() == lowerKey) {
+            return item[key] ?? '';
+          }
+        }
+      }
+
+      // Try to convert the object to a map using toJson if available
+      try {
+        // Use dynamic invocation to call toJson if it exists
+        final jsonData = item.toJson();
+        if (jsonData is Map) {
+          // Try exact match first
+          if (jsonData.containsKey(propertyName)) {
+            return jsonData[propertyName] ?? '';
+          }
+
+          // Try case-insensitive match
+          final lowerKey = propertyName.toLowerCase();
+          for (final key in jsonData.keys) {
+            if (key.toString().toLowerCase() == lowerKey) {
+              return jsonData[key] ?? '';
+            }
+          }
+        }
+      } catch (_) {
+        // toJson not available, continue with other approaches
+      }
+
+      // Try common properties by name using dynamic access
+      try {
+        // This uses dynamic invocation which bypasses static type checking
+        // It will throw if the property doesn't exist at runtime
+        return item[propertyName] ?? '';
+      } catch (_) {
+        // Property doesn't exist, continue with other approaches
+      }
+
+      // Last resort: try to convert to string
+      return item.toString();
+    } catch (e) {
+      return ''; // Return empty string if property access fails
+    }
+  }
+
   Future<void> requestPermissions() async {
     await permission.Permission.storage.request();
     await permission.Permission.manageExternalStorage.request();
@@ -836,6 +1044,5 @@ class ExportConfig {
     this.currencySymbol = 'RF',
     required this.transactions,
   }) : currencyFormat =
-            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"' ??
-                r'#,##0.00';
+            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
 }

@@ -21,6 +21,7 @@ class SharedPreferenceStorage implements LocalStorage {
   // Set of allowed keys (same as the original implementation)
   static const Set<String> _allowedKeys = {
     'branchId',
+    'pmtTyCd',
     'businessId',
     'userId',
     'userPhone',
@@ -277,7 +278,7 @@ class SharedPreferenceStorage implements LocalStorage {
     final userId = _cache['userId'];
     if (userId is String) {
       final parsedUserId = int.tryParse(userId);
-      return parsedUserId ?? null;
+      return parsedUserId;
     } else if (userId is int) {
       return userId;
     }
@@ -660,23 +661,83 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool getForceLogout() {
-    return _cache['forceLogout'] as bool? ?? false;
+    try {
+      // Check if the key exists in the cache
+      if (_cache.containsKey('forceLogout')) {
+        // Try to get the value as a bool
+        final value = _cache['forceLogout'];
+        if (value is bool) {
+          return value;
+        } else {
+          // If the value is not a bool, log the issue and reset it
+          print('Warning: forceLogout value is not a bool: $value');
+          _cache['forceLogout'] = false;
+          _savePreferences(); // Save the corrected value
+          return false;
+        }
+      }
+      // If the key doesn't exist, return false
+      return false;
+    } catch (e) {
+      // If any error occurs, log it and return false
+      print('Error getting forceLogout value: $e');
+      return false;
+    }
   }
 
   @override
   Future<void> setForceLogout(bool value) async {
-    _cache['forceLogout'] = value;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+    try {
+      print('Setting forceLogout to: $value');
+      _cache['forceLogout'] = value;
+
+      // Save the preferences immediately
+      if (kIsWeb) {
+        if (_webPrefs != null) {
+          await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+          print('Saved forceLogout to web preferences: $value');
+        } else {
+          print('Warning: _webPrefs is null, could not save forceLogout');
+        }
+      } else {
+        await _savePreferences();
+        print('Saved forceLogout to preferences: $value');
       }
-    } else {
-      await _savePreferences();
+    } catch (e) {
+      print('Error setting forceLogout value: $e');
     }
   }
 
   @override
   String? branchIdString() {
     return _cache['branchIdString'] as String?;
+  }
+
+  @override
+  String paymentMethodCode(String paymentMethod) {
+    // Map payment method names to their corresponding codes
+    switch (paymentMethod.toUpperCase()) {
+      case 'CASH':
+        return '01';
+      case 'CREDIT':
+      case 'CREDIT CARD':
+        return '02';
+      case 'CASH/CREDIT':
+        return '03';
+      case 'BANK CHECK':
+        return '04';
+      case 'DEBIT&CREDIT CARD':
+        return '05';
+      case 'MOBILE MONEY':
+        return '06';
+      case 'OTHER':
+      default:
+        return '07';
+    }
+  }
+
+  @override
+  String pmtTyCd() {
+    return _cache['pmtTyCd'] as String? ?? "01";
   }
 }

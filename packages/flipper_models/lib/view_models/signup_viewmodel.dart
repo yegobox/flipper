@@ -116,7 +116,7 @@ class SignupViewModel extends ReactiveViewModel {
     try {
       int userId = ProxyService.box.getUserId()!;
       String phoneNumber = ProxyService.box.getUserPhone()!;
-      return await ProxyService.strategy.signup(business: {
+      final business = {
         'name': kName,
         'latitude': latitude,
         'longitude': longitude,
@@ -131,7 +131,10 @@ class SignupViewModel extends ReactiveViewModel {
         'referredBy': referralCode ?? 'Organic',
         'fullName': kFullName,
         'country': kCountry
-      }, flipperHttpClient: ProxyService.http);
+      };
+      talker.info(business.toString());
+      return await ProxyService.strategy
+          .signup(business: business, flipperHttpClient: ProxyService.http);
     } catch (e, s) {
       talker.error(s);
       talker.error(e);
@@ -161,13 +164,13 @@ class SignupViewModel extends ReactiveViewModel {
   Future<void> saveBusinessId(List<ITenant> tenants) {
     return ProxyService.box.writeInt(
       key: 'businessId',
-      value: tenants.first.businesses.first.id,
+      value: tenants.first.businesses!.first.serverId,
     );
   }
 
   Future<Business?> getBusiness(List<ITenant> tenants) async {
     return await ProxyService.strategy
-        .getBusiness(businessId: tenants.first.businesses.first.id);
+        .getBusiness(businessId: tenants.first.businesses!.first.serverId);
   }
 
   Future<List<Branch>> getBranches(Business business) async {

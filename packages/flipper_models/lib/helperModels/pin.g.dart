@@ -7,7 +7,7 @@ part of 'pin.dart';
 // **************************************************************************
 
 IPin _$IPinFromJson(Map<String, dynamic> json) => IPin(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as String?,
       userId: json['userId'] as String,
       phoneNumber: json['phoneNumber'] as String,
       pin: (json['pin'] as num).toInt(),

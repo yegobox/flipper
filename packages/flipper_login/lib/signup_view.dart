@@ -10,7 +10,6 @@ import 'package:overlay_support/overlay_support.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/posthog_service.dart';
 
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final username = TextFieldBloc(

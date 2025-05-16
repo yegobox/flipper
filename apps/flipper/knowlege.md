@@ -43,3 +43,24 @@
   - Consider passing `configureDatabase: false` to `initializeSupabaseAndConfigure` and calling `Repository().configureDatabase()` later
   - Use `Future.microtask` for non-critical initialization as done in `_initializeSupabase()`
   - Consider moving database operations to background isolates for heavy operations
+
+  - Create a view for singular table names
+  ```sql
+  -- First drop the view if it exists
+  DROP VIEW IF EXISTS branch;
+  
+  -- Create a view with the singular name that points to the plural table
+  CREATE OR REPLACE VIEW branch AS 
+  SELECT * FROM branches;
+  
+  -- If you have multiple foreign key constraints and get a PGRST201 error, use this approach:
+  -- 1. Drop the conflicting constraint (be careful!)
+  ALTER TABLE stock_requests DROP CONSTRAINT IF EXISTS fk_stock_requests_branch_id;
+  
+  -- 2. Or rename one of the constraints to make it clear which one to use
+  -- ALTER TABLE stock_requests RENAME CONSTRAINT fk_stock_requests_branch_id TO fk_branch_id_old;
+  ```
+  
+  - This is important when you have a model in singular form (like `Branch`) nested into another model (like `InventoryRequest`)
+  - The view allows PostgREST to find the relationship between tables with singular/plural naming differences
+  - If you get a PGRST201 error about multiple relationships, you need to either drop one constraint or use the specific relationship name in your query

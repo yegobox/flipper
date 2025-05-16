@@ -1,7 +1,6 @@
 // This file is maintained for backward compatibility
 // For new code, please use the modular structure in the 'export' directory
 
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';

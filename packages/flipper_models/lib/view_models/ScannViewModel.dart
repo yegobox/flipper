@@ -321,7 +321,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
       try {
-        ProxyService.strategy.delete(
+        ProxyService.strategy.flipperDelete(
             id: matchedVariant.id,
             endPoint: 'variant',
             flipperHttpClient: ProxyService.http);
@@ -468,7 +468,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> deleteAllVariants() async {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
-      await ProxyService.strategy.delete(
+      await ProxyService.strategy.flipperDelete(
           id: variant.id,
           endPoint: 'variant',
           flipperHttpClient: ProxyService.http);

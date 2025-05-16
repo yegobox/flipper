@@ -7,7 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'common.dart';
 import 'dart:async';
 import 'dart:io';
-import '../lib/dependencyInitializer.dart';
+import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/locator.dart';
 
 // flutter test --dart-define=FLUTTER_TEST_ENV=true --dart-define=FORCE_TEST=true -d macos integration_test/smoke_windows_test.dart

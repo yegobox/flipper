@@ -68,6 +68,7 @@ import 'all_routes.dart';
     CustomRoute(page: PaymentPlanUI),
     CustomRoute(page: PaymentFinalize),
     CustomRoute(page: WaitingOrdersPlaced),
+    CustomRoute(page: CreditApp),
     //
   ],
   dependencies: [
@@ -402,7 +403,7 @@ class App {}
 //TODO: People to hire to clean the UI: https://goods.overnice.com/
 // fix nuget issue : winget install Microsoft.NuGet
 //Show things on second screen: https://pub.dev/packages/presentation_displays
-
+//  /usr/local/apache-tomcat-9.0.89/bin/startup.sh 
 // https://pub.dev/packages/requests_inspector
 
 // Now need to heavily use sizer: ^2.0.15 for managing the scalability
@@ -819,3 +820,4 @@ class App {}
 // https://chatgpt.com/c/67f6c184-54dc-8002-b243-80433c70bf57
 // 
 
+// https://search.google.com/u/1/search-console?resource_id=sc-domain%3Ayegobox.com

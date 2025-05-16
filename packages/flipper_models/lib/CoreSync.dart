@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
-import 'package:flipper_models/SessionManager.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
@@ -14,6 +12,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
@@ -50,7 +49,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'dart:typed_data';
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:path/path.dart' as path;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -72,11 +70,13 @@ class CoreSync extends AiStrategyImpl
         BranchMixin,
         PurchaseMixin,
         AuthMixin,
+        FlipperHttpClient,
         TransactionMixin,
         BusinessMixin,
         TransactionItemMixin,
         TenantMixin,
         ProductMixin,
+        AssetMixin,
         DeleteMixin,
         VariantMixin,
         CustomerMixin,
@@ -333,60 +333,6 @@ class CoreSync extends AiStrategyImpl
     }
     // Close the StreamController after the stream is finishe
     controller.close();
-  }
-
-  @override
-  Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false}) async {
-    return await _getBranches(businessId, includeSelf!);
-  }
-
-  Future<List<Branch>> _getBranches(int businessId, bool active) async {
-    try {
-      final branches = await repository.get<Branch>(
-          query: brick.Query(where: [
-        brick.Where('businessId').isExactly(businessId),
-        brick.Or('active').isExactly(active),
-      ]));
-      return branches;
-    } catch (e, s) {
-      talker.error(e);
-      talker.error(s);
-      rethrow;
-    }
-  }
-
-  @override
-  void clearData({required ClearData data, required int identifier}) async {
-    try {
-      if (data == ClearData.Branch) {
-        // Retrieve the list of Branches to delete based on the query
-        // final query = brick.Query();
-        final List<Branch> branches = await repository.get<Branch>(
-            query: brick.Query(
-                where: [brick.Where('serverId').isExactly(identifier)]));
-
-        for (final branch in branches) {
-          await repository.delete<Branch>(branch,
-              policy: OfflineFirstDeletePolicy.optimisticLocal);
-        }
-      }
-
-      if (data == ClearData.Business) {
-        // Retrieve the list of Businesses to delete
-        final List<Business> businesses = await repository.get<Business>(
-            query: brick.Query(
-                where: [brick.Where('serverId').isExactly(identifier)]));
-
-        for (final business in businesses) {
-          await repository.delete<Business>(business);
-        }
-      }
-    } catch (e, s) {
-      // Log the error with talker
-      talker.error('Failed to clear data: $e');
-      talker.error('Stack trace: $s');
-    }
   }
 
   @override
@@ -779,122 +725,6 @@ class CoreSync extends AiStrategyImpl
     return Future.value(200);
   }
 
-  final sessionManager = SessionManager();
-  @override
-  Future<Stream<double>> downloadAsset(
-      {required int branchId,
-      required String assetName,
-      required String subPath}) async {
-    Directory directoryPath = await getSupportDir();
-
-    final filePath = path.join(directoryPath.path, assetName);
-
-    final file = File(filePath);
-    if (await file.exists()) {
-      talker.warning('File Exist: ${file.path}');
-      return Stream.value(100.0); // Return a stream indicating 100% completion
-    }
-    talker.warning("file to Download:$filePath");
-    if (!await sessionManager.isAuthenticated()) {
-      await sessionManager.signIn("yegobox@gmail.com");
-      if (!await sessionManager.isAuthenticated()) {
-        throw Exception('Failed to authenticate');
-      }
-    }
-    final storagePath = amplify.StoragePath.fromString(
-        'public/${subPath}-$branchId/$assetName');
-    try {
-      // Create a stream controller to manage the progress
-      final progressController = StreamController<double>();
-      // Start the download process
-      final operation = amplify.Amplify.Storage.downloadFile(
-        path: storagePath,
-        localFile: amplify.AWSFile.fromPath(filePath),
-        onProgress: (progress) {
-          // Calculate the progress percentage
-          final percentageCompleted =
-              (progress.fractionCompleted * 100).toInt();
-          // Add the progress to the stream
-          progressController.sink.add(percentageCompleted.toDouble());
-        },
-      );
-      // Listen for the download completion
-      operation.result.then((_) {
-        progressController.close();
-        talker.warning("Downloaded file at path ${storagePath}");
-      }).catchError((error) async {
-        progressController.addError(error);
-        progressController.close();
-      });
-      return progressController.stream;
-    } catch (e) {
-      talker.error('Error downloading file: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"}) async {
-    try {
-      talker.info("About to call downloadAssetSave");
-      int branchId = ProxyService.box.getBranchId()!;
-
-      if (assetName != null) {
-        return downloadAsset(
-            branchId: branchId, assetName: assetName, subPath: subPath!);
-      }
-
-      List<Assets> assets = await repository.get(
-          query: brick.Query(
-              where: [brick.Where('branchId').isExactly(branchId)]));
-
-      StreamController<double> progressController = StreamController<double>();
-
-      for (Assets asset in assets) {
-        if (asset.assetName != null) {
-          // Get the download stream
-          Stream<double> downloadStream = await downloadAsset(
-              branchId: branchId,
-              assetName: asset.assetName!,
-              subPath: subPath!);
-
-          // Listen to the download stream and add its events to the main controller
-          downloadStream.listen((progress) {
-            print('Download progress for ${asset.assetName}: $progress');
-            progressController.add(progress);
-          }, onError: (error) {
-            // Handle errors in the download stream
-            talker.error(
-                'Error in download stream for ${asset.assetName}: $error');
-            progressController.addError(error);
-          });
-        } else {
-          talker.warning('Asset name is null for asset: ${asset.id}');
-        }
-      }
-
-      // Close the stream controller when all downloads are finished
-      Future.wait(assets.map((asset) => asset.assetName != null
-          ? downloadAsset(
-              branchId: branchId,
-              assetName: asset.assetName!,
-              subPath: subPath!)
-          : Future.value(Stream.empty()))).then((_) {
-        progressController.close();
-      }).catchError((error) {
-        talker.error('Error in downloading assets: $error');
-        progressController.close();
-      });
-
-      return progressController.stream;
-    } catch (e, s) {
-      talker.error('Error in downloading assets: $e');
-      talker.error('Error in downloading assets: $s');
-      rethrow;
-    }
-  }
-
   @override
   Future<Product?> findProductByTenantId({required String tenantId}) async {
     final query = brick.Query(
@@ -912,20 +742,6 @@ class CoreSync extends AiStrategyImpl
         brick.Query(where: [brick.Where('productId').isExactly(productId)]);
     // Return the stream directly instead of storing in variable
     return repository.subscribe<Variant>(query: query);
-  }
-
-  @override
-  FutureOr<Assets?> getAsset({String? assetName, String? productId}) async {
-    final repository = Repository();
-    final query = brick.Query(
-        where: assetName != null
-            ? [brick.Where('assetName').isExactly(assetName)]
-            : productId != null
-                ? [brick.Where('productId').isExactly(productId)]
-                : throw Exception("no asset"));
-    final result = await repository.get<models.Assets>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return result.firstOrNull;
   }
 
   @override
@@ -951,14 +767,19 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) async {
+      {required int branchId,
+      required String receiptType,
+      required bool fetchRemote}) async {
     final repository = brick.Repository();
     final query = brick.Query(where: [
       brick.Where('branchId').isExactly(branchId),
       brick.Where('receiptType').isExactly(receiptType),
     ]);
     final counter = await repository.get<models.Counter>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query,
+        policy: fetchRemote == true
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly);
     return counter.firstOrNull;
   }
 
@@ -1222,7 +1043,7 @@ class CoreSync extends AiStrategyImpl
             await branch(serverId: localPin.firstOrNull!.branchId!);
         if (branchE != null || business != null) {
           return IPin(
-              id: int.tryParse(localPin.firstOrNull?.id ?? "0"),
+              id: localPin.firstOrNull?.id,
               pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
               userId: localPin.firstOrNull!.userId!.toString(),
               phoneNumber: localPin.firstOrNull!.phoneNumber!,
@@ -1785,7 +1606,7 @@ class CoreSync extends AiStrategyImpl
         /// when signup, save the businessId on fly, this can be overriden later.
         ProxyService.box.writeInt(
             key: 'businessId',
-            value: ITenant.fromJsonList(response.body).first.id!);
+            value: ITenant.fromJsonList(response.body).first.businessId!);
       } catch (e) {}
       return ITenant.fromJsonList(response.body);
     } else {
@@ -1963,6 +1784,8 @@ class CoreSync extends AiStrategyImpl
       );
       counter.invcNo = counter.invcNo! + 1;
       repository.upsert(upCounter);
+      // in erference https://github.com/GetDutchie/brick/issues/580#issuecomment-2845610769
+      // Repository().sqliteProvider.upsert<Counter>(upCounter);
     }
   }
 
@@ -2023,6 +1846,8 @@ class CoreSync extends AiStrategyImpl
     String? categoryId,
     bool directlyHandleReceipt = false,
     required bool isIncome,
+    String? customerName,
+    String? customerTin,
   }) async {
     if (transaction != null) {
       try {
@@ -2038,7 +1863,9 @@ class CoreSync extends AiStrategyImpl
               items.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
-          /// I intentionally removed await on _updateStockAndItems to speed up clearing cart.
+
+          /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
+          /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
           await _updateStockAndItems(items: items, branchId: branchId);
         }
         _updateTransactionDetails(
@@ -2051,10 +1878,16 @@ class CoreSync extends AiStrategyImpl
           isTrainingMode: isTrainingMode,
           transactionType: transactionType,
           categoryId: categoryId,
+          customerName: customerName,
+          customerTin: customerTin,
         );
 
         // Save transaction
         transaction.status = COMPLETE;
+        // refresh transaction's date
+        transaction.updatedAt = DateTime.now().toUtc();
+        transaction.lastTouched = DateTime.now().toUtc();
+        transaction.createdAt = DateTime.now().toUtc();
         // TODO: if transactin has customerId use the customer.phone number instead.
         transaction.currentSaleCustomerPhoneNumber =
             "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
@@ -2082,6 +1915,8 @@ class CoreSync extends AiStrategyImpl
     throw Exception("transaction is null");
   }
 
+  /// customerName and customerTin are optional
+  /// but for transactions that need to sync with ebm they need them otherwise they will be skipped.
   void _updateTransactionDetails({
     required ITransaction transaction,
     required bool isIncome,
@@ -2092,6 +1927,8 @@ class CoreSync extends AiStrategyImpl
     required bool isTrainingMode,
     required String transactionType,
     String? categoryId,
+    String? customerName,
+    String? customerTin,
   }) {
     final now = DateTime.now().toUtc().toLocal();
 
@@ -2109,6 +1946,8 @@ class CoreSync extends AiStrategyImpl
     transaction.createdAt = now;
     transaction.transactionType = transactionType;
     transaction.lastTouched = now;
+    transaction.customerName = customerName;
+    transaction.customerTin = customerTin;
 
     // Optionally update categoryId if provided
     if (categoryId != null) {
@@ -2316,27 +2155,6 @@ class CoreSync extends AiStrategyImpl
       userType: userType,
       createdAt: createdAt,
     ));
-  }
-
-  @override
-  Future<void> addAsset(
-      {required String productId,
-      required assetName,
-      required int branchId,
-      required int businessId}) async {
-    final asset = await repository.get<Assets>(
-        query: brick.Query(where: [
-      brick.Where('productId').isExactly(productId),
-      brick.Where('assetName').isExactly(assetName),
-    ]));
-    if (asset.firstOrNull == null) {
-      await repository.upsert<Assets>(Assets(
-        assetName: assetName,
-        productId: productId,
-        branchId: branchId,
-        businessId: businessId,
-      ));
-    }
   }
 
   @override
@@ -2786,7 +2604,7 @@ class CoreSync extends AiStrategyImpl
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
       return await repository.upsert<Branch>(Branch(
-        serverId: remoteBranch.id,
+        serverId: remoteBranch.serverId,
         location: location,
         description: description,
         name: name,
@@ -3325,11 +3143,6 @@ class CoreSync extends AiStrategyImpl
   Future<List<models.Product>> productsFuture({required int branchId}) {
     // TODO: implement productsFuture
     throw UnimplementedError();
-  }
-
-  @override
-  void reDownloadAsset() {
-    // TODO: implement reDownloadAsset
   }
 
   @override

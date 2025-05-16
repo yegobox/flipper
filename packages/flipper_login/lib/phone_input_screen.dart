@@ -74,6 +74,9 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   int _timerSeconds = 60;
   bool _canResend = false;
 
+  // For OTP expiration handling
+  bool _otpExpired = false;
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +102,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     setState(() {
       _timerSeconds = 60;
       _canResend = false;
+      _otpExpired = false;
     });
 
     Future.delayed(const Duration(seconds: 1), () {
@@ -111,6 +115,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         } else {
           setState(() {
             _canResend = true;
+            // Mark OTP as expired after timer ends
+            _otpExpired = true;
           });
         }
       }
@@ -135,6 +141,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: fullPhoneNumber,
+        timeout: const Duration(seconds: 120), // Extend timeout to 120 seconds
         verificationCompleted: (PhoneAuthCredential credential) {
           setState(() {
             _isLoading = false;
@@ -155,14 +162,18 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
             _verificationId = verificationId;
             _resendToken = resendToken;
             _showVerificationUI = true;
+            _otpExpired = false; // Reset expiration flag
           });
           _animationController.forward();
           _startResendTimer();
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          setState(() {
-            _verificationId = verificationId;
-          });
+          if (mounted) {
+            setState(() {
+              _verificationId = verificationId;
+              // We'll detect actual expiration when user tries to use the code
+            });
+          }
         },
         forceResendingToken: _resendToken,
       );
@@ -179,6 +190,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
     setState(() {
       _isLoading = true;
+      _smsCode = ''; // Clear previous code when resending
     });
 
     final fullPhoneNumber = _selectedCountryCode +
@@ -187,6 +199,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: fullPhoneNumber,
+        timeout: const Duration(seconds: 120), // Extend timeout to 120 seconds
         verificationCompleted: (PhoneAuthCredential credential) {
           setState(() {
             _isLoading = false;
@@ -206,19 +219,23 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
             _isLoading = false;
             _verificationId = verificationId;
             _resendToken = resendToken;
+            _otpExpired = false; // Reset expiration flag
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Verification code resent'),
+              content: Text('New verification code sent'),
               backgroundColor: Colors.green,
             ),
           );
           _startResendTimer();
         },
         codeAutoRetrievalTimeout: (String verificationId) {
-          setState(() {
-            _verificationId = verificationId;
-          });
+          if (mounted) {
+            setState(() {
+              _verificationId = verificationId;
+              // We'll detect actual expiration when user tries to use the code
+            });
+          }
         },
         forceResendingToken: _resendToken,
       );
@@ -236,6 +253,13 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       return;
     }
 
+    // If OTP is expired, suggest resending
+    if (_otpExpired) {
+      _showErrorSnackBar(context,
+          'This verification code has expired. Please request a new one.');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -248,7 +272,20 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       await _signInWithCredential(credential);
     } catch (e) {
       setState(() => _isLoading = false);
-      _showErrorSnackBar(context, 'Failed to verify code: ${e.toString()}');
+
+      // Check if the error is related to an invalid or expired verification code
+      if (e is FirebaseAuthException &&
+          (e.code == 'invalid-verification-code' ||
+              e.code == 'session-expired')) {
+        setState(() {
+          _otpExpired = true;
+          _canResend = true;
+        });
+        _showErrorSnackBar(context,
+            'Verification code has expired. Please request a new one.');
+      } else {
+        _showErrorSnackBar(context, 'Failed to verify code: ${e.toString()}');
+      }
     }
   }
 
@@ -264,7 +301,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         final props = <String, Object>{
           'source': 'phone_input_screen',
           if (user.user?.uid != null) 'user_id': user.user!.uid,
-          if (user.user?.phoneNumber != null) 'phone': user.user!.phoneNumber??user.user!.email!,
+          if (user.user?.phoneNumber != null)
+            'phone': user.user!.phoneNumber ?? user.user!.email!,
         };
         PosthogService.instance.capture('login_success', properties: props);
         // Show success and navigate
@@ -702,38 +740,54 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
           const SizedBox(height: 24),
 
-          // Resend code timer
+          // Resend code timer or expiration notice
           Align(
             alignment: Alignment.center,
-            child: _canResend
+            child: _otpExpired
                 ? TextButton(
                     onPressed: () => _resendCode(context),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.red.withOpacity(0.1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                    ),
                     child: Text(
-                      'Resend Code',
+                      'Code Expired - Tap to Resend',
                       style: GoogleFonts.poppins(
-                        color: colorScheme.primary,
+                        color: Colors.red,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   )
-                : RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.poppins(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                      children: [
-                        const TextSpan(text: 'Resend code in '),
-                        TextSpan(
-                          text: '$_timerSeconds seconds',
-                          style: TextStyle(
+                : _canResend
+                    ? TextButton(
+                        onPressed: () => _resendCode(context),
+                        child: Text(
+                          'Resend Code',
+                          style: GoogleFonts.poppins(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                      )
+                    : RichText(
+                        text: TextSpan(
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                          children: [
+                            const TextSpan(text: 'Resend code in '),
+                            TextSpan(
+                              text: '$_timerSeconds seconds',
+                              style: TextStyle(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
           ),
 
           const SizedBox(height: 40),

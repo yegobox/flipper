@@ -44,8 +44,7 @@ mixin AuthMixin implements AuthInterface {
       }
       return FirebaseAuth.instance.currentUser != null;
     } catch (e) {
-      final http.Response response =
-          await ProxyService.strategy.sendLoginRequest(
+      final http.Response response = await sendLoginRequest(
         pinLocal!.phoneNumber!,
         ProxyService.http,
         apihub,
@@ -135,7 +134,7 @@ mixin AuthMixin implements AuthInterface {
       /// path the user pin, with
       final IUser user = IUser.fromJson(json.decode(response.body));
       await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name);
+          ownerName: user.tenants.first.name!);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
       await ProxyService.strategy.firebaseLogin(token: user.uid);
       return user;
@@ -171,6 +170,138 @@ mixin AuthMixin implements AuthInterface {
     if (stopAfterConfigure) return user;
     if (!skipDefaultAppSetup) {
       await setDefaultApp(user);
+
+      // Ensure business and branch IDs are set in storage
+      // This is critical for when a user logs in again
+      if (pin.businessId != null) {
+        talker.debug("Setting businessId to ${pin.businessId}");
+        await ProxyService.box
+            .writeInt(key: 'businessId', value: pin.businessId!);
+
+        // Also set business preferences
+        try {
+          final businesses = await this.businesses(userId: pin.userId!);
+          Business? selectedBusiness;
+
+          // Find the matching business or use the first one if none matches
+          for (final business in businesses) {
+            // Compare serverId with pin.businessId, handling both string and int types
+            if (business.serverId.toString() == pin.businessId.toString()) {
+              selectedBusiness = business;
+              break;
+            }
+          }
+
+          // If no match found, use the first business if available
+          if (selectedBusiness == null && businesses.isNotEmpty) {
+            selectedBusiness = businesses.first;
+          }
+
+          if (selectedBusiness != null) {
+            talker.debug(
+                "Setting business preferences for ${selectedBusiness.name}");
+            await ProxyService.box.writeString(
+                key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
+            await ProxyService.box
+                .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
+            await ProxyService.box.writeString(
+                key: 'encryptionKey',
+                value: selectedBusiness.encryptionKey ?? "");
+
+            // Mark the business as active and default
+            await ProxyService.strategy.updateBusiness(
+              businessId: selectedBusiness.serverId,
+              active: true,
+              isDefault: true,
+            );
+          }
+
+          // Only throw LoginChoicesException if there are multiple businesses
+          // This ensures the login_choices.dart screen is shown only when necessary
+          if (businesses.length > 1) {
+            // Store a flag to indicate we're coming from login
+            await ProxyService.box.writeBool(key: 'from_login', value: true);
+            throw LoginChoicesException(term: 'business');
+          } else if (businesses.length == 1) {
+            // If there's only one business, check if there are multiple branches
+            final branches =
+                await this.branches(businessId: selectedBusiness!.serverId);
+
+            // Only go to login_choices if there are multiple branches
+            if (branches.length > 1) {
+              await ProxyService.box.writeBool(key: 'from_login', value: true);
+              throw LoginChoicesException(term: 'branch');
+            }
+
+            // If there's only one branch, set it as active and default
+            if (branches.length == 1) {
+              final branch = branches.first;
+              await ProxyService.strategy.updateBranch(
+                branchId: branch.serverId!,
+                active: true,
+                isDefault: true,
+              );
+
+              // Update branch ID in storage
+              await ProxyService.box
+                  .writeInt(key: 'branchId', value: branch.serverId!);
+              await ProxyService.box
+                  .writeString(key: 'branchIdString', value: branch.id);
+
+              // No need to throw exception - continue with login flow
+              talker
+                  .debug("Single business and branch - skipping login_choices");
+            }
+          }
+        } catch (e) {
+          if (e is LoginChoicesException) {
+            // Re-throw this specific exception to ensure proper navigation
+            rethrow;
+          }
+          talker.error("Error setting business preferences: $e");
+        }
+      }
+
+      // Handle the case where pin already has a branchId (for backward compatibility)
+      if (pin.branchId != null && pin.businessId != null) {
+        talker.debug("Setting branchId to ${pin.branchId}");
+        await ProxyService.box.writeInt(key: 'branchId', value: pin.branchId!);
+
+        try {
+          // Get the branch ID string if available
+          final branches = await this.branches(businessId: pin.businessId!);
+          Branch? selectedBranch;
+
+          // Find the matching branch or use the first one if none matches
+          for (final branch in branches) {
+            // Compare serverId with pin.branchId, handling both string and int types
+            if (branch.serverId.toString() == pin.branchId.toString()) {
+              selectedBranch = branch;
+              break;
+            }
+          }
+
+          // If no match found, use the first branch if available
+          if (selectedBranch == null && branches.isNotEmpty) {
+            selectedBranch = branches.first;
+          }
+
+          if (selectedBranch != null) {
+            talker.debug("Setting branchIdString to ${selectedBranch.id}");
+            await ProxyService.box
+                .writeString(key: 'branchIdString', value: selectedBranch.id);
+
+            // Set the branch as active and default
+            await ProxyService.strategy.updateBranch(
+              branchId: selectedBranch.serverId!,
+              active: true,
+              isDefault: true,
+            );
+          }
+        } catch (e) {
+          talker.error("Error setting branch ID string: $e");
+        }
+      }
     }
     ProxyService.box.writeBool(key: 'pinLogin', value: false);
     w?.log("user logged in");
@@ -208,19 +339,64 @@ mixin AuthMixin implements AuthInterface {
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
       {String? uid}) async {
     uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
-    final response = await flipperHttpClient.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      body:
-          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
-    );
-    final responseBody = jsonDecode(response.body);
-    talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
-    talker.warning("sendLoginRequest:token:${responseBody['token']}");
-    ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
-    ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-    await ProxyService.box
-        .writeString(key: 'bearerToken', value: responseBody['token']);
-    return response;
+
+    try {
+      final response = await flipperHttpClient.post(
+        Uri.parse(apihub + '/v2/api/user'),
+        body: jsonEncode(
+            <String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
+      );
+
+      // Check for 401 Unauthorized response
+      if (response.statusCode == 401) {
+        talker.error("Authentication failed with 401 error: ${response.body}");
+        throw SessionException(term: "session expired");
+      }
+
+      final responseBody = jsonDecode(response.body);
+      talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
+      talker.warning("sendLoginRequest:token:${responseBody['token']}");
+
+      // Handle userId which could now be a string or int
+      if (responseBody['id'] is String) {
+        // Store the original string ID for reference
+        ProxyService.box.writeString(
+            key: 'userIdString', value: responseBody['id'] as String);
+        // Convert string ID to integer for backward compatibility
+        final int userId = int.tryParse(responseBody['id']) ?? 0;
+        ProxyService.box.writeInt(key: 'userId', value: userId);
+      } else {
+        ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
+      }
+
+      // Process businesses and branches if they're in the response
+      if (responseBody['tenants'] != null &&
+          responseBody['tenants'] is List &&
+          responseBody['tenants'].isNotEmpty) {
+        final tenant = responseBody['tenants'][0];
+
+        // Store the businessId if available
+        if (tenant['businessId'] != null) {
+          final businessId = tenant['businessId'];
+          talker.debug("Setting businessId from API response: $businessId");
+          ProxyService.box.writeString(
+              key: 'businessIdString', value: businessId.toString());
+        }
+      }
+
+      ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
+      await ProxyService.box
+          .writeString(key: 'bearerToken', value: responseBody['token']);
+      return response;
+    } catch (e) {
+      // If it's already a SessionException, rethrow it
+      if (e is SessionException) {
+        rethrow;
+      }
+      // Log the error and rethrow
+      talker.error("Error in sendLoginRequest: $e");
+      throw e;
+    }
   }
 
   Future<void> _handleLoginError(http.Response response) async {
@@ -246,46 +422,65 @@ mixin AuthMixin implements AuthInterface {
   }
 
   List<IBranch> _convertBranches(List<Branch> branches) {
-    return branches
-        .map((e) => IBranch(
-            id: e.serverId,
-            name: e.name,
-            businessId: e.businessId,
-            longitude: e.longitude,
-            latitude: e.latitude,
-            location: e.location,
-            active: e.active,
-            isDefault: false))
-        .toList();
+    return branches.map((e) {
+      // Store the string ID for reference if needed
+      // The id field is non-nullable, so we don't need to check for null
+      if (e.serverId != null) {
+        ProxyService.box
+            .writeString(key: 'branch_${e.serverId}_uuid', value: e.id);
+      }
+
+      return IBranch(
+          // For id, we need to use serverId for backward compatibility
+          // since IBranch.id expects an int
+          id: e.id,
+          name: e.name,
+          businessId: e.businessId,
+          longitude: e.longitude,
+          latitude: e.latitude,
+          location: e.location,
+          active: e.active,
+          isDefault: false);
+    }).toList();
   }
 
   List<IBusiness> _convertBusinesses(List<Business> businesses) {
-    return businesses
-        .map((e) => IBusiness(
-              id: e.serverId,
-              name: e.name ?? '',
-              userId: e.userId?.toString() ?? '',
-              currency: e.currency ?? 'RWF',
-              categoryId: e.categoryId ?? 0,
-              latitude: e.latitude ?? '0', // string
-              longitude: e.longitude ?? '0', // string
-              timeZone: e.timeZone ?? '',
-              email: e.email ?? '',
-              fullName: e.fullName ?? '',
-              tinNumber: e.tinNumber ?? 0, // int
-              bhfId: e.bhfId ?? '00',
-              dvcSrlNo: e.dvcSrlNo ?? '',
-              adrs: e.adrs ?? '',
-              taxEnabled: e.taxEnabled ?? false,
-              isDefault: e.isDefault ?? false,
-              businessTypeId: e.businessTypeId ?? 0,
-              encryptionKey: e.encryptionKey ?? '',
-            ))
-        .toList();
+    return businesses.map((e) {
+      // Store the string ID for reference if needed
+      // The id field is non-nullable, so we don't need to check for null
+      ProxyService.box
+          .writeString(key: 'business_${e.serverId}_uuid', value: e.id);
+
+      return IBusiness(
+        // For id, we need to use serverId for backward compatibility
+        // since IBusiness.id expects an int
+        id: e.id,
+        serverId: e.serverId,
+        name: e.name ?? '',
+        userId: e.userId?.toString() ?? '',
+        currency: e.currency ?? 'RWF',
+        categoryId: e.categoryId ?? 0,
+        latitude: e.latitude ?? '0', // string
+        longitude: e.longitude ?? '0', // string
+        timeZone: e.timeZone ?? '',
+        email: e.email ?? '',
+        fullName: e.fullName ?? '',
+        tinNumber: e.tinNumber ?? 0, // int
+        bhfId: e.bhfId ?? '00',
+        dvcSrlNo: e.dvcSrlNo ?? '',
+        adrs: e.adrs ?? '',
+        taxEnabled: e.taxEnabled ?? false,
+        isDefault: e.isDefault ?? false,
+        businessTypeId: e.businessTypeId ?? 0,
+        encryptionKey: e.encryptionKey ?? '',
+      );
+    }).toList();
   }
 
   IUser _createOfflineUser(String phoneNumber, Pin pin,
       List<Business> businesses, List<Branch> branches) {
+    // For businessId, convert to int if it's a string for backward compatibility
+
     return IUser(
       token: pin.tokenUid!,
       uid: pin.tokenUid,
@@ -299,10 +494,9 @@ mixin AuthMixin implements AuthInterface {
             permissions: [],
             branches: _convertBranches(branches),
             businesses: _convertBusinesses(businesses),
-            businessId: 0,
+            businessId: pin.businessId,
             nfcEnabled: false,
-            userId: pin.userId!,
-            isDefault: false)
+            userId: pin.userId)
       ],
     );
   }
