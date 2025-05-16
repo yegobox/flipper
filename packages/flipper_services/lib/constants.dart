@@ -105,11 +105,13 @@ class NavigationPurpose {
 
 // Lists
 const List<String> paymentTypes = [
-  'Cash',
-  'MOMO MTN',
-  'Card',
-  'Credit',
-  'Bank'
+  'CASH',
+  'CREDIT',
+  'CASH/CREDIT',
+  'BANK CHECK',
+  'DEBIT&CREDIT CARD',
+  'MOBILE MONEY',
+  'OTHER'
 ];
 
 List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
@@ -142,7 +144,7 @@ const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
 const String WAITING = 'waiting';
 const String PENDING = 'pending';
-const String BARCODE = 'addBarCode';
+const String BARCODE = 'BARCODE';
 const String CUSTOM_PRODUCT = "Custom Amount";
 const String TEMP_PRODUCT = "temp";
 const String COLOR = "#e74c3c";

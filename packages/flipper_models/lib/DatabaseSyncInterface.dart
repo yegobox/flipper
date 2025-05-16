@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -15,12 +16,13 @@ import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
@@ -56,10 +58,12 @@ abstract class DatabaseSyncInterface extends AiStrategy
         AuthInterface,
         TransactionItemInterface,
         TransactionInterface,
+        HttpClientInterface,
         ProductInterface,
         TenantInterface,
         DeleteInterface,
         EbmInterface,
+        AssetInterface,
         CustomerInterface,
         CategoryInterface {
   // Repository get repository;
@@ -93,6 +97,18 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<List<PColor>> colors({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   FutureOr<T?> create<T>({required T data});
+  Future<http.StreamedResponse> send(http.BaseRequest request);
+  Future<http.Response> get(Uri url, {Map<String, String>? headers});
+  Future<http.Response> post(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> patch(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> getUniversalProducts(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
   Stream<double> wholeStockValue({required int branchId});
 
   Future<PColor?> getColor({required String id});
@@ -170,6 +186,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? categoryId,
     bool directlyHandleReceipt = false,
     required bool isIncome,
+    String? customerName,
+    String? customerTin,
   });
 
   Future<Setting?> getSetting({required int businessId});
@@ -240,7 +258,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType});
+      {required int branchId,
+      required String receiptType,
+      required bool fetchRemote});
   Future<String?> getPlatformDeviceId();
 
   Future<bool> bindProduct(
@@ -282,10 +302,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
-  Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"});
+
   Future<bool> removeS3File({required String fileName});
-  FutureOr<Assets?> getAsset({String? assetName, String? productId});
+
   Future<void> amplifyLogout();
   Future<List<Product>> getProducts(
       {String? key, int? prodIndex, required int branchId});
@@ -366,13 +385,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int mainBranchId,
       required FinanceProvider financeOption});
 
-  Future<Stream<double>> downloadAsset(
-      {required int branchId,
-      required String assetName,
-      required String subPath});
-
-  Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false});
   Future<List<ITenant>> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   FutureOr<Business?> getBusiness({int? businessId});
@@ -391,8 +403,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<Drawers?> getDrawer({required int cashierId});
 
   Drawers? openDrawer({required Drawers drawer});
-
-  void clearData({required ClearData data, required int identifier});
 
   FutureOr<Drawers?> closeDrawer(
       {required Drawers drawer, required double eod});
@@ -421,7 +431,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<void> sendMessageToIsolate();
   Future<void> spawnIsolate(dynamic isolateHandler);
-  void reDownloadAsset();
 
   Future<void> processItem({
     required Variant item,
@@ -441,28 +450,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double? value,
     DateTime? lastTouched,
     bool appending = false,
-  });
-
-  FutureOr<void> updateTransactionItem({
-    double? qty,
-    required String transactionItemId,
-    double? discount,
-    bool? active,
-    double? taxAmt,
-    int? quantityApproved,
-    int? quantityRequested,
-    bool? ebmSynced,
-    bool? isRefunded,
-    bool? incrementQty,
-    double? price,
-    double? prc,
-    double? splyAmt,
-    bool? doneWithTransaction,
-    int? quantityShipped,
-    double? taxblAmt,
-    double? totAmt,
-    double? dcRt,
-    double? dcAmt,
   });
 
   void updateCounters({
@@ -535,12 +522,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<void> deleteAll<T extends Object>({
     required String tableName,
   });
-
-  FutureOr<void> addAsset(
-      {required String productId,
-      required assetName,
-      required int branchId,
-      required int businessId});
 
   FutureOr<void> addCategory({
     required String name,

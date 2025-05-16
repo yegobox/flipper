@@ -4,6 +4,8 @@
 *.log
 *.pyc
 *.swp
+.windsurf/rules
+insipirations/*
 .DS_Store
 .atom/
 .buildlog/

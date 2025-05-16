@@ -7,19 +7,19 @@ class UniversalProductDropdown extends StatelessWidget {
   final BuildContext context;
   final ScannViewModel model;
   final Variant variant;
-  final AsyncValue<List<UnversalProduct>>? unitsAsyncValue;
+  final AsyncValue<List<UnversalProduct>>? universalProducts;
 
   const UniversalProductDropdown({
     Key? key,
     required this.context,
     required this.model,
     required this.variant,
-    required this.unitsAsyncValue,
+    required this.universalProducts,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return unitsAsyncValue?.when(
+    return universalProducts?.when(
           data: (items) {
             final List<String> itemClsCdList = items
                 .map((unit) => ((unit.itemClsNm ?? "") + " " + unit.itemClsCd!))

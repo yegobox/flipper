@@ -11,6 +11,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
@@ -212,14 +213,15 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                             // TIN Field
                             BoxInputField(
                               controller: _tinNumberController,
-                              placeholder: 'TIN Number (Optional)',
+                              placeholder: 'TIN Number (Required)',
                               leading: const Icon(Icons.numbers_outlined),
                               // keyboardType: TextInputType.number,
                               validatorFunc: (value) {
-                                if (value != null && value.isNotEmpty) {
-                                  if (!isNumeric(value)) {
-                                    return 'TIN should be a number';
-                                  }
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'TIN is required';
+                                }
+                                if (!isNumeric(value)) {
+                                  return 'TIN should be a number';
                                 }
                                 return null;
                               },
@@ -247,11 +249,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                       email: _emailController.text,
                                       phone: _phoneController.text,
                                       name: _nameController.text,
-                                      tinNumber: _tinNumberController.text
-                                              .trim()
-                                              .isEmpty
-                                          ? null
-                                          : _tinNumberController.text,
+                                      tinNumber: _tinNumberController.text,
                                       transactionId: widget.transactionId,
                                     );
                                     final URI =
@@ -275,8 +273,32 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                     );
 
                                     ref.refresh(customersProvider);
-                                    Navigator.maybePop(context);
+                                    Navigator.of(context).pop();
+                                    // Show success snack bar after closing modal using root navigator context
+                                    Future.delayed(
+                                        const Duration(milliseconds: 100), () {
+                                      showCustomSnackBarUtil(
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .context,
+                                        'Customer added successfully!',
+                                        backgroundColor: Colors.green[600],
+                                      );
+                                    });
                                     model.getTransactionById();
+                                  } catch (e) {
+                                    // Show error to user
+                                    if (mounted) {
+                                      showCustomSnackBarUtil(
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .context,
+                                        e.toString().isNotEmpty
+                                            ? e.toString()
+                                            : 'Failed to add customer',
+                                        backgroundColor: Colors.red,
+                                      );
+                                    }
                                   } finally {
                                     setState(() => isLoading = false);
                                   }

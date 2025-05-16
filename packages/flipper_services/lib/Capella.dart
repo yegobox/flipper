@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:isolate';
 
 import 'dart:typed_data';
@@ -228,7 +229,9 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) async {
+      {required int branchId,
+      required String receiptType,
+      required bool fetchRemote}) async {
     talker.warning("Using capella");
     throw UnimplementedError();
     // try {
@@ -718,8 +721,9 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  void reDownloadAsset() {
+  Future<void> reDownloadAsset() {
     // TODO: implement reDownloadAsset
+    throw UnimplementedError();
   }
 
   @override
@@ -839,7 +843,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Tenant? tenant({int? businessId, int? userId, String? id}) {
+  Tenant? tenant(
+      {int? businessId, int? userId, String? id, required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }
@@ -1080,6 +1085,8 @@ class Capella extends AiStrategyImpl
       required double discount,
       required int branchId,
       required String bhfId,
+      String? customerName,
+      String? customerTin,
       required bool isProformaMode,
       required bool isTrainingMode,
       required String transactionType,
@@ -1220,7 +1227,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<bool> delete(
+  Future<bool> flipperDelete(
       {required String id,
       String? endPoint,
       HttpClientInterface? flipperHttpClient}) {
@@ -1995,7 +2002,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<void> addBusiness(
-      {required int id,
+      {required String id,
       required int userId,
       required int serverId,
       String? name,
@@ -2133,6 +2140,53 @@ class Capella extends AiStrategyImpl
   @override
   Future<void> deleteTransactionItemAndResequence({required String id}) {
     // TODO: implement deleteTransactionItemAndResequence
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement delete
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) {
+    // TODO: implement get
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> getUniversalProducts(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement getUniversalProducts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> patch(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement patch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> post(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement post
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement put
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    // TODO: implement send
     throw UnimplementedError();
   }
 }

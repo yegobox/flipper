@@ -8,7 +8,6 @@ import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -166,17 +165,30 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  FutureOr<Tenant?> tenant({int? businessId, int? userId, String? id}) async {
+  FutureOr<Tenant?> tenant(
+      {int? businessId,
+      int? userId,
+      String? id,
+      required bool fetchRemote}) async {
     if (businessId != null) {
       return (await repository.get<Tenant>(
+              policy: fetchRemote
+                  ? OfflineFirstGetPolicy.awaitRemote
+                  : OfflineFirstGetPolicy.localOnly,
               query: Query(where: [Where('businessId').isExactly(businessId)])))
           .firstOrNull;
     } else if (userId != null) {
       return (await repository.get<Tenant>(
+              policy: fetchRemote
+                  ? OfflineFirstGetPolicy.awaitRemote
+                  : OfflineFirstGetPolicy.localOnly,
               query: Query(where: [Where('userId').isExactly(userId)])))
           .firstOrNull;
     } else {
       return (await repository.get<Tenant>(
+              policy: fetchRemote
+                  ? OfflineFirstGetPolicy.awaitRemote
+                  : OfflineFirstGetPolicy.localOnly,
               query: Query(where: [Where('id').isExactly(id)])))
           .firstOrNull;
     }
@@ -202,7 +214,7 @@ mixin TenantMixin implements TenantInterface {
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
         Tenant iTenant = Tenant(
-            isDefault: jTenant.isDefault,
+            isDefault: false,
             name: jTenant.name,
             userId: jTenant.userId,
             businessId: jTenant.businessId,
@@ -210,9 +222,9 @@ mixin TenantMixin implements TenantInterface {
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
-        for (IBusiness business in jTenant.businesses) {
+        for (IBusiness business in jTenant.businesses ?? []) {
           Business biz = Business(
-              serverId: business.id,
+              serverId: business.serverId,
               userId: int.parse(business.userId),
               name: business.name,
               currency: business.currency,
@@ -248,7 +260,7 @@ mixin TenantMixin implements TenantInterface {
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,
               taxEnabled: business.taxEnabled,
-              isDefault: business.isDefault,
+              isDefault: false,
               businessTypeId: business.businessTypeId,
               lastTouched: business.lastTouched,
               deletedAt: business.deletedAt,
@@ -262,9 +274,9 @@ mixin TenantMixin implements TenantInterface {
           }
         }
 
-        for (IBranch brannch in jTenant.branches) {
+        for (IBranch brannch in jTenant.branches ?? []) {
           Branch branch = Branch(
-              serverId: brannch.id,
+              serverId: brannch.serverId,
               active: brannch.active,
               description: brannch.description,
               name: brannch.name,
@@ -282,7 +294,7 @@ mixin TenantMixin implements TenantInterface {
         }
 
         final permissionToAdd = <LPermission>[];
-        for (IPermission permission in jTenant.permissions) {
+        for (IPermission permission in jTenant.permissions ?? []) {
           LPermission? exist = (await repository.get<LPermission>(
                   query: Query(where: [Where('id').isExactly(permission.id)])))
               .firstOrNull;

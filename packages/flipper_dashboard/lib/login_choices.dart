@@ -37,7 +37,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, viewModel, child) {
         final businesses = ref.watch(businessesProvider);
-        final branches = ref.watch(branchesProvider((includeSelf: true)));
+        final branches = ref.watch(branchesProvider((includeSelf: false)));
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -307,7 +307,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: false);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
@@ -323,7 +323,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     setState(() {
       _isSelectingBranch = true;
     });
-    ref.refresh(branchesProvider((includeSelf: true)));
+    ref.refresh(branchesProvider((includeSelf: false)));
   }
 
   void _completeAuthenticationFlow() {
@@ -337,6 +337,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider((includeSelf: true)));
+    ref.refresh(branchesProvider((includeSelf: false)));
   }
 }

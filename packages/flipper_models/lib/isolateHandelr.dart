@@ -1,25 +1,21 @@
-import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
-import 'package:flipper_models/helperModels/UniversalProduct.dart';
-import 'package:flipper_models/helper_models.dart' show Uuid;
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
 
-import 'package:sqlite3/sqlite3.dart'
-    if (dart.library.html) 'package:flipper_models/web_sqlite_stub.dart';
+// import 'package:sqlite3/sqlite3.dart'
+//     if (dart.library.html) 'package:flipper_models/web_sqlite_stub.dart';
 
 final repository = Repository();
 mixin VariantPatch {
@@ -258,17 +254,23 @@ mixin PatchTransactionItem {
       {required String URI,
       required Function(String) sendPort,
       required int tinNumber,
+      String? identifier,
       required String bhfId}) async {
     final branchId = ProxyService.box.getBranchId();
     final transactions = await repository.get<ITransaction>(
-        query: brick.Query(where: [
-      Where('ebmSynced').isExactly(false),
-      Where('status').isExactly(COMPLETE),
-      Or('status').isExactly(PARKED),
-      Where('customerName').isNot(null),
-      Where('customerTin').isNot(null),
-      Where('branchId').isExactly(branchId)
-    ]));
+        query: brick.Query(
+            where: identifier != null
+                ? [
+                    Where('id').isExactly(identifier),
+                  ]
+                : [
+                    Where('ebmSynced').isExactly(false),
+                    Where('status').isExactly(COMPLETE),
+                    Or('status').isExactly(PARKED),
+                    Where('customerName').isNot(null),
+                    Where('customerTin').isNot(null),
+                    Where('branchId').isExactly(branchId)
+                  ]));
     for (ITransaction transaction in transactions) {
       double taxB = 0;
 
@@ -295,9 +297,6 @@ mixin PatchTransactionItem {
           transaction.customerTin == null ||
           transaction.sarNo == null ||
           transaction.ebmSynced!) {
-        // for this to not eat up the budget next time mark it as synced
-        transaction.ebmSynced = true;
-        await repository.upsert(transaction);
         continue;
       }
       try {
@@ -360,12 +359,16 @@ mixin CustomerPatch {
           final response =
               await RWTax().saveCustomer(customer: iCustomer, URI: URI);
           if (response.resultCd == "000") {
+            customer.ebmSynced = true;
+            repository.upsert(customer);
             sendPort(
                 'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
           } else {
             sendPort('notification:${response.resultMsg}}');
           }
-        } catch (e) {}
+        } catch (e) {
+          talker.error(e);
+        }
       }
     }
   }
@@ -399,125 +402,14 @@ class IsolateHandler with StockPatch {
           // List<Customer> customers = await strategy.customers(branchId: 1);
           // print("customers from isolate: ${customers.length}");
           print("dealing with isolate");
-          int branchId = message['branchId'];
+          // int branchId = message['branchId'];
 
-          int businessId = message['businessId'];
-          String dbPath = message['dbPath'] ?? "";
-          String? URI = message['URI'];
-          String? bhfId = message['bhfId'];
-
-          localData(args,
-              dbPath: dbPath,
-              branchId: branchId,
-              businessId: businessId,
-              bhfid: bhfId ?? "00",
-              URI: URI ?? "");
+          // int businessId = message['businessId'];
+          // String dbPath = message['dbPath'] ?? "";
+          // String? URI = message['URI'];
+          // String? bhfId = message['bhfId'];
         }
       }
     });
-  }
-
-  static Future<void> localData(List<dynamic> args,
-      {required int branchId,
-      required int businessId,
-      required String dbPath,
-      required String bhfid,
-      required String URI}) async {
-    // final rootIsolateToken = args[1] as RootIsolateToken;
-
-    // await fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid,
-    //     dbPath: dbPath);
-    // BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    // DartPluginRegistrant.ensureInitialized();
-  }
-
-  static Future<void> fetchDataAndSaveUniversalProducts(
-    int businessId,
-    int branchId,
-    String URI,
-    String bhfid, {
-    required String dbPath,
-  }) async {
-    Database? db;
-    try {
-      // db = sqlite3.open(dbPath);
-      // final result =
-      //     db.select("SELECT * FROM Business WHERE server_id = $businessId");
-
-      // if (result.isEmpty) {
-      //   print('Business not found');
-      //   return;
-      // }
-
-      // Business business = Business.fromMap(result.single);
-      // final url = "$URI/itemClass/selectItemsClass";
-
-      // final headers = {"Content-Type": "application/json"};
-      // final now = DateTime.now();
-      // final lastReqDt = DateFormat('yyyyMMddHHmmss').format(now);
-      // final body = jsonEncode({
-      //   "tin": business.tinNumber,
-      //   "bhfId": bhfid,
-      //   "lastReqDt": lastReqDt,
-      // });
-
-      // final response =
-      //     await http.post(Uri.parse(url), headers: headers, body: body);
-      // if (response.statusCode == 200) {
-      //   try {
-      //     final jsonResponse = json.decode(response.body);
-
-      //     if (jsonResponse is Map<String, dynamic> &&
-      //         jsonResponse['data'] is Map<String, dynamic> &&
-      //         jsonResponse['data']['itemClsList'] is List) {
-      //       final List<dynamic> itemClsList =
-      //           jsonResponse['data']['itemClsList'];
-
-      //       db.execute('BEGIN TRANSACTION');
-      //       try {
-      //         for (var item in itemClsList) {
-      //           final UniversalProduct product =
-      //               UniversalProduct.fromJson(item);
-      //           final result = db.select(
-      //               "SELECT * FROM UnversalProduct WHERE item_cls_cd = ?",
-      //               [product.itemClsCd]);
-
-      //           if (result.isEmpty) {
-      //             db.execute(
-      //                 "INSERT INTO UnversalProduct (id, item_cls_cd, item_cls_lvl, item_cls_nm, branch_id, business_id, use_yn, mjr_tg_yn, tax_ty_cd) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", // Typo kept here
-      //                 [
-      //                   const Uuid().v4(),
-      //                   product.itemClsCd,
-      //                   product.itemClsLvl,
-      //                   product.itemClsNm,
-      //                   branchId,
-      //                   businessId,
-      //                   product.useYn,
-      //                   product.mjrTgYn,
-      //                   product.taxTyCd
-      //                 ]);
-      //           }
-      //         }
-      //         db.execute('COMMIT');
-      //       } catch (e) {
-      //         db.execute('ROLLBACK');
-      //         rethrow;
-      //       }
-      //     } else {
-      //       print('Invalid JSON structure');
-      //     }
-      //   } catch (e) {
-      //     print('Failed to decode JSON: $e');
-      //   }
-      // } else {
-      //   print('Failed to load data. Status code: ${response.statusCode}');
-      // }
-    } on http.ClientException catch (e) {
-      print('Network error: $e');
-    } catch (e) {
-      print('Unexpected error: $e');
-    } finally {
-      db?.dispose();
-    }
   }
 }

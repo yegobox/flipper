@@ -122,10 +122,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .toString();
       final mod = randomNumber().toString();
       final sar = randomNumber();
-
+      final branchId = (await ProxyService.strategy.activeBranch()).id;
       // Query active, done items only
       final items = await ProxyService.strategy.transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
+        branchId: branchId,
         transactionId: transaction.id,
         doneWithTransaction: true,
         active: true,
@@ -175,6 +175,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       if (!custTin.isValidTin()) {
         json.remove('custTin');
       }
+      talker.info(json);
       Response response = await sendPostRequest(url, json);
 
       final data = RwApiResponse.fromJson(
@@ -204,7 +205,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .toString();
 
       /// update the remaining stock of this item in rra
-      variant.rsdQty = variant.stock?.currentStock;
+      if (variant.stock?.currentStock != null) {
+        // Truncate/round to 2 decimal places for RRA compatibility
+        variant.rsdQty =
+            double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
+      } else {
+        variant.rsdQty = null;
+      }
       if (variant.tin == null) {
         return RwApiResponse(resultCd: "000", resultMsg: "Missing TIN number");
       }
@@ -225,7 +232,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
       }
 
-      variant.rsdQty = variant.stock!.currentStock;
+      variant.rsdQty =
+          double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
       talker.warning("RSD QTY: ${variant.toJson()}");
       Response response = await sendPostRequest(url, variant.toJson());
 
@@ -403,7 +411,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get business details
     Business? business = await ProxyService.strategy.getBusiness();
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-      // never pass in isDoneTransaction param here!
+        // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
         branchId: (await ProxyService.strategy.activeBranch()).id);
 
@@ -713,7 +721,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");
-
+    final pmtTyCd = ProxyService.box.pmtTyCd();
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
@@ -721,10 +729,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "orgInvcNo": 0,
       "salesTyCd": receiptCodes['salesTyCd'],
       "rcptTyCd": receiptCodes['rcptTyCd'],
-      "pmtTyCd": "01",
+      "pmtTyCd": pmtTyCd,
       "salesSttsCd": "02",
       "cfmDt": date,
       "salesDt": date.substring(0, 8),
+      // "stockRlsDt": timeToUse.toYYYYMMddHHmmss(),
       "stockRlsDt": date,
       "totItemCnt": itemsList.length,
 
@@ -857,7 +866,24 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .toString();
 
     try {
-      final response = await sendPostRequest(url, customer.toJson());
+      final requiredObjc = {
+        "tin": ProxyService.box.tin(),
+        "bhfId": customer.bhfId,
+        "custNo": customer.custNo,
+        "custTin": customer.custTin,
+        "custNm": customer.custNm,
+        "adrs": customer.adrs,
+        "telNo": customer.telNo,
+        "email": customer.email,
+        // "faxNo": customer.faxNo,
+        "useYn": "Y",
+        // "remark": customer.remark,
+        "modrId": customer.modrId,
+        "modrNm": customer.custNm,
+        "regrId": customer.regrId,
+        "regrNm": customer.custNm
+      };
+      final response = await sendPostRequest(url, requiredObjc);
 
       if (response.statusCode == 200) {
         sendEmailLogging(

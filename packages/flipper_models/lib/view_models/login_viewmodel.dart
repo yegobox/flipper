@@ -20,9 +20,15 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
-    final credential =
-        await firebase.FirebaseAuth.instance.signInWithCustomToken(token);
-    talker.warning("credentials: $credential");
+    try {
+      final credential =
+          await firebase.FirebaseAuth.instance.signInWithCustomToken(token);
+
+      talker.warning("credentials: $credential");
+    } catch (e) {
+      talker.error(e);
+      rethrow;
+    }
   }
 }
 
@@ -89,7 +95,7 @@ class LoginViewModel extends FlipperBaseModel
     talker.info('[completeLogin] Saving pin and initializing app');
     try {
       await ProxyService.strategy.savePin(pin: thePin);
-      await   appService.appInit();
+      await appService.appInit();
       talker.info(
           '[completeLogin] Pin saved, appInit done, navigating to StartUpViewRoute');
       locator<RouterService>().navigateTo(StartUpViewRoute());
@@ -114,8 +120,16 @@ class LoginViewModel extends FlipperBaseModel
       final response = await ProxyService.strategy
           .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
       final userJson = json.decode(response.body);
-      final tenant = userJson['tenants']?[0];
-      await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker);
+      // Safely handle empty tenants array
+      final tenants = userJson['tenants'] as List<dynamic>?;
+      final tenant = tenants != null && tenants.isNotEmpty ? tenants[0] : null;
+
+      // Only attempt to ensure admin access if we have a tenant
+      if (tenant != null) {
+        await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker);
+      } else {
+        talker.info('No tenants found for user during login');
+      }
       final iUser = IUser.fromJson(json.decode(response.body));
 
       // Get PIN information

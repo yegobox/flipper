@@ -1,4 +1,3 @@
-
 import 'package:flipper_dashboard/QuantityCell.dart';
 import 'package:flipper_dashboard/TaxDropdown.dart';
 import 'package:flipper_dashboard/UnitOfMeasureDropdown.dart';
@@ -178,7 +177,7 @@ class TableVariants extends StatelessWidget {
               context: context,
               model: model,
               variant: variant,
-              unitsAsyncValue: unversalProducts,
+              universalProducts: unversalProducts,
             ),
           ),
         ),

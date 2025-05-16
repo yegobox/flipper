@@ -305,7 +305,7 @@ class _AllAccessesProviderElement
   int get userId => (origin as AllAccessesProvider).userId;
 }
 
-String _$tenantHash() => r'726c3ab8c9874cf7faf6c379b44e413c709f369d';
+String _$tenantHash() => r'ed912495c3422dce04a6ff3f1f964fa540f55d6c';
 
 /// See also [tenant].
 @ProviderFor(tenant)
@@ -582,7 +582,7 @@ class _FeatureAccessProviderElement extends AutoDisposeProviderElement<bool>
 }
 
 String _$featureAccessLevelHash() =>
-    r'b9c53d211f1d7a4b29be60823f8959b22150fd7c';
+    r'66ee2a84a6c1236d466e90fa6af131c8543bf75c';
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access

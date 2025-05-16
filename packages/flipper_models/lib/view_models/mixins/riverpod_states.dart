@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -553,7 +555,8 @@ final selectedItemIdProvider = StateProvider<String?>((ref) => NO_SELECTION);
 
 final tenantProvider = FutureProvider<Tenant?>((ref) async {
   final userId = ProxyService.box.getUserId();
-  return await ProxyService.strategy.tenant(userId: userId);
+  return await ProxyService.strategy
+      .tenant(userId: userId, fetchRemote: !Platform.isWindows);
 });
 
 /// check if a user has either, admin,read,write on a given feature
@@ -711,7 +714,7 @@ class Payment {
 class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
   PaymentMethodsNotifier()
       : super([
-          Payment(amount: 0.0, method: 'Cash'),
+          Payment(amount: 0.0, method: 'CASH'),
         ]);
 
   // Method to add a payment method

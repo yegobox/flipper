@@ -1,17 +1,12 @@
-import 'dart:io';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_login/LoadingDialog.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -70,54 +65,11 @@ class _LoginState extends State<Login> {
     initializeConfigurations();
   }
 
-  /// Handles user authentication state changes and login flow
-  /// This is only needed for non-Windows platforms
+  // Auth handling has been moved to AuthWithMultipleProviders.dart
+  // This is kept as a stub for backward compatibility
   Future<void> handleAuthStateChanges(LoginViewModel model) async {
-    if (Platform.isWindows) return;
-
-    firebase.FirebaseAuth.instance.authStateChanges().listen((user) async {
-      if (user == null) return;
-      // Show Loading Dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Prevent closing by tapping outside
-        builder: (BuildContext context) {
-          return const LoadingDialog(message: 'Finalizing authentication...');
-        },
-      );
-
-      final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
-          !await ProxyService.box.authComplete();
-
-      if (!shouldProcessLogin) return;
-
-      try {
-        final loginData = await model.processUserLogin(user);
-        final Pin userPin = loginData['pin'];
-        final IUser userData = loginData['user'];
-        await model.completeLoginProcess(userPin, model, user: userData);
-
-        // Track login event with PosthogService
-        PosthogService.instance.capture('login_success', properties: {
-          'source': 'login_screen',
-          'user_id': user.uid,
-          'email': user.email ?? user.phoneNumber!,
-        });
-
-        // Ensure the loading dialog is closed after navigation starts
-        // WidgetsBinding.instance.addPostFrameCallback((_) {
-        //   if (mounted) {
-        //     Navigator.of(context, rootNavigator: true).pop();
-        //   }
-        // });
-      } catch (e, s) {
-        // Ensure the dialog is closed on error
-        if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
-        }
-        model.handleLoginError(e, s);
-      }
-    });
+    // No-op - authentication is now handled in AuthWithMultipleProviders
+    // We don't need to check for Platform.isWindows anymore since this is just a stub
   }
 
   /// Determines if the current device is a desktop based on screen width
@@ -168,6 +120,20 @@ class _LoginState extends State<Login> {
       ],
       actions: [
         AuthStateChangeAction<SignedIn>((context, state) {
+          // Show loading dialog immediately for better UX
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext context) {
+              return const LoadingDialog(message: 'Finalizing authentication...');
+            },
+          );
+          
+          // Pop back to Login widget where Firebase auth state changes will be detected
+          // by the centralized handler in AuthWithMultipleProviders
+          Navigator.of(context).pop();
+          
+          // Email verification handling if needed
           if (!state.user!.emailVerified) {
             // Handle email verification if needed
           }

@@ -1,12 +1,15 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
@@ -115,8 +118,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
           // Continue even if setDefaultBranch fails
         }
 
-        // Refresh the UI without full app reload
-        refreshAfterBranchSwitch();
+        // Force refresh of all branch-dependent data
+        // This is critical to ensure variants are refreshed
+        await _forceRefreshAfterBranchSwitch(branch.serverId!);
       }
 
       onComplete();
@@ -127,6 +131,42 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     } finally {
       setLoadingState(null);
       setIsLoading(false); // Set isLoading to false
+    }
+  }
+
+  // New method to force refresh after branch switch
+  Future<void> _forceRefreshAfterBranchSwitch(int branchId) async {
+    try {
+      // Set flags to trigger refresh in other components
+      await ProxyService.box.writeBool(key: 'branch_switched', value: true);
+      await ProxyService.box.writeInt(
+          key: 'last_branch_switch_timestamp',
+          value: DateTime.now().millisecondsSinceEpoch);
+      await ProxyService.box.writeInt(key: 'active_branch_id', value: branchId);
+
+      // Force refresh of branch providers
+      ref.invalidate(branchesProvider((includeSelf: false)));
+
+      // Trigger a search refresh to force variant reload
+      // First emit "search" to trigger the refresh
+      ref.read(searchStringProvider.notifier).emitString(value: "search");
+      // Then clear it to reset the search state
+      ref.read(searchStringProvider.notifier).emitString(value: "");
+
+      // Directly call refreshAfterBranchSwitch to ensure UI updates
+      refreshAfterBranchSwitch();
+
+      // Show a snackbar to indicate the branch switch
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        showCustomSnackBarUtil(
+          context,
+          'Branch switched. Refreshing data...',
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (e) {
+      print('Error in _forceRefreshAfterBranchSwitch: $e');
     }
   }
 
@@ -191,6 +231,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required VoidCallback onLogout,
     required void Function(String? id) setLoadingState,
   }) async {
+    // Show dialog immediately without waiting for branches
     await showDialog(
       context: context,
       builder: (context) {
@@ -335,7 +376,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-        businessId: ProxyService.box.getBusinessId()!, includeSelf: true);
+        businessId: ProxyService.box.getBusinessId()!, includeSelf: false);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
@@ -361,8 +402,32 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   // Helper method to refresh data after branch switch without app reload
   void refreshAfterBranchSwitch() {
-    // This method can be overridden in implementing classes to refresh data
-    // For example, refreshing providers or streams that depend on branch ID
+    // This method refreshes data after branch switch without requiring a full app reload
+    try {
+      // Force a refresh of branch providers
+      ref.invalidate(branchesProvider((includeSelf: false)));
+
+      // Set a flag in storage to indicate a branch switch occurred
+      // This can be used by other widgets to detect when they should refresh
+      ProxyService.box.writeBool(key: 'branch_switched', value: true);
+      ProxyService.box.writeInt(
+          key: 'last_branch_switch_timestamp',
+          value: DateTime.now().millisecondsSinceEpoch);
+
+      // Show a snackbar to indicate the branch switch
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        showCustomSnackBarUtil(
+          context,
+          'Branch switched. Refreshing data...',
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (e) {
+      print('Error refreshing after branch switch: $e');
+    }
+
+    // Trigger a rebuild of the widget
     if (mounted) {
       setState(() {
         // Trigger a rebuild of the widget
@@ -402,34 +467,218 @@ class _BranchSwitchDialog extends StatefulWidget {
 }
 
 class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
-  late Future<List<Branch>> _branchesFuture;
+  bool _isLoading = false;
+  List<Branch>? _branches;
 
   @override
   void initState() {
     super.initState();
-    if (widget.branches == null) {
-      _branchesFuture = ProxyService.strategy.branches(
+    _branches = widget.branches;
+
+    // If branches weren't provided, fetch them immediately
+    if (_branches == null) {
+      _isLoading = true;
+      _fetchBranches();
+    }
+  }
+
+  Future<void> _fetchBranches() async {
+    try {
+      final branches = await ProxyService.strategy.branches(
         businessId: ProxyService.box.getBusinessId()!,
         includeSelf: false,
       );
+
+      if (mounted) {
+        setState(() {
+          _branches = branches;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      // Show error if needed
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.branches != null) {
-      return _buildDialog(widget.branches!);
-    }
-    // If branches is null, show loader and fetch
-    return FutureBuilder<List<Branch>>(
-      future: _branchesFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator());
-        }
-        return _buildDialog(snapshot.data!);
-      },
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        constraints: const BoxConstraints(maxHeight: 450, minWidth: 400),
+        decoration: BoxDecoration(
+          color: DialogThemeData().backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: _isLoading && _branches == null
+            ? _buildLoadingContent()
+            : _buildDialogContent(),
+      ),
     );
+  }
+
+  Widget _buildLoadingContent() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on_rounded,
+                  color: Theme.of(context).primaryColor,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Switch Branch',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.5,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
+                  ),
+                ),
+              ],
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  widget.onLogout();
+                },
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.logout_rounded,
+                        color: Theme.of(context).colorScheme.error,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 40),
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Loading branches...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDialogContent() {
+    if (_branches == null || _branches!.isEmpty) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on_rounded,
+                    color: Theme.of(context).primaryColor,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Switch Branch',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.5,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
+                    ),
+                  ),
+                ],
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    widget.onLogout();
+                  },
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.logout_rounded,
+                          color: Theme.of(context).colorScheme.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 40),
+          Center(
+            child: Text(
+              'No branches available',
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return _buildDialog(_branches!);
   }
 
   Widget _buildDialog(List<Branch> branches) {
@@ -611,13 +860,10 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                           onTap: () {
                             // Prevent multiple taps while processing
                             if (widget.loadingItemId != null) return;
-
-                            // Show a snackbar to indicate branch switching is in progress
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Switching to ${branch.name}...'),
-                                duration: const Duration(seconds: 1),
-                              ),
+                            showCustomSnackBarUtil(
+                              context,
+                              'Switching to ${branch.name}...',
+                              duration: const Duration(seconds: 2),
                             );
 
                             widget.handleBranchSelection(
@@ -640,12 +886,10 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                 // Don't reload the entire app, just refresh the current view
                                 // This prevents getting stuck in the startup view
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('Switched to ${branch.name}'),
-                                      duration: const Duration(seconds: 2),
-                                    ),
+                                  showCustomSnackBarUtil(
+                                    context,
+                                    'Switched to ${branch.name}',
+                                    duration: const Duration(seconds: 2),
                                   );
                                 }
                               },

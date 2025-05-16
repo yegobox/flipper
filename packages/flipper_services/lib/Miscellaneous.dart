@@ -101,24 +101,58 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       await ProxyService.strategy.amplifyLogout();
 
       // Unset default for all businesses and branches
-      if (ProxyService.box.getBranchId() != null) {
-        List<Business> businesses = await ProxyService.strategy
-            .businesses(userId: ProxyService.box.getUserId() ?? 0);
-        for (Business business in businesses) {
-          ProxyService.strategy.updateBusiness(
-            businessId: business.serverId,
+      final userId = ProxyService.box.getUserId();
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+
+      // First, explicitly set the current active business and branch to inactive
+      if (businessId != null) {
+        try {
+          // Set current active business to inactive and not default
+          await ProxyService.strategy.updateBusiness(
+            businessId: businessId,
             active: false,
             isDefault: false,
           );
-        }
-        List<Branch> branches = await ProxyService.strategy
-            .branches(businessId: ProxyService.box.getBusinessId() ?? 0);
-        for (Branch branch in branches) {
-          ProxyService.strategy.updateBranch(
-            branchId: branch.serverId!,
-            active: false,
-            isDefault: false,
-          );
+
+          // Set current active branch to inactive and not default
+          if (branchId != null) {
+            await ProxyService.strategy.updateBranch(
+              branchId: branchId,
+              active: false,
+              isDefault: false,
+            );
+          }
+
+          // Now update all other businesses and branches to be safe
+          if (userId != null) {
+            List<Business> businesses =
+                await ProxyService.strategy.businesses(userId: userId);
+            for (Business business in businesses) {
+              if (business.serverId != businessId) {
+                await ProxyService.strategy.updateBusiness(
+                  businessId: business.serverId,
+                  active: false,
+                  isDefault: false,
+                );
+              }
+            }
+
+            List<Branch> branches =
+                await ProxyService.strategy.branches(businessId: businessId);
+            for (Branch branch in branches) {
+              if (branch.serverId != branchId) {
+                await ProxyService.strategy.updateBranch(
+                  branchId: branch.serverId!,
+                  active: false,
+                  isDefault: false,
+                );
+              }
+            }
+          }
+        } catch (e) {
+          // Log error but continue with logout process
+          print('Error updating business/branch status during logout: $e');
         }
       }
 
@@ -126,6 +160,11 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       ProxyService.box.remove(key: 'userId');
       ProxyService.box.remove(key: 'getIsTokenRegistered');
       ProxyService.box.remove(key: 'defaultApp');
+
+      // Also remove business and branch IDs to ensure clean state for next login
+      ProxyService.box.remove(key: 'businessId');
+      ProxyService.box.remove(key: 'branchId');
+      ProxyService.box.remove(key: 'branchIdString');
 
       return true;
     } catch (e, s) {

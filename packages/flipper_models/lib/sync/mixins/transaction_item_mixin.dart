@@ -44,10 +44,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
             doneWithTransaction ?? transactionItem.doneWithTransaction;
         // Check if retailPrice is not null before performing calculations
         if (variation?.retailPrice != null) {
-          transactionItem.taxblAmt =
-              variation!.retailPrice! * quantity; // Recalculate taxblAmt
-          transactionItem.totAmt =
-              variation.retailPrice! * quantity; // Recalculate totAmt
+          // Ensure precise calculation for decimal quantities
+          transactionItem.taxblAmt = (variation!.retailPrice! * quantity)
+              .toDouble(); // Recalculate taxblAmt with explicit double conversion
+          transactionItem.totAmt = (variation.retailPrice! * quantity)
+              .toDouble(); // Recalculate totAmt with explicit double conversion
           transactionItem.remainingStock = currentStock - quantity;
         } else {
           // Handle the case where retailPrice is null
@@ -57,10 +58,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       } else {
         // Create a new `TransactionItem` from the `variation` object
         final double price = variation!.retailPrice!;
-        final double taxblAmt = price * quantity;
+        // Ensure precise calculation for decimal quantities
+        final double taxblAmt = (price * quantity).toDouble();
         final double taxAmt =
             double.parse((amountTotal * 18 / 118).toStringAsFixed(2));
-        final double totAmt = price * quantity;
+        // Ensure precise calculation for decimal quantities
+        final double totAmt = (price * quantity).toDouble();
         final double dcAmt =
             (price * (variation.qty ?? 1.0)) * (variation.dcRt ?? 0.0);
 
@@ -182,18 +185,33 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       if (requestId != null) {
         conditions.add(Where('inventoryRequestId').isExactly(requestId));
       }
-      if (startDate != null && endDate != null) {
-        if (startDate == endDate) {
-          talker
-              .info('Date Given \x1B[35m${startDate.toIso8601String()}\x1B[0m');
+      // Handle date filtering with proper support for single date scenarios
+      if (startDate != null || endDate != null) {
+        // Case 1: Both dates provided (date range)
+        if (startDate != null && endDate != null) {
+          talker.info(
+              'Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m');
+
+          // startDate is the lower bound (inclusive)
           conditions.add(Where('createdAt')
               .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+
+          // endDate + 1 day is the upper bound (inclusive) to include all entries on the end date
           conditions.add(Where('createdAt').isLessThanOrEqualTo(
               endDate.add(const Duration(days: 1)).toIso8601String()));
-        } else {
+        }
+        // Case 2: Only startDate provided (everything from this date onwards)
+        else if (startDate != null) {
+          talker.info(
+              'From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards');
           conditions.add(Where('createdAt')
-              .isLessThanOrEqualTo(startDate.toIso8601String()));
-          conditions.add(Where('createdAt').isGreaterThanOrEqualTo(
+              .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+        }
+        // Case 3: Only endDate provided (everything up to this date)
+        else if (endDate != null) {
+          talker
+              .info('Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m');
+          conditions.add(Where('createdAt').isLessThanOrEqualTo(
               endDate.add(const Duration(days: 1)).toIso8601String()));
         }
       }
@@ -281,7 +299,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       bool? incrementQty,
       double? price,
       double? prc,
-      double? splyAmt,
       bool? doneWithTransaction,
       int? quantityShipped,
       double? taxblAmt,
@@ -298,7 +315,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.discount = discount ?? item.discount;
       item.active = active ?? item.active;
       item.price = price ?? item.price;
-      item.prc = prc ?? item.prc;
+      item.prc = prc ?? item.price;
       item.taxAmt = taxAmt ?? item.taxAmt;
       item.isRefunded = isRefunded ?? item.isRefunded;
       item.ebmSynced = ebmSynced ?? item.ebmSynced;
@@ -307,10 +324,22 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.quantityRequested = incrementQty == true
           ? (item.qty + 1).toInt()
           : qty?.toInt() ?? item.qty.toInt();
-      item.splyAmt = splyAmt ?? item.splyAmt;
+      Variant? variant =
+          await ProxyService.strategy.getVariant(id: item.variantId);
+      double currentQty = qty ?? item.qty;
+      item.splyAmt = (variant?.supplyPrice ?? 1) * currentQty;
+      talker.info('qty: $currentQty');
+      talker.info('supplyPrice: ${variant?.supplyPrice}');
+      talker.info('splyAmt: ${item.splyAmt}');
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
-      item.taxblAmt = taxblAmt ?? item.taxblAmt;
-      item.totAmt = totAmt ?? item.totAmt;
+      // Fix the calculation for taxblAmt and totAmt to properly factor in quantity
+      // Ensure precise calculation for decimal quantities
+      item.taxblAmt =
+          taxblAmt ?? ((variant?.retailPrice ?? 1) * currentQty).toDouble();
+      item.totAmt =
+          totAmt ?? ((variant?.retailPrice ?? 1) * currentQty).toDouble();
+      talker.info('taxblAmt: ${item.taxblAmt}');
+      talker.info('totAmt: ${item.totAmt}');
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
       repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);

@@ -336,8 +336,8 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
               scrollDirection: Axis.horizontal,
               child: DataTable(
                 columnSpacing: 20,
-                headingRowColor: MaterialStateProperty.all(
-                  Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                headingRowColor: WidgetStateProperty.all(
+                  Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 ),
                 columns: const [
                   DataColumn(label: Text('ID')),

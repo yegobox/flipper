@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -60,6 +61,15 @@ class CronService {
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
     try {
+      final uri = await ProxyService.box.getServerUrl();
+      ProxyService.http
+          .getUniversalProducts(Uri.parse('${uri}itemClass/selectItemsClass'),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode({
+                "tin": "999909695",
+                "bhfId": "00",
+                "lastReqDt": "20190523000000",
+              }));
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) {
         talker.error("Cannot hydrate data: Branch ID is null");
@@ -253,18 +263,27 @@ class CronService {
 
     // Patch transaction items
     try {
-      final tinNumber = ProxyService.box.tin();
       final bhfId = await ProxyService.box.bhfId();
-
       if (bhfId == null) {
         talker.warning("Skipping transaction item patching: BHF ID is null");
         return;
       }
 
+      /// as I was testing realized callin this here might cause race condition
+      /// the method should be called intentionally.
+      final tinNumber = ProxyService.box.tin();
+
       await PatchTransactionItem.patchTransactionItem(
         tinNumber: tinNumber,
         bhfId: bhfId,
         URI: uri,
+        sendPort: notificationCallback,
+      );
+      CustomerPatch.patchCustomer(
+        URI: uri,
+        tinNumber: tinNumber,
+        bhfId: bhfId,
+        branchId: ProxyService.box.getBranchId()!,
         sendPort: notificationCallback,
       );
     } catch (e) {

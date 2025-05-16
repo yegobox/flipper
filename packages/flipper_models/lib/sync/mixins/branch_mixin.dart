@@ -38,7 +38,8 @@ mixin BranchMixin implements BranchInterface {
       return await repository.get<Branch>(
         query: Query(where: [
           Where('businessId').isExactly(businessId),
-          Where('active').isExactly(active),
+          //if we are given active and is true then we return only
+          if (active) Where('active').isExactly(active),
         ]),
       );
     } catch (e, s) {
@@ -103,15 +104,30 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<Branch> activeBranch() async {
-    final branches = await repository.get<Branch>(
-      policy: OfflineFirstGetPolicy.localOnly,
-    );
-
     try {
-      return branches.firstWhere(
-        (branch) => branch.isDefault == true || branch.isDefault == 1,
-        orElse: () => throw Exception("No default branch found"),
+      // Use a direct query to filter for the default branch at the database level
+      // Query for branches where isDefault is either true or 1
+      final branches = await repository.get<Branch>(
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [Where('isDefault').isExactly(true)]),
       );
+
+      // If we found a default branch, return it
+      if (branches.isNotEmpty) {
+        return branches.first;
+      }
+
+      // If no branch with isDefault=true, try with isDefault=1
+      final branchesWithNumericDefault = await repository.get<Branch>(
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [Where('isDefault').isExactly(1)]),
+      );
+
+      if (branchesWithNumericDefault.isEmpty) {
+        throw Exception("No default branch found");
+      }
+
+      return branchesWithNumericDefault.first;
     } catch (e) {
       await logOut();
       rethrow;

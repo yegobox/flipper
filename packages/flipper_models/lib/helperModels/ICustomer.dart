@@ -3,7 +3,7 @@ part 'ICustomer.g.dart';
 
 @JsonSerializable()
 class ICustomer {
-  int? id;
+  String? id;
 
   //customer name
   String? custNm;
@@ -14,7 +14,6 @@ class ICustomer {
   /// address
   String? adrs;
   int? branchId;
-  DateTime? updatedAt;
   // Customer Number
   String? custNo;
   //customer tin number
@@ -34,11 +33,8 @@ class ICustomer {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool ebmSynced = false;
-  DateTime? lastTouched;
 
   String? action;
-
-  DateTime? deletedAt;
 
   /// this is the tin of the business adding this customer
   int? tin;
@@ -53,7 +49,6 @@ class ICustomer {
     this.telNo,
     this.adrs,
     this.branchId,
-    this.updatedAt,
     this.custNo,
     this.custTin,
     this.regrNm,
@@ -61,9 +56,7 @@ class ICustomer {
     this.modrNm,
     this.modrId,
     this.ebmSynced = false,
-    this.lastTouched,
     this.action,
-    this.deletedAt,
     this.tin,
     this.bhfId,
     this.useYn,

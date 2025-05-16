@@ -5,7 +5,6 @@ import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
-import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -35,9 +34,11 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required Variant variant,
     required bool isOrdering,
     required bool forceRemoteUrl,
+    bool forceListView = false, // Add parameter with default value
   }) {
     return buildRowItem(
         forceRemoteUrl: forceRemoteUrl,
+        forceListView: forceListView, // Pass the parameter
         context: context,
         model: model,
         variant: variant,
@@ -59,7 +60,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       if (canDelete) {
         if (product == null) {
-          ProxyService.strategy.delete(id: variant.id, endPoint: 'variant');
+          ProxyService.strategy
+              .flipperDelete(id: variant.id, endPoint: 'variant');
           ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
 
           return;
@@ -69,7 +71,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           List<Composite> composites =
               await ProxyService.strategy.composites(productId: productId);
           for (Composite composite in composites) {
-            await ProxyService.strategy.delete(
+            await ProxyService.strategy.flipperDelete(
                 id: composite.id,
                 endPoint: 'composite',
                 flipperHttpClient: ProxyService.http);
@@ -90,8 +92,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             Assets? asset = await ProxyService.strategy
                 .getAsset(assetName: product.imageUrl!);
             if (asset != null) {
-              await ProxyService.strategy
-                  .delete(id: asset.id, flipperHttpClient: ProxyService.http);
+              await ProxyService.strategy.flipperDelete(
+                  id: asset.id, flipperHttpClient: ProxyService.http);
             }
           }
         } else {
@@ -114,6 +116,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     required double stock,
     required bool forceRemoteUrl,
     required bool isOrdering,
+    bool forceListView = false, // Add parameter with default value
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
     final assetAsync = ref.watch(assetProvider(variant.productId ?? ""));
@@ -129,6 +132,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         // Return a fallback UI instead of showing the error
         return RowItem(
           forceRemoteUrl: forceRemoteUrl,
+          forceListView: forceListView, // Pass the parameter
           isOrdering: isOrdering,
           color: variant.color ?? "#673AB7",
           stock: stock,
@@ -167,6 +171,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             // Return the product row without asset data
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
+              forceListView: forceListView, // Pass the parameter
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,
@@ -198,6 +203,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           data: (asset) {
             return RowItem(
               forceRemoteUrl: forceRemoteUrl,
+              forceListView: forceListView, // Pass the parameter
               isOrdering: isOrdering,
               color: variant.color ?? "#673AB7",
               stock: stock,

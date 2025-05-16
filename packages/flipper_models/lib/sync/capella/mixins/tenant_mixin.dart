@@ -74,7 +74,8 @@ mixin CapellaTenantMixin implements TenantInterface {
   }
 
   @override
-  FutureOr<Tenant?> tenant({int? businessId, int? userId, String? id}) {
+  FutureOr<Tenant?> tenant(
+      {int? businessId, int? userId, String? id, required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }
