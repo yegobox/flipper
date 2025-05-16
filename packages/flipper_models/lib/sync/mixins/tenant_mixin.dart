@@ -214,7 +214,7 @@ mixin TenantMixin implements TenantInterface {
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
         Tenant iTenant = Tenant(
-            isDefault: jTenant.isDefault,
+            isDefault: false,
             name: jTenant.name,
             userId: jTenant.userId,
             businessId: jTenant.businessId,
@@ -222,7 +222,7 @@ mixin TenantMixin implements TenantInterface {
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
-        for (IBusiness business in jTenant.businesses) {
+        for (IBusiness business in jTenant.businesses ?? []) {
           Business biz = Business(
               serverId: business.serverId,
               userId: int.parse(business.userId),
@@ -260,7 +260,7 @@ mixin TenantMixin implements TenantInterface {
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,
               taxEnabled: business.taxEnabled,
-              isDefault: business.isDefault,
+              isDefault: false,
               businessTypeId: business.businessTypeId,
               lastTouched: business.lastTouched,
               deletedAt: business.deletedAt,
@@ -274,7 +274,7 @@ mixin TenantMixin implements TenantInterface {
           }
         }
 
-        for (IBranch brannch in jTenant.branches) {
+        for (IBranch brannch in jTenant.branches ?? []) {
           Branch branch = Branch(
               serverId: brannch.serverId,
               active: brannch.active,
@@ -294,7 +294,7 @@ mixin TenantMixin implements TenantInterface {
         }
 
         final permissionToAdd = <LPermission>[];
-        for (IPermission permission in jTenant.permissions) {
+        for (IPermission permission in jTenant.permissions ?? []) {
           LPermission? exist = (await repository.get<LPermission>(
                   query: Query(where: [Where('id').isExactly(permission.id)])))
               .firstOrNull;
