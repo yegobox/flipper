@@ -696,7 +696,6 @@ class ScannViewState extends ConsumerState<ScannView>
       int businessId = ProxyService.box.getBusinessId()!;
       int branchId = ProxyService.box.getBranchId()!;
       String phone = ProxyService.box.getUserPhone()!;
-      String uid = ProxyService.box.uid();
       String defaultApp = ProxyService.box.getDefaultApp();
       String linkingCode = randomNumber().toString();
 
@@ -704,6 +703,8 @@ class ScannViewState extends ConsumerState<ScannView>
       setState(() {
         _scanStatus = ScanStatus.processing;
       });
+      // get the pin
+      final pin = await ProxyService.strategy.getPinLocal(userId: userId);
 
       PublishResult result = await ProxyService.event.publish(loginDetails: {
         'channel': channel,
@@ -712,7 +713,7 @@ class ScannViewState extends ConsumerState<ScannView>
         'branchId': branchId,
         'phone': phone,
         'defaultApp': defaultApp,
-        'uid': uid,
+        'tokenUid': pin?.tokenUid,
         'deviceName': Platform.operatingSystem,
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': linkingCode,

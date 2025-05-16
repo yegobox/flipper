@@ -21,10 +21,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
     try {
-      final credential =
-          await firebase.FirebaseAuth.instance.signInWithCustomToken(token);
-
-      talker.warning("credentials: $credential");
+      await ProxyService.strategy.firebaseLogin(token: token);
     } catch (e) {
       talker.error(e);
       rethrow;

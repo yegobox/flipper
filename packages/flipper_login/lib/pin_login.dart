@@ -50,7 +50,6 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           branchId: pin.branchId,
           businessId: pin.businessId,
           ownerName: pin.ownerName,
-          tokenUid: pin.tokenUid,
           phoneNumber: pin.phoneNumber,
         );
 

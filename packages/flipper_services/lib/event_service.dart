@@ -41,10 +41,11 @@ class EventService
   @override
   Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
       _desktopLoginStatusController.stream;
-      
+
   @override
   void resetLoginStatus() {
-    _desktopLoginStatusController.add(DesktopLoginStatus(DesktopLoginState.idle));
+    _desktopLoginStatusController
+        .add(DesktopLoginStatus(DesktopLoginState.idle));
   }
 
   EventService({required String userId})
@@ -172,7 +173,7 @@ class EventService
 
           // await FirebaseAuth.instance.signInAnonymously();
           /// uid is token linked with the user
-          await tokenLogin(loginData.uid);
+          await tokenLogin(loginData.tokenUid);
           keepTryingPublishDevice();
           _desktopLoginStatusController
               .add(DesktopLoginStatus(DesktopLoginState.success));

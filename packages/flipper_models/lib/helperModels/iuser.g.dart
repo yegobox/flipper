@@ -14,8 +14,6 @@ IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
       tenants: (json['tenants'] as List<dynamic>)
           .map((e) => ITenant.fromJson(e as Map<String, dynamic>))
           .toList(),
-      channels:
-          (json['channels'] as List<dynamic>).map((e) => e as String).toList(),
       pin: (json['pin'] as num?)?.toInt(),
     );
 
@@ -25,6 +23,5 @@ Map<String, dynamic> _$IUserToJson(IUser instance) => <String, dynamic>{
       'token': instance.token,
       'uid': instance.uid,
       'tenants': instance.tenants,
-      'channels': instance.channels,
       'pin': instance.pin,
     };
