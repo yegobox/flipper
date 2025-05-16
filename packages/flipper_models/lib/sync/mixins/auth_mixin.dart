@@ -52,11 +52,8 @@ mixin AuthMixin implements AuthInterface {
       );
       if (response.statusCode == 200 && response.body.isNotEmpty) {
         final IUser user = IUser.fromJson(json.decode(response.body));
-        ProxyService.strategy.updatePin(
-          userId: user.id!,
-          phoneNumber: pinLocal.phoneNumber,
-          tokenUid: user.uid,
-        );
+        ProxyService.strategy
+            .updatePin(userId: user.id!, phoneNumber: pinLocal.phoneNumber);
       }
       return false;
     }
@@ -127,6 +124,33 @@ mixin AuthMixin implements AuthInterface {
       return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
     }
 
+    // Check if we already have a valid Firebase user and token
+    final currentUser = firebase.FirebaseAuth.instance.currentUser;
+    final existingToken = await ProxyService.box.getBearerToken();
+    final existingUserId = ProxyService.box.getUserId();
+
+    // If we have a valid token and the user ID matches the pin's user ID,
+    // we can skip the sendLoginRequest call
+    if (currentUser != null &&
+        existingToken != null &&
+        existingUserId != null &&
+        existingUserId.toString() == pin.userId.toString()) {
+      talker.debug("Using existing Firebase authentication");
+
+      // Create a user object from existing data
+      final user = IUser(
+        token: ProxyService.box.getBearerToken(),
+        id: existingUserId,
+        uid: currentUser.uid,
+        phoneNumber: phoneNumber,
+        tenants: [ITenant(name: pin.ownerName)],
+      );
+
+      return user;
+    }
+
+    // Otherwise, proceed with normal authentication flow
+    talker.debug("Performing full authentication flow");
     final http.Response response =
         await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
 
@@ -136,7 +160,12 @@ mixin AuthMixin implements AuthInterface {
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name!);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.strategy.firebaseLogin(token: user.uid);
+
+      // Only perform Firebase login if not already logged in
+      if (currentUser == null || currentUser.uid != user.uid) {
+        await firebaseLogin(token: user.uid);
+      }
+
       return user;
     } else {
       await _handleLoginError(response);
@@ -340,7 +369,28 @@ mixin AuthMixin implements AuthInterface {
       {String? uid}) async {
     uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
 
+    // Check if we already have a valid token and user ID to avoid duplicate calls
+    final existingToken = await ProxyService.box.getBearerToken();
+    final existingUserId = ProxyService.box.getUserId();
+
+    if (existingToken != null && existingUserId != null) {
+      talker.debug(
+          "Using existing token and user ID, skipping duplicate sendLoginRequest");
+      // Create a mock response with the existing data to avoid a duplicate API call
+      return http.Response(
+        jsonEncode({
+          'id': existingUserId,
+          'token': existingToken,
+          'uid': uid,
+          'phoneNumber': phoneNumber,
+          'tenants': []
+        }),
+        200,
+      );
+    }
+
     try {
+      talker.debug("Sending login request to API for phone: $phoneNumber");
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
         body: jsonEncode(
@@ -353,20 +403,48 @@ mixin AuthMixin implements AuthInterface {
         throw SessionException(term: "session expired");
       }
 
+      // Check for error response
+      if (response.statusCode != 200) {
+        talker.error(
+            "Authentication failed with status code ${response.statusCode}: ${response.body}");
+        throw Exception(
+            "Authentication failed with status code ${response.statusCode}");
+      }
+
+      // Validate response body
+      if (response.body.isEmpty) {
+        talker.error("Empty response body from login request");
+        throw Exception("Empty response from server");
+      }
+
       final responseBody = jsonDecode(response.body);
+
+      // Check if this is an error response
+      if (responseBody.containsKey('details') &&
+          responseBody['details'] is String &&
+          responseBody['details'].toString().startsWith('Error id')) {
+        talker.error(
+            "Error response from login request: ${responseBody['details']}");
+        throw Exception("Server error: ${responseBody['details']}");
+      }
+
       talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
       talker.warning("sendLoginRequest:token:${responseBody['token']}");
 
+      talker.warning("$responseBody");
       // Handle userId which could now be a string or int
       if (responseBody['id'] is String) {
         // Store the original string ID for reference
-        ProxyService.box.writeString(
-            key: 'userIdString', value: responseBody['id'] as String);
+        ProxyService.box
+            .writeString(key: 'userIdString', value: responseBody['id']);
         // Convert string ID to integer for backward compatibility
         final int userId = int.tryParse(responseBody['id']) ?? 0;
         ProxyService.box.writeInt(key: 'userId', value: userId);
-      } else {
+      } else if (responseBody['id'] != null) {
         ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
+      } else {
+        talker.error("Missing ID in response: $responseBody");
+        throw Exception("Missing user ID in server response");
       }
 
       // Process businesses and branches if they're in the response
@@ -388,11 +466,12 @@ mixin AuthMixin implements AuthInterface {
       await ProxyService.box
           .writeString(key: 'bearerToken', value: responseBody['token']);
       return response;
-    } catch (e) {
+    } catch (e, s) {
       // If it's already a SessionException, rethrow it
       if (e is SessionException) {
         rethrow;
       }
+      talker.error("Error in sendLoginRequest:  $s");
       // Log the error and rethrow
       talker.error("Error in sendLoginRequest: $e");
       throw e;
@@ -416,7 +495,7 @@ mixin AuthMixin implements AuthInterface {
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
         'ownerName': ownerName,
-        'tokenUid': firebase.FirebaseAuth.instance.currentUser?.uid
+        'uid': firebase.FirebaseAuth.instance.currentUser?.uid
       }),
     );
   }
@@ -482,9 +561,8 @@ mixin AuthMixin implements AuthInterface {
     // For businessId, convert to int if it's a string for backward compatibility
 
     return IUser(
-      token: pin.tokenUid!,
-      uid: pin.tokenUid,
-      channels: [],
+      token: ProxyService.box.getBearerToken() ?? "",
+      uid: pin.uid,
       phoneNumber: pin.phoneNumber!,
       id: pin.userId!,
       tenants: [

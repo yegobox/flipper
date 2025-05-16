@@ -10,6 +10,7 @@ class LoginData {
     required this.linkingCode,
     required this.deviceName,
     required this.deviceVersion,
+    required this.tokenUid,
   });
 
   String channel;
@@ -23,6 +24,7 @@ class LoginData {
   String linkingCode;
   String deviceName;
   String deviceVersion;
+  String tokenUid;
 
   factory LoginData.fromMap(Map<String, dynamic> json) => LoginData(
         channel: json["channel"],
@@ -35,6 +37,7 @@ class LoginData {
         defaultApp: json["defaultApp"],
         deviceName: json["deviceName"],
         deviceVersion: json["deviceVersion"],
+        tokenUid: json["tokenUid"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -48,5 +51,6 @@ class LoginData {
         "linkingCode": linkingCode,
         "deviceName": deviceName,
         "deviceVersion": deviceVersion,
+        "tokenUid": tokenUid,
       };
 }

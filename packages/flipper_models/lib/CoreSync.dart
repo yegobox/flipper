@@ -151,23 +151,6 @@ class CoreSync extends AiStrategyImpl
       }
       return FirebaseAuth.instance.currentUser != null;
     } catch (e) {
-      talker.error(e);
-      // talker.info("Retry ${pinLocal?.uid ?? "NULL"}");
-      final http.Response response = await ProxyService.strategy
-          .sendLoginRequest(
-              pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
-              uid: pinLocal.uid ?? "");
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        /// path the user pin, with
-        final IUser user = IUser.fromJson(json.decode(response.body));
-
-        ProxyService.strategy.updatePin(
-          userId: user.id!,
-          phoneNumber: pinLocal.phoneNumber,
-          tokenUid: user.uid,
-        );
-      }
-
       return false;
     }
   }
@@ -1100,6 +1083,7 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<Pin?> getPinLocal({required int userId}) async {
     return (await repository.get<Pin>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
             query:
                 brick.Query(where: [brick.Where('userId').isExactly(userId)])))
         .firstOrNull;
@@ -3293,7 +3277,6 @@ class CoreSync extends AiStrategyImpl
     if (pin.isNotEmpty) {
       Pin myPin = pin.first;
       myPin.phoneNumber = phoneNumber;
-      myPin.tokenUid = tokenUid;
       repository.upsert(myPin);
     }
   }
