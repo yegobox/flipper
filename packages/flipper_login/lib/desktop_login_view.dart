@@ -5,7 +5,6 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,9 +12,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/desktop_login_status.dart';
-import 'package:flipper_services/desktop_login_status.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // Once open time someone else solved issue: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5#diff-5ca3a4f36b6e5b25b9776be6945ade02382219f8f0a7c8ec1ecd1ccc018c73aaR19
@@ -137,20 +134,33 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                     ),
                                     SizedBox(height: 8),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
                                       child: Text(
                                         'Please try again or use PIN login',
                                         style: GoogleFonts.poppins(
-                                            fontSize: 14, color: Colors.black87),
+                                            fontSize: 14,
+                                            color: Colors.black87),
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
                                     SizedBox(height: 16),
                                     OutlinedButton(
                                       onPressed: () {
-                                        // Retry: re-subscribe to login event
-                                        ProxyService.event.subscribeLoginEvent(
-                                            channel: loginCode.split('-')[1]);
+                                        // Reset the login status to idle
+                                        // This will hide the error overlay and show the QR code again
+                                        ProxyService.event.resetLoginStatus();
+
+                                        // Re-subscribe to login event with a slight delay
+                                        Future.delayed(
+                                            Duration(milliseconds: 300), () {
+                                          if (mounted) {
+                                            ProxyService.event
+                                                .subscribeLoginEvent(
+                                                    channel: loginCode
+                                                        .split('-')[1]);
+                                          }
+                                        });
                                       },
                                       child: Text('Retry',
                                           style: TextStyle(

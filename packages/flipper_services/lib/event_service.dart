@@ -41,6 +41,11 @@ class EventService
   @override
   Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
       _desktopLoginStatusController.stream;
+      
+  @override
+  void resetLoginStatus() {
+    _desktopLoginStatusController.add(DesktopLoginStatus(DesktopLoginState.idle));
+  }
 
   EventService({required String userId})
       : keySet = nub.Keyset(
