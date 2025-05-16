@@ -12,6 +12,9 @@ abstract class EventInterface {
 
   /// Emits login state for desktop login (idle, loading, success, failure, with optional message)
   Stream<DesktopLoginStatus> desktopLoginStatusStream();
+  
+  /// Resets the desktop login status to idle state
+  void resetLoginStatus();
 
   Stream<bool> isLoadingStream({bool? isLoading});
   Future<void> keepTryingPublishDevice();
