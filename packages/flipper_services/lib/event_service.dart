@@ -177,8 +177,9 @@ class EventService
           keepTryingPublishDevice();
           _desktopLoginStatusController
               .add(DesktopLoginStatus(DesktopLoginState.success));
-        } catch (e) {
+        } catch (e, s) {
           talker.error(e);
+          talker.error(s);
           // Show a user-friendly error message
           String errorMessage = 'Login failed. Please try again.';
           _desktopLoginStatusController.add(DesktopLoginStatus(
