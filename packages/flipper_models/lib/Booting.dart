@@ -23,7 +23,7 @@ mixin Booting {
   Future<void> _addOrUpdateTenant(ITenant tenant, String userId,
       {required bool usenewVersion}) async {
     final Tenant iTenant = Tenant(
-      isDefault: tenant.isDefault,
+      isDefault: false,
       name: tenant.name,
       businessId: tenant.businessId,
       nfcEnabled: tenant.nfcEnabled ?? false,
@@ -34,18 +34,15 @@ mixin Booting {
     );
 
     await addOrUpdateBusinesses(
-      tenant.businesses,
+      tenant.businesses ?? [],
       userId,
       usenewVersion: usenewVersion,
     );
     await addOrUpdateBranches(
-      tenant.branches,
+      tenant.branches ?? [],
       usenewVersion: usenewVersion,
     );
-    await addOrUpdatePermissions(
-      tenant.permissions,
-      usenewVersion: usenewVersion,
-    );
+
     await addOrUpdateTenant(
       iTenant,
       userId,
@@ -223,7 +220,7 @@ mixin Booting {
         ? 'null'
         : ProxyService.box.getDefaultApp() != "1"
             ? ProxyService.box.getDefaultApp()
-            : user.tenants.first.businesses.first.businessTypeId.toString();
+            : user.tenants.first.businesses!.first.businessTypeId.toString();
 
     await ProxyService.box
         .writeString(key: 'defaultApp', value: defaultAppValue);
@@ -249,23 +246,23 @@ mixin Booting {
           term:
               "No tenant added to the user, if a business is added it should have one tenant");
     }
-    if (user.tenants.first.businesses.isEmpty ||
-        user.tenants.first.branches.isEmpty) {
+    if (user.tenants.first.businesses!.isEmpty ||
+        user.tenants.first.branches!.isEmpty) {
       throw BusinessNotFoundException(
           term:
               "No tenant added to the user, if a business is added it should have one tenant");
     }
 
     /// find admin permission in permission list from yegobox
-    for (IPermission permission in user.tenants.first.permissions) {
-      if (permission == 'admin') {
-        ProxyService.box.writeString(
-            key: 'yegoboxLoggedInUserPermission',
-            value: user.tenants.first.permissions.first.name);
-      }
-    }
-    int? branchId = user.tenants.first.branches.first.serverId;
-    int? businessId = user.tenants.first.businesses.first.serverId;
+    // for (IPermission permission in user.tenants.first.permissions) {
+    //   if (permission == 'admin') {
+    //     ProxyService.box.writeString(
+    //         key: 'yegoboxLoggedInUserPermission',
+    //         value: user.tenants.first.permissions.first.name);
+    //   }
+    // }
+    int? branchId = user.tenants.first.branches!.first.serverId;
+    int? businessId = user.tenants.first.businesses!.first.serverId;
     if (branchId == null) {
       // get any local saved branch
       Branch branch = await ProxyService.strategy.activeBranch();
@@ -281,6 +278,6 @@ mixin Booting {
         key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
     await ProxyService.box.writeString(
         key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey ?? "");
+        value: user.tenants.first.businesses!.first.encryptionKey ?? "");
   }
 }

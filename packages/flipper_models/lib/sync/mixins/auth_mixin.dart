@@ -134,7 +134,7 @@ mixin AuthMixin implements AuthInterface {
       /// path the user pin, with
       final IUser user = IUser.fromJson(json.decode(response.body));
       await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name);
+          ownerName: user.tenants.first.name!);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
       await ProxyService.strategy.firebaseLogin(token: user.uid);
       return user;
@@ -496,8 +496,7 @@ mixin AuthMixin implements AuthInterface {
             businesses: _convertBusinesses(businesses),
             businessId: pin.businessId,
             nfcEnabled: false,
-            userId: pin.userId!,
-            isDefault: false)
+            userId: pin.userId)
       ],
     );
   }
