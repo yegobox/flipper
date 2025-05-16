@@ -37,5 +37,5 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'businessId': instance.businessId,
       'nfcEnabled': instance.nfcEnabled,
       'userId': instance.userId,
-      'pin': instance.pin
+      'pin': instance.pin,
     };

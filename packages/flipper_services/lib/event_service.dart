@@ -127,21 +127,44 @@ class EventService
           String deviceVersion = Platform.version;
           // publish the device name and version
 
-          Device? device = await ProxyService.strategy.getDevice(
-              phone: loginData.phone, linkingCode: loginData.linkingCode);
-          if (device == null) {
-            ProxyService.strategy.create(
-                data: Device(
-                    pubNubPublished: false,
-                    branchId: loginData.branchId,
-                    businessId: loginData.businessId,
-                    defaultApp: loginData.defaultApp,
-                    phone: loginData.phone,
-                    userId: loginData.userId,
-                    linkingCode: loginData.linkingCode,
-                    deviceName: deviceName,
-                    deviceVersion: deviceVersion));
+          try {
+            Device? device = await ProxyService.strategy.getDevice(
+                phone: loginData.phone, linkingCode: loginData.linkingCode);
+            if (device == null) {
+              ProxyService.strategy.create(
+                  data: Device(
+                      pubNubPublished: false,
+                      branchId: loginData.branchId,
+                      businessId: loginData.businessId,
+                      defaultApp: loginData.defaultApp,
+                      phone: loginData.phone,
+                      userId: loginData.userId,
+                      linkingCode: loginData.linkingCode,
+                      deviceName: deviceName,
+                      deviceVersion: deviceVersion));
+            }
+          } catch (deviceError) {
+            // Log the error but continue with login process
+            talker.error('Device registration error: $deviceError');
+            // Create a new device without querying first
+            try {
+              ProxyService.strategy.create(
+                  data: Device(
+                      pubNubPublished: false,
+                      branchId: loginData.branchId,
+                      businessId: loginData.businessId,
+                      defaultApp: loginData.defaultApp,
+                      phone: loginData.phone,
+                      userId: loginData.userId,
+                      linkingCode: loginData.linkingCode,
+                      deviceName: deviceName,
+                      deviceVersion: deviceVersion));
+            } catch (createError) {
+              talker.error('Failed to create device: $createError');
+              // Continue with login even if device creation fails
+            }
           }
+
           // await FirebaseAuth.instance.signInAnonymously();
           /// uid is token linked with the user
           await tokenLogin(loginData.uid);
@@ -150,15 +173,19 @@ class EventService
               .add(DesktopLoginStatus(DesktopLoginState.success));
         } catch (e) {
           talker.error(e);
+          // Show a user-friendly error message
+          String errorMessage = 'Login failed. Please try again.';
           _desktopLoginStatusController.add(DesktopLoginStatus(
               DesktopLoginState.failure,
-              message: e.toString()));
+              message: errorMessage));
         }
       });
     } catch (e) {
       talker.error(e);
+      // Show a user-friendly error message
+      String errorMessage = 'Connection error. Please try again.';
       _desktopLoginStatusController.add(
-          DesktopLoginStatus(DesktopLoginState.failure, message: e.toString()));
+          DesktopLoginStatus(DesktopLoginState.failure, message: errorMessage));
     }
   }
 
