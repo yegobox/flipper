@@ -34,27 +34,57 @@ mixin AuthMixin implements AuthInterface {
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy.getPinLocal(userId: userId);
+
+    // Get the existing PIN for this user ID
+    final pinLocal = await ProxyService.strategy
+        .getPinLocal(userId: userId, alwaysHydrate: true);
+
     try {
       token ??= pinLocal?.tokenUid;
 
       if (token != null) {
         await FirebaseAuth.instance.signInWithCustomToken(token);
+
+        // If we have a successful login, make sure to update the tokenUid in the PIN
+        // This ensures we keep the PIN record updated with the latest token
+        if (pinLocal != null && pinLocal.tokenUid != token) {
+          talker.debug("Updating PIN with new token for userId: $userId");
+          ProxyService.strategy.updatePin(
+              userId: userId,
+              phoneNumber: pinLocal.phoneNumber,
+              tokenUid: token);
+        }
+
         return true;
       }
       return FirebaseAuth.instance.currentUser != null;
     } catch (e) {
-      final http.Response response = await sendLoginRequest(
-        pinLocal!.phoneNumber!,
-        ProxyService.http,
-        apihub,
-        uid: pinLocal.uid ?? "",
-      );
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        final IUser user = IUser.fromJson(json.decode(response.body));
-        ProxyService.strategy
-            .updatePin(userId: user.id!, phoneNumber: pinLocal.phoneNumber);
+      talker.error("Firebase login error: $e");
+
+      // Only attempt to get a new token if we have PIN information
+      if (pinLocal != null && pinLocal.phoneNumber != null) {
+        try {
+          final http.Response response = await sendLoginRequest(
+            pinLocal.phoneNumber!,
+            ProxyService.http,
+            apihub,
+            uid: pinLocal.uid ?? "",
+          );
+
+          if (response.statusCode == 200 && response.body.isNotEmpty) {
+            final IUser user = IUser.fromJson(json.decode(response.body));
+
+            // Update the existing PIN with the new token
+            ProxyService.strategy.updatePin(
+                userId: user.id!,
+                phoneNumber: pinLocal.phoneNumber,
+                tokenUid: user.uid);
+          }
+        } catch (requestError) {
+          talker.error("Error getting new token: $requestError");
+        }
       }
+
       return false;
     }
   }
@@ -352,6 +382,25 @@ mixin AuthMixin implements AuthInterface {
     // Add system configuration logic here
     await ProxyService.box.writeInt(key: 'userId', value: user.id!);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
+
+    // Ensure the PIN record has the correct UID to prevent duplicates
+    if (user.uid != null) {
+      // Check if a PIN with this userId already exists
+      final existingPin = await ProxyService.strategy.getPinLocal(
+          userId: user.id!,
+          alwaysHydrate: false // Use local-only to avoid network calls
+          );
+
+      if (existingPin != null) {
+        // Update the existing PIN with the correct UID
+        if (existingPin.uid != user.uid) {
+          talker.debug(
+              "Updating existing PIN with correct UID during configureSystem");
+          await ProxyService.strategy.updatePin(
+              userId: user.id!, tokenUid: user.uid, phoneNumber: userPhone);
+        }
+      }
+    }
 
     if (!offlineLogin) {
       // Perform online-specific configuration

@@ -608,7 +608,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Pin? getPinLocal({required int userId}) {
+  Pin? getPinLocal({required int userId, required bool alwaysHydrate}) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }
