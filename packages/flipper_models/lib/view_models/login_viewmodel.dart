@@ -120,8 +120,16 @@ class LoginViewModel extends FlipperBaseModel
       final response = await ProxyService.strategy
           .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
       final userJson = json.decode(response.body);
-      final tenant = userJson['tenants']?[0];
-      await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker);
+      // Safely handle empty tenants array
+      final tenants = userJson['tenants'] as List<dynamic>?;
+      final tenant = tenants != null && tenants.isNotEmpty ? tenants[0] : null;
+
+      // Only attempt to ensure admin access if we have a tenant
+      if (tenant != null) {
+        await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker);
+      } else {
+        talker.info('No tenants found for user during login');
+      }
       final iUser = IUser.fromJson(json.decode(response.body));
 
       // Get PIN information
