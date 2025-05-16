@@ -149,39 +149,62 @@ class EventService
                       deviceName: deviceName,
                       deviceVersion: deviceVersion));
             }
+
+            // Update local authentication
+            await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
+            await ProxyService.box
+                .writeBool(key: 'pinLogin', value: false); // QR login
+
+            // Check if a PIN with this userId already exists in the local database
+            final existingPin = await ProxyService.strategy
+                .getPinLocal(userId: loginData.userId, alwaysHydrate: true);
+
+            Pin thePin;
+            if (existingPin != null) {
+              // Update the existing PIN instead of creating a new one
+              thePin = existingPin;
+
+              // Update fields with the latest information
+              thePin.phoneNumber = loginData.phone;
+              thePin.branchId = loginData.branchId;
+              thePin.businessId = loginData.businessId;
+              thePin.tokenUid = loginData.tokenUid;
+
+              talker.debug(
+                  "Using existing PIN with userId: ${loginData.userId}, ID: ${thePin.id}");
+            } else {
+              // Create a new PIN if none exists
+              thePin = Pin(
+                  userId: loginData.userId,
+                  pin: loginData.userId,
+                  branchId: loginData.branchId,
+                  businessId: loginData.businessId,
+                  phoneNumber: loginData.phone,
+                  tokenUid: loginData.tokenUid);
+              talker.debug("Creating new PIN with userId: ${loginData.userId}");
+            }
+
+            // Use the standard login flow from auth_mixin
+            await ProxyService.strategy.login(
+              pin: thePin,
+              flipperHttpClient: ProxyService.http,
+              skipDefaultAppSetup: false,
+              userPhone: loginData.phone,
+            );
+
+            keepTryingPublishDevice();
+
+            // Signal success to update the UI
+            _desktopLoginStatusController
+                .add(DesktopLoginStatus(DesktopLoginState.success));
           } catch (deviceError) {
             // Log the error but continue with login process
             talker.error('Device registration error: $deviceError');
-            // Create a new device without querying first
-            try {
-              ProxyService.strategy.create(
-                  data: Device(
-                      pubNubPublished: false,
-                      branchId: loginData.branchId,
-                      businessId: loginData.businessId,
-                      defaultApp: loginData.defaultApp,
-                      phone: loginData.phone,
-                      userId: loginData.userId,
-                      linkingCode: loginData.linkingCode,
-                      deviceName: deviceName,
-                      deviceVersion: deviceVersion));
-            } catch (createError) {
-              talker.error('Failed to create device: $createError');
-              // Continue with login even if device creation fails
-            }
           }
-
-          // await FirebaseAuth.instance.signInAnonymously();
-          /// uid is token linked with the user
-          await tokenLogin(loginData.tokenUid);
-          keepTryingPublishDevice();
-          _desktopLoginStatusController
-              .add(DesktopLoginStatus(DesktopLoginState.success));
-        } catch (e, s) {
+        } catch (e) {
           talker.error(e);
-          talker.error(s);
           // Show a user-friendly error message
-          String errorMessage = 'Login failed. Please try again.';
+          String errorMessage = 'Connection error. Please try again.';
           _desktopLoginStatusController.add(DesktopLoginStatus(
               DesktopLoginState.failure,
               message: errorMessage));
@@ -189,7 +212,6 @@ class EventService
       });
     } catch (e) {
       talker.error(e);
-      // Show a user-friendly error message
       String errorMessage = 'Connection error. Please try again.';
       _desktopLoginStatusController.add(
           DesktopLoginStatus(DesktopLoginState.failure, message: errorMessage));
