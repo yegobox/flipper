@@ -866,7 +866,24 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .toString();
 
     try {
-      final response = await sendPostRequest(url, customer.toJson());
+      final requiredObjc = {
+        "tin": ProxyService.box.tin(),
+        "bhfId": customer.bhfId,
+        "custNo": customer.custNo,
+        "custTin": customer.custTin,
+        "custNm": customer.custNm,
+        "adrs": customer.adrs,
+        "telNo": customer.telNo,
+        "email": customer.email,
+        // "faxNo": customer.faxNo,
+        "useYn": "Y",
+        // "remark": customer.remark,
+        "modrId": customer.modrId,
+        "modrNm": customer.custNm,
+        "regrId": customer.regrId,
+        "regrNm": customer.custNm
+      };
+      final response = await sendPostRequest(url, requiredObjc);
 
       if (response.statusCode == 200) {
         sendEmailLogging(

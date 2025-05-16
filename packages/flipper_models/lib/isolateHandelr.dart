@@ -5,6 +5,7 @@ import 'dart:ui';
 // import 'package:flipper_models/firebase_options.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -358,12 +359,16 @@ mixin CustomerPatch {
           final response =
               await RWTax().saveCustomer(customer: iCustomer, URI: URI);
           if (response.resultCd == "000") {
+            customer.ebmSynced = true;
+            repository.upsert(customer);
             sendPort(
                 'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
           } else {
             sendPort('notification:${response.resultMsg}}');
           }
-        } catch (e) {}
+        } catch (e) {
+          talker.error(e);
+        }
       }
     }
   }
