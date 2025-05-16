@@ -110,15 +110,13 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                               );
                             } else if (status.state ==
                                 DesktopLoginState.failure) {
-                              // Show error overlay
+                              // Show error message
                               return Container(
                                 width: 200,
                                 height: 200,
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.9),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                      color: Colors.redAccent, width: 2),
                                 ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -135,12 +133,14 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                       ),
                                     ),
                                     SizedBox(height: 8),
-                                    Text(
-                                      status.message ??
-                                          'An error occurred. Please try again.',
-                                      style: GoogleFonts.poppins(
-                                          fontSize: 12, color: Colors.black87),
-                                      textAlign: TextAlign.center,
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      child: Text(
+                                        'Please try again or use PIN login',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 14, color: Colors.black87),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     ),
                                     SizedBox(height: 16),
                                     OutlinedButton(
