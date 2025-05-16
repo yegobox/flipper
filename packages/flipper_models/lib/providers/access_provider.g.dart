@@ -305,7 +305,7 @@ class _AllAccessesProviderElement
   int get userId => (origin as AllAccessesProvider).userId;
 }
 
-String _$tenantHash() => r'726c3ab8c9874cf7faf6c379b44e413c709f369d';
+String _$tenantHash() => r'ed912495c3422dce04a6ff3f1f964fa540f55d6c';
 
 /// See also [tenant].
 @ProviderFor(tenant)

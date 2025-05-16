@@ -43,7 +43,8 @@ class CustomersState extends ConsumerState<Customers> {
   final Color textSecondaryColor = const Color(0xFF605E5C);
   final Color accentColor = const Color(0xFF0078D4);
   final Color deleteColor = const Color(0xFFD83B01); // Microsoft red
-  final Color successColor = const Color(0xFF107C10); // Microsoft green
+  final Color successColor = const Color(0xFF107C10);
+  final double maxHeight = 680;
 
   @override
   void initState() {
@@ -363,6 +364,7 @@ class CustomersState extends ConsumerState<Customers> {
                     onPressed: () {
                       // Quick add: open add customer modal with search text
                       showModalBottomSheet(
+                        constraints: BoxConstraints(maxHeight: maxHeight),
                         showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
@@ -400,7 +402,7 @@ class CustomersState extends ConsumerState<Customers> {
                     onPressed: () {
                       // Open add customer modal
                       showModalBottomSheet(
-                        constraints: BoxConstraints(maxHeight: 50),
+                        constraints: BoxConstraints(maxHeight: maxHeight),
                         showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
@@ -505,6 +507,7 @@ class CustomersState extends ConsumerState<Customers> {
               onPressed: (_) {
                 // Show edit customer form
                 showModalBottomSheet(
+                  constraints: BoxConstraints(maxHeight: maxHeight),
                   showDragHandle: true,
                   context: context,
                   shape: const RoundedRectangleBorder(
@@ -788,6 +791,7 @@ class CustomersState extends ConsumerState<Customers> {
 
     if (filteredCustomers.isEmpty || searchKeyword.isEmpty) {
       showModalBottomSheet(
+        constraints: BoxConstraints(maxHeight: maxHeight),
         showDragHandle: true,
         context: context,
         shape: const RoundedRectangleBorder(

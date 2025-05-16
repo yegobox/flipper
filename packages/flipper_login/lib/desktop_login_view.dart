@@ -4,6 +4,7 @@ import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -76,9 +77,11 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                           stream: ProxyService.event.desktopLoginStatusStream(),
                           builder: (context, snapshot) {
                             final status = snapshot.data;
-                            if (status == null || status.state == DesktopLoginState.idle) {
+                            if (status == null ||
+                                status.state == DesktopLoginState.idle) {
                               return SizedBox.shrink();
-                            } else if (status.state == DesktopLoginState.loading) {
+                            } else if (status.state ==
+                                DesktopLoginState.loading) {
                               // Show overlay on QR code when logging in
                               return Container(
                                 width: 200,
@@ -105,7 +108,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                   ],
                                 ),
                               );
-                            } else if (status.state == DesktopLoginState.failure) {
+                            } else if (status.state ==
+                                DesktopLoginState.failure) {
                               // Show error overlay
                               return Container(
                                 width: 200,
@@ -113,12 +117,14 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.9),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.redAccent, width: 2),
+                                  border: Border.all(
+                                      color: Colors.redAccent, width: 2),
                                 ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.error_outline, color: Colors.red, size: 32),
+                                    Icon(Icons.error_outline,
+                                        color: Colors.red, size: 32),
                                     SizedBox(height: 12),
                                     Text(
                                       'Login failed',
@@ -130,22 +136,28 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      status.message ?? 'An error occurred. Please try again.',
-                                      style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
+                                      status.message ??
+                                          'An error occurred. Please try again.',
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 12, color: Colors.black87),
                                       textAlign: TextAlign.center,
                                     ),
                                     SizedBox(height: 16),
                                     OutlinedButton(
                                       onPressed: () {
                                         // Retry: re-subscribe to login event
-                                        ProxyService.event.subscribeLoginEvent(channel: loginCode.split('-')[1]);
+                                        ProxyService.event.subscribeLoginEvent(
+                                            channel: loginCode.split('-')[1]);
                                       },
-                                      child: Text('Retry', style: TextStyle(color: Color(0xff006AFE))),
+                                      child: Text('Retry',
+                                          style: TextStyle(
+                                              color: Color(0xff006AFE))),
                                     ),
                                   ],
                                 ),
                               );
-                            } else if (status.state == DesktopLoginState.success) {
+                            } else if (status.state ==
+                                DesktopLoginState.success) {
                               // Optionally, show a brief success overlay (could also auto-redirect)
                               return Container(
                                 width: 200,
@@ -157,7 +169,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.check_circle_outline, color: Colors.green, size: 32),
+                                    Icon(Icons.check_circle_outline,
+                                        color: Colors.green, size: 32),
                                     SizedBox(height: 12),
                                     Text(
                                       'Login successful!',
@@ -182,17 +195,20 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     stream: ProxyService.event.desktopLoginStatusStream(),
                     builder: (context, snapshot) {
                       final status = snapshot.data;
-                      if (status == null || status.state == DesktopLoginState.idle) {
+                      if (status == null ||
+                          status.state == DesktopLoginState.idle) {
                         return SizedBox.shrink();
                       } else if (status.state == DesktopLoginState.loading) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.green.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.green.withOpacity(0.3)),
+                              border: Border.all(
+                                  color: Colors.green.withOpacity(0.3)),
                             ),
                             child: Text(
                               'QR Code scanned! Completing login...',
@@ -208,11 +224,13 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.red.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                              border: Border.all(
+                                  color: Colors.red.withOpacity(0.3)),
                             ),
                             child: Text(
                               'Login failed. Please try again.',
@@ -228,11 +246,13 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.green.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.green.withOpacity(0.3)),
+                              border: Border.all(
+                                  color: Colors.green.withOpacity(0.3)),
                             ),
                             child: Text(
                               'Login successful! Redirecting...',
@@ -304,25 +324,71 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         SizedBox(height: 8),
                         Row(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                // iOS App Store link
-                                launchUrl(Uri.parse('https://apps.apple.com/app/idXXXXXXXXX'));
-                              },
-                              child: Image.network(
-                                'https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg',
-                                height: 40,
+                            // App Store button with visual feedback
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  splashColor: Colors.blue.withOpacity(0.3),
+                                  hoverColor: Colors.grey.withOpacity(0.1),
+                                  onTap: () {
+                                    // iOS App Store link
+                                    launchUrl(Uri.parse(
+                                        'https://apps.apple.com/rw/app/flipperrw/id6711352372'));
+                                    // Show a snackbar for feedback
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Opening App Store...'),
+                                        duration: Duration(seconds: 1),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: SvgPicture.asset(
+                                      'assets/appstore.svg',
+                                      package: 'flipper_login',
+                                      height: 40,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             SizedBox(width: 16),
-                            GestureDetector(
-                              onTap: () {
-                                // Google Play Store link
-                                launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=com.flipper.app'));
-                              },
-                              child: Image.network(
-                                'https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg',
-                                height: 40,
+                            // Play Store button with visual feedback
+                            MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  splashColor: Colors.green.withOpacity(0.3),
+                                  hoverColor: Colors.grey.withOpacity(0.1),
+                                  onTap: () {
+                                    // Google Play Store link
+                                    launchUrl(Uri.parse(
+                                        'https://play.google.com/store/apps/details?id=rw.flipper&hl=en'));
+                                    // Show a snackbar for feedback
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Opening Play Store...'),
+                                        duration: Duration(seconds: 1),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: SvgPicture.asset(
+                                      'assets/playstore.svg',
+                                      package: 'flipper_login',
+                                      height: 40,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
