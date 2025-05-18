@@ -18,6 +18,9 @@ on:
   #     - main
   push:
     branches:
+      - 'feature-*'
+      - 'hotfix-*'
+      - 'bugfix-*'
       - dev
 
 env:
