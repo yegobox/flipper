@@ -237,6 +237,41 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
         throw Exception('No product selected');
       }
 
+      // Check if we need to delete an existing image first
+      if (productRef.imageUrl != null && productRef.imageUrl!.isNotEmpty) {
+        talker.info('Replacing existing image: ${productRef.imageUrl}');
+        // Try to find and delete the existing asset
+        try {
+          final existingAsset = await ProxyService.strategy
+              .getAsset(assetName: productRef.imageUrl!);
+          if (existingAsset != null) {
+            // If we're online, try to delete from S3 immediately
+            if (!isOfflineMode) {
+              await ProxyService.strategy
+                  .removeS3File(fileName: productRef.imageUrl!);
+            } else {
+              // If offline, add to pending deletions to be processed when online
+              await AssetSyncService().addPendingDeletion(productRef.imageUrl!);
+              talker
+                  .info('Added ${productRef.imageUrl} to pending S3 deletions');
+            }
+
+            // Delete the local file if it exists (we can do this regardless of connectivity)
+            if (existingAsset.localPath != null &&
+                existingAsset.localPath!.isNotEmpty) {
+              final file = File(existingAsset.localPath!);
+              if (await file.exists()) {
+                await file.delete();
+                talker.info('Deleted local file: ${existingAsset.localPath}');
+              }
+            }
+          }
+        } catch (e) {
+          talker.error('Error deleting existing asset: $e');
+          // Continue with the upload even if deletion fails
+        }
+      }
+
       if (isOfflineMode) {
         // Handle offline image upload
         await _handleOfflineImageUpload(productRef.id);

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service responsible for automatically synchronizing offline assets
 /// when connectivity is restored.
@@ -10,6 +12,9 @@ class AssetSyncService {
   factory AssetSyncService() => _instance;
 
   AssetSyncService._internal();
+
+  // Key for storing pending deletions in SharedPreferences
+  static const String _pendingDeletionsKey = 'pending_s3_deletions';
 
   final talker = TalkerFlutter.init();
 
@@ -58,6 +63,70 @@ class AssetSyncService {
     }
   }
 
+  /// Add a file to the pending deletions list when offline
+  Future<void> addPendingDeletion(String fileName) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pendingDeletions = prefs.getStringList(_pendingDeletionsKey) ?? [];
+
+      if (!pendingDeletions.contains(fileName)) {
+        pendingDeletions.add(fileName);
+        await prefs.setStringList(_pendingDeletionsKey, pendingDeletions);
+        talker.info('AssetSyncService: Added $fileName to pending deletions');
+      }
+    } catch (e) {
+      talker.error('AssetSyncService: Error adding pending deletion: $e');
+    }
+  }
+
+  /// Process pending S3 deletions
+  Future<void> _processPendingDeletions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pendingDeletions = prefs.getStringList(_pendingDeletionsKey) ?? [];
+
+      if (pendingDeletions.isEmpty) {
+        return;
+      }
+
+      talker.info(
+          'AssetSyncService: Processing ${pendingDeletions.length} pending deletions');
+
+      final failedDeletions = <String>[];
+
+      for (final fileName in pendingDeletions) {
+        try {
+          // Attempt to delete from S3
+          final success =
+              await ProxyService.strategy.removeS3File(fileName: fileName);
+
+          if (!success) {
+            failedDeletions.add(fileName);
+          } else {
+            talker.info(
+                'AssetSyncService: Successfully deleted $fileName from S3');
+          }
+        } catch (e) {
+          talker.error('AssetSyncService: Error deleting $fileName: $e');
+          failedDeletions.add(fileName);
+        }
+      }
+
+      // Update the pending deletions list with only the failed ones
+      await prefs.setStringList(_pendingDeletionsKey, failedDeletions);
+
+      if (failedDeletions.isEmpty) {
+        talker.info(
+            'AssetSyncService: All pending deletions processed successfully');
+      } else {
+        talker.warning(
+            'AssetSyncService: ${failedDeletions.length} deletions failed and will be retried later');
+      }
+    } catch (e) {
+      talker.error('AssetSyncService: Error processing pending deletions: $e');
+    }
+  }
+
   /// Check for pending uploads and sync if needed
   Future<void> _checkAndSyncAssets() async {
     // Prevent multiple syncs running simultaneously
@@ -69,20 +138,23 @@ class AssetSyncService {
     try {
       _isSyncing = true;
 
-      // Check if there are any offline assets
-      final hasOfflineAssets = await ProxyService.strategy.hasOfflineAssets();
-
-      if (!hasOfflineAssets) {
-        _isSyncing = false;
-        return;
-      }
-
       // Check for internet connectivity
       final connectivityResults = await Connectivity().checkConnectivity();
       final hasConnection = connectivityResults
           .any((result) => result != ConnectivityResult.none);
 
       if (!hasConnection) {
+        _isSyncing = false;
+        return;
+      }
+
+      // First process any pending deletions
+      await _processPendingDeletions();
+
+      // Check if there are any offline assets
+      final hasOfflineAssets = await ProxyService.strategy.hasOfflineAssets();
+
+      if (!hasOfflineAssets) {
         _isSyncing = false;
         return;
       }
