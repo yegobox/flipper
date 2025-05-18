@@ -15,7 +15,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -274,7 +273,7 @@ mixin AuthMixin implements AuthInterface {
     }
 
     // Check if we already have a valid Firebase user and token
-    final currentUser = firebase.FirebaseAuth.instance.currentUser;
+    final currentUser = FirebaseAuth.instance.currentUser;
     final existingToken = await ProxyService.box.getBearerToken();
     final existingUserId = ProxyService.box.getUserId();
 
@@ -535,7 +534,7 @@ mixin AuthMixin implements AuthInterface {
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
       {String? uid}) async {
-    uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
+    uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
     // Get the phone number associated with the current session
     final existingPhoneNumber = ProxyService.box.getUserPhone();
@@ -733,8 +732,8 @@ mixin AuthMixin implements AuthInterface {
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
         'ownerName': ownerName,
-        if (firebase.FirebaseAuth.instance.currentUser != null)
-          'uid': firebase.FirebaseAuth.instance.currentUser!.uid,
+        if (FirebaseAuth.instance.currentUser != null)
+          'uid': FirebaseAuth.instance.currentUser!.uid,
       }),
     );
   }
