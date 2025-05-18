@@ -798,6 +798,20 @@ class ScannViewState extends ConsumerState<ScannView>
             Future.delayed(Duration(milliseconds: 1500)).then((_) {
               if (mounted) _routerService.back();
             });
+          } else if (response['status'] == 'choices_needed') {
+            // This is not a failure - it's part of the normal flow when a user
+            // needs to select a business/branch
+            setState(() {
+              _scanStatus = ScanStatus.success;
+            });
+
+            HapticFeedback.lightImpact();
+            showToast(context, 'Login successful - select your business');
+
+            // Wait a moment to show success state before closing
+            Future.delayed(Duration(milliseconds: 1500)).then((_) {
+              if (mounted) _routerService.back();
+            });
           } else {
             // Update UI to show failure
             setState(() {

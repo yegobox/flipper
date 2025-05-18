@@ -211,20 +211,34 @@ class EventService
             _desktopLoginStatusController
                 .add(DesktopLoginStatus(DesktopLoginState.success));
 
-            // Send success status back to the mobile device if response channel is provided
-            if (responseChannel != null) {
-              try {
+            // Complete login first, then send success status
+            try {
+              await ProxyService.strategy.completeLogin(thePin);
+
+              // Send success status back to the mobile device if response channel is provided
+              if (responseChannel != null) {
                 await publish(loginDetails: {
                   'channel': responseChannel,
                   'status': 'success',
                   'message': 'Login successful',
                 });
-
-                await ProxyService.strategy.completeLogin(thePin);
                 talker.debug(
                     "Sent login success response to channel: $responseChannel");
-              } catch (responseError) {
-                talker.error('Failed to send login response: $responseError');
+              }
+            } catch (completeLoginError) {
+              talker.error('Failed to complete login: $completeLoginError');
+
+              // Send error status if we have a response channel
+              if (responseChannel != null) {
+                try {
+                  await publish(loginDetails: {
+                    'channel': responseChannel,
+                    'status': 'error',
+                    'message': 'Failed to complete login',
+                  });
+                } catch (responseError) {
+                  talker.error('Failed to send error response: $responseError');
+                }
               }
             }
 
