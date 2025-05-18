@@ -69,6 +69,7 @@ import 'all_routes.dart';
     CustomRoute(page: PaymentFinalize),
     CustomRoute(page: WaitingOrdersPlaced),
     CustomRoute(page: CreditApp),
+    CustomRoute(page: CreditApp),
     //
   ],
   dependencies: [
@@ -821,3 +822,5 @@ class App {}
 // 
 
 // https://search.google.com/u/1/search-console?resource_id=sc-domain%3Ayegobox.com
+
+// We need to follow https://julius.ai/ by enahncing our built-in ai

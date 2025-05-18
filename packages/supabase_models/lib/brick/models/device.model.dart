@@ -22,8 +22,6 @@ class Device extends OfflineFirstWithSupabaseModel {
   String? defaultApp;
 
   /// for sync
-
-  DateTime? lastTouched;
   DateTime? deletedAt;
 
   Device({
@@ -37,7 +35,6 @@ class Device extends OfflineFirstWithSupabaseModel {
     this.businessId,
     this.userId,
     this.defaultApp,
-    this.lastTouched,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
 }

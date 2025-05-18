@@ -608,7 +608,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Pin? getPinLocal({required int userId}) {
+  Pin? getPinLocal(
+      {int? userId, required bool alwaysHydrate, String? phoneNumber}) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }
@@ -2187,6 +2188,18 @@ class Capella extends AiStrategyImpl
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     // TODO: implement send
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> completeLogin(brick.Pin thePin) {
+    // TODO: implement completeLogin
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) {
     throw UnimplementedError();
   }
 }

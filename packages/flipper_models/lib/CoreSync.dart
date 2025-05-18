@@ -139,7 +139,8 @@ class CoreSync extends AiStrategyImpl
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy.getPinLocal(userId: userId);
+    final pinLocal = await ProxyService.strategy
+        .getPinLocal(userId: userId, alwaysHydrate: true);
     try {
       token ??= pinLocal?.tokenUid;
 
@@ -151,23 +152,6 @@ class CoreSync extends AiStrategyImpl
       }
       return FirebaseAuth.instance.currentUser != null;
     } catch (e) {
-      talker.error(e);
-      // talker.info("Retry ${pinLocal?.uid ?? "NULL"}");
-      final http.Response response = await ProxyService.strategy
-          .sendLoginRequest(
-              pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
-              uid: pinLocal.uid ?? "");
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        /// path the user pin, with
-        final IUser user = IUser.fromJson(json.decode(response.body));
-
-        ProxyService.strategy.updatePin(
-          userId: user.id!,
-          phoneNumber: pinLocal.phoneNumber,
-          tokenUid: user.uid,
-        );
-      }
-
       return false;
     }
   }
@@ -909,17 +893,43 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Device?> getDevice(
       {required String phone, required String linkingCode}) async {
-    final query = brick.Query(where: [
-      brick.Where('phone', value: phone, compare: brick.Compare.exact),
-      brick.Where(
-        'linkingCode',
-        value: linkingCode,
-        compare: brick.Compare.exact,
-      ),
-    ]);
-    final List<Device> fetchedDevices =
-        await repository.get<Device>(query: query);
-    return fetchedDevices.firstOrNull;
+    try {
+      final query = brick.Query(where: [
+        brick.Where('phone', value: phone, compare: brick.Compare.exact),
+        brick.Where(
+          'linkingCode',
+          value: linkingCode,
+          compare: brick.Compare.exact,
+        ),
+      ]);
+      final List<Device> fetchedDevices = await repository.get<Device>(
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist, query: query);
+      return fetchedDevices.firstOrNull;
+    } catch (e) {
+      // Log the error but don't throw it up the stack
+      talker.error('Error in getDevice: $e');
+
+      // Try a fallback query with just linkingCode if available
+      if (linkingCode.isNotEmpty) {
+        try {
+          final fallbackQuery = brick.Query(where: [
+            brick.Where(
+              'linkingCode',
+              value: linkingCode,
+              compare: brick.Compare.exact,
+            ),
+          ]);
+          final List<Device> devices =
+              await repository.get<Device>(query: fallbackQuery);
+          return devices.firstOrNull;
+        } catch (fallbackError) {
+          talker.error('Fallback query also failed: $fallbackError');
+        }
+      }
+
+      // Return null instead of throwing an exception
+      return null;
+    }
   }
 
   @override
@@ -1072,10 +1082,17 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Pin?> getPinLocal({required int userId}) async {
+  FutureOr<Pin?> getPinLocal(
+      {int? userId, required bool alwaysHydrate, String? phoneNumber}) async {
     return (await repository.get<Pin>(
-            query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)])))
+            policy: alwaysHydrate
+                ? OfflineFirstGetPolicy.awaitRemote
+                : OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(where: [
+              if (userId != null) brick.Where('userId').isExactly(userId),
+              if (phoneNumber != null)
+                brick.Where('phoneNumber').isExactly(phoneNumber)
+            ])))
         .firstOrNull;
   }
 
@@ -1488,6 +1505,35 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Pin?> savePin({required Pin pin}) async {
     try {
+      // First check if a PIN with this userId already exists
+      final existingPins = await repository.get<Pin>(
+        query:
+            brick.Query(where: [brick.Where('userId').isExactly(pin.userId)]),
+      );
+
+      if (existingPins.isNotEmpty) {
+        // Update the existing PIN instead of creating a new one
+        Pin existingPin = existingPins.first;
+
+        // Since we can't modify the ID (it's final), we'll update the existing PIN's fields
+        // and then use that object instead of the new one
+        existingPin.phoneNumber = pin.phoneNumber;
+        existingPin.branchId = pin.branchId;
+        existingPin.businessId = pin.businessId;
+        existingPin.ownerName = pin.ownerName;
+        existingPin.tokenUid = pin.tokenUid;
+        existingPin.uid = pin.uid;
+
+        // Use the existing PIN object with updated fields
+        pin = existingPin;
+
+        talker.debug(
+            "Updating existing PIN with userId: ${pin.userId}, ID: ${pin.id}");
+      } else {
+        talker.debug("Creating new PIN with userId: ${pin.userId}");
+      }
+
+      // Use upsert with a query to ensure we're updating the right record
       final query = brick.Query.where('userId', pin.userId, limit1: true);
       final savedPin = await repository.upsert(
         pin,
@@ -1496,6 +1542,7 @@ class CoreSync extends AiStrategyImpl
 
       return savedPin;
     } catch (e, s) {
+      talker.error("Error saving PIN: $e");
       talker.error(s.toString());
       rethrow;
     }
@@ -3262,13 +3309,32 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> updatePin(
       {required int userId, String? phoneNumber, String? tokenUid}) async {
-    List<Pin> pin = await repository.get<Pin>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
-    if (pin.isNotEmpty) {
-      Pin myPin = pin.first;
-      myPin.phoneNumber = phoneNumber;
-      myPin.tokenUid = tokenUid;
-      repository.upsert(myPin);
+    try {
+      List<Pin> pins = await repository.get<Pin>(
+          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+
+      if (pins.isNotEmpty) {
+        Pin myPin = pins.first;
+
+        // Update the PIN with new information if provided
+        if (phoneNumber != null) {
+          myPin.phoneNumber = phoneNumber;
+        }
+
+        // Update the tokenUid if provided
+        if (tokenUid != null) {
+          myPin.tokenUid = tokenUid;
+        }
+
+        talker.debug(
+            "Updating PIN for userId: $userId with tokenUid: ${tokenUid ?? 'unchanged'}");
+        await repository.upsert(myPin);
+      } else {
+        talker.warning("No PIN found for userId: $userId. Cannot update.");
+      }
+    } catch (e, s) {
+      talker.error("Error updating PIN: $e");
+      talker.error(s.toString());
     }
   }
 

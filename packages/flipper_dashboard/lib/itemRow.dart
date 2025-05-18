@@ -241,17 +241,10 @@ class _RowItemState extends ConsumerState<RowItem>
                   Padding(
                     padding: const EdgeInsets.all(
                         contentPadding - 4), // Further reduced padding
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minHeight: 80, // Fixed minimum height
-                        maxHeight: 220, // Add maximum height constraint
-                      ),
-                      child: useListView
-                          ? _buildListItemContent(
-                              isSelected, textTheme, colorScheme)
-                          : _buildItemContent(
-                              isSelected, textTheme, colorScheme),
-                    ),
+                    child: useListView
+                        ? _buildListItemContent(
+                            isSelected, textTheme, colorScheme)
+                        : _buildItemContent(isSelected, textTheme, colorScheme),
                   ),
 
                   // Overlay action buttons when selected
@@ -272,25 +265,32 @@ class _RowItemState extends ConsumerState<RowItem>
 
   Widget _buildItemContent(
       bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      // Add SingleChildScrollView to handle any potential overflow
-      physics: const NeverScrollableScrollPhysics(), // Disable actual scrolling
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image Section - Fixed height to prevent overflow
-          AspectRatio(
-            aspectRatio: 16 / 10, // Slightly taller image
-            child: _buildProductImageSection(isSelected),
-          ),
+    // Check if we're on desktop Windows
+    final isDesktopWindows = Platform.isWindows;
 
-          const SizedBox(height: 6), // Reduced spacing
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Product Image Section - Adaptive height for desktop Windows
+        Container(
+          height: isDesktopWindows ? 120 : null, // Fixed height on Windows
+          child: isDesktopWindows
+              ? _buildProductImageSection(isSelected)
+              : AspectRatio(
+                  aspectRatio: 16 / 10,
+                  child: _buildProductImageSection(isSelected),
+                ),
+        ),
 
-          // Product Info Section - Handle varying content
-          _buildProductInfoSection(textTheme),
-        ],
-      ),
+        const SizedBox(height: 8), // Slightly increased spacing
+
+        // Product Info Section - Handle varying content
+        _buildProductInfoSection(textTheme),
+
+        // Add extra padding at bottom for Windows to ensure visibility
+        if (isDesktopWindows) const SizedBox(height: 4),
+      ],
     );
   }
 
@@ -483,6 +483,9 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildPriceAndStockInfo(TextTheme textTheme) {
+    // Check if we're on desktop Windows for special handling
+    final isDesktopWindows = Platform.isWindows;
+
     // List of indicators to show
     final List<Widget> indicators = [];
 
@@ -491,7 +494,10 @@ class _RowItemState extends ConsumerState<RowItem>
         widget.variant?.retailPrice != 0) {
       indicators.add(
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          padding: EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: isDesktopWindows ? 4 : 3, // Slightly larger on Windows
+          ),
           decoration: BoxDecoration(
             color: Colors.blue.withOpacity(0.12),
             borderRadius: BorderRadius.circular(8),
@@ -501,6 +507,7 @@ class _RowItemState extends ConsumerState<RowItem>
             style: textTheme.labelSmall?.copyWith(
               color: Colors.blue[700],
               fontWeight: FontWeight.w600,
+              fontSize: isDesktopWindows ? 12 : null, // Larger font on Windows
             ),
           ),
         ),
@@ -511,30 +518,45 @@ class _RowItemState extends ConsumerState<RowItem>
     if (!widget.isComposite && widget.stock != 0) {
       indicators.add(
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+          padding: EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: isDesktopWindows ? 4 : 3, // Slightly larger on Windows
+          ),
           decoration: BoxDecoration(
             color: widget.stock < 10
                 ? Colors.orange.withOpacity(0.12)
                 : Colors.green.withOpacity(0.12),
             borderRadius: BorderRadius.circular(8),
+            // Add subtle border on Windows for better visibility
+            border: isDesktopWindows
+                ? Border.all(
+                    color: widget.stock < 10
+                        ? Colors.orange.withOpacity(0.3)
+                        : Colors.green.withOpacity(0.3),
+                    width: 1,
+                  )
+                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.inventory_2_outlined,
-                size: 10,
+                size: isDesktopWindows ? 12 : 10, // Larger icon on Windows
                 color:
                     widget.stock < 10 ? Colors.orange[700] : Colors.green[700],
               ),
-              const SizedBox(width: 2),
+              SizedBox(
+                  width: isDesktopWindows ? 3 : 2), // More spacing on Windows
               Text(
-                "${widget.stock}",
+                "${widget.stock.toStringAsFixed(2)}", // Format with 2 decimal places
                 style: textTheme.labelSmall?.copyWith(
                   color: widget.stock < 10
                       ? Colors.orange[700]
                       : Colors.green[700],
                   fontWeight: FontWeight.w600,
+                  fontSize:
+                      isDesktopWindows ? 12 : null, // Larger font on Windows
                 ),
               ),
             ],
@@ -545,22 +567,24 @@ class _RowItemState extends ConsumerState<RowItem>
 
     // Responsive layout for stock/price indicators
     final isMobile = MediaQuery.of(context).size.shortestSide < 600;
-    if (widget.forceListView || isMobile) {
-      // On mobile, stack vertically for visibility and reduce font size/padding
+
+    // Always use Column layout on Windows for better visibility
+    if (widget.forceListView || isMobile || isDesktopWindows) {
+      // Stack vertically for better visibility
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: indicators
             .map((w) => Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
+                  padding: EdgeInsets.only(bottom: isDesktopWindows ? 4 : 2),
                   child: DefaultTextStyle.merge(
-                    style: const TextStyle(fontSize: 11),
+                    style: TextStyle(fontSize: isDesktopWindows ? 12 : 11),
                     child: w,
                   ),
                 ))
             .toList(),
       );
     } else {
-      // On desktop/tablet, use the original Wrap
+      // On other desktop/tablet platforms, use Wrap
       return Wrap(
         spacing: 4,
         runSpacing: 4,
@@ -608,65 +632,6 @@ class _RowItemState extends ConsumerState<RowItem>
   //     ),
   //   );
   // }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(6), // Reduced radius
-      child: InkWell(
-        borderRadius: BorderRadius.circular(6), // Reduced radius
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 8, vertical: 4), // Reduced padding
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 12), // Smaller icon
-              const SizedBox(width: 3), // Reduced spacing
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 10, // Smaller font
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Icon-only button for even more compact display
-  Widget _buildIconButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: color.withOpacity(0.1),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(
-            icon,
-            color: color,
-            size: 14,
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildImage() {
     if (widget.imageUrl == null) {

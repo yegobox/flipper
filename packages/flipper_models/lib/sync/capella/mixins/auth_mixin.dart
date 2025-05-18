@@ -22,6 +22,12 @@ mixin CapellaAuthMixin implements AuthInterface {
   }
 
   @override
+  Future<void> completeLogin(Pin thePin) {
+    throw UnimplementedError(
+        'completeLogin needs to be implemented for Capella');
+  }
+
+  @override
   Future<bool> firebaseLogin({String? token}) async {
     throw UnimplementedError(
         'firebaseLogin needs to be implemented for Capella');
@@ -79,5 +85,12 @@ mixin CapellaAuthMixin implements AuthInterface {
       required bool fetchRemote}) async {
     throw UnimplementedError(
         'hasActiveSubscription needs to be implemented for Capella');
+  }
+
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) {
+    throw UnimplementedError(
+        'handleLoginError needs to be implemented for Capella');
   }
 }
