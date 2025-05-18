@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,8 +8,6 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart';
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -105,7 +102,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
 
     // Extract the error information
     final String errorMessage = errorDetails['errorMessage'];
-    
+
     // Only show error message if we have one - navigation is handled in auth_mixin
     if (errorMessage.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

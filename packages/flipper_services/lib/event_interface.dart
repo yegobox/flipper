@@ -18,6 +18,5 @@ abstract class EventInterface {
   void resetLoginStatus();
 
   Stream<bool> isLoadingStream({bool? isLoading});
-  Future<void> keepTryingPublishDevice();
   nub.PubNub? pubnub;
 }

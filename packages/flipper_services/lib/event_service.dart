@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helper_models.dart' as helper;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
@@ -197,7 +196,16 @@ class EventService
               userPhone: loginData.phone,
             );
 
-            keepTryingPublishDevice();
+            // Verify userId is properly saved - this is critical for offline login to work later
+            final savedUserId = ProxyService.box.getUserId();
+            if (savedUserId == null || savedUserId != loginData.userId) {
+              talker.debug(
+                  "QR Login: userId not properly saved, explicitly setting it now");
+              await ProxyService.box
+                  .writeInt(key: 'userId', value: loginData.userId);
+            } else {
+              talker.debug("QR Login: userId properly saved: $savedUserId");
+            }
 
             // Signal success to update the UI
             _desktopLoginStatusController
@@ -274,8 +282,8 @@ class EventService
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       log("received message aha!");
-      helper.IConversation conversation =
-          helper.IConversation.fromJson(envelope.payload);
+      // helper.IConversation conversation =
+      //     helper.IConversation.fromJson(envelope.payload);
     });
   }
 
@@ -307,32 +315,5 @@ class EventService
                 deviceVersion: deviceEvent.deviceVersion));
       }
     });
-  }
-
-  @override
-  Future<void> keepTryingPublishDevice() async {
-    if (ProxyService.box.getBusinessId() == null) return;
-    // List<Device> devices = await ProxyService.strategy
-    //     .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
-    // for (Device device in devices) {
-    //   nub.PublishResult result = await publish(
-    //     loginDetails: {
-    //       'channel': ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-    //       'deviceName': device.deviceName,
-    //       'deviceVersion': device.deviceVersion,
-    //       'linkingCode': device.linkingCode,
-    //       'userId': device.userId,
-    //       'businessId': device.businessId,
-    //       'branchId': device.branchId,
-    //       'phone': device.phone,
-    //       'defaultApp': device.defaultApp,
-    //     },
-    //   );
-    //   if (result.description == 'Sent') {
-    //     // ProxyService.strategy.realm!.writeAsync(() async {
-    //     //   device.pubNubPublished = true;
-    //     // });
-    //   }
-    // }
   }
 }
