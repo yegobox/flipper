@@ -80,6 +80,17 @@ mixin AuthMixin implements AuthInterface {
       isPinError = true;
       shouldCaptureException = false;
     } else if (e is LoginChoicesException) {
+      if (responseChannel != null) {
+        try {
+          await ProxyService.event.publish(loginDetails: {
+            'channel': responseChannel,
+            'status': 'choices_needed',  // Special status for business/branch selection
+            'message': 'Please select a business and branch',
+          });
+        } catch (responseError) {
+          talker.error('Failed to send login response: $responseError');
+        }
+      }
       errorMessage = e.errMsg();
       shouldNavigateToLoginChoices = true;
       shouldCaptureException = false;
