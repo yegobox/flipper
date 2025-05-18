@@ -1083,13 +1083,16 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<Pin?> getPinLocal(
-      {required int userId, required bool alwaysHydrate}) async {
+      {int? userId, required bool alwaysHydrate, String? phoneNumber}) async {
     return (await repository.get<Pin>(
             policy: alwaysHydrate
                 ? OfflineFirstGetPolicy.awaitRemote
                 : OfflineFirstGetPolicy.localOnly,
-            query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)])))
+            query: brick.Query(where: [
+              if (userId != null) brick.Where('userId').isExactly(userId),
+              if (phoneNumber != null)
+                brick.Where('phoneNumber').isExactly(phoneNumber)
+            ])))
         .firstOrNull;
   }
 

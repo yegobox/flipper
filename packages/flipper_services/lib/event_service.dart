@@ -32,6 +32,8 @@ class EventService
     implements EventInterface {
   final _routerService = locator<RouterService>();
   final nub.Keyset keySet;
+
+  @override
   nub.PubNub? pubnub;
 
   // Desktop login state stream controller
@@ -116,6 +118,9 @@ class EventService
         try {
           LoginData loginData = LoginData.fromMap(envelope.payload);
 
+          // Store the response channel for sending status updates back to mobile device
+          String? responseChannel = loginData.responseChannel;
+
           ProxyService.box
               .writeInt(key: 'businessId', value: loginData.businessId);
           // ProxyService.box.writeString(key: 'uid', value: loginData.uid);
@@ -197,9 +202,49 @@ class EventService
             // Signal success to update the UI
             _desktopLoginStatusController
                 .add(DesktopLoginStatus(DesktopLoginState.success));
-          } catch (deviceError) {
+
+            // Send success status back to the mobile device if response channel is provided
+            if (responseChannel != null) {
+              try {
+                await publish(loginDetails: {
+                  'channel': responseChannel,
+                  'status': 'success',
+                  'message': 'Login successful',
+                });
+
+                await ProxyService.strategy.completeLogin(thePin);
+                talker.debug(
+                    "Sent login success response to channel: $responseChannel");
+              } catch (responseError) {
+                talker.error('Failed to send login response: $responseError');
+              }
+            }
+
+            // Note: Navigation is handled by the standard login flow in auth_mixin.dart
+            // which will properly handle business and branch choices if needed
+          } catch (deviceError, stacktrace) {
+            if(deviceError is LoginChoicesException){
+               locator<RouterService>().navigateTo(LoginChoicesRoute());
+            }
+            talker.error(deviceError);
+            talker.error(stacktrace);
             // Log the error but continue with login process
             talker.error('Device registration error: $deviceError');
+
+            // Send error status back to the mobile device if response channel is provided
+            if (responseChannel != null) {
+              try {
+                await publish(loginDetails: {
+                  'channel': responseChannel,
+                  'status': 'failure',
+                  'message': 'Device registration error',
+                });
+                talker.debug(
+                    "Sent login failure response to channel: $responseChannel");
+              } catch (responseError) {
+                talker.error('Failed to send login response: $responseError');
+              }
+            }
           }
         } catch (e) {
           talker.error(e);
@@ -208,6 +253,28 @@ class EventService
           _desktopLoginStatusController.add(DesktopLoginStatus(
               DesktopLoginState.failure,
               message: errorMessage));
+
+          // Extract response channel if possible and send error back to mobile device
+          try {
+            Map<String, dynamic> payload = envelope.payload;
+            String? responseChannel = payload['responseChannel'];
+
+            if (responseChannel != null) {
+              try {
+                await publish(loginDetails: {
+                  'channel': responseChannel,
+                  'status': 'failure',
+                  'message': errorMessage,
+                });
+                talker.debug(
+                    "Sent login failure response to channel: $responseChannel");
+              } catch (responseError) {
+                talker.error('Failed to send login response: $responseError');
+              }
+            }
+          } catch (extractError) {
+            talker.error('Failed to extract response channel: $extractError');
+          }
         }
       });
     } catch (e) {

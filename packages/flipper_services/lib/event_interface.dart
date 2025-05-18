@@ -1,6 +1,7 @@
 import 'package:flipper_services/desktop_login_status.dart'
     show DesktopLoginStatus;
 import 'package:pubnub/pubnub.dart';
+import 'package:pubnub/pubnub.dart' as nub;
 
 abstract class EventInterface {
   Future<PublishResult> publish({required Map loginDetails});
@@ -12,10 +13,11 @@ abstract class EventInterface {
 
   /// Emits login state for desktop login (idle, loading, success, failure, with optional message)
   Stream<DesktopLoginStatus> desktopLoginStatusStream();
-  
+
   /// Resets the desktop login status to idle state
   void resetLoginStatus();
 
   Stream<bool> isLoadingStream({bool? isLoading});
   Future<void> keepTryingPublishDevice();
+  nub.PubNub? pubnub;
 }

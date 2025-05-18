@@ -22,6 +22,12 @@ mixin CapellaAuthMixin implements AuthInterface {
   }
 
   @override
+  Future<void> completeLogin(Pin thePin) {
+    throw UnimplementedError(
+        'completeLogin needs to be implemented for Capella');
+  }
+
+  @override
   Future<bool> firebaseLogin({String? token}) async {
     throw UnimplementedError(
         'firebaseLogin needs to be implemented for Capella');
