@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
+import 'package:flipper_dashboard/dataMixer.dart'; // Import dataMixer for assetProvider
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -221,10 +222,19 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             inUpdateProcess: widget.productId != null,
             productName: model.kProductName!);
 
-        // Refresh the product list
-
+        // Refresh the product list and asset data
         final combinedNotifier = ref.read(refreshProvider);
         combinedNotifier.performActions(productName: "", scanMode: true);
+
+        // Refresh asset provider to show the newly uploaded image immediately
+        if (productRef.id.isNotEmpty) {
+          // Invalidate the asset provider cache to force a refresh
+          ref.invalidate(assetProvider(productRef.id));
+
+          // Also refresh the product provider to ensure all data is up-to-date
+          ref.invalidate(productProvider(productRef.id));
+        }
+
         ref.read(loadingProvider.notifier).stopLoading();
       } else if (_fieldComposite.currentState?.validate() ?? false) {
         await _handleCompositeProductSave(model);
@@ -287,6 +297,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       // Refresh the list
       final combinedNotifier = ref.read(refreshProvider);
       combinedNotifier.performActions(productName: "", scanMode: true);
+
+      // Refresh asset provider to show the newly uploaded image immediately
+      final productId = ref.read(unsavedProductProvider)?.id;
+      if (productId != null && productId.isNotEmpty) {
+        // Invalidate the asset provider cache to force a refresh
+        ref.invalidate(assetProvider(productId));
+
+        // Also refresh the product provider to ensure all data is up-to-date
+        ref.invalidate(productProvider(productId));
+      }
+
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
       ref.read(loadingProvider.notifier).stopLoading();
     } catch (e) {
