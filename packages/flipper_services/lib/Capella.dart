@@ -2196,4 +2196,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement completeLogin
     throw UnimplementedError();
   }
+
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) {
+    throw UnimplementedError();
+  }
 }

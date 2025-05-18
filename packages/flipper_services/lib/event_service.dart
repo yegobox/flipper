@@ -223,30 +223,15 @@ class EventService
             // Note: Navigation is handled by the standard login flow in auth_mixin.dart
             // which will properly handle business and branch choices if needed
           } catch (deviceError, stacktrace) {
-            if(deviceError is LoginChoicesException){
-               locator<RouterService>().navigateTo(LoginChoicesRoute());
-            }
-            talker.error(deviceError);
-            talker.error(stacktrace);
+            // Use centralized error handling with response channel
+            await ProxyService.strategy.handleLoginError(
+                deviceError, stacktrace,
+                responseChannel: responseChannel);
+
             // Log the error but continue with login process
             talker.error('Device registration error: $deviceError');
-
-            // Send error status back to the mobile device if response channel is provided
-            if (responseChannel != null) {
-              try {
-                await publish(loginDetails: {
-                  'channel': responseChannel,
-                  'status': 'failure',
-                  'message': 'Device registration error',
-                });
-                talker.debug(
-                    "Sent login failure response to channel: $responseChannel");
-              } catch (responseError) {
-                talker.error('Failed to send login response: $responseError');
-              }
-            }
           }
-        } catch (e) {
+        } catch (e, stackTrace) {
           talker.error(e);
           // Show a user-friendly error message
           String errorMessage = 'Connection error. Please try again.';
@@ -254,23 +239,15 @@ class EventService
               DesktopLoginState.failure,
               message: errorMessage));
 
-          // Extract response channel if possible and send error back to mobile device
+          // Extract response channel if possible and use centralized error handling
           try {
             Map<String, dynamic> payload = envelope.payload;
             String? responseChannel = payload['responseChannel'];
 
+            // Use centralized error handling with response channel
             if (responseChannel != null) {
-              try {
-                await publish(loginDetails: {
-                  'channel': responseChannel,
-                  'status': 'failure',
-                  'message': errorMessage,
-                });
-                talker.debug(
-                    "Sent login failure response to channel: $responseChannel");
-              } catch (responseError) {
-                talker.error('Failed to send login response: $responseError');
-              }
+              await ProxyService.strategy.handleLoginError(e, stackTrace,
+                  responseChannel: responseChannel);
             }
           } catch (extractError) {
             talker.error('Failed to extract response channel: $extractError');

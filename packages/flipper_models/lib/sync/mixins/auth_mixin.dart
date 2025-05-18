@@ -21,6 +21,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -59,6 +60,74 @@ mixin AuthMixin implements AuthInterface {
       print(e); // Log or handle error during login completion
       rethrow;
     }
+  }
+
+  /// Centralized error handling for login errors
+  /// Returns a tuple with (errorMessage, shouldNavigateToLoginChoices, isPinError)
+  /// UI-specific handling should be done by the caller
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) async {
+    String errorMessage = '';
+    bool shouldNavigateToLoginChoices = false;
+    bool isPinError = false;
+    bool shouldCaptureException = true;
+
+    if (e is BusinessNotFoundException) {
+      errorMessage = e.errMsg();
+    } else if (e is PinError) {
+      errorMessage = e.errMsg();
+      isPinError = true;
+      shouldCaptureException = false;
+    } else if (e is LoginChoicesException) {
+      errorMessage = e.errMsg();
+      shouldNavigateToLoginChoices = true;
+      shouldCaptureException = false;
+
+      // Handle navigation directly here
+      try {
+        locator<RouterService>().navigateTo(LoginChoicesRoute());
+      } catch (navError) {
+        talker.error('Failed to navigate to login choices: $navError');
+      }
+    } else {
+      errorMessage = e.toString();
+    }
+
+    // Log the error
+    talker.error('Login error: $errorMessage');
+    talker.error(s);
+
+    // Send error status back to the mobile device if response channel is provided
+    // This is used for QR code login to notify the mobile device of login failure
+    if (responseChannel != null) {
+      try {
+        await ProxyService.event.publish(loginDetails: {
+          'channel': responseChannel,
+          'status': 'failure',
+          'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
+        });
+        talker
+            .debug("Sent login failure response to channel: $responseChannel");
+      } catch (responseError) {
+        talker.error('Failed to send login response: $responseError');
+      }
+    }
+
+    // Capture exception for non-expected errors
+    if (shouldCaptureException) {
+      try {
+        await Sentry.captureException(e, stackTrace: s);
+      } catch (sentryError) {
+        talker.error('Failed to capture exception with Sentry: $sentryError');
+      }
+    }
+
+    return {
+      'errorMessage': errorMessage,
+      'shouldNavigateToLoginChoices': shouldNavigateToLoginChoices,
+      'isPinError': isPinError
+    };
   }
 
   @override
