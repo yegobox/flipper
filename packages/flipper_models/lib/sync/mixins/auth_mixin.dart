@@ -84,7 +84,8 @@ mixin AuthMixin implements AuthInterface {
         try {
           await ProxyService.event.publish(loginDetails: {
             'channel': responseChannel,
-            'status': 'choices_needed',  // Special status for business/branch selection
+            'status':
+                'choices_needed', // Special status for business/branch selection
             'message': 'Please select a business and branch',
           });
         } catch (responseError) {
@@ -541,17 +542,19 @@ mixin AuthMixin implements AuthInterface {
     // get userId of the user that is trying to log in
     final savedLocalPinForThis = await ProxyService.strategy
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
-
+    final tenants = await ProxyService.strategy
+        .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
     // Only use cached credentials if they belong to the same user (phone number) that's trying to log in
     // This prevents using cached credentials from a previous user if someone tries to log in with a different account
-    if (savedLocalPinForThis != null && existingPhoneNumber == phoneNumber) {
+    if (savedLocalPinForThis != null &&
+        existingPhoneNumber == phoneNumber &&
+        tenants != null) {
       talker.debug(
           "Using existing token and user ID, skipping duplicate sendLoginRequest");
       // Create a mock response with the existing data to avoid a duplicate API call
-      final tenants = await ProxyService.strategy
-          .getTenant(pin: savedLocalPinForThis.userId!);
       final businesses = await ProxyService.strategy
           .businesses(userId: savedLocalPinForThis.userId!);
+
       final branches = await ProxyService.strategy
           .branches(businessId: tenants!.businessId ?? 0);
 
@@ -730,7 +733,8 @@ mixin AuthMixin implements AuthInterface {
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
         'ownerName': ownerName,
-        'uid': firebase.FirebaseAuth.instance.currentUser?.uid
+        if (firebase.FirebaseAuth.instance.currentUser != null)
+          'uid': firebase.FirebaseAuth.instance.currentUser!.uid,
       }),
     );
   }

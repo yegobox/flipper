@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -43,6 +44,10 @@ class ScannViewState extends ConsumerState<ScannView>
   late AnimationController _animationController;
   late Animation<double> _animation;
   ScanStatus _scanStatus = ScanStatus.idle;
+
+  // For managing PubNub subscriptions and timers
+  nub.Subscription? _loginResponseSubscription;
+  Timer? _loginTimeoutTimer;
 
   @override
   void initState() {
@@ -741,21 +746,26 @@ class ScannViewState extends ConsumerState<ScannView>
         if (mounted) _routerService.back();
       }
 
-      // Wait for response or timeout
-      await Future.delayed(Duration(seconds: 15));
+      // Set up a timeout timer that will be canceled if we get a response
+      _loginTimeoutTimer = Timer(Duration(seconds: 15), () {
+        // Only proceed if widget is still mounted and we're still processing
+        if (mounted && _scanStatus == ScanStatus.processing) {
+          setState(() {
+            _scanStatus = ScanStatus.failed;
+          });
 
-      // If we're still in processing state after timeout, show failure
-      if (mounted && _scanStatus == ScanStatus.processing) {
-        setState(() {
-          _scanStatus = ScanStatus.failed;
-        });
+          showToast(context, 'Login timed out. Please try again.');
 
-        showToast(context, 'Login timed out. Please try again.');
+          // Wait a moment to show failure state before closing
+          Timer(Duration(milliseconds: 1500), () {
+            if (mounted) _routerService.back();
+          });
 
-        // Wait a moment to show failure state before closing
-        await Future.delayed(Duration(milliseconds: 1500));
-        if (mounted) _routerService.back();
-      }
+          // Clean up subscription since we're done
+          _loginResponseSubscription?.unsubscribe();
+          _loginResponseSubscription = null;
+        }
+      });
     } catch (e) {
       // Handle any exceptions
       setState(() {
@@ -776,11 +786,11 @@ class ScannViewState extends ConsumerState<ScannView>
       nub.PubNub pubNub = ProxyService.event.connect();
 
       // Subscribe to the response channel
-      nub.Subscription subscription =
+      _loginResponseSubscription =
           pubNub.subscribe(channels: {responseChannel});
 
       // Listen for messages on this channel
-      subscription.messages.listen((envelope) {
+      _loginResponseSubscription!.messages.listen((envelope) {
         // Parse the response
         Map<String, dynamic> response = envelope.payload;
 
@@ -830,8 +840,13 @@ class ScannViewState extends ConsumerState<ScannView>
             });
           }
 
+          // Cancel the timeout timer since we got a response
+          _loginTimeoutTimer?.cancel();
+          _loginTimeoutTimer = null;
+
           // Unsubscribe after receiving response
-          subscription.unsubscribe();
+          _loginResponseSubscription?.unsubscribe();
+          _loginResponseSubscription = null;
         }
       }, onError: (error) {
         // Handle subscription error
@@ -921,6 +936,16 @@ class ScannViewState extends ConsumerState<ScannView>
 
   @override
   void dispose() {
+    // Cancel any active PubNub subscriptions
+    if (_loginResponseSubscription != null) {
+      _loginResponseSubscription!.unsubscribe();
+      _loginResponseSubscription = null;
+    }
+
+    // Cancel any active timers
+    _loginTimeoutTimer?.cancel();
+    _loginTimeoutTimer = null;
+
     _animationController.dispose();
     controller?.dispose();
     super.dispose();
