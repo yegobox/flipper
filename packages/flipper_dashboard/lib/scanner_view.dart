@@ -8,7 +8,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pubnub/pubnub.dart';
+import 'package:pubnub/pubnub.dart' as nub;
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -699,6 +699,12 @@ class ScannViewState extends ConsumerState<ScannView>
       String defaultApp = ProxyService.box.getDefaultApp();
       String linkingCode = randomNumber().toString();
 
+      // Create a unique response channel for this login attempt
+      String responseChannel = 'login-response-${userId}-${linkingCode}';
+
+      // Start listening for response on the response channel
+      _listenForLoginResponse(responseChannel);
+
       // Update UI to show we're processing
       setState(() {
         _scanStatus = ScanStatus.processing;
@@ -707,7 +713,8 @@ class ScannViewState extends ConsumerState<ScannView>
       final pin = await ProxyService.strategy
           .getPinLocal(userId: userId, alwaysHydrate: false);
 
-      PublishResult result = await ProxyService.event.publish(loginDetails: {
+      nub.PublishResult result =
+          await ProxyService.event.publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -718,27 +725,32 @@ class ScannViewState extends ConsumerState<ScannView>
         'deviceName': Platform.operatingSystem,
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': linkingCode,
+        'responseChannel': responseChannel, // Add response channel
       });
 
-      if (!result.isError) {
-        // Update UI to show success
-        setState(() {
-          _scanStatus = ScanStatus.success;
-        });
-
-        HapticFeedback.lightImpact();
-        showToast(context, 'Login success');
-
-        // Wait a moment to show success state before closing
-        await Future.delayed(Duration(milliseconds: 1500));
-        if (mounted) _routerService.back();
-      } else {
-        // Update UI to show failure
+      if (result.isError) {
+        // Only handle publish error here, success will be handled by response
         setState(() {
           _scanStatus = ScanStatus.failed;
         });
 
-        showToast(context, 'Login failed');
+        showToast(context, 'Failed to send login request');
+
+        // Wait a moment to show failure state before closing
+        await Future.delayed(Duration(milliseconds: 1500));
+        if (mounted) _routerService.back();
+      }
+
+      // Wait for response or timeout
+      await Future.delayed(Duration(seconds: 15));
+
+      // If we're still in processing state after timeout, show failure
+      if (mounted && _scanStatus == ScanStatus.processing) {
+        setState(() {
+          _scanStatus = ScanStatus.failed;
+        });
+
+        showToast(context, 'Login timed out. Please try again.');
 
         // Wait a moment to show failure state before closing
         await Future.delayed(Duration(milliseconds: 1500));
@@ -755,6 +767,83 @@ class ScannViewState extends ConsumerState<ScannView>
       // Wait a moment to show failure state before closing
       await Future.delayed(Duration(milliseconds: 1500));
       if (mounted) _routerService.back();
+    }
+  }
+
+  void _listenForLoginResponse(String responseChannel) {
+    try {
+      // Use the connect method to get the PubNub instance
+      nub.PubNub pubNub = ProxyService.event.connect();
+
+      // Subscribe to the response channel
+      nub.Subscription subscription =
+          pubNub.subscribe(channels: {responseChannel});
+
+      // Listen for messages on this channel
+      subscription.messages.listen((envelope) {
+        // Parse the response
+        Map<String, dynamic> response = envelope.payload;
+
+        if (response.containsKey('status')) {
+          if (response['status'] == 'success') {
+            // Update UI to show success
+            setState(() {
+              _scanStatus = ScanStatus.success;
+            });
+
+            HapticFeedback.lightImpact();
+            showToast(context, 'Login successful');
+
+            // Wait a moment to show success state before closing
+            Future.delayed(Duration(milliseconds: 1500)).then((_) {
+              if (mounted) _routerService.back();
+            });
+          } else {
+            // Update UI to show failure
+            setState(() {
+              _scanStatus = ScanStatus.failed;
+            });
+
+            String errorMessage = response.containsKey('message')
+                ? response['message']
+                : 'Login failed';
+
+            showToast(context, errorMessage);
+
+            // Wait a moment to show failure state before closing
+            Future.delayed(Duration(milliseconds: 1500)).then((_) {
+              if (mounted) _routerService.back();
+            });
+          }
+
+          // Unsubscribe after receiving response
+          subscription.unsubscribe();
+        }
+      }, onError: (error) {
+        // Handle subscription error
+        setState(() {
+          _scanStatus = ScanStatus.failed;
+        });
+
+        showToast(context, 'Connection error: $error');
+
+        // Wait a moment to show failure state before closing
+        Future.delayed(Duration(milliseconds: 1500)).then((_) {
+          if (mounted) _routerService.back();
+        });
+      });
+    } catch (e) {
+      // Handle any exceptions
+      setState(() {
+        _scanStatus = ScanStatus.failed;
+      });
+
+      showToast(context, 'Subscription error: $e');
+
+      // Wait a moment to show failure state before closing
+      Future.delayed(Duration(milliseconds: 1500)).then((_) {
+        if (mounted) _routerService.back();
+      });
     }
   }
 

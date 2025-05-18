@@ -16,6 +16,8 @@ abstract class AuthInterface {
     IUser? existingUser,
   });
 
+  Future<void> completeLogin(Pin thePin);
+
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
 

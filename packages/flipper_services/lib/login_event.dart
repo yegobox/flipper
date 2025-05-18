@@ -10,6 +10,7 @@ class LoginData {
     required this.deviceName,
     required this.deviceVersion,
     required this.tokenUid,
+    this.responseChannel,
   });
 
   String channel;
@@ -23,6 +24,8 @@ class LoginData {
   String deviceName;
   String deviceVersion;
   String tokenUid;
+  String?
+      responseChannel; // Optional channel for sending login status back to mobile device
 
   factory LoginData.fromMap(Map<String, dynamic> json) => LoginData(
         channel: json["channel"],
@@ -35,6 +38,7 @@ class LoginData {
         deviceName: json["deviceName"],
         deviceVersion: json["deviceVersion"],
         tokenUid: json["tokenUid"],
+        responseChannel: json["responseChannel"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -48,5 +52,6 @@ class LoginData {
         "deviceName": deviceName,
         "deviceVersion": deviceVersion,
         "tokenUid": tokenUid,
+        if (responseChannel != null) "responseChannel": responseChannel,
       };
 }

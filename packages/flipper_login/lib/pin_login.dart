@@ -3,16 +3,13 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 
@@ -82,7 +79,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           skipDefaultAppSetup: false,
           userPhone: pin.phoneNumber,
         );
-        await _completeLogin(thePin);
+        await ProxyService.strategy.completeLogin(thePin);
       } catch (e, s) {
         await _handleLoginError(e, s);
       } finally {
@@ -99,38 +96,6 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
       pinString: _pinController.text,
       flipperHttpClient: ProxyService.http,
     );
-  }
-
-  // Handle the login completion flow (redirect after login)
-  Future<void> _completeLogin(Pin thePin) async {
-    try {
-      // Get the current Firebase user's UID
-      final currentUser = FirebaseAuth.instance.currentUser;
-      final uid = currentUser?.uid;
-
-      // If we have a valid UID from Firebase but the PIN doesn't have it,
-      // update the PIN with the UID to prevent duplicates
-      if (uid != null && thePin.uid != uid) {
-        print("Updating PIN with Firebase UID: $uid");
-        thePin.uid = uid;
-        thePin.tokenUid = uid; // Also update tokenUid to ensure consistency
-      }
-
-      // Save the PIN with the updated UID
-      await ProxyService.strategy.savePin(pin: thePin);
-      await loc.getIt<AppService>().appInit();
-      final defaultApp = ProxyService.box.getDefaultApp();
-
-      if (defaultApp == "2") {
-        final routerService = locator<RouterService>();
-        routerService.navigateTo(SocialHomeViewRoute());
-      } else {
-        locator<RouterService>().navigateTo(FlipperAppRoute());
-      }
-    } catch (e) {
-      print(e); // Log or handle error during login completion
-      rethrow;
-    }
   }
 
   // Error handling for login

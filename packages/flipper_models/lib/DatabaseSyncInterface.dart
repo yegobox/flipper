@@ -288,7 +288,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<IPin?> getPin(
       {required String pinString,
       required HttpClientInterface flipperHttpClient});
-  FutureOr<Pin?> getPinLocal({required int userId,required bool alwaysHydrate});
+  FutureOr<Pin?> getPinLocal(
+      {int? userId, String? phoneNumber, required bool alwaysHydrate});
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
   Future<Pin?> savePin({required Pin pin});

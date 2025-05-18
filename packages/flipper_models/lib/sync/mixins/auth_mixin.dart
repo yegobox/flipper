@@ -9,6 +9,8 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,12 +18,48 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_services/locator.dart' as loc;
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
   Repository get repository;
   bool get offlineLogin;
   set offlineLogin(bool value);
+
+  // Handle the login completion flow (redirect after login)
+  @override
+  Future<void> completeLogin(Pin thePin) async {
+    try {
+      // Get the current Firebase user's UID
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final uid = currentUser?.uid;
+
+      // If we have a valid UID from Firebase but the PIN doesn't have it,
+      // update the PIN with the UID to prevent duplicates
+      if (uid != null && thePin.uid != uid) {
+        print("Updating PIN with Firebase UID: $uid");
+        thePin.uid = uid;
+        thePin.tokenUid = uid; // Also update tokenUid to ensure consistency
+      }
+
+      // Save the PIN with the updated UID
+      await ProxyService.strategy.savePin(pin: thePin);
+      await loc.getIt<AppService>().appInit();
+      final defaultApp = ProxyService.box.getDefaultApp();
+
+      if (defaultApp == "2") {
+        final routerService = locator<RouterService>();
+        routerService.navigateTo(SocialHomeViewRoute());
+      } else {
+        locator<RouterService>().navigateTo(FlipperAppRoute());
+      }
+    } catch (e) {
+      print(e); // Log or handle error during login completion
+      rethrow;
+    }
+  }
 
   @override
   Future<bool> logOut();
@@ -418,22 +456,90 @@ mixin AuthMixin implements AuthInterface {
       {String? uid}) async {
     uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
 
-    // Check if we already have a valid token and user ID to avoid duplicate calls
-    final existingToken = await ProxyService.box.getBearerToken();
-    final existingUserId = ProxyService.box.getUserId();
+    // Get the phone number associated with the current session
+    final existingPhoneNumber = ProxyService.box.getUserPhone();
+    // get userId of the user that is trying to log in
+    final savedLocalPinForThis = await ProxyService.strategy
+        .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
 
-    if (existingToken != null && existingUserId != null) {
+    // Only use cached credentials if they belong to the same user (phone number) that's trying to log in
+    // This prevents using cached credentials from a previous user if someone tries to log in with a different account
+    if (savedLocalPinForThis != null && existingPhoneNumber == phoneNumber) {
       talker.debug(
           "Using existing token and user ID, skipping duplicate sendLoginRequest");
       // Create a mock response with the existing data to avoid a duplicate API call
+      final tenants = await ProxyService.strategy
+          .getTenant(pin: savedLocalPinForThis.userId!);
+      final businesses = await ProxyService.strategy
+          .businesses(userId: savedLocalPinForThis.userId!);
+      final branches = await ProxyService.strategy
+          .branches(businessId: tenants!.businessId ?? 0);
+
+      // Build a proper response structure with the fetched data
+      Map<String, dynamic> responseData = {
+        'id': savedLocalPinForThis.userId,
+        //TODO: this token I am passing here might not be the right token
+        'token': savedLocalPinForThis.tokenUid,
+        'uid': uid,
+        'phoneNumber': phoneNumber,
+        'channels': [savedLocalPinForThis.userId.toString()],
+        'pin': savedLocalPinForThis.userId,
+        'tenants': []
+      };
+
+      // Only add tenant data if we have valid tenant information
+
+      // Create tenant entry with businesses and branches
+      Map<String, dynamic> tenantData = {
+        'id': tenants.id,
+        'name': tenants.name,
+        'phoneNumber': phoneNumber,
+        'businessId': tenants.businessId,
+        'userId': savedLocalPinForThis.userId,
+        'pin': savedLocalPinForThis.userId,
+        'type': tenants.type,
+        'default': tenants.isDefault,
+        'businesses': [],
+        'branches': []
+      };
+
+      // Add businesses if available
+      if (businesses.isNotEmpty) {
+        List<Map<String, dynamic>> businessesList = [];
+        for (var business in businesses) {
+          businessesList.add({
+            'id': business.id,
+            'name': business.name,
+            'userId': business.userId?.toString(),
+            'serverId': business.serverId,
+            'default': business.isDefault,
+            'active': business.active
+          });
+        }
+        tenantData['businesses'] = businessesList;
+      }
+
+      // Add branches if available
+      if (branches.isNotEmpty) {
+        List<Map<String, dynamic>> branchesList = [];
+        for (var branch in branches) {
+          branchesList.add({
+            'id': branch.id,
+            'name': branch.name,
+            'businessId': branch.businessId,
+            'serverId': branch.serverId,
+            'default': branch.isDefault,
+            'active': branch.active
+          });
+        }
+        tenantData['branches'] = branchesList;
+      }
+
+      // Add the tenant to the response
+      responseData['tenants'] = [tenantData];
+
       return http.Response(
-        jsonEncode({
-          'id': existingUserId,
-          'token': existingToken,
-          'uid': uid,
-          'phoneNumber': phoneNumber,
-          'tenants': []
-        }),
+        jsonEncode(responseData),
         200,
       );
     }
