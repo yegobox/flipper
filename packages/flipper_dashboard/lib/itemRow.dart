@@ -593,46 +593,6 @@ class _RowItemState extends ConsumerState<RowItem>
     }
   }
 
-  // Widget _buildActionButtonsSection(ColorScheme colorScheme) {
-  //   return SizedBox(
-  //     width: double.infinity,
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.end,
-  //       children: [
-  //         // Delete button
-  //         _buildActionButton(
-  //           icon: Icons.delete_outline,
-  //           label: 'Delete',
-  //           color: colorScheme.error,
-  //           onPressed: () {
-  //             if (widget.variant != null) {
-  //               widget.delete(widget.variant?.productId, 'product');
-  //             } else if (widget.product != null) {
-  //               widget.delete(widget.product?.id, 'product');
-  //             }
-  //           },
-  //         ),
-
-  //         const SizedBox(width: 8),
-
-  //         // Edit button
-  //         _buildActionButton(
-  //           icon: Icons.edit_outlined,
-  //           label: 'Edit',
-  //           color: colorScheme.primary,
-  //           onPressed: () {
-  //             if (widget.variant != null) {
-  //               widget.edit(widget.variant?.productId, 'product');
-  //             } else if (widget.product != null) {
-  //               widget.edit(widget.product?.id, 'product');
-  //             }
-  //           },
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _buildImage() {
     if (widget.imageUrl == null) {
       return _buildImageErrorPlaceholder();
@@ -646,7 +606,30 @@ class _RowItemState extends ConsumerState<RowItem>
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return _buildImageLoadingIndicator();
               } else if (snapshot.hasError || !snapshot.hasData) {
-                return _buildImageErrorPlaceholder();
+                // Try to load from local storage if remote fails
+                return FutureBuilder<String?>(
+                  key: ValueKey('fallback-local-${widget.imageUrl}'),
+                  future: _tryLoadFromAssetPath(widget.imageUrl!),
+                  builder: (context, assetSnapshot) {
+                    if (assetSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return _buildImageLoadingIndicator();
+                    } else if (assetSnapshot.hasData &&
+                        assetSnapshot.data != null) {
+                      return Image.file(
+                        File(assetSnapshot.data!),
+                        key: ValueKey('file-${assetSnapshot.data}'),
+                        fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 300,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImageErrorPlaceholder(),
+                      );
+                    } else {
+                      return _buildImageErrorPlaceholder();
+                    }
+                  },
+                );
               } else {
                 return CachedNetworkImage(
                   key: ValueKey('cached-${snapshot.data}'),
@@ -655,8 +638,32 @@ class _RowItemState extends ConsumerState<RowItem>
                   memCacheWidth: 300,
                   memCacheHeight: 300,
                   placeholder: (context, url) => _buildImageLoadingIndicator(),
-                  errorWidget: (context, url, error) =>
-                      _buildImageErrorPlaceholder(),
+                  errorWidget: (context, url, error) {
+                    // If network image fails, try local storage
+                    return FutureBuilder<String?>(
+                      key: ValueKey('error-local-${widget.imageUrl}'),
+                      future: _tryLoadFromAssetPath(widget.imageUrl!),
+                      builder: (context, assetSnapshot) {
+                        if (assetSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildImageLoadingIndicator();
+                        } else if (assetSnapshot.hasData &&
+                            assetSnapshot.data != null) {
+                          return Image.file(
+                            File(assetSnapshot.data!),
+                            key: ValueKey('file-${assetSnapshot.data}'),
+                            fit: BoxFit.cover,
+                            cacheWidth: 300,
+                            cacheHeight: 300,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildImageErrorPlaceholder(),
+                          );
+                        } else {
+                          return _buildImageErrorPlaceholder();
+                        }
+                      },
+                    );
+                  },
                 );
               }
             },
@@ -678,7 +685,30 @@ class _RowItemState extends ConsumerState<RowItem>
                       _buildImageErrorPlaceholder(),
                 );
               } else {
-                return _buildImageErrorPlaceholder();
+                // Try to load from asset's local path in database
+                return FutureBuilder<String?>(
+                  key: ValueKey('db-local-${widget.imageUrl}'),
+                  future: _tryLoadFromAssetPath(widget.imageUrl!),
+                  builder: (context, assetSnapshot) {
+                    if (assetSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return _buildImageLoadingIndicator();
+                    } else if (assetSnapshot.hasData &&
+                        assetSnapshot.data != null) {
+                      return Image.file(
+                        File(assetSnapshot.data!),
+                        key: ValueKey('file-${assetSnapshot.data}'),
+                        fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 300,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImageErrorPlaceholder(),
+                      );
+                    } else {
+                      return _buildImageErrorPlaceholder();
+                    }
+                  },
+                );
               }
             },
           );
@@ -856,6 +886,28 @@ class _RowItemState extends ConsumerState<RowItem>
     if (await file.exists()) {
       return imageFilePath;
     } else {
+      return null;
+    }
+  }
+
+  // Try to load an image from the asset's localPath in the database
+  Future<String?> _tryLoadFromAssetPath(String assetName) async {
+    try {
+      // Look up the asset in the database
+      final asset = await ProxyService.strategy.getAsset(assetName: assetName);
+
+      // If the asset exists and has a local path, return it
+      if (asset != null &&
+          asset.localPath != null &&
+          asset.localPath!.isNotEmpty) {
+        final file = File(asset.localPath!);
+        if (await file.exists()) {
+          return asset.localPath!;
+        }
+      }
+      return null;
+    } catch (e) {
+      talker.error('Error loading asset from local path: $e');
       return null;
     }
   }

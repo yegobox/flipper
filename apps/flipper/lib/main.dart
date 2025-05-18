@@ -24,6 +24,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/posthog_service.dart';
+
 import 'dart:developer' as developer;
 
 // Memory tracking variables
@@ -143,6 +144,9 @@ Future<void> main() async {
           if (kDebugMode) {
             _startMemoryTracking();
           }
+          
+          // Initialize asset sync service for background uploads
+         
         });
         runApp(
           ProviderScope(

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'dart:typed_data';
@@ -2200,6 +2201,28 @@ class Capella extends AiStrategyImpl
   @override
   Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
       {String? responseChannel}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> hasOfflineAssets() {
+    // TODO: implement hasOfflineAssets
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Assets> saveImageLocally(
+      {required File imageFile,
+      required String productId,
+      required int branchId,
+      required int businessId}) {
+    // TODO: implement saveImageLocally
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<String>> syncOfflineAssets() {
+    // TODO: implement syncOfflineAssets
     throw UnimplementedError();
   }
 }

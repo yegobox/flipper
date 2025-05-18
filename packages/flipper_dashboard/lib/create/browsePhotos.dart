@@ -1,7 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
 import 'dart:io';
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,10 +12,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:flipper_models/providers/upload_providers.dart';
-import 'package:flipper_models/providers/product_provider.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/asset_sync_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
@@ -31,41 +31,89 @@ class Browsephotos extends StatefulHookConsumerWidget {
   });
 
   @override
-  BrowsephotosState createState() => BrowsephotosState();
+  _BrowsephotosState createState() => _BrowsephotosState();
 }
 
-class BrowsephotosState extends ConsumerState<Browsephotos> {
+class _BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
+  final ImagePicker _picker = ImagePicker();
   bool isUploading = false;
   bool isOfflineMode = false;
-  
-  // Provider to track if there are pending uploads
-  final hasPendingUploadsProvider = StateProvider<bool>((ref) => false);
+
+  // We don't need to track pending uploads in the UI since background sync handles it
+
+  // Stream subscription for sync status updates
+  StreamSubscription<SyncStatus>? _syncStatusSubscription;
 
   @override
   void initState() {
     super.initState();
     _checkConnectivity();
+
+    // Listen for asset sync status updates
+    _syncStatusSubscription =
+        AssetSyncService().syncStatusStream.listen(_handleSyncStatusUpdate);
   }
-  
+
+  @override
+  void dispose() {
+    _syncStatusSubscription?.cancel();
+    super.dispose();
+  }
+
+  // Handle sync status updates
+  void _handleSyncStatusUpdate(SyncStatus status) {
+    if (status.status == SyncState.inProgress) {
+      // Show a subtle indicator that sync is happening
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(status.message),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    } else if (status.status == SyncState.completed && status.count > 0) {
+      // Show success message if assets were synced
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(status.message),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else if (status.status == SyncState.error) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(status.message),
+          duration: const Duration(seconds: 5),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   // Check for internet connectivity and set offline mode accordingly
   Future<void> _checkConnectivity() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
+    final connectivityResults = await Connectivity().checkConnectivity();
+    final hasConnection =
+        connectivityResults.any((result) => result != ConnectivityResult.none);
+
     setState(() {
-      isOfflineMode = connectivityResult == ConnectivityResult.none;
+      isOfflineMode = !hasConnection;
     });
-    
+
     // Check if there are any pending uploads
-    if (!isOfflineMode) {
+    if (hasConnection) {
       _checkPendingUploads();
     }
   }
-  
+
   // Check if there are any pending uploads that need to be synced
   Future<void> _checkPendingUploads() async {
     try {
-      final hasOfflineAssets = await ProxyService.strategy.hasOfflineAssets();
-      ref.read(hasPendingUploadsProvider.notifier).state = hasOfflineAssets;
+      // Just check if there are offline assets, but we don't need to update UI
+      await ProxyService.strategy.hasOfflineAssets();
     } catch (e) {
       talker.error('Error checking pending uploads: $e');
     }
@@ -80,6 +128,28 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     if (await file.exists()) {
       return imageFilePath;
     } else {
+      return null;
+    }
+  }
+
+  // Try to load an image from the asset's localPath in the database
+  Future<String?> _tryLoadFromAssetPath(String assetName) async {
+    try {
+      // Look up the asset in the database
+      final asset = await ProxyService.strategy.getAsset(assetName: assetName);
+
+      // If the asset exists and has a local path, return it
+      if (asset != null &&
+          asset.localPath != null &&
+          asset.localPath!.isNotEmpty) {
+        final file = File(asset.localPath!);
+        if (await file.exists()) {
+          return asset.localPath!;
+        }
+      }
+      return null;
+    } catch (e) {
+      talker.error('Error loading asset from local path: $e');
       return null;
     }
   }
@@ -148,20 +218,25 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
 
   // Helper function to handle image upload with offline support
   Future<void> _handleImageUpload(UploadViewModel model) async {
+    // Check connectivity before proceeding
+    await _checkConnectivity();
+
     setState(() {
       isUploading = true;
     });
+
+    // Reset upload progress
     ref.read(uploadProgressProvider.notifier).state = 0.0;
 
     try {
       // Check connectivity again before proceeding
       await _checkConnectivity();
-      
+
       final productRef = ref.watch(unsavedProductProvider);
       if (productRef == null) {
         throw Exception('No product selected');
       }
-      
+
       if (isOfflineMode) {
         // Handle offline image upload
         await _handleOfflineImageUpload(productRef.id);
@@ -174,7 +249,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
         talker.warning("ImageToProduct:${product.imageUrl}");
         ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
       }
-      
+
       setState(() {
         isUploading = false;
       });
@@ -187,109 +262,69 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
       talker.error("Upload error: $e");
     }
   }
-  
+
   // Handle offline image upload
   Future<void> _handleOfflineImageUpload(String productId) async {
+    setState(() {
+      isUploading = true;
+    });
+
     try {
       // Get image from gallery
-      final imagePicker = ImagePicker();
-      final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
-      
-      if (pickedFile == null) {
-        throw Exception('No image selected');
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image == null) {
+        setState(() {
+          isUploading = false;
+        });
+        return;
       }
-      
-      final imageFile = File(pickedFile.path);
-      
-      // Get business and branch IDs
-      final branchId = ProxyService.box.getBranchId()!;
-      final businessId = ProxyService.box.getBusinessId()!;
-      
-      // Save image locally using our new method
+
+      final File imageFile = File(image.path);
+      final branchId = ProxyService.box.getBranchId();
+      final businessId = ProxyService.box.getBusinessId();
+
+      if (branchId == null || businessId == null) {
+        throw Exception('Branch ID or Business ID not available');
+      }
+
+      // Save image locally
       final asset = await ProxyService.strategy.saveImageLocally(
         imageFile: imageFile,
         productId: productId,
         branchId: branchId,
         businessId: businessId,
       );
-      
+
       // Update the product with the local asset name
       final product = ref.watch(unsavedProductProvider);
-      if (product != null) {
+      if (product != null && asset.assetName != null) {
         product.imageUrl = asset.assetName;
         ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
       }
-      
-      // Update the pending uploads provider
-      ref.read(hasPendingUploadsProvider.notifier).state = true;
-      
+
+      // Background sync service will handle this automatically
+
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Image saved locally. Will be uploaded when online.'),
+          duration: Duration(seconds: 3),
           backgroundColor: Colors.green,
         ),
       );
-    } catch (e) {
-      talker.error('Offline upload error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save image: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      rethrow;
-    }
-  }
-  
-  // Sync offline assets when online
-  Future<void> _syncOfflineAssets() async {
-    try {
-      setState(() {
-        isUploading = true;
-      });
-      
-      // Check connectivity
-      final connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult == ConnectivityResult.none) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('No internet connection. Try again later.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        setState(() {
-          isUploading = false;
-        });
-        return;
-      }
-      
-      // Sync offline assets
-      final uploadedAssets = await ProxyService.strategy.syncOfflineAssets();
-      
-      // Check if there are still pending uploads
-      final hasOfflineAssets = await ProxyService.strategy.hasOfflineAssets();
-      ref.read(hasPendingUploadsProvider.notifier).state = hasOfflineAssets;
-      
+
       setState(() {
         isUploading = false;
       });
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Synced ${uploadedAssets.length} images'),
-          backgroundColor: Colors.green,
-        ),
-      );
     } catch (e) {
+      talker.error('Error saving image locally: $e');
       setState(() {
         isUploading = false;
       });
-      talker.error('Sync error: $e');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to sync images: $e'),
+          content: Text('Error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
@@ -299,7 +334,6 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
   @override
   Widget build(BuildContext context) {
     final uploadProgress = ref.watch(uploadProgressProvider);
-    final hasPendingUploads = ref.watch(hasPendingUploadsProvider);
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () {
@@ -340,22 +374,71 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 talker.error("Image load error: $error");
-                                return Center(
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 50,
-                                    color: Colors.grey[500],
-                                  ),
+                                // Try to load from network if local file fails
+                                return FutureBuilder(
+                                  future: _tryLoadFromAssetPath(
+                                      widget.imageUrl!.toString()),
+                                  builder: (context, assetSnapshot) {
+                                    if (assetSnapshot.hasData &&
+                                        assetSnapshot.data != null) {
+                                      return Image.file(
+                                        File(assetSnapshot.data!),
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Center(
+                                            child: Icon(
+                                              Icons.image_not_supported,
+                                              size: 50,
+                                              color: Colors.grey[500],
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      return Center(
+                                        child: Icon(
+                                          Icons.image,
+                                          size: 50,
+                                          color: Colors.grey[500],
+                                        ),
+                                      );
+                                    }
+                                  },
                                 );
                               },
                             );
                           } else {
-                            return Center(
-                              child: Icon(
-                                Icons.image,
-                                size: 50,
-                                color: Colors.grey[500],
-                              ),
+                            // Try to load from asset's localPath
+                            return FutureBuilder(
+                              future: _tryLoadFromAssetPath(
+                                  widget.imageUrl!.toString()),
+                              builder: (context, assetSnapshot) {
+                                if (assetSnapshot.hasData &&
+                                    assetSnapshot.data != null) {
+                                  return Image.file(
+                                    File(assetSnapshot.data!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 50,
+                                          color: Colors.grey[500],
+                                        ),
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  return Center(
+                                    child: Icon(
+                                      Icons.image,
+                                      size: 50,
+                                      color: Colors.grey[500],
+                                    ),
+                                  );
+                                }
+                              },
                             );
                           }
                         },
@@ -368,30 +451,23 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                             Icon(
                               isOfflineMode ? Icons.cloud_off : Icons.image,
                               size: 40,
-                              color: isOfflineMode ? Colors.orange[400] : Colors.grey[400],
+                              color: isOfflineMode
+                                  ? Colors.orange[400]
+                                  : Colors.grey[400],
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              isOfflineMode ? 'Add Image (Offline)' : 'Add Image',
+                              isOfflineMode
+                                  ? 'Add Image (Offline)'
+                                  : 'Add Image',
                               style: TextStyle(
-                                color: isOfflineMode ? Colors.orange[600] : Colors.grey[600],
+                                color: isOfflineMode
+                                    ? Colors.orange[600]
+                                    : Colors.grey[600],
                                 fontSize: 14,
                               ),
                             ),
-                            if (hasPendingUploads && !isOfflineMode) ...[
-                              const SizedBox(height: 8),
-                              ElevatedButton.icon(
-                                icon: Icon(Icons.cloud_upload, size: 16),
-                                label: Text('Sync Images', style: TextStyle(fontSize: 12)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  foregroundColor: Colors.white,
-                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                  minimumSize: Size(100, 30),
-                                ),
-                                onPressed: isUploading ? null : _syncOfflineAssets,
-                              ),
-                            ],
+                            // Offline status indicator if there are pending uploads
                           ],
                         ),
                       ),
