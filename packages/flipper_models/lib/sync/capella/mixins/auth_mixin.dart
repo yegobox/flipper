@@ -86,4 +86,11 @@ mixin CapellaAuthMixin implements AuthInterface {
     throw UnimplementedError(
         'hasActiveSubscription needs to be implemented for Capella');
   }
+
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) {
+    throw UnimplementedError(
+        'handleLoginError needs to be implemented for Capella');
+  }
 }

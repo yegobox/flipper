@@ -8,7 +8,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -98,13 +97,17 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
     );
   }
 
-  // Error handling for login
+  // Error handling for login - uses centralized error handling but keeps UI-specific code here
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {
-    String errorMessage = '';
-    if (e is BusinessNotFoundException) {
-      errorMessage = e.errMsg();
-    } else if (e is PinError) {
-      errorMessage = e.errMsg();
+    // Use the centralized error handling from AuthMixin
+    // Navigation is now handled directly in the auth_mixin.dart
+    final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
+
+    // Extract the error information
+    final String errorMessage = errorDetails['errorMessage'];
+    
+    // Only show error message if we have one - navigation is handled in auth_mixin
+    if (errorMessage.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           width: 250,
@@ -114,25 +117,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           content: Text(errorMessage, style: primaryTextStyle),
         ),
       );
-      return;
-    } else if (e is LoginChoicesException) {
-      errorMessage = e.errMsg();
-      locator<RouterService>().navigateTo(LoginChoicesRoute());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          width: 250,
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-          content: Text(errorMessage, style: primaryTextStyle),
-        ),
-      );
-      return;
-    } else {
-      errorMessage = e.toString();
-      await Sentry.captureException(e, stackTrace: s);
     }
-    print(s);
   }
 
   // Toggles the PIN visibility

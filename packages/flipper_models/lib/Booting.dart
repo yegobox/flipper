@@ -205,7 +205,7 @@ mixin Booting {
     }
   }
 
-  Future<void> handleLoginError(http.Response response) async {
+  Future<void> handleLoginErrorInBooting(http.Response response) async {
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
