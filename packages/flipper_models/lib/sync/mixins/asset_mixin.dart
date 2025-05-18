@@ -26,10 +26,29 @@ abstract class AssetInterface {
       required assetName,
       required int branchId,
       required int businessId});
+      
+  /// Save an image file locally and create an asset record
+  /// Returns the asset record with local path information
+  Future<Assets> saveImageLocally({
+    required File imageFile,
+    required String productId,
+    required int branchId,
+    required int businessId,
+  });
+  
+  /// Synchronize offline assets by uploading them to cloud storage
+  /// Returns a list of successfully uploaded asset IDs
+  Future<List<String>> syncOfflineAssets();
+  
+  /// Check if there are any offline assets that need to be synced
+  Future<bool> hasOfflineAssets();
 }
 
 mixin AssetMixin implements AssetInterface {
   final sessionManager = SessionManager();
+  
+  // Queue to track assets that need to be uploaded
+  final List<String> _pendingUploads = [];
 
   @override
   Future<Stream<double>> downloadAssetSave(
@@ -201,5 +220,141 @@ mixin AssetMixin implements AssetInterface {
 
   Future<Directory> getSupportDir() async {
     return Directory(await DatabasePath.getDatabaseDirectory());
+  }
+  
+  @override
+  Future<Assets> saveImageLocally({
+    required File imageFile,
+    required String productId,
+    required int branchId,
+    required int businessId,
+  }) async {
+    try {
+      // Generate a unique filename using UUID
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.basename(imageFile.path)}';
+      
+      // Get the support directory
+      final Directory supportDir = await getSupportDir();
+      
+      // Create the local file path
+      final String localPath = path.join(supportDir.path, fileName);
+      
+      // Copy the image file to the local storage
+      await imageFile.copy(localPath);
+      
+      // Create an asset record with isUploaded = false
+      final asset = Assets(
+        assetName: fileName,
+        productId: productId,
+        branchId: branchId,
+        businessId: businessId,
+        isUploaded: false,
+        localPath: localPath,
+      );
+      
+      // Save the asset to the repository
+      await repository.upsert<Assets>(asset);
+      
+      // Add to pending uploads queue
+      _pendingUploads.add(asset.id);
+      
+      talker.info('Image saved locally: $localPath');
+      return asset;
+    } catch (e, s) {
+      talker.error('Error saving image locally: $e');
+      talker.error(s);
+      rethrow;
+    }
+  }
+  
+  @override
+  Future<List<String>> syncOfflineAssets() async {
+    final List<String> successfullyUploaded = [];
+    
+    try {
+      // Check for internet connectivity
+      if (!await _hasInternetConnection()) {
+        talker.warning('No internet connection, skipping asset sync');
+        return successfullyUploaded;
+      }
+      
+      // Authenticate if needed
+      if (!await sessionManager.isAuthenticated()) {
+        await sessionManager.signIn("yegobox@gmail.com");
+        if (!await sessionManager.isAuthenticated()) {
+          throw Exception('Failed to authenticate for asset sync');
+        }
+      }
+      
+      // Get all assets that haven't been uploaded yet
+      final assets = await repository.get<Assets>(
+        query: brick.Query(where: [brick.Where('isUploaded').isExactly(false)])
+      );
+      
+      for (final asset in assets) {
+        if (asset.localPath != null && asset.assetName != null && asset.branchId != null) {
+          try {
+            // Create the file reference
+            final file = File(asset.localPath!);
+            if (await file.exists()) {
+              // Upload to S3
+              final storagePath = amplify.StoragePath.fromString(
+                'public/branch-${asset.branchId}/${asset.assetName}'
+              );
+              
+              await amplify.Amplify.Storage.uploadFile(
+                localFile: amplify.AWSFile.fromPath(asset.localPath!),
+                path: storagePath,
+              ).result;
+              
+              // Update the asset record to mark as uploaded
+              asset.isUploaded = true;
+              await repository.upsert<Assets>(asset);
+              
+              // Remove from pending uploads
+              _pendingUploads.remove(asset.id);
+              
+              successfullyUploaded.add(asset.id);
+              talker.info('Successfully uploaded asset: ${asset.assetName}');
+            } else {
+              talker.warning('Local file not found: ${asset.localPath}');
+            }
+          } catch (e, s) {
+            talker.error('Error uploading asset ${asset.assetName}: $e');
+            talker.error(s);
+            // Continue with next asset even if this one fails
+          }
+        }
+      }
+      
+      return successfullyUploaded;
+    } catch (e, s) {
+      talker.error('Error syncing offline assets: $e');
+      talker.error(s);
+      return successfullyUploaded;
+    }
+  }
+  
+  @override
+  Future<bool> hasOfflineAssets() async {
+    try {
+      final assets = await repository.get<Assets>(
+        query: brick.Query(where: [brick.Where('isUploaded').isExactly(false)])
+      );
+      return assets.isNotEmpty;
+    } catch (e) {
+      talker.error('Error checking for offline assets: $e');
+      return false;
+    }
+  }
+  
+  // Helper method to check for internet connectivity
+  Future<bool> _hasInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
   }
 }

@@ -1,16 +1,22 @@
 // ignore_for_file: unused_result
 
 import 'dart:io';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/view_models/upload_viewmodel.dart';
-import 'package:flipper_services/abstractions/upload.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:flex_color_picker/flex_color_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:image_picker/image_picker.dart';
+
 import 'package:flipper_models/providers/upload_providers.dart';
+import 'package:flipper_models/providers/product_provider.dart';
+import 'package:flipper_models/view_models/upload_viewmodel.dart';
+import 'package:flipper_services/abstractions/upload.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
   final ValueChanged<Color> onColorSelected;
@@ -31,10 +37,38 @@ class Browsephotos extends StatefulHookConsumerWidget {
 class BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
   bool isUploading = false;
+  bool isOfflineMode = false;
+  
+  // Provider to track if there are pending uploads
+  final hasPendingUploadsProvider = StateProvider<bool>((ref) => false);
 
   @override
   void initState() {
     super.initState();
+    _checkConnectivity();
+  }
+  
+  // Check for internet connectivity and set offline mode accordingly
+  Future<void> _checkConnectivity() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    setState(() {
+      isOfflineMode = connectivityResult == ConnectivityResult.none;
+    });
+    
+    // Check if there are any pending uploads
+    if (!isOfflineMode) {
+      _checkPendingUploads();
+    }
+  }
+  
+  // Check if there are any pending uploads that need to be synced
+  Future<void> _checkPendingUploads() async {
+    try {
+      final hasOfflineAssets = await ProxyService.strategy.hasOfflineAssets();
+      ref.read(hasPendingUploadsProvider.notifier).state = hasOfflineAssets;
+    } catch (e) {
+      talker.error('Error checking pending uploads: $e');
+    }
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
@@ -112,7 +146,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
-  // Helper function to handle image upload
+  // Helper function to handle image upload with offline support
   Future<void> _handleImageUpload(UploadViewModel model) async {
     setState(() {
       isUploading = true;
@@ -120,12 +154,27 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
     ref.read(uploadProgressProvider.notifier).state = 0.0;
 
     try {
-      final product = await model.browsePictureFromGallery(
-        id: ref.watch(unsavedProductProvider)!.id,
-        urlType: URLTYPE.PRODUCT,
-      );
-      talker.warning("ImageToProduct:${product.imageUrl}");
-      ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+      // Check connectivity again before proceeding
+      await _checkConnectivity();
+      
+      final productRef = ref.watch(unsavedProductProvider);
+      if (productRef == null) {
+        throw Exception('No product selected');
+      }
+      
+      if (isOfflineMode) {
+        // Handle offline image upload
+        await _handleOfflineImageUpload(productRef.id);
+      } else {
+        // Handle online image upload using existing method
+        final product = await model.browsePictureFromGallery(
+          id: productRef.id,
+          urlType: URLTYPE.PRODUCT,
+        );
+        talker.warning("ImageToProduct:${product.imageUrl}");
+        ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+      }
+      
       setState(() {
         isUploading = false;
       });
@@ -138,10 +187,119 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
       talker.error("Upload error: $e");
     }
   }
+  
+  // Handle offline image upload
+  Future<void> _handleOfflineImageUpload(String productId) async {
+    try {
+      // Get image from gallery
+      final imagePicker = ImagePicker();
+      final pickedFile = await imagePicker.pickImage(source: ImageSource.gallery);
+      
+      if (pickedFile == null) {
+        throw Exception('No image selected');
+      }
+      
+      final imageFile = File(pickedFile.path);
+      
+      // Get business and branch IDs
+      final branchId = ProxyService.box.getBranchId()!;
+      final businessId = ProxyService.box.getBusinessId()!;
+      
+      // Save image locally using our new method
+      final asset = await ProxyService.strategy.saveImageLocally(
+        imageFile: imageFile,
+        productId: productId,
+        branchId: branchId,
+        businessId: businessId,
+      );
+      
+      // Update the product with the local asset name
+      final product = ref.watch(unsavedProductProvider);
+      if (product != null) {
+        product.imageUrl = asset.assetName;
+        ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+      }
+      
+      // Update the pending uploads provider
+      ref.read(hasPendingUploadsProvider.notifier).state = true;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Image saved locally. Will be uploaded when online.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      talker.error('Offline upload error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      rethrow;
+    }
+  }
+  
+  // Sync offline assets when online
+  Future<void> _syncOfflineAssets() async {
+    try {
+      setState(() {
+        isUploading = true;
+      });
+      
+      // Check connectivity
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No internet connection. Try again later.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        setState(() {
+          isUploading = false;
+        });
+        return;
+      }
+      
+      // Sync offline assets
+      final uploadedAssets = await ProxyService.strategy.syncOfflineAssets();
+      
+      // Check if there are still pending uploads
+      final hasOfflineAssets = await ProxyService.strategy.hasOfflineAssets();
+      ref.read(hasPendingUploadsProvider.notifier).state = hasOfflineAssets;
+      
+      setState(() {
+        isUploading = false;
+      });
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Synced ${uploadedAssets.length} images'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        isUploading = false;
+      });
+      talker.error('Sync error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to sync images: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final uploadProgress = ref.watch(uploadProgressProvider);
+    final hasPendingUploads = ref.watch(hasPendingUploadsProvider);
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () {
@@ -208,18 +366,32 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.color_lens,
-                              size: 50,
-                              color: Colors.white.withOpacity(0.8),
+                              isOfflineMode ? Icons.cloud_off : Icons.image,
+                              size: 40,
+                              color: isOfflineMode ? Colors.orange[400] : Colors.grey[400],
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Click to pick color',
+                              isOfflineMode ? 'Add Image (Offline)' : 'Add Image',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 16,
+                                color: isOfflineMode ? Colors.orange[600] : Colors.grey[600],
+                                fontSize: 14,
                               ),
                             ),
+                            if (hasPendingUploads && !isOfflineMode) ...[
+                              const SizedBox(height: 8),
+                              ElevatedButton.icon(
+                                icon: Icon(Icons.cloud_upload, size: 16),
+                                label: Text('Sync Images', style: TextStyle(fontSize: 12)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  minimumSize: Size(100, 30),
+                                ),
+                                onPressed: isUploading ? null : _syncOfflineAssets,
+                              ),
+                            ],
                           ],
                         ),
                       ),
