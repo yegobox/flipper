@@ -742,33 +742,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   ],
                 ),
               ),
-              if (ref.watch(unsavedProductProvider)?.imageUrl != null)
-                FutureBuilder<String?>(
-                  future: getImageFilePath(
-                      imageFileName:
-                          ref.watch(unsavedProductProvider)!.imageUrl!),
-                  builder: (context, snapshot) {
-                    return Browsephotos(
-                      imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
-                      currentColor: pickerColor,
-                      onColorSelected: (color) {
-                        setState(() {
-                          pickerColor = color;
-                        });
-                      },
-                    );
-                  },
-                )
-              else
-                Browsephotos(
-                  imageUrl: null,
-                  currentColor: pickerColor,
-                  onColorSelected: (color) {
-                    setState(() {
-                      pickerColor = color;
-                    });
-                  },
-                ),
+              // Always use Browsephotos with the current product's imageUrl
+              // The Browsephotos widget will handle displaying the image correctly using its internal state
+              Browsephotos(
+                imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
+                currentColor: pickerColor,
+                onColorSelected: (color) {
+                  setState(() {
+                    pickerColor = color;
+                  });
+                },
+              ),
             ],
           );
         });

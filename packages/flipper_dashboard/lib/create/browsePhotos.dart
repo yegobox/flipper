@@ -40,6 +40,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
   bool isUploading = false;
   bool isOfflineMode = false;
 
+  // Local state to track the current image URL (since widget.imageUrl is final)
+  String? _currentImageUrl;
+
   // We don't need to track pending uploads in the UI since background sync handles it
 
   // Stream subscription for sync status updates
@@ -48,6 +51,9 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
   @override
   void initState() {
     super.initState();
+    // Initialize the current image URL from the widget
+    _currentImageUrl = widget.imageUrl;
+
     _checkConnectivity();
 
     // Listen for asset sync status updates
@@ -305,12 +311,16 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     });
 
     try {
+      // Simulate upload progress
+      _startProgressSimulation();
+
       // Get image from gallery
       final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
       if (image == null) {
         setState(() {
           isUploading = false;
         });
+        ref.read(uploadProgressProvider.notifier).state = 0.0;
         return;
       }
 
@@ -330,14 +340,31 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
         businessId: businessId,
       );
 
+      // Set progress to 100% when complete
+      ref.read(uploadProgressProvider.notifier).state = 1.0;
+
       // Update the product with the local asset name
-      final product = ref.watch(unsavedProductProvider);
+      final product = ref.read(unsavedProductProvider);
       if (product != null && asset.assetName != null) {
+        // Update the product's imageUrl
         product.imageUrl = asset.assetName;
         ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
+
+        // Store the local path for immediate display
+        if (asset.localPath != null && asset.localPath!.isNotEmpty) {
+          // Force widget to rebuild with new image
+          if (mounted) {
+            talker.info(
+                'Setting image preview from local path: ${asset.localPath}');
+            setState(() {
+              // Update our local state variable instead of widget.imageUrl
+              _currentImageUrl = asset.assetName;
+            });
+          }
+        }
       }
 
-      // Background sync service will handle this automatically
+      // Background sync service will handle uploading when online
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -356,6 +383,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       setState(() {
         isUploading = false;
       });
+      ref.read(uploadProgressProvider.notifier).state = 0.0;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -366,9 +394,26 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
+  // Simulate upload progress for better user experience
+  void _startProgressSimulation() {
+    ref.read(uploadProgressProvider.notifier).state = 0.0;
+    Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      final currentProgress = ref.read(uploadProgressProvider);
+      if (currentProgress >= 0.95 || !isUploading) {
+        timer.cancel();
+        return;
+      }
+      // Gradually increase progress, slowing down as it approaches 95%
+      final newProgress = currentProgress + (0.95 - currentProgress) * 0.1;
+      ref.read(uploadProgressProvider.notifier).state = newProgress;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final uploadProgress = ref.watch(uploadProgressProvider);
+    // Use either our local state or widget.imageUrl (for initial render)
+    final displayImageUrl = _currentImageUrl ?? widget.imageUrl;
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () {
@@ -381,7 +426,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           children: [
             InkWell(
               onTap: () async {
-                if (widget.imageUrl == null) {
+                if (displayImageUrl == null) {
                   await _showColorPickerDialog(context);
                 } else {
                   await _handleImageUpload(model);
@@ -391,17 +436,17 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                 width: 200,
                 height: 200,
                 decoration: BoxDecoration(
-                  color: widget.imageUrl == null
+                  color: displayImageUrl == null
                       ? widget.currentColor
                       : Colors.grey[300],
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Stack(
                   children: [
-                    if (widget.imageUrl != null)
+                    if (displayImageUrl != null)
                       FutureBuilder<String?>(
                         future:
-                            getImageFilePath(imageFileName: widget.imageUrl!),
+                            getImageFilePath(imageFileName: displayImageUrl),
                         builder: (context, snapshot) {
                           if (snapshot.hasData && snapshot.data != null) {
                             return Image.file(
@@ -412,7 +457,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                                 // Try to load from network if local file fails
                                 return FutureBuilder(
                                   future: _tryLoadFromAssetPath(
-                                      widget.imageUrl!.toString()),
+                                      displayImageUrl.toString()),
                                   builder: (context, assetSnapshot) {
                                     if (assetSnapshot.hasData &&
                                         assetSnapshot.data != null) {
@@ -447,7 +492,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                             // Try to load from asset's localPath
                             return FutureBuilder(
                               future: _tryLoadFromAssetPath(
-                                  widget.imageUrl!.toString()),
+                                  displayImageUrl.toString()),
                               builder: (context, assetSnapshot) {
                                 if (assetSnapshot.hasData &&
                                     assetSnapshot.data != null) {
@@ -506,7 +551,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                           ],
                         ),
                       ),
-                    if (widget.imageUrl != null)
+                    if (displayImageUrl != null)
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
@@ -574,7 +619,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
               ),
             ),
             const SizedBox(height: 8),
-            if (widget.imageUrl == null)
+            if (displayImageUrl == null)
               SizedBox(
                 width: 200,
                 child: TextButton(
