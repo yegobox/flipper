@@ -102,6 +102,41 @@ class AuthState {
   }
 }
 
+/// Authentication state for reactive UI updates
+class AuthenticationState {
+  final bool isAuthenticating;
+  final String? errorMessage;
+  final bool isComplete;
+
+  AuthenticationState({
+    this.isAuthenticating = false,
+    this.errorMessage,
+    this.isComplete = false,
+  });
+
+  factory AuthenticationState.idle() {
+    return AuthenticationState(isAuthenticating: false);
+  }
+
+  factory AuthenticationState.authenticating() {
+    return AuthenticationState(isAuthenticating: true);
+  }
+
+  factory AuthenticationState.error(String message) {
+    return AuthenticationState(
+      isAuthenticating: false,
+      errorMessage: message,
+    );
+  }
+
+  factory AuthenticationState.complete() {
+    return AuthenticationState(
+      isAuthenticating: false,
+      isComplete: true,
+    );
+  }
+}
+
 class AuthController {
   final _authStateController = StreamController<AuthState>.broadcast();
 
@@ -145,11 +180,19 @@ class _AuthState extends State<Auth> {
   String? _errorMessage;
   late LoginViewModel _loginViewModel;
 
+  // Authentication state controller for reactive UI updates
+  final _authenticationStateController =
+      StreamController<AuthenticationState>.broadcast();
+
+  // Dialog management
+  bool _isAuthDialogShowing = false;
+
   @override
   void initState() {
     super.initState();
     _loginViewModel = LoginViewModel();
 
+    // Listen to the auth controller state changes
     _authController.authState.listen((state) {
       setState(() {
         _isLoading = state.status == AuthStatus.loading;
@@ -157,42 +200,57 @@ class _AuthState extends State<Auth> {
       });
 
       if (state.status == AuthStatus.success) {
-        // Store the context for later dismissal
-        _loadingDialogContext = context;
-
-        showDialog(
-          context: context,
-          barrierDismissible: false, // Prevent closing by tapping outside
-          builder: (BuildContext dialogContext) {
-            // Update to the more specific dialog context
-            _loadingDialogContext = dialogContext;
-            return const LoadingDialog(message: 'Finalizing authentication...');
-          },
-        );
-
         // Set up Firebase auth state listener to handle the complete login process
         _handleAuthStateChanges();
       }
     });
+
+    // Listen to authentication state for showing/hiding loading dialog
+    _authenticationStateController.stream.listen((state) {
+      if (state.isAuthenticating && !_isAuthDialogShowing) {
+        _showAuthenticationDialog();
+      } else if (!state.isAuthenticating && _isAuthDialogShowing) {
+        _hideAuthenticationDialog();
+      }
+
+      if (state.errorMessage != null) {
+        _authController.notifyError(state.errorMessage!);
+      }
+    });
   }
 
-  // Flag to prevent multiple simultaneous auth processing
-  bool _isProcessingAuth = false;
-  BuildContext? _loadingDialogContext;
+  // Show authentication loading dialog
+  void _showAuthenticationDialog() {
+    _isAuthDialogShowing = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const LoadingDialog(message: 'Finalizing authentication...');
+      },
+    ).then((_) {
+      _isAuthDialogShowing = false;
+    });
+  }
+
+  // Hide authentication loading dialog
+  void _hideAuthenticationDialog() {
+    if (_isAuthDialogShowing && mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _isAuthDialogShowing = false;
+    }
+  }
 
   /// Handles user authentication state changes and login flow
   Future<void> _handleAuthStateChanges() async {
-    FirebaseAuth.instance.authStateChanges().listen((user) async {
-      if (user == null) return;
+    // Notify UI that authentication is in progress
+    _authenticationStateController.add(AuthenticationState.authenticating());
 
-      // Prevent multiple simultaneous processing
-      if (_isProcessingAuth) {
-        talker.info(
-            'Already processing authentication, skipping duplicate event');
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      if (user == null) {
+        _authenticationStateController.add(AuthenticationState.idle());
         return;
       }
-
-      _isProcessingAuth = true;
 
       try {
         // Only check if authentication is already complete
@@ -205,8 +263,9 @@ class _AuthState extends State<Auth> {
 
         if (authIsComplete) {
           talker.info('Skipping login process: user is already authenticated');
-          // Close the loading dialog since we're not proceeding with login
-          _safelyDismissDialog();
+
+          // Update UI state to idle (will automatically dismiss loading UI)
+          _authenticationStateController.add(AuthenticationState.idle());
 
           // Navigate to startup view since auth is already complete
           _routerService.clearStackAndShow(StartUpViewRoute());
@@ -216,13 +275,11 @@ class _AuthState extends State<Auth> {
         // Set a timeout to prevent indefinite hanging
         bool timeoutOccurred = false;
         Future.delayed(Duration(seconds: 30)).then((_) {
-          if (_isProcessingAuth) {
+          if (_isAuthDialogShowing) {
             timeoutOccurred = true;
             talker.warning('Authentication process timed out after 30 seconds');
-            _safelyDismissDialog();
-            _isProcessingAuth = false;
-            _authController
-                .notifyError('Authentication timed out. Please try again.');
+            _authenticationStateController.add(AuthenticationState.error(
+                'Authentication timed out. Please try again.'));
           }
         });
 
@@ -264,39 +321,21 @@ class _AuthState extends State<Auth> {
           'email': user.email ?? user.phoneNumber!,
         });
 
-        // Note: The loading dialog will be closed automatically during navigation
+        // Update UI state to idle (will automatically dismiss loading UI)
+        _authenticationStateController.add(AuthenticationState.idle());
       } catch (e, s) {
         talker.error('Authentication error: $e');
-        // Ensure the dialog is closed on error
-        _safelyDismissDialog();
+        // Update UI with error state (will automatically show error and dismiss loading)
+        _authenticationStateController
+            .add(AuthenticationState.error(e.toString()));
         _loginViewModel.handleLoginError(e, s);
-      } finally {
-        _isProcessingAuth = false;
       }
     });
   }
 
-  /// Safely dismiss the loading dialog to prevent exceptions
-  void _safelyDismissDialog() {
-    if (mounted) {
-      try {
-        // Use the stored dialog context if available, otherwise fall back to the widget context
-        if (_loadingDialogContext != null) {
-          Navigator.of(_loadingDialogContext!, rootNavigator: true).pop();
-        } else {
-          Navigator.of(context, rootNavigator: true).pop();
-        }
-        // Clear the context reference after dismissal
-        _loadingDialogContext = null;
-      } catch (e) {
-        talker.warning('Error dismissing dialog: $e');
-        // Dialog might already be dismissed, ignore
-      }
-    }
-  }
-
   @override
   void dispose() {
+    _authenticationStateController.close();
     _authController.dispose();
     super.dispose();
   }
