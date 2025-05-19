@@ -379,19 +379,66 @@ class _AuthState extends State<Auth> {
   Future<void> _handleMicrosoftLogin() async {
     _authController.notifyLoading();
     try {
+      // Configure Microsoft provider to allow any Microsoft account
       final provider = MicrosoftAuthProvider();
-      provider.addScope('mail.read');
 
-      final userCredential =
+      // Set 'common' tenant to allow any Microsoft account (personal or organizational)
+      provider.setCustomParameters({
+        'tenant': 'common',
+        'prompt':
+            'select_account', // Ensures user can select from multiple accounts
+      });
+
+      // Add necessary scopes for profile access
+      provider.addScope('user.read');
+      provider.addScope('openid');
+      provider.addScope('profile');
+      provider.addScope('email');
+
+      // Log the authentication attempt
+      talker.info(
+          'Starting Microsoft OAuth sign-in process with multi-tenant configuration');
+
+      // Perform the authentication
+      final authCredential =
           await FirebaseAuth.instance.signInWithProvider(provider);
-      if (userCredential.user != null) {
+      talker.info('Microsoft credential obtained successfully');
+
+      if (authCredential.user != null) {
+        talker
+            .info('Microsoft sign-in successful: ${authCredential.user?.uid}');
         _authController.notifySignedIn();
       } else {
         _authController.notifyError("Sign in failed");
       }
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
+      // Handle specific Firebase Auth errors
+      talker.error(
+          'Microsoft login FirebaseAuthException: ${e.code} - ${e.message}');
       Sentry.captureException(e, stackTrace: StackTrace.current);
-      _authController.notifyError("Microsoft login failed");
+
+      // Handle user cancellation gracefully
+      if (e.code == 'popup-closed-by-user' ||
+          e.code == 'cancelled' ||
+          e.code == 'web-context-canceled') {
+        _authController.notifySignedOut();
+      } else if (e.code == 'unauthorized-domain') {
+        _authController.notifyError(
+            "Authentication domain not authorized. Please contact support.");
+      } else if (e.code == 'user-disabled') {
+        _authController.notifyError("This account has been disabled.");
+      } else if (e.code == 'account-exists-with-different-credential') {
+        _authController.notifyError(
+            "An account already exists with the same email address but different sign-in credentials.");
+      } else {
+        _authController.notifyError("Microsoft login failed: ${e.message}");
+      }
+    } catch (e) {
+      // Log detailed error information for other exceptions
+      talker.error('Microsoft login error: ${e.toString()}');
+      Sentry.captureException(e, stackTrace: StackTrace.current);
+      _authController
+          .notifyError("Microsoft login failed. Please try again later.");
     }
   }
 
