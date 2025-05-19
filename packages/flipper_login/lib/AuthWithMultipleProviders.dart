@@ -149,7 +149,7 @@ class _AuthState extends State<Auth> {
   void initState() {
     super.initState();
     _loginViewModel = LoginViewModel();
-    
+
     _authController.authState.listen((state) {
       setState(() {
         _isLoading = state.status == AuthStatus.loading;
@@ -157,36 +157,105 @@ class _AuthState extends State<Auth> {
       });
 
       if (state.status == AuthStatus.success) {
+        // Store the context for later dismissal
+        _loadingDialogContext = context;
+
         showDialog(
           context: context,
           barrierDismissible: false, // Prevent closing by tapping outside
-          builder: (BuildContext context) {
+          builder: (BuildContext dialogContext) {
+            // Update to the more specific dialog context
+            _loadingDialogContext = dialogContext;
             return const LoadingDialog(message: 'Finalizing authentication...');
           },
         );
-        
+
         // Set up Firebase auth state listener to handle the complete login process
         _handleAuthStateChanges();
       }
     });
   }
 
+  // Flag to prevent multiple simultaneous auth processing
+  bool _isProcessingAuth = false;
+  BuildContext? _loadingDialogContext;
+
   /// Handles user authentication state changes and login flow
   Future<void> _handleAuthStateChanges() async {
     FirebaseAuth.instance.authStateChanges().listen((user) async {
       if (user == null) return;
-      
-      final bool pinLoginEnabled = (await ProxyService.box.pinLogin()) ?? false;
-      final bool authIsComplete = (await ProxyService.box.authComplete());
-      final bool shouldProcessLogin = !pinLoginEnabled && !authIsComplete;
 
-      if (!shouldProcessLogin) return;
+      // Prevent multiple simultaneous processing
+      if (_isProcessingAuth) {
+        talker.info(
+            'Already processing authentication, skipping duplicate event');
+        return;
+      }
+
+      _isProcessingAuth = true;
 
       try {
-        final loginData = await _loginViewModel.processUserLogin(user);
+        // Only check if authentication is already complete
+        // PIN login should not prevent email/phone login
+        final bool authIsComplete = (await ProxyService.box.authComplete());
+
+        // Log authentication state for debugging
+        talker.info(
+            'Auth state: authIsComplete=$authIsComplete, user=${user.uid}');
+
+        if (authIsComplete) {
+          talker.info('Skipping login process: user is already authenticated');
+          // Close the loading dialog since we're not proceeding with login
+          _safelyDismissDialog();
+
+          // Navigate to startup view since auth is already complete
+          _routerService.clearStackAndShow(StartUpViewRoute());
+          return;
+        }
+
+        // Set a timeout to prevent indefinite hanging
+        bool timeoutOccurred = false;
+        Future.delayed(Duration(seconds: 30)).then((_) {
+          if (_isProcessingAuth) {
+            timeoutOccurred = true;
+            talker.warning('Authentication process timed out after 30 seconds');
+            _safelyDismissDialog();
+            _isProcessingAuth = false;
+            _authController
+                .notifyError('Authentication timed out. Please try again.');
+          }
+        });
+
+        // Process login with retry for network issues
+        int retryCount = 0;
+        Map<String, dynamic>? loginData;
+
+        while (retryCount < 2 && !timeoutOccurred) {
+          try {
+            loginData = await _loginViewModel.processUserLogin(user);
+            break; // Success, exit retry loop
+          } catch (e) {
+            if (e.toString().contains('network') && retryCount < 1) {
+              // Only retry once for network errors
+              retryCount++;
+              talker.info(
+                  'Network error during login, retrying (${retryCount}/2)...');
+              await Future.delayed(Duration(seconds: 2)); // Wait before retry
+            } else {
+              rethrow; // Not a network error or max retries reached
+            }
+          }
+        }
+
+        if (loginData == null) {
+          throw Exception('Failed to process login after retries');
+        }
+
         final Pin userPin = loginData['pin'];
         final IUser userData = loginData['user'];
-        await _loginViewModel.completeLoginProcess(userPin, _loginViewModel, user: userData);
+
+        await _loginViewModel.completeLoginProcess(userPin, _loginViewModel,
+            user: userData);
 
         // Track login event with PosthogService
         PosthogService.instance.capture('login_success', properties: {
@@ -194,16 +263,36 @@ class _AuthState extends State<Auth> {
           'user_id': user.uid,
           'email': user.email ?? user.phoneNumber!,
         });
-        
+
         // Note: The loading dialog will be closed automatically during navigation
       } catch (e, s) {
+        talker.error('Authentication error: $e');
         // Ensure the dialog is closed on error
-        if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
-        }
+        _safelyDismissDialog();
         _loginViewModel.handleLoginError(e, s);
+      } finally {
+        _isProcessingAuth = false;
       }
     });
+  }
+
+  /// Safely dismiss the loading dialog to prevent exceptions
+  void _safelyDismissDialog() {
+    if (mounted) {
+      try {
+        // Use the stored dialog context if available, otherwise fall back to the widget context
+        if (_loadingDialogContext != null) {
+          Navigator.of(_loadingDialogContext!, rootNavigator: true).pop();
+        } else {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+        // Clear the context reference after dismissal
+        _loadingDialogContext = null;
+      } catch (e) {
+        talker.warning('Error dismissing dialog: $e');
+        // Dialog might already be dismissed, ignore
+      }
+    }
   }
 
   @override
