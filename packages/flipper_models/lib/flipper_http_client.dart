@@ -127,13 +127,6 @@ mixin FlipperHttpClient implements HttpClientInterface {
   }
 
   Future<Map<String, String>> _getHeaders() async {
-    String? token;
-    if (ProxyService.box.getDefaultApp() == 2) {
-      token = ProxyService.box.whatsAppToken();
-    } else {
-      token = ProxyService.box.getBearerToken();
-    }
-
     int? userId = ProxyService.box.getUserId();
     Map<String, String> headers = {
       'Content-Type': 'application/json',
@@ -145,11 +138,6 @@ mixin FlipperHttpClient implements HttpClientInterface {
         '${secrets.AppSecrets.username}:${secrets.AppSecrets.password}';
     final encodedCredentials = base64Encode(utf8.encode(credentials));
     headers['Authorization'] = 'Basic $encodedCredentials';
-
-    // If token exists, it will override the basic auth (keeping this for backward compatibility)
-    if (token != null) {
-      headers['Authorization'] = token;
-    }
 
     return headers;
   }
