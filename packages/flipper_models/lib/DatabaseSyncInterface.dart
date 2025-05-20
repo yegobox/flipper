@@ -386,7 +386,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int mainBranchId,
       required FinanceProvider financeOption});
 
-  Future<List<ITenant>> signup(
+  Future<Business?> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   FutureOr<Business?> getBusiness({int? businessId});
   Future<Business?> defaultBusiness();

@@ -16,7 +16,6 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -298,13 +297,6 @@ class Capella extends AiStrategyImpl
     // } catch (e) {
     //   rethrow;
     // }
-  }
-
-  @override
-  Future<List<ITenant>> signup(
-      {required Map business, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement signup
-    throw UnimplementedError();
   }
 
   @override
@@ -2223,6 +2215,13 @@ class Capella extends AiStrategyImpl
   @override
   Future<List<String>> syncOfflineAssets() {
     // TODO: implement syncOfflineAssets
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Business?> signup(
+      {required Map business, required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement signup
     throw UnimplementedError();
   }
 }

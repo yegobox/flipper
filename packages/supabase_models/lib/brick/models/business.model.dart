@@ -190,53 +190,56 @@ class Business extends OfflineFirstWithSupabaseModel {
   factory Business.fromMap(Map<String, dynamic> map) {
     return Business(
       id: map['id'] as String,
-      serverId: map['server_id'] as int,
+      serverId: map['serverId'] as int, // Changed from server_id
       name: map['name'] as String?,
       currency: map['currency'] as String?,
-      categoryId: map['category_id'] as String?,
+      categoryId: map['categoryId'] as String?, // Changed from category_id
       latitude: map['latitude'] as String?,
       longitude: map['longitude'] as String?,
-      userId: map['user_id'] as int,
-      timeZone: map['time_zone'] as String?,
+      userId: map['userId'] is String
+          ? int.parse(map['userId'])
+          : map['userId'] as int, // Handle string conversion
+      timeZone: map['timeZone'] as String?, // Changed from time_zone
       country: map['country'] as String?,
-      businessUrl: map['business_url'] as String?,
-      hexColor: map['hex_color'] as String?,
-      imageUrl: map['image_url'] as String?,
+      businessUrl: map['businessUrl'] as String?, // Changed from business_url
+      hexColor: map['hexColor'] as String?, // Changed from hex_color
+      imageUrl: map['imageUrl'] as String?, // Changed from image_url
       type: map['type'] as String?,
-      // active: map['active'] as bool,
-      chatUid: map['chat_uid'] as String?,
+      chatUid: map['chatUid'] as String?, // Changed from chat_uid
       metadata: map['metadata'] as String?,
       role: map['role'] as String?,
-      lastSeen: map['last_seen'] as int?,
-      firstName: map['first_name'] as String?,
-      lastName: map['last_name'] as String?,
-
+      lastSeen: map['lastSeen'] as int?, // Changed from last_seen
+      firstName: map['firstName'] as String?, // Changed from first_name
+      lastName: map['lastName'] as String?, // Changed from last_name
       deviceToken: map['deviceToken'] as String?,
-      // backUpEnabled: map['back_up_enabled'] as bool?,
-      subscriptionPlan: map['subscription_plan'] as String?,
-      nextBillingDate: map['next_billing_date'] as String?,
-      previousBillingDate: map['previous_billing_date'] as String?,
-      // isLastSubscriptionPaymentSucceeded:
-      //     map['is_last_subscription_payment_succeeded'] as bool?,
-      backupFileId: map['backup_file_id'] as String?,
+      subscriptionPlan:
+          map['subscriptionPlan'] as String?, // Changed from subscription_plan
+      nextBillingDate:
+          map['nextBillingDate'] as String?, // Changed from next_billing_date
+      previousBillingDate: map['previousBillingDate']
+          as String?, // Changed from previous_billing_date
+      backupFileId:
+          map['backupFileId'] as String?, // Changed from backup_file_id
       email: map['email'] as String?,
-      lastDbBackup: map['last_db_backup'] as String?,
-      fullName: map['full_name'] as String?,
-      tinNumber: map['tin_number'] as int?,
-      bhfId: map['bhf_id'] as String?,
-      dvcSrlNo: map['dvc_srl_no'] as String?,
+      lastDbBackup:
+          map['lastDbBackup'] as String?, // Changed from last_db_backup
+      fullName: map['fullName'] as String?, // Changed from full_name
+      tinNumber: map['tinNumber'] as int?, // Changed from tin_number
+      bhfId: map['bhfId'] as String?, // Changed from bhf_id
+      dvcSrlNo: map['dvcSrlNo'] as String?, // Changed from dvc_srl_no
       adrs: map['adrs'] as String?,
-      // taxEnabled: map['tax_enabled'] as bool?,
-      taxServerUrl: map['tax_server_url'] as String?,
-      // isDefault: map['is_default'] as bool?,
-      businessTypeId: map['business_type_id'] as int?,
-      lastTouched: map['last_touched'] == null
+      taxServerUrl:
+          map['taxServerUrl'] as String?, // Changed from tax_server_url
+      businessTypeId:
+          map['businessTypeId'] as int?, // Changed from business_type_id
+      lastTouched: map['lastTouched'] == null
           ? null
-          : DateTime.tryParse(map['last_touched'] as String),
-      deletedAt: map['deleted_at'] == null
+          : DateTime.tryParse(map['lastTouched'].toString()),
+      deletedAt: map['deletedAt'] == null
           ? null
-          : DateTime.tryParse(map['deleted_at'] as String),
-      encryptionKey: map['encryption_key'] as String?,
+          : DateTime.tryParse(map['deletedAt'].toString()),
+      encryptionKey:
+          map['encryptionKey'] as String?, // Changed from encryption_key
     );
   }
   // to json
