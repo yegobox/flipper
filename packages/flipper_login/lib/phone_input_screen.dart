@@ -98,7 +98,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   // Show authentication loading dialog
   void _showAuthenticationDialog() {
-    if (_isAuthDialogShowing) return;
+    // Don't show dialog if already showing, not mounted, or still in verification UI
+    if (_isAuthDialogShowing || !mounted || _showVerificationUI) return;
 
     _isAuthDialogShowing = true;
     showDialog(
@@ -298,7 +299,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         smsCode: _smsCode,
       );
 
-      // This will show the authentication dialog and handle the sign-in process
+      // Process the credential without showing the dialog immediately
+      // The dialog will only show after successful verification
       await _signInWithCredential(credential);
     } catch (e) {
       setState(() => _isLoading = false);
@@ -321,14 +323,19 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   Future<void> _signInWithCredential(PhoneAuthCredential credential) async {
     try {
-      // Show loading dialog before authentication
-      _showAuthenticationDialog();
+      // First attempt to sign in without showing the dialog
+      // This allows auto-verification to complete without blocking the UI
+      setState(() => _isLoading = true);
 
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      setState(() => _isLoading = false);
 
+      // Only show the loading dialog after successful credential verification
+      // This prevents blocking the UI during OTP entry
       if (user.user != null) {
+        // Now it's safe to show the authentication dialog for subsequent steps
+        _showAuthenticationDialog();
+
         // Track login event with PosthogService
         final props = <String, Object>{
           'source': 'phone_input_screen',
@@ -341,6 +348,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         // The FirebaseAuth listener in AuthWithMultipleProviders will handle the rest of the flow
         // We don't need to do anything else here as the auth state change will trigger the next steps
       }
+
+      setState(() => _isLoading = false);
     } catch (e) {
       // Dismiss Loading Dialog in case of error
       _hideAuthenticationDialog();
