@@ -76,7 +76,7 @@ mixin BusinessMixin implements BusinessInterface {
     final repository = Repository();
     final query = Query(where: [Where('serverId').isExactly(businessId)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
@@ -88,7 +88,7 @@ mixin BusinessMixin implements BusinessInterface {
             ? [Where('serverId').isExactly(businessId)]
             : [Where('isDefault').isExactly(true)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
