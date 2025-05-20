@@ -111,6 +111,8 @@ class _RowItemState extends ConsumerState<RowItem>
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
   Future<String?>? _cachedLocalPathFuture;
+  // Cache for asset path lookup to prevent unnecessary reloading
+  Future<String?>? _cachedAssetPathFuture;
   String? _imageUrl;
   int? _branchId;
   final _lock = Lock();
@@ -132,6 +134,11 @@ class _RowItemState extends ConsumerState<RowItem>
         _cachedLocalPathFuture = _lock
             .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
       }
+
+      // Initialize the asset path cache regardless of remote/local mode
+      // This will be used as a fallback in both cases
+      _cachedAssetPathFuture =
+          _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
     }
   }
 
@@ -151,6 +158,10 @@ class _RowItemState extends ConsumerState<RowItem>
           _cachedLocalPathFuture = _lock
               .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
         }
+
+        // Update the asset path cache when the image URL changes
+        _cachedAssetPathFuture =
+            _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
       }
     }
   }
@@ -598,6 +609,12 @@ class _RowItemState extends ConsumerState<RowItem>
       return _buildImageErrorPlaceholder();
     }
 
+    // Ensure asset path future is initialized
+    if (_cachedAssetPathFuture == null && widget.imageUrl != null) {
+      _cachedAssetPathFuture =
+          _lock.synchronized(() => _tryLoadFromAssetPath(widget.imageUrl!));
+    }
+
     return (widget.forceRemoteUrl)
         ? FutureBuilder<String>(
             key: ValueKey('remote-${widget.variant?.id}-${widget.imageUrl}'),
@@ -609,7 +626,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 // Try to load from local storage if remote fails
                 return FutureBuilder<String?>(
                   key: ValueKey('fallback-local-${widget.imageUrl}'),
-                  future: _tryLoadFromAssetPath(widget.imageUrl!),
+                  future: _cachedAssetPathFuture!,
                   builder: (context, assetSnapshot) {
                     if (assetSnapshot.connectionState ==
                         ConnectionState.waiting) {
@@ -642,7 +659,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     // If network image fails, try local storage
                     return FutureBuilder<String?>(
                       key: ValueKey('error-local-${widget.imageUrl}'),
-                      future: _tryLoadFromAssetPath(widget.imageUrl!),
+                      future: _cachedAssetPathFuture!,
                       builder: (context, assetSnapshot) {
                         if (assetSnapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -688,7 +705,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 // Try to load from asset's local path in database
                 return FutureBuilder<String?>(
                   key: ValueKey('db-local-${widget.imageUrl}'),
-                  future: _tryLoadFromAssetPath(widget.imageUrl!),
+                  future: _cachedAssetPathFuture!,
                   builder: (context, assetSnapshot) {
                     if (assetSnapshot.connectionState ==
                         ConnectionState.waiting) {
