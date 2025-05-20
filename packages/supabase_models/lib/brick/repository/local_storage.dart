@@ -449,7 +449,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   int tin() {
-    return (_cache['tin'] as int?) ?? 0;
+    return (_cache['tin'] as int?) ?? 999909695;
   }
 
   @override
