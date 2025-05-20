@@ -14,8 +14,10 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'internal/responsive_page.dart' as b;
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
-
+import 'package:flipper_login/LoadingDialog.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class PhoneInputScreen extends StatefulWidget {
@@ -77,6 +79,9 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   // For OTP expiration handling
   bool _otpExpired = false;
 
+  // Dialog management
+  bool _isAuthDialogShowing = false;
+
   @override
   void initState() {
     super.initState();
@@ -89,6 +94,30 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
+  }
+
+  // Show authentication loading dialog
+  void _showAuthenticationDialog() {
+    if (_isAuthDialogShowing) return;
+
+    _isAuthDialogShowing = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const LoadingDialog(message: 'Finalizing authentication...');
+      },
+    ).then((_) {
+      _isAuthDialogShowing = false;
+    });
+  }
+
+  // Hide authentication loading dialog
+  void _hideAuthenticationDialog() {
+    if (_isAuthDialogShowing && mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _isAuthDialogShowing = false;
+    }
   }
 
   @override
@@ -269,6 +298,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         smsCode: _smsCode,
       );
 
+      // This will show the authentication dialog and handle the sign-in process
       await _signInWithCredential(credential);
     } catch (e) {
       setState(() => _isLoading = false);
@@ -291,11 +321,13 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   Future<void> _signInWithCredential(PhoneAuthCredential credential) async {
     try {
+      // Show loading dialog before authentication
+      _showAuthenticationDialog();
+
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
       setState(() => _isLoading = false);
 
-      // Dismiss Loading Dialog
       if (user.user != null) {
         // Track login event with PosthogService
         final props = <String, Object>{
@@ -305,15 +337,14 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
             'phone': user.user!.phoneNumber ?? user.user!.email!,
         };
         PosthogService.instance.capture('login_success', properties: props);
-        // Show success and navigate
-        if (mounted) {}
+
+        // The FirebaseAuth listener in AuthWithMultipleProviders will handle the rest of the flow
+        // We don't need to do anything else here as the auth state change will trigger the next steps
       }
     } catch (e) {
       // Dismiss Loading Dialog in case of error
-      if (Navigator.canPop(context)) {
-        // Add this check!
-        Navigator.of(context, rootNavigator: true).pop();
-      }
+      _hideAuthenticationDialog();
+
       setState(() => _isLoading = false);
       _showErrorSnackBar(context, 'Authentication failed: ${e.toString()}');
     }
@@ -347,19 +378,22 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
     firebase.FirebaseAuth.instance.authStateChanges().listen((user) async {
       /// bellow steps is done in @login file so doing it here is redundant
-      // if (user == null) return;
+      if (user == null) return;
 
-      // final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
-      //     !await ProxyService.box.authComplete();
+      final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
+          !await ProxyService.box.authComplete();
 
-      // if (!shouldProcessLogin) return;
+      if (!shouldProcessLogin) return;
 
-      // try {
-      //   final userPin = await model.processUserLogin(user);
-      //   await model.completeLoginProcess(userPin, model);
-      // } catch (e, s) {
-      //   model.handleLoginError(e, s);
-      // }
+      try {
+        final loginData = await model.processUserLogin(user);
+        final Pin userPin = loginData['pin'];
+        final IUser userData = loginData['user'];
+
+        await model.completeLoginProcess(userPin, model, user: userData);
+      } catch (e, s) {
+        model.handleLoginError(e, s);
+      }
     });
   }
 
