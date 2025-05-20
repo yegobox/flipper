@@ -249,7 +249,7 @@ mixin AuthMixin implements AuthInterface {
 
   Future<IUser> _authenticateUser(
       String phoneNumber, Pin pin, HttpClientInterface flipperHttpClient,
-      {bool forceOffline = false}) async {
+      {bool forceOffline = false, bool freshUser = false}) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
     List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
@@ -282,7 +282,8 @@ mixin AuthMixin implements AuthInterface {
     if (currentUser != null &&
         existingToken != null &&
         existingUserId != null &&
-        existingUserId.toString() == pin.userId.toString()) {
+        existingUserId.toString() == pin.userId.toString() &&
+        !freshUser) {
       talker.debug("Using existing Firebase authentication");
 
       // Create a user object from existing data
@@ -327,6 +328,7 @@ mixin AuthMixin implements AuthInterface {
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
+      bool freshUser = false,
       required HttpClientInterface flipperHttpClient,
       IUser? existingUser}) async {
     final flipperWatch? w =
@@ -337,7 +339,8 @@ mixin AuthMixin implements AuthInterface {
     // Use existing user data if provided, otherwise make the API call
     print('Before _authenticateUser');
     final IUser user = existingUser ??
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient);
+        await _authenticateUser(phoneNumber, pin, flipperHttpClient,
+            freshUser: freshUser);
     print('After _authenticateUser');
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
     print('After configureSystem');

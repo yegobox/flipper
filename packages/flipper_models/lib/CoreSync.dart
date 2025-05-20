@@ -6,7 +6,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
@@ -1620,45 +1619,121 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<ext.ITenant>> signup(
+  Future<Business> signup(
       {required Map business,
       required HttpClientInterface flipperHttpClient}) async {
-    final http.Response response = await flipperHttpClient
-        .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
-    if (response.statusCode == 200) {
-      /// as soon as possible so I can be able to save real data into realm
-      /// then I call login in here after signup as login handle configuring
-      final userId = ProxyService.box.getUserId();
-      IPin? pin = await ProxyService.strategy.getPin(
-          pinString: userId.toString(), flipperHttpClient: ProxyService.http);
+    try {
+      // Step 1: Create business via API
+      talker.info('Signup: Creating business via API');
+      final http.Response response = await flipperHttpClient.post(
+          Uri.parse("$apihub/v2/api/business"),
+          body: jsonEncode(business));
 
-      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      Pin? savedPin = await savePin(
-          pin: Pin(
-              userId: int.parse(pin!.userId),
-              id: pin.userId,
-              branchId: pin.branchId,
-              businessId: pin.businessId,
-              ownerName: pin.ownerName,
-              tokenUid: pin.tokenUid,
-              phoneNumber: pin.phoneNumber));
-      await login(
-          pin: savedPin!,
-          userPhone: business['phoneNumber'],
-          skipDefaultAppSetup: true,
-          flipperHttpClient: flipperHttpClient);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        talker.info('Signup: Business created successfully, parsing response');
+        final responseBody = response.body;
+        talker.debug('Response body: $responseBody');
 
-      configureLocal(useInMemory: false, box: ProxyService.box);
-      try {
-        /// when signup, save the businessId on fly, this can be overriden later.
-        ProxyService.box.writeInt(
-            key: 'businessId',
-            value: ITenant.fromJsonList(response.body).first.businessId!);
-      } catch (e) {}
-      return ITenant.fromJsonList(response.body);
-    } else {
-      talker.error(response.body.toString());
-      throw InternalServerError(term: response.body.toString());
+        // Step 2: Parse business object
+        try {
+          final Map<String, dynamic> jsonData = jsonDecode(responseBody);
+          final bus = Business.fromMap(jsonData);
+          talker.info(
+              'Signup: Business parsed successfully, ID: ${bus.serverId}');
+
+          // Step 3: Create PIN
+          try {
+            talker.info('Signup: Creating PIN');
+            // Ensure userId is not null
+            if (bus.userId == null) {
+              talker.error('Signup: Business userId is null');
+              throw Exception('Business userId is null');
+            }
+
+            await ProxyService.strategy.createPin(
+                flipperHttpClient: flipperHttpClient,
+                phoneNumber: business['phoneNumber'],
+                pin: bus.userId ?? 0, // Handle null case with default value
+                branchId: bus.serverId.toString(),
+                businessId: bus.serverId.toString(),
+                defaultApp: 1);
+            talker.info('Signup: PIN created successfully');
+
+            // Step 4: Save PIN locally
+            try {
+              talker.info('Signup: Saving PIN locally');
+              Pin? savedPin = await savePin(
+                  pin: Pin(
+                      userId: bus.userId,
+                      id: bus.userId.toString(),
+                      branchId: bus.serverId,
+                      businessId: bus.serverId,
+                      ownerName: business['name'] ?? '',
+                      phoneNumber: business['phoneNumber'] ?? ''));
+
+              if (savedPin == null) {
+                talker.error('Signup: Failed to save PIN');
+                throw Exception('Failed to save PIN');
+              }
+              talker.info('Signup: PIN saved successfully');
+
+              // Step 5: Login
+              try {
+                talker.info('Signup: Logging in with new PIN');
+                await login(
+                    pin: savedPin,
+                    userPhone: business['phoneNumber'],
+                    skipDefaultAppSetup: true,
+                    flipperHttpClient: flipperHttpClient,
+                    freshUser: true);
+                talker.info('Signup: Login successful');
+
+                // Step 6: Configure local
+                try {
+                  talker.info('Signup: Configuring local storage');
+                  configureLocal(useInMemory: false, box: ProxyService.box);
+
+                  // Step 7: Save business ID
+                  try {
+                    talker.info('Signup: Saving business ID: ${bus.serverId}');
+                    ProxyService.box
+                        .writeInt(key: 'businessId', value: bus.serverId);
+                    talker.info('Signup: Business ID saved successfully');
+                  } catch (e) {
+                    talker.error('Signup: Failed to save business ID: $e');
+                    // Continue even if this fails
+                  }
+
+                  talker.info('Signup: Process completed successfully');
+                  return bus;
+                } catch (e, s) {
+                  talker.error('Signup: Error in configuring local: $e', s);
+                  throw e;
+                }
+              } catch (e, s) {
+                talker.error('Signup: Error in login: $e', s);
+                throw e;
+              }
+            } catch (e, s) {
+              talker.error('Signup: Error in saving PIN: $e', s);
+              throw e;
+            }
+          } catch (e, s) {
+            talker.error('Signup: Error in creating PIN: $e', s);
+            throw e;
+          }
+        } catch (e, s) {
+          talker.error('Signup: Error parsing business data: $e', s);
+          throw e;
+        }
+      } else {
+        talker.error('Signup: API returned error: ${response.statusCode}');
+        talker.error('Response body: ${response.body}');
+        throw InternalServerError(term: response.body.toString());
+      }
+    } catch (e, s) {
+      talker.error('Signup: Unhandled error: $e', s);
+      rethrow;
     }
   }
 
