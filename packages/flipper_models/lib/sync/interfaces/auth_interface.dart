@@ -44,4 +44,7 @@ abstract class AuthInterface {
 
   Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
       {String? responseChannel});
+      
+  /// Authenticates with Supabase using branch ID as email
+  Future<void> supabaseAuth();
 }

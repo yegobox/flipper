@@ -357,32 +357,8 @@ class CoreSync extends AiStrategyImpl
     await configureTheBox(userPhone, user);
     await saveNeccessaryData(user);
     if (!offlineLogin) {
-      await _suserbaseAuth();
+      await supabaseAuth();
     }
-  }
-
-  Future<void> _suserbaseAuth() async {
-    try {
-      // Check if the user already exists
-      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
-      final superUser.User? existingUser =
-          superUser.Supabase.instance.client.auth.currentUser;
-
-      if (existingUser == null) {
-        // User does not exist, proceed to sign up
-        await superUser.Supabase.instance.client.auth.signUp(
-          email: email,
-          password: email,
-        );
-        // Handle sign-up response if needed
-      } else {
-        // User exists, log them in
-        await superUser.Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: email,
-        );
-      }
-    } catch (e) {}
   }
 
   @override

@@ -21,6 +21,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -864,5 +865,109 @@ mixin AuthMixin implements AuthInterface {
   }) async {
     // Add social login logic here
     return null;
+  }
+
+  /// Authenticates with Supabase using branch ID as email
+  @override
+  Future<void> supabaseAuth() async {
+    try {
+      // Get branch ID for email construction
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        talker.warning(
+            'Cannot authenticate with Supabase: No branch ID available');
+        return;
+      }
+
+      final email = '$branchId@flipper.rw';
+
+      // Check if we already have a valid session
+      final currentSession =
+          superUser.Supabase.instance.client.auth.currentSession;
+      final currentUser = superUser.Supabase.instance.client.auth.currentUser;
+
+      // Check if the session is still valid (not expired)
+      final bool hasValidSession = currentSession != null &&
+          currentUser != null &&
+          currentUser.email == email &&
+          _isSessionValid(currentSession);
+
+      if (hasValidSession) {
+        talker.debug(
+            'Supabase session is still valid, skipping re-authentication');
+        return;
+      }
+
+      talker.debug('No valid Supabase session found, authenticating...');
+
+      // Determine if we need to sign up or sign in
+      if (currentUser == null) {
+        // Try to sign up first
+        try {
+          superUser.AuthResponse auth =
+              await superUser.Supabase.instance.client.auth.signUp(
+            email: email,
+            password: email,
+          );
+
+          _saveSessionData(auth);
+          talker.debug('Supabase user created and signed in successfully');
+        } catch (signUpError) {
+          // If sign up fails (likely because user already exists), try sign in
+          talker.debug('Sign up failed, attempting sign in: $signUpError');
+          await _attemptSignIn(email);
+        }
+      } else {
+        // User exists but session is invalid, just sign in
+        await _attemptSignIn(email);
+      }
+    } catch (e) {
+      talker.error('Supabase authentication error: $e');
+    }
+  }
+
+  /// Attempts to sign in with the given email
+  Future<void> _attemptSignIn(String email) async {
+    try {
+      superUser.AuthResponse auth =
+          await superUser.Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: email,
+      );
+
+      _saveSessionData(auth);
+      talker.debug('Supabase sign in successful');
+    } catch (signInError) {
+      talker.error('Supabase sign in failed: $signInError');
+      rethrow;
+    }
+  }
+
+  /// Saves session data to local storage
+  void _saveSessionData(superUser.AuthResponse auth) {
+    final expiresAt = auth.session?.expiresAt ?? 0;
+    final refreshToken = auth.session?.refreshToken ?? "";
+
+    ProxyService.box.writeString(key: 'refreshToken', value: refreshToken);
+    ProxyService.box.writeInt(key: 'expiresAt', value: expiresAt);
+
+    // Also store the access token for potential use elsewhere
+    final accessToken = auth.session?.accessToken ?? "";
+    ProxyService.box
+        .writeString(key: 'supabaseAccessToken', value: accessToken);
+  }
+
+  /// Checks if a session is still valid
+  bool _isSessionValid(superUser.Session session) {
+    // Get current time in seconds since epoch
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    // Add a buffer of 5 minutes (300 seconds) to refresh before actual expiration
+    const expirationBuffer = 300;
+
+    // Session is valid if it's not expired (with buffer)
+    // Handle null expiresAt safely
+    final expiresAt = session.expiresAt ?? 0;
+    return expiresAt > (now + expirationBuffer);
   }
 }

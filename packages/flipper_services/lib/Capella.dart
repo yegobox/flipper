@@ -2224,4 +2224,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement signup
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> supabaseAuth() {
+    // TODO: implement supabaseAuth
+    throw UnimplementedError();
+  }
 }
