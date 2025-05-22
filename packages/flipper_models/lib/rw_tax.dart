@@ -19,7 +19,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:supabase_models/brick/models/log.model.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
@@ -414,7 +414,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String URI,
   }) async {
     // Get business details
-    Business? business = await ProxyService.strategy.getBusiness();
+    Business? business = await ProxyService.strategy.getBusiness(businessId: ProxyService.box.getBusinessId()!);
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
@@ -482,13 +482,19 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
-          ProxyService.strategy.saveLog(Log(
-            type: "error",
-            message: data.resultMsg + ":${data.resultCd}",
-            businessId: ProxyService.box.getBusinessId()!,
-            createdAt: DateTime.now(),
-          ));
-          throw Exception(data.resultMsg + " ${data.resultCd}");
+          // Use GlobalErrorHandler to log the error
+          final errorMessage = data.resultMsg + " ${data.resultCd}";
+          final exception = Exception(errorMessage);
+          GlobalErrorHandler.logError(
+            exception,
+            type: "tax_error",
+            context: {
+              'resultCode': data.resultCd,
+              'businessId': ProxyService.box.getBusinessId(),
+              'timestamp': DateTime.now().toIso8601String(),
+            },
+          );
+          throw exception;
         }
 
         // Update transaction and item statuses
