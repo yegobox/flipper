@@ -299,15 +299,52 @@ mixin AuthMixin implements AuthInterface {
     }
 
     // Otherwise, proceed with normal authentication flow
+
+    if (shouldEnableOfflineLogin) {
+      offlineLogin = true;
+      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+    }
+
+    // If we have a valid token and the user ID matches the pin's user ID,
+    // we can skip the sendLoginRequest call
+    if (currentUser != null &&
+        existingToken != null &&
+        existingUserId != null &&
+        existingUserId.toString() == pin.userId.toString() &&
+        !freshUser) {
+      talker.debug("Using existing Firebase authentication");
+
+      // Create a user object from existing data
+      final user = IUser(
+        token: ProxyService.box.getBearerToken(),
+        id: existingUserId,
+        uid: currentUser.uid,
+        phoneNumber: phoneNumber,
+        tenants: [ITenant(name: pin.ownerName)],
+      );
+
+      return user;
+    }
+
+    // Otherwise, proceed with normal authentication flow
     talker.debug("Performing full authentication flow");
     final http.Response response =
         await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
-      /// path the user pin, with
+      /// parse the user from the response
       final IUser user = IUser.fromJson(json.decode(response.body));
-      await _patchPin(user.id!, flipperHttpClient, apihub,
-          ownerName: user.tenants.first.name!);
+
+      // Make PIN patching non-blocking for the login flow
+      try {
+        await _patchPin(user.id!, flipperHttpClient, apihub,
+            ownerName: user.tenants.first.name!);
+      } catch (e) {
+        // Log the error but don't block login
+        talker.warning("Failed to patch PIN, but continuing login: $e");
+        // This ensures offline login still works even if PIN patching fails
+      }
+
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
 
       // Only perform Firebase login if not already logged in

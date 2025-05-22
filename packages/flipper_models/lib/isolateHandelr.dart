@@ -361,10 +361,9 @@ mixin CustomerPatch {
           if (response.resultCd == "000") {
             customer.ebmSynced = true;
             repository.upsert(customer);
-            sendPort(
-                'notification:${response.resultMsg.substring(0, 10)}:customer:${customer.id.toString()}');
+            sendPort('Customer Synced: ${customer.id.substring(0, 3)}');
           } else {
-            sendPort('notification:${response.resultMsg}}');
+            sendPort('Customer Sync Failed: ${customer.id.substring(0, 3)}');
           }
         } catch (e) {
           talker.error(e);
