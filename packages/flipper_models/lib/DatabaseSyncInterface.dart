@@ -23,12 +23,12 @@ import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
+import 'package:flipper_models/sync/interfaces/log_interface.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -65,7 +65,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
         EbmInterface,
         AssetInterface,
         CustomerInterface,
-        CategoryInterface {
+        CategoryInterface,
+        LogInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;

@@ -17,7 +17,8 @@ mixin CapellaAuthMixin implements AuthInterface {
   set offlineLogin(bool value) => _offlineLogin = value;
 
   @override
-  Future<List<Business>> businesses({required int userId}) async {
+  Future<List<Business>> businesses(
+      {required int userId, bool fetchOnline = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 

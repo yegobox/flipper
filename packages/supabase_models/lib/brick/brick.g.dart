@@ -71,6 +71,7 @@ import '../brick/models/inventory_request.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
+import '../brick/models/log.model.dart';
 import '../brick/models/report.model.dart';
 import '../brick/models/appNotification.model.dart';
 import '../brick/models/discount.model.dart';
@@ -123,6 +124,7 @@ part 'adapters/inventory_request_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
 part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
+part 'adapters/log_adapter.g.dart';
 part 'adapters/report_adapter.g.dart';
 part 'adapters/app_notification_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
@@ -177,6 +179,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Pin: PinAdapter(),
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
+  Log: LogAdapter(),
   Report: ReportAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
@@ -233,6 +236,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Pin: PinAdapter(),
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
+  Log: LogAdapter(),
   Report: ReportAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),

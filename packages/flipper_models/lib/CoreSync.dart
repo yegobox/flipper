@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/mixins/customer_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
+import 'package:flipper_models/sync/mixins/log_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
@@ -29,7 +30,6 @@ import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -79,6 +79,7 @@ class CoreSync extends AiStrategyImpl
         DeleteMixin,
         VariantMixin,
         CustomerMixin,
+        LogMixin,
         EbmMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
@@ -3089,7 +3090,7 @@ class CoreSync extends AiStrategyImpl
           // Create a new variant with the product
           await createProduct(
             bhFId: bhfId ?? "00",
-            tinNumber: business?.tinNumber ?? 111111,
+            tinNumber: business?.tinNumber ?? ProxyService.box.tin(),
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             totWt: item.totWt,

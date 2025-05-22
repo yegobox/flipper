@@ -147,7 +147,8 @@ mixin AuthMixin implements AuthInterface {
 
   // Required methods that should be provided by other mixins
   @override
-  Future<List<Business>> businesses({required int userId});
+  Future<List<Business>> businesses(
+      {required int userId, bool fetchOnline = false});
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
@@ -420,8 +421,21 @@ mixin AuthMixin implements AuthInterface {
                 "Setting business preferences for ${selectedBusiness.name}");
             await ProxyService.box.writeString(
                 key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
-            await ProxyService.box
-                .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
+
+            // Get existing tin value if available
+            final existingTin = ProxyService.box.readInt(key: 'tin');
+
+            // Only update tin if selectedBusiness.tinNumber is not null or there's no existing value
+            if (selectedBusiness.tinNumber != null || existingTin == null) {
+              await ProxyService.box.writeInt(
+                  key: 'tin',
+                  value: selectedBusiness.tinNumber ?? existingTin ?? 0);
+              talker.debug(
+                  'Setting tin to ${selectedBusiness.tinNumber ?? existingTin ?? 0} (from ${selectedBusiness.tinNumber != null ? 'business' : 'existing value'})');
+            } else {
+              talker.debug('Preserving existing tin value: $existingTin');
+            }
+
             await ProxyService.box.writeString(
                 key: 'encryptionKey',
                 value: selectedBusiness.encryptionKey ?? "");
