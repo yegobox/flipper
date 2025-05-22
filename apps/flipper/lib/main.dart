@@ -144,9 +144,8 @@ Future<void> main() async {
           if (kDebugMode) {
             _startMemoryTracking();
           }
-          
+
           // Initialize asset sync service for background uploads
-         
         });
         runApp(
           ProviderScope(
@@ -170,7 +169,7 @@ Future<void> main() async {
                       foregroundColor: Colors.black,
                       elevation: 0,
                     ),
-                    cardTheme: CardTheme(
+                    cardTheme: CardThemeData(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4)),

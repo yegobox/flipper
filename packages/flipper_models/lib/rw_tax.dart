@@ -235,6 +235,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       variant.rsdQty =
           double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
       talker.warning("RSD QTY: ${variant.toJson()}");
+      // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
+      if (variant.itemTyCd == '3') {
+        variant.rsdQty = 0;
+      }
       Response response = await sendPostRequest(url, variant.toJson());
 
       final data = RwApiResponse.fromJson(

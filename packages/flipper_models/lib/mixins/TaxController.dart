@@ -330,8 +330,14 @@ class TaxController<OBJ> {
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
-        String qrCode = generateQRCode(now.toYYYMMdd(), receiptSignature,
-            receiptType: receiptType, whenCreated: now);
+        String qrCode = generateQRCode(
+            receiptSignature.data?.vsdcRcptPbctDate
+                    ?.toCompactDateTime()
+                    ?.toYYYYMMddHHmmss() ??
+                "",
+            receiptSignature,
+            receiptType: receiptType,
+            whenCreated: now);
 
         /// update transaction with receipt number and total receipt number
 
