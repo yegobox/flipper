@@ -379,7 +379,8 @@ class CronService {
   /// Sets up Firebase messaging for notifications
   Future<void> _setupFirebaseMessaging() async {
     try {
-      Business? business = await ProxyService.strategy.getBusiness();
+      Business? business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       if (business == null) {
         talker.warning("Skipping Firebase messaging setup: Business is null");
         return;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/StateObserver.dart';
@@ -24,6 +25,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/posthog_service.dart';
+import 'package:flipper_services/GlobalLogError.dart';
+import 'package:flipper_services/log_service.dart';
 
 import 'dart:developer' as developer;
 
@@ -97,10 +100,16 @@ bool skipDependencyInitialization = false;
 // net info: billers
 //1.1.14
 Future<void> main() async {
-  // Flutter framework error handler
+  // Initialize GlobalErrorHandler first to capture early errors
+  GlobalErrorHandler.initialize();
+
+  // Flutter framework error handler - combine Sentry with LogService
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    // Send to both Sentry and our LogService
     Sentry.captureException(details.exception, stackTrace: details.stack);
+    LogService().logException(details.exception,
+        stackTrace: details.stack, type: 'flutter_error');
   };
 
   // Run everything in a guarded zone
@@ -202,6 +211,27 @@ Future<void> main() async {
   }, (error, stackTrace) {
     // Catch uncaught async errors
     Sentry.captureException(error, stackTrace: stackTrace);
+    // Also log to our LogService
+    LogService()
+        .logException(error, stackTrace: stackTrace, type: 'zone_error');
     debugPrint("Uncaught error: $error");
   });
+
+  // Add isolate error listener
+  Isolate.current.addErrorListener(
+    RawReceivePort((pair) async {
+      final List<dynamic> errorAndStacktrace = pair;
+      final error = errorAndStacktrace.first;
+      final stackTrace = errorAndStacktrace.last;
+
+      // Send to both Sentry and LogService
+      Sentry.captureException(error,
+          stackTrace: StackTrace.fromString(stackTrace.toString()));
+      await LogService().logException(
+        error,
+        stackTrace: StackTrace.fromString(stackTrace.toString()),
+        type: 'isolate_error',
+      );
+    }).sendPort,
+  );
 }
