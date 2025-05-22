@@ -44,6 +44,8 @@ class CronService {
   /// - Periodically attempts to publish the device to the server
   Future<void> schedule() async {
     try {
+      ProxyService.strategy.businesses(
+          userId: ProxyService.box.getUserId() ?? 0, fetchOnline: true);
       await _initializeData();
       _setupPeriodicTasks();
       await _configureServices();

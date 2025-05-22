@@ -19,6 +19,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
@@ -481,7 +482,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
-          throw Exception(data.resultMsg);
+          ProxyService.strategy.saveLog(Log(
+            type: "error",
+            message: data.resultMsg + ":${data.resultCd}",
+            businessId: ProxyService.box.getBusinessId()!,
+            createdAt: DateTime.now(),
+          ));
+          throw Exception(data.resultMsg + " ${data.resultCd}");
         }
 
         // Update transaction and item statuses

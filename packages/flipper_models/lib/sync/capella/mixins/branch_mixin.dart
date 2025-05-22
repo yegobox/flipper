@@ -25,7 +25,8 @@ mixin CapellaBranchMixin implements BranchInterface {
   }
 
   @override
-  Future<List<Business>> businesses({required int userId}) async {
+  Future<List<Business>> businesses(
+      {required int userId, bool fetchOnline = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 

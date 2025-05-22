@@ -16,6 +16,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -1410,7 +1411,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Business>> businesses({required int userId}) {
+  Future<List<brick.Business>> businesses(
+      {required int userId, bool fetchOnline = false}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }
@@ -2228,6 +2230,24 @@ class Capella extends AiStrategyImpl
   @override
   Future<void> supabaseAuth() {
     // TODO: implement supabaseAuth
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> clearOldLogs({required Duration olderThan, int? businessId}) {
+    // TODO: implement clearOldLogs
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Log>> getLogs({String? type, int? businessId, int limit = 100}) {
+    // TODO: implement getLogs
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveLog(Log log) {
+    // TODO: implement saveLog
     throw UnimplementedError();
   }
 }

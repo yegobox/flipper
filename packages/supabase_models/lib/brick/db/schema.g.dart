@@ -1,11 +1,12 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250518164333.migration.dart';
+part '20250522185231.migration.dart';
 part '20250314135245.migration.dart';
 part '20250413072827.migration.dart';
 part '20250308132353.migration.dart';
 part '20250510051829.migration.dart';
+part '20250516110357.migration.dart';
 part '20250315100347.migration.dart';
 part '20250402121901.migration.dart';
 part '20250413074407.migration.dart';
@@ -17,6 +18,7 @@ part '20250327105039.migration.dart';
 part '20250319183234.migration.dart';
 part '20250424114545.migration.dart';
 part '20250404180953.migration.dart';
+part '20250518164333.migration.dart';
 part '20250423035546.migration.dart';
 part '20250422100452.migration.dart';
 part '20250402132301.migration.dart';
@@ -30,15 +32,15 @@ part '20250315044419.migration.dart';
 part '20250420154013.migration.dart';
 part '20250301162356.migration.dart';
 part '20250308112114.migration.dart';
-part '20250516110357.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250518164333(),
+  const Migration20250522185231(),
   const Migration20250314135245(),
   const Migration20250413072827(),
   const Migration20250308132353(),
   const Migration20250510051829(),
+  const Migration20250516110357(),
   const Migration20250315100347(),
   const Migration20250402121901(),
   const Migration20250413074407(),
@@ -50,6 +52,7 @@ final migrations = <Migration>{
   const Migration20250319183234(),
   const Migration20250424114545(),
   const Migration20250404180953(),
+  const Migration20250518164333(),
   const Migration20250423035546(),
   const Migration20250422100452(),
   const Migration20250402132301(),
@@ -63,12 +66,11 @@ final migrations = <Migration>{
   const Migration20250420154013(),
   const Migration20250301162356(),
   const Migration20250308112114(),
-  const Migration20250516110357(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250516110357,
+  20250518164333,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1151,6 +1153,26 @@ final schema = Schema(
         SchemaColumn('bhf_id', Column.varchar),
         SchemaColumn('use_yn', Column.varchar),
         SchemaColumn('customer_type', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'Log',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('message', Column.varchar),
+        SchemaColumn('type', Column.varchar),
+        SchemaColumn('business_id', Column.integer),
+        SchemaColumn('created_at', Column.datetime),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
