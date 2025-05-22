@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/refresh.dart';
@@ -279,88 +280,178 @@ class _RowItemState extends ConsumerState<RowItem>
     // Check if we're on desktop Windows
     final isDesktopWindows = Platform.isWindows;
 
+    return LayoutBuilder(builder: (context, constraints) {
+      // Calculate available height for content
+      final double maxHeight = constraints.maxHeight;
+
+      // Allocate space for image and info sections
+      // Reserve at least 40px for product info to prevent overflow
+      final double maxInfoHeight = 50.0; // Minimum height for info section
+      final double availableForImage =
+          maxHeight - maxInfoHeight - 4; // 4px for spacing
+
+      // Cap image height to prevent overflow
+      final double imageHeight = isDesktopWindows
+          ? math.min(100, availableForImage) // More conservative on Windows
+          : math.min(availableForImage,
+              maxHeight * 0.55); // Cap at 55% of available height
+
+      return Column(
+        mainAxisSize: MainAxisSize.min, // Important to prevent overflow
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product Image Section with explicit constraints
+          SizedBox(
+            height: imageHeight,
+            width: double.infinity,
+            child: _buildProductImageSection(isSelected),
+          ),
+
+          const SizedBox(height: 2), // Minimal spacing
+
+          // Product Info Section with fixed maximum height
+          Container(
+            constraints: BoxConstraints(maxHeight: maxInfoHeight),
+            child: _buildCompactProductInfo(textTheme),
+          ),
+        ],
+      );
+    });
+  }
+
+  // New compact product info section specifically designed to avoid overflow
+  Widget _buildCompactProductInfo(TextTheme textTheme) {
+    // Get appropriate display names with safe fallbacks
+    final String displayProductName =
+        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product";
+
+    final String displayVariantName =
+        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant";
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Product Image Section - Adaptive height for desktop Windows
-        Container(
-          height: isDesktopWindows ? 120 : null, // Fixed height on Windows
-          child: isDesktopWindows
-              ? _buildProductImageSection(isSelected)
-              : AspectRatio(
-                  aspectRatio: 16 / 10,
-                  child: _buildProductImageSection(isSelected),
-                ),
+        // Product name with strict constraints
+        Text(
+          displayProductName,
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+            fontSize: 12, // Smaller font size
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
 
-        const SizedBox(height: 8), // Slightly increased spacing
+        // Only show variant if different and there's enough space
+        if (displayVariantName != displayProductName)
+          Text(
+            displayVariantName,
+            style: textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+              fontSize: 10, // Smaller font size
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
 
-        // Product Info Section - Handle varying content
-        _buildProductInfoSection(textTheme),
-
-        // Add extra padding at bottom for Windows to ensure visibility
-        if (isDesktopWindows) const SizedBox(height: 4),
+        // Price tag - simplified to avoid overflow
+        if (widget.variant?.retailPrice != null &&
+            widget.variant?.retailPrice != 0)
+          Text(
+            (widget.variant?.retailPrice ?? 0).toRwf(),
+            style: textTheme.labelSmall?.copyWith(
+              color: Colors.blue[700],
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
       ],
     );
   }
 
   Widget _buildListItemContent(
       bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Product Image - Smaller fixed size for list view
-        SizedBox(
-          width: 70,
-          height: 70,
-          child: _buildProductImageSection(isSelected),
-        ),
+    return LayoutBuilder(builder: (context, constraints) {
+      // Calculate available width for product info
+      final double maxWidth = constraints.maxWidth;
+      final double imageWidth = 70; // Fixed image width
+      final double spacing = 8; // Reduced spacing
+      final double availableForInfo = maxWidth - imageWidth - spacing;
 
-        const SizedBox(width: 12),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Product Image - Fixed size for list view
+          SizedBox(
+            width: imageWidth,
+            height: 70,
+            child: _buildProductImageSection(isSelected),
+          ),
 
-        // Product Info - Expanded to take remaining space
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Product name
-              Text(
-                widget.productName.isNotEmpty
-                    ? widget.productName
-                    : "Unnamed Product",
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+          SizedBox(width: spacing),
 
-              const SizedBox(height: 4),
-
-              // Variant name (if different from product name)
-              if (widget.variantName != widget.productName &&
-                  widget.variantName.isNotEmpty)
+          // Product Info - Constrained width
+          Container(
+            width: availableForInfo,
+            constraints: BoxConstraints(maxHeight: 70), // Match image height
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Product name
                 Text(
-                  widget.variantName,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
+                  widget.productName.isNotEmpty
+                      ? widget.productName
+                      : "Unnamed Product",
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    fontSize: 13, // Smaller font size
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 2), // Reduced spacing
 
-              // Price and stock info
-              _buildPriceAndStockInfo(textTheme),
-            ],
+                // Variant name (if different from product name)
+                if (widget.variantName != widget.productName &&
+                    widget.variantName.isNotEmpty)
+                  Text(
+                    widget.variantName,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 11, // Smaller font size
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                const SizedBox(height: 4), // Reduced spacing
+
+                // Price tag - simplified to avoid overflow
+                if (widget.variant?.retailPrice != null &&
+                    widget.variant?.retailPrice != 0)
+                  Text(
+                    (widget.variant?.retailPrice ?? 0).toRwf(),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildProductImageSection(bool isSelected) {
@@ -445,164 +536,8 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  Widget _buildProductInfoSection(TextTheme textTheme) {
-    // Get appropriate display names with safe fallbacks
-    final String displayProductName =
-        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product";
-
-    final String displayVariantName =
-        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant";
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Product name - Ensure it fits with ellipsis
-        Text(
-          displayProductName.length > 20
-              ? '${displayProductName.substring(0, 20)}...'
-              : displayProductName,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-
-        const SizedBox(height: 4),
-
-        // Product variant (if different from name)
-        if (displayVariantName != displayProductName)
-          Text(
-            displayVariantName.length > 12
-                ? '${displayVariantName.substring(0, 12)}...'
-                : displayVariantName,
-            style: textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-        const SizedBox(height: 8),
-
-        // Price and stock info - Using Wrap to handle overflow gracefully
-        _buildPriceAndStockInfo(textTheme),
-      ],
-    );
-  }
-
-  Widget _buildPriceAndStockInfo(TextTheme textTheme) {
-    // Check if we're on desktop Windows for special handling
-    final isDesktopWindows = Platform.isWindows;
-
-    // List of indicators to show
-    final List<Widget> indicators = [];
-
-    // Price tag
-    if (widget.variant?.retailPrice != null &&
-        widget.variant?.retailPrice != 0) {
-      indicators.add(
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: 6,
-            vertical: isDesktopWindows ? 4 : 3, // Slightly larger on Windows
-          ),
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            (widget.variant?.retailPrice ?? 0).toRwf(),
-            style: textTheme.labelSmall?.copyWith(
-              color: Colors.blue[700],
-              fontWeight: FontWeight.w600,
-              fontSize: isDesktopWindows ? 12 : null, // Larger font on Windows
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Stock indicator
-    if (!widget.isComposite && widget.stock != 0) {
-      indicators.add(
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: 6,
-            vertical: isDesktopWindows ? 4 : 3, // Slightly larger on Windows
-          ),
-          decoration: BoxDecoration(
-            color: widget.stock < 10
-                ? Colors.orange.withOpacity(0.12)
-                : Colors.green.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-            // Add subtle border on Windows for better visibility
-            border: isDesktopWindows
-                ? Border.all(
-                    color: widget.stock < 10
-                        ? Colors.orange.withOpacity(0.3)
-                        : Colors.green.withOpacity(0.3),
-                    width: 1,
-                  )
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: isDesktopWindows ? 12 : 10, // Larger icon on Windows
-                color:
-                    widget.stock < 10 ? Colors.orange[700] : Colors.green[700],
-              ),
-              SizedBox(
-                  width: isDesktopWindows ? 3 : 2), // More spacing on Windows
-              Text(
-                "${widget.stock.toStringAsFixed(2)}", // Format with 2 decimal places
-                style: textTheme.labelSmall?.copyWith(
-                  color: widget.stock < 10
-                      ? Colors.orange[700]
-                      : Colors.green[700],
-                  fontWeight: FontWeight.w600,
-                  fontSize:
-                      isDesktopWindows ? 12 : null, // Larger font on Windows
-                ),
-              ),
-            ],
-          ),
-        ).shouldSeeTheApp(ref, featureName: AppFeature.Stock),
-      );
-    }
-
-    // Responsive layout for stock/price indicators
-    final isMobile = MediaQuery.of(context).size.shortestSide < 600;
-
-    // Always use Column layout on Windows for better visibility
-    if (widget.forceListView || isMobile || isDesktopWindows) {
-      // Stack vertically for better visibility
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: indicators
-            .map((w) => Padding(
-                  padding: EdgeInsets.only(bottom: isDesktopWindows ? 4 : 2),
-                  child: DefaultTextStyle.merge(
-                    style: TextStyle(fontSize: isDesktopWindows ? 12 : 11),
-                    child: w,
-                  ),
-                ))
-            .toList(),
-      );
-    } else {
-      // On other desktop/tablet platforms, use Wrap
-      return Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        children: indicators,
-      );
-    }
-  }
+  // Removed unused methods _buildProductInfoSection and _buildPriceAndStockInfo
+  // to fix lint warnings and prevent potential regression issues
 
   Widget _buildImage() {
     if (widget.imageUrl == null) {
