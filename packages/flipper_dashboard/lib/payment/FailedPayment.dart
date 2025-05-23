@@ -140,12 +140,16 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
 
             // Toggle for phone number input
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Change Phone number for payment',
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
+                Expanded(
+                  child: const Text(
+                    'Change Phone number for payment',
+                    style:
+                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8.0),
                 Switch(
                   value: usePhoneNumber.value,
                   onChanged: (bool value) {

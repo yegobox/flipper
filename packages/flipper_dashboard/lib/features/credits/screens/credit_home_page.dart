@@ -297,7 +297,9 @@ class _CreditHomePageState extends State<CreditHomePage>
 
       // Handle successful API call
       if (result.containsKey('paymentReference')) {
-        _showPaymentInitiatedDialog(context, formattedPhoneNumber);
+        final paymentReference = result['paymentReference'];
+        _showPaymentInitiatedDialog(
+            context, formattedPhoneNumber, paymentReference);
 
         // Clear input fields
         _buyCreditController.clear();
@@ -316,6 +318,20 @@ class _CreditHomePageState extends State<CreditHomePage>
         });
       }
     }
+  }
+
+  void _showErrorSnackBar(BuildContext context,
+      [String message = 'Please enter a valid amount']) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      _buildSnackBar(message, Icons.error_outline, Colors.red.shade600),
+    );
+  }
+
+  void _showSuccessSnackBar(BuildContext context, int amount) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      _buildSnackBar('$amount credits added successfully', Icons.check_circle,
+          Colors.green.shade600),
+    );
   }
 
   bool _isValidPhoneNumber(String phoneNumber) {
@@ -341,80 +357,209 @@ class _CreditHomePageState extends State<CreditHomePage>
     return digitsOnly;
   }
 
-  void _showPaymentInitiatedDialog(BuildContext context, String phoneNumber) {
+  void _showPaymentInitiatedDialog(
+      BuildContext context, String phoneNumber, String paymentReference) {
+    // Create a stateful builder to update the dialog content
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Icon(Icons.phone_android,
-                  color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 10),
-              const Text('Payment Initiated'),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'A payment request has been sent to $phoneNumber.',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Please check your phone and approve the payment.',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
+      builder: (BuildContext dialogContext) {
+        return _PaymentStatusDialog(
+            phoneNumber: phoneNumber, paymentReference: paymentReference);
       },
     );
   }
+}
 
-  SnackBar _buildSnackBar(String message, IconData icon, Color color) {
-    return SnackBar(
-      content: Row(
+class _PaymentStatusDialog extends StatefulWidget {
+  final String phoneNumber;
+  final String paymentReference;
+
+  const _PaymentStatusDialog({
+    required this.phoneNumber,
+    required this.paymentReference,
+  });
+
+  @override
+  _PaymentStatusDialogState createState() => _PaymentStatusDialogState();
+}
+
+class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
+  bool isCheckingPayment = true;
+  bool paymentSuccessful = false;
+  int checkCount = 0;
+  static const int maxChecks = 30; // Check for up to 30 times (5 minutes)
+  Timer? statusCheckTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start checking payment status after a short delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _checkPaymentStatus();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    statusCheckTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkPaymentStatus() async {
+    try {
+      bool isSuccessful = await ProxyService.httpApi.checkPaymentStatus(
+        flipperHttpClient: ProxyService.http,
+        paymentReference: widget.paymentReference,
+      );
+
+      if (mounted) {
+        setState(() {
+          if (isSuccessful) {
+            // Payment successful
+            paymentSuccessful = true;
+            isCheckingPayment = false;
+            statusCheckTimer?.cancel();
+          } else {
+            // Payment not yet successful, increment check count
+            checkCount++;
+
+            // If we haven't reached max checks, schedule another check after 10 seconds
+            if (checkCount < maxChecks) {
+              statusCheckTimer = Timer(const Duration(seconds: 10), () {
+                if (mounted && isCheckingPayment) {
+                  _checkPaymentStatus();
+                }
+              });
+            } else {
+              // Max checks reached, stop checking
+              isCheckingPayment = false;
+            }
+          }
+        });
+      }
+    } catch (e) {
+      talker.error('Error checking payment status', e);
+      if (mounted) {
+        setState(() {
+          checkCount++;
+          if (checkCount < maxChecks) {
+            statusCheckTimer = Timer(const Duration(seconds: 10), () {
+              if (mounted && isCheckingPayment) {
+                _checkPaymentStatus();
+              }
+            });
+          } else {
+            isCheckingPayment = false;
+          }
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(
         children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 16),
-          Text(message),
+          Icon(
+            paymentSuccessful ? Icons.check_circle : Icons.phone_android,
+            color: paymentSuccessful
+                ? Colors.green
+                : Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 10),
+          Text(paymentSuccessful ? 'Payment Successful' : 'Payment Initiated'),
         ],
       ),
-      backgroundColor: color,
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!paymentSuccessful) ...[
+            Text(
+              'A payment request has been sent to ${widget.phoneNumber}.',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Please check your phone and approve the payment.',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: isCheckingPayment
+                  ? Column(
+                      children: [
+                        const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Checking payment status...',
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 14),
+                        ),
+                      ],
+                    )
+                  : checkCount >= maxChecks
+                      ? const Text(
+                          'Payment verification timed out. Please check your credits later.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.orange),
+                        )
+                      : const SizedBox(),
+            ),
+          ] else ...[
+            const Text(
+              'Your payment has been successfully processed!',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Your credits have been added to your account.',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+          ],
+        ],
       ),
-      margin: const EdgeInsets.all(12),
-      duration: const Duration(seconds: 2),
+      actions: [
+        TextButton(
+          onPressed: () {
+            setState(() {
+              isCheckingPayment = false;
+            });
+            statusCheckTimer?.cancel();
+            Navigator.of(context).pop();
+          },
+          child: Text(paymentSuccessful ? 'Done' : 'Close'),
+        ),
+      ],
     );
   }
+}
 
-  void _showSuccessSnackBar(BuildContext context, int amount) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('$amount credits added successfully', Icons.check_circle,
-          Colors.green.shade600),
-    );
-  }
-
-  void _showErrorSnackBar(BuildContext context,
-      [String message = 'Please enter a valid amount']) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar(message, Icons.error_outline, Colors.red.shade600),
-    );
-  }
+// Helper widget to display snackbar messages
+SnackBar _buildSnackBar(String message, IconData icon, Color color) {
+  return SnackBar(
+    content: Row(
+      children: [
+        Icon(icon, color: Colors.white),
+        const SizedBox(width: 16),
+        Text(message),
+      ],
+    ),
+    backgroundColor: color,
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+    margin: const EdgeInsets.all(12),
+    duration: const Duration(seconds: 2),
+  );
 }
