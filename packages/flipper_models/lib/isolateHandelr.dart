@@ -3,19 +3,19 @@ import 'dart:ui';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_core/firebase_core.dart';
 // import 'package:flipper_models/firebase_options.dart';
+import 'package:email_validator/email_validator.dart' as email_validator;
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/rw_tax.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:supabase_models/brick/repository.dart';
-
-// import 'package:sqlite3/sqlite3.dart'
-//     if (dart.library.html) 'package:flipper_models/web_sqlite_stub.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 final repository = Repository();
 mixin VariantPatch {
@@ -345,6 +345,7 @@ mixin CustomerPatch {
       required String bhfId,
       required int branchId}) async {
     final customers = await repository.get<Customer>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(where: [Where('branchId').isExactly(branchId)]));
 
     for (Customer customer in customers) {
@@ -363,7 +364,23 @@ mixin CustomerPatch {
             repository.upsert(customer);
             sendPort('Customer Synced: ${customer.id.substring(0, 3)}');
           } else {
-            sendPort('Customer Sync Failed: ${customer.id.substring(0, 3)}');
+            /// check if customer.email is valid using email_validator: ^2.1.17 if not then generate random email
+            /// this is because we do not want to add hussle to a user to create valid email
+            if (customer.email == null ||
+                !email_validator.EmailValidator.validate(customer.email!)) {
+              customer.email = "${customer.id.substring(0, 3)}@flipper.com";
+              repository.upsert(customer);
+            }
+            GlobalErrorHandler.logError(
+              'Customer Sync Failed: ${customer.email}',
+              type: "tax_error",
+              context: {
+                'resultCode': response.resultMsg,
+                'businessId': ProxyService.box.getBusinessId(),
+                'timestamp': DateTime.now().toIso8601String(),
+              },
+            );
+            sendPort('Customer Sync Failed: ${customer.email}');
           }
         } catch (e) {
           talker.error(e);
