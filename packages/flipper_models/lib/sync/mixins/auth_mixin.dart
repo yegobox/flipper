@@ -228,7 +228,7 @@ mixin AuthMixin implements AuthInterface {
 
     // Avoid unnecessary sync if payment is already marked as complete
     if (!isPaymentCompletedLocally) {
-      final isPaymentComplete = await ProxyService.realmHttp.isPaymentComplete(
+      final isPaymentComplete = await ProxyService.httpApi.isPaymentComplete(
         flipperHttpClient: flipperHttpClient,
         businessId: businessId,
       );
