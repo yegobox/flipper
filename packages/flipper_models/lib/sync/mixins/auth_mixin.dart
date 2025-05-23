@@ -894,6 +894,7 @@ mixin AuthMixin implements AuthInterface {
       }
 
       final email = '$branchId@flipper.rw';
+      talker.debug('Supabase email: $email');
 
       // Check if we already have a valid session
       final currentSession =
@@ -918,10 +919,18 @@ mixin AuthMixin implements AuthInterface {
       if (currentUser == null) {
         // Try to sign up first
         try {
+          final session =
+              superUser.Supabase.instance.client.auth.currentSession;
+          if (session != null) {
+            // User is already logged in.  Handle this situation.
+            talker.debug("User is already logged in.  Sign out first.");
+            await superUser.Supabase.instance.client.auth
+                .signOut(); // Sign out if necessary
+          }
           superUser.AuthResponse auth =
-              await superUser.Supabase.instance.client.auth.signUp(
-            email: email,
-            password: email,
+              await superUser.Supabase.instance.client.auth.signInWithPassword(
+            email: "1@flipper.rw",
+            password: "1@flipper.rw",
           );
 
           _saveSessionData(auth);
@@ -930,6 +939,10 @@ mixin AuthMixin implements AuthInterface {
           // If sign up fails (likely because user already exists), try sign in
           talker.debug('Sign up failed, attempting sign in: $signUpError');
           await _attemptSignIn(email);
+          await superUser.Supabase.instance.client.auth.signUp(
+            email: email,
+            password: email,
+          );
         }
       } else {
         // User exists but session is invalid, just sign in

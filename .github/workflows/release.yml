@@ -21,6 +21,7 @@ on:
       - 'feature-*'
       - 'hotfix-*'
       - 'bugfix-*'
+      - 'main'
       - dev
 
 env:
@@ -266,7 +267,7 @@ jobs:
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-2022
     needs: [unit-testing, integration-testing-windows,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
