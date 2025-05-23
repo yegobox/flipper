@@ -2250,4 +2250,5 @@ class Capella extends AiStrategyImpl
     // TODO: implement saveLog
     throw UnimplementedError();
   }
+
 }

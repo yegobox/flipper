@@ -9,11 +9,13 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:http/retry.dart';
+
 import 'package:supabase_models/brick/models/universalProduct.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 class DefaultFlipperHttpClient with FlipperHttpClient {
   final http.Client _client;
+
   @override
   final Repository repository;
 
@@ -36,6 +38,7 @@ abstract class HttpClientInterface {
       {Map<String, String>? headers, Object? body, Encoding? encoding});
   Future<http.Response> getUniversalProducts(Uri url,
       {Map<String, String>? headers, Object? body, Encoding? encoding});
+ 
 }
 
 /// Mixin for HTTP client logic. Requires the implementing class to provide an http.Client via the `_inner` getter.
@@ -172,4 +175,5 @@ mixin FlipperHttpClient implements HttpClientInterface {
     }
     return response;
   }
+
 }

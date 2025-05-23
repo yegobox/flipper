@@ -4,8 +4,9 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/customer_payments.model.dart';
 
-abstract class RealmViaHttp {
+abstract class HttpApiInterface {
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,
       required String couponCode});
@@ -30,9 +31,85 @@ abstract class RealmViaHttp {
       int? agentCode,
       int? timeInSeconds = 120,
       required int amount});
+  Future<Map<String, dynamic>> payNow(
+      {required Map<String, dynamic> paymentData,
+      required HttpClientInterface flipperHttpClient});
 }
 
-class HttpApi implements RealmViaHttp {
+class HttpApi implements HttpApiInterface {
+  @override
+  Future<Map<String, dynamic>> payNow(
+      {required Map<String, dynamic> paymentData,
+      required HttpClientInterface flipperHttpClient}) async {
+    try {
+      // Ensure the URL is properly formatted
+      final Uri uri = Uri.parse('${AppSecrets.apihubProd}/v2/api/payNow');
+
+      // Format the request body according to the required structure
+      final formattedPaymentData = {
+        "amount": paymentData['amount'].toString(),
+        "currency": paymentData['currency'] ?? "RWF",
+        "payer": {
+          "partyIdType": "MSISDN",
+          "partyId": paymentData['phoneNumber']
+        },
+        // this is constant for now.
+        "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
+        "payerMessage": paymentData['description'] ?? "Flipper Credit Purchase",
+        "payeeNote": "Flipper Credit",
+        "businessId": ProxyService.box.getBusinessId() ?? 1,
+        "paymentType": "Credit Purchase"
+      };
+
+      // Convert formatted payment data to JSON string
+      final body = json.encode(formattedPaymentData);
+
+      talker.info('PayNow request body: $body');
+
+      // Make the POST request
+      final response = await flipperHttpClient.post(
+        uri,
+        body: body,
+      );
+
+      // Parse the response
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      // Log the response
+      talker.info('PayNow response: ${response.body}');
+
+      // Check if the request was successful
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        // Expected successful response format:
+        // {
+        //   "status": "success",
+        //   "message": "",
+        //   "statusCode": 202,
+        //   "paymentReference": "eaa09f4d-1a9d-4aa8-bd99-9a9877687a6c",
+        //   "externalId": "eaa09f4d-1a9d-4aa8-bd99-9a9877687a6c"
+        // }
+        await ProxyService.strategy.upsertPayment(CustomerPayments(
+          phoneNumber: paymentData['phoneNumber'],
+          paymentStatus: "pending",
+          amountPayable: paymentData['amount'].toDouble(),
+          transactionId: responseData['paymentReference'],
+        ));
+        return responseData;
+      } else {
+        // Handle error response
+        talker.error('PayNow error: ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'PayNow request failed with status: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      // Log and rethrow any exceptions
+      talker.error(e);
+      talker.error(stackTrace);
+      ProxyService.crash.reportError(e, stackTrace);
+      throw Exception('Failed to process payment: $e');
+    }
+  }
+
   @override
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,
@@ -222,7 +299,7 @@ class HttpApi implements RealmViaHttp {
   }
 }
 
-class RealmViaHttpServiceMock implements RealmViaHttp {
+class RealmViaHttpServiceMock implements HttpApiInterface {
   @override
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,
@@ -267,6 +344,14 @@ class RealmViaHttpServiceMock implements RealmViaHttp {
       required String payeemessage,
       required int amount}) {
     // TODO: implement makePayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> payNow(
+      {required Map<String, dynamic> paymentData,
+      required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement payNow
     throw UnimplementedError();
   }
 }

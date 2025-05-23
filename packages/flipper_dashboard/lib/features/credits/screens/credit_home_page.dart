@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'dart:async';
 
 import '../models/credit_data.dart';
 import '../widgets/credit_display.dart';
@@ -16,9 +19,11 @@ class CreditHomePage extends StatefulWidget {
 class _CreditHomePageState extends State<CreditHomePage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _buyCreditController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -51,6 +56,7 @@ class _CreditHomePageState extends State<CreditHomePage>
   @override
   void dispose() {
     _buyCreditController.dispose();
+    _phoneNumberController.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -166,6 +172,37 @@ class _CreditHomePageState extends State<CreditHomePage>
               labelStyle: TextStyle(
                 color: colorScheme.onSurface.withOpacity(0.6),
               ),
+              prefixText: 'RWF ',
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: colorScheme.outline.withOpacity(0.3),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: colorScheme.primary,
+                  width: 2,
+                ),
+              ),
+              filled: true,
+              fillColor: isLightMode
+                  ? Colors.grey.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _phoneNumberController,
+            keyboardType: TextInputType.phone,
+            style: textTheme.bodyLarge,
+            decoration: InputDecoration(
+              labelText: 'Phone Number',
+              hintText: '07xxxxxxxx',
+              labelStyle: TextStyle(
+                color: colorScheme.onSurface.withOpacity(0.6),
+              ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
@@ -190,19 +227,7 @@ class _CreditHomePageState extends State<CreditHomePage>
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () {
-                final amount = int.tryParse(_buyCreditController.text);
-                if (amount != null && amount > 0) {
-                  Provider.of<CreditData>(context, listen: false)
-                      .buyCredits(amount);
-                  _buyCreditController.clear();
-
-                  // Show success message
-                  _showSuccessSnackBar(context, amount);
-                } else {
-                  _showErrorSnackBar(context);
-                }
-              },
+              onPressed: _isLoading ? null : () => _processPayment(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
@@ -210,18 +235,153 @@ class _CreditHomePageState extends State<CreditHomePage>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                disabledBackgroundColor: colorScheme.primary.withOpacity(0.6),
               ),
-              child: const Text(
-                'Add Credits',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Pay Now',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _processPayment(BuildContext context) async {
+    final amount = int.tryParse(_buyCreditController.text);
+    final phoneNumber = _phoneNumberController.text.trim();
+
+    // Validate input
+    if (amount == null || amount <= 0) {
+      _showErrorSnackBar(context, 'Please enter a valid amount');
+      return;
+    }
+
+    if (phoneNumber.isEmpty || !_isValidPhoneNumber(phoneNumber)) {
+      _showErrorSnackBar(context, 'Please enter a valid phone number');
+      return;
+    }
+
+    // Format phone number if needed (ensure it starts with 250)
+    final formattedPhoneNumber = _formatPhoneNumber(phoneNumber);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Prepare payment data
+      final paymentData = {
+        'amount': amount,
+        'phoneNumber': formattedPhoneNumber,
+        'currency': 'RWF',
+        'description': 'Credit purchase'
+      };
+
+      // Call the payment API
+      final result = await ProxyService.httpApi.payNow(
+          flipperHttpClient: ProxyService.http, paymentData: paymentData);
+
+      // Handle successful API call
+      if (result.containsKey('paymentReference')) {
+        _showPaymentInitiatedDialog(context, formattedPhoneNumber);
+
+        // Clear input fields
+        _buyCreditController.clear();
+        _phoneNumberController.clear();
+      } else {
+        _showErrorSnackBar(
+            context, 'Payment request failed. Please try again.');
+      }
+    } catch (e, stackTrace) {
+      talker.error('Payment error', e, stackTrace);
+      _showErrorSnackBar(context, 'An error occurred: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  bool _isValidPhoneNumber(String phoneNumber) {
+    // Basic validation - can be enhanced based on requirements
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'\s+'), '');
+    return cleanNumber.length >= 9 && cleanNumber.length <= 12;
+  }
+
+  String _formatPhoneNumber(String phoneNumber) {
+    // Remove any non-digit characters
+    final digitsOnly = phoneNumber.replaceAll(RegExp(r'\D'), '');
+
+    // If it starts with 0, replace with 25
+    if (digitsOnly.startsWith('0')) {
+      return '250${digitsOnly.substring(1)}';
+    }
+
+    // If it doesn't have country code, add 250
+    if (digitsOnly.length == 9) {
+      return '250$digitsOnly';
+    }
+
+    return digitsOnly;
+  }
+
+  void _showPaymentInitiatedDialog(BuildContext context, String phoneNumber) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(Icons.phone_android,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 10),
+              const Text('Payment Initiated'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'A payment request has been sent to $phoneNumber.',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Please check your phone and approve the payment.',
+                style: TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -251,10 +411,10 @@ class _CreditHomePageState extends State<CreditHomePage>
     );
   }
 
-  void _showErrorSnackBar(BuildContext context) {
+  void _showErrorSnackBar(BuildContext context,
+      [String message = 'Please enter a valid amount']) {
     ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('Please enter a valid amount', Icons.error_outline,
-          Colors.red.shade600),
+      _buildSnackBar(message, Icons.error_outline, Colors.red.shade600),
     );
   }
 }
