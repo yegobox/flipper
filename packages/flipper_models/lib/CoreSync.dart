@@ -36,6 +36,7 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -3459,6 +3460,32 @@ class CoreSync extends AiStrategyImpl
   Future<models.CustomerPayments> upsertPayment(
       models.CustomerPayments payment) async {
     return await repository.upsert<CustomerPayments>(payment);
+  }
+
+  @override
+  Future<CustomerPayments?> getPayment(
+      {required String paymentReference}) async {
+    return (await repository.get<CustomerPayments>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: brick.Query(where: [
+              brick.Where('transactionId').isExactly(paymentReference),
+            ])))
+        .firstOrNull;
+  }
+
+  @override
+  Future<void> updateCredit(Credit credit) async {
+    await repository.upsert(credit);
+  }
+
+  @override
+  Future<Credit?> getCredit({required String branchId}) async {
+    return (await repository.get<Credit>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+            query: brick.Query(where: [
+              brick.Where('branchId').isExactly(branchId),
+            ])))
+        .firstOrNull;
   }
 
   @override

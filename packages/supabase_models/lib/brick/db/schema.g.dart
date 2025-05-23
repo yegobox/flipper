@@ -1,8 +1,9 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250522185231.migration.dart';
+part '20250523210831.migration.dart';
 part '20250314135245.migration.dart';
+part '20250522185231.migration.dart';
 part '20250413072827.migration.dart';
 part '20250308132353.migration.dart';
 part '20250510051829.migration.dart';
@@ -35,8 +36,9 @@ part '20250308112114.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250522185231(),
+  const Migration20250523210831(),
   const Migration20250314135245(),
+  const Migration20250522185231(),
   const Migration20250413072827(),
   const Migration20250308132353(),
   const Migration20250510051829(),
@@ -70,7 +72,7 @@ final migrations = <Migration>{
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250518164333,
+  20250522185231,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -636,6 +638,28 @@ final schema = Schema(
         SchemaColumn('id', Column.varchar, unique: true),
         SchemaColumn('name', Column.varchar),
         SchemaColumn('user_id', Column.integer),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'Credit',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('business_id', Column.varchar),
+        SchemaColumn('credits', Column.Double),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('branch_server_id', Column.integer),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

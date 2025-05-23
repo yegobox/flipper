@@ -16,6 +16,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -2251,4 +2252,22 @@ class Capella extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  @override
+  Future<Credit?> getCredit({required String branchId}) {
+    // TODO: implement getCredit
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.CustomerPayments?> getPayment(
+      {required String paymentReference}) {
+    // TODO: implement getPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCredit(Credit credit) {
+    // TODO: implement updateCredit
+    throw UnimplementedError();
+  }
 }

@@ -4,6 +4,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/customer_payments.model.dart';
 
 abstract class HttpApiInterface {
@@ -34,6 +35,9 @@ abstract class HttpApiInterface {
   Future<Map<String, dynamic>> payNow(
       {required Map<String, dynamic> paymentData,
       required HttpClientInterface flipperHttpClient});
+  Future<bool> checkPaymentStatus(
+      {required HttpClientInterface flipperHttpClient,
+      required String paymentReference});
 }
 
 class HttpApi implements HttpApiInterface {
@@ -283,10 +287,6 @@ class HttpApi implements HttpApiInterface {
         ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
             ProxyService.box.getUserPhone()!.replaceAll("+", "");
     final response = await flipperHttpClient.post(
-        headers: {
-          'api-key': AppSecrets.apikey,
-          'Content-Type': 'application/json'
-        },
         Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
         body: json.encode({
           "payer": {"partyIdType": "MSISDN", "partyId": phone},
@@ -296,6 +296,73 @@ class HttpApi implements HttpApiInterface {
           "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af"
         }));
     return response.statusCode == 200;
+  }
+
+  @override
+  Future<bool> checkPaymentStatus(
+      {required HttpClientInterface flipperHttpClient,
+      required String paymentReference}) async {
+    try {
+      final response = await flipperHttpClient.get(Uri.parse(
+          '${AppSecrets.apihubProd}/v2/api/requesttopay/status/$paymentReference/2f83b8b1-6d41-4d80-b0e7-de8ab36910af'));
+
+      talker.info('Payment status response: ${response.body}');
+
+      // Parse the response
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      // Check if payment was successful
+      if (response.statusCode == 200 &&
+          responseData['status'] == 'SUCCESSFUL') {
+        // Update payment status in database
+        await _updatePaymentStatus(paymentReference, responseData);
+        return true;
+      } else {
+        talker.error('Payment not successful: ${responseData['status']}');
+        return false;
+      }
+    } catch (e, stackTrace) {
+      talker.error('Error checking payment status', e, stackTrace);
+      return false;
+    }
+  }
+
+  Future<void> _updatePaymentStatus(
+      String paymentReference, Map<String, dynamic> responseData) async {
+    try {
+      // Find the payment record
+      final payments = await ProxyService.strategy
+          .getPayment(paymentReference: paymentReference);
+
+      if (payments != null) {
+        final payment = payments;
+
+        // Update payment status
+        payment.paymentStatus = 'completed';
+
+        // Add credits to user account if payment was successful
+        if (responseData['status'] == 'SUCCESSFUL') {
+          final amount = double.tryParse(responseData['amount'] ?? '0') ?? 0;
+          Credit? credit = await ProxyService.strategy.getCredit(
+              branchId: (await ProxyService.strategy
+                      .branch(serverId: ProxyService.box.getBranchId()!))!
+                  .id);
+          if (credit != null) {
+            credit.credits += amount;
+            await ProxyService.strategy.updateCredit(credit);
+          }
+        }
+
+        // Save updated payment record
+        await ProxyService.strategy.upsertPayment(payment);
+        talker.info('Payment status updated for reference: $paymentReference');
+      } else {
+        talker
+            .error('Payment record not found for reference: $paymentReference');
+      }
+    } catch (e, stackTrace) {
+      talker.error('Error updating payment status', e, stackTrace);
+    }
   }
 }
 
@@ -352,6 +419,14 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
       {required Map<String, dynamic> paymentData,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement payNow
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> checkPaymentStatus(
+      {required HttpClientInterface flipperHttpClient,
+      required String paymentReference}) {
+    // TODO: implement checkPaymentStatus
     throw UnimplementedError();
   }
 }
