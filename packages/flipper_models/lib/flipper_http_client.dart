@@ -154,8 +154,8 @@ mixin FlipperHttpClient implements HttpClientInterface {
       final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
       UniversalProduct product = UniversalProduct.fromJson(itemClsList[0]);
       final result = await repository.get<UnversalProduct>(
-          query: Query(
-              where: [Where('item_cls_cd').isExactly(product.itemClsCd)]));
+          query:
+              Query(where: [Where('itemClsCd').isExactly(product.itemClsCd)]));
       if (result.isEmpty) {
         repository.upsert<UnversalProduct>(UnversalProduct(
           itemClsCd: product.itemClsCd,
