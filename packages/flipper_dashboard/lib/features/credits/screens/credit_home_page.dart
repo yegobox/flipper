@@ -464,15 +464,23 @@ class _PaymentStatusDialogState extends State<_PaymentStatusDialog> {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             paymentSuccessful ? Icons.check_circle : Icons.phone_android,
             color: paymentSuccessful
                 ? Colors.green
                 : Theme.of(context).colorScheme.primary,
+            size: 24,
           ),
           const SizedBox(width: 10),
-          Text(paymentSuccessful ? 'Payment Successful' : 'Payment Initiated'),
+          Flexible(
+            child: Text(
+              paymentSuccessful ? 'Payment Successful' : 'Payment Initiated',
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
         ],
       ),
       content: Column(

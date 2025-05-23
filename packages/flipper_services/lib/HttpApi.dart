@@ -350,6 +350,20 @@ class HttpApi implements HttpApiInterface {
           if (credit != null) {
             credit.credits += amount;
             await ProxyService.strategy.updateCredit(credit);
+          } else {
+            Credit credit = Credit(
+              branchServerId: ProxyService.box.getBranchId()!,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              businessId: (await ProxyService.strategy.getBusiness(
+                      businessId: ProxyService.box.getBusinessId()!))!
+                  .id,
+              branchId: (await ProxyService.strategy
+                      .branch(serverId: ProxyService.box.getBranchId()!))!
+                  .id,
+              credits: amount,
+            );
+            await ProxyService.strategy.updateCredit(credit);
           }
         }
 
