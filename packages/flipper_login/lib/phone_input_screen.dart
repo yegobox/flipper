@@ -129,28 +129,37 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   }
 
   void _startResendTimer() {
+    // Initialize timer values
     setState(() {
       _timerSeconds = 60;
       _canResend = false;
       _otpExpired = false;
     });
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && _timerSeconds > 0) {
+    // Create a recurring timer function that doesn't rely on recursion
+    void decrementTimer() {
+      if (!mounted) return; // Safety check for widget still mounted
+
+      if (_timerSeconds > 0) {
         setState(() {
           _timerSeconds--;
         });
-        if (_timerSeconds > 0) {
-          _startResendTimer();
-        } else {
+
+        // Schedule the next decrement
+        Future.delayed(const Duration(seconds: 1), decrementTimer);
+      } else {
+        // Timer reached zero
+        if (mounted) {
           setState(() {
             _canResend = true;
-            // Mark OTP as expired after timer ends
-            _otpExpired = true;
+            _otpExpired = true; // Mark OTP as expired after timer ends
           });
         }
       }
-    });
+    }
+
+    // Start the timer by scheduling the first decrement
+    Future.delayed(const Duration(seconds: 1), decrementTimer);
   }
 
   Future<void> _verifyPhoneNumber(
