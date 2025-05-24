@@ -4,6 +4,7 @@ abstract class LocalStorage {
   bool? readBool({required String key});
   dynamic remove({required String key});
   Future<void> writeInt({required String key, required int value});
+  Future<void> writeDouble({required String key, required double value});
   Future<void> writeString({required String key, required String value});
   Future<void> writeBool({required String key, required bool value});
   int? getBusinessId();
@@ -14,6 +15,7 @@ abstract class LocalStorage {
   bool? getIsTokenRegistered();
   String? getUserPhone();
   int? getUserId();
+  double? getCashReceived();
   bool getNeedAccountLinkWithPhone();
   Future<String?> getServerUrl();
   int? currentOrderId();
