@@ -127,14 +127,15 @@ class _CreditHomePageState extends State<CreditHomePage>
                     _buildAddCreditsSection(
                         context, isLightMode, colorScheme, textTheme),
                     const SizedBox(height: 30),
-                    QuickAmountsSelector(
-                      onAmountSelected: (amount) {
-                        Provider.of<CreditData>(context, listen: false)
-                            .buyCredits(amount);
-                        _showSuccessSnackBar(context, amount);
-                      },
-                    ),
-                    const SizedBox(height: 30),
+                    // TODO: resume this and implement this in future.
+                    // QuickAmountsSelector(
+                    //   onAmountSelected: (amount) {
+                    //     Provider.of<CreditData>(context, listen: false)
+                    //         .buyCredits(amount);
+                    //     _showSuccessSnackBar(context, amount);
+                    //   },
+                    // ),
+                    // const SizedBox(height: 30),
                   ],
                 ),
               ),
