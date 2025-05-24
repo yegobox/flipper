@@ -1956,7 +1956,8 @@ class CoreSync extends AiStrategyImpl
           branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
-        double subTotalFinalized = cashReceived;
+        double subTotalFinalized = 0.0;
+        double cash = ProxyService.box.getCashReceived() ?? cashReceived;
         if (isIncome) {
           // Update transaction details
           final double subTotal =
@@ -1971,7 +1972,7 @@ class CoreSync extends AiStrategyImpl
         _updateTransactionDetails(
           transaction: transaction,
           isIncome: isIncome,
-          cashReceived: cashReceived,
+          cashReceived: cash,
           subTotalFinalized: subTotalFinalized,
           paymentType: paymentType,
           isProformaMode: isProformaMode,
@@ -1981,18 +1982,6 @@ class CoreSync extends AiStrategyImpl
           customerName: customerName,
           customerTin: customerTin,
         );
-
-        // Save transaction
-        transaction.status = COMPLETE;
-        // refresh transaction's date
-        transaction.updatedAt = DateTime.now().toUtc();
-        transaction.lastTouched = DateTime.now().toUtc();
-        transaction.createdAt = DateTime.now().toUtc();
-        // TODO: if transactin has customerId use the customer.phone number instead.
-        transaction.currentSaleCustomerPhoneNumber =
-            "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
-        await repository.upsert(transaction);
-
         // Handle receipt if required
         if (directlyHandleReceipt) {
           if (!isProformaMode && !isTrainingMode) {
@@ -2030,6 +2019,9 @@ class CoreSync extends AiStrategyImpl
     String? customerName,
     String? customerTin,
   }) {
+    transaction.currentSaleCustomerPhoneNumber =
+        "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
+
     final now = DateTime.now().toUtc().toLocal();
 
     // Update transaction properties using the = operator
@@ -2053,6 +2045,7 @@ class CoreSync extends AiStrategyImpl
     if (categoryId != null) {
       transaction.categoryId = categoryId;
     }
+    repository.upsert(transaction);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
