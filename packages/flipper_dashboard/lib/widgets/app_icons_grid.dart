@@ -240,8 +240,30 @@ class _CreditsAppCardState extends State<_CreditsAppCard> {
   @override
   void initState() {
     super.initState();
-    // Simulate some credits for demo purposes
-    _creditData.buyCredits(350);
+    // Initialize credit data from API
+    _loadCreditsFromApi();
+  }
+
+  Future<void> _loadCreditsFromApi() async {
+    try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null) {
+        // Get branch from server ID
+        final branch = await ProxyService.strategy.branch(serverId: branchId);
+        if (branch != null) {
+          // Get credit from branch ID
+          final creditStream = ProxyService.strategy.credit(branchId: branch.id);
+          // Take the first value from the stream to get initial credit amount
+          final initialCredit = await creditStream.first;
+          if (initialCredit != null) {
+            // Use buyCredits with the actual credit value from the API
+            _creditData.buyCredits(initialCredit.credits.toInt());
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading credits: $e');
+    }
   }
 
   @override
