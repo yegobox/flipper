@@ -29,7 +29,7 @@ abstract class TransactionItemInterface {
   });
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
-    int? branchId,
+    String? branchId,
     DateTime? startDate,
     DateTime? endDate,
     String? branchIdString,

@@ -6,6 +6,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -271,14 +272,14 @@ abstract class ServicesModule {
   }
 
   @LazySingleton()
-  RealmViaHttp realmHttp() {
-    late RealmViaHttp realmHttp;
+  HttpApiInterface httpApi() {
+    late HttpApiInterface httpApi;
     if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
-      realmHttp = RealmViaHttpServiceMock();
+      httpApi = RealmViaHttpServiceMock();
     } else {
-      realmHttp = HttpApi();
+      httpApi = HttpApi();
     }
-    return realmHttp;
+    return httpApi;
   }
 
   // @preResolve

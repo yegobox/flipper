@@ -15,6 +15,9 @@ Future<Assets> _$AssetsFromSupabase(
         data['asset_name'] == null ? null : data['asset_name'] as String?,
     productId:
         data['product_id'] == null ? null : data['product_id'] as String?,
+    isUploaded: data['is_uploaded'] as bool,
+    localPath:
+        data['local_path'] == null ? null : data['local_path'] as String?,
   );
 }
 
@@ -29,6 +32,8 @@ Future<Map<String, dynamic>> _$AssetsToSupabase(
     'business_id': instance.businessId,
     'asset_name': instance.assetName,
     'product_id': instance.productId,
+    'is_uploaded': instance.isUploaded,
+    'local_path': instance.localPath,
   };
 }
 
@@ -46,6 +51,9 @@ Future<Assets> _$AssetsFromSqlite(
         data['asset_name'] == null ? null : data['asset_name'] as String?,
     productId:
         data['product_id'] == null ? null : data['product_id'] as String?,
+    isUploaded: data['is_uploaded'] == 1,
+    localPath:
+        data['local_path'] == null ? null : data['local_path'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -60,6 +68,8 @@ Future<Map<String, dynamic>> _$AssetsToSqlite(
     'business_id': instance.businessId,
     'asset_name': instance.assetName,
     'product_id': instance.productId,
+    'is_uploaded': instance.isUploaded ? 1 : 0,
+    'local_path': instance.localPath,
   };
 }
 
@@ -92,6 +102,14 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
     'productId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'product_id',
+    ),
+    'isUploaded': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_uploaded',
+    ),
+    'localPath': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'local_path',
     ),
   };
   @override
@@ -133,6 +151,18 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
     'productId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'product_id',
+      iterable: false,
+      type: String,
+    ),
+    'isUploaded': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_uploaded',
+      iterable: false,
+      type: bool,
+    ),
+    'localPath': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'local_path',
       iterable: false,
       type: String,
     ),

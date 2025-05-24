@@ -81,7 +81,8 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Future<List<Business>> businesses({required int userId}) async {
+  Future<List<Business>> businesses(
+      {required int userId, bool fetchOnline = false}) async {
     return await repository.get<Business>(
       query: Query(where: [Where('userId').isExactly(userId)]),
     );

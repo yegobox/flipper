@@ -102,9 +102,10 @@ class MockHttpClient implements HttpClientInterface {
     // TODO: implement put
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<http.Response> getUniversalProducts(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+  Future<http.Response> getUniversalProducts(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
     // TODO: implement getUniversalProducts
     throw UnimplementedError();
   }

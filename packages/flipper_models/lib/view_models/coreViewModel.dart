@@ -635,7 +635,8 @@ class CoreViewModel extends FlipperBaseModel
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = await ProxyService.strategy.getBusiness();
+      Business? business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final drive = GoogleDrive();
       if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);

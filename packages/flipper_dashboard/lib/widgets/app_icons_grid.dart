@@ -10,6 +10,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
+import 'package:flipper_dashboard/Ai.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -22,7 +23,7 @@ class AppIconsGrid extends ConsumerWidget {
   }) : super(key: key);
 
   Future<void> _navigateToPage(
-      String page, WidgetRef ref, String feature) async {
+      String page, WidgetRef ref, String feature, BuildContext context) async {
     if (onAppSelected != null) {
       onAppSelected!(page);
       return;
@@ -68,6 +69,15 @@ class AppIconsGrid extends ConsumerWidget {
         break;
       case "Credits":
         await _routerService.navigateTo(CreditAppRoute());
+        break;
+      case "Chat":
+        // Use the navigation service to navigate to the AI screen
+        // locator<NavigationService>().navigateToView(const Ai());
+        // use navigator to navigate to the AI screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const Ai()),
+        );
         break;
       default:
         await _routerService
@@ -127,6 +137,13 @@ class AppIconsGrid extends ConsumerWidget {
         'label': "Credits",
         'feature': 'Credits',
         'isSpecial': true
+      },
+      {
+        'icon': FluentIcons.chat_24_regular,
+        'color': Colors.purple,
+        'page': "Chat",
+        'label': "AI Chat",
+        'feature': 'Chat'
       }
     ];
 
@@ -150,13 +167,16 @@ class AppIconsGrid extends ConsumerWidget {
       itemCount: filteredApps.length,
       itemBuilder: (context, index) {
         final app = filteredApps[index];
-        return _buildAppCard(app, isBigScreen: isBigScreen, ref: ref);
+        return _buildAppCard(app,
+            isBigScreen: isBigScreen, ref: ref, context: context);
       },
     );
   }
 
   Widget _buildAppCard(Map<String, dynamic> app,
-      {required bool isBigScreen, required WidgetRef ref}) {
+      {required bool isBigScreen,
+      required WidgetRef ref,
+      required BuildContext context}) {
     // Special handling for Credits app
     if (app['isSpecial'] == true && app['page'] == "Credits") {
       return _CreditsAppCard(
@@ -164,7 +184,7 @@ class AppIconsGrid extends ConsumerWidget {
         isBigScreen: isBigScreen,
         onTap: () async {
           HapticFeedback.lightImpact();
-          await _navigateToPage(app['page'], ref, app['feature']);
+          await _navigateToPage(app['page'], ref, app['feature'], context);
         },
       );
     }
@@ -180,7 +200,7 @@ class AppIconsGrid extends ConsumerWidget {
         borderRadius: BorderRadius.circular(8),
         onTap: () async {
           HapticFeedback.lightImpact();
-          await _navigateToPage(app['page'], ref, app['feature']);
+          await _navigateToPage(app['page'], ref, app['feature'], context);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -240,8 +260,31 @@ class _CreditsAppCardState extends State<_CreditsAppCard> {
   @override
   void initState() {
     super.initState();
-    // Simulate some credits for demo purposes
-    _creditData.buyCredits(350);
+    // Initialize credit data from API
+    _loadCreditsFromApi();
+  }
+
+  Future<void> _loadCreditsFromApi() async {
+    try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null) {
+        // Get branch from server ID
+        final branch = await ProxyService.strategy.branch(serverId: branchId);
+        if (branch != null) {
+          // Get credit from branch ID
+          final creditStream =
+              ProxyService.strategy.credit(branchId: branch.id);
+          // Take the first value from the stream to get initial credit amount
+          final initialCredit = await creditStream.first;
+          if (initialCredit != null) {
+            // Use buyCredits with the actual credit value from the API
+            _creditData.buyCredits(initialCredit.credits.toInt());
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading credits: $e');
+    }
   }
 
   @override

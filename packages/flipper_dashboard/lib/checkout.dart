@@ -417,7 +417,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                               ref.refresh(
                                                   transactionItemsStreamProvider(
                                                       branchId: ProxyService.box
-                                                          .getBranchId()!,
+                                                          .branchIdString()!,
                                                       transactionId:
                                                           transaction.id));
                                               Navigator.of(context).pop();

@@ -9,11 +9,13 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:http/retry.dart';
+
 import 'package:supabase_models/brick/models/universalProduct.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 class DefaultFlipperHttpClient with FlipperHttpClient {
   final http.Client _client;
+
   @override
   final Repository repository;
 
@@ -36,6 +38,7 @@ abstract class HttpClientInterface {
       {Map<String, String>? headers, Object? body, Encoding? encoding});
   Future<http.Response> getUniversalProducts(Uri url,
       {Map<String, String>? headers, Object? body, Encoding? encoding});
+ 
 }
 
 /// Mixin for HTTP client logic. Requires the implementing class to provide an http.Client via the `_inner` getter.
@@ -127,13 +130,6 @@ mixin FlipperHttpClient implements HttpClientInterface {
   }
 
   Future<Map<String, String>> _getHeaders() async {
-    String? token;
-    if (ProxyService.box.getDefaultApp() == 2) {
-      token = ProxyService.box.whatsAppToken();
-    } else {
-      token = ProxyService.box.getBearerToken();
-    }
-
     int? userId = ProxyService.box.getUserId();
     Map<String, String> headers = {
       'Content-Type': 'application/json',
@@ -145,11 +141,6 @@ mixin FlipperHttpClient implements HttpClientInterface {
         '${secrets.AppSecrets.username}:${secrets.AppSecrets.password}';
     final encodedCredentials = base64Encode(utf8.encode(credentials));
     headers['Authorization'] = 'Basic $encodedCredentials';
-
-    // If token exists, it will override the basic auth (keeping this for backward compatibility)
-    if (token != null) {
-      headers['Authorization'] = token;
-    }
 
     return headers;
   }
@@ -166,8 +157,8 @@ mixin FlipperHttpClient implements HttpClientInterface {
       final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
       UniversalProduct product = UniversalProduct.fromJson(itemClsList[0]);
       final result = await repository.get<UnversalProduct>(
-          query: Query(
-              where: [Where('item_cls_cd').isExactly(product.itemClsCd)]));
+          query:
+              Query(where: [Where('itemClsCd').isExactly(product.itemClsCd)]));
       if (result.isEmpty) {
         repository.upsert<UnversalProduct>(UnversalProduct(
           itemClsCd: product.itemClsCd,
@@ -184,4 +175,5 @@ mixin FlipperHttpClient implements HttpClientInterface {
     }
     return response;
   }
+
 }

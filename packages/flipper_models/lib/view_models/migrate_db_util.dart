@@ -2,6 +2,26 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:talker_flutter/talker_flutter.dart';
 
+/// Attempts to hide the .db directory on Windows using the attrib command.
+Future<void> hideDbDirectoryIfWindows({
+  required String appDir,
+  required Talker talker,
+}) async {
+  final dbDir = Directory(p.join(appDir, '.db'));
+  if (Platform.isWindows && await dbDir.exists()) {
+    try {
+      final result = await Process.run('attrib', ['+h', dbDir.path]);
+      if (result.exitCode == 0) {
+        talker.info('DB folder is now hidden (Windows attrib +h succeeded).');
+      } else {
+        talker.warning('Failed to hide DB folder: ${result.stderr}');
+      }
+    } catch (e) {
+      talker.warning('Error running attrib to hide DB folder: $e');
+    }
+  }
+}
+
 /// Migrates all files from the old `_db` folder to the new `.db` folder.
 /// Only copies files that do not already exist in the new folder.
 Future<void> migrateOldDbFiles({
@@ -47,18 +67,6 @@ Future<void> migrateOldDbFiles({
     }
   }
 
-  // Hide .db folder on Windows if it exists
-  final dbDir = Directory(p.join(appDir, '.db'));
-  if (Platform.isWindows && await dbDir.exists()) {
-    try {
-      final result = await Process.run('attrib', ['+h', dbDir.path]);
-      if (result.exitCode == 0) {
-        talker.info('DB folder is now hidden (Windows attrib +h succeeded).');
-      } else {
-        talker.warning('Failed to hide DB folder: \\${result.stderr}');
-      }
-    } catch (e) {
-      talker.warning('Error running attrib to hide DB folder: \\${e}');
-    }
-  }
+  // Always attempt to hide the .db folder on Windows after migration
+  await hideDbDirectoryIfWindows(appDir: appDir, talker: talker);
 }

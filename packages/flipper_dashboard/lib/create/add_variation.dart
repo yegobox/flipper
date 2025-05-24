@@ -171,7 +171,8 @@ class _AddVariationState extends State<AddVariation> with TransactionMixinOld {
     Map<String, TextEditingController>? dates,
     required String productName,
   }) async {
-    Business? business = await ProxyService.strategy.getBusiness();
+    Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     String itemPrefix = "flip-";
     String clip = itemPrefix +
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);

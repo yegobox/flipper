@@ -17,14 +17,16 @@ Future<Tenant> _$TenantFromSupabase(
         data['business_id'] == null ? null : data['business_id'] as int?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
     pin: data['pin'] == null ? null : data['pin'] as int?,
@@ -76,14 +78,16 @@ Future<Tenant> _$TenantFromSqlite(
         data['business_id'] == null ? null : data['business_id'] as int?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
     pin: data['pin'] == null ? null : data['pin'] as int?,
@@ -112,9 +116,10 @@ Future<Map<String, dynamic>> _$TenantToSqlite(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'pin': instance.pin,
-    'session_active': instance.sessionActive == null
-        ? null
-        : (instance.sessionActive! ? 1 : 0),
+    'session_active':
+        instance.sessionActive == null
+            ? null
+            : (instance.sessionActive! ? 1 : 0),
     'is_default':
         instance.isDefault == null ? null : (instance.isDefault! ? 1 : 0),
     'is_long_pressed': instance.isLongPressed ? 1 : 0,
@@ -323,34 +328,31 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TenantFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TenantFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Tenant input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TenantToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TenantToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Tenant> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TenantFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TenantFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Tenant input, {

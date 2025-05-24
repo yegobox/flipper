@@ -17,8 +17,15 @@ mixin CapellaAuthMixin implements AuthInterface {
   set offlineLogin(bool value) => _offlineLogin = value;
 
   @override
-  Future<List<Business>> businesses({required int userId}) async {
+  Future<List<Business>> businesses(
+      {required int userId, bool fetchOnline = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
+  }
+
+  @override
+  Future<void> completeLogin(Pin thePin) {
+    throw UnimplementedError(
+        'completeLogin needs to be implemented for Capella');
   }
 
   @override
@@ -79,5 +86,18 @@ mixin CapellaAuthMixin implements AuthInterface {
       required bool fetchRemote}) async {
     throw UnimplementedError(
         'hasActiveSubscription needs to be implemented for Capella');
+  }
+
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) {
+    throw UnimplementedError(
+        'handleLoginError needs to be implemented for Capella');
+  }
+
+  @override
+  Future<void> supabaseAuth() async {
+    throw UnimplementedError(
+        'supabaseAuth needs to be implemented for Capella');
   }
 }

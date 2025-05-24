@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/refresh.dart';
@@ -111,6 +112,8 @@ class _RowItemState extends ConsumerState<RowItem>
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
   Future<String?>? _cachedLocalPathFuture;
+  // Cache for asset path lookup to prevent unnecessary reloading
+  Future<String?>? _cachedAssetPathFuture;
   String? _imageUrl;
   int? _branchId;
   final _lock = Lock();
@@ -132,6 +135,11 @@ class _RowItemState extends ConsumerState<RowItem>
         _cachedLocalPathFuture = _lock
             .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
       }
+
+      // Initialize the asset path cache regardless of remote/local mode
+      // This will be used as a fallback in both cases
+      _cachedAssetPathFuture =
+          _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
     }
   }
 
@@ -151,6 +159,10 @@ class _RowItemState extends ConsumerState<RowItem>
           _cachedLocalPathFuture = _lock
               .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
         }
+
+        // Update the asset path cache when the image URL changes
+        _cachedAssetPathFuture =
+            _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
       }
     }
   }
@@ -241,17 +253,10 @@ class _RowItemState extends ConsumerState<RowItem>
                   Padding(
                     padding: const EdgeInsets.all(
                         contentPadding - 4), // Further reduced padding
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        minHeight: 80, // Fixed minimum height
-                        maxHeight: 220, // Add maximum height constraint
-                      ),
-                      child: useListView
-                          ? _buildListItemContent(
-                              isSelected, textTheme, colorScheme)
-                          : _buildItemContent(
-                              isSelected, textTheme, colorScheme),
-                    ),
+                    child: useListView
+                        ? _buildListItemContent(
+                            isSelected, textTheme, colorScheme)
+                        : _buildItemContent(isSelected, textTheme, colorScheme),
                   ),
 
                   // Overlay action buttons when selected
@@ -272,84 +277,181 @@ class _RowItemState extends ConsumerState<RowItem>
 
   Widget _buildItemContent(
       bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return SingleChildScrollView(
-      // Add SingleChildScrollView to handle any potential overflow
-      physics: const NeverScrollableScrollPhysics(), // Disable actual scrolling
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    // Check if we're on desktop Windows
+    final isDesktopWindows = Platform.isWindows;
+
+    return LayoutBuilder(builder: (context, constraints) {
+      // Calculate available height for content
+      final double maxHeight = constraints.maxHeight;
+
+      // Allocate space for image and info sections
+      // Reserve at least 40px for product info to prevent overflow
+      final double maxInfoHeight = 50.0; // Minimum height for info section
+      final double availableForImage =
+          maxHeight - maxInfoHeight - 4; // 4px for spacing
+
+      // Cap image height to prevent overflow
+      final double imageHeight = isDesktopWindows
+          ? math.min(100, availableForImage) // More conservative on Windows
+          : math.min(availableForImage,
+              maxHeight * 0.55); // Cap at 55% of available height
+
+      return Column(
+        mainAxisSize: MainAxisSize.min, // Important to prevent overflow
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product Image Section - Fixed height to prevent overflow
-          AspectRatio(
-            aspectRatio: 16 / 10, // Slightly taller image
+          // Product Image Section with explicit constraints
+          SizedBox(
+            height: imageHeight,
+            width: double.infinity,
             child: _buildProductImageSection(isSelected),
           ),
 
-          const SizedBox(height: 6), // Reduced spacing
+          const SizedBox(height: 2), // Minimal spacing
 
-          // Product Info Section - Handle varying content
-          _buildProductInfoSection(textTheme),
+          // Product Info Section with fixed maximum height
+          Container(
+            constraints: BoxConstraints(maxHeight: maxInfoHeight),
+            child: _buildCompactProductInfo(textTheme),
+          ),
         ],
-      ),
+      );
+    });
+  }
+
+  // New compact product info section specifically designed to avoid overflow
+  Widget _buildCompactProductInfo(TextTheme textTheme) {
+    // Get appropriate display names with safe fallbacks
+    final String displayProductName =
+        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product";
+
+    final String displayVariantName =
+        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant";
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Product name with strict constraints
+        Text(
+          displayProductName,
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+            fontSize: 12, // Smaller font size
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+
+        // Only show variant if different and there's enough space
+        if (displayVariantName != displayProductName)
+          Text(
+            displayVariantName,
+            style: textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+              fontSize: 10, // Smaller font size
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+        // Price tag - simplified to avoid overflow
+        if (widget.variant?.retailPrice != null &&
+            widget.variant?.retailPrice != 0)
+          Text(
+            (widget.variant?.retailPrice ?? 0).toRwf(),
+            style: textTheme.labelSmall?.copyWith(
+              color: Colors.blue[700],
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
     );
   }
 
   Widget _buildListItemContent(
       bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Product Image - Smaller fixed size for list view
-        SizedBox(
-          width: 70,
-          height: 70,
-          child: _buildProductImageSection(isSelected),
-        ),
+    return LayoutBuilder(builder: (context, constraints) {
+      // Calculate available width for product info
+      final double maxWidth = constraints.maxWidth;
+      final double imageWidth = 70; // Fixed image width
+      final double spacing = 8; // Reduced spacing
+      final double availableForInfo = maxWidth - imageWidth - spacing;
 
-        const SizedBox(width: 12),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Product Image - Fixed size for list view
+          SizedBox(
+            width: imageWidth,
+            height: 70,
+            child: _buildProductImageSection(isSelected),
+          ),
 
-        // Product Info - Expanded to take remaining space
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Product name
-              Text(
-                widget.productName.isNotEmpty
-                    ? widget.productName
-                    : "Unnamed Product",
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+          SizedBox(width: spacing),
 
-              const SizedBox(height: 4),
-
-              // Variant name (if different from product name)
-              if (widget.variantName != widget.productName &&
-                  widget.variantName.isNotEmpty)
+          // Product Info - Constrained width
+          Container(
+            width: availableForInfo,
+            constraints: BoxConstraints(maxHeight: 70), // Match image height
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Product name
                 Text(
-                  widget.variantName,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
+                  widget.productName.isNotEmpty
+                      ? widget.productName
+                      : "Unnamed Product",
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    fontSize: 13, // Smaller font size
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 2), // Reduced spacing
 
-              // Price and stock info
-              _buildPriceAndStockInfo(textTheme),
-            ],
+                // Variant name (if different from product name)
+                if (widget.variantName != widget.productName &&
+                    widget.variantName.isNotEmpty)
+                  Text(
+                    widget.variantName,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 11, // Smaller font size
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                const SizedBox(height: 4), // Reduced spacing
+
+                // Price tag - simplified to avoid overflow
+                if (widget.variant?.retailPrice != null &&
+                    widget.variant?.retailPrice != 0)
+                  Text(
+                    (widget.variant?.retailPrice ?? 0).toRwf(),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildProductImageSection(bool isSelected) {
@@ -434,243 +536,18 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  Widget _buildProductInfoSection(TextTheme textTheme) {
-    // Get appropriate display names with safe fallbacks
-    final String displayProductName =
-        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product";
-
-    final String displayVariantName =
-        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant";
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Product name - Ensure it fits with ellipsis
-        Text(
-          displayProductName.length > 20
-              ? '${displayProductName.substring(0, 20)}...'
-              : displayProductName,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-
-        const SizedBox(height: 4),
-
-        // Product variant (if different from name)
-        if (displayVariantName != displayProductName)
-          Text(
-            displayVariantName.length > 12
-                ? '${displayVariantName.substring(0, 12)}...'
-                : displayVariantName,
-            style: textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-
-        const SizedBox(height: 8),
-
-        // Price and stock info - Using Wrap to handle overflow gracefully
-        _buildPriceAndStockInfo(textTheme),
-      ],
-    );
-  }
-
-  Widget _buildPriceAndStockInfo(TextTheme textTheme) {
-    // List of indicators to show
-    final List<Widget> indicators = [];
-
-    // Price tag
-    if (widget.variant?.retailPrice != null &&
-        widget.variant?.retailPrice != 0) {
-      indicators.add(
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            (widget.variant?.retailPrice ?? 0).toRwf(),
-            style: textTheme.labelSmall?.copyWith(
-              color: Colors.blue[700],
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Stock indicator
-    if (!widget.isComposite && widget.stock != 0) {
-      indicators.add(
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          decoration: BoxDecoration(
-            color: widget.stock < 10
-                ? Colors.orange.withOpacity(0.12)
-                : Colors.green.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.inventory_2_outlined,
-                size: 10,
-                color:
-                    widget.stock < 10 ? Colors.orange[700] : Colors.green[700],
-              ),
-              const SizedBox(width: 2),
-              Text(
-                "${widget.stock}",
-                style: textTheme.labelSmall?.copyWith(
-                  color: widget.stock < 10
-                      ? Colors.orange[700]
-                      : Colors.green[700],
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ).shouldSeeTheApp(ref, featureName: AppFeature.Stock),
-      );
-    }
-
-    // Responsive layout for stock/price indicators
-    final isMobile = MediaQuery.of(context).size.shortestSide < 600;
-    if (widget.forceListView || isMobile) {
-      // On mobile, stack vertically for visibility and reduce font size/padding
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: indicators
-            .map((w) => Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: DefaultTextStyle.merge(
-                    style: const TextStyle(fontSize: 11),
-                    child: w,
-                  ),
-                ))
-            .toList(),
-      );
-    } else {
-      // On desktop/tablet, use the original Wrap
-      return Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        children: indicators,
-      );
-    }
-  }
-
-  // Widget _buildActionButtonsSection(ColorScheme colorScheme) {
-  //   return SizedBox(
-  //     width: double.infinity,
-  //     child: Row(
-  //       mainAxisAlignment: MainAxisAlignment.end,
-  //       children: [
-  //         // Delete button
-  //         _buildActionButton(
-  //           icon: Icons.delete_outline,
-  //           label: 'Delete',
-  //           color: colorScheme.error,
-  //           onPressed: () {
-  //             if (widget.variant != null) {
-  //               widget.delete(widget.variant?.productId, 'product');
-  //             } else if (widget.product != null) {
-  //               widget.delete(widget.product?.id, 'product');
-  //             }
-  //           },
-  //         ),
-
-  //         const SizedBox(width: 8),
-
-  //         // Edit button
-  //         _buildActionButton(
-  //           icon: Icons.edit_outlined,
-  //           label: 'Edit',
-  //           color: colorScheme.primary,
-  //           onPressed: () {
-  //             if (widget.variant != null) {
-  //               widget.edit(widget.variant?.productId, 'product');
-  //             } else if (widget.product != null) {
-  //               widget.edit(widget.product?.id, 'product');
-  //             }
-  //           },
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: color.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(6), // Reduced radius
-      child: InkWell(
-        borderRadius: BorderRadius.circular(6), // Reduced radius
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: 8, vertical: 4), // Reduced padding
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 12), // Smaller icon
-              const SizedBox(width: 3), // Reduced spacing
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 10, // Smaller font
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Icon-only button for even more compact display
-  Widget _buildIconButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: color.withOpacity(0.1),
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.all(4),
-          child: Icon(
-            icon,
-            color: color,
-            size: 14,
-          ),
-        ),
-      ),
-    );
-  }
+  // Removed unused methods _buildProductInfoSection and _buildPriceAndStockInfo
+  // to fix lint warnings and prevent potential regression issues
 
   Widget _buildImage() {
     if (widget.imageUrl == null) {
       return _buildImageErrorPlaceholder();
+    }
+
+    // Ensure asset path future is initialized
+    if (_cachedAssetPathFuture == null && widget.imageUrl != null) {
+      _cachedAssetPathFuture =
+          _lock.synchronized(() => _tryLoadFromAssetPath(widget.imageUrl!));
     }
 
     return (widget.forceRemoteUrl)
@@ -681,7 +558,30 @@ class _RowItemState extends ConsumerState<RowItem>
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return _buildImageLoadingIndicator();
               } else if (snapshot.hasError || !snapshot.hasData) {
-                return _buildImageErrorPlaceholder();
+                // Try to load from local storage if remote fails
+                return FutureBuilder<String?>(
+                  key: ValueKey('fallback-local-${widget.imageUrl}'),
+                  future: _cachedAssetPathFuture!,
+                  builder: (context, assetSnapshot) {
+                    if (assetSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return _buildImageLoadingIndicator();
+                    } else if (assetSnapshot.hasData &&
+                        assetSnapshot.data != null) {
+                      return Image.file(
+                        File(assetSnapshot.data!),
+                        key: ValueKey('file-${assetSnapshot.data}'),
+                        fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 300,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImageErrorPlaceholder(),
+                      );
+                    } else {
+                      return _buildImageErrorPlaceholder();
+                    }
+                  },
+                );
               } else {
                 return CachedNetworkImage(
                   key: ValueKey('cached-${snapshot.data}'),
@@ -690,8 +590,32 @@ class _RowItemState extends ConsumerState<RowItem>
                   memCacheWidth: 300,
                   memCacheHeight: 300,
                   placeholder: (context, url) => _buildImageLoadingIndicator(),
-                  errorWidget: (context, url, error) =>
-                      _buildImageErrorPlaceholder(),
+                  errorWidget: (context, url, error) {
+                    // If network image fails, try local storage
+                    return FutureBuilder<String?>(
+                      key: ValueKey('error-local-${widget.imageUrl}'),
+                      future: _cachedAssetPathFuture!,
+                      builder: (context, assetSnapshot) {
+                        if (assetSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildImageLoadingIndicator();
+                        } else if (assetSnapshot.hasData &&
+                            assetSnapshot.data != null) {
+                          return Image.file(
+                            File(assetSnapshot.data!),
+                            key: ValueKey('file-${assetSnapshot.data}'),
+                            fit: BoxFit.cover,
+                            cacheWidth: 300,
+                            cacheHeight: 300,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildImageErrorPlaceholder(),
+                          );
+                        } else {
+                          return _buildImageErrorPlaceholder();
+                        }
+                      },
+                    );
+                  },
                 );
               }
             },
@@ -713,7 +637,30 @@ class _RowItemState extends ConsumerState<RowItem>
                       _buildImageErrorPlaceholder(),
                 );
               } else {
-                return _buildImageErrorPlaceholder();
+                // Try to load from asset's local path in database
+                return FutureBuilder<String?>(
+                  key: ValueKey('db-local-${widget.imageUrl}'),
+                  future: _cachedAssetPathFuture!,
+                  builder: (context, assetSnapshot) {
+                    if (assetSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return _buildImageLoadingIndicator();
+                    } else if (assetSnapshot.hasData &&
+                        assetSnapshot.data != null) {
+                      return Image.file(
+                        File(assetSnapshot.data!),
+                        key: ValueKey('file-${assetSnapshot.data}'),
+                        fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 300,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImageErrorPlaceholder(),
+                      );
+                    } else {
+                      return _buildImageErrorPlaceholder();
+                    }
+                  },
+                );
               }
             },
           );
@@ -891,6 +838,28 @@ class _RowItemState extends ConsumerState<RowItem>
     if (await file.exists()) {
       return imageFilePath;
     } else {
+      return null;
+    }
+  }
+
+  // Try to load an image from the asset's localPath in the database
+  Future<String?> _tryLoadFromAssetPath(String assetName) async {
+    try {
+      // Look up the asset in the database
+      final asset = await ProxyService.strategy.getAsset(assetName: assetName);
+
+      // If the asset exists and has a local path, return it
+      if (asset != null &&
+          asset.localPath != null &&
+          asset.localPath!.isNotEmpty) {
+        final file = File(asset.localPath!);
+        if (await file.exists()) {
+          return asset.localPath!;
+        }
+      }
+      return null;
+    } catch (e) {
+      talker.error('Error loading asset from local path: $e');
       return null;
     }
   }

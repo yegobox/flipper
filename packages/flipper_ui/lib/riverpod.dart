@@ -28,7 +28,7 @@ class CouponValidationNotifier extends StateNotifier<AsyncValue<bool?>> {
   Future<void> validateCoupon(String couponCode) async {
     state = const AsyncValue.loading();
     try {
-      final isValid = await ProxyService.realmHttp.isCouponValid(
+      final isValid = await ProxyService.httpApi.isCouponValid(
         flipperHttpClient: ProxyService.http,
         couponCode: couponCode,
       );

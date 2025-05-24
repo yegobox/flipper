@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helper_models.dart' as helper;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
@@ -32,6 +31,8 @@ class EventService
     implements EventInterface {
   final _routerService = locator<RouterService>();
   final nub.Keyset keySet;
+
+  @override
   nub.PubNub? pubnub;
 
   // Desktop login state stream controller
@@ -41,6 +42,12 @@ class EventService
   @override
   Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
       _desktopLoginStatusController.stream;
+
+  @override
+  void resetLoginStatus() {
+    _desktopLoginStatusController
+        .add(DesktopLoginStatus(DesktopLoginState.idle));
+  }
 
   EventService({required String userId})
       : keySet = nub.Keyset(
@@ -110,6 +117,9 @@ class EventService
         try {
           LoginData loginData = LoginData.fromMap(envelope.payload);
 
+          // Store the response channel for sending status updates back to mobile device
+          String? responseChannel = loginData.responseChannel;
+
           ProxyService.box
               .writeInt(key: 'businessId', value: loginData.businessId);
           // ProxyService.box.writeString(key: 'uid', value: loginData.uid);
@@ -127,38 +137,150 @@ class EventService
           String deviceVersion = Platform.version;
           // publish the device name and version
 
-          Device? device = await ProxyService.strategy.getDevice(
-              phone: loginData.phone, linkingCode: loginData.linkingCode);
-          if (device == null) {
-            ProxyService.strategy.create(
-                data: Device(
-                    pubNubPublished: false,
-                    branchId: loginData.branchId,
-                    businessId: loginData.businessId,
-                    defaultApp: loginData.defaultApp,
-                    phone: loginData.phone,
-                    userId: loginData.userId,
-                    linkingCode: loginData.linkingCode,
-                    deviceName: deviceName,
-                    deviceVersion: deviceVersion));
+          try {
+            Device? device = await ProxyService.strategy.getDevice(
+                phone: loginData.phone, linkingCode: loginData.linkingCode);
+            if (device == null) {
+              ProxyService.strategy.create(
+                  data: Device(
+                      pubNubPublished: false,
+                      branchId: loginData.branchId,
+                      businessId: loginData.businessId,
+                      defaultApp: loginData.defaultApp,
+                      phone: loginData.phone,
+                      userId: loginData.userId,
+                      linkingCode: loginData.linkingCode,
+                      deviceName: deviceName,
+                      deviceVersion: deviceVersion));
+            }
+
+            // Update local authentication
+            await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
+            await ProxyService.box
+                .writeBool(key: 'pinLogin', value: false); // QR login
+
+            // Check if a PIN with this userId already exists in the local database
+            final existingPin = await ProxyService.strategy
+                .getPinLocal(userId: loginData.userId, alwaysHydrate: true);
+
+            Pin thePin;
+            if (existingPin != null) {
+              // Update the existing PIN instead of creating a new one
+              thePin = existingPin;
+
+              // Update fields with the latest information
+              thePin.phoneNumber = loginData.phone;
+              thePin.branchId = loginData.branchId;
+              thePin.businessId = loginData.businessId;
+              thePin.tokenUid = loginData.tokenUid;
+
+              talker.debug(
+                  "Using existing PIN with userId: ${loginData.userId}, ID: ${thePin.id}");
+            } else {
+              // Create a new PIN if none exists
+              thePin = Pin(
+                  userId: loginData.userId,
+                  pin: loginData.userId,
+                  branchId: loginData.branchId,
+                  businessId: loginData.businessId,
+                  phoneNumber: loginData.phone,
+                  tokenUid: loginData.tokenUid);
+              talker.debug("Creating new PIN with userId: ${loginData.userId}");
+            }
+
+            // Use the standard login flow from auth_mixin
+            await ProxyService.strategy.login(
+              pin: thePin,
+              flipperHttpClient: ProxyService.http,
+              skipDefaultAppSetup: false,
+              userPhone: loginData.phone,
+            );
+
+            // Verify userId is properly saved - this is critical for offline login to work later
+            final savedUserId = ProxyService.box.getUserId();
+            if (savedUserId == null || savedUserId != loginData.userId) {
+              talker.debug(
+                  "QR Login: userId not properly saved, explicitly setting it now");
+              await ProxyService.box
+                  .writeInt(key: 'userId', value: loginData.userId);
+            } else {
+              talker.debug("QR Login: userId properly saved: $savedUserId");
+            }
+
+            // Signal success to update the UI
+            _desktopLoginStatusController
+                .add(DesktopLoginStatus(DesktopLoginState.success));
+
+            // Complete login first, then send success status
+            try {
+              await ProxyService.strategy.completeLogin(thePin);
+
+              // Send success status back to the mobile device if response channel is provided
+              if (responseChannel != null) {
+                await publish(loginDetails: {
+                  'channel': responseChannel,
+                  'status': 'success',
+                  'message': 'Login successful',
+                });
+                talker.debug(
+                    "Sent login success response to channel: $responseChannel");
+              }
+            } catch (completeLoginError) {
+              talker.error('Failed to complete login: $completeLoginError');
+
+              // Send error status if we have a response channel
+              if (responseChannel != null) {
+                try {
+                  await publish(loginDetails: {
+                    'channel': responseChannel,
+                    'status': 'error',
+                    'message': 'Failed to complete login',
+                  });
+                } catch (responseError) {
+                  talker.error('Failed to send error response: $responseError');
+                }
+              }
+            }
+
+            // Note: Navigation is handled by the standard login flow in auth_mixin.dart
+            // which will properly handle business and branch choices if needed
+          } catch (deviceError, stacktrace) {
+            // Use centralized error handling with response channel
+            await ProxyService.strategy.handleLoginError(
+                deviceError, stacktrace,
+                responseChannel: responseChannel);
+
+            // Log the error but continue with login process
+            talker.error('Device registration error: $deviceError');
           }
-          // await FirebaseAuth.instance.signInAnonymously();
-          /// uid is token linked with the user
-          await tokenLogin(loginData.uid);
-          keepTryingPublishDevice();
-          _desktopLoginStatusController
-              .add(DesktopLoginStatus(DesktopLoginState.success));
-        } catch (e) {
+        } catch (e, stackTrace) {
           talker.error(e);
+          // Show a user-friendly error message
+          String errorMessage = 'Connection error. Please try again.';
           _desktopLoginStatusController.add(DesktopLoginStatus(
               DesktopLoginState.failure,
-              message: e.toString()));
+              message: errorMessage));
+
+          // Extract response channel if possible and use centralized error handling
+          try {
+            Map<String, dynamic> payload = envelope.payload;
+            String? responseChannel = payload['responseChannel'];
+
+            // Use centralized error handling with response channel
+            if (responseChannel != null) {
+              await ProxyService.strategy.handleLoginError(e, stackTrace,
+                  responseChannel: responseChannel);
+            }
+          } catch (extractError) {
+            talker.error('Failed to extract response channel: $extractError');
+          }
         }
       });
     } catch (e) {
       talker.error(e);
+      String errorMessage = 'Connection error. Please try again.';
       _desktopLoginStatusController.add(
-          DesktopLoginStatus(DesktopLoginState.failure, message: e.toString()));
+          DesktopLoginStatus(DesktopLoginState.failure, message: errorMessage));
     }
   }
 
@@ -174,8 +296,8 @@ class EventService
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       log("received message aha!");
-      helper.IConversation conversation =
-          helper.IConversation.fromJson(envelope.payload);
+      // helper.IConversation conversation =
+      //     helper.IConversation.fromJson(envelope.payload);
     });
   }
 
@@ -207,32 +329,5 @@ class EventService
                 deviceVersion: deviceEvent.deviceVersion));
       }
     });
-  }
-
-  @override
-  Future<void> keepTryingPublishDevice() async {
-    if (ProxyService.box.getBusinessId() == null) return;
-    // List<Device> devices = await ProxyService.strategy
-    //     .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
-    // for (Device device in devices) {
-    //   nub.PublishResult result = await publish(
-    //     loginDetails: {
-    //       'channel': ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-    //       'deviceName': device.deviceName,
-    //       'deviceVersion': device.deviceVersion,
-    //       'linkingCode': device.linkingCode,
-    //       'userId': device.userId,
-    //       'businessId': device.businessId,
-    //       'branchId': device.branchId,
-    //       'phone': device.phone,
-    //       'defaultApp': device.defaultApp,
-    //     },
-    //   );
-    //   if (result.description == 'Sent') {
-    //     // ProxyService.strategy.realm!.writeAsync(() async {
-    //     //   device.pubNubPublished = true;
-    //     // });
-    //   }
-    // }
   }
 }

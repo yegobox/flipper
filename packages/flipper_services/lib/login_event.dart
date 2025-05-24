@@ -5,15 +5,15 @@ class LoginData {
     required this.businessId,
     required this.branchId,
     required this.phone,
-    required this.uid,
     required this.defaultApp,
     required this.linkingCode,
     required this.deviceName,
     required this.deviceVersion,
+    required this.tokenUid,
+    this.responseChannel,
   });
 
   String channel;
-  String uid;
 
   int userId;
   int businessId;
@@ -23,6 +23,9 @@ class LoginData {
   String linkingCode;
   String deviceName;
   String deviceVersion;
+  String tokenUid;
+  String?
+      responseChannel; // Optional channel for sending login status back to mobile device
 
   factory LoginData.fromMap(Map<String, dynamic> json) => LoginData(
         channel: json["channel"],
@@ -30,11 +33,12 @@ class LoginData {
         businessId: json["businessId"],
         branchId: json["branchId"],
         phone: json["phone"],
-        uid: json["uid"],
         linkingCode: json["linkingCode"],
         defaultApp: json["defaultApp"],
         deviceName: json["deviceName"],
         deviceVersion: json["deviceVersion"],
+        tokenUid: json["tokenUid"],
+        responseChannel: json["responseChannel"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -43,10 +47,11 @@ class LoginData {
         "businessId": businessId,
         "branchId": branchId,
         "phone": phone,
-        "uid": uid,
         "defaultApp": defaultApp,
         "linkingCode": linkingCode,
         "deviceName": deviceName,
         "deviceVersion": deviceVersion,
+        "tokenUid": tokenUid,
+        if (responseChannel != null) "responseChannel": responseChannel,
       };
 }

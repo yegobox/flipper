@@ -1,69 +1,30 @@
+import 'package:flipper_dashboard/NoOrderPlaceholder.dart';
+import 'package:flipper_dashboard/stockApprovalMixin.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class InventoryRequestMobileView extends StatefulWidget {
+class InventoryRequestMobileView extends ConsumerStatefulWidget {
   const InventoryRequestMobileView({Key? key}) : super(key: key);
 
   @override
-  State<InventoryRequestMobileView> createState() =>
+  ConsumerState<InventoryRequestMobileView> createState() =>
       _InventoryRequestMobileViewState();
 }
 
 class _InventoryRequestMobileViewState
-    extends State<InventoryRequestMobileView> {
+    extends ConsumerState<InventoryRequestMobileView>
+    with StockRequestApprovalLogic {
   String _selectedFilter = 'all';
-
-  // Mock data focusing on status
-  final List<Map<String, dynamic>> requests = [
-    {
-      'id': 'REQ001',
-      'status': 'approved',
-      'createdAt': DateTime.now().subtract(const Duration(days: 1)),
-      'deliveryDate': DateTime.now().add(const Duration(days: 1)),
-      'mainBranchId': 1,
-      'subBranchId': 2,
-      'driverId': 101,
-      'customerReceivedOrder': false,
-      'driverRequestDeliveryConfirmation': false,
-      'financing': {
-        'requested': true,
-        'status': 'approved',
-        'bankName': 'ABC Bank',
-        'amount': 50000,
-        'approvalDate': DateTime.now().subtract(const Duration(hours: 12)),
-        'interestRate': 5.5,
-      }
-    },
-    {
-      'id': 'REQ002',
-      'status': 'pending',
-      'createdAt': DateTime.now().toUtc(),
-      'mainBranchId': 3,
-      'financing': {
-        'requested': true,
-        'status': 'pending',
-        'bankName': 'XYZ Bank',
-        'amount': 75000,
-      }
-    },
-    {
-      'id': 'REQ003',
-      'status': 'partiallyApproved',
-      'createdAt': DateTime.now().subtract(const Duration(days: 2)),
-      'deliveryDate': DateTime.now().add(const Duration(days: 3)),
-      'mainBranchId': 2,
-      'financing': {
-        'requested': true,
-        'status': 'rejected',
-        'bankName': 'DEF Bank',
-        'amount': 100000,
-        'rejectionReason': 'Insufficient credit history'
-      }
-    }
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final stockRequests =
+        ref.watch(stockRequestsProvider((filter: _selectedFilter)));
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -115,11 +76,38 @@ class _InventoryRequestMobileViewState
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: requests.length,
-              itemBuilder: (context, index) =>
-                  _buildRequestCard(requests[index]),
+            child: stockRequests.when(
+              data: (requests) {
+                if (requests.isEmpty) {
+                  return buildNoOrdersPlaceholder();
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: requests.length,
+                  itemBuilder: (context, index) =>
+                      _buildRequestCard(requests[index]),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Error loading requests',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      err.toString(),
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -155,7 +143,7 @@ class _InventoryRequestMobileViewState
     );
   }
 
-  Widget _buildRequestCard(Map<String, dynamic> request) {
+  Widget _buildRequestCard(InventoryRequest request) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -169,156 +157,175 @@ class _InventoryRequestMobileViewState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Request #${request['id']}',
+                      'Request #${request.id.substring(0, 8)}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    _buildStatusBadge(request['status']),
+                    _buildStatusBadge(request.status ?? 'pending'),
                   ],
                 ),
                 const SizedBox(height: 12),
 
-                // ... [Previous request details remain the same] ...
+                // Branch information
+                Row(
+                  children: [
+                    Icon(Icons.store, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FutureBuilder<Branch?>(
+                        future: Future.value(ProxyService.strategy
+                            .branch(serverId: request.mainBranchId!)),
+                        builder: (context, snapshot) {
+                          final mainBranchName =
+                              snapshot.data?.name ?? 'Loading...';
+                          return Text(
+                            'From: $mainBranchName',
+                            style: TextStyle(color: Colors.grey[600]),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.store, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: FutureBuilder<Branch?>(
+                        future: Future.value(ProxyService.strategy
+                            .branch(serverId: request.subBranchId!)),
+                        builder: (context, snapshot) {
+                          final subBranchName =
+                              snapshot.data?.name ?? 'Loading...';
+                          return Text(
+                            'To: $subBranchName',
+                            style: TextStyle(color: Colors.grey[600]),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
 
-                if (request['financing'] != null &&
-                    request['financing']['requested'] == true) ...[
-                  const SizedBox(height: 16),
-                  const Divider(),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today,
+                        size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Created: ${DateFormat('MMM dd, yyyy').format(request.createdAt ?? DateTime.now())}',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+
+                if (request.deliveryDate != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.local_shipping,
+                          size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Delivery: ${DateFormat('MMM dd, yyyy').format(request.deliveryDate!)}',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ],
+
+                // Items count
+                const SizedBox(height: 8),
+                FutureBuilder<List<TransactionItem>>(
+                  future: Future.value(ProxyService.strategy
+                      .transactionItems(requestId: request.id)),
+                  builder: (context, snapshot) {
+                    final itemCount = snapshot.data?.length ?? 0;
+                    return Row(
+                      children: [
+                        Icon(Icons.inventory_2,
+                            size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Items: $itemCount',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+                // Note if available
+                if (request.orderNote != null &&
+                    request.orderNote!.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  _buildFinancingInfo(request['financing']),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.note, size: 16, color: Colors.grey[600]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            request.orderNote!,
+                            style: TextStyle(
+                                color: Colors.grey[700], fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ],
             ),
           ),
           const Divider(height: 1),
-          OverflowBar(
-            //buttonPadding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              if (request['status'] == 'fulfilled') ...[
-                _buildDeliveryConfirmation(request),
-              ] else ...[
-                if (request['financing']?['status'] == 'approved')
-                  _buildFinancingBadge(),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('View Details'),
-                ),
-                FilledButton(
-                  onPressed: () {},
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (request.status == 'fulfilled') ...[
+                  _buildDeliveryConfirmation(request),
+                ] else ...[
+                  TextButton(
+                    onPressed: () {
+                      // View details logic
+                    },
+                    child: const Text('View Details'),
                   ),
-                  child: const Text('Update Status'),
-                ),
+                  const SizedBox(width: 8),
+                  if (request.status == 'pending') ...[
+                    FilledButton(
+                      onPressed: () =>
+                          approveRequest(request: request, context: context),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                      ),
+                      child: const Text('Approve'),
+                    ),
+                  ] else if (request.status == 'partiallyApproved') ...[
+                    FilledButton(
+                      onPressed: () =>
+                          approveRequest(request: request, context: context),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                      child: const Text('Complete Approval'),
+                    ),
+                  ],
+                ],
               ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFinancingInfo(Map<String, dynamic> financing) {
-    final statusColors = {
-      'approved': Colors.green,
-      'pending': Colors.orange,
-      'rejected': Colors.red,
-    };
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.account_balance, size: 16, color: Colors.grey[600]),
-            const SizedBox(width: 8),
-            Text(
-              'Financing',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              financing['bankName'],
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusColors[financing['status']]?.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                financing['status'].toUpperCase(),
-                style: TextStyle(
-                  color: statusColors[financing['status']],
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Amount: ${NumberFormat.currency(symbol: '\$').format(financing['amount'])}',
-          style: TextStyle(color: Colors.grey[600]),
-        ),
-        if (financing['status'] == 'approved' &&
-            financing['interestRate'] != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            'Interest Rate: ${financing['interestRate']}%',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Approved: ${DateFormat('MMM dd, yyyy').format(financing['approvalDate'])}',
-            style: TextStyle(color: Colors.grey[600]),
-          ),
-        ],
-        if (financing['status'] == 'rejected' &&
-            financing['rejectionReason'] != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            'Reason: ${financing['rejectionReason']}',
-            style: TextStyle(color: Colors.red[300]),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildFinancingBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.green[50],
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.green[200]!),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check_circle, size: 16, color: Colors.green[700]),
-          const SizedBox(width: 4),
-          Text(
-            'FINANCED',
-            style: TextStyle(
-              color: Colors.green[700],
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -326,10 +333,10 @@ class _InventoryRequestMobileViewState
     );
   }
 
-  Widget _buildDeliveryConfirmation(Map<String, dynamic> request) {
-    final isDelivered = request['customerReceivedOrder'] == true;
+  Widget _buildDeliveryConfirmation(InventoryRequest request) {
+    final isDelivered = request.customerReceivedOrder == true;
     final isConfirmationRequested =
-        request['driverRequestDeliveryConfirmation'] == true;
+        request.driverRequestDeliveryConfirmation == true;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

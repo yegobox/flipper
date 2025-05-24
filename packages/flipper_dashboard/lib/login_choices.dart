@@ -297,12 +297,26 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _updateBusinessPreferences(Business business) async {
+    // Get existing tin value if available
+    final existingTin = ProxyService.box.readInt(key: 'tin');
+
     ProxyService.box
       ..writeInt(key: 'businessId', value: business.serverId)
       ..writeString(
-          key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00")
-      ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
-      ..writeString(key: 'encryptionKey', value: business.encryptionKey ?? "");
+          key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
+
+    // Only update tin if business.tinNumber is not null or there's no existing value
+    if (business.tinNumber != null || existingTin == null) {
+      ProxyService.box
+          .writeInt(key: 'tin', value: business.tinNumber ?? existingTin ?? 0);
+      talker.debug(
+          'Setting tin to ${business.tinNumber ?? existingTin ?? 0} (from ${business.tinNumber != null ? 'business' : 'existing value'})');
+    } else {
+      talker.debug('Preserving existing tin value: $existingTin');
+    }
+
+    ProxyService.box
+        .writeString(key: 'encryptionKey', value: business.encryptionKey ?? "");
   }
 
   Future<void> _updateAllBranchesInactive() async {

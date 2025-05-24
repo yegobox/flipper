@@ -2,6 +2,7 @@
 
 library flipper_login;
 
+import 'package:email_validator/email_validator.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
@@ -36,13 +37,11 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
   bool isLoading = false;
 
   bool isEmail(String? s) {
-    if (s == null) {
+    if (s == null || s.isEmpty) {
       return false;
     }
-    bool emailValid = RegExp(
-            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-        .hasMatch(s);
-    return emailValid;
+    // Using the email_validator package for consistent validation across the app
+    return EmailValidator.validate(s);
   }
 
   bool isNumeric(String? s) {
@@ -207,6 +206,12 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                               placeholder: 'Email Address',
                               leading: const Icon(Icons.email_outlined),
                               // keyboardType: TextInputType.emailAddress,
+                              validatorFunc: (value) {
+                                if (value != null && value.isNotEmpty && !isEmail(value)) {
+                                  return 'Please enter a valid email address';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 16),
 

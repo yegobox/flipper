@@ -509,6 +509,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         suffixIcon: Icon(FeatherIcons.dollarSign, color: Colors.blue),
         onChanged: (value) => setState(() {
               final receivedAmount = double.tryParse(value);
+              ProxyService.box.writeDouble(
+                  key: 'getCashReceived', value: receivedAmount ?? 0.0);
 
               if (receivedAmount != null) {
                 ref.read(paymentMethodsProvider)[0].controller.text = value;

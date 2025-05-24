@@ -103,7 +103,8 @@ class GoogleDrive {
   Future<http.Client> backUpNow() async {
     Directory dir = await getApplicationDocumentsDirectory();
     File file = File(path.context.canonicalize(dir.path + '/db/isar'));
-    Business? business = await ProxyService.strategy.getBusiness();
+    Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     final httpClient = await silentLogin();
     if (business!.backUpEnabled!) {
       await upload(file);

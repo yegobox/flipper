@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'dart:typed_data';
@@ -15,7 +16,8 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
+import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -297,13 +299,6 @@ class Capella extends AiStrategyImpl
     // } catch (e) {
     //   rethrow;
     // }
-  }
-
-  @override
-  Future<List<ITenant>> signup(
-      {required Map business, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement signup
-    throw UnimplementedError();
   }
 
   @override
@@ -608,7 +603,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Pin? getPinLocal({required int userId}) {
+  Pin? getPinLocal(
+      {int? userId, required bool alwaysHydrate, String? phoneNumber}) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }
@@ -1416,7 +1412,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Business>> businesses({required int userId}) {
+  Future<List<brick.Business>> businesses(
+      {required int userId, bool fetchOnline = false}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }
@@ -1464,7 +1461,7 @@ class Capella extends AiStrategyImpl
   @override
   Stream<List<brick.TransactionItem>> transactionItemsStreams(
       {String? transactionId,
-      int? branchId,
+      String? branchId,
       DateTime? startDate,
       String? branchIdString,
       DateTime? endDate,
@@ -2187,6 +2184,96 @@ class Capella extends AiStrategyImpl
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     // TODO: implement send
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> completeLogin(brick.Pin thePin) {
+    // TODO: implement completeLogin
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> hasOfflineAssets() {
+    // TODO: implement hasOfflineAssets
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Assets> saveImageLocally(
+      {required File imageFile,
+      required String productId,
+      required int branchId,
+      required int businessId}) {
+    // TODO: implement saveImageLocally
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<String>> syncOfflineAssets() {
+    // TODO: implement syncOfflineAssets
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Business?> signup(
+      {required Map business, required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement signup
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> supabaseAuth() {
+    // TODO: implement supabaseAuth
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> clearOldLogs({required Duration olderThan, int? businessId}) {
+    // TODO: implement clearOldLogs
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Log>> getLogs({String? type, int? businessId, int limit = 100}) {
+    // TODO: implement getLogs
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveLog(Log log) {
+    // TODO: implement saveLog
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Credit?> getCredit({required String branchId}) {
+    // TODO: implement getCredit
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.CustomerPayments?> getPayment(
+      {required String paymentReference}) {
+    // TODO: implement getPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateCredit(Credit credit) {
+    // TODO: implement updateCredit
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<Credit?> credit({required String branchId}) {
+    // TODO: implement credit
     throw UnimplementedError();
   }
 }

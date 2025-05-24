@@ -44,7 +44,7 @@ dependencies:
   flipper_services: any
 
   flipper_login: any
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   connectivity_plus: ^6.0.5
   provider: ^6.0.2
@@ -111,11 +111,12 @@ dependencies:
   flipper_mocks: any
   excel: ^4.0.6
   supabase_models: any
-  supabase_flutter: ^2.8.4
+  supabase_flutter: ^2.9.0
   uuid: ^4.5.1
   fl_chart: ^0.70.2
   flutter_typeahead: ^5.2.0
   desktop_drop: ^0.5.0
+  email_validator: ^2.1.17
   
 
 dependency_overrides:

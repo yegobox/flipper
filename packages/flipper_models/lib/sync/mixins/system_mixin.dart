@@ -14,7 +14,7 @@ mixin SystemMixin implements SystemInterface {
   @override
   Future<void> saveNeccessaryData(IUser user) async {
     await ProxyService.box.writeInt(key: 'userId', value: user.id!);
-    await ProxyService.box.writeString(key: 'token', value: user.token);
+    await ProxyService.box.writeString(key: 'token', value: user.token ?? "");
   }
 
   @override

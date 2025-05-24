@@ -4,10 +4,10 @@ import 'dart:math' as math;
 class CreditData extends ChangeNotifier {
   int _availableCredits = 0;
   final int _maxCredits = 1000; // Maximum credit limit
-  
+
   int get availableCredits => _availableCredits;
   int get maxCredits => _maxCredits;
-  
+
   void buyCredits(int amount) {
     _availableCredits += amount;
     if (_availableCredits > _maxCredits) {
@@ -15,7 +15,7 @@ class CreditData extends ChangeNotifier {
     }
     notifyListeners();
   }
-  
+
   void useCredits(int amount) {
     if (_availableCredits >= amount) {
       _availableCredits -= amount;
@@ -23,10 +23,11 @@ class CreditData extends ChangeNotifier {
     }
   }
 }
+
 class CreditRingPainter extends CustomPainter {
   final double percentage;
   final double strokeWidth;
-  
+
   CreditRingPainter({
     required this.percentage,
     this.strokeWidth = 6.0,
@@ -36,27 +37,27 @@ class CreditRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
-    
+
     // Draw background circle (light gray)
     final backgroundPaint = Paint()
       ..color = Colors.grey.shade200
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth;
-    
+
     canvas.drawCircle(center, radius, backgroundPaint);
-    
+
     // Draw colored progress arc
     final progressPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
       ..strokeCap = StrokeCap.round;
-    
+
     // Define gradient colors based on percentage
     final List<Color> gradientColors = [
       _getColorForPercentage(percentage),
       _getColorForPercentage(percentage * 0.7),
     ];
-    
+
     // Create gradient shader
     final rect = Rect.fromCircle(center: center, radius: radius);
     progressPaint.shader = SweepGradient(
@@ -65,7 +66,7 @@ class CreditRingPainter extends CustomPainter {
       startAngle: -math.pi / 2,
       endAngle: 3 * math.pi / 2,
     ).createShader(rect);
-    
+
     // Draw the progress arc
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
@@ -74,16 +75,16 @@ class CreditRingPainter extends CustomPainter {
       false,
       progressPaint,
     );
-    
+
     // Add inner shadow/glow effect
     if (percentage > 0.05) {
       final innerGlowPaint = Paint()
         ..color = _getColorForPercentage(percentage).withOpacity(0.15)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
-      
+
       canvas.drawCircle(
-        center, 
-        radius - strokeWidth, 
+        center,
+        radius - strokeWidth,
         innerGlowPaint,
       );
     }
@@ -92,9 +93,9 @@ class CreditRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CreditRingPainter oldDelegate) {
     return oldDelegate.percentage != percentage ||
-           oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.strokeWidth != strokeWidth;
   }
-  
+
   Color _getColorForPercentage(double percentage) {
     // Color transition: green -> yellow -> orange -> red
     if (percentage > 0.7) {
@@ -110,12 +111,13 @@ class CreditRingPainter extends CustomPainter {
     }
   }
 }
+
 class CreditIconWidget extends StatelessWidget {
   final int credits;
   final int maxCredits;
   final double size;
   final TextStyle? textStyle;
-  
+
   const CreditIconWidget({
     Key? key,
     required this.credits,
@@ -128,10 +130,10 @@ class CreditIconWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     // Calculate percentage of credits remaining
     final percentage = maxCredits > 0 ? credits / maxCredits : 0.0;
-    
+
     // Clamp the percentage between 0 and 1
     final clampedPercentage = percentage.clamp(0.0, 1.0);
-    
+
     return SizedBox(
       width: size,
       height: size,
@@ -143,17 +145,18 @@ class CreditIconWidget extends StatelessWidget {
         child: Center(
           child: Text(
             '$credits',
-            style: textStyle ?? TextStyle(
-              color: _getTextColor(clampedPercentage),
-              fontSize: size * 0.35,
-              fontWeight: FontWeight.bold,
-            ),
+            style: textStyle ??
+                TextStyle(
+                  color: _getTextColor(clampedPercentage),
+                  fontSize: size * 0.35,
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
       ),
     );
   }
-  
+
   Color _getTextColor(double percentage) {
     if (percentage > 0.6) {
       return const Color(0xFF2E7D32); // Dark green for high credits

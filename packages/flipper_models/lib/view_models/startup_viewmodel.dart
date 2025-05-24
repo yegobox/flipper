@@ -14,7 +14,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:flipper_services/asset_sync_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/view_models/migrate_db_util.dart';
 
@@ -45,6 +45,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       try {
         final appDir = await getApplicationDocumentsDirectory();
         await migrateOldDbFiles(appDir: appDir.path, talker: talker);
+        // Always attempt to hide .db folder on Windows
+        await hideDbDirectoryIfWindows(appDir: appDir.path, talker: talker);
       } catch (e) {
         talker.warning("DB migration step failed: $e");
       }
@@ -57,6 +59,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // Ensure admin access for API/onboarded users
 
       AppInitializer.initialize();
+      AssetSyncService().initialize();
+      ProxyService.strategy.supabaseAuth();
 
       talker.warning("StartupViewModel Below AppInitializer.initialize()");
 

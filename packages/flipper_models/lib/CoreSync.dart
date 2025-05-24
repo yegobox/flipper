@@ -6,7 +6,6 @@ import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/branch.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
@@ -21,6 +20,7 @@ import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/mixins/customer_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
+import 'package:flipper_models/sync/mixins/log_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
@@ -30,13 +30,13 @@ import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -80,6 +80,7 @@ class CoreSync extends AiStrategyImpl
         DeleteMixin,
         VariantMixin,
         CustomerMixin,
+        LogMixin,
         EbmMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
@@ -139,7 +140,8 @@ class CoreSync extends AiStrategyImpl
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy.getPinLocal(userId: userId);
+    final pinLocal = await ProxyService.strategy
+        .getPinLocal(userId: userId, alwaysHydrate: true);
     try {
       token ??= pinLocal?.tokenUid;
 
@@ -151,23 +153,6 @@ class CoreSync extends AiStrategyImpl
       }
       return FirebaseAuth.instance.currentUser != null;
     } catch (e) {
-      talker.error(e);
-      // talker.info("Retry ${pinLocal?.uid ?? "NULL"}");
-      final http.Response response = await ProxyService.strategy
-          .sendLoginRequest(
-              pinLocal!.phoneNumber!, ProxyService.http, AppSecrets.apihubProd,
-              uid: pinLocal.uid ?? "");
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        /// path the user pin, with
-        final IUser user = IUser.fromJson(json.decode(response.body));
-
-        ProxyService.strategy.updatePin(
-          userId: user.id!,
-          phoneNumber: pinLocal.phoneNumber,
-          tokenUid: user.uid,
-        );
-      }
-
       return false;
     }
   }
@@ -374,32 +359,8 @@ class CoreSync extends AiStrategyImpl
     await configureTheBox(userPhone, user);
     await saveNeccessaryData(user);
     if (!offlineLogin) {
-      await _suserbaseAuth();
+      await supabaseAuth();
     }
-  }
-
-  Future<void> _suserbaseAuth() async {
-    try {
-      // Check if the user already exists
-      final email = '${ProxyService.box.getBranchId()}@flipper.rw';
-      final superUser.User? existingUser =
-          superUser.Supabase.instance.client.auth.currentUser;
-
-      if (existingUser == null) {
-        // User does not exist, proceed to sign up
-        await superUser.Supabase.instance.client.auth.signUp(
-          email: email,
-          password: email,
-        );
-        // Handle sign-up response if needed
-      } else {
-        // User exists, log them in
-        await superUser.Supabase.instance.client.auth.signInWithPassword(
-          email: email,
-          password: email,
-        );
-      }
-    } catch (e) {}
   }
 
   @override
@@ -909,17 +870,43 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Device?> getDevice(
       {required String phone, required String linkingCode}) async {
-    final query = brick.Query(where: [
-      brick.Where('phone', value: phone, compare: brick.Compare.exact),
-      brick.Where(
-        'linkingCode',
-        value: linkingCode,
-        compare: brick.Compare.exact,
-      ),
-    ]);
-    final List<Device> fetchedDevices =
-        await repository.get<Device>(query: query);
-    return fetchedDevices.firstOrNull;
+    try {
+      final query = brick.Query(where: [
+        brick.Where('phone', value: phone, compare: brick.Compare.exact),
+        brick.Where(
+          'linkingCode',
+          value: linkingCode,
+          compare: brick.Compare.exact,
+        ),
+      ]);
+      final List<Device> fetchedDevices = await repository.get<Device>(
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist, query: query);
+      return fetchedDevices.firstOrNull;
+    } catch (e) {
+      // Log the error but don't throw it up the stack
+      talker.error('Error in getDevice: $e');
+
+      // Try a fallback query with just linkingCode if available
+      if (linkingCode.isNotEmpty) {
+        try {
+          final fallbackQuery = brick.Query(where: [
+            brick.Where(
+              'linkingCode',
+              value: linkingCode,
+              compare: brick.Compare.exact,
+            ),
+          ]);
+          final List<Device> devices =
+              await repository.get<Device>(query: fallbackQuery);
+          return devices.firstOrNull;
+        } catch (fallbackError) {
+          talker.error('Fallback query also failed: $fallbackError');
+        }
+      }
+
+      // Return null instead of throwing an exception
+      return null;
+    }
   }
 
   @override
@@ -1072,10 +1059,17 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Pin?> getPinLocal({required int userId}) async {
+  FutureOr<Pin?> getPinLocal(
+      {int? userId, required bool alwaysHydrate, String? phoneNumber}) async {
     return (await repository.get<Pin>(
-            query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)])))
+            policy: alwaysHydrate
+                ? OfflineFirstGetPolicy.awaitRemote
+                : OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(where: [
+              if (userId != null) brick.Where('userId').isExactly(userId),
+              if (phoneNumber != null)
+                brick.Where('phoneNumber').isExactly(phoneNumber)
+            ])))
         .firstOrNull;
   }
 
@@ -1488,6 +1482,35 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Pin?> savePin({required Pin pin}) async {
     try {
+      // First check if a PIN with this userId already exists
+      final existingPins = await repository.get<Pin>(
+        query:
+            brick.Query(where: [brick.Where('userId').isExactly(pin.userId)]),
+      );
+
+      if (existingPins.isNotEmpty) {
+        // Update the existing PIN instead of creating a new one
+        Pin existingPin = existingPins.first;
+
+        // Since we can't modify the ID (it's final), we'll update the existing PIN's fields
+        // and then use that object instead of the new one
+        existingPin.phoneNumber = pin.phoneNumber;
+        existingPin.branchId = pin.branchId;
+        existingPin.businessId = pin.businessId;
+        existingPin.ownerName = pin.ownerName;
+        existingPin.tokenUid = pin.tokenUid;
+        existingPin.uid = pin.uid;
+
+        // Use the existing PIN object with updated fields
+        pin = existingPin;
+
+        talker.debug(
+            "Updating existing PIN with userId: ${pin.userId}, ID: ${pin.id}");
+      } else {
+        talker.debug("Creating new PIN with userId: ${pin.userId}");
+      }
+
+      // Use upsert with a query to ensure we're updating the right record
       final query = brick.Query.where('userId', pin.userId, limit1: true);
       final savedPin = await repository.upsert(
         pin,
@@ -1496,6 +1519,7 @@ class CoreSync extends AiStrategyImpl
 
       return savedPin;
     } catch (e, s) {
+      talker.error("Error saving PIN: $e");
       talker.error(s.toString());
       rethrow;
     }
@@ -1573,45 +1597,121 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<ext.ITenant>> signup(
+  Future<Business> signup(
       {required Map business,
       required HttpClientInterface flipperHttpClient}) async {
-    final http.Response response = await flipperHttpClient
-        .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
-    if (response.statusCode == 200) {
-      /// as soon as possible so I can be able to save real data into realm
-      /// then I call login in here after signup as login handle configuring
-      final userId = ProxyService.box.getUserId();
-      IPin? pin = await ProxyService.strategy.getPin(
-          pinString: userId.toString(), flipperHttpClient: ProxyService.http);
+    try {
+      // Step 1: Create business via API
+      talker.info('Signup: Creating business via API');
+      final http.Response response = await flipperHttpClient.post(
+          Uri.parse("$apihub/v2/api/business"),
+          body: jsonEncode(business));
 
-      ///save or update the pin, we might get the pin from remote then we need to update the local or create new one
-      Pin? savedPin = await savePin(
-          pin: Pin(
-              userId: int.parse(pin!.userId),
-              id: pin.userId,
-              branchId: pin.branchId,
-              businessId: pin.businessId,
-              ownerName: pin.ownerName,
-              tokenUid: pin.tokenUid,
-              phoneNumber: pin.phoneNumber));
-      await login(
-          pin: savedPin!,
-          userPhone: business['phoneNumber'],
-          skipDefaultAppSetup: true,
-          flipperHttpClient: flipperHttpClient);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        talker.info('Signup: Business created successfully, parsing response');
+        final responseBody = response.body;
+        talker.debug('Response body: $responseBody');
 
-      configureLocal(useInMemory: false, box: ProxyService.box);
-      try {
-        /// when signup, save the businessId on fly, this can be overriden later.
-        ProxyService.box.writeInt(
-            key: 'businessId',
-            value: ITenant.fromJsonList(response.body).first.businessId!);
-      } catch (e) {}
-      return ITenant.fromJsonList(response.body);
-    } else {
-      talker.error(response.body.toString());
-      throw InternalServerError(term: response.body.toString());
+        // Step 2: Parse business object
+        try {
+          final Map<String, dynamic> jsonData = jsonDecode(responseBody);
+          final bus = Business.fromMap(jsonData);
+          talker.info(
+              'Signup: Business parsed successfully, ID: ${bus.serverId}');
+
+          // Step 3: Create PIN
+          try {
+            talker.info('Signup: Creating PIN');
+            // Ensure userId is not null
+            if (bus.userId == null) {
+              talker.error('Signup: Business userId is null');
+              throw Exception('Business userId is null');
+            }
+
+            await ProxyService.strategy.createPin(
+                flipperHttpClient: flipperHttpClient,
+                phoneNumber: business['phoneNumber'],
+                pin: bus.userId ?? 0, // Handle null case with default value
+                branchId: bus.serverId.toString(),
+                businessId: bus.serverId.toString(),
+                defaultApp: 1);
+            talker.info('Signup: PIN created successfully');
+
+            // Step 4: Save PIN locally
+            try {
+              talker.info('Signup: Saving PIN locally');
+              Pin? savedPin = await savePin(
+                  pin: Pin(
+                      userId: bus.userId,
+                      id: bus.userId.toString(),
+                      branchId: bus.serverId,
+                      businessId: bus.serverId,
+                      ownerName: business['name'] ?? '',
+                      phoneNumber: business['phoneNumber'] ?? ''));
+
+              if (savedPin == null) {
+                talker.error('Signup: Failed to save PIN');
+                throw Exception('Failed to save PIN');
+              }
+              talker.info('Signup: PIN saved successfully');
+
+              // Step 5: Login
+              try {
+                talker.info('Signup: Logging in with new PIN');
+                await login(
+                    pin: savedPin,
+                    userPhone: business['phoneNumber'],
+                    skipDefaultAppSetup: true,
+                    flipperHttpClient: flipperHttpClient,
+                    freshUser: true);
+                talker.info('Signup: Login successful');
+
+                // Step 6: Configure local
+                try {
+                  talker.info('Signup: Configuring local storage');
+                  configureLocal(useInMemory: false, box: ProxyService.box);
+
+                  // Step 7: Save business ID
+                  try {
+                    talker.info('Signup: Saving business ID: ${bus.serverId}');
+                    ProxyService.box
+                        .writeInt(key: 'businessId', value: bus.serverId);
+                    talker.info('Signup: Business ID saved successfully');
+                  } catch (e) {
+                    talker.error('Signup: Failed to save business ID: $e');
+                    // Continue even if this fails
+                  }
+
+                  talker.info('Signup: Process completed successfully');
+                  return bus;
+                } catch (e, s) {
+                  talker.error('Signup: Error in configuring local: $e', s);
+                  throw e;
+                }
+              } catch (e, s) {
+                talker.error('Signup: Error in login: $e', s);
+                throw e;
+              }
+            } catch (e, s) {
+              talker.error('Signup: Error in saving PIN: $e', s);
+              throw e;
+            }
+          } catch (e, s) {
+            talker.error('Signup: Error in creating PIN: $e', s);
+            throw e;
+          }
+        } catch (e, s) {
+          talker.error('Signup: Error parsing business data: $e', s);
+          throw e;
+        }
+      } else {
+        talker.error('Signup: API returned error: ${response.statusCode}');
+        talker.error('Response body: ${response.body}');
+        throw InternalServerError(term: response.body.toString());
+      }
+    } catch (e, s) {
+      talker.error('Signup: Unhandled error: $e', s);
+      rethrow;
     }
   }
 
@@ -1856,7 +1956,8 @@ class CoreSync extends AiStrategyImpl
           branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
-        double subTotalFinalized = cashReceived;
+        double subTotalFinalized = 0.0;
+        double cash = ProxyService.box.getCashReceived() ?? cashReceived;
         if (isIncome) {
           // Update transaction details
           final double subTotal =
@@ -1871,7 +1972,7 @@ class CoreSync extends AiStrategyImpl
         _updateTransactionDetails(
           transaction: transaction,
           isIncome: isIncome,
-          cashReceived: cashReceived,
+          cashReceived: cash,
           subTotalFinalized: subTotalFinalized,
           paymentType: paymentType,
           isProformaMode: isProformaMode,
@@ -1881,18 +1982,6 @@ class CoreSync extends AiStrategyImpl
           customerName: customerName,
           customerTin: customerTin,
         );
-
-        // Save transaction
-        transaction.status = COMPLETE;
-        // refresh transaction's date
-        transaction.updatedAt = DateTime.now().toUtc();
-        transaction.lastTouched = DateTime.now().toUtc();
-        transaction.createdAt = DateTime.now().toUtc();
-        // TODO: if transactin has customerId use the customer.phone number instead.
-        transaction.currentSaleCustomerPhoneNumber =
-            "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
-        await repository.upsert(transaction);
-
         // Handle receipt if required
         if (directlyHandleReceipt) {
           if (!isProformaMode && !isTrainingMode) {
@@ -1930,6 +2019,9 @@ class CoreSync extends AiStrategyImpl
     String? customerName,
     String? customerTin,
   }) {
+    transaction.currentSaleCustomerPhoneNumber =
+        "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
+
     final now = DateTime.now().toUtc().toLocal();
 
     // Update transaction properties using the = operator
@@ -1953,6 +2045,7 @@ class CoreSync extends AiStrategyImpl
     if (categoryId != null) {
       transaction.categoryId = categoryId;
     }
+    repository.upsert(transaction);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
@@ -2991,7 +3084,7 @@ class CoreSync extends AiStrategyImpl
           // Create a new variant with the product
           await createProduct(
             bhFId: bhfId ?? "00",
-            tinNumber: business?.tinNumber ?? 111111,
+            tinNumber: business?.tinNumber ?? ProxyService.box.tin(),
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             totWt: item.totWt,
@@ -3262,13 +3355,32 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> updatePin(
       {required int userId, String? phoneNumber, String? tokenUid}) async {
-    List<Pin> pin = await repository.get<Pin>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
-    if (pin.isNotEmpty) {
-      Pin myPin = pin.first;
-      myPin.phoneNumber = phoneNumber;
-      myPin.tokenUid = tokenUid;
-      repository.upsert(myPin);
+    try {
+      List<Pin> pins = await repository.get<Pin>(
+          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+
+      if (pins.isNotEmpty) {
+        Pin myPin = pins.first;
+
+        // Update the PIN with new information if provided
+        if (phoneNumber != null) {
+          myPin.phoneNumber = phoneNumber;
+        }
+
+        // Update the tokenUid if provided
+        if (tokenUid != null) {
+          myPin.tokenUid = tokenUid;
+        }
+
+        talker.debug(
+            "Updating PIN for userId: $userId with tokenUid: ${tokenUid ?? 'unchanged'}");
+        await repository.upsert(myPin);
+      } else {
+        talker.warning("No PIN found for userId: $userId. Cannot update.");
+      }
+    } catch (e, s) {
+      talker.error("Error updating PIN: $e");
+      talker.error(s.toString());
     }
   }
 
@@ -3341,6 +3453,42 @@ class CoreSync extends AiStrategyImpl
   Future<models.CustomerPayments> upsertPayment(
       models.CustomerPayments payment) async {
     return await repository.upsert<CustomerPayments>(payment);
+  }
+
+  @override
+  Future<CustomerPayments?> getPayment(
+      {required String paymentReference}) async {
+    return (await repository.get<CustomerPayments>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: brick.Query(where: [
+              brick.Where('transactionId').isExactly(paymentReference),
+            ])))
+        .firstOrNull;
+  }
+
+  @override
+  Future<void> updateCredit(Credit credit) async {
+    await repository.upsert(credit);
+  }
+
+  @override
+  Future<Credit?> getCredit({required String branchId}) async {
+    return (await repository.get<Credit>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+            query: brick.Query(where: [
+              brick.Where('branchId').isExactly(branchId),
+            ])))
+        .firstOrNull;
+  }
+
+  Stream<Credit?> credit({required String branchId}) {
+    return repository
+        .subscribe<Credit>(
+          query: brick.Query(where: [
+            brick.Where('branchId').isExactly(branchId),
+          ]),
+        )
+        .map((list) => list.isNotEmpty ? list.first : null);
   }
 
   @override

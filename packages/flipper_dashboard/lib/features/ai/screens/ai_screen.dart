@@ -220,101 +220,212 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     });
   }
 
+  // Create a scaffold key to access the scaffold from anywhere
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AiTheme.backgroundColor,
-      body: Row(
-        children: [
-          // Sidebar - Conversation List
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            width: 300, // Animate width
-            curve: Curves.easeInOut,
-            child: ClipRect(
-              // Prevents overflow when animating
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AiTheme.surfaceColor, // Or a custom color
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      offset: const Offset(5, 0),
-                    ),
-                  ],
-                ),
-                child: ConversationList(
-                  conversations: _conversations,
-                  currentConversationId: _currentConversationId,
-                  onConversationSelected: (id) {
-                    setState(() {
-                      _currentConversationId = id;
-                      _messages = _conversations[id] ?? [];
-                    });
-                    _subscribeToCurrentConversation();
-                  },
-                  onDeleteConversation: (id) => _deleteCurrentConversation(id),
-                  onNewConversation: _startNewConversation,
-                ),
-              ),
-            ),
-          ),
+    // Check if we're on a mobile device
+    final isMobile = MediaQuery.of(context).size.width < 600;
 
-          // Main Content - Messages and Input
-          Expanded(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: _messages.isEmpty && !_isLoading
-                      ? Center(
-                          child: Text(
-                            "No messages yet. Start a conversation!",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 16,
-                            ),
-                          ),
-                        )
-                      : GestureDetector(
-                          onTap: () {
-                            // Dismiss keyboard when tapping outside input
-                            FocusScope.of(context).unfocus();
-                          },
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 20), // More spacing
-                            itemCount: _messages.length,
-                            itemBuilder: (context, index) {
-                              final message = _messages[index];
-                              return MessageBubble(
-                                message: message,
-                                isUser: message.role == 'user',
-                              );
-                            },
-                          ),
-                        ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: AiInputField(
-                    controller: _controller,
-                    onSend: _sendMessage,
-                    isLoading: _isLoading,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+    return SafeArea(
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: AiTheme.backgroundColor,
+        // Add drawer for mobile view
+        drawer: isMobile ? _buildDrawer() : null,
+        body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
       ),
     );
   }
 
+  // Drawer for mobile view
+  Widget _buildDrawer() {
+    return Drawer(
+      child: Container(
+        color: AiTheme.surfaceColor,
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: AiTheme.primaryColor.withOpacity(0.1),
+              ),
+              child: const Center(
+                child: Text(
+                  'Conversations',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: ConversationList(
+                conversations: _conversations,
+                currentConversationId: _currentConversationId,
+                onConversationSelected: (id) {
+                  setState(() {
+                    _currentConversationId = id;
+                    _messages = _conversations[id] ?? [];
+                  });
+                  _subscribeToCurrentConversation();
+                  // Close drawer after selection on mobile
+                  Navigator.of(context).pop();
+                },
+                onDeleteConversation: (id) => _deleteCurrentConversation(id),
+                onNewConversation: () {
+                  _startNewConversation();
+                  // Close drawer after creating new conversation
+                  Navigator.of(context).pop();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Mobile layout
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        _buildHeader(isMobile: true),
+        Expanded(
+          child: _messages.isEmpty && !_isLoading
+              ? Center(
+                  child: Text(
+                    "No messages yet. Start a conversation!",
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 16,
+                    ),
+                  ),
+                )
+              : GestureDetector(
+                  onTap: () {
+                    // Dismiss keyboard when tapping outside input
+                    FocusScope.of(context).unfocus();
+                  },
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 20),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _messages[index];
+                      return MessageBubble(
+                        message: message,
+                        isUser: message.role == 'user',
+                      );
+                    },
+                  ),
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: AiInputField(
+            controller: _controller,
+            onSend: _sendMessage,
+            isLoading: _isLoading,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Desktop layout
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        // Sidebar - Conversation List
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 300, // Width for desktop
+          curve: Curves.easeInOut,
+          child: ClipRect(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AiTheme.surfaceColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(5, 0),
+                  ),
+                ],
+              ),
+              child: ConversationList(
+                conversations: _conversations,
+                currentConversationId: _currentConversationId,
+                onConversationSelected: (id) {
+                  setState(() {
+                    _currentConversationId = id;
+                    _messages = _conversations[id] ?? [];
+                  });
+                  _subscribeToCurrentConversation();
+                },
+                onDeleteConversation: (id) => _deleteCurrentConversation(id),
+                onNewConversation: _startNewConversation,
+              ),
+            ),
+          ),
+        ),
+
+        // Main Content - Messages and Input
+        Expanded(
+          child: Column(
+            children: [
+              _buildHeader(isMobile: false),
+              Expanded(
+                child: _messages.isEmpty && !_isLoading
+                    ? Center(
+                        child: Text(
+                          "No messages yet. Start a conversation!",
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: () {
+                          // Dismiss keyboard when tapping outside input
+                          FocusScope.of(context).unfocus();
+                        },
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 20),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final message = _messages[index];
+                            return MessageBubble(
+                              message: message,
+                              isUser: message.role == 'user',
+                            );
+                          },
+                        ),
+                      ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: AiInputField(
+                  controller: _controller,
+                  onSend: _sendMessage,
+                  isLoading: _isLoading,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Builds the header of the conversation list.
-  Widget _buildHeader() {
+  Widget _buildHeader({required bool isMobile}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -325,16 +436,20 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       ),
       child: Row(
         children: [
-          // Hamburger Icon
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
+          // Hamburger Icon - only show on mobile
+          if (isMobile)
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                // Open the drawer using the scaffold key
+                _scaffoldKey.currentState?.openDrawer();
+              },
+            ),
+          if (isMobile) const SizedBox(width: 8),
           Text(
             'AI Assistant',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: isMobile ? 18 : 22,
               fontWeight: FontWeight.w600, // Semi-bold
             ),
           ),

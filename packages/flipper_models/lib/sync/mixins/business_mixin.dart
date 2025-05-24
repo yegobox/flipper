@@ -40,8 +40,12 @@ mixin BusinessMixin implements BusinessInterface {
   }
 
   @override
-  Future<List<Business>> businesses({required int userId}) async {
+  Future<List<Business>> businesses(
+      {required int userId, bool fetchOnline = false}) async {
     return await repository.get<Business>(
+        policy: fetchOnline
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
         query: Query(where: [Where('userId').isExactly(userId)]));
   }
 
@@ -76,7 +80,7 @@ mixin BusinessMixin implements BusinessInterface {
     final repository = Repository();
     final query = Query(where: [Where('serverId').isExactly(businessId)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
@@ -88,7 +92,7 @@ mixin BusinessMixin implements BusinessInterface {
             ? [Where('serverId').isExactly(businessId)]
             : [Where('isDefault').isExactly(true)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
     return result.firstOrNull;
   }
 
@@ -170,7 +174,10 @@ mixin BusinessMixin implements BusinessInterface {
     Business? exist = await getBusiness(businessId: serverId);
 
     if (exist != null) {
-      exist.tinNumber = tinNumber;
+      // Only update tinNumber if the new value is not null
+      if (tinNumber != null) {
+        exist.tinNumber = tinNumber;
+      }
 
       repository.upsert<Business>(exist);
     } else {

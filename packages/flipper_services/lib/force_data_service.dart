@@ -56,7 +56,7 @@ class ForceDataEntryService {
       int userId = ProxyService.box.getUserId() ?? 0;
 
       /// it is empty but we might have them on cloud so check on cloud
-      final doesBusinessHavePermission = await ProxyService.realmHttp
+      final doesBusinessHavePermission = await ProxyService.httpApi
           .hasAcessSaved(
               flipperHttpClient: ProxyService.http, businessId: businessId!);
       String? ybPermission = ProxyService.box.yegoboxLoggedInUserPermission();

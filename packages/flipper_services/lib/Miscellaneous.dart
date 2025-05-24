@@ -70,7 +70,8 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
-      ProxyService.box.remove(key: 'authComplete');
+      // set authComplete to false
+      ProxyService.box.writeBool(key: 'authComplete', value: false);
       if (ProxyService.box.getUserId() != null &&
           ProxyService.box.getBusinessId() != null &&
           kReleaseMode) {

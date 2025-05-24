@@ -81,7 +81,8 @@ mixin PaymentHandler {
     final (:url, :userId, :customerCode) =
         await ProxyService.strategy.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
-      business: (await ProxyService.strategy.getBusiness())!,
+      business: (await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!))!,
       agentCode: 1,
       flipperHttpClient: ProxyService.http,
       amount: finalPrice,
