@@ -3488,6 +3488,16 @@ class CoreSync extends AiStrategyImpl
         .firstOrNull;
   }
 
+  Stream<Credit?> credit({required String branchId}) {
+    return repository
+        .subscribe<Credit>(
+          query: brick.Query(where: [
+            brick.Where('branchId').isExactly(branchId),
+          ]),
+        )
+        .map((list) => list.isNotEmpty ? list.first : null);
+  }
+
   @override
   Future<List<Country>> countries() async {
     return await repository.get<Country>(

@@ -597,6 +597,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<CustomerPayments?> getPayment({required String paymentReference});
   Future<Credit?> getCredit({required String branchId});
+  Stream<Credit?> credit({required String branchId});
   Future<void> updateCredit(Credit credit);
 
   /// Fetches a CustomerPayment by its ID.

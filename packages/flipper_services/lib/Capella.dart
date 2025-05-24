@@ -2270,4 +2270,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement updateCredit
     throw UnimplementedError();
   }
+
+  @override
+  Stream<Credit?> credit({required String branchId}) {
+    // TODO: implement credit
+    throw UnimplementedError();
+  }
 }
