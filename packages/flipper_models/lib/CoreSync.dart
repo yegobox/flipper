@@ -1914,6 +1914,8 @@ class CoreSync extends AiStrategyImpl
           await _getTransaction(transactionId: transactionId);
       if (transaction != null) {
         transaction.receiptFileName = fileName + ".pdf";
+        ProxyService.box
+            .writeString(key: 'getReceiptFileName', value: fileName + ".pdf");
         await repository.upsert(transaction);
       }
       return result.uploadedItem.path;
@@ -2006,7 +2008,7 @@ class CoreSync extends AiStrategyImpl
 
   /// customerName and customerTin are optional
   /// but for transactions that need to sync with ebm they need them otherwise they will be skipped.
-  void _updateTransactionDetails({
+  Future<void> _updateTransactionDetails({
     required ITransaction transaction,
     required bool isIncome,
     required double cashReceived,
@@ -2018,7 +2020,7 @@ class CoreSync extends AiStrategyImpl
     String? categoryId,
     String? customerName,
     String? customerTin,
-  }) {
+  }) async {
     transaction.currentSaleCustomerPhoneNumber =
         "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
 
@@ -2039,6 +2041,8 @@ class CoreSync extends AiStrategyImpl
     transaction.transactionType = transactionType;
     transaction.lastTouched = now;
     transaction.customerName = customerName;
+    transaction.receiptFileName =
+        transaction.receiptFileName ?? ProxyService.box.getReceiptFileName();
     transaction.customerTin = customerTin;
 
     // Optionally update categoryId if provided
@@ -2046,6 +2050,11 @@ class CoreSync extends AiStrategyImpl
       transaction.categoryId = categoryId;
     }
     repository.upsert(transaction);
+    // create new pending transaction
+    ProxyService.strategy.manageTransaction(
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: transactionType,
+        isExpense: false);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {

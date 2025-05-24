@@ -168,7 +168,7 @@ mixin TransactionMixinOld {
         .isTaxEnabled(businessId: business!.serverId);
     if (isEbmEnabled) {
       try {
-        await ProxyService.strategy.updateTransaction(
+        ProxyService.strategy.updateTransaction(
             sarTyCd: sarTyCd,
             isUnclassfied: true,
             transaction: pendingTransaction,
@@ -176,7 +176,7 @@ mixin TransactionMixinOld {
             ebmSynced: false);
         final tinNumber = ProxyService.box.tin();
         final bhfId = await ProxyService.box.bhfId();
-        await PatchTransactionItem.patchTransactionItem(
+        PatchTransactionItem.patchTransactionItem(
           tinNumber: tinNumber,
           bhfId: bhfId!,
           URI: (await ProxyService.box.getServerUrl())!,

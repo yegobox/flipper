@@ -17,6 +17,24 @@ mixin TransactionMixin implements TransactionInterface {
   Repository get repository;
 
   @override
+  Stream<ITransaction> pendingTransaction({
+    int? branchId,
+    required bool isExpense,
+    required String transactionType,
+  }) {
+    return repository
+        .subscribe<ITransaction>(
+          query: Query(where: [
+            Where('isExpense').isExactly(isExpense),
+            Where('transactionType').isExactly(transactionType),
+            Where('status').isExactly(PENDING),
+            if (branchId != null) Where('branchId').isExactly(branchId),
+          ]),
+        )
+        .map((event) => event.first);
+  }
+
+  @override
   Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
@@ -679,6 +697,7 @@ mixin TransactionMixin implements TransactionInterface {
         totalReceiptNumber ?? transaction.totalReceiptNumber;
     transaction.sarTyCd = sarTyCd ?? transaction.sarTyCd;
     transaction.reference = reference ?? transaction.reference;
+    // transaction.receiptFileName = transaction.receiptFileName;
     transaction.customerTin = customerTin ?? transaction.customerTin;
     transaction.customerBhfId = customerBhfId ?? transaction.customerBhfId;
     transaction.cashReceived = cashReceived ?? transaction.cashReceived;
@@ -686,8 +705,8 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
-    //removed await to speed up the process
-    repository.upsert<ITransaction>(transaction);
+
+    await repository.upsert<ITransaction>(transaction);
   }
 
   @override

@@ -9,6 +9,7 @@ abstract class LocalStorage {
   Future<void> writeBool({required String key, required bool value});
   int? getBusinessId();
   int? getBusinessServerId();
+  String? getReceiptFileName();
   int? getBranchId();
   String? branchIdString();
   int? getBranchServerId();

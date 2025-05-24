@@ -26,6 +26,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'userId',
     'userPhone',
     'getCashReceived',
+    'getReceiptFileName',
     'needLinkPhoneNumber',
     'getServerUrl',
     'currentOrderId',
@@ -758,5 +759,10 @@ class SharedPreferenceStorage implements LocalStorage {
     } else {
       await _savePreferences();
     }
+  }
+
+  @override
+  String? getReceiptFileName() {
+    return _cache['getReceiptFileName'] as String?;
   }
 }
