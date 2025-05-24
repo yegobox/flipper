@@ -113,6 +113,7 @@ Deno.serve(async (req) => {
         .select('id, receipt_file_name, branch_id, current_sale_customer_phone_number') //Include branch_id and phone number in the select statement
         .eq('status', 'completed')
         .eq('is_digital_receipt_generated', false)
+        .not('receipt_file_name', 'is', null) // Ensure receipt_file_name is not null
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -203,7 +204,7 @@ Deno.serve(async (req) => {
           if (fileFound) {
             try {
               const command = new GetObjectCommand({ Bucket: s3BucketName, Key: filePath });
-              const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7 } );// 604800 seconds (1 week));
+              const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7}); // 1 week
               const shortUrlId = crypto.randomUUID().substring(0, 4);
 
               console.log(`Generated signed URL for ${filePath}, creating short URL: ${shortUrlId}`);
@@ -238,10 +239,20 @@ Deno.serve(async (req) => {
                   //For now, we'll just log the error and continue.
               }
 
-              // Update the transaction
+              // Update the transaction only after everything else succeeds
+              // Don't update if shortenerError or messageError occurred
+              if (shortenerError) {
+                throw new Error(`Failed to insert URL shortener: ${shortenerError.message}`);
+              }
+              
+              // Only mark as generated if we successfully created the shortener record
               const { data: updateData, error: updateError } = await supabase
                 .from('transactions')
-                .update({ is_digital_receipt_generated: true })
+                .update({ 
+                  is_digital_receipt_generated: true,
+                  // Explicitly preserve the receipt_file_name to prevent it from being nullified
+                  receipt_file_name: transaction.receipt_file_name 
+                })
                 .eq('id', transaction.id)
                 .select();
 
@@ -285,8 +296,102 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Handle request with body
-    const { imageInS3, branchId, shortUrlId: existingShortUrlId } = requestBody;
+    // Handle request with body - either generating a new URL or renewing an existing one
+    const { imageInS3, branchId, shortUrlId: existingShortUrlId, renewUrl } = requestBody;
+    // Handle URL renewal case separately
+    if (renewUrl) {
+      if (!renewUrl.startsWith(BASE_SHORT_URL)) {
+        return new Response(JSON.stringify({ error: "Invalid short URL format" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      
+      const shortUrlId = renewUrl.replace(BASE_SHORT_URL, '');
+      console.log(`Attempting to renew URL with short ID: ${shortUrlId}`);
+      
+      // First get the existing record to find the file path
+      const { data: existingUrl, error: lookupError } = await supabase
+        .from('url_shorteners')
+        .select('*')
+        .eq('short_url_id', shortUrlId)
+        .single();
+        
+      if (lookupError || !existingUrl) {
+        console.error('Error finding URL to renew:', lookupError || 'URL not found');
+        return new Response(JSON.stringify({ 
+          error: lookupError?.message || 'Short URL not found',
+          code: 'URL_NOT_FOUND'
+        }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      
+      // Extract the file path from the existing URL
+      // We need to parse the existing URL to get the Key parameter
+      try {
+        // Parse the existing URL to extract the S3 key
+        // AWS S3 presigned URLs have the Key parameter in the query string
+        const urlObj = new URL(existingUrl.long_url);
+        
+        // First try to get from query parameters (standard AWS presigned URL format)
+        let keyParam = urlObj.searchParams.get('Key');
+        
+        // If not found in query params, try to extract from pathname as fallback
+        if (!keyParam) {
+          // Remove any query parameters and get the path
+          const pathParts = urlObj.pathname.split('/');
+          // Get the last non-empty part
+          keyParam = pathParts.filter(part => part.length > 0).pop();
+        }
+        
+        if (!keyParam) {
+          throw new Error('Could not extract file path from existing URL');
+        }
+        
+        // Verify the file still exists in S3 before generating a new URL
+        try {
+          const headCommand = new HeadObjectCommand({ Bucket: s3BucketName, Key: keyParam });
+          await s3Client.send(headCommand);
+          console.log(`File still exists in S3 at path: ${keyParam}`);
+        } catch (headError) {
+          console.error(`File no longer exists in S3 at path: ${keyParam}`, headError);
+          throw new Error(`Receipt file no longer exists in S3: ${keyParam}`);
+        }
+        
+        // Generate a new signed URL for the same file
+        const command = new GetObjectCommand({ Bucket: s3BucketName, Key: keyParam });
+        const newSignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7});
+        
+        // Update the record with the new URL
+        const { data: updateData, error: updateError } = await supabase
+          .from('url_shorteners')
+          .update({ long_url: newSignedUrl, updated_at: new Date().toISOString() })
+          .eq('short_url_id', shortUrlId)
+          .select();
+          
+        if (updateError) {
+          throw new Error(`Failed to update URL: ${updateError.message}`);
+        }
+        
+        return new Response(JSON.stringify({
+          url: shortUrlId,
+          short_url_ids: [shortUrlId],
+          success: true,
+          renewed: true
+        }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (renewError) {
+        console.error('Error renewing URL:', renewError);
+        return new Response(JSON.stringify({ error: renewError.message }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+    }
+    
     if (!imageInS3 || !branchId) {
       return new Response(JSON.stringify({ error: "Missing imageInS3 or branchId" }), {
         status: 400,
@@ -299,7 +404,7 @@ Deno.serve(async (req) => {
 
     try {
       const command = new GetObjectCommand({ Bucket: s3BucketName, Key: filePath });
-      const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 90 });
+      const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 60 * 60 * 24 * 7});
       console.log(`Pre-signed URL generated: ${signedUrl}`);
 
       let shortUrlId = existingShortUrlId || crypto.randomUUID().substring(0, 4);

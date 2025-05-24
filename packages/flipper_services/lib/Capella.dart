@@ -2276,4 +2276,13 @@ class Capella extends AiStrategyImpl
     // TODO: implement credit
     throw UnimplementedError();
   }
+
+  @override
+  Stream<brick.ITransaction> pendingTransaction(
+      {int? branchId,
+      required String transactionType,
+      required bool isExpense}) {
+    // TODO: implement pendingTransaction
+    throw UnimplementedError();
+  }
 }
