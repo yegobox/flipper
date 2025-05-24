@@ -43,7 +43,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   @override
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
-    int? branchId,
+    String? branchId,
     DateTime? startDate,
     String? branchIdString,
     DateTime? endDate,

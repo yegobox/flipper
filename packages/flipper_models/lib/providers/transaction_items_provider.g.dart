@@ -229,7 +229,7 @@ class _TransactionItemsProviderElement
 }
 
 String _$transactionItemsStreamHash() =>
-    r'cc92507f9fb0f9a1754794eda9570ff9e73b93e8';
+    r'cc58bf1524263409a3dad5e5cf46279321b58e2c';
 
 /// See also [transactionItemsStream].
 @ProviderFor(transactionItemsStream)
@@ -244,7 +244,7 @@ class TransactionItemsStreamFamily
   /// See also [transactionItemsStream].
   TransactionItemsStreamProvider call({
     String? transactionId,
-    int? branchId,
+    String? branchId,
     String? requestId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
@@ -292,7 +292,7 @@ class TransactionItemsStreamProvider
   /// See also [transactionItemsStream].
   TransactionItemsStreamProvider({
     String? transactionId,
-    int? branchId,
+    String? branchId,
     String? requestId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
@@ -336,7 +336,7 @@ class TransactionItemsStreamProvider
   }) : super.internal();
 
   final String? transactionId;
-  final int? branchId;
+  final String? branchId;
   final String? requestId;
   final bool fetchRemote;
   final bool doneWithTransaction;
@@ -400,7 +400,7 @@ mixin TransactionItemsStreamRef
   String? get transactionId;
 
   /// The parameter `branchId` of this provider.
-  int? get branchId;
+  String? get branchId;
 
   /// The parameter `requestId` of this provider.
   String? get requestId;
@@ -421,7 +421,7 @@ class _TransactionItemsStreamProviderElement
   String? get transactionId =>
       (origin as TransactionItemsStreamProvider).transactionId;
   @override
-  int? get branchId => (origin as TransactionItemsStreamProvider).branchId;
+  String? get branchId => (origin as TransactionItemsStreamProvider).branchId;
   @override
   String? get requestId => (origin as TransactionItemsStreamProvider).requestId;
   @override
