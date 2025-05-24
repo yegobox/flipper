@@ -67,7 +67,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
-  final branchId = ProxyService.box.getBranchId();
+  final branchId = ProxyService.box.branchIdString();
   final branchIdString = ProxyService.box.branchIdString()!;
 
   talker.debug('transactionItemList called');
@@ -163,39 +163,50 @@ Stream<double> netProfitStream(
     throw StateError('Branch ID is required');
   }
 
-  final incomeStream = ProxyService.strategy.transactionsStream(
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchId,
-    isCashOut: false, // Only get income transactions
-    removeAdjustmentTransactions: true,
-  );
+  // Convert streams to broadcast streams to allow multiple listeners
+  final incomeStream = ProxyService.strategy
+      .transactionsStream(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+        isCashOut: false, // Only get income transactions
+        removeAdjustmentTransactions: true,
+      )
+      .asBroadcastStream();
 
-  final expensesStream = ProxyService.strategy.transactionsStream(
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchId,
-    isCashOut: true, // Only get expense transactions
-    removeAdjustmentTransactions: true,
-  );
+  final expensesStream = ProxyService.strategy
+      .transactionsStream(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+        isCashOut: true, // Only get expense transactions
+        removeAdjustmentTransactions: true,
+      )
+      .asBroadcastStream();
 
   // Fetch all transaction items for the period, for tax computation
-  final taxItemsStream = ProxyService.strategy.transactionItemsStreams(
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchId,
-    fetchRemote: false, // Changed to false to match other streams and avoid unnecessary network calls
-  );
+  final taxItemsStream = ProxyService.strategy
+      .transactionItemsStreams(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: ProxyService.box.branchIdString(),
+        fetchRemote:
+            false, // Changed to false to match other streams and avoid unnecessary network calls
+      )
+      .asBroadcastStream();
 
   await for (final incomeTransactions in incomeStream) {
     // Log the number of income transactions for debugging
-    talker.debug('Net Profit: Found ${incomeTransactions.length} income transactions');
-    
+    talker.debug(
+        'Net Profit: Found ${incomeTransactions.length} income transactions');
+
     final expenseTransactions = await expensesStream.first;
-    talker.debug('Net Profit: Found ${expenseTransactions.length} expense transactions');
-    
+    talker.debug(
+        'Net Profit: Found ${expenseTransactions.length} expense transactions');
+
     final allTransactionItems = await taxItemsStream.first;
-    talker.debug('Net Profit: Found ${allTransactionItems.length} transaction items');
+    talker.debug(
+        'Net Profit: Found ${allTransactionItems.length} transaction items');
 
     // Filter out any transactions that are marked as expenses in the income stream
     final filteredIncome =
@@ -280,14 +291,15 @@ Stream<double> netProfitStream(
 
     // Net profit = Revenue - COGS - Operational Expenses - Taxes
     final netProfit = totalIncome - totalCOGS - totalExpenses - totalTaxPayable;
-    
+
     // Detailed logging for debugging the calculation
     talker.debug('Net Profit Calculation:');
     talker.debug('  Total Income: $totalIncome');
     talker.debug('  Total COGS: $totalCOGS');
     talker.debug('  Total Expenses: $totalExpenses');
     talker.debug('  Total Tax Payable: $totalTaxPayable');
-    talker.debug('  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit');
+    talker.debug(
+        '  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit');
 
     yield netProfit;
   }

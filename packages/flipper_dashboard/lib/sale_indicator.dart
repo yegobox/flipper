@@ -37,7 +37,7 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
             StreamBuilder<List<TransactionItem>>(
               stream: ProxyService.strategy.transactionItemsStreams(
                 transactionId: transaction.value!.id,
-                branchId: ProxyService.box.getBranchId()!,
+                branchId: ProxyService.box.branchIdString()!,
                 doneWithTransaction: false,
                 active: false,
               ),

@@ -9,7 +9,7 @@ part of 'iuser.dart';
 IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
       id: (json['id'] as num?)?.toInt(),
       phoneNumber: json['phoneNumber'] as String,
-      token: json['token'] as String,
+      token: json['token'] as String?,
       uid: json['uid'] as String?,
       tenants: (json['tenants'] as List<dynamic>)
           .map((e) => ITenant.fromJson(e as Map<String, dynamic>))

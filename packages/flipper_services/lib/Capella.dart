@@ -1461,7 +1461,7 @@ class Capella extends AiStrategyImpl
   @override
   Stream<List<brick.TransactionItem>> transactionItemsStreams(
       {String? transactionId,
-      int? branchId,
+      String? branchId,
       DateTime? startDate,
       String? branchIdString,
       DateTime? endDate,
