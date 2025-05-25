@@ -16,6 +16,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
@@ -867,9 +868,8 @@ mixin AuthMixin implements AuthInterface {
       talker.debug('Supabase email: $email');
 
       // Check if we already have a valid session
-      final currentSession =
-          superUser.Supabase.instance.client.auth.currentSession;
-      final currentUser = superUser.Supabase.instance.client.auth.currentUser;
+      final currentSession = Supabase.instance.client.auth.currentSession;
+      final currentUser = Supabase.instance.client.auth.currentUser;
 
       // Check if the session is still valid (not expired)
       final bool hasValidSession = currentSession != null &&
@@ -889,16 +889,15 @@ mixin AuthMixin implements AuthInterface {
       if (currentUser == null) {
         // Try to sign up first
         try {
-          final session =
-              superUser.Supabase.instance.client.auth.currentSession;
+          final session = Supabase.instance.client.auth.currentSession;
           if (session != null) {
             // User is already logged in.  Handle this situation.
             talker.debug("User is already logged in.  Sign out first.");
-            await superUser.Supabase.instance.client.auth
+            await Supabase.instance.client.auth
                 .signOut(); // Sign out if necessary
           }
-          superUser.AuthResponse auth =
-              await superUser.Supabase.instance.client.auth.signInWithPassword(
+          AuthResponse auth =
+              await Supabase.instance.client.auth.signInWithPassword(
             email: "1@flipper.rw",
             password: "1@flipper.rw",
           );
@@ -909,7 +908,7 @@ mixin AuthMixin implements AuthInterface {
           // If sign up fails (likely because user already exists), try sign in
           talker.debug('Sign up failed, attempting sign in: $signUpError');
           await _attemptSignIn(email);
-          await superUser.Supabase.instance.client.auth.signUp(
+          await Supabase.instance.client.auth.signUp(
             email: email,
             password: email,
           );
@@ -926,8 +925,8 @@ mixin AuthMixin implements AuthInterface {
   /// Attempts to sign in with the given email
   Future<void> _attemptSignIn(String email) async {
     try {
-      superUser.AuthResponse auth =
-          await superUser.Supabase.instance.client.auth.signInWithPassword(
+      AuthResponse auth =
+          await Supabase.instance.client.auth.signInWithPassword(
         email: email,
         password: email,
       );
@@ -941,7 +940,7 @@ mixin AuthMixin implements AuthInterface {
   }
 
   /// Saves session data to local storage
-  void _saveSessionData(superUser.AuthResponse auth) {
+  void _saveSessionData(AuthResponse auth) {
     final expiresAt = auth.session?.expiresAt ?? 0;
     final refreshToken = auth.session?.refreshToken ?? "";
 
@@ -955,7 +954,7 @@ mixin AuthMixin implements AuthInterface {
   }
 
   /// Checks if a session is still valid
-  bool _isSessionValid(superUser.Session session) {
+  bool _isSessionValid(Session session) {
     // Get current time in seconds since epoch
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
