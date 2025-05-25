@@ -125,8 +125,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Method to directly fetch transaction items and update state
   Future<void> _fetchAndUpdateTransactionItems(String transactionId) async {
-    // Prevent concurrent refreshes or refreshes during transaction completion
-    if (_isRefreshing || _transactionCompleting) return;
+    // Prevent refreshes during transaction completion
+    if (_transactionCompleting) return;
 
     // Double-check transaction completion status to avoid race conditions
     final isCompleting =
@@ -135,56 +135,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    _isRefreshing = true;
-    try {
-      // Directly fetch transaction items from the database
-      final items = await ProxyService.strategy.transactionItems(
-        transactionId: transactionId,
-        active: true,
-      );
-
-      // Only update if the widget is still mounted and items have changed
-      if (mounted && !_transactionCompleting) {
-        // Compare item counts and specific items to avoid unnecessary updates
-        final shouldUpdate = items.length != internalTransactionItems.length ||
-            _itemsHaveChanged(items, internalTransactionItems);
-
-        if (shouldUpdate) {
-          setState(() {
-            internalTransactionItems = items;
-          });
-
-          // Also refresh the provider to ensure consistency
-          ref.invalidate(
-              transactionItemsStreamProvider(transactionId: transactionId));
-        }
-      }
-    } catch (e) {
-      // Silently handle errors to prevent UI disruption
-      print("Error fetching transaction items: $e");
-    } finally {
-      // Add a small delay before allowing another refresh
-      await Future.delayed(Duration(milliseconds: 300));
-      _isRefreshing = false;
-    }
-  }
-
-  // Helper method to check if items have changed
-  bool _itemsHaveChanged(
-      List<TransactionItem> newItems, List<TransactionItem> oldItems) {
-    if (newItems.length != oldItems.length) return true;
-
-    // Check if any item IDs or quantities have changed
-    for (int i = 0; i < newItems.length; i++) {
-      if (i >= oldItems.length) return true;
-
-      if (newItems[i].id != oldItems[i].id ||
-          newItems[i].qty != oldItems[i].qty) {
-        return true;
-      }
+    // Invalidate the provider to trigger a refresh
+    // This will cause the provider to re-fetch data when watched in the UI
+    if (transactionId.isNotEmpty) {
+      ref.invalidate(
+          transactionItemsStreamProvider(transactionId: transactionId));
     }
 
-    return false;
+    // The build method is already watching the provider and updating internalTransactionItems
+    // So we don't need to manually update the state here
   }
 
   void updatePaymentAmounts({required String transactionId}) {

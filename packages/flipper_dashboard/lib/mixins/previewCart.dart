@@ -168,6 +168,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     bool immediateCompletion = false, // New parameter
   }) async {
     try {
+      // update this transaction as completed
+      await ProxyService.strategy.updateTransaction(
+        transaction: transaction,
+        status: COMPLETE,
+      );
       // Save payment methods
       for (var payment in paymentMethods) {
         await ProxyService.strategy.savePaymentType(
@@ -227,6 +232,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
+      await ProxyService.strategy.updateTransaction(
+        transaction: transaction,
+        status: PENDING,
+      );
       // Example: Stop loading from another widget or function
       ref.read(payButtonStateProvider.notifier).stopLoading();
       String errorMessage = e
@@ -330,35 +339,39 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String paymentType,
     required Function completeTransaction,
   }) async {
-    if (customer != null) {
-      await additionalInformationIsRequiredToCompleteTransaction(
-        amount: amount,
-        onComplete: completeTransaction,
-        discount: discount,
-        paymentType: paymentTypeController.text,
-        transaction: transaction,
-        context: context,
-      );
+    try {
+      if (customer != null) {
+        await additionalInformationIsRequiredToCompleteTransaction(
+          amount: amount,
+          onComplete: completeTransaction,
+          discount: discount,
+          paymentType: paymentTypeController.text,
+          transaction: transaction,
+          context: context,
+        );
 
-      ref.read(payButtonStateProvider.notifier).stopLoading();
-      ref.refresh(pendingTransactionStreamProvider(
-        isExpense: false,
-      ));
-    } else {
-      await finalizePayment(
-        formKey: formKey,
-        customerNameController: customerNameController,
-        context: context,
-        paymentType: paymentType,
-        transactionType: TransactionType.sale,
-        transaction: transaction,
-        amount: amount,
-        onComplete: completeTransaction,
-        discount: discount,
-      );
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        ref.refresh(pendingTransactionStreamProvider(
+          isExpense: false,
+        ));
+      } else {
+        await finalizePayment(
+          formKey: formKey,
+          customerNameController: customerNameController,
+          context: context,
+          paymentType: paymentType,
+          transactionType: TransactionType.sale,
+          transaction: transaction,
+          amount: amount,
+          onComplete: completeTransaction,
+          discount: discount,
+        );
 
-      ref.read(payButtonStateProvider.notifier).stopLoading();
-      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -384,9 +397,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
 // Helper method to handle payment errors
   void _handlePaymentError(
-    dynamic error, StackTrace stackTrace, BuildContext context) {
+      dynamic error, StackTrace stackTrace, BuildContext context) {
     String errorMessage;
-  
+
     if ((ProxyService.box.enableDebug() ?? false)) {
       // In debug mode, show the stack trace
       errorMessage = stackTrace.toString().split('Caught Exception: ').last;
@@ -398,7 +411,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
       errorMessage = errorMessage.toString().split('Caught Exception: ').last;
     }
-  
+
     // Use the standardized snackbar utility
     showCustomSnackBarUtil(
       context,
