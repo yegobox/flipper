@@ -4,6 +4,7 @@ import 'package:brick_sqlite/db.dart';
 part '20250516110357.migration.dart';
 part '20250314135245.migration.dart';
 part '20250522185231.migration.dart';
+part '20250523210831.migration.dart';
 part '20250413072827.migration.dart';
 part '20250308132353.migration.dart';
 part '20250510051829.migration.dart';
@@ -36,6 +37,7 @@ part '20250308112114.migration.dart';
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
   const Migration20250516110357(),
+  const Migration20250523210831(),
   const Migration20250314135245(),
   const Migration20250522185231(),
   const Migration20250413072827(),

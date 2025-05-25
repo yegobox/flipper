@@ -94,4 +94,10 @@ mixin CapellaAuthMixin implements AuthInterface {
     throw UnimplementedError(
         'handleLoginError needs to be implemented for Capella');
   }
+
+  @override
+  Future<void> supabaseAuth() {
+    throw UnimplementedError(
+        'supabaseAuth needs to be implemented for Capella');
+  }
 }

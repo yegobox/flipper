@@ -3773,4 +3773,13 @@ class CoreSync extends AiStrategyImpl
       ),
     ));
   }
+
+  @override
+  Future<models.ITransaction?> pendingTransactionFuture(
+      {int? branchId,
+      required String transactionType,
+      required bool isExpense}) {
+    // TODO: implement pendingTransactionFuture
+    throw UnimplementedError();
+  }
 }

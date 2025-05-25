@@ -19,7 +19,15 @@ abstract class TransactionInterface {
   });
 
   Stream<ITransaction> pendingTransaction({
-    int? branchId, required String transactionType, required bool isExpense,
+    int? branchId,
+    required String transactionType,
+    required bool isExpense,
+  });
+
+  Future<ITransaction?> pendingTransactionFuture({
+    int? branchId,
+    required String transactionType,
+    required bool isExpense,
   });
 
   Stream<List<ITransaction>> transactionsStream({

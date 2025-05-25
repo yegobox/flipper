@@ -834,4 +834,20 @@ mixin TransactionMixin implements TransactionInterface {
     // }
     return true;
   }
+
+  @override
+  Future<ITransaction?> pendingTransactionFuture(
+      {int? branchId,
+      required String transactionType,
+      required bool isExpense}) async {
+    return (await repository.get<ITransaction>(
+      query: Query(where: [
+        Where('isExpense').isExactly(isExpense),
+        Where('transactionType').isExactly(transactionType),
+        Where('status').isExactly(PENDING),
+        if (branchId != null) Where('branchId').isExactly(branchId),
+      ]),
+    ))
+        .firstOrNull;
+  }
 }
