@@ -16,6 +16,8 @@ abstract class AuthInterface {
     IUser? existingUser,
   });
 
+  Future<void> completeLogin(Pin thePin);
+
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin});
 
@@ -39,4 +41,7 @@ abstract class AuthInterface {
   // Required methods that should be provided by other mixins
   Future<List<Business>> businesses({required int userId});
   Future<List<Branch>> branches({required int businessId});
+
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel});
 }

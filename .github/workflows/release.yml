@@ -13,13 +13,16 @@ on:
           - beta
           - promote_to_production
           - production
-  pull_request:
-    branches:
-      - main
+  # pull_request:
+  #   branches:
+  #     - main
   push:
     branches:
+      - 'feature-*'
+      - 'hotfix-*'
+      - 'bugfix-*'
       - dev
-# 
+
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}

@@ -9,19 +9,137 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_services/locator.dart' as loc;
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
   Repository get repository;
   bool get offlineLogin;
   set offlineLogin(bool value);
+
+  // Handle the login completion flow (redirect after login)
+  @override
+  Future<void> completeLogin(Pin thePin) async {
+    try {
+      // Get the current Firebase user's UID
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final uid = currentUser?.uid;
+
+      // If we have a valid UID from Firebase but the PIN doesn't have it,
+      // update the PIN with the UID to prevent duplicates
+      if (uid != null && thePin.uid != uid) {
+        print("Updating PIN with Firebase UID: $uid");
+        thePin.uid = uid;
+        thePin.tokenUid = uid; // Also update tokenUid to ensure consistency
+      }
+
+      // Save the PIN with the updated UID
+      await ProxyService.strategy.savePin(pin: thePin);
+      await loc.getIt<AppService>().appInit();
+      final defaultApp = ProxyService.box.getDefaultApp();
+
+      if (defaultApp == "2") {
+        final routerService = locator<RouterService>();
+        routerService.navigateTo(SocialHomeViewRoute());
+      } else {
+        locator<RouterService>().navigateTo(FlipperAppRoute());
+      }
+    } catch (e) {
+      print(e); // Log or handle error during login completion
+      rethrow;
+    }
+  }
+
+  /// Centralized error handling for login errors
+  /// Returns a tuple with (errorMessage, shouldNavigateToLoginChoices, isPinError)
+  /// UI-specific handling should be done by the caller
+  @override
+  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
+      {String? responseChannel}) async {
+    String errorMessage = '';
+    bool shouldNavigateToLoginChoices = false;
+    bool isPinError = false;
+    bool shouldCaptureException = true;
+
+    if (e is BusinessNotFoundException) {
+      errorMessage = e.errMsg();
+    } else if (e is PinError) {
+      errorMessage = e.errMsg();
+      isPinError = true;
+      shouldCaptureException = false;
+    } else if (e is LoginChoicesException) {
+      if (responseChannel != null) {
+        try {
+          await ProxyService.event.publish(loginDetails: {
+            'channel': responseChannel,
+            'status':
+                'choices_needed', // Special status for business/branch selection
+            'message': 'Please select a business and branch',
+          });
+        } catch (responseError) {
+          talker.error('Failed to send login response: $responseError');
+        }
+      }
+      errorMessage = e.errMsg();
+      shouldNavigateToLoginChoices = true;
+      shouldCaptureException = false;
+
+      // Handle navigation directly here
+      try {
+        locator<RouterService>().navigateTo(LoginChoicesRoute());
+      } catch (navError) {
+        talker.error('Failed to navigate to login choices: $navError');
+      }
+    } else {
+      errorMessage = e.toString();
+    }
+
+    // Log the error
+    talker.error('Login error: $errorMessage');
+    talker.error(s);
+
+    // Send error status back to the mobile device if response channel is provided
+    // This is used for QR code login to notify the mobile device of login failure
+    if (responseChannel != null) {
+      try {
+        await ProxyService.event.publish(loginDetails: {
+          'channel': responseChannel,
+          'status': 'failure',
+          'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
+        });
+        talker
+            .debug("Sent login failure response to channel: $responseChannel");
+      } catch (responseError) {
+        talker.error('Failed to send login response: $responseError');
+      }
+    }
+
+    // Capture exception for non-expected errors
+    if (shouldCaptureException) {
+      try {
+        await Sentry.captureException(e, stackTrace: s);
+      } catch (sentryError) {
+        talker.error('Failed to capture exception with Sentry: $sentryError');
+      }
+    }
+
+    return {
+      'errorMessage': errorMessage,
+      'shouldNavigateToLoginChoices': shouldNavigateToLoginChoices,
+      'isPinError': isPinError
+    };
+  }
 
   @override
   Future<bool> logOut();
@@ -34,30 +152,57 @@ mixin AuthMixin implements AuthInterface {
   Future<bool> firebaseLogin({String? token}) async {
     int? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy.getPinLocal(userId: userId);
+
+    // Get the existing PIN for this user ID
+    final pinLocal = await ProxyService.strategy
+        .getPinLocal(userId: userId, alwaysHydrate: true);
+
     try {
       token ??= pinLocal?.tokenUid;
 
       if (token != null) {
         await FirebaseAuth.instance.signInWithCustomToken(token);
+
+        // If we have a successful login, make sure to update the tokenUid in the PIN
+        // This ensures we keep the PIN record updated with the latest token
+        if (pinLocal != null && pinLocal.tokenUid != token) {
+          talker.debug("Updating PIN with new token for userId: $userId");
+          ProxyService.strategy.updatePin(
+              userId: userId,
+              phoneNumber: pinLocal.phoneNumber,
+              tokenUid: token);
+        }
+
         return true;
       }
       return FirebaseAuth.instance.currentUser != null;
     } catch (e) {
-      final http.Response response = await sendLoginRequest(
-        pinLocal!.phoneNumber!,
-        ProxyService.http,
-        apihub,
-        uid: pinLocal.uid ?? "",
-      );
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        final IUser user = IUser.fromJson(json.decode(response.body));
-        ProxyService.strategy.updatePin(
-          userId: user.id!,
-          phoneNumber: pinLocal.phoneNumber,
-          tokenUid: user.uid,
-        );
+      talker.error("Firebase login error: $e");
+
+      // Only attempt to get a new token if we have PIN information
+      if (pinLocal != null && pinLocal.phoneNumber != null) {
+        try {
+          final http.Response response = await sendLoginRequest(
+            pinLocal.phoneNumber!,
+            ProxyService.http,
+            apihub,
+            uid: pinLocal.uid ?? "",
+          );
+
+          if (response.statusCode == 200 && response.body.isNotEmpty) {
+            final IUser user = IUser.fromJson(json.decode(response.body));
+
+            // Update the existing PIN with the new token
+            ProxyService.strategy.updatePin(
+                userId: user.id!,
+                phoneNumber: pinLocal.phoneNumber,
+                tokenUid: user.uid);
+          }
+        } catch (requestError) {
+          talker.error("Error getting new token: $requestError");
+        }
       }
+
       return false;
     }
   }
@@ -127,6 +272,33 @@ mixin AuthMixin implements AuthInterface {
       return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
     }
 
+    // Check if we already have a valid Firebase user and token
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final existingToken = await ProxyService.box.getBearerToken();
+    final existingUserId = ProxyService.box.getUserId();
+
+    // If we have a valid token and the user ID matches the pin's user ID,
+    // we can skip the sendLoginRequest call
+    if (currentUser != null &&
+        existingToken != null &&
+        existingUserId != null &&
+        existingUserId.toString() == pin.userId.toString()) {
+      talker.debug("Using existing Firebase authentication");
+
+      // Create a user object from existing data
+      final user = IUser(
+        token: ProxyService.box.getBearerToken(),
+        id: existingUserId,
+        uid: currentUser.uid,
+        phoneNumber: phoneNumber,
+        tenants: [ITenant(name: pin.ownerName)],
+      );
+
+      return user;
+    }
+
+    // Otherwise, proceed with normal authentication flow
+    talker.debug("Performing full authentication flow");
     final http.Response response =
         await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
 
@@ -136,7 +308,12 @@ mixin AuthMixin implements AuthInterface {
       await _patchPin(user.id!, flipperHttpClient, apihub,
           ownerName: user.tenants.first.name!);
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
-      await ProxyService.strategy.firebaseLogin(token: user.uid);
+
+      // Only perform Firebase login if not already logged in
+      if (currentUser == null || currentUser.uid != user.uid) {
+        await firebaseLogin(token: user.uid);
+      }
+
       return user;
     } else {
       await _handleLoginError(response);
@@ -324,6 +501,25 @@ mixin AuthMixin implements AuthInterface {
     await ProxyService.box.writeInt(key: 'userId', value: user.id!);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
 
+    // Ensure the PIN record has the correct UID to prevent duplicates
+    if (user.uid != null) {
+      // Check if a PIN with this userId already exists
+      final existingPin = await ProxyService.strategy.getPinLocal(
+          userId: user.id!,
+          alwaysHydrate: false // Use local-only to avoid network calls
+          );
+
+      if (existingPin != null) {
+        // Update the existing PIN with the correct UID
+        if (existingPin.uid != user.uid) {
+          talker.debug(
+              "Updating existing PIN with correct UID during configureSystem");
+          await ProxyService.strategy.updatePin(
+              userId: user.id!, tokenUid: user.uid, phoneNumber: userPhone);
+        }
+      }
+    }
+
     if (!offlineLogin) {
       // Perform online-specific configuration
       await firebaseLogin();
@@ -338,9 +534,100 @@ mixin AuthMixin implements AuthInterface {
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
       {String? uid}) async {
-    uid = uid ?? firebase.FirebaseAuth.instance.currentUser?.uid;
+    uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
+
+    // Get the phone number associated with the current session
+    final existingPhoneNumber = ProxyService.box.getUserPhone();
+    // get userId of the user that is trying to log in
+    final savedLocalPinForThis = await ProxyService.strategy
+        .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
+    final tenants = await ProxyService.strategy
+        .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
+    // Only use cached credentials if they belong to the same user (phone number) that's trying to log in
+    // This prevents using cached credentials from a previous user if someone tries to log in with a different account
+    if (savedLocalPinForThis != null &&
+        existingPhoneNumber == phoneNumber &&
+        tenants != null) {
+      talker.debug(
+          "Using existing token and user ID, skipping duplicate sendLoginRequest");
+      // Create a mock response with the existing data to avoid a duplicate API call
+      final businesses = await ProxyService.strategy
+          .businesses(userId: savedLocalPinForThis.userId!);
+
+      final branches = await ProxyService.strategy
+          .branches(businessId: tenants!.businessId ?? 0);
+
+      // Build a proper response structure with the fetched data
+      Map<String, dynamic> responseData = {
+        'id': savedLocalPinForThis.userId,
+        //TODO: this token I am passing here might not be the right token
+        'token': savedLocalPinForThis.tokenUid,
+        'uid': uid,
+        'phoneNumber': phoneNumber,
+        'channels': [savedLocalPinForThis.userId.toString()],
+        'pin': savedLocalPinForThis.userId,
+        'tenants': []
+      };
+
+      // Only add tenant data if we have valid tenant information
+
+      // Create tenant entry with businesses and branches
+      Map<String, dynamic> tenantData = {
+        'id': tenants.id,
+        'name': tenants.name,
+        'phoneNumber': phoneNumber,
+        'businessId': tenants.businessId,
+        'userId': savedLocalPinForThis.userId,
+        'pin': savedLocalPinForThis.userId,
+        'type': tenants.type,
+        'default': tenants.isDefault,
+        'businesses': [],
+        'branches': []
+      };
+
+      // Add businesses if available
+      if (businesses.isNotEmpty) {
+        List<Map<String, dynamic>> businessesList = [];
+        for (var business in businesses) {
+          businessesList.add({
+            'id': business.id,
+            'name': business.name,
+            'userId': business.userId?.toString(),
+            'serverId': business.serverId,
+            'default': business.isDefault,
+            'active': business.active
+          });
+        }
+        tenantData['businesses'] = businessesList;
+      }
+
+      // Add branches if available
+      if (branches.isNotEmpty) {
+        List<Map<String, dynamic>> branchesList = [];
+        for (var branch in branches) {
+          branchesList.add({
+            'id': branch.id,
+            'name': branch.name,
+            'businessId': branch.businessId,
+            'serverId': branch.serverId,
+            'default': branch.isDefault,
+            'active': branch.active
+          });
+        }
+        tenantData['branches'] = branchesList;
+      }
+
+      // Add the tenant to the response
+      responseData['tenants'] = [tenantData];
+
+      return http.Response(
+        jsonEncode(responseData),
+        200,
+      );
+    }
 
     try {
+      talker.debug("Sending login request to API for phone: $phoneNumber");
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
         body: jsonEncode(
@@ -353,20 +640,48 @@ mixin AuthMixin implements AuthInterface {
         throw SessionException(term: "session expired");
       }
 
+      // Check for error response
+      if (response.statusCode != 200) {
+        talker.error(
+            "Authentication failed with status code ${response.statusCode}: ${response.body}");
+        throw Exception(
+            "Authentication failed with status code ${response.statusCode}");
+      }
+
+      // Validate response body
+      if (response.body.isEmpty) {
+        talker.error("Empty response body from login request");
+        throw Exception("Empty response from server");
+      }
+
       final responseBody = jsonDecode(response.body);
+
+      // Check if this is an error response
+      if (responseBody.containsKey('details') &&
+          responseBody['details'] is String &&
+          responseBody['details'].toString().startsWith('Error id')) {
+        talker.error(
+            "Error response from login request: ${responseBody['details']}");
+        throw Exception("Server error: ${responseBody['details']}");
+      }
+
       talker.warning("sendLoginRequest:UserId:${responseBody['id']}");
       talker.warning("sendLoginRequest:token:${responseBody['token']}");
 
+      talker.warning("$responseBody");
       // Handle userId which could now be a string or int
       if (responseBody['id'] is String) {
         // Store the original string ID for reference
-        ProxyService.box.writeString(
-            key: 'userIdString', value: responseBody['id'] as String);
+        ProxyService.box
+            .writeString(key: 'userIdString', value: responseBody['id']);
         // Convert string ID to integer for backward compatibility
         final int userId = int.tryParse(responseBody['id']) ?? 0;
         ProxyService.box.writeInt(key: 'userId', value: userId);
-      } else {
+      } else if (responseBody['id'] != null) {
         ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
+      } else {
+        talker.error("Missing ID in response: $responseBody");
+        throw Exception("Missing user ID in server response");
       }
 
       // Process businesses and branches if they're in the response
@@ -388,11 +703,12 @@ mixin AuthMixin implements AuthInterface {
       await ProxyService.box
           .writeString(key: 'bearerToken', value: responseBody['token']);
       return response;
-    } catch (e) {
+    } catch (e, s) {
       // If it's already a SessionException, rethrow it
       if (e is SessionException) {
         rethrow;
       }
+      talker.error("Error in sendLoginRequest:  $s");
       // Log the error and rethrow
       talker.error("Error in sendLoginRequest: $e");
       throw e;
@@ -416,7 +732,8 @@ mixin AuthMixin implements AuthInterface {
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
         'ownerName': ownerName,
-        'tokenUid': firebase.FirebaseAuth.instance.currentUser?.uid
+        if (FirebaseAuth.instance.currentUser != null)
+          'uid': FirebaseAuth.instance.currentUser!.uid,
       }),
     );
   }
@@ -482,9 +799,8 @@ mixin AuthMixin implements AuthInterface {
     // For businessId, convert to int if it's a string for backward compatibility
 
     return IUser(
-      token: pin.tokenUid!,
-      uid: pin.tokenUid,
-      channels: [],
+      token: ProxyService.box.getBearerToken() ?? "",
+      uid: pin.uid,
       phoneNumber: pin.phoneNumber!,
       id: pin.userId!,
       tenants: [

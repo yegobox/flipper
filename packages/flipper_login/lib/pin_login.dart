@@ -1,19 +1,13 @@
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_services/locator.dart' as loc;
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart';
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -44,15 +38,36 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
         // Update local authentication
         await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
 
-        final thePin = Pin(
-          userId: int.tryParse(pin.userId),
-          pin: int.tryParse(pin.userId),
-          branchId: pin.branchId,
-          businessId: pin.businessId,
-          ownerName: pin.ownerName,
-          tokenUid: pin.tokenUid,
-          phoneNumber: pin.phoneNumber,
-        );
+        // Check if a PIN with this userId already exists in the local database
+        final userId = int.tryParse(pin.userId);
+        final existingPin = await ProxyService.strategy
+            .getPinLocal(userId: userId!, alwaysHydrate: false);
+
+        Pin thePin;
+        if (existingPin != null) {
+          // Update the existing PIN instead of creating a new one
+          thePin = existingPin;
+
+          // Update fields with the latest information
+          thePin.phoneNumber = pin.phoneNumber;
+          thePin.branchId = pin.branchId;
+          thePin.businessId = pin.businessId;
+          thePin.ownerName = pin.ownerName;
+
+          print(
+              "Using existing PIN with userId: ${pin.userId}, ID: ${thePin.id}");
+        } else {
+          // Create a new PIN if none exists
+          thePin = Pin(
+            userId: userId,
+            pin: userId,
+            branchId: pin.branchId,
+            businessId: pin.businessId,
+            ownerName: pin.ownerName,
+            phoneNumber: pin.phoneNumber,
+          );
+          print("Creating new PIN with userId: ${pin.userId}");
+        }
 
         await ProxyService.strategy.login(
           pin: thePin,
@@ -60,7 +75,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           skipDefaultAppSetup: false,
           userPhone: pin.phoneNumber,
         );
-        await _completeLogin(thePin);
+        await ProxyService.strategy.completeLogin(thePin);
       } catch (e, s) {
         await _handleLoginError(e, s);
       } finally {
@@ -79,32 +94,17 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
     );
   }
 
-  // Handle the login completion flow (redirect after login)
-  Future<void> _completeLogin(Pin thePin) async {
-    try {
-      await ProxyService.strategy.savePin(pin: thePin);
-      await loc.getIt<AppService>().appInit();
-      final defaultApp = ProxyService.box.getDefaultApp();
-
-      if (defaultApp == "2") {
-        final routerService = locator<RouterService>();
-        routerService.navigateTo(SocialHomeViewRoute());
-      } else {
-        locator<RouterService>().navigateTo(FlipperAppRoute());
-      }
-    } catch (e) {
-      print(e); // Log or handle error during login completion
-      rethrow;
-    }
-  }
-
-  // Error handling for login
+  // Error handling for login - uses centralized error handling but keeps UI-specific code here
   Future<void> _handleLoginError(dynamic e, StackTrace s) async {
-    String errorMessage = '';
-    if (e is BusinessNotFoundException) {
-      errorMessage = e.errMsg();
-    } else if (e is PinError) {
-      errorMessage = e.errMsg();
+    // Use the centralized error handling from AuthMixin
+    // Navigation is now handled directly in the auth_mixin.dart
+    final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
+
+    // Extract the error information
+    final String errorMessage = errorDetails['errorMessage'];
+
+    // Only show error message if we have one - navigation is handled in auth_mixin
+    if (errorMessage.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           width: 250,
@@ -114,25 +114,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
           content: Text(errorMessage, style: primaryTextStyle),
         ),
       );
-      return;
-    } else if (e is LoginChoicesException) {
-      errorMessage = e.errMsg();
-      locator<RouterService>().navigateTo(LoginChoicesRoute());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          width: 250,
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-          content: Text(errorMessage, style: primaryTextStyle),
-        ),
-      );
-      return;
-    } else {
-      errorMessage = e.toString();
-      await Sentry.captureException(e, stackTrace: s);
     }
-    print(s);
   }
 
   // Toggles the PIN visibility

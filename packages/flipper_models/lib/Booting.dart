@@ -205,7 +205,7 @@ mixin Booting {
     }
   }
 
-  Future<void> handleLoginError(http.Response response) async {
+  Future<void> handleLoginErrorInBooting(http.Response response) async {
     if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
@@ -228,7 +228,8 @@ mixin Booting {
 
   Future<void> configureTheBox(String userPhone, IUser user) async {
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
-    await ProxyService.box.writeString(key: 'bearerToken', value: user.token);
+    await ProxyService.box
+        .writeString(key: 'bearerToken', value: user.token ?? "");
 
     /// FIXME: should set branchId and businessId by looking into what is set to be default
     /// when we enable for a user to login on multiple
