@@ -27,12 +27,6 @@ Future<Device> _$DeviceFromSupabase(
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     defaultApp:
         data['default_app'] == null ? null : data['default_app'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
     deletedAt:
         data['deleted_at'] == null
             ? null
@@ -58,7 +52,6 @@ Future<Map<String, dynamic>> _$DeviceToSupabase(
     'business_id': instance.businessId,
     'user_id': instance.userId,
     'default_app': instance.defaultApp,
-    'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
@@ -89,12 +82,6 @@ Future<Device> _$DeviceFromSqlite(
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     defaultApp:
         data['default_app'] == null ? null : data['default_app'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
     deletedAt:
         data['deleted_at'] == null
             ? null
@@ -123,7 +110,6 @@ Future<Map<String, dynamic>> _$DeviceToSqlite(
     'business_id': instance.businessId,
     'user_id': instance.userId,
     'default_app': instance.defaultApp,
-    'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
 }
@@ -177,10 +163,6 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
     'defaultApp': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'default_app',
-    ),
-    'lastTouched': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
     ),
     'deletedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -258,12 +240,6 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
       columnName: 'default_app',
       iterable: false,
       type: String,
-    ),
-    'lastTouched': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
     ),
     'deletedAt': const RuntimeSqliteColumnDefinition(
       association: false,

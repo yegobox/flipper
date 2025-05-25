@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -8,7 +9,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pubnub/pubnub.dart';
+import 'package:pubnub/pubnub.dart' as nub;
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -43,6 +44,10 @@ class ScannViewState extends ConsumerState<ScannView>
   late AnimationController _animationController;
   late Animation<double> _animation;
   ScanStatus _scanStatus = ScanStatus.idle;
+
+  // For managing PubNub subscriptions and timers
+  nub.Subscription? _loginResponseSubscription;
+  Timer? _loginTimeoutTimer;
 
   @override
   void initState() {
@@ -696,52 +701,71 @@ class ScannViewState extends ConsumerState<ScannView>
       int businessId = ProxyService.box.getBusinessId()!;
       int branchId = ProxyService.box.getBranchId()!;
       String phone = ProxyService.box.getUserPhone()!;
-      String uid = ProxyService.box.uid();
       String defaultApp = ProxyService.box.getDefaultApp();
       String linkingCode = randomNumber().toString();
+
+      // Create a unique response channel for this login attempt
+      String responseChannel = 'login-response-${userId}-${linkingCode}';
+
+      // Start listening for response on the response channel
+      _listenForLoginResponse(responseChannel);
 
       // Update UI to show we're processing
       setState(() {
         _scanStatus = ScanStatus.processing;
       });
+      // get the pin
+      final pin = await ProxyService.strategy
+          .getPinLocal(userId: userId, alwaysHydrate: false);
 
-      PublishResult result = await ProxyService.event.publish(loginDetails: {
+      nub.PublishResult result =
+          await ProxyService.event.publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
         'branchId': branchId,
         'phone': phone,
         'defaultApp': defaultApp,
-        'uid': uid,
+        'tokenUid': pin?.tokenUid,
         'deviceName': Platform.operatingSystem,
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': linkingCode,
+        'responseChannel': responseChannel, // Add response channel
       });
 
-      if (!result.isError) {
-        // Update UI to show success
-        setState(() {
-          _scanStatus = ScanStatus.success;
-        });
-
-        HapticFeedback.lightImpact();
-        showToast(context, 'Login success');
-
-        // Wait a moment to show success state before closing
-        await Future.delayed(Duration(milliseconds: 1500));
-        if (mounted) _routerService.back();
-      } else {
-        // Update UI to show failure
+      if (result.isError) {
+        // Only handle publish error here, success will be handled by response
         setState(() {
           _scanStatus = ScanStatus.failed;
         });
 
-        showToast(context, 'Login failed');
+        showToast(context, 'Failed to send login request');
 
         // Wait a moment to show failure state before closing
         await Future.delayed(Duration(milliseconds: 1500));
         if (mounted) _routerService.back();
       }
+
+      // Set up a timeout timer that will be canceled if we get a response
+      _loginTimeoutTimer = Timer(Duration(seconds: 15), () {
+        // Only proceed if widget is still mounted and we're still processing
+        if (mounted && _scanStatus == ScanStatus.processing) {
+          setState(() {
+            _scanStatus = ScanStatus.failed;
+          });
+
+          showToast(context, 'Login timed out. Please try again.');
+
+          // Wait a moment to show failure state before closing
+          Timer(Duration(milliseconds: 1500), () {
+            if (mounted) _routerService.back();
+          });
+
+          // Clean up subscription since we're done
+          _loginResponseSubscription?.unsubscribe();
+          _loginResponseSubscription = null;
+        }
+      });
     } catch (e) {
       // Handle any exceptions
       setState(() {
@@ -753,6 +777,102 @@ class ScannViewState extends ConsumerState<ScannView>
       // Wait a moment to show failure state before closing
       await Future.delayed(Duration(milliseconds: 1500));
       if (mounted) _routerService.back();
+    }
+  }
+
+  void _listenForLoginResponse(String responseChannel) {
+    try {
+      // Use the connect method to get the PubNub instance
+      nub.PubNub pubNub = ProxyService.event.connect();
+
+      // Subscribe to the response channel
+      _loginResponseSubscription =
+          pubNub.subscribe(channels: {responseChannel});
+
+      // Listen for messages on this channel
+      _loginResponseSubscription!.messages.listen((envelope) {
+        // Parse the response
+        Map<String, dynamic> response = envelope.payload;
+
+        if (response.containsKey('status')) {
+          if (response['status'] == 'success') {
+            // Update UI to show success
+            setState(() {
+              _scanStatus = ScanStatus.success;
+            });
+
+            HapticFeedback.lightImpact();
+            showToast(context, 'Login successful');
+
+            // Wait a moment to show success state before closing
+            Future.delayed(Duration(milliseconds: 1500)).then((_) {
+              if (mounted) _routerService.back();
+            });
+          } else if (response['status'] == 'choices_needed') {
+            // This is not a failure - it's part of the normal flow when a user
+            // needs to select a business/branch
+            setState(() {
+              _scanStatus = ScanStatus.success;
+            });
+
+            HapticFeedback.lightImpact();
+            showToast(context, 'Login successful - select your business');
+
+            // Wait a moment to show success state before closing
+            Future.delayed(Duration(milliseconds: 1500)).then((_) {
+              if (mounted) _routerService.back();
+            });
+          } else {
+            // Update UI to show failure
+            setState(() {
+              _scanStatus = ScanStatus.failed;
+            });
+
+            String errorMessage = response.containsKey('message')
+                ? response['message']
+                : 'Login failed';
+
+            showToast(context, errorMessage);
+
+            // Wait a moment to show failure state before closing
+            Future.delayed(Duration(milliseconds: 1500)).then((_) {
+              if (mounted) _routerService.back();
+            });
+          }
+
+          // Cancel the timeout timer since we got a response
+          _loginTimeoutTimer?.cancel();
+          _loginTimeoutTimer = null;
+
+          // Unsubscribe after receiving response
+          _loginResponseSubscription?.unsubscribe();
+          _loginResponseSubscription = null;
+        }
+      }, onError: (error) {
+        // Handle subscription error
+        setState(() {
+          _scanStatus = ScanStatus.failed;
+        });
+
+        showToast(context, 'Connection error: $error');
+
+        // Wait a moment to show failure state before closing
+        Future.delayed(Duration(milliseconds: 1500)).then((_) {
+          if (mounted) _routerService.back();
+        });
+      });
+    } catch (e) {
+      // Handle any exceptions
+      setState(() {
+        _scanStatus = ScanStatus.failed;
+      });
+
+      showToast(context, 'Subscription error: $e');
+
+      // Wait a moment to show failure state before closing
+      Future.delayed(Duration(milliseconds: 1500)).then((_) {
+        if (mounted) _routerService.back();
+      });
     }
   }
 
@@ -816,6 +936,16 @@ class ScannViewState extends ConsumerState<ScannView>
 
   @override
   void dispose() {
+    // Cancel any active PubNub subscriptions
+    if (_loginResponseSubscription != null) {
+      _loginResponseSubscription!.unsubscribe();
+      _loginResponseSubscription = null;
+    }
+
+    // Cancel any active timers
+    _loginTimeoutTimer?.cancel();
+    _loginTimeoutTimer = null;
+
     _animationController.dispose();
     controller?.dispose();
     super.dispose();
