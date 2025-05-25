@@ -21,6 +21,7 @@ on:
       - 'feature-*'
       - 'hotfix-*'
       - 'bugfix-*'
+      - main
       - dev
 
 env:
