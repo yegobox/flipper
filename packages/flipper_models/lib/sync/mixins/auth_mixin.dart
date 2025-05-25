@@ -21,7 +21,6 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -284,36 +283,7 @@ mixin AuthMixin implements AuthInterface {
     if (currentUser != null &&
         existingToken != null &&
         existingUserId != null &&
-        existingUserId.toString() == pin.userId.toString() &&
-        !freshUser) {
-      talker.debug("Using existing Firebase authentication");
-
-      // Create a user object from existing data
-      final user = IUser(
-        token: ProxyService.box.getBearerToken(),
-        id: existingUserId,
-        uid: currentUser.uid,
-        phoneNumber: phoneNumber,
-        tenants: [ITenant(name: pin.ownerName)],
-      );
-
-      return user;
-    }
-
-    // Otherwise, proceed with normal authentication flow
-
-    if (shouldEnableOfflineLogin) {
-      offlineLogin = true;
-      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-    }
-
-    // If we have a valid token and the user ID matches the pin's user ID,
-    // we can skip the sendLoginRequest call
-    if (currentUser != null &&
-        existingToken != null &&
-        existingUserId != null &&
-        existingUserId.toString() == pin.userId.toString() &&
-        !freshUser) {
+        existingUserId.toString() == pin.userId.toString()) {
       talker.debug("Using existing Firebase authentication");
 
       // Create a user object from existing data
