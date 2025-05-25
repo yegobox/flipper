@@ -44,4 +44,6 @@ abstract class AuthInterface {
 
   Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
       {String? responseChannel});
+
+  Future<void> supabaseAuth();
 }

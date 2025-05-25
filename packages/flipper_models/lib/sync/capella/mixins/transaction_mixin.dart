@@ -186,4 +186,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // TODO: implement migrateToNewDateTime
     throw UnimplementedError();
   }
+
+  @override
+  Future<ITransaction?> pendingTransactionFuture(
+      {int? branchId,
+      required String transactionType,
+      required bool isExpense}) {
+    throw UnimplementedError(
+        'pendingTransactionFuture needs to be implemented for Capella');
+  }
 }
