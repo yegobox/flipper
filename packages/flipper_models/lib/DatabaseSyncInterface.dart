@@ -23,12 +23,13 @@ import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
+import 'package:flipper_models/sync/interfaces/log_interface.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // import 'package:flipper_services/database_provider.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -65,7 +66,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
         EbmInterface,
         AssetInterface,
         CustomerInterface,
-        CategoryInterface {
+        CategoryInterface,
+        LogInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -386,7 +388,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required int mainBranchId,
       required FinanceProvider financeOption});
 
-  Future<List<ITenant>> signup(
+  Future<Business?> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});
   FutureOr<Business?> getBusiness({int? businessId});
   Future<Business?> defaultBusiness();
@@ -592,6 +594,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
   /// Upserts a CustomerPayment. If a payment with the same ID already exists,
   /// it will be updated, otherwise a new payment will be created.
   Future<CustomerPayments> upsertPayment(CustomerPayments payment);
+
+  Future<CustomerPayments?> getPayment({required String paymentReference});
+  Future<Credit?> getCredit({required String branchId});
+  Stream<Credit?> credit({required String branchId});
+  Future<void> updateCredit(Credit credit);
 
   /// Fetches a CustomerPayment by its ID.
   Future<CustomerPayments?> getPaymentById(String id);

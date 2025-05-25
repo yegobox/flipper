@@ -25,7 +25,7 @@ Future<List<TransactionItem>> transactionItems(Ref ref,
 Stream<List<TransactionItem>> transactionItemsStream(
   Ref ref, {
   String? transactionId,
-  int? branchId,
+  String? branchId,
   String? requestId,
   bool fetchRemote = false,
   bool doneWithTransaction = false,

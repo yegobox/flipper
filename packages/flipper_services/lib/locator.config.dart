@@ -91,7 +91,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i843.HttpClientInterface>(() => servicesModule.http());
     gh.lazySingleton<_i918.PayStackServiceInterface>(
         () => servicesModule.payStack());
-    gh.lazySingleton<_i32.RealmViaHttp>(() => servicesModule.realmHttp());
+    gh.lazySingleton<_i32.HttpApiInterface>(() => servicesModule.httpApi());
     gh.lazySingleton<_i172.Remote>(() => servicesModule.remote());
     gh.lazySingleton<_i107.SentryServiceInterface>(
         () => servicesModule.sentry());

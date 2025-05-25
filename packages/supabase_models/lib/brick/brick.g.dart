@@ -58,6 +58,7 @@ import '../brick/models/country.model.dart';
 import '../brick/models/BranchPaymentIntegration.model.dart';
 import '../brick/models/transactionItem.model.dart';
 import '../brick/models/permission.model.dart';
+import '../brick/models/credit.model.dart';
 import '../brick/models/variant.model.dart';
 import '../brick/models/purchase.model.dart';
 import '../brick/models/device.model.dart';
@@ -71,6 +72,7 @@ import '../brick/models/inventory_request.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
+import '../brick/models/log.model.dart';
 import '../brick/models/report.model.dart';
 import '../brick/models/appNotification.model.dart';
 import '../brick/models/discount.model.dart';
@@ -110,6 +112,7 @@ part 'adapters/country_adapter.g.dart';
 part 'adapters/branch_payment_integration_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
 part 'adapters/l_permission_adapter.g.dart';
+part 'adapters/credit_adapter.g.dart';
 part 'adapters/variant_adapter.g.dart';
 part 'adapters/purchase_adapter.g.dart';
 part 'adapters/device_adapter.g.dart';
@@ -123,6 +126,7 @@ part 'adapters/inventory_request_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
 part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
+part 'adapters/log_adapter.g.dart';
 part 'adapters/report_adapter.g.dart';
 part 'adapters/app_notification_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
@@ -164,6 +168,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   BranchPaymentIntegration: BranchPaymentIntegrationAdapter(),
   TransactionItem: TransactionItemAdapter(),
   LPermission: LPermissionAdapter(),
+  Credit: CreditAdapter(),
   Variant: VariantAdapter(),
   Purchase: PurchaseAdapter(),
   Device: DeviceAdapter(),
@@ -177,6 +182,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Pin: PinAdapter(),
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
+  Log: LogAdapter(),
   Report: ReportAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
@@ -220,6 +226,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   BranchPaymentIntegration: BranchPaymentIntegrationAdapter(),
   TransactionItem: TransactionItemAdapter(),
   LPermission: LPermissionAdapter(),
+  Credit: CreditAdapter(),
   Variant: VariantAdapter(),
   Purchase: PurchaseAdapter(),
   Device: DeviceAdapter(),
@@ -233,6 +240,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Pin: PinAdapter(),
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
+  Log: LogAdapter(),
   Report: ReportAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),

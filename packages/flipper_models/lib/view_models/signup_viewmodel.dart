@@ -5,7 +5,6 @@ import 'dart:developer';
 // import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -82,14 +81,14 @@ class SignupViewModel extends ReactiveViewModel {
 
       String? referralCode = getReferralCode();
 
-      List<ITenant> tenants = await registerTenant(referralCode);
+      Business? business = await registerTenant(referralCode);
 
-      if (tenants.isNotEmpty) {
-        await postRegistrationTasks(tenants);
+      if (business != null) {
+        await postRegistrationTasks(business);
       }
     } catch (e, stackTrace) {
       stopRegistering();
-      log(e.toString());
+      talker.error(stackTrace.toString());
       throw Exception(stackTrace);
     }
   }
@@ -112,7 +111,7 @@ class SignupViewModel extends ReactiveViewModel {
     return ProxyService.box.readString(key: 'referralCode');
   }
 
-  Future<List<ITenant>> registerTenant(String? referralCode) async {
+  Future<Business?> registerTenant(String? referralCode) async {
     try {
       int userId = ProxyService.box.getUserId()!;
       String phoneNumber = ProxyService.box.getUserPhone()!;
@@ -133,8 +132,9 @@ class SignupViewModel extends ReactiveViewModel {
         'country': kCountry
       };
       talker.info(business.toString());
-      return await ProxyService.strategy
+      final bus = await ProxyService.strategy
           .signup(business: business, flipperHttpClient: ProxyService.http);
+      return bus;
     } catch (e, s) {
       talker.error(s);
       talker.error(e);
@@ -142,9 +142,9 @@ class SignupViewModel extends ReactiveViewModel {
     }
   }
 
-  Future<void> postRegistrationTasks(List<ITenant> tenants) async {
-    await saveBusinessId(tenants);
-    Business? business = await getBusiness(tenants);
+  Future<void> postRegistrationTasks(Business busine) async {
+    await saveBusinessId(busine);
+    Business? business = await getBusiness(busine.serverId);
     List<Branch> branches = await getBranches(business!);
     await saveBranchId(branches);
 
@@ -158,19 +158,18 @@ class SignupViewModel extends ReactiveViewModel {
     LoginInfo().isLoggedIn = true;
     LoginInfo().redirecting = false;
     LoginInfo().needSignUp = false;
-    _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
+    _routerService.navigateTo(StartUpViewRoute());
   }
 
-  Future<void> saveBusinessId(List<ITenant> tenants) {
+  Future<void> saveBusinessId(Business business) {
     return ProxyService.box.writeInt(
       key: 'businessId',
-      value: tenants.first.businesses!.first.serverId,
+      value: business.serverId,
     );
   }
 
-  Future<Business?> getBusiness(List<ITenant> tenants) async {
-    return await ProxyService.strategy
-        .getBusiness(businessId: tenants.first.businesses!.first.serverId);
+  Future<Business?> getBusiness(int businessId) async {
+    return await ProxyService.strategy.getBusiness(businessId: businessId);
   }
 
   Future<List<Branch>> getBranches(Business business) async {

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/refresh.dart';
@@ -111,6 +112,8 @@ class _RowItemState extends ConsumerState<RowItem>
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
   Future<String?>? _cachedLocalPathFuture;
+  // Cache for asset path lookup to prevent unnecessary reloading
+  Future<String?>? _cachedAssetPathFuture;
   String? _imageUrl;
   int? _branchId;
   final _lock = Lock();
@@ -132,6 +135,11 @@ class _RowItemState extends ConsumerState<RowItem>
         _cachedLocalPathFuture = _lock
             .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
       }
+
+      // Initialize the asset path cache regardless of remote/local mode
+      // This will be used as a fallback in both cases
+      _cachedAssetPathFuture =
+          _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
     }
   }
 
@@ -151,6 +159,10 @@ class _RowItemState extends ConsumerState<RowItem>
           _cachedLocalPathFuture = _lock
               .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
         }
+
+        // Update the asset path cache when the image URL changes
+        _cachedAssetPathFuture =
+            _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
       }
     }
   }
@@ -296,60 +308,83 @@ class _RowItemState extends ConsumerState<RowItem>
 
   Widget _buildListItemContent(
       bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Product Image - Smaller fixed size for list view
-        SizedBox(
-          width: 70,
-          height: 70,
-          child: _buildProductImageSection(isSelected),
-        ),
+    return LayoutBuilder(builder: (context, constraints) {
+      // Calculate available width for product info
+      final double maxWidth = constraints.maxWidth;
+      final double imageWidth = 70; // Fixed image width
+      final double spacing = 8; // Reduced spacing
+      final double availableForInfo = maxWidth - imageWidth - spacing;
 
-        const SizedBox(width: 12),
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Product Image - Fixed size for list view
+          SizedBox(
+            width: imageWidth,
+            height: 70,
+            child: _buildProductImageSection(isSelected),
+          ),
 
-        // Product Info - Expanded to take remaining space
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Product name
-              Text(
-                widget.productName.isNotEmpty
-                    ? widget.productName
-                    : "Unnamed Product",
-                style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+          SizedBox(width: spacing),
 
-              const SizedBox(height: 4),
-
-              // Variant name (if different from product name)
-              if (widget.variantName != widget.productName &&
-                  widget.variantName.isNotEmpty)
+          // Product Info - Constrained width
+          Container(
+            width: availableForInfo,
+            constraints: BoxConstraints(maxHeight: 70), // Match image height
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Product name
                 Text(
-                  widget.variantName,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
+                  widget.productName.isNotEmpty
+                      ? widget.productName
+                      : "Unnamed Product",
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    fontSize: 13, // Smaller font size
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 2), // Reduced spacing
 
-              // Price and stock info
-              _buildPriceAndStockInfo(textTheme),
-            ],
+                // Variant name (if different from product name)
+                if (widget.variantName != widget.productName &&
+                    widget.variantName.isNotEmpty)
+                  Text(
+                    widget.variantName,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 11, // Smaller font size
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                const SizedBox(height: 4), // Reduced spacing
+
+                // Price tag - simplified to avoid overflow
+                if (widget.variant?.retailPrice != null &&
+                    widget.variant?.retailPrice != 0)
+                  Text(
+                    (widget.variant?.retailPrice ?? 0).toRwf(),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildProductImageSection(bool isSelected) {
@@ -638,6 +673,12 @@ class _RowItemState extends ConsumerState<RowItem>
       return _buildImageErrorPlaceholder();
     }
 
+    // Ensure asset path future is initialized
+    if (_cachedAssetPathFuture == null && widget.imageUrl != null) {
+      _cachedAssetPathFuture =
+          _lock.synchronized(() => _tryLoadFromAssetPath(widget.imageUrl!));
+    }
+
     return (widget.forceRemoteUrl)
         ? FutureBuilder<String>(
             key: ValueKey('remote-${widget.variant?.id}-${widget.imageUrl}'),
@@ -646,7 +687,30 @@ class _RowItemState extends ConsumerState<RowItem>
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return _buildImageLoadingIndicator();
               } else if (snapshot.hasError || !snapshot.hasData) {
-                return _buildImageErrorPlaceholder();
+                // Try to load from local storage if remote fails
+                return FutureBuilder<String?>(
+                  key: ValueKey('fallback-local-${widget.imageUrl}'),
+                  future: _cachedAssetPathFuture!,
+                  builder: (context, assetSnapshot) {
+                    if (assetSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return _buildImageLoadingIndicator();
+                    } else if (assetSnapshot.hasData &&
+                        assetSnapshot.data != null) {
+                      return Image.file(
+                        File(assetSnapshot.data!),
+                        key: ValueKey('file-${assetSnapshot.data}'),
+                        fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 300,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImageErrorPlaceholder(),
+                      );
+                    } else {
+                      return _buildImageErrorPlaceholder();
+                    }
+                  },
+                );
               } else {
                 return CachedNetworkImage(
                   key: ValueKey('cached-${snapshot.data}'),
@@ -655,8 +719,32 @@ class _RowItemState extends ConsumerState<RowItem>
                   memCacheWidth: 300,
                   memCacheHeight: 300,
                   placeholder: (context, url) => _buildImageLoadingIndicator(),
-                  errorWidget: (context, url, error) =>
-                      _buildImageErrorPlaceholder(),
+                  errorWidget: (context, url, error) {
+                    // If network image fails, try local storage
+                    return FutureBuilder<String?>(
+                      key: ValueKey('error-local-${widget.imageUrl}'),
+                      future: _cachedAssetPathFuture!,
+                      builder: (context, assetSnapshot) {
+                        if (assetSnapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return _buildImageLoadingIndicator();
+                        } else if (assetSnapshot.hasData &&
+                            assetSnapshot.data != null) {
+                          return Image.file(
+                            File(assetSnapshot.data!),
+                            key: ValueKey('file-${assetSnapshot.data}'),
+                            fit: BoxFit.cover,
+                            cacheWidth: 300,
+                            cacheHeight: 300,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildImageErrorPlaceholder(),
+                          );
+                        } else {
+                          return _buildImageErrorPlaceholder();
+                        }
+                      },
+                    );
+                  },
                 );
               }
             },
@@ -678,7 +766,30 @@ class _RowItemState extends ConsumerState<RowItem>
                       _buildImageErrorPlaceholder(),
                 );
               } else {
-                return _buildImageErrorPlaceholder();
+                // Try to load from asset's local path in database
+                return FutureBuilder<String?>(
+                  key: ValueKey('db-local-${widget.imageUrl}'),
+                  future: _cachedAssetPathFuture!,
+                  builder: (context, assetSnapshot) {
+                    if (assetSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return _buildImageLoadingIndicator();
+                    } else if (assetSnapshot.hasData &&
+                        assetSnapshot.data != null) {
+                      return Image.file(
+                        File(assetSnapshot.data!),
+                        key: ValueKey('file-${assetSnapshot.data}'),
+                        fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        cacheHeight: 300,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildImageErrorPlaceholder(),
+                      );
+                    } else {
+                      return _buildImageErrorPlaceholder();
+                    }
+                  },
+                );
               }
             },
           );
@@ -856,6 +967,28 @@ class _RowItemState extends ConsumerState<RowItem>
     if (await file.exists()) {
       return imageFilePath;
     } else {
+      return null;
+    }
+  }
+
+  // Try to load an image from the asset's localPath in the database
+  Future<String?> _tryLoadFromAssetPath(String assetName) async {
+    try {
+      // Look up the asset in the database
+      final asset = await ProxyService.strategy.getAsset(assetName: assetName);
+
+      // If the asset exists and has a local path, return it
+      if (asset != null &&
+          asset.localPath != null &&
+          asset.localPath!.isNotEmpty) {
+        final file = File(asset.localPath!);
+        if (await file.exists()) {
+          return asset.localPath!;
+        }
+      }
+      return null;
+    } catch (e) {
+      talker.error('Error loading asset from local path: $e');
       return null;
     }
   }

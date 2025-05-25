@@ -399,4 +399,22 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement pmtTyCd
     throw UnimplementedError();
   }
+
+  @override
+  double? getCashReceived() {
+    // TODO: implement getCashReceived
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> writeDouble({required String key, required double value}) {
+    // TODO: implement writeDouble
+    throw UnimplementedError();
+  }
+
+  @override
+  String? getReceiptFileName() {
+    // TODO: implement getReceiptFileName
+    throw UnimplementedError();
+  }
 }

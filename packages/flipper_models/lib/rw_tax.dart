@@ -19,6 +19,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
@@ -235,6 +236,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       variant.rsdQty =
           double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
       talker.warning("RSD QTY: ${variant.toJson()}");
+      // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
+      if (variant.itemTyCd == '3') {
+        variant.rsdQty = 0;
+      }
       Response response = await sendPostRequest(url, variant.toJson());
 
       final data = RwApiResponse.fromJson(
@@ -409,7 +414,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String URI,
   }) async {
     // Get business details
-    Business? business = await ProxyService.strategy.getBusiness();
+    Business? business = await ProxyService.strategy.getBusiness(businessId: ProxyService.box.getBusinessId()!);
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
@@ -477,7 +482,19 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
-          throw Exception(data.resultMsg);
+          // Use GlobalErrorHandler to log the error
+          final errorMessage = data.resultMsg + " ${data.resultCd}";
+          final exception = Exception(errorMessage);
+          GlobalErrorHandler.logError(
+            exception,
+            type: "tax_error",
+            context: {
+              'resultCode': data.resultCd,
+              'businessId': ProxyService.box.getBusinessId(),
+              'timestamp': DateTime.now().toIso8601String(),
+            },
+          );
+          throw exception;
         }
 
         // Update transaction and item statuses

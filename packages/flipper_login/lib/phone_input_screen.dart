@@ -14,8 +14,10 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'internal/responsive_page.dart' as b;
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
-
+import 'package:flipper_login/LoadingDialog.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class PhoneInputScreen extends StatefulWidget {
@@ -77,6 +79,9 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   // For OTP expiration handling
   bool _otpExpired = false;
 
+  // Dialog management
+  bool _isAuthDialogShowing = false;
+
   @override
   void initState() {
     super.initState();
@@ -91,6 +96,31 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         CurvedAnimation(parent: _animationController, curve: Curves.easeIn));
   }
 
+  // Show authentication loading dialog
+  void _showAuthenticationDialog() {
+    // Don't show dialog if already showing, not mounted, or still in verification UI
+    if (_isAuthDialogShowing || !mounted || _showVerificationUI) return;
+
+    _isAuthDialogShowing = true;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const LoadingDialog(message: 'Finalizing authentication...');
+      },
+    ).then((_) {
+      _isAuthDialogShowing = false;
+    });
+  }
+
+  // Hide authentication loading dialog
+  void _hideAuthenticationDialog() {
+    if (_isAuthDialogShowing && mounted) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _isAuthDialogShowing = false;
+    }
+  }
+
   @override
   void dispose() {
     _phoneController.dispose();
@@ -99,28 +129,37 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   }
 
   void _startResendTimer() {
+    // Initialize timer values
     setState(() {
       _timerSeconds = 60;
       _canResend = false;
       _otpExpired = false;
     });
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted && _timerSeconds > 0) {
+    // Create a recurring timer function that doesn't rely on recursion
+    void decrementTimer() {
+      if (!mounted) return; // Safety check for widget still mounted
+
+      if (_timerSeconds > 0) {
         setState(() {
           _timerSeconds--;
         });
-        if (_timerSeconds > 0) {
-          _startResendTimer();
-        } else {
+
+        // Schedule the next decrement
+        Future.delayed(const Duration(seconds: 1), decrementTimer);
+      } else {
+        // Timer reached zero
+        if (mounted) {
           setState(() {
             _canResend = true;
-            // Mark OTP as expired after timer ends
-            _otpExpired = true;
+            _otpExpired = true; // Mark OTP as expired after timer ends
           });
         }
       }
-    });
+    }
+
+    // Start the timer by scheduling the first decrement
+    Future.delayed(const Duration(seconds: 1), decrementTimer);
   }
 
   Future<void> _verifyPhoneNumber(
@@ -269,6 +308,8 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         smsCode: _smsCode,
       );
 
+      // Process the credential without showing the dialog immediately
+      // The dialog will only show after successful verification
       await _signInWithCredential(credential);
     } catch (e) {
       setState(() => _isLoading = false);
@@ -291,12 +332,19 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   Future<void> _signInWithCredential(PhoneAuthCredential credential) async {
     try {
+      // First attempt to sign in without showing the dialog
+      // This allows auto-verification to complete without blocking the UI
+      setState(() => _isLoading = true);
+
       UserCredential user =
           await FirebaseAuth.instance.signInWithCredential(credential);
-      setState(() => _isLoading = false);
 
-      // Dismiss Loading Dialog
+      // Only show the loading dialog after successful credential verification
+      // This prevents blocking the UI during OTP entry
       if (user.user != null) {
+        // Now it's safe to show the authentication dialog for subsequent steps
+        _showAuthenticationDialog();
+
         // Track login event with PosthogService
         final props = <String, Object>{
           'source': 'phone_input_screen',
@@ -305,15 +353,16 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
             'phone': user.user!.phoneNumber ?? user.user!.email!,
         };
         PosthogService.instance.capture('login_success', properties: props);
-        // Show success and navigate
-        if (mounted) {}
+
+        // The FirebaseAuth listener in AuthWithMultipleProviders will handle the rest of the flow
+        // We don't need to do anything else here as the auth state change will trigger the next steps
       }
+
+      setState(() => _isLoading = false);
     } catch (e) {
       // Dismiss Loading Dialog in case of error
-      if (Navigator.canPop(context)) {
-        // Add this check!
-        Navigator.of(context, rootNavigator: true).pop();
-      }
+      _hideAuthenticationDialog();
+
       setState(() => _isLoading = false);
       _showErrorSnackBar(context, 'Authentication failed: ${e.toString()}');
     }
@@ -347,19 +396,22 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
     firebase.FirebaseAuth.instance.authStateChanges().listen((user) async {
       /// bellow steps is done in @login file so doing it here is redundant
-      // if (user == null) return;
+      if (user == null) return;
 
-      // final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
-      //     !await ProxyService.box.authComplete();
+      final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
+          !await ProxyService.box.authComplete();
 
-      // if (!shouldProcessLogin) return;
+      if (!shouldProcessLogin) return;
 
-      // try {
-      //   final userPin = await model.processUserLogin(user);
-      //   await model.completeLoginProcess(userPin, model);
-      // } catch (e, s) {
-      //   model.handleLoginError(e, s);
-      // }
+      try {
+        final loginData = await model.processUserLogin(user);
+        final Pin userPin = loginData['pin'];
+        final IUser userData = loginData['user'];
+
+        await model.completeLoginProcess(userPin, model, user: userData);
+      } catch (e, s) {
+        model.handleLoginError(e, s);
+      }
     });
   }
 

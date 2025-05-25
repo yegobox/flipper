@@ -29,6 +29,7 @@ import 'package:talker/src/talker.dart';
 import '../mixins/asset_mixin.dart';
 import '../mixins/collection_mixin.dart';
 import '../mixins/purchase_mixin.dart';
+import '../mixins/log_mixin.dart';
 
 class CoreSync extends CoreSyncBase
     with
@@ -57,7 +58,8 @@ class CoreSync extends CoreSyncBase
         EbmMixin,
         GetterOperationsMixin,
         PurchaseMixin,
-        CategoryMixin {
+        CategoryMixin,
+        LogMixin {
   CoreSync() : super(AppSecrets.apihubProd);
 
   final Talker _talker = Talker();

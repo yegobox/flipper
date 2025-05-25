@@ -160,4 +160,13 @@ class CapellaSync extends CapellaSyncBase
     // TODO: implement tenantsFromOnline
     throw UnimplementedError();
   }
+
+  @override
+  Stream<ITransaction> pendingTransaction(
+      {int? branchId,
+      required String transactionType,
+      required bool isExpense}) {
+    // TODO: implement pendingTransaction
+    throw UnimplementedError();
+  }
 }

@@ -25,6 +25,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'businessId',
     'userId',
     'userPhone',
+    'getCashReceived',
+    'getReceiptFileName',
     'needLinkPhoneNumber',
     'getServerUrl',
     'currentOrderId',
@@ -449,7 +451,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   int tin() {
-    return (_cache['tin'] as int?) ?? 0;
+    return (_cache['tin'] as int?) ?? 999909695;
   }
 
   @override
@@ -739,5 +741,28 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String pmtTyCd() {
     return _cache['pmtTyCd'] as String? ?? "01";
+  }
+
+  @override
+  double? getCashReceived() {
+    return _cache['getCashReceived'] as double? ?? 0.0;
+  }
+
+  @override
+  Future<void> writeDouble({required String key, required double value}) async {
+    if (!_isKeyAllowed(key.toString())) return;
+    _cache[key.toString()] = value;
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+      }
+    } else {
+      await _savePreferences();
+    }
+  }
+
+  @override
+  String? getReceiptFileName() {
+    return _cache['getReceiptFileName'] as String?;
   }
 }

@@ -18,6 +18,10 @@ abstract class TransactionInterface {
     bool includePending = false,
   });
 
+  Stream<ITransaction> pendingTransaction({
+    int? branchId, required String transactionType, required bool isExpense,
+  });
+
   Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,

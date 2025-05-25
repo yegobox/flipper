@@ -21,6 +21,7 @@ on:
       - 'feature-*'
       - 'hotfix-*'
       - 'bugfix-*'
+      - main
       - dev
 
 env:
@@ -49,7 +50,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.3"
+          flutter-version: "3.32.0"
           channel: "stable"
       - run: |
           git submodule update --init
@@ -95,7 +96,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.3" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: "3.32.0" # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -167,7 +168,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.3"
+          flutter-version: "3.32.0"
           channel: stable
       - run: flutter doctor -v
 
@@ -217,7 +218,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.3"
+          flutter-version: "3.32.0"
           channel: stable
           cache: true
 
@@ -266,7 +267,7 @@ jobs:
 
   build-and-release-windows-prod:
     name: "Build windows app-store"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-2022
     needs: [unit-testing, integration-testing-windows,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
@@ -279,7 +280,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.3"
+          flutter-version: "3.32.0"
           channel: stable
           cache: true
 
@@ -341,7 +342,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.3" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.32.0" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 

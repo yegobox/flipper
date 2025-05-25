@@ -12,9 +12,9 @@ class CustomerPayments extends OfflineFirstWithSupabaseModel {
   final String id;
   String? customerId;
   final String phoneNumber;
-  final String paymentStatus;
+  String paymentStatus;
   final String transactionId;
-   double amountPayable;
+  double amountPayable;
   CustomerPayments(
       {String? id,
       this.customerId,

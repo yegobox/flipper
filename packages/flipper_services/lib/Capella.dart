@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'dart:typed_data';
@@ -15,7 +16,8 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
+import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -297,13 +299,6 @@ class Capella extends AiStrategyImpl
     // } catch (e) {
     //   rethrow;
     // }
-  }
-
-  @override
-  Future<List<ITenant>> signup(
-      {required Map business, required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement signup
-    throw UnimplementedError();
   }
 
   @override
@@ -1417,7 +1412,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Business>> businesses({required int userId}) {
+  Future<List<brick.Business>> businesses(
+      {required int userId, bool fetchOnline = false}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }
@@ -1465,7 +1461,7 @@ class Capella extends AiStrategyImpl
   @override
   Stream<List<brick.TransactionItem>> transactionItemsStreams(
       {String? transactionId,
-      int? branchId,
+      String? branchId,
       DateTime? startDate,
       String? branchIdString,
       DateTime? endDate,
