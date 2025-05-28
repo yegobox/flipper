@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
+import 'package:flipper_dashboard/notice.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
@@ -23,7 +24,10 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flipper_models/providers/notice_provider.dart';
 import 'dart:async';
+
+import 'package:supabase_models/brick/models/notice.model.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({
@@ -128,6 +132,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   Widget build(BuildContext context) {
     final stringValue = ref.watch(stringProvider);
     final orders = ref.watch(stockRequestsProvider((filter: stringValue)));
+    final notice = ref.watch(noticesProvider);
 
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
@@ -198,6 +203,7 @@ class SearchFieldState extends ConsumerState<SearchField>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   toggleSearch(),
+                  notices(notice: notice.value ?? []),
                   // if (deviceType == 'Phone' || deviceType == 'Phablet')
                   //   calc(model: model),
                   //if (deviceType != 'Phone' && deviceType != 'Phablet')
@@ -252,6 +258,23 @@ class SearchFieldState extends ConsumerState<SearchField>
       icon: ref.watch(toggleProvider)
           ? Icon(FluentIcons.search_16_regular, color: Colors.blue)
           : Icon(FluentIcons.search_16_regular, color: Colors.grey),
+    );
+  }
+
+  IconButton notices({required List<Notice> notice}) {
+    return IconButton(
+      onPressed: () {
+        handleNoticeClick(context);
+      },
+      icon: _buildNoticesIcon(notice: notice),
+    );
+  }
+
+  Widget _buildNoticesIcon({required List<Notice> notice}) {
+    return badges.Badge(
+      badgeContent: Text(notice.length.toString(),
+          style: const TextStyle(color: Colors.white)),
+      child: Icon(FluentIcons.mail_24_regular, color: Colors.grey),
     );
   }
 
