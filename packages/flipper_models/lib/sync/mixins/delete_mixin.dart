@@ -164,9 +164,8 @@ mixin DeleteMixin implements DeleteInterface {
           );
         }
       case 'tenant':
-        //
         final tenant = (await ProxyService.strategy.tenant(
-          fetchRemote: !Platform.isWindows,
+          fetchRemote: false,
           id: id,
         ));
         if (tenant != null) {

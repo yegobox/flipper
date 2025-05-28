@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
+import 'package:uuid/uuid.dart';
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
@@ -20,6 +21,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:flipper_services/GlobalLogError.dart';
+import 'package:supabase_models/brick/models/notice.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
@@ -28,9 +30,6 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   String itemPrefix = "flip-";
-  // String eBMURL = "https://turbo.yegobox.com";
-  // String eBMURL = "http://10.0.2.2:8080/rra";
-
   Dio? _dio;
   Talker? _talker;
 
@@ -414,7 +413,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String URI,
   }) async {
     // Get business details
-    Business? business = await ProxyService.strategy.getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    Business? business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
@@ -1130,5 +1130,86 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           Where('branchId').isExactly(branchId),
         ]));
     return taxConfigs;
+  }
+
+  @override
+  Future<List<Notice>> fetchNotices({required String URI}) async {
+    talker.warning("Processing stockOut");
+    final url = Uri.parse(URI)
+        .replace(path: Uri.parse(URI).path + 'notices/selectNotices')
+        .toString();
+    final data = {
+      "tin": ProxyService.box.tin(),
+      "bhfId": await ProxyService.box.bhfId(),
+      "lastReqDt": "20200218191141",
+    };
+    final response = await sendPostRequest(url, data);
+    if (response.statusCode == 200) {
+      try {
+        final jsonResponse = response.data;
+        final respond = RwApiResponse.fromJson(jsonResponse);
+        if (respond.resultCd == "894" ||
+            respond.resultCd != "000" ||
+            respond.resultCd == "910") {
+          throw Exception(respond.resultMsg);
+        }
+        // The response contains a data object with noticeList
+        final noticeList = jsonResponse['data']['noticeList'] as List<dynamic>;
+        String branchId = (await ProxyService.strategy
+                .branch(serverId: ProxyService.box.getBranchId()!))!
+            .id;
+        noticeList.map((noticeJson) {
+          // Generate a UUID for each notice since it's required by the model
+          final id = Uuid().v4();
+          return Notice.fromJson({
+            ...noticeJson,
+            'id': id,
+            'branchId': branchId,
+          });
+        }).toList();
+        // now check if there exist notice with same noticeNo it not save it in db using repository
+        final repository = Repository();
+        for (var noticeJson in noticeList) {
+          // Create notice with branchId
+          final id = Uuid().v4();
+          final notice = Notice.fromJson({
+            ...noticeJson,
+            'id': id,
+            'branchId': branchId,
+          });
+
+          // Check if notice exists with same noticeNo and branchId
+          final noticeExists = await repository.get<Notice>(
+              policy: OfflineFirstGetPolicy.awaitRemote,
+              query: Query(where: [
+                Where('noticeNo').isExactly(notice.noticeNo),
+                Where('branchId').isExactly(branchId),
+              ]));
+
+          if (noticeExists.isEmpty) {
+            await repository.upsert<Notice>(notice);
+          }
+        }
+        return noticeList
+            .map((noticeJson) => Notice.fromJson(noticeJson))
+            .toList();
+      } catch (e) {
+        talker.error(e);
+        rethrow;
+      }
+    } else {
+      throw Exception(
+          'Failed to fetch import items. Status code: ${response.statusCode}');
+    }
+  }
+
+  @override
+  Future<List<Notice>> notices({required String branchId}) {
+    final repository = Repository();
+    return repository.get<Notice>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: Query(where: [
+          Where('branchId').isExactly(branchId),
+        ]));
   }
 }

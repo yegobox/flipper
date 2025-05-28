@@ -1,9 +1,10 @@
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/sync/interfaces/notice_interface.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
-abstract class TaxApi {
+abstract class TaxApi implements NoticeInterface {
   Future<RwApiResponse> saveStockMaster(
       {required Variant variant, required String URI});
 

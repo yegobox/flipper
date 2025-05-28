@@ -39,7 +39,7 @@ abstract class TenantInterface {
   Future<User> saveUser({required User user});
 
   Future<Business?> activeBusiness({int? userId});
-  FutureOr<Tenant?> tenant(
+  Future<Tenant?> tenant(
       {int? businessId, int? userId, String? id, required bool fetchRemote});
   Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
   Future<List<ITenant>> tenantsFromOnline(

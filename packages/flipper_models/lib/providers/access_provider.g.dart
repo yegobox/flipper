@@ -6,7 +6,7 @@ part of 'access_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userAccessesHash() => r'12c38b2214b088fa2f87efaf0415e6df26b6eec5';
+String _$userAccessesHash() => r'bb185f317a17ad40cdcd2491b53e2995ac90545b';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -305,7 +305,7 @@ class _AllAccessesProviderElement
   int get userId => (origin as AllAccessesProvider).userId;
 }
 
-String _$tenantHash() => r'ed912495c3422dce04a6ff3f1f964fa540f55d6c';
+String _$tenantHash() => r'9ec05505f59ddf5d88ddfea41c3455b669547954';
 
 /// See also [tenant].
 @ProviderFor(tenant)

@@ -94,12 +94,17 @@ class CronService {
                 .hydrateDate(
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
-            //   ProxyService.strategy
-            //       .variants(branchId: branchId, fetchRemote: true)
-            //       .then((_) {}),
-            //   ProxyService.strategy
-            //       .transactions(branchId: branchId, fetchRemote: true)
-            //       .then((_) {}),
+            ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
+            // ProxyService.strategy
+            //     .variants(branchId: branchId, fetchRemote: true)
+            //     .then((_) {}),
+            // ProxyService.strategy
+            //     .transactions(branchId: branchId, fetchRemote: true)
+            //     .then((_) {}),
+            // ProxyService.strategy.access(
+            //     userId: ProxyService.box.getUserId()!, fetchRemote: false),
+            // Future.value(ProxyService.strategy.tenant(
+            //     userId: ProxyService.box.getUserId()!, fetchRemote: true))
           ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");

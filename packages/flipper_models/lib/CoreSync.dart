@@ -2744,7 +2744,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<Access>> access(
+  Future<List<Access>> access(
       {required int userId,
       String? featureName,
       required bool fetchRemote}) async {

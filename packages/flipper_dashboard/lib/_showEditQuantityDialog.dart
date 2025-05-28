@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 
 void showEditQuantityDialog(
   BuildContext context,
@@ -33,6 +34,12 @@ void showEditQuantityDialog(
           ),
           TextButton(
             onPressed: () {
+              if (variant.itemTyCd == "3") {
+                double newQuantity = 0.0;
+                model.updateVariantQuantity(variant.id, newQuantity);
+                toast("Services do not have stock");
+                return;
+              }
               double newQuantity =
                   double.tryParse(quantityController.text) ?? 0.0;
               model.updateVariantQuantity(variant.id, newQuantity);

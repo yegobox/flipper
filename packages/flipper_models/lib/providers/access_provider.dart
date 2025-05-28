@@ -13,7 +13,7 @@ part 'access_provider.g.dart';
 Future<List<Access>> userAccesses(Ref ref, int userId,
     {required String featureName}) async {
   return await ProxyService.strategy
-      .access(userId: userId, featureName: featureName, fetchRemote: true);
+      .access(userId: userId, featureName: featureName, fetchRemote: false);
 }
 
 @riverpod
@@ -23,8 +23,7 @@ Future<List<Access>> allAccesses(Ref ref, int userId) async {
 
 @riverpod
 Future<Tenant?> tenant(Ref ref, int userId) async {
-  return await ProxyService.strategy
-      .tenant(userId: userId, fetchRemote: !Platform.isWindows);
+  return await ProxyService.strategy.tenant(userId: userId, fetchRemote: false);
 }
 
 @riverpod

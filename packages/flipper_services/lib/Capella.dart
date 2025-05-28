@@ -839,7 +839,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Tenant? tenant(
+  Future<Tenant?> tenant(
       {int? businessId, int? userId, String? id, required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
@@ -1361,7 +1361,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<brick.Access>> access(
+  Future<List<brick.Access>> access(
       {required int userId, String? featureName, required bool fetchRemote}) {
     // TODO: implement access
     throw UnimplementedError();

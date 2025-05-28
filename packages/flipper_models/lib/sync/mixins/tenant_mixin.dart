@@ -165,7 +165,7 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  FutureOr<Tenant?> tenant(
+  Future<Tenant?> tenant(
       {int? businessId,
       int? userId,
       String? id,
