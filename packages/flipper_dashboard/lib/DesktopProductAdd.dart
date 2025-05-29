@@ -378,6 +378,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     productId: widget.productId!,
                     branchId: ProxyService.box.getBranchId()!);
 
+                // Preserve existing itemTyCd if it exists
+                if (variants.isNotEmpty && variants.first.itemTyCd != null) {
+                  selectedProductType = variants.first.itemTyCd!;
+                }
+
                 /// populate the supplyPrice and retailPrice of the first item
                 /// this in assumption that all variants added has same supply and retail price
                 /// but this will change in future when we support for variant to have different
@@ -595,6 +600,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               });
                             }
                           },
+                          isEditMode: widget.productId != null,
                         ),
                         CountryOfOriginSelector(
                           onCountrySelected: (Country country) {
