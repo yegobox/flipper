@@ -369,6 +369,18 @@ class _RowItemState extends ConsumerState<RowItem>
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+
+        // Stock display
+        if (widget.variant?.stock?.currentStock != null)
+          Text(
+            '${widget.variant?.stock?.currentStock ?? 0} in stock',
+            style: textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+              fontSize: 10,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
       ],
     );
   }
@@ -442,6 +454,18 @@ class _RowItemState extends ConsumerState<RowItem>
                       color: Colors.blue[700],
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                // Stock display
+                if (widget.variant?.stock?.currentStock != null)
+                  Text(
+                    '${widget.variant?.stock?.currentStock ?? 0} in stock',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 11,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
