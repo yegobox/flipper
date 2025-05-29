@@ -1,6 +1,8 @@
+import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/notice_provider.dart';
+import 'package:supabase_models/brick/models/notice.model.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void handleNoticeClick(BuildContext context) {
@@ -266,7 +268,7 @@ Widget _buildEmptyState(BuildContext context) {
   );
 }
 
-Widget _buildNoticesList(BuildContext context, List<dynamic> notices) {
+Widget _buildNoticesList(BuildContext context, List<Notice> notices) {
   return ListView.builder(
     padding: EdgeInsets.fromLTRB(16, 8, 16, 24),
     itemCount: notices.length,

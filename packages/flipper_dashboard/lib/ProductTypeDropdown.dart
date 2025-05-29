@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class ProductTypeDropdown extends StatefulWidget {
   final String? selectedValue; // Currently selected value
   final ValueChanged<String?> onChanged; // Callback to handle value changes
+  final bool isEditMode; // Whether we're in edit mode
 
   const ProductTypeDropdown({
     Key? key,
     required this.selectedValue,
     required this.onChanged,
+    this.isEditMode = false,
   }) : super(key: key);
 
   @override
@@ -33,7 +35,14 @@ class _ProductTypeDropdownState extends State<ProductTypeDropdown> {
         ),
         child: DropdownButton<String>(
           value: widget.selectedValue,
-          onChanged: widget.onChanged,
+          onChanged: widget.isEditMode
+              ? (value) {
+                  // In edit mode, only change if user explicitly selects a value
+                  if (value != null) {
+                    widget.onChanged(value);
+                  }
+                }
+              : widget.onChanged,
           items: options.map((option) {
             return DropdownMenuItem<String>(
               value: option['value'],
