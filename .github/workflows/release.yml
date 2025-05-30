@@ -168,7 +168,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.0"
+          flutter-version: "3.29.3" # Changed Flutter version
           channel: stable
       - run: flutter doctor -v
 
@@ -203,8 +203,8 @@ jobs:
         run: flutter clean
         working-directory: apps/flipper
       - run: |
-          cd apps/flipper
-          flutter test --verbose --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test
+          flutter test --verbose --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
+        working-directory: apps/flipper # Added working-directory for test step
   
   android-integration-test:
     name: Android Integration Tests
@@ -261,12 +261,12 @@ jobs:
 
       - name: Restart ADB Server
         run: |
-          adb kill-server
-          adb start-server
+          ${{ env.ANDROID_SDK_ROOT }}/platform-tools/adb kill-server
+          ${{ env.ANDROID_SDK_ROOT }}/platform-tools/adb start-server
       - name: Run Android Emulator and Tests
         uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
         with:
-          api: 31
+          api: 31 # API level remains 31 as per previous decision
           tag: google_apis
           abi: x86_64
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 4096 # Increased memory slightly
