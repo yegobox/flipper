@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter/widgets.dart'; // For Key
-import 'common.dart'; 
+import 'package:fluent_ui/fluent_ui.dart' show FluentIcons; // For FluentIcons.add_20_regular
+import 'common.dart';
 // common.dart sets up Patrol but doesn't export test_cases.dart, so import it directly.
-import 'test_cases.dart'; 
+import 'test_cases.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -32,21 +33,33 @@ void main() {
       await $.enterText(find.byType(TextFormField), '73268'); 
       await $.tap(find.text('Log in'));
       // Increased pumpAndSettle duration to allow for network requests and dashboard loading.
-      await $.pumpAndSettle(const Duration(seconds: 15)); 
+      await $.pumpAndSettle(const Duration(seconds: 15));
 
-      // TODO: Add navigation to the "Add Product" screen.
-      // This is a critical placeholder. The test will likely fail here until implemented.
-      // Example (replace with actual finders and navigation logic for your app):
-      // await navigateToScreen($.tester, find.byTooltip('Menu'), find.text('Products'), screenName: 'Products Link in Menu');
-      // await $.pumpAndSettle();
-      // await tapButton($.tester, find.byKey(const Key('addProductButton')), buttonName: 'Add Product Button');
-      // await $.pumpAndSettle();
-      print("TODO: Implement navigation to Add Product Screen. This test will likely stop here or use existing screen if already there.");
-      // Assuming the "Add Product" screen might be DesktopProductAdd or ProductEntryScreen.
-      // If your app lands on a screen with an "Add Product" button directly:
-      // await tapButton($.tester, find.byKey(const Key('navigateToCreateProductScreenButton')), buttonName: 'Navigate to Add Product');
-      // await $.pumpAndSettle();
+      // Navigation to Add Product Screen (Mobile Flow)
+      // 1. Tap "POS" Icon on MobileView (assuming AppIconsGrid is shown)
+      print("Navigating to POS...");
+      final Finder posCardFinder = find.widgetWithText(Card, 'Point of Sale');
+      await $.ensureVisible(posCardFinder);
+      await $.tap(posCardFinder);
+      await $.pumpAndSettle(const Duration(seconds: 5)); // Allow time for POS screen to load
 
+      // 2. Tap "Add" icon in SearchField on CheckOutRoute (CheckoutProductView)
+      print("Tapping Add Product icon in SearchField...");
+      // Ensure the search field is empty for the add icon to be visible as per SearchField.dart logic
+      // final Finder searchFieldItself = find.byType(SearchField); // If needed to ensure it's empty first
+      final Finder addProductIconInSearchField = find.byIcon(FluentIcons.add_20_regular);
+      await $.ensureVisible(addProductIconInSearchField);
+      await $.tap(addProductIconInSearchField);
+      await $.pumpAndSettle();
+
+      // 3. Select "Add Single Product" from AddProductDialog
+      print("Selecting Add Single Product from dialog...");
+      final Finder addSingleProductOption = find.text('Add Single Product');
+      await $.ensureVisible(addSingleProductOption);
+      await $.tap(addSingleProductOption);
+      await $.pumpAndSettle(const Duration(seconds: 2)); // Allow time for ProductEntryScreen to load
+
+      // ProductEntryScreen (using DesktopProductAdd layout) should now be visible.
 
       // Define product details
       final String productName = 'Test Simple Product ${DateTime.now().millisecondsSinceEpoch}';
@@ -74,23 +87,20 @@ void main() {
       // For a real end-to-end test, this ID might need to be extracted from the app's state or UI after creation.
       print('Product creation helper called for "$productName". Simulated/Returned ID: $productId');
 
-      // TODO: Add navigation to the Product List screen if not already there after creation.
-      // This step depends on where the app navigates after product submission.
-      // If it navigates back to a product list:
-      // await $.pumpAndSettle(const Duration(seconds: 2)); // Allow time for navigation
-      // expect(find.text('Products'), findsOneWidget); // Or other identifier for product list
-      // If it stays on the product creation/edit screen, explicit navigation back might be needed:
-      // await goBack($.tester); // Or tap a specific back button
-      // await $.pumpAndSettle();
-      print("TODO: Implement navigation to Product List Screen if necessary after product creation.");
+      // After product creation, ProductEntryScreen is likely still visible. Close it.
+      print("Closing ProductEntryScreen...");
+      // DesktopProductAdd.dart uses an ElevatedButton with Text('Close')
+      final Finder closeButton = find.widgetWithText(ElevatedButton, 'Close');
+      await $.ensureVisible(closeButton);
+      await $.tap(closeButton);
+      await $.pumpAndSettle(const Duration(seconds: 2)); // Allow time to return to previous screen (CheckoutProductView)
 
-
-      // Verification: Verify the product appears in the list
-      // This assumes verifyProductInList can find the product on the current screen (product list).
-      // It also assumes that the product list updates promptly.
+      // Now back on CheckoutProductView (which shows ProductView.normalMode()).
+      // Verify the product appears in the list on this screen.
+      print("Verifying product in list on CheckoutProductView...");
       await verifyProductInList($.tester, productName); // Pass $.tester
       
-      // TODO: Add further verifications if needed (e.g., stock level if applicable)
+      // TODO: Add further verifications if needed (e.g., stock level if applicable on CheckoutProductView)
       // For a new simple product, stock might be 0 or managed separately.
       // await verifyStockLevel($.tester, productName, 0); 
 
