@@ -23,6 +23,7 @@ on:
       - 'bugfix-*'
       - main
       - dev
+      - jules_wip
 
 env:
   URL: ${{ secrets.DB_URL }}
@@ -201,8 +202,71 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           cd apps/flipper
-          flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
+          flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test
   
+  android-integration-test:
+    name: Android Integration Tests
+    runs-on: macos-latest # Using macos-latest for Android emulator capabilities
+    needs: [unit-testing]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.32.0" # Ensure this matches other jobs
+          channel: "stable"
+      
+      - name: Initialize Git submodules
+        run: git submodule update --init --recursive # Ensure recursive for nested submodules
+
+      - name: Setup Melos
+        run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+          git config --global core.autocrlf false # Ensure consistent line endings
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+
+      - name: Install Android SDK
+        uses: malinskiy/action-android/install-sdk@release/0.1.7
+
+      - name: Run Android Emulator and Tests
+        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
+        with:
+          api: 33 # Or a more recent stable API level like 34
+          tag: google_apis
+          abi: x86_64
+          cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 4096 # Increased memory slightly
+          bootTimeout: 900 # Increased boot timeout
+          cmd: .github/workflows/scripts/integration-test.sh
+
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     
@@ -438,7 +502,7 @@ jobs:
 
   slackNotification:
     name: Slack Notification
-    needs: [fastlane-deploy, build-and-release-windows-debug, build-and-release-windows-prod,build_web_deploy_firebase]
+    needs: [fastlane-deploy, build-and-release-windows-debug, build-and-release-windows-prod, build_web_deploy_firebase, android-integration-test]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
