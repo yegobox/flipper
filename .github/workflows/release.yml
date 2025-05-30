@@ -199,9 +199,12 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - name: Clean Flutter project (Windows)
+        run: flutter clean
+        working-directory: apps/flipper
       - run: |
           cd apps/flipper
-          flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test
+          flutter test --verbose --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test
   
   android-integration-test:
     name: Android Integration Tests
@@ -256,10 +259,14 @@ jobs:
       - name: Install Android SDK
         uses: malinskiy/action-android/install-sdk@release/0.1.7
 
+      - name: Restart ADB Server
+        run: |
+          adb kill-server
+          adb start-server
       - name: Run Android Emulator and Tests
         uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
         with:
-          api: 33 # Or a more recent stable API level like 34
+          api: 31
           tag: google_apis
           abi: x86_64
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 4096 # Increased memory slightly
