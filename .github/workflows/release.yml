@@ -23,7 +23,7 @@ on:
       - 'bugfix-*'
       - main
       - dev
-      - jules_wip
+      - 'jules_wip/**'
 
 env:
   URL: ${{ secrets.DB_URL }}
