@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/notice_provider.dart';
