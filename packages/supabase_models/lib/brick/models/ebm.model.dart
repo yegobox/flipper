@@ -25,6 +25,8 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   final int branchId;
   @Supabase(name: "last_touched")
   DateTime? lastTouched;
+  @Supabase(name: "vat_enabled")
+  bool vatEnabled;
 
   Ebm({
     String? id,
@@ -36,5 +38,6 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.businessId,
     required this.branchId,
     this.lastTouched,
+    this.vatEnabled = false,
   }) : id = id ?? const Uuid().v4();
 }

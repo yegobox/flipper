@@ -4,18 +4,19 @@ import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:overlay_support/overlay_support.dart';
 
-class ProformaUrlForm extends StatefulWidget {
-  const ProformaUrlForm({Key? key}) : super(key: key);
+class TaxConfigForm extends StatefulWidget {
+  const TaxConfigForm({Key? key}) : super(key: key);
 
   @override
-  _ProformaUrlFormState createState() => _ProformaUrlFormState();
+  _TaxConfigFormState createState() => _TaxConfigFormState();
 }
 
-class _ProformaUrlFormState extends State<ProformaUrlForm> {
+class _TaxConfigFormState extends State<TaxConfigForm> {
   final _formKey = GlobalKey<FormState>();
   final _serverUrlController = TextEditingController();
   final _branchController = TextEditingController();
   final _mrcController = TextEditingController();
+  bool _vatEnabled = false;
 
   @override
   void initState() {
@@ -35,6 +36,13 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
     _branchController.text = bhFId;
     String? mrc = ProxyService.box.mrc();
     _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
+
+    // Load VAT enabled status
+    if (ebm != null) {
+      setState(() {
+        _vatEnabled = ebm.vatEnabled;
+      });
+    }
   }
 
   @override
@@ -62,10 +70,25 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'EBM URL',
+                    'Tax Configuration',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
+                  ),
+                  const SizedBox(height: 16),
+                  // VAT Enabled Switch
+                  SwitchListTile(
+                    title: const Text('VAT Enabled'),
+                    subtitle:
+                        const Text('Enable Value Added Tax for this business'),
+                    value: _vatEnabled,
+                    activeColor: Colors.blue,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                    onChanged: (bool value) {
+                      setState(() {
+                        _vatEnabled = value;
+                      });
+                    },
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -80,7 +103,7 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue),
+                        borderSide: const BorderSide(color: Colors.blue),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 16, horizontal: 16),
@@ -100,18 +123,18 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue),
+                        borderSide: const BorderSide(color: Colors.blue),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 16, horizontal: 16),
                     ),
-                    validator: _validaBhfid,
+                    validator: _validateBhfid,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _mrcController,
                     decoration: InputDecoration(
-                      hintText: 'Mrc ',
+                      hintText: 'MRC',
                       filled: true,
                       fillColor: Colors.grey[200],
                       border: OutlineInputBorder(
@@ -120,7 +143,7 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.blue),
+                        borderSide: const BorderSide(color: Colors.blue),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 16, horizontal: 16),
@@ -137,6 +160,7 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
             Center(
               child: FutureBuilder<String>(
                 future: AppService().version(), // Fetch version from AppService
@@ -174,9 +198,9 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
     return null;
   }
 
-  String? _validaBhfid(String? value) {
+  String? _validateBhfid(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please a value';
+      return 'Please enter a value';
     }
     return null;
   }
@@ -186,7 +210,9 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
       ProxyService.strategy.saveEbm(
           branchId: ProxyService.box.getBranchId()!,
           severUrl: _serverUrlController.text,
-          bhFId: _branchController.text);
+          bhFId: _branchController.text,
+          vatEnabled: _vatEnabled);
+
       ProxyService.box.writeString(
         key: "getServerUrl",
         value: _serverUrlController.text,
@@ -195,7 +221,6 @@ class _ProformaUrlFormState extends State<ProformaUrlForm> {
         key: "bhfId",
         value: _branchController.text,
       );
-
       ProxyService.box.writeString(
         key: "mrc",
         value: _mrcController.text,

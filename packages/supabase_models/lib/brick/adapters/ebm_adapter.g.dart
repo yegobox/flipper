@@ -21,6 +21,7 @@ Future<Ebm> _$EbmFromSupabase(
             : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
+    vatEnabled: data['vat_enabled'] as bool,
   );
 }
 
@@ -39,6 +40,7 @@ Future<Map<String, dynamic>> _$EbmToSupabase(
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
     'last_touched': instance.lastTouched?.toIso8601String(),
+    'vat_enabled': instance.vatEnabled,
   };
 }
 
@@ -62,6 +64,7 @@ Future<Ebm> _$EbmFromSqlite(
             : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
+    vatEnabled: data['vat_enabled'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -80,6 +83,7 @@ Future<Map<String, dynamic>> _$EbmToSqlite(
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
     'last_touched': instance.lastTouched?.toIso8601String(),
+    'vat_enabled': instance.vatEnabled ? 1 : 0,
   };
 }
 
@@ -128,6 +132,10 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
+    ),
+    'vatEnabled': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'vat_enabled',
     ),
   };
   @override
@@ -195,6 +203,12 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       columnName: 'last_touched',
       iterable: false,
       type: DateTime,
+    ),
+    'vatEnabled': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'vat_enabled',
+      iterable: false,
+      type: bool,
     ),
   };
   @override

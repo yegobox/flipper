@@ -336,19 +336,19 @@ class IconRowState extends ConsumerState<IconRow>
       barrierDismissible: true,
       context: context,
       builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.8,
+            minWidth: 400, // Optional: for desktop/tablet
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  child: TaxConfiguration(showheader: false),
-                ),
-              ],
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: TaxConfiguration(showheader: false),
             ),
           ),
         ),

@@ -10,7 +10,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_dashboard/features/tax_configuration/widgets/support_section.dart';
-import 'package:flipper_dashboard/features/tax_configuration/widgets/proforma_url_form.dart';
+import 'package:flipper_dashboard/features/tax_configuration/widgets/tax_config_form.dart';
 import 'package:flipper_dashboard/features/tax_configuration/widgets/switch_tile.dart';
 
 class TaxConfiguration extends StatefulHookConsumerWidget {
@@ -116,7 +116,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    const ProformaUrlForm(),
+                    const TaxConfigForm(),
                   ],
                 ],
               ),

@@ -7,5 +7,6 @@ abstract class EbmInterface {
     required int branchId,
     required String severUrl,
     required String bhFId,
+    bool vatEnabled = false,
   });
 }
