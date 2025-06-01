@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/UnitOfMeasureDropdown.dart';
 import 'package:flipper_dashboard/UniversalProductDropdown.dart';
 import 'package:flipper_dashboard/_showEditQuantityDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -156,14 +157,38 @@ class TableVariants extends StatelessWidget {
                         );
                       },
                     )),
-                _buildMobileInfoRow(
-                    'Tax',
-                    TaxDropdown(
+                _buildMobileInfoRow('Tax',
+                    Consumer(builder: (context, ref, child) {
+                  final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+                  return vatEnabledAsync.when(
+                    data: (vatEnabled) {
+                      // If VAT is disabled, only allow tax type D
+                      final options = vatEnabled ? ["A", "B", "C", "D"] : ["D"];
+                      // If current value is not in options, default to D
+                      final currentValue = options.contains(variant.taxTyCd)
+                          ? variant.taxTyCd
+                          : "D";
+                      return TaxDropdown(
+                        selectedValue: currentValue,
+                        options: options,
+                        onChanged: (newValue) =>
+                            model.updateTax(variant, newValue),
+                      );
+                    },
+                    loading: () => TaxDropdown(
                       selectedValue: variant.taxTyCd,
                       options: ["A", "B", "C", "D"],
                       onChanged: (newValue) =>
                           model.updateTax(variant, newValue),
-                    )),
+                    ),
+                    error: (_, __) => TaxDropdown(
+                      selectedValue: variant.taxTyCd,
+                      options: ["A", "B", "C", "D"],
+                      onChanged: (newValue) =>
+                          model.updateTax(variant, newValue),
+                    ),
+                  );
+                })),
                 _buildMobileInfoRow(
                     'Discount',
                     TextFormField(
@@ -305,11 +330,33 @@ class TableVariants extends StatelessWidget {
             },
           ),
         ),
-        DataCell(TaxDropdown(
-          selectedValue: variant.taxTyCd,
-          options: ["A", "B", "C", "D"],
-          onChanged: (newValue) => model.updateTax(variant, newValue),
-        )),
+        DataCell(Consumer(builder: (context, ref, child) {
+          final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+          return vatEnabledAsync.when(
+            data: (vatEnabled) {
+              // If VAT is disabled, only allow tax type D
+              final options = vatEnabled ? ["A", "B", "C", "D"] : ["D"];
+              // If current value is not in options, default to D
+              final currentValue =
+                  options.contains(variant.taxTyCd) ? variant.taxTyCd : "D";
+              return TaxDropdown(
+                selectedValue: currentValue,
+                options: options,
+                onChanged: (newValue) => model.updateTax(variant, newValue),
+              );
+            },
+            loading: () => TaxDropdown(
+              selectedValue: variant.taxTyCd,
+              options: ["A", "B", "C", "D"],
+              onChanged: (newValue) => model.updateTax(variant, newValue),
+            ),
+            error: (_, __) => TaxDropdown(
+              selectedValue: variant.taxTyCd,
+              options: ["A", "B", "C", "D"],
+              onChanged: (newValue) => model.updateTax(variant, newValue),
+            ),
+          );
+        })),
         DataCell(TextFormField(
           controller: model.getDiscountController(variant.id),
           decoration: const InputDecoration(suffixText: '%'),
