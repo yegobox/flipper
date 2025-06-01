@@ -15,6 +15,7 @@ mixin EbmMixin implements EbmInterface {
     required int branchId,
     required String severUrl,
     required String bhFId,
+    bool vatEnabled = false,
   }) async {
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -44,10 +45,12 @@ mixin EbmMixin implements EbmInterface {
           taxServerUrl: severUrl,
           businessId: business.serverId,
           branchId: branchId,
+          vatEnabled: vatEnabled,
         );
 
     if (existingEbm != null) {
       updatedEbm.taxServerUrl = severUrl;
+      updatedEbm.vatEnabled = vatEnabled;
     }
 
     await repository.upsert(updatedEbm);

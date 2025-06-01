@@ -23,6 +23,7 @@ mixin CapellaEbmMixin implements EbmInterface {
     required int branchId,
     required String severUrl,
     required String bhFId,
+    bool vatEnabled = false,
   }) async {
     throw UnimplementedError('saveEbm needs to be implemented for Capella');
   }

@@ -1260,7 +1260,8 @@ class Capella extends AiStrategyImpl
   Future<void> saveEbm(
       {required int branchId,
       required String severUrl,
-      required String bhFId}) {
+      required String bhFId,
+      bool vatEnabled = false}) {
     // TODO: implement saveEbm
     throw UnimplementedError();
   }
