@@ -1044,5 +1044,5 @@ class ExportConfig {
     this.currencySymbol = 'RF',
     required this.transactions,
   }) : currencyFormat =
-            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
+            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol 0.00';
 }
