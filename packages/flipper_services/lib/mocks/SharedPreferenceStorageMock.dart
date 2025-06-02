@@ -339,7 +339,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   @override
   String defaultCurrency() {
     // TODO: implement defaultCurrency
-    throw UnimplementedError();
+    return "RWF";
   }
 
   @override
