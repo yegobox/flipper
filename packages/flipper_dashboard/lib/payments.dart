@@ -147,7 +147,8 @@ class PaymentsState extends ConsumerState<Payments> {
       mainAxisSize: MainAxisSize.min, // Fix: Shrink-wrap Column
       children: [
         Text(
-          'RWF ' + NumberFormat('#,###').format(totalPayable),
+          '${ProxyService.box.defaultCurrency()} ' +
+              NumberFormat('#,###').format(totalPayable),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w400,
             fontSize: 32,

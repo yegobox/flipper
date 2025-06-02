@@ -52,7 +52,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           businessId: businessId,
           fetchRemote: true,
         );
-        
+
         if (plan != null) {
           // A plan exists, now check if it's active
           try {
@@ -61,14 +61,15 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               flipperHttpClient: ProxyService.http,
               fetchRemote: true,
             );
-            
+
             // If we get here without an exception, there's an active plan
             talker.info('Active payment plan found, returning to app');
             locator<RouterService>().navigateTo(FlipperAppRoute());
             return;
           } catch (subscriptionError) {
             // Plan exists but is not active, go to FailedPayment
-            talker.warning('Payment plan exists but is not active: $subscriptionError');
+            talker.warning(
+                'Payment plan exists but is not active: $subscriptionError');
             locator<RouterService>().navigateTo(FailedPaymentRoute());
             return;
           }

@@ -3,6 +3,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -148,7 +149,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                         color: Colors.black)),
                 const SizedBox(height: 40),
                 Text(
-                    'RWF ${NumberFormat('#,###').format(widget.transaction.cashReceived)}',
+                    '${ProxyService.box.defaultCurrency()} ${NumberFormat('#,###').format(widget.transaction.cashReceived)}',
                     style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w400,
                         fontSize: 18,

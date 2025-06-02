@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 
 class PaymentSummary {
   final String method;
@@ -159,10 +160,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<dynamic>? manualData, // Added parameter for manual data export
     List<String>? columnNames, // Added parameter for column names
     required bool showProfitCalculations,
+    String? currencyCode,
   }) async {
     String? filePath;
     try {
-      // await requestPermissions();
+      // Get the system currency from settings if not provided
+      final systemCurrency = currencyCode ?? ProxyService.box.defaultCurrency();
 
       // Calculate COGS for the transactions in the config
       double totalCOGS = 0.0;
@@ -206,7 +209,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         netProfit:
             config.grossProfit != null ? config.grossProfit! - totalCOGS : null,
         cogs: totalCOGS,
-        currencySymbol: config.currencySymbol,
+        currencyCode: systemCurrency,
         transactions: config.transactions,
       );
 
@@ -1032,6 +1035,7 @@ class ExportConfig {
   double? grossProfit;
   double? netProfit;
   double? cogs;
+  String currencyCode;
   String currencySymbol;
   String currencyFormat;
   final List<ITransaction> transactions;
@@ -1041,8 +1045,9 @@ class ExportConfig {
     this.grossProfit,
     this.netProfit,
     this.cogs,
-    this.currencySymbol = 'RF',
+    this.currencyCode = 'RWF',
     required this.transactions,
-  }) : currencyFormat =
-            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol 0.00';
+  })  : currencySymbol = CurrencyOptions.getSymbolForCurrency(currencyCode),
+        currencyFormat =
+            '${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00_);${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00;${CurrencyOptions.getSymbolForCurrency(currencyCode)} 0.00';
 }

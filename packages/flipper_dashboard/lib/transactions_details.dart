@@ -49,7 +49,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail> {
           appBar: CustomAppBar(
             isDividerVisible: false,
             title:
-                '$transactionType: ${NumberFormat('#,###').format(widget.transaction.subTotal)} RWF',
+                '$transactionType: ${NumberFormat('#,###').format(widget.transaction.subTotal)} ${ProxyService.box.defaultCurrency()}',
             icon: Icons.close,
             onPop: () async => locator<RouterService>().back(),
           ),
@@ -134,7 +134,8 @@ class _TransactionStatusHeader extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              NumberFormat('#,###').format(transaction.subTotal) + " RWF",
+              NumberFormat('#,###').format(transaction.subTotal) +
+                  " ${ProxyService.box.defaultCurrency()}",
               style: GoogleFonts.poppins(
                   fontSize: 24, fontWeight: FontWeight.bold),
             ),

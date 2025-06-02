@@ -15,7 +15,7 @@ class Refund extends StatefulHookConsumerWidget {
       {super.key,
       required this.refundAmount,
       required this.transactionId,
-      this.currency = "RWF",
+      required this.currency,
       this.transaction});
   final double refundAmount;
   final String transactionId;

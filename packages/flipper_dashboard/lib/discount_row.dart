@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:ionicons/ionicons.dart';
@@ -54,7 +55,8 @@ class DiscountRow extends StatelessWidget {
                 name,
                 style: const TextStyle(color: Colors.black),
               ),
-              trailing: Text(discount.amount.toString() + 'RWF off'),
+              trailing: Text(discount.amount.toString() +
+                  '${ProxyService.box.defaultCurrency()} off'),
             ),
             Container(
               height: 0.5,
