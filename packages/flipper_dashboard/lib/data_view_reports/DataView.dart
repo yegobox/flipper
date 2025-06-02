@@ -14,7 +14,6 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart' show toast;
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -632,12 +631,22 @@ class DataViewState extends ConsumerState<DataView>
           rowData['Name'] = item.name;
           rowData['Barcode'] = item.bcd ?? '';
           rowData['Price'] = item.price;
-          rowData['TaxRate'] = 18.0; // Default tax rate
+
+          // Get the correct tax rate from tax configuration based on item's tax type
+          final taxType = item.taxTyCd ?? 'B'; // Default to B if not specified
+          final taxConfig =
+              await ProxyService.strategy.getByTaxType(taxtype: taxType);
+          final taxPercentage = taxConfig?.taxPercentage ??
+              0.0; // Default to 0 if config not found
+
+          rowData['TaxRate'] = taxPercentage;
           rowData['Qty'] = item.qty;
           rowData['TotalSales'] = item.price * item.qty; // profit made
           rowData['CurrentStock'] = item.remainingStock ?? 0.0;
-          rowData['TaxPayable'] = item.taxAmt ??
-              (item.price * item.qty * 0.18); // Calculate tax if not available
+          // Always calculate tax based on configured percentage
+          rowData['TaxPayable'] = (item.price *
+              item.qty *
+              (taxPercentage / 100)); // Calculate tax using configured rate
           rowData['GrossProfit'] = (item.price * item.qty) -
               (item.splyAmt ??
                   (item.price * item.qty * 0.7)); // Estimate gross profit
