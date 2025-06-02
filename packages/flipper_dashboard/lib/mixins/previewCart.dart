@@ -222,7 +222,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         );
       } else {
         // Process cash payment or skip digital payment if immediateCompletion is true
-        await _processCashPayment(
+        await _finalStepInCompletingTransaction(
           customer: customer,
           transaction: transaction,
           amount: amount,
@@ -309,38 +309,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           if (data.isEmpty) return;
           talker.warning("Payment Completed by a user ${data}");
 
-          if (customer != null) {
-            await additionalInformationIsRequiredToCompleteTransaction(
-              amount: amount,
-              onComplete: completeTransaction,
-              discount: discount,
-              paymentType: paymentTypeController.text,
-              transaction: transaction,
-              context: context,
-            );
-
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            ref.refresh(pendingTransactionStreamProvider(
-              isExpense: false,
-            ));
-          } else {
-            await finalizePayment(
-              formKey: formKey,
-              customerNameController: customerNameController,
-              context: context,
-              paymentType: paymentType,
-              transactionType: TransactionType.sale,
-              transaction: transaction,
-              amount: amount,
-              onComplete: completeTransaction,
-              discount: discount,
-            );
-
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            ref.refresh(pendingTransactionStreamProvider(
-              isExpense: false,
-            ));
-          }
+          await _finalStepInCompletingTransaction(
+            customer: customer,
+            transaction: transaction,
+            amount: amount,
+            discount: discount,
+            paymentType: paymentType,
+            completeTransaction: completeTransaction,
+          );
         },
         onError: (error) {
           talker.error("Digital payment error: $error");
@@ -353,7 +329,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> _processCashPayment({
+  Future<void> _finalStepInCompletingTransaction({
     required Customer? customer,
     required ITransaction transaction,
     required double amount,
@@ -371,7 +347,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           transaction: transaction,
           context: context,
         );
-
         ref.read(payButtonStateProvider.notifier).stopLoading();
         ref.refresh(pendingTransactionStreamProvider(
           isExpense: false,
