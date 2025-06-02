@@ -191,6 +191,12 @@ class SettingViewModel extends CoreViewModel {
     notifyListeners();
   }
 
+  String get systemCurrency => ProxyService.box.defaultCurrency();
+  set systemCurrency(String value) {
+    ProxyService.box.writeString(key: 'defaultCurrency', value: value);
+    notifyListeners();
+  }
+
   void setIsprocessing({required bool value}) {
     _isProceeding = value;
     notifyListeners();

@@ -70,7 +70,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tax Configuration',
+                    'System Configuration',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.blueAccent,
@@ -114,6 +114,55 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                           model.exportAsPdf = value;
                         });
                       },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'System Currency',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Container(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 12.0),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8.0),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: DropdownButton<String>(
+                              value: model.systemCurrency,
+                              underline: const SizedBox(),
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'RWF',
+                                    child: Text('RWF (Rwandan Franc)')),
+                                DropdownMenuItem(
+                                    value: 'USD',
+                                    child: Text('USD (US Dollar)')),
+                                DropdownMenuItem(
+                                    value: 'EUR', child: Text('EUR (Euro)')),
+                                DropdownMenuItem(
+                                    value: 'KES',
+                                    child: Text('KES (Kenyan Shilling)')),
+                                DropdownMenuItem(
+                                    value: 'UGX',
+                                    child: Text('UGX (Ugandan Shilling)')),
+                              ],
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() {
+                                    model.systemCurrency = value;
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
                     const TaxConfigForm(),
