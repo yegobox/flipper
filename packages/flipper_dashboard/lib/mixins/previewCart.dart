@@ -349,7 +349,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       );
     } catch (e) {
       talker.error("Error in digital payment processing: $e");
-      throw Exception("Digital payment processing failed: $e");
+      rethrow
     }
   }
 
