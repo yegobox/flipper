@@ -468,7 +468,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                                                   null) ...[
                                                 const SizedBox(height: 8),
                                                 Text(
-                                                  'Retail Price: ${variant.retailPrice?.toRwf()}',
+                                                  'Retail Price: ${variant.retailPrice?.toCurrencyFormatted()}',
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodyMedium

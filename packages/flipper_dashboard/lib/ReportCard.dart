@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class ReportCard extends StatelessWidget {
@@ -46,15 +47,10 @@ class ReportCard extends StatelessWidget {
             const SizedBox(height: 8),
             _buildDataRow(
               title: wordingA,
-              value: stockValue.toRwf(),
+              value: stockValue.toCurrencyFormatted(
+                  symbol: ProxyService.box.defaultCurrency()),
               color: Colors.orangeAccent,
             ),
-            const SizedBox(height: 4),
-            // _buildDataRow(
-            //   title: wordingB,
-            //   value: valueB.toRwf(),
-            //   color: Colors.greenAccent,
-            // ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
               value: stockValue != 0

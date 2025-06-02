@@ -122,7 +122,7 @@ extension StringExtensions on String {
 }
 
 extension CurrencyFormatExtension on num {
-  String toRwf({String? symbol}) {
+  String toCurrencyFormatted({String? symbol}) {
     final numberFormat = NumberFormat.currency(
       locale: 'en',
       symbol: symbol ?? 'RWF ',

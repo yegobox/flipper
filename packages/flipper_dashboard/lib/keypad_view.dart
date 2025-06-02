@@ -102,11 +102,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     return Column(
       children: [
         Text(
-          double.tryParse(keypad)?.toRwf() ?? '0',
+          double.tryParse(keypad)?.toCurrencyFormatted(
+                  symbol: ProxyService.box.defaultCurrency()) ??
+              '0',
           style: GoogleFonts.poppins(
             fontSize: 40 * textScaleFactor,
             fontWeight: FontWeight.w600,
-            color: Colors.blue[800],
             height: 1,
           ),
         ),
@@ -135,7 +136,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return Text(
-      (double.tryParse(keypad) ?? 0.0).toRwf(),
+      (double.tryParse(keypad) ?? 0.0)
+          .toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency()),
       style: GoogleFonts.poppins(
         fontSize: 40 * textScaleFactor,
         fontWeight: FontWeight.w600,

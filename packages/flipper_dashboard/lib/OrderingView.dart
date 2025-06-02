@@ -356,7 +356,7 @@ class ProductListScreenState extends ConsumerState<OrderingView>
           items.fold(0.0, (sum, item) => sum + (item.qty * item.price));
 
       final orderDetails =
-          'New order with $itemCount items, total: \$${totalAmount.toRwf()}';
+          'New order with $itemCount items, total: \$${totalAmount.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}';
 
       transaction.supplierId = ref.read(selectedSupplierProvider)!.serverId!;
       ProxyService.strategy.updateTransaction(

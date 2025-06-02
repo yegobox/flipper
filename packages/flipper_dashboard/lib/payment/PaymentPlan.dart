@@ -467,7 +467,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           Text('Total Price',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           Text(
-            '${_totalPrice.toRwf()} ${_isYearlyPlan ? '/year' : '/month'}',
+            '${_totalPrice.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())} ${_isYearlyPlan ? '/year' : '/month'}',
             style: TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
           ),

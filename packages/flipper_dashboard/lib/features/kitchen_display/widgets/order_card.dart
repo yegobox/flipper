@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/features/kitchen_display/providers/kitchen_display_provider.dart';
 import 'package:flipper_dashboard/features/kitchen_display/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -261,7 +262,7 @@ class _OrderCardState extends ConsumerState<OrderCard> {
 
               // Total amount
               Text(
-                'Total: ${order.subTotal?.toRwf()}',
+                'Total: ${order.subTotal?.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
                 style: const TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 14,
@@ -407,7 +408,10 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                                     ),
                                   ),
                                   Text(
-                                    item.totAmt?.toRwf() ?? '',
+                                    item.totAmt?.toCurrencyFormatted(
+                                            symbol: ProxyService.box
+                                                .defaultCurrency()) ??
+                                        '',
                                     style: const TextStyle(
                                         fontWeight: FontWeight.w500),
                                   ),

@@ -83,7 +83,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Add values to the third and fourth cells
     footerRow.cells[2].value = config.transactions
         .fold<double>(0, (sum, trans) => sum + trans.subTotal!)
-        .toRwf();
+        .toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency());
     footerRow.cells[2].style = PdfGridCellStyle(
       borders: PdfBorders(
         left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
@@ -96,7 +96,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     footerRow.cells[3].value = config.transactions
         .fold<double>(0, (sum, trans) => sum + trans.cashReceived!)
-        .toRwf();
+        .toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency());
     footerRow.cells[3].style = PdfGridCellStyle(
       borders: PdfBorders(
         left: PdfPen(PdfColor(211, 211, 211), width: 0.5),
