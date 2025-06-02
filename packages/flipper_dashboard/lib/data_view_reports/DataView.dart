@@ -644,9 +644,10 @@ class DataViewState extends ConsumerState<DataView>
           rowData['TotalSales'] = item.price * item.qty; // profit made
           rowData['CurrentStock'] = item.remainingStock ?? 0.0;
           // Always calculate tax based on configured percentage
-          rowData['TaxPayable'] = (item.price *
-              item.qty *
-              (taxPercentage / 100)); // Calculate tax using configured rate
+          // Calculate tax using configured rate
+          final taxPayable = (item.price * item.qty * (taxPercentage / 100));
+          // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
+          rowData['TaxPayable'] = taxPayable == 0 ? 0.0 : taxPayable;
           rowData['GrossProfit'] = (item.price * item.qty) -
               (item.splyAmt ??
                   (item.price * item.qty * 0.7)); // Estimate gross profit
