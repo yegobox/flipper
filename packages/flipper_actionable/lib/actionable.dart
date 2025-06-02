@@ -108,9 +108,9 @@ class Actionable extends StatelessWidget {
                                             fontSize: 30,
                                           ),
                                         ),
-                                        const Text(
-                                          'RWF',
-                                          style: TextStyle(
+                                        Text(
+                                          ProxyService.box.defaultCurrency(),
+                                          style: const TextStyle(
                                             fontSize: 10,
                                           ),
                                         ),
@@ -137,8 +137,8 @@ class Actionable extends StatelessWidget {
                                       overlayColor: WidgetStateProperty
                                           .resolveWith<Color?>(
                                         (Set<WidgetState> states) {
-                                          if (states.contains(
-                                              WidgetState.hovered)) {
+                                          if (states
+                                              .contains(WidgetState.hovered)) {
                                             return Colors.blue;
                                           }
                                           if (states.contains(

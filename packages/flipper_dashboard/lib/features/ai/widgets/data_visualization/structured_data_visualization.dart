@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
@@ -85,7 +86,7 @@ class StructuredDataVisualization implements VisualizationInterface {
       }
     }
 
-    final String currencyCode = data['currencyCode'] ?? 'RWF';
+    final String currencyCode = data['currencyCode'] ?? '${ProxyService.box.defaultCurrency()}';
 
     // Include date in title if available
     final String displayTitle = date.isNotEmpty ? '$title for $date' : title;

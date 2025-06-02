@@ -68,7 +68,8 @@ class TransactionsState extends ConsumerState<Transactions>
                 ],
               ),
             ),
-            _buildZReportRow('Opening Deposit', '${drawer.openingBalance} RWF'),
+            _buildZReportRow('Opening Deposit',
+                '${drawer.openingBalance} ${ProxyService.box.defaultCurrency()}'),
             _buildZReportRow('Total NS', drawer.nsSaleCount.toString()),
             _buildZReportRow('Total NR', drawer.nrSaleCount.toString()),
             _buildZReportRow(

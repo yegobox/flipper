@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
@@ -28,14 +29,14 @@ class ColorAndImagePlaceHolder extends StatelessWidget {
         color: HexColor('#cccccc'),
         child: Stack(
           fit: StackFit.expand,
-          children: const <Widget>[
+          children: <Widget>[
             Positioned(
               left: 31,
               top: 40,
               child: RotationTransition(
                 turns: AlwaysStoppedAnimation(50 / 360),
                 child: Text(
-                  'RWF',
+                  ProxyService.box.defaultCurrency(),
                   style: TextStyle(
                     fontSize: 15,
                     color: Colors.black,

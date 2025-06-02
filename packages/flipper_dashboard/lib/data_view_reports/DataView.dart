@@ -153,7 +153,7 @@ class DataViewState extends ConsumerState<DataView>
         child: Refund(
           refundAmount: data.subTotal,
           transactionId: data.id.toString(),
-          currency: "RWF",
+          currency: ProxyService.box.defaultCurrency(),
           transaction: data is ITransaction ? data : null,
         ),
       ),

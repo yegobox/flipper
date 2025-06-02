@@ -5,6 +5,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -37,7 +38,7 @@ class PreviewSaleBottomSheetState
   final _routerService = locator<RouterService>();
   final _numberFormat = NumberFormat.currency(
     locale: 'en', // e.g., 'en_US' for English (United States)
-    symbol: ' RWF',
+    symbol: '${ProxyService.box.defaultCurrency()}',
   );
 
   Widget buildItem({
@@ -79,7 +80,7 @@ class PreviewSaleBottomSheetState
         child: ListTile(
           contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
           trailing: Text(
-            'RWF ${NumberFormat('#,###').format(items.price * items.qty)}',
+            '${ProxyService.box.defaultCurrency()} ${NumberFormat('#,###').format(items.price * items.qty)}',
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w400,
               fontSize: 15,

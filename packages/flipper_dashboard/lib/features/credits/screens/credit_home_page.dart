@@ -173,7 +173,7 @@ class _CreditHomePageState extends State<CreditHomePage>
               labelStyle: TextStyle(
                 color: colorScheme.onSurface.withOpacity(0.6),
               ),
-              prefixText: 'RWF ',
+              prefixText: ProxyService.box.defaultCurrency(),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
@@ -288,7 +288,7 @@ class _CreditHomePageState extends State<CreditHomePage>
       final paymentData = {
         'amount': amount,
         'phoneNumber': formattedPhoneNumber,
-        'currency': 'RWF',
+        'currency': ProxyService.box.defaultCurrency(),
         'description': 'Credit purchase'
       };
 

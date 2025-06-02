@@ -89,7 +89,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
   }
 
   String _formatClosingBalance(double balance) {
-    return "${NumberFormat.currency(locale: 'en', symbol: 'RWF ').format(balance)}";
+    return "${NumberFormat.currency(locale: 'en', symbol: '${ProxyService.box.defaultCurrency()} ').format(balance)}";
   }
 
   Widget buildHeader() {

@@ -181,7 +181,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               controller: _amountController,
               decoration: InputDecoration(
                 labelText: 'Amount',
-                prefixText: 'RWF ',
+                prefixText: ProxyService.box.defaultCurrency() + ' ',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
