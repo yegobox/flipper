@@ -3,4 +3,4 @@
 // This maintains backward compatibility with existing code that imports
 // the TaxConfiguration from this location.
 
-export 'package:flipper_dashboard/features/tax_configuration/screens/tax_configuration_screen.dart';
+export 'package:flipper_dashboard/features/config/screens/systemConfig.dart';

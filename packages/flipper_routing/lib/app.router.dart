@@ -393,7 +393,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       final args = routeData.argsAs<TaxConfigurationArgs>();
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.TaxConfiguration(
+        child: _i1.SystemConfig(
           key: args.key,
           showheader: args.showheader,
         ),
@@ -1809,7 +1809,7 @@ class DevicesArgs {
 }
 
 /// generated route for
-/// [_i1.TaxConfiguration]
+/// [_i1.SystemConfig]
 class TaxConfigurationRoute extends _i4.PageRouteInfo<TaxConfigurationArgs> {
   TaxConfigurationRoute({
     _i5.Key? key,

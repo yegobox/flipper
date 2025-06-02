@@ -348,7 +348,7 @@ class IconRowState extends ConsumerState<IconRow>
             height: MediaQuery.of(context).size.height * 0.7,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: TaxConfiguration(showheader: false),
+              child: SystemConfig(showheader: false),
             ),
           ),
         ),
