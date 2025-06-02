@@ -168,6 +168,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     bool immediateCompletion = false, // New parameter
   }) async {
     try {
+      final isValid = formKey.currentState?.validate() ?? true;
+      if (!isValid) return;
       // update this transaction as completed
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
@@ -190,7 +192,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
-      final isValid = formKey.currentState?.validate() ?? true;
+
       final String branchId = (await ProxyService.strategy.activeBranch()).id;
       final paymentType = ProxyService.box.paymentType() ?? "Cash";
 
@@ -279,68 +281,76 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function completeTransaction,
     required String paymentType,
   }) async {
-    final phoneNumber = customer?.telNo?.replaceAll("+", "") ??
-        "250${ProxyService.box.currentSaleCustomerPhoneNumber()}";
+    try {
+      final phoneNumber = customer?.telNo?.replaceAll("+", "") ??
+          "250${ProxyService.box.currentSaleCustomerPhoneNumber()}";
 
-    await _sendpaymentRequest(
-      phoneNumber: phoneNumber,
-      branchId: branchId,
-      externalId: transaction.id,
-      finalPrice: amount.toInt(),
-    );
+      await _sendpaymentRequest(
+        phoneNumber: phoneNumber,
+        branchId: branchId,
+        externalId: transaction.id,
+        finalPrice: amount.toInt(),
+      );
 
-    await ProxyService.strategy.upsertPayment(CustomerPayments(
-      phoneNumber: phoneNumber,
-      paymentStatus: "pending",
-      amountPayable: transaction.subTotal!,
-      transactionId: transaction.id,
-    ));
+      await ProxyService.strategy.upsertPayment(CustomerPayments(
+        phoneNumber: phoneNumber,
+        paymentStatus: "pending",
+        amountPayable: transaction.subTotal!,
+        transactionId: transaction.id,
+      ));
 
-    final query = Query(where: [
-      Where('transactionId').isExactly(transaction.id),
-      Where('paymentStatus').isExactly('completed'),
-    ]);
+      final query = Query(where: [
+        Where('transactionId').isExactly(transaction.id),
+        Where('paymentStatus').isExactly('completed'),
+      ]);
 
-    Repository().subscribeToRealtime<CustomerPayments>(query: query).listen(
-      (data) async {
-        if (data.isEmpty) return;
-        talker.warning("Payment Completed by a user ${data}");
+      Repository().subscribeToRealtime<CustomerPayments>(query: query).listen(
+        (data) async {
+          if (data.isEmpty) return;
+          talker.warning("Payment Completed by a user ${data}");
 
-        if (customer != null) {
-          await additionalInformationIsRequiredToCompleteTransaction(
-            amount: amount,
-            onComplete: completeTransaction,
-            discount: discount,
-            paymentType: paymentTypeController.text,
-            transaction: transaction,
-            context: context,
-          );
+          if (customer != null) {
+            await additionalInformationIsRequiredToCompleteTransaction(
+              amount: amount,
+              onComplete: completeTransaction,
+              discount: discount,
+              paymentType: paymentTypeController.text,
+              transaction: transaction,
+              context: context,
+            );
 
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionStreamProvider(
-            isExpense: false,
-          ));
-        } else {
-          await finalizePayment(
-            formKey: formKey,
-            customerNameController: customerNameController,
-            context: context,
-            paymentType: paymentType,
-            transactionType: TransactionType.sale,
-            transaction: transaction,
-            amount: amount,
-            onComplete: completeTransaction,
-            discount: discount,
-          );
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            ref.refresh(pendingTransactionStreamProvider(
+              isExpense: false,
+            ));
+          } else {
+            await finalizePayment(
+              formKey: formKey,
+              customerNameController: customerNameController,
+              context: context,
+              paymentType: paymentType,
+              transactionType: TransactionType.sale,
+              transaction: transaction,
+              amount: amount,
+              onComplete: completeTransaction,
+              discount: discount,
+            );
 
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionStreamProvider(
-            isExpense: false,
-          ));
-        }
-      },
-      onError: (error) => talker.warning(error),
-    );
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            ref.refresh(pendingTransactionStreamProvider(
+              isExpense: false,
+            ));
+          }
+        },
+        onError: (error) {
+          talker.error("Digital payment error: $error");
+          throw Exception("Digital payment failed: $error");
+        },
+      );
+    } catch (e) {
+      talker.error("Error in digital payment processing: $e");
+      throw Exception("Digital payment processing failed: $e");
+    }
   }
 
   Future<void> _processCashPayment({
@@ -394,17 +404,21 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String branchId,
     required String externalId,
   }) async {
-    final response = await ProxyService.ht.makePayment(
-      payeemessage: "Pay for Goods",
-      paymentType: "PaymentNormal",
-      externalId: externalId,
-      phoneNumber: phoneNumber.replaceAll("+", ""),
-      branchId: branchId,
-      businessId: ProxyService.box.getBusinessId()!,
-      amount: finalPrice,
-      flipperHttpClient: ProxyService.http,
-    );
-    return response;
+    try {
+      final response = await ProxyService.ht.makePayment(
+        payeemessage: "Pay for Goods",
+        paymentType: "PaymentNormal",
+        externalId: externalId,
+        phoneNumber: phoneNumber.replaceAll("+", ""),
+        branchId: branchId,
+        businessId: ProxyService.box.getBusinessId()!,
+        amount: finalPrice,
+        flipperHttpClient: ProxyService.http,
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
   }
 
 // Helper method to handle payment errors

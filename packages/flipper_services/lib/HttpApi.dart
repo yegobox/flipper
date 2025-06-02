@@ -232,10 +232,7 @@ class HttpApi implements HttpApiInterface {
       required int amount,
       required String phoneNumber}) async {
     final response = await flipperHttpClient.post(
-        headers: {
-          'api-key': AppSecrets.apikey,
-          'Content-Type': 'application/json'
-        },
+        headers: {'Content-Type': 'application/json'},
         Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
         body: json.encode({
           "amount": amount,
