@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
 import 'package:flipper_dashboard/features/config/widgets/tax_config_form.dart';
 import 'package:flipper_dashboard/features/config/widgets/switch_tile.dart';
+import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 
 class SystemConfig extends StatefulHookConsumerWidget {
   const SystemConfig({Key? key, required this.showheader}) : super(key: key);
@@ -135,22 +136,7 @@ class _SystemConfigState extends ConsumerState<SystemConfig> {
                             child: DropdownButton<String>(
                               value: model.systemCurrency,
                               underline: const SizedBox(),
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'RWF',
-                                    child: Text('RWF (Rwandan Franc)')),
-                                DropdownMenuItem(
-                                    value: 'USD',
-                                    child: Text('USD (US Dollar)')),
-                                DropdownMenuItem(
-                                    value: 'EUR', child: Text('EUR (Euro)')),
-                                DropdownMenuItem(
-                                    value: 'KES',
-                                    child: Text('KES (Kenyan Shilling)')),
-                                DropdownMenuItem(
-                                    value: 'UGX',
-                                    child: Text('UGX (Ugandan Shilling)')),
-                              ],
+                              items: CurrencyOptions.getCurrencyOptions(),
                               onChanged: (value) {
                                 if (value != null) {
                                   setState(() {
