@@ -33,7 +33,10 @@ class Expense {
         final relatedTransactionItems = await ProxyService.strategy
             .transactionItems(transactionId: sale.id);
         for (var item in relatedTransactionItems) {
-          taxSum += item.taxAmt ?? 0.0;
+          // Only include tax as expense if item is tax type B
+          if (item.taxTyCd == 'B') {
+            taxSum += item.taxAmt ?? 0.0;
+          }
         }
       }
     }
@@ -41,7 +44,11 @@ class Expense {
     List<Expense> expenses = transactions
         .map((transaction) => Expense.fromTransaction(transaction))
         .toList();
-    expenses.add(Expense(name: 'Tax', amount: taxSum));
+
+    // Only add tax expense if there are any tax type B items
+    if (taxSum > 0) {
+      expenses.add(Expense(name: 'Tax', amount: taxSum));
+    }
     return expenses;
   }
 }
