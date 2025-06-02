@@ -9,20 +9,19 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
-import 'package:flipper_dashboard/features/tax_configuration/widgets/support_section.dart';
-import 'package:flipper_dashboard/features/tax_configuration/widgets/tax_config_form.dart';
-import 'package:flipper_dashboard/features/tax_configuration/widgets/switch_tile.dart';
+import 'package:flipper_dashboard/features/config/widgets/support_section.dart';
+import 'package:flipper_dashboard/features/config/widgets/tax_config_form.dart';
+import 'package:flipper_dashboard/features/config/widgets/switch_tile.dart';
 
-class TaxConfiguration extends StatefulHookConsumerWidget {
-  const TaxConfiguration({Key? key, required this.showheader})
-      : super(key: key);
+class SystemConfig extends StatefulHookConsumerWidget {
+  const SystemConfig({Key? key, required this.showheader}) : super(key: key);
   final bool showheader;
 
   @override
-  _TaxConfigurationState createState() => _TaxConfigurationState();
+  _SystemConfigState createState() => _SystemConfigState();
 }
 
-class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
+class _SystemConfigState extends ConsumerState<SystemConfig> {
   bool isTaxEnabled = false;
   final _routerService = locator<RouterService>();
 
