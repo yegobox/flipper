@@ -196,7 +196,8 @@ class TransactionsState extends ConsumerState<Transactions>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      transaction.subTotal!.toRwf(),
+                      transaction.subTotal!.toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency()),
                       style: GoogleFonts.poppins(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,

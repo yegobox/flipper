@@ -158,7 +158,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            'Total: ${localTotal.toRwf()}',
+                            'Total: ${localTotal.toCurrencyFormatted()}',
                             style: TextStyle(color: Colors.grey[600]),
                           ),
                         ],
@@ -378,7 +378,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
                 text: 'Clear All',
               ),
               Text(
-                'Total: ${calculateTotal(items).toRwf()}',
+                'Total: ${calculateTotal(items).toCurrencyFormatted()}',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -390,7 +390,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
           FlipperButton(
             color: Colors.blue,
             width: double.infinity,
-            text: 'Charge ${calculateTotal(items).toRwf()}',
+            text: 'Charge ${calculateTotal(items).toCurrencyFormatted()}',
             isLoading: _isLoading,
             onPressed: _isLoading
                 ? null

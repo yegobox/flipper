@@ -290,7 +290,11 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildDetailRow('Plan', plan.selectedPlan ?? 'N/A'),
-            _buildDetailRow('Price', plan.totalPrice?.toRwf() ?? 'N/A'),
+            _buildDetailRow(
+                'Price',
+                plan.totalPrice?.toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency()) ??
+                    'N/A'),
             _buildDetailRow(
                 'Billing', plan.isYearlyPlan == true ? 'Yearly' : 'Monthly'),
             if (plan.additionalDevices != null && plan.additionalDevices! > 0)

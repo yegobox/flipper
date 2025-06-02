@@ -281,7 +281,8 @@ class DataViewState extends ConsumerState<DataView>
                           strokeWidth: 2, color: color),
                     )
                   : Text(
-                      displayTotal.toRwf(),
+                      displayTotal.toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency()),
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -366,7 +367,8 @@ class DataViewState extends ConsumerState<DataView>
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : Text(
-                        (totalIncomeAsync.value ?? 0.0).toRwf(),
+                        (totalIncomeAsync.value ?? 0.0).toCurrencyFormatted(
+                            symbol: ProxyService.box.defaultCurrency()),
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,

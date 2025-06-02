@@ -106,7 +106,8 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
       title: 'Average Order Value',
       value: (averageOrderValue.isInfinite || averageOrderValue.isNaN)
           ? 'N/A'
-          : averageOrderValue.toRwf(),
+          : averageOrderValue.toCurrencyFormatted(
+              symbol: ProxyService.box.defaultCurrency()),
       icon: Icons.attach_money,
       color: Colors.teal,
     ),
@@ -120,8 +121,10 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
     ),
     Metric(
       title: 'Net Profit',
-      value:
-          (netProfit.isInfinite || netProfit.isNaN) ? 'N/A' : netProfit.toRwf(),
+      value: (netProfit.isInfinite || netProfit.isNaN)
+          ? 'N/A'
+          : netProfit.toCurrencyFormatted(
+              symbol: ProxyService.box.defaultCurrency()),
       icon: Icons.trending_up,
       color: Colors.green,
     ),
@@ -130,7 +133,8 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
       value:
           (customerAcquisitionCost.isInfinite || customerAcquisitionCost.isNaN)
               ? 'N/A'
-              : customerAcquisitionCost.toRwf(),
+              : customerAcquisitionCost.toCurrencyFormatted(
+                  symbol: ProxyService.box.defaultCurrency()),
       icon: Icons.person_add,
       color: Colors.blue,
     ),
@@ -138,7 +142,8 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
       title: 'Customer Lifetime Value',
       value: (customerLifetimeValue.isInfinite || customerLifetimeValue.isNaN)
           ? 'N/A'
-          : customerLifetimeValue.toRwf(),
+          : customerLifetimeValue.toCurrencyFormatted(
+              symbol: ProxyService.box.defaultCurrency()),
       icon: Icons.people,
       color: Colors.pink,
     ),

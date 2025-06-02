@@ -201,7 +201,8 @@ class _TransactionItemList extends StatelessWidget {
                       style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                     ),
                     trailing: Text(
-                      total.toRwf(),
+                      total.toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency()),
                       style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
                     ),
                   );
@@ -213,7 +214,8 @@ class _TransactionItemList extends StatelessWidget {
                     style: GoogleFonts.poppins(),
                   ),
                   trailing: Text(
-                    (item.qty * item.price).toRwf(),
+                    (item.qty * item.price).toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency()),
                     style: GoogleFonts.poppins(),
                   ),
                 );

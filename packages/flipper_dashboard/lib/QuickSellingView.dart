@@ -265,7 +265,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         return PayableView(
                           transactionId: transactionAsyncValue.value?.id ?? "",
                           wording:
-                              "Pay ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toRwf()}",
+                              "Pay ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
                           mode: SellingMode.forSelling,
                           completeTransaction: (imediteCompleteTransaction) {
                             talker.warning("We are about to complete a sale");
@@ -346,7 +346,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
-          'Grand Total: ${grandTotal.toRwf()}',
+          'Grand Total: ${grandTotal.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
@@ -717,7 +717,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         spacing: 8.0,
         children: [
           Text(
-            'Total - Discount: ${totalAfterDiscountAndShipping.toRwf()}',
+            'Total - Discount: ${totalAfterDiscountAndShipping.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             softWrap: true,
           ),

@@ -360,7 +360,8 @@ class _RowItemState extends ConsumerState<RowItem>
         if (widget.variant?.retailPrice != null &&
             widget.variant?.retailPrice != 0)
           Text(
-            (widget.variant?.retailPrice ?? 0).toRwf(),
+            (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
+                symbol: ProxyService.box.defaultCurrency()),
             style: textTheme.labelSmall?.copyWith(
               color: Colors.blue[700],
               fontWeight: FontWeight.w600,
@@ -449,7 +450,8 @@ class _RowItemState extends ConsumerState<RowItem>
                 if (widget.variant?.retailPrice != null &&
                     widget.variant?.retailPrice != 0)
                   Text(
-                    (widget.variant?.retailPrice ?? 0).toRwf(),
+                    (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency()),
                     style: textTheme.labelSmall?.copyWith(
                       color: Colors.blue[700],
                       fontWeight: FontWeight.w600,
