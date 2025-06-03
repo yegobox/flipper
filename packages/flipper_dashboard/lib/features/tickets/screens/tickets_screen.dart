@@ -36,7 +36,6 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
         final verticalPadding = isMobile ? 8.0 : 16.0;
         final buttonFontSize = isMobile ? 14.0 : 16.0;
         final titleFontSize = isMobile ? 16.0 : 20.0;
-        final sectionTitleFontSize = isMobile ? 15.0 : 18.0;
 
         Widget content = Padding(
           padding: EdgeInsets.symmetric(
@@ -128,14 +127,6 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
               ),
               SizedBox(height: isMobile ? 16 : 24)
                   .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-              Text(
-                'Tickets',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  fontSize: sectionTitleFontSize,
-                  color: const Color(0xff006AFE),
-                ),
-              ).shouldSeeTheApp(ref, featureName: "Tickets"),
               SizedBox(height: isMobile ? 8 : 16),
               // Make ticket section scrollable on mobile
               Expanded(
