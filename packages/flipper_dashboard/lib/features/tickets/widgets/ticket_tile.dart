@@ -108,6 +108,7 @@ class TicketTile extends StatefulWidget {
 class _TicketTileState extends State<TicketTile> {
   int? _minutesRemaining;
   Timer? _timer;
+  bool _isHovering = false;
 
   @override
   void initState() {
@@ -119,6 +120,7 @@ class _TicketTileState extends State<TicketTile> {
     _updateMinutesRemaining();
     _timer?.cancel();
     if (widget.ticket.dueDate != null) {
+      // Update every minute to refresh the time display
       _timer = Timer.periodic(const Duration(minutes: 1), (_) {
         if (mounted) {
           setState(_updateMinutesRemaining);
@@ -169,8 +171,6 @@ class _TicketTileState extends State<TicketTile> {
     }
   }
 
-  bool _isHovering = false;
-
   @override
   Widget build(BuildContext context) {
     final ticket = widget.ticket;
@@ -191,8 +191,11 @@ class _TicketTileState extends State<TicketTile> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
+      cursor: SystemMouseCursors.click,
+      child: Semantics(
+        button: true,
+        label: 'Ticket ${ticket.ticketName ?? "Untitled Ticket"}',
+        hint: 'Tap to view details',
         child: AnimatedContainer(
           duration: _animationDuration,
           margin: const EdgeInsets.symmetric(vertical: 4.0),
@@ -208,6 +211,7 @@ class _TicketTileState extends State<TicketTile> {
             child: InkWell(
               borderRadius: BorderRadius.circular(_cardRadius),
               onTap: widget.onTap,
+              highlightColor: theme.colorScheme.primary.withOpacity(0.1),
               child: Padding(
                 padding: _contentPadding,
                 child: Column(
@@ -300,16 +304,20 @@ class _TicketTileState extends State<TicketTile> {
                             const SizedBox(width: _spacingSmall),
 
                             // Delete button
-                            IconButton(
-                              icon: const Icon(Icons.delete_outline, size: 20),
-                              color: theme.colorScheme.error,
-                              tooltip: 'Delete ticket',
-                              onPressed: () =>
-                                  _showDeleteConfirmation(context, ticket),
-                              style: IconButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            Semantics(
+                              button: true,
+                              label: 'Delete ticket',
+                              child: IconButton(
+                                icon: const Icon(Icons.delete_outline, size: 20),
+                                color: theme.colorScheme.error,
+                                tooltip: 'Delete ticket',
+                                onPressed: () =>
+                                    _showDeleteConfirmation(context, ticket),
+                                style: IconButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: EdgeInsets.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
                               ),
                             ),
                           ],
@@ -343,11 +351,26 @@ class _TicketTileState extends State<TicketTile> {
   void _showDeleteConfirmation(BuildContext context, ITransaction ticket) {
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (BuildContext context) {
+        final theme = Theme.of(context);
         return AlertDialog(
-          title: const Text('Delete Ticket'),
-          content: const Text(
+          title: Text(
+            'Delete Ticket',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          content: Text(
             'Are you sure you want to delete this ticket? This action cannot be undone.',
+            style: GoogleFonts.roboto(
+              fontSize: 14,
+              height: 1.4,
+            ),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
           ),
           actions: [
             TextButton(
@@ -360,7 +383,7 @@ class _TicketTileState extends State<TicketTile> {
                 widget.onDelete(ticket);
               },
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: theme.colorScheme.error,
               ),
               child: const Text('Delete'),
             ),
