@@ -80,6 +80,38 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   // DUE DATE: Nullable field for due date of ticket (loan or in progress)
   DateTime? dueDate;
 
+  // LOAN RECOVERY: Fields for loan recovery/auto-billing
+  @Supabase(defaultValue: "false")
+  bool? isAutoBilled;
+
+  DateTime? nextBillingDate;
+
+  @Supabase(defaultValue: 'monthly')
+  String? billingFrequency; // 'daily', 'weekly', 'monthly'
+
+  @Supabase(defaultValue: "0.0")
+  double? billingAmount;
+
+  @Supabase(defaultValue: "1")
+  int? totalInstallments;
+
+  @Supabase(defaultValue: "0")
+  int? paidInstallments;
+
+  DateTime? lastBilledDate;
+
+  // LOAN TRACKING: Additional fields for better loan management
+  @Supabase(defaultValue: "0.0")
+  double? originalLoanAmount;
+
+  @Supabase(defaultValue: "0.0")
+  double? remainingBalance;
+
+  DateTime? lastPaymentDate;
+
+  @Supabase(defaultValue: "0.0")
+  double? lastPaymentAmount;
+
   ITransaction({
     this.ticketName,
     String? id,
@@ -121,8 +153,28 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     // LOAN TICKET: Add to constructor
     bool? isLoan,
     this.dueDate,
+    bool? isAutoBilled,
+    this.nextBillingDate,
+    String? billingFrequency,
+    double? billingAmount,
+    int? totalInstallments,
+    int? paidInstallments,
+    this.lastBilledDate,
+    double? originalLoanAmount,
+    double? remainingBalance,
+    this.lastPaymentDate,
+    double? lastPaymentAmount,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
+        isAutoBilled = isAutoBilled ?? false,
+        billingFrequency = billingFrequency ?? 'monthly',
+        billingAmount = billingAmount ?? 0.0,
+        totalInstallments = totalInstallments ?? 1,
+        paidInstallments = paidInstallments ?? 0,
+        originalLoanAmount = originalLoanAmount ?? subTotal,
+        remainingBalance =
+            remainingBalance ?? (originalLoanAmount ?? subTotal ?? 0.0),
+        lastPaymentAmount = lastPaymentAmount ?? 0.0,
         subTotal = subTotal ?? 0.0,
         isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
         customerId =
