@@ -2984,21 +2984,27 @@ class CoreSync extends AiStrategyImpl
         deliveryDate: deliveryDate,
         deliveryNote: deliveryNote,
         mainBranchId: mainBranchId,
-        branch: branch,
-
-        // transactionItems: items,
+        // branch: branch,
         branchId: branch.id,
         subBranchId: ProxyService.box.getBranchId(),
         status: RequestStatus.pending,
         updatedAt: DateTime.now().toUtc().toLocal(),
         createdAt: DateTime.now().toUtc().toLocal(),
-        financing: financing,
+        // financing: financing,
         financingId: financing.id,
       );
-      InventoryRequest request = await repository.upsert(stockRequest);
-      for (TransactionItem item in items) {
-        item.inventoryRequest = request;
-        await repository.upsert(item);
+      try {
+        InventoryRequest request = await repository.upsert(stockRequest);
+        for (TransactionItem item in items) {
+          item.inventoryRequest = request;
+          await repository.upsert(item);
+        }
+        request.branch = branch;
+        request.financing = financing;
+        await repository.upsert(request);
+      } catch (e, s) {
+        talker.error(e);
+        talker.error(s);
       }
       return orderId;
     } catch (e, s) {
