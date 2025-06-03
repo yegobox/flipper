@@ -2967,47 +2967,62 @@ class CoreSync extends AiStrategyImpl
       required FinanceProvider financeOption,
       required int mainBranchId}) async {
     try {
+      // Create a unique ID for the stock request
+      String orderId = const Uuid().v4();
+
+      // Step 1: First upsert the associated objects separately
       final financing = Financing(
         requested: true,
         financeProviderId: financeOption.id,
-        provider: financeOption,
+        provider: financeOption, // Now we can include the provider object
         status: RequestStatus.pending,
         amount: transaction.subTotal!,
         approvalDate: DateTime.now().toUtc(),
       );
       await repository.upsert(financing);
+
+      // Get branch
       Branch branch = await activeBranch();
-      String orderId = const Uuid().v4();
-      final stockRequest = InventoryRequest(
-        id: orderId,
-        itemCounts: items.length,
-        deliveryDate: deliveryDate,
-        deliveryNote: deliveryNote,
-        mainBranchId: mainBranchId,
-        // branch: branch,
-        branchId: branch.id,
-        subBranchId: ProxyService.box.getBranchId(),
-        status: RequestStatus.pending,
-        updatedAt: DateTime.now().toUtc().toLocal(),
-        createdAt: DateTime.now().toUtc().toLocal(),
-        // financing: financing,
-        financingId: financing.id,
-      );
+
       try {
+        // Step 2: Create the request with both ID and object references
+        // Now that the adapter is fixed, this should work correctly
+        final stockRequest = InventoryRequest(
+          id: orderId,
+          itemCounts: items.length,
+          deliveryDate: deliveryDate,
+          deliveryNote: deliveryNote,
+          mainBranchId: mainBranchId,
+          branchId: branch.id,
+          branch: branch, // We can now include the branch object directly
+          subBranchId: ProxyService.box.getBranchId(),
+          status: RequestStatus.pending,
+          updatedAt: DateTime.now().toUtc().toLocal(),
+          createdAt: DateTime.now().toUtc().toLocal(),
+          financingId: financing.id,
+          financing:
+              financing, // We can now include the financing object directly
+        );
+
+        // Step 3: Upsert the request with all associations
         InventoryRequest request = await repository.upsert(stockRequest);
+
+        // Step 4: Process transaction items
         for (TransactionItem item in items) {
+          // Now we can set the full object reference
           item.inventoryRequest = request;
           await repository.upsert(item);
         }
-        request.branch = branch;
-        request.financing = financing;
-        await repository.upsert(request);
+
+        talker.info('Successfully created stock request with ID: $orderId');
       } catch (e, s) {
-        talker.error(e);
+        talker.error('Error in stock request processing: $e');
         talker.error(s);
       }
+
       return orderId;
     } catch (e, s) {
+      talker.error('Error in createStockRequest: $e');
       talker.error(s);
       rethrow;
     }
