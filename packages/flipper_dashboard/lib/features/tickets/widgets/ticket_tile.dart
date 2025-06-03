@@ -71,6 +71,24 @@ class _TicketTileState extends State<TicketTile> {
     super.dispose();
   }
 
+  String _formatTimeRemaining(int minutes) {
+    if (minutes < 0) {
+      return 'Overdue';
+    }
+
+    final days = minutes ~/ (60 * 24);
+    final hours = (minutes % (60 * 24)) ~/ 60;
+    final remainingMinutes = minutes % 60;
+
+    if (days > 0) {
+      return '${days}d ${hours}h left';
+    } else if (hours > 0) {
+      return '${hours}h ${remainingMinutes}m left';
+    } else {
+      return '$minutes min left';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ticket = widget.ticket;
@@ -186,9 +204,8 @@ class _TicketTileState extends State<TicketTile> {
                                   label: Text(
                                     _minutesRemaining == null
                                         ? ''
-                                        : _minutesRemaining! < 0
-                                            ? 'Overdue'
-                                            : '${_minutesRemaining!} min left',
+                                        : _formatTimeRemaining(
+                                            _minutesRemaining!),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 13,
