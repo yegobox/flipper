@@ -1,93 +1,14 @@
 import 'dart:async';
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:timeago/timeago.dart' as timeago;
 import '../../../utils/string_utils.dart';
+
 import '../models/ticket_status.dart';
-
-// Fluent Design inspired colors
-const _cardElevation = 2.0;
-const _cardHoverElevation = 4.0;
-const _cardRadius = 8.0;
-const _animationDuration = Duration(milliseconds: 150);
-const _contentPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0);
-const _spacingXSmall = 4.0;
-const _spacingSmall = 8.0;
-const _spacingMedium = 12.0;
-
-// Typography
-final _titleStyle = GoogleFonts.roboto(
-  fontSize: 16,
-  fontWeight: FontWeight.w600,
-  height: 1.2,
-  color: const Color(0xFF323130),
-);
-
-final _subtitleStyle = GoogleFonts.roboto(
-  fontSize: 14,
-  fontWeight: FontWeight.w400,
-  color: const Color(0xFF605E5C),
-);
-
-final _captionStyle = GoogleFonts.roboto(
-  fontSize: 12,
-  fontWeight: FontWeight.w400,
-  color: const Color(0xFF8A8886),
-);
-
-// Animation extensions
-extension AnimationExtension on Widget {
-  Widget withHoverEffect() {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: AnimatedContainer(
-        duration: _animationDuration,
-        child: this,
-      ),
-    );
-  }
-}
-
-// Helper widget for status badges
-class StatusBadge extends StatelessWidget {
-  final String label;
-  final Color color;
-  final bool isSmall;
-
-  const StatusBadge({
-    Key? key,
-    required this.label,
-    required this.color,
-    this.isSmall = false,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 8 : 10,
-        vertical: isSmall ? 3 : 4,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: isSmall ? 12 : 13,
-          fontWeight: FontWeight.w500,
-          height: 1.2,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-}
 
 class TicketTile extends StatefulWidget {
   const TicketTile({
@@ -105,10 +26,16 @@ class TicketTile extends StatefulWidget {
   State<TicketTile> createState() => _TicketTileState();
 }
 
-class _TicketTileState extends State<TicketTile> {
+class _TicketTileState extends State<TicketTile>
+    with AutomaticKeepAliveClientMixin {
   int? _minutesRemaining;
   Timer? _timer;
-  bool _isHovering = false;
+  String? _timeRemainingString; // Cached string for time remaining
+  final DateFormat _dateFormat =
+      DateFormat('MMM d, yyyy hh:mm a'); // Date formatter
+
+  @override
+  bool get wantKeepAlive => true; // Keep the state alive even when offscreen
 
   @override
   void initState() {
@@ -120,11 +47,8 @@ class _TicketTileState extends State<TicketTile> {
     _updateMinutesRemaining();
     _timer?.cancel();
     if (widget.ticket.dueDate != null) {
-      // Update every minute to refresh the time display
       _timer = Timer.periodic(const Duration(minutes: 1), (_) {
-        if (mounted) {
-          setState(_updateMinutesRemaining);
-        }
+        _updateTimeRemainingString(); // Update only the string
       });
     }
   }
@@ -134,8 +58,22 @@ class _TicketTileState extends State<TicketTile> {
       final now = DateTime.now();
       final diff = widget.ticket.dueDate!.toLocal().difference(now);
       _minutesRemaining = diff.inMinutes;
+      _updateTimeRemainingString(); // Update the formatted string too
     } else {
       _minutesRemaining = null;
+      _timeRemainingString = null;
+    }
+  }
+
+  void _updateTimeRemainingString() {
+    if (mounted) {
+      setState(() {
+        if (_minutesRemaining != null) {
+          _timeRemainingString = _formatTimeRemaining(_minutesRemaining!);
+        } else {
+          _timeRemainingString = null;
+        }
+      });
     }
   }
 
@@ -173,223 +111,270 @@ class _TicketTileState extends State<TicketTile> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Important for AutomaticKeepAliveClientMixin
+
     final ticket = widget.ticket;
-    final theme = Theme.of(context);
     final ticketStatus =
         TicketStatusExtension.fromString(ticket.status ?? PARKED);
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
 
-    // Calculate card elevation based on hover state
-    final cardElevation = _isHovering ? _cardHoverElevation : _cardElevation;
+    final subtotalFormatted =
+        (ticket.subTotal ?? 0.0).toStringAsFixed(2); // Format once
 
-    // Format the due date if it exists
-    final formattedDueDate = ticket.dueDate != null
-        ? '${ticket.dueDate!.toLocal().toString().split(' ')[0]} • ${_formatTimeRemaining(_minutesRemaining ?? 0)}'
-        : null;
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: InkWell(
+        // Use InkWell for ripple effect on tap
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(8.0), // Match Card's border radius
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      cursor: SystemMouseCursors.click,
-      child: Semantics(
-        button: true,
-        label: 'Ticket ${ticket.ticketName ?? "Untitled Ticket"}',
-        hint: 'Tap to view details',
-        child: AnimatedContainer(
-          duration: _animationDuration,
-          margin: const EdgeInsets.symmetric(vertical: 4.0),
-          child: Card(
-            elevation: cardElevation,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(_cardRadius),
-              side: BorderSide(
-                color: theme.dividerColor.withOpacity(0.08),
-                width: 1,
-              ),
-            ),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(_cardRadius),
-              onTap: widget.onTap,
-              highlightColor: theme.colorScheme.primary.withOpacity(0.1),
-              child: Padding(
-                padding: _contentPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Main content row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 12.0,
+          ),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // Align the whole column to the left
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start, // Align column to the left
                       children: [
-                        // Left content
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title row with ID
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      ticket.ticketName ?? "Untitled Ticket",
-                                      style: _titleStyle,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const SizedBox(width: _spacingSmall),
-                                  Text(
-                                    '#${safeSubstring(ticket.id, 0, end: 6, ellipsis: false)}',
-                                    style: _captionStyle,
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: _spacingXSmall),
-
-                              // Metadata row
-                              Wrap(
-                                spacing: _spacingMedium,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  // Last updated
-                                  Text(
-                                    timeago.format(ticket.updatedAt!),
-                                    style: _subtitleStyle,
-                                  ),
-
-                                  // Subtotal
-                                  Text(
-                                    (ticket.subTotal ?? 0.0).toStringAsFixed(2),
-                                    style: _subtitleStyle.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-
-                                  // Due date and timer
-                                  if (formattedDueDate != null) ...[
-                                    const SizedBox(width: _spacingSmall),
-                                    StatusBadge(
-                                      label: formattedDueDate,
-                                      color: _minutesRemaining != null &&
-                                              _minutesRemaining! < 0
-                                          ? Colors.red
-                                          : Colors.deepPurple,
-                                      isSmall: true,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Right actions
                         Row(
-                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Status badge or loan indicator
-                            if (ticket.isLoan == true)
-                              StatusBadge(
-                                label: 'LOAN',
-                                color: Colors.orange,
-                              )
-                            else
-                              StatusBadge(
-                                label: ticketStatus.displayName,
-                                color: ticketStatus.color,
-                              ),
-
-                            const SizedBox(width: _spacingSmall),
-
-                            // Delete button
-                            Semantics(
-                              button: true,
-                              label: 'Delete ticket',
-                              child: IconButton(
-                                icon: const Icon(Icons.delete_outline, size: 20),
-                                color: theme.colorScheme.error,
-                                tooltip: 'Delete ticket',
-                                onPressed: () =>
-                                    _showDeleteConfirmation(context, ticket),
-                                style: IconButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: EdgeInsets.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            Flexible(
+                              child: Text(
+                                ticket.ticketName ?? "N/A",
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 17,
+                                  color: Colors.black,
                                 ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Display ID in a smaller, subtle format
+                            Text(
+                              '(ID: ${safeSubstring(ticket.id, 0, end: 8, ellipsis: false)})',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 12,
+                                color: Colors.grey[400],
                               ),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            // Display time ago
+                            Text(
+                              timeago.format(ticket.updatedAt!),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Display subtotal
+                            Flexible(
+                              child: Text(
+                                'Subtotal: $subtotalFormatted',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: Colors.grey[800],
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            // Show due date if present
+                            if (ticket.dueDate != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.event,
+                                        size: 16, color: Colors.deepPurple),
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      'Due: ${_dateFormat.format(ticket.dueDate!.toLocal())}', // Use formatted date
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            // Show minutes remaining chip if dueDate exists
+                            if (ticket.dueDate != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10),
+                                child: Chip(
+                                  avatar: const Icon(Icons.timer,
+                                      size: 16, color: Colors.deepPurple),
+                                  label: Text(
+                                    _timeRemainingString ??
+                                        '', // Use cached string
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13,
+                                      color: Colors.deepPurple,
+                                    ),
+                                  ),
+                                  backgroundColor:
+                                      Colors.deepPurple.withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-
-                    // Additional info for small screens
-                    if (isSmallScreen) ...[
-                      const SizedBox(height: _spacingSmall),
-                      if (ticket.isLoan != true)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: StatusBadge(
-                            label: ticketStatus.displayName,
-                            color: ticketStatus.color,
-                            isSmall: true,
+                  ),
+                  // Far right: Loan chip if loan, else status chip
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Delete button - positioned next to the status chip
+                        ElevatedButton(
+                          onPressed: () {
+                            // Show confirmation dialog before deleting
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Delete Ticket'),
+                                  content: const Text(
+                                      'Are you sure you want to delete this ticket? This action cannot be undone.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        widget.onDelete(ticket);
+                                      },
+                                      child: const Text('Delete'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red[50],
+                            foregroundColor: Colors.red[600],
+                            padding: const EdgeInsets.all(8),
+                            minimumSize: const Size(36, 36),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            side: BorderSide(color: Colors.red[300]!),
                           ),
+                          child: const Icon(Icons.delete_outline, size: 18),
                         ),
-                    ],
-                  ],
-                ),
+                        const SizedBox(width: 8),
+                        ticket.isLoan == true
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.orange,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  'LOAN',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.orange[800],
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: ticketStatus.color.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: ticketStatus.color, width: 1),
+                                ),
+                                child: Text(
+                                  ticketStatus.displayName,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    color: ticketStatus.color,
+                                  ),
+                                ),
+                              ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
+              // For small screens, show status below in full width (optional, can be kept for mobile)
+              if (isSmallScreen && ticket.isLoan != true)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: ticketStatus.color.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: ticketStatus.color, width: 1),
+                    ),
+                    child: Center(
+                      child: Text(
+                        ticketStatus.displayName,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                          color: ticketStatus.color,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
-    );
-  }
-
-  void _showDeleteConfirmation(BuildContext context, ITransaction ticket) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        final theme = Theme.of(context);
-        return AlertDialog(
-          title: Text(
-            'Delete Ticket',
-            style: GoogleFonts.roboto(
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
-          content: Text(
-            'Are you sure you want to delete this ticket? This action cannot be undone.',
-            style: GoogleFonts.roboto(
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onDelete(ticket);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
     );
   }
 }
