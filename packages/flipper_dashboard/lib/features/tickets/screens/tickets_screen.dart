@@ -80,21 +80,29 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                 fontSize: buttonFontSize,
                               ),
                             ),
-                            onPressed: itemCount > 0
-                                ? () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) {
-                                        return NewTicket(
-                                          transaction: transaction!,
-                                          onClose: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        );
+                            onPressed: () {
+                              if (itemCount > 0) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return NewTicket(
+                                      transaction: transaction!,
+                                      onClose: () {
+                                        Navigator.of(context).pop();
                                       },
                                     );
-                                  }
-                                : null,
+                                  },
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Please add items to the transaction before creating a ticket'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -102,9 +110,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                     size: 18, color: Colors.white),
                                 const SizedBox(width: 6),
                                 Text(
-                                  itemCount > 0
-                                      ? 'Create Ticket for $itemCount item${itemCount > 1 ? 's' : ''}'
-                                      : 'New Ticket',
+                                  'Create Ticket${itemCount > 0 ? ' ($itemCount ${itemCount == 1 ? 'item' : 'items'})' : ''}',
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.w500,
                                     fontSize: buttonFontSize,
@@ -113,8 +119,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                 ),
                               ],
                             ),
-                          ).eligibleToSeeIfYouAre(
-                              ref, [AccessLevel.ADMIN, AccessLevel.WRITE]);
+                          ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]);
                         },
                       );
                     },

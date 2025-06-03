@@ -117,13 +117,13 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
         data['main_branch_id'] == null ? null : data['main_branch_id'] as int?,
     subBranchId:
         data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
-    branch: data['branch_Branch_brick_id'] == null
+    branch: data['branch_Branch_brick_id_Branch_brick_id'] == null
         ? null
-        : (data['branch_Branch_brick_id'] > -1
+        : (data['branch_Branch_brick_id_Branch_brick_id'] > -1
             ? (await repository?.getAssociation<Branch>(
                 Query.where(
                   'primaryKey',
-                  data['branch_Branch_brick_id'] as int,
+                  data['branch_Branch_brick_id_Branch_brick_id'] as int,
                   limit1: true,
                 ),
               ))
@@ -180,13 +180,14 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     tinNumber:
         data['tin_number'] == null ? null : data['tin_number'] as String?,
-    financing: data['financing_Financing_brick_id'] == null
+    financing: data['financing_Financing_brick_id_Financing_brick_id'] == null
         ? null
-        : (data['financing_Financing_brick_id'] > -1
+        : (data['financing_Financing_brick_id_Financing_brick_id'] > -1
             ? (await repository?.getAssociation<Financing>(
                 Query.where(
                   'primaryKey',
-                  data['financing_Financing_brick_id'] as int,
+                  data['financing_Financing_brick_id_Financing_brick_id']
+                      as int,
                   limit1: true,
                 ),
               ))
@@ -206,7 +207,7 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
-    'branch_Branch_brick_id': instance.branch != null
+    'branch_Branch_brick_id_Branch_brick_id': instance.branch != null
         ? instance.branch!.primaryKey ??
             await provider.upsert<Branch>(
               instance.branch!,
@@ -234,13 +235,14 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
     'item_counts': instance.itemCounts,
     'bhf_id': instance.bhfId,
     'tin_number': instance.tinNumber,
-    'financing_Financing_brick_id': instance.financing != null
-        ? instance.financing!.primaryKey ??
-            await provider.upsert<Financing>(
-              instance.financing!,
-              repository: repository,
-            )
-        : null,
+    'financing_Financing_brick_id_Financing_brick_id':
+        instance.financing != null
+            ? instance.financing!.primaryKey ??
+                await provider.upsert<Financing>(
+                  instance.financing!,
+                  repository: repository,
+                )
+            : null,
     'financing_id': instance.financingId,
   };
 }
@@ -375,9 +377,9 @@ class InventoryRequestAdapter
     ),
     'branch': const RuntimeSqliteColumnDefinition(
       association: true,
-      columnName: 'branch_Branch_brick_id',
+      columnName: 'branch_Branch_brick_id_Branch_brick_id',
       iterable: false,
-      type: Branch,
+      type: Map,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -465,7 +467,7 @@ class InventoryRequestAdapter
     ),
     'financing': const RuntimeSqliteColumnDefinition(
       association: true,
-      columnName: 'financing_Financing_brick_id',
+      columnName: 'financing_Financing_brick_id_Financing_brick_id',
       iterable: false,
       type: Financing,
     ),
