@@ -115,6 +115,56 @@ Future<ITransaction> _$ITransactionFromSupabase(
             : data['due_date'] == null
             ? null
             : DateTime.tryParse(data['due_date'] as String),
+    isAutoBilled:
+        data['is_auto_billed'] == null
+            ? null
+            : data['is_auto_billed'] as bool? ?? false,
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] == null
+            ? null
+            : DateTime.tryParse(data['next_billing_date'] as String),
+    billingFrequency:
+        data['billing_frequency'] == null
+            ? null
+            : data['billing_frequency'] as String? ?? 'monthly',
+    billingAmount:
+        data['billing_amount'] == null
+            ? null
+            : data['billing_amount'] as double? ?? 0.0,
+    totalInstallments:
+        data['total_installments'] == null
+            ? null
+            : data['total_installments'] as int? ?? 1,
+    paidInstallments:
+        data['paid_installments'] == null
+            ? null
+            : data['paid_installments'] as int? ?? 0,
+    lastBilledDate:
+        data['last_billed_date'] == null
+            ? null
+            : data['last_billed_date'] == null
+            ? null
+            : DateTime.tryParse(data['last_billed_date'] as String),
+    originalLoanAmount:
+        data['original_loan_amount'] == null
+            ? null
+            : data['original_loan_amount'] as double? ?? 0.0,
+    remainingBalance:
+        data['remaining_balance'] == null
+            ? null
+            : data['remaining_balance'] as double? ?? 0.0,
+    lastPaymentDate:
+        data['last_payment_date'] == null
+            ? null
+            : data['last_payment_date'] == null
+            ? null
+            : DateTime.tryParse(data['last_payment_date'] as String),
+    lastPaymentAmount:
+        data['last_payment_amount'] == null
+            ? null
+            : data['last_payment_amount'] as double? ?? 0.0,
   );
 }
 
@@ -164,6 +214,17 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'org_sar_no': instance.orgSarNo,
     'is_loan': instance.isLoan,
     'due_date': instance.dueDate?.toIso8601String(),
+    'is_auto_billed': instance.isAutoBilled,
+    'next_billing_date': instance.nextBillingDate?.toIso8601String(),
+    'billing_frequency': instance.billingFrequency,
+    'billing_amount': instance.billingAmount,
+    'total_installments': instance.totalInstallments,
+    'paid_installments': instance.paidInstallments,
+    'last_billed_date': instance.lastBilledDate?.toIso8601String(),
+    'original_loan_amount': instance.originalLoanAmount,
+    'remaining_balance': instance.remainingBalance,
+    'last_payment_date': instance.lastPaymentDate?.toIso8601String(),
+    'last_payment_amount': instance.lastPaymentAmount,
   };
 }
 
@@ -268,6 +329,54 @@ Future<ITransaction> _$ITransactionFromSqlite(
             : data['due_date'] == null
             ? null
             : DateTime.tryParse(data['due_date'] as String),
+    isAutoBilled:
+        data['is_auto_billed'] == null ? null : data['is_auto_billed'] == 1,
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] == null
+            ? null
+            : DateTime.tryParse(data['next_billing_date'] as String),
+    billingFrequency:
+        data['billing_frequency'] == null
+            ? null
+            : data['billing_frequency'] as String?,
+    billingAmount:
+        data['billing_amount'] == null
+            ? null
+            : data['billing_amount'] as double?,
+    totalInstallments:
+        data['total_installments'] == null
+            ? null
+            : data['total_installments'] as int?,
+    paidInstallments:
+        data['paid_installments'] == null
+            ? null
+            : data['paid_installments'] as int?,
+    lastBilledDate:
+        data['last_billed_date'] == null
+            ? null
+            : data['last_billed_date'] == null
+            ? null
+            : DateTime.tryParse(data['last_billed_date'] as String),
+    originalLoanAmount:
+        data['original_loan_amount'] == null
+            ? null
+            : data['original_loan_amount'] as double?,
+    remainingBalance:
+        data['remaining_balance'] == null
+            ? null
+            : data['remaining_balance'] as double?,
+    lastPaymentDate:
+        data['last_payment_date'] == null
+            ? null
+            : data['last_payment_date'] == null
+            ? null
+            : DateTime.tryParse(data['last_payment_date'] as String),
+    lastPaymentAmount:
+        data['last_payment_amount'] == null
+            ? null
+            : data['last_payment_amount'] as double?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -324,6 +433,18 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'org_sar_no': instance.orgSarNo,
     'is_loan': instance.isLoan == null ? null : (instance.isLoan! ? 1 : 0),
     'due_date': instance.dueDate?.toIso8601String(),
+    'is_auto_billed':
+        instance.isAutoBilled == null ? null : (instance.isAutoBilled! ? 1 : 0),
+    'next_billing_date': instance.nextBillingDate?.toIso8601String(),
+    'billing_frequency': instance.billingFrequency,
+    'billing_amount': instance.billingAmount,
+    'total_installments': instance.totalInstallments,
+    'paid_installments': instance.paidInstallments,
+    'last_billed_date': instance.lastBilledDate?.toIso8601String(),
+    'original_loan_amount': instance.originalLoanAmount,
+    'remaining_balance': instance.remainingBalance,
+    'last_payment_date': instance.lastPaymentDate?.toIso8601String(),
+    'last_payment_amount': instance.lastPaymentAmount,
   };
 }
 
@@ -493,6 +614,50 @@ class ITransactionAdapter
     'dueDate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'due_date',
+    ),
+    'isAutoBilled': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_auto_billed',
+    ),
+    'nextBillingDate': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'next_billing_date',
+    ),
+    'billingFrequency': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'billing_frequency',
+    ),
+    'billingAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'billing_amount',
+    ),
+    'totalInstallments': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'total_installments',
+    ),
+    'paidInstallments': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'paid_installments',
+    ),
+    'lastBilledDate': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_billed_date',
+    ),
+    'originalLoanAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'original_loan_amount',
+    ),
+    'remainingBalance': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'remaining_balance',
+    ),
+    'lastPaymentDate': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_payment_date',
+    ),
+    'lastPaymentAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_payment_amount',
     ),
   };
   @override
@@ -740,6 +905,72 @@ class ITransactionAdapter
       columnName: 'due_date',
       iterable: false,
       type: DateTime,
+    ),
+    'isAutoBilled': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_auto_billed',
+      iterable: false,
+      type: bool,
+    ),
+    'nextBillingDate': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'next_billing_date',
+      iterable: false,
+      type: DateTime,
+    ),
+    'billingFrequency': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'billing_frequency',
+      iterable: false,
+      type: String,
+    ),
+    'billingAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'billing_amount',
+      iterable: false,
+      type: double,
+    ),
+    'totalInstallments': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'total_installments',
+      iterable: false,
+      type: int,
+    ),
+    'paidInstallments': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'paid_installments',
+      iterable: false,
+      type: int,
+    ),
+    'lastBilledDate': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_billed_date',
+      iterable: false,
+      type: DateTime,
+    ),
+    'originalLoanAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'original_loan_amount',
+      iterable: false,
+      type: double,
+    ),
+    'remainingBalance': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'remaining_balance',
+      iterable: false,
+      type: double,
+    ),
+    'lastPaymentDate': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_payment_date',
+      iterable: false,
+      type: DateTime,
+    ),
+    'lastPaymentAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_payment_amount',
+      iterable: false,
+      type: double,
     ),
   };
   @override

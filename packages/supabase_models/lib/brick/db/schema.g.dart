@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250603082309.migration.dart';
+part '20250603134014.migration.dart';
 part '20250314135245.migration.dart';
 part '20250522185231.migration.dart';
 part '20250413072827.migration.dart';
@@ -44,10 +44,11 @@ part '20250603072903.migration.dart';
 part '20250603073132.migration.dart';
 part '20250603073228.migration.dart';
 part '20250603073308.migration.dart';
+part '20250603082309.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250603082309(),
+  const Migration20250603134014(),
   const Migration20250314135245(),
   const Migration20250522185231(),
   const Migration20250413072827(),
@@ -90,11 +91,12 @@ final migrations = <Migration>{
   const Migration20250603073132(),
   const Migration20250603073228(),
   const Migration20250603073308(),
+  const Migration20250603082309(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250603073308,
+  20250603082309,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -366,6 +368,17 @@ final schema = Schema(
         SchemaColumn('org_sar_no', Column.varchar),
         SchemaColumn('is_loan', Column.boolean),
         SchemaColumn('due_date', Column.datetime),
+        SchemaColumn('is_auto_billed', Column.boolean),
+        SchemaColumn('next_billing_date', Column.datetime),
+        SchemaColumn('billing_frequency', Column.varchar),
+        SchemaColumn('billing_amount', Column.Double),
+        SchemaColumn('total_installments', Column.integer),
+        SchemaColumn('paid_installments', Column.integer),
+        SchemaColumn('last_billed_date', Column.datetime),
+        SchemaColumn('original_loan_amount', Column.Double),
+        SchemaColumn('remaining_balance', Column.Double),
+        SchemaColumn('last_payment_date', Column.datetime),
+        SchemaColumn('last_payment_amount', Column.Double),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1088,7 +1101,7 @@ final schema = Schema(
         SchemaColumn('main_branch_id', Column.integer),
         SchemaColumn('sub_branch_id', Column.integer),
         SchemaColumn(
-          'branch_Branch_brick_id_Branch_brick_id',
+          'branch_Branch_brick_id',
           Column.integer,
           isForeignKey: true,
           foreignTableName: 'Branch',
@@ -1110,7 +1123,7 @@ final schema = Schema(
         SchemaColumn('bhf_id', Column.varchar),
         SchemaColumn('tin_number', Column.varchar),
         SchemaColumn(
-          'financing_Financing_brick_id_Financing_brick_id',
+          'financing_Financing_brick_id',
           Column.integer,
           isForeignKey: true,
           foreignTableName: 'Financing',
