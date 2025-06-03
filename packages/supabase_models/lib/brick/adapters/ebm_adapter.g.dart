@@ -15,12 +15,6 @@ Future<Ebm> _$EbmFromSupabase(
     taxServerUrl: data['tax_server_url'] as String,
     businessId: data['business_id'] as int,
     branchId: data['branch_id'] as int,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
     vatEnabled: data['vat_enabled'] as bool,
   );
 }
@@ -39,7 +33,6 @@ Future<Map<String, dynamic>> _$EbmToSupabase(
     'tax_server_url': instance.taxServerUrl,
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
-    'last_touched': instance.lastTouched?.toIso8601String(),
     'vat_enabled': instance.vatEnabled,
   };
 }
@@ -58,12 +51,6 @@ Future<Ebm> _$EbmFromSqlite(
     taxServerUrl: data['tax_server_url'] as String,
     businessId: data['business_id'] as int,
     branchId: data['branch_id'] as int,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
     vatEnabled: data['vat_enabled'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -82,7 +69,6 @@ Future<Map<String, dynamic>> _$EbmToSqlite(
     'tax_server_url': instance.taxServerUrl,
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
-    'last_touched': instance.lastTouched?.toIso8601String(),
     'vat_enabled': instance.vatEnabled ? 1 : 0,
   };
 }
@@ -128,10 +114,6 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'branch_id',
-    ),
-    'lastTouched': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
     ),
     'vatEnabled': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -197,12 +179,6 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       columnName: 'branch_id',
       iterable: false,
       type: int,
-    ),
-    'lastTouched': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
     ),
     'vatEnabled': const RuntimeSqliteColumnDefinition(
       association: false,

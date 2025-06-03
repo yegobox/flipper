@@ -23,8 +23,6 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   final int businessId;
   @Supabase(name: "branch_id")
   final int branchId;
-  @Supabase(name: "last_touched")
-  DateTime? lastTouched;
   @Supabase(name: "vat_enabled")
   bool vatEnabled;
 
@@ -37,7 +35,6 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.taxServerUrl,
     required this.businessId,
     required this.branchId,
-    this.lastTouched,
     this.vatEnabled = false,
   }) : id = id ?? const Uuid().v4();
 }

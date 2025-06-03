@@ -290,7 +290,6 @@ class InventoryRequestAdapter
       columnName: 'branch',
       associationType: Map,
       associationIsNullable: true,
-      foreignKey: 'branch_id',
     ),
     'branchId': const RuntimeSupabaseColumnDefinition(
       association: false,
