@@ -74,12 +74,14 @@ bool featureAccessLevel(Ref ref,
     {required int userId, required String accessLevel}) {
   try {
     Tenant? accesses = ref.watch(tenantProvider(userId)).value;
-    final granted = accesses?.type == accessLevel;
+    final granted = accesses?.type?.toLowerCase() == accessLevel.toLowerCase();
 
     if (granted) {
       talker.info(
           "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | Accesses: ${accesses?.type}");
     } else {
+      talker.info(accesses?.type);
+      talker.info(accessLevel);
       talker.info(
           "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | Accesses: ${accesses?.type}");
     }
