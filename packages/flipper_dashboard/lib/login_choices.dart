@@ -236,13 +236,58 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
     try {
       await _setDefaultBranch(branch);
-      _completeAuthenticationFlow();
+
+      // Check for active subscription after branch is set
+      try {
+        final startupViewModel = StartupViewModel();
+        await startupViewModel.hasActiveSubscription();
+        _completeAuthenticationFlow();
+      } on FailedPaymentException catch (e) {
+        talker.error('Payment failed: ${e.message}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment failed: ${e.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          _routerService.navigateTo(FailedPaymentRoute());
+        }
+      } on NoPaymentPlanFound catch (e) {
+        talker.error('No payment plan found: $e');
+        if (mounted) {
+          _routerService.navigateTo(PaymentPlanUIRoute());
+        }
+      } catch (e, stackTrace) {
+        talker.error('Subscription check failed: $e');
+        talker.error('Stack trace: $stackTrace');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error checking subscription: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        rethrow;
+      }
     } catch (e) {
       talker.error('Error handling branch selection: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      rethrow;
     } finally {
-      setState(() {
-        _loadingItemId = null;
-      });
+      if (mounted) {
+        setState(() {
+          _loadingItemId = null;
+        });
+      }
     }
   }
 
@@ -258,45 +303,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _updateBusinessPreferences(business);
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
-
-      // Check for active subscription after business is set
-      try {
-        final startupViewModel = StartupViewModel();
-        await startupViewModel.hasActiveSubscription();
-      } on FailedPaymentException catch (e) {
-        talker.error('Payment failed: ${e.message}');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Payment failed: ${e.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          // Optionally navigate to payment plan screen or handle as needed
-          _routerService.navigateTo(FailedPaymentRoute());
-          return;
-        }
-      } on NoPaymentPlanFound catch (e) {
-        talker.error('No payment plan found: $e');
-        if (mounted) {
-          _routerService.navigateTo(
-            PaymentPlanUIRoute(),
-          );
-          return; // Prevent further execution
-        }
-      } catch (e, stackTrace) {
-        talker.error('Subscription check failed: $e');
-        talker.error('Stack trace: $stackTrace');
-        // For other errors, show a snackbar
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error checking subscription: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
     } catch (e) {
       talker.error('Error setting default business: $e');
       if (mounted) {
@@ -306,6 +312,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             backgroundColor: Colors.red,
           ),
         );
+        rethrow;
       }
     } finally {
       if (mounted) {
