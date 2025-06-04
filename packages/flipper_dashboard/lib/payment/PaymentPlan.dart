@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/exceptions.dart' show FailedPaymentException;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -512,24 +513,48 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           //         userIdentifier.toFlipperEmail(),
           //         ProxyService.http);
 
-          ProxyService.strategy.saveOrUpdatePaymentPlan(
-              businessId: (await ProxyService.strategy.activeBusiness())!.id,
-              selectedPlan: selectedPlan,
-              addons: _additionalServices,
-              paymentMethod: "Card",
-              numberOfPayments: int.tryParse(paymentController.text) ?? 1,
-              flipperHttpClient: ProxyService.http,
-              additionalDevices: additionalDevices,
-              isYearlyPlan: isYearlyPlan,
-              // payStackUserId: customer.data.id,
-              // payStackUserId: "1",
-              totalPrice:
-                  totalPrice * (int.tryParse(paymentController.text) ?? 1));
+          await ProxyService.strategy.saveOrUpdatePaymentPlan(
+            businessId: (await ProxyService.strategy.activeBusiness())!.id,
+            selectedPlan: selectedPlan,
+            addons: _additionalServices,
+            paymentMethod: "Card",
+            numberOfPayments: int.tryParse(paymentController.text) ?? 1,
+            flipperHttpClient: ProxyService.http,
+            additionalDevices: additionalDevices,
+            isYearlyPlan: isYearlyPlan,
+            // payStackUserId: customer.data.id,
+            // payStackUserId: "1",
+            totalPrice:
+                totalPrice * (int.tryParse(paymentController.text) ?? 1),
+          );
+
+          // Navigate to finalize route only if save was successful
           locator<RouterService>().navigateTo(PaymentFinalizeRoute());
+        } on FailedPaymentException catch (e) {
+          // Handle failed payment specifically
+          talker.warning('Payment failed: ${e.message}');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Payment failed: ${e.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            // Optionally navigate to failed payment screen
+            locator<RouterService>().navigateTo(FailedPaymentRoute());
+          }
         } catch (e, s) {
-          talker.warning(e);
-          talker.error(s);
-          rethrow;
+          // Handle other errors
+          talker.error('Error processing payment: $e');
+          talker.error(s.toString());
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('An error occurred. Please try again.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       },
       child: Text('Proceed to Payment',

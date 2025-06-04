@@ -14,6 +14,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_models/exceptions.dart'
+    show FailedPaymentException, NoPaymentPlanFound;
 
 class LoginChoices extends StatefulHookConsumerWidget {
   const LoginChoices({Key? key}) : super(key: key);
@@ -244,27 +246,38 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       try {
         final startupViewModel = StartupViewModel();
         await startupViewModel.hasActiveSubscription();
-      } catch (e) {
+      } on FailedPaymentException catch (e) {
+        talker.error('Payment failed: ${e.message}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Payment failed: ${e.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          // Optionally navigate to payment plan screen or handle as needed
+          _routerService.navigateTo(FailedPaymentRoute());
+          return;
+        }
+      } on NoPaymentPlanFound catch (e) {
+        talker.error('No payment plan found: $e');
+        if (mounted) {
+          _routerService.navigateTo(
+            PaymentPlanUIRoute(),
+          );
+          return; // Prevent further execution
+        }
+      } catch (e, stackTrace) {
         talker.error('Subscription check failed: $e');
-
-        // If no payment plan found, navigate to payment plan screen
-        if (e.toString().contains('NoPaymentPlanFound')) {
-          if (mounted) {
-            _routerService.navigateTo(
-              PaymentPlanUIRoute(),
-            );
-            return; // Prevent further execution
-          }
-        } else {
-          // For other errors, show a snackbar
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error checking subscription: ${e.toString()}'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+        talker.error('Stack trace: $stackTrace');
+        // For other errors, show a snackbar
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error checking subscription: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     } catch (e) {
