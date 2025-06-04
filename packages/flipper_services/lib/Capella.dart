@@ -2295,4 +2295,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement updateCredit
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> cleanDuplicatePlans() {
+    // TODO: implement cleanDuplicatePlans
+    throw UnimplementedError();
+  }
 }

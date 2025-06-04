@@ -1929,8 +1929,8 @@ class CoreSync extends AiStrategyImpl
   Future<int> userNameAvailable(
       {required String name,
       required HttpClientInterface flipperHttpClient}) async {
-    final response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/search?name=$name"));
+    final response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/search?name=$name"));
     return response.statusCode;
   }
 
@@ -3802,5 +3802,32 @@ class CoreSync extends AiStrategyImpl
       required bool isExpense}) {
     // TODO: implement pendingTransactionFuture
     throw UnimplementedError();
+  }
+
+  @override
+  Future<void> cleanDuplicatePlans() async {
+    final businessId = (await ProxyService.strategy.activeBusiness())!.id;
+
+    // Get all plans for the current business
+    List<Plan> plans = await repository.get<Plan>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(where: [Where('businessId').isExactly(businessId)]),
+    );
+
+    // If there's only one or zero plans, nothing to clean
+    if (plans.length < 2) return;
+
+    // Find a completed plan, or default to the first plan if none completed
+    final planToKeep = plans.firstWhere(
+      (plan) => plan.paymentCompletedByUser ?? false,
+      orElse: () => plans.first,
+    );
+
+    // Delete all other plans
+    for (final plan in plans) {
+      if (plan.id != planToKeep.id) {
+        await repository.delete<Plan>(plan);
+      }
+    }
   }
 }
