@@ -456,22 +456,39 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
 
   Widget _buildPriceSummary() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Total Price',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          Text(
-            '${_totalPrice.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())} ${_isYearlyPlan ? '/year' : '/month'}',
-            style: TextStyle(
-                fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Total',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Flexible(
+                child: Text(
+                  '${_totalPrice.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())} ${_isYearlyPlan ? '/year' : '/month'}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
