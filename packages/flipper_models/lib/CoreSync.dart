@@ -1182,7 +1182,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<models.Plan?> getPaymentPlan({
-    required int businessId,
+    required String businessId,
     bool fetchRemote = false,
   }) async {
     try {
@@ -1313,7 +1313,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
-    required int businessId,
+    required String businessId,
     List<String>? addons,
     required String selectedPlan,
     required int additionalDevices,
@@ -1366,7 +1366,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   Future<List<models.PlanAddon>> _fetchExistingAddons(
-    int businessId,
+    String businessId,
   ) async {
     try {
       final query = brick.Query.where(
@@ -1387,7 +1387,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   Future<List<models.PlanAddon>> _processNewAddons({
-    required int businessId,
+    required String businessId,
     required List<models.PlanAddon> existingAddons,
     required List<String>? newAddonNames,
     required bool isYearlyPlan,
@@ -1421,7 +1421,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   Future<void> _createTemporaryPlan({
-    required int businessId,
+    required String businessId,
     required bool isYearlyPlan,
     required List<models.PlanAddon> addons,
   }) async {
@@ -1437,7 +1437,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   Future<Plan> _upsertPlan({
-    required int businessId,
+    required String businessId,
     required String selectedPlan,
     required int additionalDevices,
     required bool isYearlyPlan,
@@ -1450,7 +1450,7 @@ class CoreSync extends AiStrategyImpl
   }) async {
     final fPlan = plan ??
         models.Plan(
-          businessId: businessId,
+          businessId: (await ProxyService.strategy.activeBusiness())?.id,
           selectedPlan: selectedPlan,
           additionalDevices: additionalDevices,
           isYearlyPlan: isYearlyPlan,
@@ -1930,7 +1930,7 @@ class CoreSync extends AiStrategyImpl
       {required String name,
       required HttpClientInterface flipperHttpClient}) async {
     final response =
-        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/search?name=$name"));
     return response.statusCode;
   }
 

@@ -357,7 +357,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<bool> firebaseLogin({String? token});
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
-    required int businessId,
+    required String businessId,
     List<String>? addons,
     required String selectedPlan,
     required int additionalDevices,
@@ -371,7 +371,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required HttpClientInterface flipperHttpClient,
   });
   Future<models.Plan?> getPaymentPlan(
-      {required int businessId, bool fetchRemote = false});
+      {required String businessId, bool fetchRemote = false});
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
 
   void deleteItemFromCart(

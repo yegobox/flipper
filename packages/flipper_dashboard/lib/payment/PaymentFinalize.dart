@@ -390,8 +390,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
       isLoading = true;
     });
     try {
-      models.Plan? paymentPlan = await ProxyService.strategy
-          .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
+      models.Plan? paymentPlan = await ProxyService.strategy.getPaymentPlan(
+          businessId: (await ProxyService.strategy.activeBusiness())!.id);
 
       talker.warning("CurrentPaymentPlan: $paymentPlan");
 

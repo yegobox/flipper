@@ -80,11 +80,7 @@ class PaymentVerificationService {
     talker.info('Verifying payment status');
 
     try {
-      final businessId = ProxyService.box.getBusinessId();
-      if (businessId == null) {
-        talker.warning('Cannot verify payment: Business ID is null');
-        return false;
-      }
+      final businessId = (await ProxyService.strategy.activeBusiness())!.id;
 
       // First check if a payment plan exists at all
       final plan = await ProxyService.strategy.getPaymentPlan(

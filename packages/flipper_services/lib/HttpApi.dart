@@ -12,7 +12,7 @@ abstract class HttpApiInterface {
       required String couponCode});
   Future<bool> isPaymentComplete(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId});
+      required String businessId});
   Future<bool> hasAcessSaved(
       {required HttpClientInterface flipperHttpClient,
       required int businessId});
@@ -152,7 +152,7 @@ class HttpApi implements HttpApiInterface {
   @override
   Future<bool> isPaymentComplete({
     required HttpClientInterface flipperHttpClient,
-    required int businessId,
+    required String businessId,
   }) async {
     var headers = {
       'api-key': AppSecrets.supabaseAnonKey,
@@ -387,7 +387,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   @override
   Future<bool> isPaymentComplete(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId}) async {
+      required String businessId}) async {
     return true;
   }
 

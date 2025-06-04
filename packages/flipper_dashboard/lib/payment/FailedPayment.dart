@@ -54,7 +54,7 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
 
       isCheckingPayment.value = true;
       try {
-        final businessId = ProxyService.box.getBusinessId();
+        final businessId = (await ProxyService.strategy.activeBusiness())?.id;
         if (businessId != null) {
           // Check if payment is now active
           await ProxyService.strategy.hasActiveSubscription(
@@ -80,8 +80,8 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
           // Check if payment has been reactivated
           checkPaymentStatus();
 
-          final fetchedPlan = await ProxyService.strategy
-              .getPaymentPlan(businessId: ProxyService.box.getBusinessId()!);
+          final fetchedPlan = await ProxyService.strategy.getPaymentPlan(
+              businessId: (await ProxyService.strategy.activeBusiness())!.id);
           plan.value = fetchedPlan;
         } catch (e) {
           error.value = 'Failed to fetch plan details: ${e.toString()}';

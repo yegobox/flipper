@@ -13,7 +13,7 @@ class PlanAddon extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Supabase(name: "plan_id")
-  final int? planId;
+  final String? planId;
 
   @Supabase(name: "addon_name")
   final String? addonName;

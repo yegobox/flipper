@@ -81,7 +81,7 @@ mixin CapellaAuthMixin implements AuthInterface {
 
   @override
   Future<bool> hasActiveSubscription(
-      {required int businessId,
+      {required String businessId,
       required HttpClientInterface flipperHttpClient,
       required bool fetchRemote}) async {
     throw UnimplementedError(

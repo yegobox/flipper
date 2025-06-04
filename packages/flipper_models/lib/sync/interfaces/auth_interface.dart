@@ -27,7 +27,7 @@ abstract class AuthInterface {
   });
 
   Future<bool> hasActiveSubscription(
-      {required int businessId,
+      {required String businessId,
       required HttpClientInterface flipperHttpClient,
       required bool fetchRemote});
 

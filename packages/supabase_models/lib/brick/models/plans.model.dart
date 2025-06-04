@@ -12,7 +12,8 @@ class Plan extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   final String? id;
-  final int? businessId;
+  String? businessId;
+  String? branchId;
   String? selectedPlan;
   int? additionalDevices;
   bool? isYearlyPlan;
@@ -31,9 +32,12 @@ class Plan extends OfflineFirstWithSupabaseModel {
 
   int? numberOfPayments;
 
+  String? phoneNumber;
+
   Plan({
     String? id,
     this.businessId,
+    this.branchId,
     this.selectedPlan,
     this.additionalDevices,
     this.isYearlyPlan,
@@ -45,5 +49,6 @@ class Plan extends OfflineFirstWithSupabaseModel {
     this.nextBillingDate,
     this.numberOfPayments,
     this.addons = const [],
+    this.phoneNumber,
   }) : id = id ?? const Uuid().v4();
 }

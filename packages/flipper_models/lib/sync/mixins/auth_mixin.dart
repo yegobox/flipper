@@ -211,7 +211,7 @@ mixin AuthMixin implements AuthInterface {
 
   @override
   Future<bool> hasActiveSubscription({
-    required int businessId,
+    required String businessId,
     required HttpClientInterface flipperHttpClient,
     required bool fetchRemote,
   }) async {
@@ -244,7 +244,7 @@ mixin AuthMixin implements AuthInterface {
 
   Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
     await hasActiveSubscription(
-        businessId: ProxyService.box.getBusinessId()!,
+        businessId: (await ProxyService.strategy.activeBusiness())!.id,
         flipperHttpClient: ProxyService.http,
         fetchRemote: fetchRemote);
   }
@@ -271,7 +271,13 @@ mixin AuthMixin implements AuthInterface {
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;
-      return _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+      final offlineUser =
+          _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+      if (offlineUser.id == null) {
+        talker.error('Created offline user has null ID');
+        throw Exception('Failed to create offline user: User ID is null');
+      }
+      return offlineUser;
     }
 
     // Check if we already have a valid Firebase user and token
@@ -293,7 +299,7 @@ mixin AuthMixin implements AuthInterface {
         id: existingUserId,
         uid: currentUser.uid,
         phoneNumber: phoneNumber,
-        tenants: [ITenant(name: pin.ownerName)],
+        tenants: [ITenant(name: pin.ownerName ?? 'Default Tenant')],
       );
 
       return user;
@@ -305,7 +311,7 @@ mixin AuthMixin implements AuthInterface {
         await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
-      /// parse the user from the response
+      // Parse the user from the response
       final IUser user = IUser.fromJson(json.decode(response.body));
 
       // Make PIN patching non-blocking for the login flow
@@ -524,6 +530,12 @@ mixin AuthMixin implements AuthInterface {
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
     // Add system configuration logic here
+    if (user.id == null) {
+      talker.error(
+          'User ID is null in configureSystem for user: ${user.phoneNumber}');
+      return;
+    }
+
     await ProxyService.box.writeInt(key: 'userId', value: user.id!);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
 
