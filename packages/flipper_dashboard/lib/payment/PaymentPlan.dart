@@ -45,7 +45,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     });
 
     try {
-      final businessId = ProxyService.box.getBusinessId();
+      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
       if (businessId != null) {
         // First check if a payment plan exists at all
         final plan = await ProxyService.strategy.getPaymentPlan(
@@ -496,7 +496,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           //         ProxyService.http);
 
           ProxyService.strategy.saveOrUpdatePaymentPlan(
-              businessId: ProxyService.box.getBusinessId()!,
+              businessId: (await ProxyService.strategy.activeBusiness())!.id,
               selectedPlan: selectedPlan,
               addons: _additionalServices,
               paymentMethod: "Card",

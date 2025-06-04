@@ -589,7 +589,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<models.Plan?> getPaymentPlan(
-      {required int businessId, bool fetchRemote = false}) {
+      {required String businessId, bool fetchRemote = false}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }
@@ -648,7 +648,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<bool> hasActiveSubscription(
-      {required int businessId,
+      {required String businessId,
       required bool fetchRemote,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement hasActiveSubscription
@@ -779,7 +779,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<Plan> saveOrUpdatePaymentPlan(
-      {required int businessId,
+      {required String businessId,
       int numberOfPayments = 1,
       required String selectedPlan,
       List<String>? addons,

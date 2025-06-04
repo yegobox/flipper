@@ -176,7 +176,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> hasActiveSubscription() async {
     await ProxyService.strategy.hasActiveSubscription(
         fetchRemote: false,
-        businessId: ProxyService.box.getBusinessId() ?? 0,
+        businessId: (await ProxyService.strategy.activeBusiness())!.id,
         flipperHttpClient: ProxyService.http);
   }
 

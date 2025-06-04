@@ -8,13 +8,12 @@ Future<PlanAddon> _$PlanAddonFromSupabase(
 }) async {
   return PlanAddon(
     id: data['id'] as String?,
-    planId: data['plan_id'] == null ? null : data['plan_id'] as int?,
+    planId: data['plan_id'] == null ? null : data['plan_id'] as String?,
     addonName:
         data['addon_name'] == null ? null : data['addon_name'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
   );
@@ -40,13 +39,12 @@ Future<PlanAddon> _$PlanAddonFromSqlite(
 }) async {
   return PlanAddon(
     id: data['id'] as String,
-    planId: data['plan_id'] == null ? null : data['plan_id'] as int?,
+    planId: data['plan_id'] == null ? null : data['plan_id'] as String?,
     addonName:
         data['addon_name'] == null ? null : data['addon_name'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -156,39 +154,43 @@ class PlanAddonAdapter extends OfflineFirstWithSupabaseAdapter<PlanAddon> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PlanAddonFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PlanAddonFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     PlanAddon input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PlanAddonToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PlanAddonToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<PlanAddon> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PlanAddonFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PlanAddonFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     PlanAddon input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PlanAddonToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PlanAddonToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

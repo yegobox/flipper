@@ -47,7 +47,7 @@ mixin PaymentHandler {
 
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
-      businessId: ProxyService.box.getBusinessId()!,
+      businessId: (await ProxyService.strategy.activeBusiness())!.id,
       // payStackUserId: plan.payStackCustomerId!,
       flipperHttpClient: ProxyService.http,
       isYearlyPlan: plan.isYearlyPlan!,
@@ -90,7 +90,7 @@ mixin PaymentHandler {
 
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
-      businessId: ProxyService.box.getBusinessId()!,
+      businessId: (await ProxyService.strategy.activeBusiness())!.id,
       // payStackUserId: plan.payStackCustomerId!,
       flipperHttpClient: ProxyService.http,
       isYearlyPlan: plan.isYearlyPlan!,
@@ -101,7 +101,7 @@ mixin PaymentHandler {
     );
 
     await ProxyService.strategy.saveOrUpdatePaymentPlan(
-      businessId: paymentPlan.businessId!,
+      businessId: (await ProxyService.strategy.activeBusiness())!.id,
       selectedPlan: paymentPlan.selectedPlan!,
       paymentMethod: selectedPaymentMethod,
       customerCode: customerCode,
