@@ -7,6 +7,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+// Import for payment plan route is already available from app.router.dart
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -245,13 +246,41 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await startupViewModel.hasActiveSubscription();
       } catch (e) {
         talker.error('Subscription check failed: $e');
-        // Optionally, redirect to payment plan or show error here
+
+        // If no payment plan found, navigate to payment plan screen
+        if (e.toString().contains('NoPaymentPlanFound')) {
+          if (mounted) {
+            _routerService.navigateTo(
+              PaymentPlanUIRoute(),
+            );
+            return; // Prevent further execution
+          }
+        } else {
+          // For other errors, show a snackbar
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error checking subscription: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       }
     } catch (e) {
-      // log(e.toString());
       talker.error('Error setting default business: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      ref.read(businessSelectionProvider.notifier).setLoading(false);
+      if (mounted) {
+        ref.read(businessSelectionProvider.notifier).setLoading(false);
+      }
     }
   }
 
