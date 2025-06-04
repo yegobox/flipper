@@ -145,7 +145,74 @@ class _FailedPaymentState extends State<FailedPayment> with PaymentHandler {
                         style: const TextStyle(color: Colors.red),
                       ),
                     ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Phone number toggle and input
+                  if (_plan?.paymentMethod?.toLowerCase() != 'card')
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text('Use different phone number'),
+                            const SizedBox(width: 8),
+                            Switch(
+                              value: _usePhoneNumber,
+                              onChanged: (value) {
+                                setState(() {
+                                  _usePhoneNumber = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        if (_usePhoneNumber) ...[
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _phoneNumberController,
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              hintText: '250 78 123 4567',
+                              prefixIcon: const Icon(Icons.phone),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              errorText: _getPhoneNumberError(
+                                  _phoneNumberController.text),
+                            ),
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(12),
+                            ],
+                            onChanged: (value) {
+                              // Format the phone number as 250 78 123 4567
+                              if (value.length <= 3) {
+                                _phoneNumberController.text = value;
+                              } else if (value.length <= 5) {
+                                _phoneNumberController.text =
+                                    '${value.substring(0, 3)} ${value.substring(3)}';
+                              } else if (value.length <= 8) {
+                                _phoneNumberController.text =
+                                    '${value.substring(0, 3)} ${value.substring(3, 5)} ${value.substring(5)}';
+                              } else {
+                                _phoneNumberController.text =
+                                    '${value.substring(0, 3)} ${value.substring(3, 5)} ${value.substring(5, 8)} ${value.substring(8)}';
+                              }
+                              _phoneNumberController.selection =
+                                  TextSelection.collapsed(
+                                      offset:
+                                          _phoneNumberController.text.length);
+                              setState(
+                                  () {}); // Rebuild to show validation errors
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ],
+                    ),
+
+                  const SizedBox(height: 16),
                   _buildRetryButton(context),
                 ],
               ),
