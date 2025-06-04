@@ -1,14 +1,46 @@
+import 'dart:async';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:supabase_models/brick/repository.dart';
+import 'package:stacked_services/stacked_services.dart';
 
-class FailedPayment extends HookConsumerWidget with PaymentHandler {
+class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
+
+  @override
+  _FailedPaymentState createState() => _FailedPaymentState();
+}
+
+class _FailedPaymentState extends State<FailedPayment> with PaymentHandler {
+  late final TextEditingController _phoneNumberController;
+  bool _isLoading = true;
+  String? _errorMessage;
+  models.Plan? _plan;
+  bool _usePhoneNumber = false;
+  bool _mounted = true;
+  StreamSubscription<List<models.Plan>>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _phoneNumberController = TextEditingController();
+    _setupPlanSubscription();
+  }
+
+  @override
+  void dispose() {
+    _mounted = false;
+    _subscription?.cancel();
+    _phoneNumberController.dispose();
+    super.dispose();
+  }
+
   String? _getPhoneNumberError(String value) {
     // Remove spaces for validation
     String digitsOnly = value.replaceAll(' ', '');
@@ -38,242 +70,123 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
     return null;
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isLoading = useState(true);
-    final error = useState<String?>(null);
-    final plan = useState<models.Plan?>(null);
-    final usePhoneNumber = useState(false); // Toggle state
-    final phoneNumber = useState<String?>(""); // Phone number input
-    final isCheckingPayment = useState(false);
-    TextEditingController phoneNumberController = TextEditingController();
+  Future<void> _setupPlanSubscription() async {
+    try {
+      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      if (businessId == null) throw Exception('No active business');
 
-    // Function to check if payment has been reactivated
-    Future<void> checkPaymentStatus() async {
-      if (isCheckingPayment.value) return;
+      final fetchedPlan = await ProxyService.strategy.getPaymentPlan(
+        businessId: businessId,
+      );
 
-      isCheckingPayment.value = true;
-      try {
-        final businessId = (await ProxyService.strategy.activeBusiness())?.id;
-        if (businessId != null) {
-          // Check if payment is now active
-          await ProxyService.strategy.hasActiveSubscription(
-            businessId: businessId,
-            flipperHttpClient: ProxyService.http,
-            fetchRemote: true,
-          );
+      if (!_mounted) return;
 
-          // If we get here without an exception, payment is now active
-          Navigator.of(context)
-              .pushNamedAndRemoveUntil('/flipper-app', (route) => false);
+      setState(() {
+        _plan = fetchedPlan;
+        _isLoading = false;
+      });
+
+      // Set up real-time subscription
+      _subscription = Repository()
+          .subscribeToRealtime<models.Plan>(
+        query: Query(
+          where: [const Where('businessId').isExactly(businessId)],
+        ),
+      )
+          .listen((updatedPlans) {
+        if (updatedPlans.isNotEmpty) {
+          final updatedPlan = updatedPlans.first;
+          if (!_mounted) return;
+
+          setState(() {
+            _plan = updatedPlan;
+          });
+
+          // Check if payment was completed
+          if (updatedPlan.paymentCompletedByUser == true) {
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+          }
         }
-      } catch (e) {
-        // Payment is still inactive, stay on this screen
-      } finally {
-        isCheckingPayment.value = false;
-      }
+      });
+    } catch (e) {
+      if (!_mounted || !context.mounted) return;
+
+      setState(() {
+        _errorMessage = 'Error loading plan details: $e';
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_errorMessage!)),
+      );
     }
+  }
 
-    useEffect(() {
-      Future<void> fetchPlan() async {
-        try {
-          // Check if payment has been reactivated
-          checkPaymentStatus();
-
-          final fetchedPlan = await ProxyService.strategy.getPaymentPlan(
-              businessId: (await ProxyService.strategy.activeBusiness())!.id);
-          plan.value = fetchedPlan;
-        } catch (e) {
-          error.value = 'Failed to fetch plan details: ${e.toString()}';
-        } finally {
-          isLoading.value = false;
-        }
-      }
-
-      fetchPlan();
-      return null;
-    }, const []);
-
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Payment Failed',
-          style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.redAccent,
-        elevation: 2.0,
+        title: const Text('Payment Failed'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Center(
-              child: Icon(
-                Icons.error_outline,
-                color: Colors.redAccent,
-                size: 72.0,
-              ),
-            ),
-            const SizedBox(height: 32.0),
-            Text(
-              'We couldn\'t process your payment for the following plan:',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w600,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24.0),
-            if (plan.value != null) _buildPlanDetails(plan.value!),
-            if (error.value != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text(
-                  error.value!,
-                  style: const TextStyle(color: Colors.red, fontSize: 16.0),
-                ),
-              ),
-            const SizedBox(height: 32.0),
-
-            // Toggle for phone number input
-            Row(
-              children: [
-                Expanded(
-                  child: const Text(
-                    'Change Phone number for payment',
-                    style:
-                        TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Switch(
-                  value: usePhoneNumber.value,
-                  onChanged: (bool value) {
-                    usePhoneNumber.value = value;
-                  },
-                ),
-              ],
-            ),
-
-            // Phone number input field (shown when toggle is enabled)
-            // Inside your HookConsumerWidget
-            if (usePhoneNumber.value)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: TextField(
-                  controller: phoneNumberController,
-                  keyboardType: TextInputType.phone,
-                  maxLength: 15, // Including spaces: "250 781 468 740"
-                  buildCounter: (context,
-                      {required currentLength, required isFocused, maxLength}) {
-                    return null; // Removes the built-in counter
-                  },
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[\d ]')),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Phone Number',
-                    hintText: '250 781 468 740',
-                    prefixIcon: const Icon(Icons.phone),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
-                    errorText: _getPhoneNumberError(phoneNumberController.text),
-                    helperText: 'Rwanda phone number (12 digits)',
-                    suffixIcon: phoneNumberController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              phoneNumberController.clear();
-                              ProxyService.box.writeString(
-                                key: "customPhoneNumberForPayment",
-                                value: '',
-                              );
-                            },
-                          )
-                        : null,
-                  ),
-                  onChanged: (value) {
-                    String digitsOnly = value.replaceAll(RegExp(r'\D'), '');
-
-                    // Ensure the number starts with 250 if not already present
-                    if (digitsOnly.length >= 1 &&
-                        !digitsOnly.startsWith('250')) {
-                      if (digitsOnly.startsWith('0')) {
-                        // If starts with 0, replace it with 250
-                        digitsOnly = '25${digitsOnly}';
-                      } else {
-                        // Add 250 prefix
-                        digitsOnly = '250$digitsOnly';
-                      }
-                    }
-
-                    // Format the number with spaces for readability: 250 781 468 740
-                    String formattedNumber = '';
-                    for (int i = 0; i < digitsOnly.length; i++) {
-                      if (i == 3 || i == 6 || i == 9) {
-                        formattedNumber += ' ';
-                      }
-                      formattedNumber += digitsOnly[i];
-                    }
-
-                    // Update the controller with the formatted number
-                    phoneNumberController.value = TextEditingValue(
-                      text: formattedNumber,
-                      selection: TextSelection.collapsed(
-                          offset: formattedNumber.length),
-                    );
-
-                    // Store the validated number
-                    ProxyService.box.writeString(
-                      key: "customPhoneNumberForPayment",
-                      value: digitsOnly, // Store without formatting
-                    );
-                  },
-                ),
-              ),
-
-            const SizedBox(height: 32.0),
-            Center(
-              child: isLoading.value
-                  ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.redAccent.withOpacity(0.8),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_plan != null) _buildPlanDetails(_plan!),
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
                       ),
-                      strokeWidth: 4,
-                      backgroundColor: Colors.grey.shade300,
-                    )
-                  : ElevatedButton.icon(
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Retry Payment'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 36.0, vertical: 16.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                      ),
-                      onPressed: plan.value != null
-                          ? () => _retryPayment(context,
-                              plan: plan.value!,
-                              isLoading: isLoading,
-                              phoneNumber: usePhoneNumber.value
-                                  ? phoneNumber.value
-                                  : null)
-                          : null,
                     ),
+                  const SizedBox(height: 24),
+                  _buildRetryButton(context),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
+    );
+  }
+
+  Widget _buildRetryButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _isLoading || _plan == null
+          ? null
+          : () async {
+              setState(() {
+                _isLoading = true;
+                _errorMessage = null;
+              });
+
+              try {
+                await _retryPayment(
+                  context,
+                  plan: _plan!,
+                  isLoading: _isLoading,
+                  phoneNumber:
+                      _usePhoneNumber ? _phoneNumberController.text : null,
+                );
+              } catch (e) {
+                if (!_mounted) return;
+                setState(() {
+                  _errorMessage = 'Payment failed: $e';
+                });
+              } finally {
+                if (_mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              }
+            },
+      child: _isLoading
+          ? const CircularProgressIndicator()
+          : const Text('Retry Payment'),
     );
   }
 
@@ -332,24 +245,51 @@ class FailedPayment extends HookConsumerWidget with PaymentHandler {
     );
   }
 
-  Future<void> _retryPayment(BuildContext context,
-      {required models.Plan plan,
-      required ValueNotifier<bool> isLoading,
-      String? phoneNumber}) async {
-    if (plan.paymentMethod == "Card" || plan.paymentMethod == "CARD") {
-      int finalPrice = plan.totalPrice!.toInt();
-      isLoading.value = true;
-      await cardPayment(finalPrice, plan, plan.paymentMethod!, plan: plan);
-    } else {
-      isLoading.value = true;
-      int finalPrice = plan.totalPrice!.toInt();
+  Future<void> _retryPayment(
+    BuildContext context, {
+    required models.Plan plan,
+    required bool isLoading,
+    String? phoneNumber,
+  }) async {
+    try {
+      isLoading = true;
 
-      // Handle mobile payment with phone number if provided
-      if (phoneNumber != null && phoneNumber.isNotEmpty) {
-        handleMomoPayment(finalPrice);
-      } else {
-        handleMomoPayment(finalPrice);
+      // Validate phone number if it's a mobile payment
+      if ((plan.paymentMethod?.toLowerCase() != 'card') && _usePhoneNumber) {
+        final phoneError = _getPhoneNumberError(phoneNumber ?? '');
+        if (phoneError != null) {
+          throw Exception(phoneError);
+        }
+
+        // Store the validated phone number for payment
+        if (phoneNumber != null) {
+          await ProxyService.box.writeString(
+            key: "customPhoneNumberForPayment",
+            value: phoneNumber.replaceAll(' ', ''),
+          );
+        }
       }
+
+      if (plan.paymentMethod?.toLowerCase() == 'card') {
+        await cardPayment(
+          plan.totalPrice!.toInt(),
+          plan,
+          plan.paymentMethod!,
+          plan: plan,
+        );
+      } else {
+        // Handle mobile payment
+        await handleMomoPayment(plan.totalPrice!.toInt());
+      }
+    } catch (e) {
+      // Show error to the user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      isLoading = false;
     }
   }
 }
