@@ -38,7 +38,6 @@ abstract class HttpClientInterface {
       {Map<String, String>? headers, Object? body, Encoding? encoding});
   Future<http.Response> getUniversalProducts(Uri url,
       {Map<String, String>? headers, Object? body, Encoding? encoding});
- 
 }
 
 /// Mixin for HTTP client logic. Requires the implementing class to provide an http.Client via the `_inner` getter.
@@ -103,15 +102,23 @@ mixin FlipperHttpClient implements HttpClientInterface {
     // Get default headers
     Map<String, String> defaultHeaders = await _getHeaders();
 
-    // If 'api-key' is present in the provided headers, remove 'Authorization' from default headers
-    if (headers != null && headers.containsKey('api-key')) {
-      defaultHeaders.remove('Authorization');
+    // Create a new map for the final headers
+    final finalHeaders = <String, String>{};
+
+    // Add default headers first
+    finalHeaders.addAll(defaultHeaders);
+
+    // Add or override with provided headers
+    if (headers != null) {
+      // If api-key is provided, remove Authorization header from defaults
+      if (headers.containsKey('api-key')) {
+        finalHeaders.remove('Authorization');
+      }
+      // Add/override with provided headers
+      finalHeaders.addAll(headers);
     }
 
-    request.headers.addAll({
-      ...defaultHeaders,
-      ...?headers, // Ensure headers are not null
-    });
+    request.headers.addAll(finalHeaders);
 
     if (encoding != null) request.encoding = encoding;
     if (body != null) {
@@ -175,5 +182,4 @@ mixin FlipperHttpClient implements HttpClientInterface {
     }
     return response;
   }
-
 }

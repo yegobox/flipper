@@ -61,6 +61,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       AppInitializer.initialize();
       AssetSyncService().initialize();
       ProxyService.strategy.supabaseAuth();
+      ProxyService.strategy.cleanDuplicatePlans();
 
       talker.warning("StartupViewModel Below AppInitializer.initialize()");
 

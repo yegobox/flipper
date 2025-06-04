@@ -372,6 +372,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
   Future<models.Plan?> getPaymentPlan(
       {required String businessId, bool fetchRemote = false});
+  Future<void> cleanDuplicatePlans();
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
 
   void deleteItemFromCart(
