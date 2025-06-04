@@ -172,7 +172,7 @@ class _FailedPaymentState extends State<FailedPayment> with PaymentHandler {
                             controller: _phoneNumberController,
                             decoration: InputDecoration(
                               labelText: 'Phone Number',
-                              hintText: '250 78 123 4567',
+                              hintText: '250 7830 54874',
                               prefixIcon: const Icon(Icons.phone),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8.0),

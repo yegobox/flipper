@@ -185,28 +185,45 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
   }
 
-  void _handleBusinessSelection(Business business) async {
+  Future<void> _handleBusinessSelection(Business business) async {
     setState(() {
       _loadingItemId = business.serverId.toString();
     });
     try {
       await _setDefaultBusiness(business);
-      if ((await ProxyService.strategy
-                  .businesses(userId: ProxyService.box.getUserId()!))
-              .length ==
-          1) {
-        _navigateToBranchSelection();
+      final branches = await ProxyService.strategy.branches(
+        businessId: business.serverId,
+        includeSelf: false,
+      );
+
+      if (branches.length == 1) {
+        // If there's only one branch, set it as default and complete login
+        await _setDefaultBranch(branches.first);
+        _completeAuthenticationFlow();
       } else {
+        // If multiple branches, show branch selection
         setState(() {
           _selectedBusiness = business;
+          _isSelectingBranch = true;
         });
+        ref.refresh(branchesProvider((includeSelf: false)));
       }
     } catch (e) {
       talker.error('Error handling business selection: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        _loadingItemId = null;
-      });
+      if (mounted) {
+        setState(() {
+          _loadingItemId = null;
+        });
+      }
     }
   }
 
@@ -373,13 +390,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   Future<void> _updateBranchActive(Branch branch) async {
     await ProxyService.strategy.updateBranch(
         branchId: branch.serverId!, active: true, isDefault: true);
-  }
-
-  void _navigateToBranchSelection() {
-    setState(() {
-      _isSelectingBranch = true;
-    });
-    ref.refresh(branchesProvider((includeSelf: false)));
   }
 
   void _completeAuthenticationFlow() {
