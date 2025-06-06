@@ -10,27 +10,27 @@ part of 'schema.g.dart';
 // The migration version must **always** mirror the file name
 
 const List<MigrationCommand> _migration_20250603044146_up = [
-  DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
-  DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
-  DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
-  DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
-  DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
+  // DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
+  // DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
+  // DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
+  // DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
+  // DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
   DropColumn('last_touched', onTable: 'Ebm'),
-  InsertForeignKey('Financing', 'FinanceProvider', foreignKeyColumn: 'provider_FinanceProvider_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('Variant', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('InventoryRequest', 'Branch', foreignKeyColumn: 'branch_Branch_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertForeignKey('InventoryRequest', 'Financing', foreignKeyColumn: 'financing_Financing_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  CreateIndex(columns: ['branch_id'], onTable: 'BranchSmsConfig', unique: true)
+  // InsertForeignKey('Financing', 'FinanceProvider', foreignKeyColumn: 'provider_FinanceProvider_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('Variant', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('InventoryRequest', 'Branch', foreignKeyColumn: 'branch_Branch_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // InsertForeignKey('InventoryRequest', 'Financing', foreignKeyColumn: 'financing_Financing_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
+  // CreateIndex(columns: ['branch_id'], onTable: 'BranchSmsConfig', unique: true)
 ];
 
 const List<MigrationCommand> _migration_20250603044146_down = [
-  DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
-  DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
-  DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
-  DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
-  DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
-  DropIndex('index_BranchSmsConfig_on_branch_id')
+  // DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
+  // DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
+  // DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
+  // DropColumn('branch_Branch_brick_id', onTable: 'InventoryRequest'),
+  // DropColumn('financing_Financing_brick_id', onTable: 'InventoryRequest'),
+  // DropIndex('index_BranchSmsConfig_on_branch_id')
 ];
 
 //
@@ -44,9 +44,9 @@ const List<MigrationCommand> _migration_20250603044146_down = [
 )
 class Migration20250603044146 extends Migration {
   const Migration20250603044146()
-    : super(
-        version: 20250603044146,
-        up: _migration_20250603044146_up,
-        down: _migration_20250603044146_down,
-      );
+      : super(
+          version: 20250603044146,
+          up: _migration_20250603044146_up,
+          down: _migration_20250603044146_down,
+        );
 }

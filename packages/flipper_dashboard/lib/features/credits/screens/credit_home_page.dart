@@ -7,7 +7,6 @@ import 'dart:async';
 import '../models/credit_data.dart';
 import '../widgets/credit_display.dart';
 import '../widgets/credit_icon_widget.dart';
-import '../widgets/quick_amounts_selector.dart';
 
 class CreditHomePage extends StatefulWidget {
   const CreditHomePage({Key? key}) : super(key: key);
@@ -325,13 +324,6 @@ class _CreditHomePageState extends State<CreditHomePage>
       [String message = 'Please enter a valid amount']) {
     ScaffoldMessenger.of(context).showSnackBar(
       _buildSnackBar(message, Icons.error_outline, Colors.red.shade600),
-    );
-  }
-
-  void _showSuccessSnackBar(BuildContext context, int amount) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('$amount credits added successfully', Icons.check_circle,
-          Colors.green.shade600),
     );
   }
 
