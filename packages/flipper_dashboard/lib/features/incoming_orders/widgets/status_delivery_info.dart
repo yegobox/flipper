@@ -109,7 +109,8 @@ class StatusDeliveryInfo extends StatelessWidget {
               ),
             ),
             Text(
-              DateFormat('MMM dd, yyyy HH:mm').format(request.createdAt!),
+              DateFormat('MMM dd, yyyy HH:mm')
+                  .format(request.createdAt ?? DateTime.now()),
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.purple[700],

@@ -10,27 +10,32 @@ Future<Plan> _$PlanFromSupabase(
     id: data['id'] == null ? null : data['id'] as String?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     selectedPlan:
         data['selected_plan'] == null ? null : data['selected_plan'] as String?,
-    additionalDevices: data['additional_devices'] == null
-        ? null
-        : data['additional_devices'] as int?,
+    additionalDevices:
+        data['additional_devices'] == null
+            ? null
+            : data['additional_devices'] as int?,
     isYearlyPlan:
         data['is_yearly_plan'] == null ? null : data['is_yearly_plan'] as bool?,
     totalPrice:
         data['total_price'] == null ? null : data['total_price'] as int?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
-    paymentCompletedByUser: data['payment_completed_by_user'] == null
-        ? null
-        : data['payment_completed_by_user'] as bool? ?? false,
+    paymentCompletedByUser:
+        data['payment_completed_by_user'] == null
+            ? null
+            : data['payment_completed_by_user'] as bool? ?? false,
     rule: data['rule'] == null ? null : data['rule'] as String?,
-    paymentMethod: data['payment_method'] == null
-        ? null
-        : data['payment_method'] as String?,
+    paymentMethod:
+        data['payment_method'] == null
+            ? null
+            : data['payment_method'] as String?,
     addons: await Future.wait<PlanAddon>(
       data['addons']
               ?.map(
@@ -44,14 +49,18 @@ Future<Plan> _$PlanFromSupabase(
               .cast<Future<PlanAddon>>() ??
           [],
     ),
-    nextBillingDate: data['next_billing_date'] == null
-        ? null
-        : data['next_billing_date'] == null
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] == null
             ? null
             : DateTime.tryParse(data['next_billing_date'] as String),
-    numberOfPayments: data['number_of_payments'] == null
-        ? null
-        : data['number_of_payments'] as int?,
+    numberOfPayments:
+        data['number_of_payments'] == null
+            ? null
+            : data['number_of_payments'] as int?,
+    phoneNumber:
+        data['phone_number'] == null ? null : data['phone_number'] as String?,
   );
 }
 
@@ -63,6 +72,7 @@ Future<Map<String, dynamic>> _$PlanToSupabase(
   return {
     'id': instance.id,
     'business_id': instance.businessId,
+    'branch_id': instance.branchId,
     'selected_plan': instance.selectedPlan,
     'additional_devices': instance.additionalDevices,
     'is_yearly_plan': instance.isYearlyPlan,
@@ -84,6 +94,7 @@ Future<Map<String, dynamic>> _$PlanToSupabase(
     ),
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
     'number_of_payments': instance.numberOfPayments,
+    'phone_number': instance.phoneNumber,
   };
 }
 
@@ -96,52 +107,62 @@ Future<Plan> _$PlanFromSqlite(
     id: data['id'] == null ? null : data['id'] as String?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     selectedPlan:
         data['selected_plan'] == null ? null : data['selected_plan'] as String?,
-    additionalDevices: data['additional_devices'] == null
-        ? null
-        : data['additional_devices'] as int?,
+    additionalDevices:
+        data['additional_devices'] == null
+            ? null
+            : data['additional_devices'] as int?,
     isYearlyPlan:
         data['is_yearly_plan'] == null ? null : data['is_yearly_plan'] == 1,
     totalPrice:
         data['total_price'] == null ? null : data['total_price'] as int?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
-    paymentCompletedByUser: data['payment_completed_by_user'] == null
-        ? null
-        : data['payment_completed_by_user'] == 1,
+    paymentCompletedByUser:
+        data['payment_completed_by_user'] == null
+            ? null
+            : data['payment_completed_by_user'] == 1,
     rule: data['rule'] == null ? null : data['rule'] as String?,
-    paymentMethod: data['payment_method'] == null
-        ? null
-        : data['payment_method'] as String?,
-    addons: (await provider.rawQuery(
-      'SELECT DISTINCT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE l_Plan_brick_id = ?',
-      [data['_brick_id'] as int],
-    ).then((results) {
-      final ids = results.map((r) => r['f_PlanAddon_brick_id']);
-      return Future.wait<PlanAddon>(
-        ids.map(
-          (primaryKey) => repository!
-              .getAssociation<PlanAddon>(
-                Query.where('primaryKey', primaryKey, limit1: true),
-              )
-              .then((r) => r!.first),
-        ),
-      );
-    }))
-        .toList()
-        .cast<PlanAddon>(),
-    nextBillingDate: data['next_billing_date'] == null
-        ? null
-        : data['next_billing_date'] == null
+    paymentMethod:
+        data['payment_method'] == null
+            ? null
+            : data['payment_method'] as String?,
+    addons:
+        (await provider
+            .rawQuery(
+              'SELECT DISTINCT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE l_Plan_brick_id = ?',
+              [data['_brick_id'] as int],
+            )
+            .then((results) {
+              final ids = results.map((r) => r['f_PlanAddon_brick_id']);
+              return Future.wait<PlanAddon>(
+                ids.map(
+                  (primaryKey) => repository!
+                      .getAssociation<PlanAddon>(
+                        Query.where('primaryKey', primaryKey, limit1: true),
+                      )
+                      .then((r) => r!.first),
+                ),
+              );
+            })).toList().cast<PlanAddon>(),
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] == null
             ? null
             : DateTime.tryParse(data['next_billing_date'] as String),
-    numberOfPayments: data['number_of_payments'] == null
-        ? null
-        : data['number_of_payments'] as int?,
+    numberOfPayments:
+        data['number_of_payments'] == null
+            ? null
+            : data['number_of_payments'] as int?,
+    phoneNumber:
+        data['phone_number'] == null ? null : data['phone_number'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -153,19 +174,22 @@ Future<Map<String, dynamic>> _$PlanToSqlite(
   return {
     'id': instance.id,
     'business_id': instance.businessId,
+    'branch_id': instance.branchId,
     'selected_plan': instance.selectedPlan,
     'additional_devices': instance.additionalDevices,
     'is_yearly_plan':
         instance.isYearlyPlan == null ? null : (instance.isYearlyPlan! ? 1 : 0),
     'total_price': instance.totalPrice,
     'created_at': instance.createdAt?.toIso8601String(),
-    'payment_completed_by_user': instance.paymentCompletedByUser == null
-        ? null
-        : (instance.paymentCompletedByUser! ? 1 : 0),
+    'payment_completed_by_user':
+        instance.paymentCompletedByUser == null
+            ? null
+            : (instance.paymentCompletedByUser! ? 1 : 0),
     'rule': instance.rule,
     'payment_method': instance.paymentMethod,
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
     'number_of_payments': instance.numberOfPayments,
+    'phone_number': instance.phoneNumber,
   };
 }
 
@@ -186,6 +210,10 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     'businessId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'business_id',
+    ),
+    'branchId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
     ),
     'selectedPlan': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -233,6 +261,10 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       association: false,
       columnName: 'number_of_payments',
     ),
+    'phoneNumber': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'phone_number',
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -256,7 +288,13 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
+    ),
+    'branchId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
+      iterable: false,
+      type: String,
     ),
     'selectedPlan': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -324,6 +362,12 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       iterable: false,
       type: int,
     ),
+    'phoneNumber': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'phone_number',
+      iterable: false,
+      type: String,
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
@@ -364,16 +408,19 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
 
       await Future.wait<void>(
         addonsIdsToDelete.map((id) async {
-          return await provider.rawExecute(
-            'DELETE FROM `_brick_Plan_addons` WHERE `l_Plan_brick_id` = ? AND `f_PlanAddon_brick_id` = ?',
-            [instance.primaryKey, id],
-          ).catchError((e) => null);
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_Plan_addons` WHERE `l_Plan_brick_id` = ? AND `f_PlanAddon_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
         }),
       );
 
       await Future.wait<int?>(
         instance.addons.map((s) async {
-          final id = s.primaryKey ??
+          final id =
+              s.primaryKey ??
               await provider.upsert<PlanAddon>(s, repository: repository);
           return await provider.rawInsert(
             'INSERT OR IGNORE INTO `_brick_Plan_addons` (`l_Plan_brick_id`, `f_PlanAddon_brick_id`) VALUES (?, ?)',
@@ -389,12 +436,11 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$PlanFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$PlanFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Plan input, {

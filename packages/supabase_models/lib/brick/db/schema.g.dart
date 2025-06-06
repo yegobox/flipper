@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250603134014.migration.dart';
+part '20250606053104.migration.dart';
 part '20250314135245.migration.dart';
 part '20250522185231.migration.dart';
 part '20250413072827.migration.dart';
@@ -45,10 +45,12 @@ part '20250603073132.migration.dart';
 part '20250603073228.migration.dart';
 part '20250603073308.migration.dart';
 part '20250603082309.migration.dart';
+part '20250603134014.migration.dart';
+part '20250606051026.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250603134014(),
+  const Migration20250606053104(),
   const Migration20250314135245(),
   const Migration20250522185231(),
   const Migration20250413072827(),
@@ -92,11 +94,13 @@ final migrations = <Migration>{
   const Migration20250603073228(),
   const Migration20250603073308(),
   const Migration20250603082309(),
+  const Migration20250603134014(),
+  const Migration20250606051026(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250603082309,
+  20250606051026,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -496,7 +500,7 @@ final schema = Schema(
           isPrimaryKey: true,
         ),
         SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('plan_id', Column.integer),
+        SchemaColumn('plan_id', Column.varchar),
         SchemaColumn('addon_name', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
       },
@@ -1705,7 +1709,8 @@ final schema = Schema(
           isPrimaryKey: true,
         ),
         SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('business_id', Column.integer),
+        SchemaColumn('business_id', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('selected_plan', Column.varchar),
         SchemaColumn('additional_devices', Column.integer),
         SchemaColumn('is_yearly_plan', Column.boolean),
@@ -1716,6 +1721,7 @@ final schema = Schema(
         SchemaColumn('payment_method', Column.varchar),
         SchemaColumn('next_billing_date', Column.datetime),
         SchemaColumn('number_of_payments', Column.integer),
+        SchemaColumn('phone_number', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
