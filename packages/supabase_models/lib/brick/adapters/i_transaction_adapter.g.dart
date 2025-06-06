@@ -128,7 +128,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     billingFrequency:
         data['billing_frequency'] == null
             ? null
-            : data['billing_frequency'] as String? ?? 'monthly',
+            : data['billing_frequency'] as String? ?? "monthly",
     billingAmount:
         data['billing_amount'] == null
             ? null

@@ -24,6 +24,7 @@ const List<MigrationCommand> _migration_20250418120045_up = [
   // CreateIndex(columns: ['branch_id'], onTable: 'BranchSmsConfig', unique: true)
 ];
 
+
 const List<MigrationCommand> _migration_20250418120045_down = [
   DropColumn('is_loan', onTable: 'ITransaction'),
   // DropColumn('provider_FinanceProvider_brick_id', onTable: 'Financing'),
