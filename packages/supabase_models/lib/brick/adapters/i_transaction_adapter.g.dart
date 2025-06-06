@@ -132,7 +132,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     billingAmount:
         data['billing_amount'] == null
             ? null
-            : data['billing_amount'] as double? ?? 0.0,
+            : data['billing_amount'] as num? ?? 0.0,
     totalInstallments:
         data['total_installments'] == null
             ? null
@@ -150,11 +150,11 @@ Future<ITransaction> _$ITransactionFromSupabase(
     originalLoanAmount:
         data['original_loan_amount'] == null
             ? null
-            : data['original_loan_amount'] as double? ?? 0.0,
+            : data['original_loan_amount'] as num? ?? 0.0,
     remainingBalance:
         data['remaining_balance'] == null
             ? null
-            : data['remaining_balance'] as double? ?? 0.0,
+            : data['remaining_balance'] as num? ?? 0.0,
     lastPaymentDate:
         data['last_payment_date'] == null
             ? null
@@ -164,7 +164,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     lastPaymentAmount:
         data['last_payment_amount'] == null
             ? null
-            : data['last_payment_amount'] as double? ?? 0.0,
+            : data['last_payment_amount'] as num? ?? 0.0,
   );
 }
 
@@ -342,9 +342,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
             ? null
             : data['billing_frequency'] as String?,
     billingAmount:
-        data['billing_amount'] == null
-            ? null
-            : data['billing_amount'] as double?,
+        data['billing_amount'] == null ? null : data['billing_amount'] as num?,
     totalInstallments:
         data['total_installments'] == null
             ? null
@@ -362,11 +360,11 @@ Future<ITransaction> _$ITransactionFromSqlite(
     originalLoanAmount:
         data['original_loan_amount'] == null
             ? null
-            : data['original_loan_amount'] as double?,
+            : data['original_loan_amount'] as num?,
     remainingBalance:
         data['remaining_balance'] == null
             ? null
-            : data['remaining_balance'] as double?,
+            : data['remaining_balance'] as num?,
     lastPaymentDate:
         data['last_payment_date'] == null
             ? null
@@ -376,7 +374,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
     lastPaymentAmount:
         data['last_payment_amount'] == null
             ? null
-            : data['last_payment_amount'] as double?,
+            : data['last_payment_amount'] as num?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -928,7 +926,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'billing_amount',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'totalInstallments': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -952,13 +950,13 @@ class ITransactionAdapter
       association: false,
       columnName: 'original_loan_amount',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'remainingBalance': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'remaining_balance',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'lastPaymentDate': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -970,7 +968,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'last_payment_amount',
       iterable: false,
-      type: double,
+      type: num,
     ),
   };
   @override
