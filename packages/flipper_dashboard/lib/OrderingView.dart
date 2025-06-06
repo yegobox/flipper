@@ -22,8 +22,6 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_routing/app.locator.dart' show locator;
-import 'package:stacked_services/stacked_services.dart';
 
 class OrderingView extends StatefulHookConsumerWidget {
   const OrderingView(this.transaction, {Key? key}) : super(key: key);
@@ -163,7 +161,6 @@ class ProductListScreenState extends ConsumerState<OrderingView>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering()!;
-    final theme = Theme.of(context);
 
     // Watch the transaction items directly without intermediate state
     final transactionItems = ref
@@ -174,27 +171,12 @@ class ProductListScreenState extends ConsumerState<OrderingView>
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return Scaffold(
-          appBar: _buildAppBar(theme: theme),
           body: _buildBody(ref, model: model),
           floatingActionButton: _buildFloatingActionButton(ref, isOrdering,
               orderCount: orderCount),
         );
       },
     );
-  }
-
-  PreferredSizeWidget? _buildAppBar({required ThemeData theme}) {
-    if (isIos || isAndroid) {
-      return AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_outlined),
-          onPressed: () => locator<RouterService>().back(),
-        ),
-        elevation: 0,
-        backgroundColor: theme.colorScheme.surface,
-      );
-    }
-    return null;
   }
 
   Widget _buildBody(WidgetRef ref, {required ProductViewModel model}) {

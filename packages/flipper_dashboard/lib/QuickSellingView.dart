@@ -242,69 +242,667 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildSmallDeviceScaffold(bool isOrdering,
       AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            ref.read(previewingCart.notifier).state = false;
-          },
-        ),
-        title: Text('Orders'),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      appBar: _buildCompactAppBar(isOrdering),
+      body: _buildScrollableContent(isOrdering, transactionAsyncValue, model),
+      bottomNavigationBar: _buildBottomActionBar(transactionAsyncValue, model),
+    );
+  }
+
+  PreferredSizeWidget _buildCompactAppBar(bool isOrdering) {
+    return AppBar(
+      elevation: 0,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      foregroundColor: Theme.of(context).colorScheme.onSurface,
+      title: Text(
+        isOrdering ? 'New Order' : 'Point of Sale',
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
       ),
-      floatingActionButton: !(ProxyService.box.isOrdering() ?? false)
-          ? Builder(
-              builder: (context) {
-                final branchAsync = ref.watch(activeBranchProvider);
-                return branchAsync.when(
-                  data: (branch) {
-                    return FutureBuilder<bool>(
-                      future: ProxyService.strategy.isBranchEnableForPayment(
-                          currentBranchId: branch.id) as Future<bool>,
-                      builder: (context, snapshot) {
-                        final digitalPaymentEnabled = snapshot.data ?? false;
-                        return PayableView(
-                          transactionId: transactionAsyncValue.value?.id ?? "",
-                          wording:
-                              "Pay ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
-                          mode: SellingMode.forSelling,
-                          completeTransaction: (imediteCompleteTransaction) {
-                            talker.warning("We are about to complete a sale");
-                            transactionAsyncValue
-                                .whenData((ITransaction transaction) {
-                              startCompleteTransactionFlow(
-                                  immediateCompletion:
-                                      imediteCompleteTransaction,
-                                  completeTransaction: () async {
-                                    await _onQuickSellComplete(transaction);
-                                  },
-                                  transaction: transaction,
-                                  paymentMethods:
-                                      ref.watch(paymentMethodsProvider));
-                            });
-                            ref.read(previewingCart.notifier).state = false;
-                          },
-                          model: model,
-                          ticketHandler: () {
-                            talker.warning("We are about to complete a ticket");
-                            transactionAsyncValue
-                                .whenData((ITransaction transaction) {
-                              handleTicketNavigation(transaction);
-                            });
-                            ref.read(toggleProvider.notifier).state = false;
-                          },
-                          digitalPaymentEnabled: digitalPaymentEnabled,
-                        );
-                      },
-                    );
-                  },
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => Center(child: Text('Error: $error')),
+      actions: [
+        if (!isOrdering)
+          IconButton(
+            icon: Icon(Icons.receipt_long_outlined),
+            onPressed: () => _showTransactionHistory(),
+            tooltip: 'Transaction History',
+          ),
+        IconButton(
+          icon: Icon(Icons.more_vert),
+          onPressed: () => _showOptionsMenu(),
+          tooltip: 'More Options',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScrollableContent(bool isOrdering,
+      AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
+    return CustomScrollView(
+      slivers: [
+        // Transaction Summary Header
+        SliverToBoxAdapter(
+          child: _buildTransactionSummaryCard(transactionAsyncValue),
+        ),
+
+        // Items Section
+        SliverToBoxAdapter(
+          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined),
+        ),
+
+        _buildItemsList(transactionAsyncValue),
+
+        // Customer & Payment Section
+        if (!isOrdering) ...[
+          SliverToBoxAdapter(
+            child: _buildSectionHeader('Customer', Icons.person_outline),
+          ),
+          SliverToBoxAdapter(
+            child: _buildCustomerSection(),
+          ),
+          SliverToBoxAdapter(
+            child: _buildSectionHeader('Payment', Icons.payment_outlined),
+          ),
+          SliverToBoxAdapter(
+            child: _buildPaymentSection(transactionAsyncValue),
+          ),
+        ],
+
+        // Delivery Section for Orders
+        if (isOrdering) ...[
+          SliverToBoxAdapter(
+            child:
+                _buildSectionHeader('Delivery', Icons.local_shipping_outlined),
+          ),
+          SliverToBoxAdapter(
+            child: _buildDeliverySection(),
+          ),
+        ],
+
+        // Bottom spacing
+        SliverToBoxAdapter(
+          child: SizedBox(height: 100),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionSummaryCard(
+      AsyncValue<ITransaction> transactionAsyncValue) {
+    return Container(
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Total Amount',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+              ),
+              Text(
+                getSumOfItems(transactionId: transactionAsyncValue.value?.id)
+                    .toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency()),
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Transaction ID',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimaryContainer
+                          .withOpacity(0.7),
+                    ),
+              ),
+              Text(
+                '#${transactionAsyncValue.value?.id?.substring(0, 8) ?? "--------"}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontFamily: 'monospace',
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimaryContainer
+                          .withOpacity(0.7),
+                    ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          SizedBox(width: 8),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
+    return StreamBuilder<List<TransactionItem>>(
+      stream: ref.watch(transactionItemsStreamProvider(
+              transactionId: transactionAsyncValue.value?.id ?? "")
+          .stream),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return SliverToBoxAdapter(
+            child: _buildErrorCard(
+                'Failed to load items', snapshot.error.toString()),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return SliverToBoxAdapter(
+            child: Container(
+              height: 100,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+
+        final items = snapshot.data!;
+
+        if (items.isEmpty) {
+          return SliverToBoxAdapter(
+            child: _buildEmptyStateCard(
+              'No items added',
+              'Tap the + button to add your first item',
+              Icons.add_shopping_cart_outlined,
+            ),
+          );
+        }
+
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) =>
+                _buildModernItemCard(items[index], transactionAsyncValue),
+            childCount: items.length,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModernItemCard(
+      TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Item header with name and delete
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline, size: 20),
+                  onPressed: () =>
+                      _showDeleteConfirmation(item, transactionAsyncValue),
+                  style: IconButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.errorContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onErrorContainer,
+                    minimumSize: Size(32, 32),
+                  ),
+                  tooltip: 'Remove item',
+                ),
+              ],
+            ),
+
+            SizedBox(height: 12),
+
+            // Price and quantity controls
+            Row(
+              children: [
+                // Price info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Unit Price',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.color
+                                  ?.withOpacity(0.7),
+                            ),
+                      ),
+                      Text(
+                        item.price.toCurrencyFormatted(
+                            symbol: ProxyService.box.defaultCurrency()),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Quantity controls
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.remove, size: 16),
+                        onPressed: item.qty > 1
+                            ? () => _updateQuantity(item,
+                                (item.qty - 1).toInt(), transactionAsyncValue)
+                            : null,
+                        style: IconButton.styleFrom(
+                          minimumSize: Size(32, 32),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          '${item.qty}',
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.add, size: 16),
+                        onPressed: () => _updateQuantity(item,
+                            (item.qty + 1).toInt(), transactionAsyncValue),
+                        style: IconButton.styleFrom(
+                          minimumSize: Size(32, 32),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 12),
+
+            // Total for this item
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primaryContainer
+                    .withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Subtotal',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    (item.price * item.qty).toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency()),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomerSection() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          _customerNameField(),
+          SizedBox(height: 16),
+          _buildCustomerPhoneField(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentSection(AsyncValue<ITransaction> transactionAsyncValue) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          _buildReceivedAmountField(
+              transactionId: transactionAsyncValue.value?.id ?? ""),
+          SizedBox(height: 16),
+          _buildPaymentMethodField(
+              transactionId: transactionAsyncValue.value?.id ?? ""),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliverySection() {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(Icons.calendar_today_outlined, size: 20),
+              SizedBox(width: 8),
+              Text(
+                "Delivery Date",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Spacer(),
+              Expanded(child: datePicker()),
+            ],
+          ),
+          SizedBox(height: 16),
+          _deliveryNote(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard(String title, String subtitle, IconData icon) {
+    return Container(
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          style: BorderStyle.solid,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          SizedBox(height: 16),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.7),
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorCard(String title, String error) {
+    return Container(
+      margin: EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.onErrorContainer,
+          ),
+          SizedBox(height: 8),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
+          ),
+          if (error.isNotEmpty) ...[
+            SizedBox(height: 4),
+            Text(
+              error,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onErrorContainer
+                        .withOpacity(0.8),
+                  ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomActionBar(
+      AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
+    if (ProxyService.box.isOrdering() ?? false) return SizedBox.shrink();
+
+    return Builder(
+      builder: (context) {
+        final branchAsync = ref.watch(activeBranchProvider);
+        return branchAsync.when(
+          data: (branch) {
+            return FutureBuilder<bool>(
+              future: ProxyService.strategy.isBranchEnableForPayment(
+                  currentBranchId: branch.id) as Future<bool>,
+              builder: (context, snapshot) {
+                final digitalPaymentEnabled = snapshot.data ?? false;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: PayableView(
+                        transactionId: transactionAsyncValue.value?.id ?? "",
+                        wording:
+                            "Complete Sale • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
+                        mode: SellingMode.forSelling,
+                        completeTransaction: (immediateCompleteTransaction) {
+                          talker.warning("We are about to complete a sale");
+                          transactionAsyncValue
+                              .whenData((ITransaction transaction) {
+                            startCompleteTransactionFlow(
+                              immediateCompletion: immediateCompleteTransaction,
+                              completeTransaction: () async {
+                                await _onQuickSellComplete(transaction);
+                              },
+                              transaction: transaction,
+                              paymentMethods: ref.watch(paymentMethodsProvider),
+                            );
+                          });
+                          ref.read(previewingCart.notifier).state = false;
+                        },
+                        model: model,
+                        ticketHandler: () {
+                          talker.warning("We are about to complete a ticket");
+                          transactionAsyncValue
+                              .whenData((ITransaction transaction) {
+                            handleTicketNavigation(transaction);
+                          });
+                          ref.read(toggleProvider.notifier).state = false;
+                        },
+                        digitalPaymentEnabled: digitalPaymentEnabled,
+                      ),
+                    ),
+                  ),
                 );
               },
-            )
-          : SizedBox.shrink(),
-      body: _buildSharedView(transactionAsyncValue, true, isOrdering),
+            );
+          },
+          loading: () => Container(
+            height: 80,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, stack) => Container(
+            height: 80,
+            child: Center(child: Text('Error: $error')),
+          ),
+        );
+      },
+    );
+  }
+
+// Helper methods that would need implementation
+  void _showTransactionHistory() {
+    // Implementation for showing transaction history
+  }
+
+  void _showOptionsMenu() {
+    // Implementation for showing options menu
+  }
+
+  void _showDeleteConfirmation(
+      TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Remove Item'),
+        content: Text(
+            'Are you sure you want to remove "${item.name}" from this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await ProxyService.strategy.updateTransactionItem(
+                transactionItemId: item.id.toString(),
+                active: false,
+              );
+              ref.invalidate(
+                transactionItemsStreamProvider(
+                  transactionId: transactionAsyncValue.value?.id ?? "",
+                ),
+              );
+            },
+            child: Text('Remove'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _updateQuantity(TransactionItem item, int newQty,
+      AsyncValue<ITransaction> transactionAsyncValue) async {
+    await ProxyService.strategy.updateTransactionItem(
+      transactionItemId: item.id.toString(),
+      qty: newQty.toDouble(),
+    );
+    ref.invalidate(
+      transactionItemsStreamProvider(
+        transactionId: transactionAsyncValue.value?.id ?? "",
+      ),
     );
   }
 

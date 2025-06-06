@@ -116,6 +116,9 @@ class Orders extends HookConsumerWidget {
 
   Widget _buildSearchableSupplierField(
       List<Branch> suppliers, WidgetRef ref, BuildContext context) {
+    // Get the currently selected supplier
+    final selectedSupplier = ref.watch(selectedSupplierProvider);
+
     return TypeAheadField<Branch>(
       suggestionsCallback: (search) {
         return suppliers
@@ -125,17 +128,26 @@ class Orders extends HookConsumerWidget {
       },
       builder: (context, controller, focusNode) {
         // Initialize controller text with selected supplier if exists
+        if (selectedSupplier != null && controller.text.isEmpty) {
+          controller.text = selectedSupplier.name ?? '';
+        }
 
         return StyledTextFormField.create(
           focusNode: focusNode,
           context: context,
           labelText: 'Search suppliers...',
-          hintText: 'Search suppliers...',
+          hintText: selectedSupplier == null
+              ? 'Search suppliers...'
+              : 'Selected: ${selectedSupplier.name}',
           controller: controller,
-          keyboardType: TextInputType.multiline,
-          maxLines: 3,
+          keyboardType: TextInputType.text,
+          maxLines: 1,
           minLines: 1,
           prefixIcon: Icons.search,
+          suffixIcon: selectedSupplier != null
+              ? Icon(Icons.check_circle,
+                  color: Theme.of(context).colorScheme.primary)
+              : null,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return null;
@@ -145,9 +157,19 @@ class Orders extends HookConsumerWidget {
         );
       },
       itemBuilder: (context, supplier) {
+        final isSelected = selectedSupplier?.id == supplier.id;
         return ListTile(
           title: Text(supplier.name!),
           subtitle: Text('No address available'),
+          trailing: isSelected
+              ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+              : null,
+          tileColor: isSelected
+              ? Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.2)
+              : null,
         );
       },
       onSelected: (supplier) {
@@ -166,11 +188,13 @@ class Orders extends HookConsumerWidget {
     if (transaction == null) return SizedBox.shrink();
     return FlipperButton(
       textColor: Theme.of(context).colorScheme.onPrimary,
-      color: Theme.of(context).colorScheme.primary,
+      color: selectedSupplier == null
+          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)
+          : Theme.of(context).colorScheme.primary,
       radius: 4,
       onPressed: () {
         if (selectedSupplier == null) {
-          showToast(context, "Choose supplier");
+          showToast(context, "Please select a supplier first");
           return;
         }
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
@@ -181,7 +205,9 @@ class Orders extends HookConsumerWidget {
           ),
         );
       },
-      text: 'View Products',
+      text: selectedSupplier == null
+          ? 'Select a Supplier First'
+          : 'View Products from ${selectedSupplier.name}',
     );
   }
 }
