@@ -90,7 +90,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? billingFrequency; // 'daily', 'weekly', 'monthly'
 
   @Supabase(defaultValue: "0.0")
-  double? billingAmount;
+  num? billingAmount;
 
   @Supabase(defaultValue: "1")
   int? totalInstallments;
@@ -102,15 +102,15 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   // LOAN TRACKING: Additional fields for better loan management
   @Supabase(defaultValue: "0.0")
-  double? originalLoanAmount;
+  num? originalLoanAmount;
 
   @Supabase(defaultValue: "0.0")
-  double? remainingBalance;
+  num? remainingBalance;
 
   DateTime? lastPaymentDate;
 
   @Supabase(defaultValue: "0.0")
-  double? lastPaymentAmount;
+  num? lastPaymentAmount;
 
   ITransaction({
     this.ticketName,
@@ -156,14 +156,14 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     bool? isAutoBilled,
     this.nextBillingDate,
     String? billingFrequency,
-    double? billingAmount,
+    num? billingAmount,
     int? totalInstallments,
     int? paidInstallments,
     this.lastBilledDate,
-    double? originalLoanAmount,
-    double? remainingBalance,
+    num? originalLoanAmount,
+    num? remainingBalance,
     this.lastPaymentDate,
-    double? lastPaymentAmount,
+    num? lastPaymentAmount,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,

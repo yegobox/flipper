@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250606053104.migration.dart';
+part '20250606075501.migration.dart';
 part '20250314135245.migration.dart';
 part '20250522185231.migration.dart';
 part '20250413072827.migration.dart';
@@ -47,10 +47,11 @@ part '20250603073308.migration.dart';
 part '20250603082309.migration.dart';
 part '20250603134014.migration.dart';
 part '20250606051026.migration.dart';
+part '20250606053104.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250606053104(),
+  const Migration20250606075501(),
   const Migration20250314135245(),
   const Migration20250522185231(),
   const Migration20250413072827(),
@@ -96,11 +97,12 @@ final migrations = <Migration>{
   const Migration20250603082309(),
   const Migration20250603134014(),
   const Migration20250606051026(),
+  const Migration20250606053104(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250606051026,
+  20250606053104,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -375,14 +377,14 @@ final schema = Schema(
         SchemaColumn('is_auto_billed', Column.boolean),
         SchemaColumn('next_billing_date', Column.datetime),
         SchemaColumn('billing_frequency', Column.varchar),
-        SchemaColumn('billing_amount', Column.Double),
+        SchemaColumn('billing_amount', Column.num),
         SchemaColumn('total_installments', Column.integer),
         SchemaColumn('paid_installments', Column.integer),
         SchemaColumn('last_billed_date', Column.datetime),
-        SchemaColumn('original_loan_amount', Column.Double),
-        SchemaColumn('remaining_balance', Column.Double),
+        SchemaColumn('original_loan_amount', Column.num),
+        SchemaColumn('remaining_balance', Column.num),
         SchemaColumn('last_payment_date', Column.datetime),
-        SchemaColumn('last_payment_amount', Column.Double),
+        SchemaColumn('last_payment_amount', Column.num),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
