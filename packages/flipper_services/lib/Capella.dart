@@ -385,7 +385,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<List<Branch>> branches(
-      {required int businessId, bool? includeSelf = false}) {
+      {required int serverId, bool? includeSelf = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -2295,7 +2295,7 @@ class Capella extends AiStrategyImpl
     // TODO: implement updateCredit
     throw UnimplementedError();
   }
-  
+
   @override
   Future<void> cleanDuplicatePlans() {
     // TODO: implement cleanDuplicatePlans

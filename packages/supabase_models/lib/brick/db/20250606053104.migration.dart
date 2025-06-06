@@ -10,7 +10,7 @@ part of 'schema.g.dart';
 // The migration version must **always** mirror the file name
 
 const List<MigrationCommand> _migration_20250606053104_up = [
-  InsertColumn('financing_Financing_brick_id', Column.varchar,
+  InsertColumn('financing_Financing_brick_id', Column.integer,
       onTable: 'InventoryRequest'),
 ];
 

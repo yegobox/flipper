@@ -27,20 +27,39 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Branch>> branches({
-    required int businessId,
+    required int serverId,
     bool? includeSelf = false,
   }) async {
-    return await _getBranches(businessId, includeSelf!);
+    return await _getBranches(serverId, includeSelf!);
   }
 
-  Future<List<Branch>> _getBranches(int businessId, bool active) async {
+  Future<List<Branch>> _getBranches(int serverId, bool? active) async {
+    final filters = <Where>[
+      Where('businessId').isExactly(serverId),
+      if (active != null) Where('active').isExactly(active),
+    ];
+    final query = Query(where: filters);
+
     try {
+      try {
+        return await repository
+            .get<Branch>(
+              policy: OfflineFirstGetPolicy.alwaysHydrate,
+              query: query,
+            )
+            .timeout(
+              const Duration(seconds: 3),
+              onTimeout: () => throw TimeoutException('Remote fetch timed out'),
+            );
+      } on TimeoutException {
+        talker.warning(
+          'Branch remote fetch timed out after 3 seconds, falling back to local data',
+        );
+      }
+
       return await repository.get<Branch>(
-        query: Query(where: [
-          Where('businessId').isExactly(businessId),
-          //if we are given active and is true then we return only
-          if (active) Where('active').isExactly(active),
-        ]),
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: query,
       );
     } catch (e, s) {
       talker.error(e);
