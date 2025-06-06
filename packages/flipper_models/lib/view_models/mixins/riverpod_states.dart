@@ -670,7 +670,8 @@ final stockRequestsProvider = StreamProvider.autoDispose
   }
   // Add distinct() to prevent unnecessary updates and ensure quantities are preserved
   return ProxyService.strategy
-      .requestsStream(branchId: branchId, filter: filter)
+      .requestsStream(
+          branchId: branchId, filter: filter ?? RequestStatus.pending)
       .map((requests) => requests
           .where((req) =>
               // Filter out requests that are to the same branch

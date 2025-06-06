@@ -1285,29 +1285,34 @@ class CoreSync extends AiStrategyImpl
   @override
   Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, String? filter}) {
-    if (filter != null && filter == RequestStatus.approved) {
-      final query = repository.subscribe<InventoryRequest>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: brick.Query(where: [
-            brick.Where('mainBranchId').isExactly(branchId),
-            brick.Where('status').isExactly(RequestStatus.approved),
-          ]));
+    try {
+      if (filter != null && filter == RequestStatus.approved) {
+        final query = repository.subscribeToRealtime<InventoryRequest>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: brick.Query(where: [
+              brick.Where('mainBranchId').isExactly(branchId),
+              brick.Where('status').isExactly(RequestStatus.approved),
+            ]));
 
-      return query
-          .map((changes) => changes.toList())
-          .debounceTime(Duration(milliseconds: 100));
-    } else {
-      final query = repository.subscribe<InventoryRequest>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: brick.Query(where: [
-            brick.Where('mainBranchId').isExactly(branchId),
-            brick.Where('status').isExactly(RequestStatus.pending),
-            brick.Or('status').isExactly(RequestStatus.partiallyApproved),
-          ]));
+        return query
+            .map((changes) => changes.toList())
+            .debounceTime(Duration(milliseconds: 100));
+      } else {
+        final query = repository.subscribeToRealtime<InventoryRequest>(
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: brick.Query(where: [
+              brick.Where('mainBranchId').isExactly(branchId),
+              brick.Where('status').isExactly(RequestStatus.pending),
+              brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+            ]));
 
-      return query
-          .map((changes) => changes.toList())
-          .debounceTime(Duration(milliseconds: 100));
+        return query
+            .map((changes) => changes.toList())
+            .debounceTime(Duration(milliseconds: 100));
+      }
+    } catch (e) {
+      talker.error(e);
+      rethrow;
     }
   }
 
