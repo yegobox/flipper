@@ -171,6 +171,30 @@ class ProductListScreenState extends ConsumerState<OrderingView>
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            foregroundColor: Theme.of(context).colorScheme.onSurface,
+            title: Text(
+              isOrdering ? 'New Order' : 'Point of Sale',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+            actions: [
+              if (!isOrdering)
+                IconButton(
+                  icon: Icon(Icons.receipt_long_outlined),
+                  onPressed: () => null,
+                  tooltip: 'Transaction History',
+                ),
+              IconButton(
+                icon: Icon(Icons.more_vert),
+                onPressed: () => null,
+                tooltip: 'More Options',
+              ),
+            ],
+          ),
           body: _buildBody(ref, model: model),
           floatingActionButton: _buildFloatingActionButton(ref, isOrdering,
               orderCount: orderCount),
