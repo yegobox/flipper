@@ -95,6 +95,9 @@ class CronService {
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
+            ProxyService.strategy
+                .branches(serverId: ProxyService.box.getBusinessId()!)
+                .then((_) {}),
             // ProxyService.strategy
             //     .variants(branchId: branchId, fetchRemote: true)
             //     .then((_) {}),

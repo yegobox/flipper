@@ -11,7 +11,7 @@ part of 'schema.g.dart';
 
 const List<MigrationCommand> _migration_20250606051026_up = [
   InsertColumn('financing_bhf_id', Column.varchar, onTable: 'InventoryRequest'),
-  InsertColumn('branch_Branch_brick_id', Column.varchar,
+  InsertColumn('branch_Branch_brick_id', Column.integer,
       onTable: 'InventoryRequest'),
 ];
 

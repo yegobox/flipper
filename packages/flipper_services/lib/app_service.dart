@@ -102,7 +102,7 @@ class AppService with ListenableServiceMixin {
         .businesses(userId: ProxyService.box.getUserId()!);
 
     List<Branch> branches = await ProxyService.strategy.branches(
-        businessId: ProxyService.box.getBusinessId()!, includeSelf: false);
+        serverId: ProxyService.box.getBusinessId()!, includeSelf: false);
 
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;

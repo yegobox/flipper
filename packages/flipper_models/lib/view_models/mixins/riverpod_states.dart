@@ -692,7 +692,7 @@ final branchesProvider = FutureProvider.autoDispose
 
   // Awaiting the asynchronous call
   final branches = await ProxyService.strategy
-      .branches(businessId: businessId!, includeSelf: includeSelf);
+      .branches(serverId: businessId!, includeSelf: includeSelf);
 
   return branches;
 });

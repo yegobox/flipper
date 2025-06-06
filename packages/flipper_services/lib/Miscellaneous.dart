@@ -140,7 +140,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
             }
 
             List<Branch> branches =
-                await ProxyService.strategy.branches(businessId: businessId);
+                await ProxyService.strategy.branches(serverId: businessId);
             for (Branch branch in branches) {
               if (branch.serverId != branchId) {
                 await ProxyService.strategy.updateBranch(
