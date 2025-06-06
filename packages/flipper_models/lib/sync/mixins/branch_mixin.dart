@@ -29,11 +29,13 @@ mixin BranchMixin implements BranchInterface {
   Future<List<Branch>> branches({
     required int serverId,
     bool? includeSelf = false,
+    bool fetchOnline = false,
   }) async {
-    return await _getBranches(serverId, includeSelf!);
+    return await _getBranches(serverId, includeSelf!, fetchOnline, includeSelf);
   }
 
-  Future<List<Branch>> _getBranches(int serverId, bool? active) async {
+  Future<List<Branch>> _getBranches(
+      int serverId, bool? active, bool fetchOnline, bool includeSelf) async {
     final filters = <Where>[
       Where('businessId').isExactly(serverId),
       if (active != null) Where('active').isExactly(active),
@@ -41,20 +43,23 @@ mixin BranchMixin implements BranchInterface {
     final query = Query(where: filters);
 
     try {
-      try {
-        return await repository
-            .get<Branch>(
-              policy: OfflineFirstGetPolicy.alwaysHydrate,
-              query: query,
-            )
-            .timeout(
-              const Duration(seconds: 3),
-              onTimeout: () => throw TimeoutException('Remote fetch timed out'),
-            );
-      } on TimeoutException {
-        talker.warning(
-          'Branch remote fetch timed out after 3 seconds, falling back to local data',
-        );
+      if (fetchOnline) {
+        try {
+          return await repository
+              .get<Branch>(
+                policy: OfflineFirstGetPolicy.alwaysHydrate,
+                query: query,
+              )
+              .timeout(
+                const Duration(seconds: 3),
+                onTimeout: () =>
+                    throw TimeoutException('Remote fetch timed out'),
+              );
+        } on TimeoutException {
+          talker.warning(
+            'Branch remote fetch timed out after 3 seconds, falling back to local data',
+          );
+        }
       }
 
       return await repository.get<Branch>(

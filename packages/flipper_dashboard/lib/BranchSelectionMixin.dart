@@ -88,7 +88,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required void Function(bool) setIsLoading,
   }) async {
     setLoadingState(branch.serverId?.toString());
-    setIsLoading(true); // Set isLoading to true
+    setIsLoading(true);
 
     try {
       // Store the current branch ID before making changes
@@ -376,9 +376,11 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-        serverId: ProxyService.box.getBusinessId()!, includeSelf: false);
+        serverId: ProxyService.box.getBusinessId()!,
+        includeSelf: true,
+        fetchOnline: false);
     for (final branch in branches) {
-      ProxyService.strategy.updateBranch(
+      await ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
     }
   }
@@ -487,6 +489,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
       final branches = await ProxyService.strategy.branches(
         serverId: ProxyService.box.getBusinessId()!,
         includeSelf: false,
+        fetchOnline: false,
       );
 
       if (mounted) {

@@ -2773,11 +2773,11 @@ class CoreSync extends AiStrategyImpl
         brick.Query(where: [brick.Where('serverId').isExactly(branchId)]);
     final branch = await repository.get<Branch>(query: query);
     if (branch.firstOrNull != null) {
-      Branch branchUpdate = branch.first;
-      branchUpdate.active = active;
-      branchUpdate.isDefault = isDefault;
-
-      repository.upsert<Branch>(branchUpdate);
+      final updated = branch.first.copyWith(
+        active: active,
+        isDefault: isDefault,
+      );
+      await repository.upsert<Branch>(updated);
     }
   }
 

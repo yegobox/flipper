@@ -131,7 +131,8 @@ class MyDrawer extends StatelessWidget {
 
   Widget _buildBusinessWithBranches(BuildContext context, Business business) {
     return FutureBuilder<List<Branch>>(
-      future: ProxyService.strategy.branches(serverId: business.serverId),
+      future: ProxyService.strategy
+          .branches(serverId: business.serverId, fetchOnline: false),
       builder: (context, branchSnapshot) {
         if (branchSnapshot.connectionState == ConnectionState.waiting) {
           return ListTile(
