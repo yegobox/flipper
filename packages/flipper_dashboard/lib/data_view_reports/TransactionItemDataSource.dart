@@ -13,7 +13,6 @@ class TransactionItemDataSource extends DynamicDataSource<TransactionItem> {
   List<TransactionItem> transactionItems = []; // Only visible items
   bool showPluReport;
 
-  @override
   void buildPaginatedDataGridRows() {
     if (_allTransactionItems.isNotEmpty) {
       // Set data to the initial set of items for the first page

@@ -69,12 +69,16 @@ class _SystemConfigState extends ConsumerState<SystemConfig> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'System Configuration',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blueAccent,
-                        ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Text(
+                      'System Configuration',
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
+                              ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (!isTaxEnabled) const SupportSection(),
@@ -119,13 +123,14 @@ class _SystemConfigState extends ConsumerState<SystemConfig> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
-                          Expanded(
+                          Padding(
+                            padding: const EdgeInsets.only(left: 16.0),
                             child: Text(
                               'System Currency',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const Spacer(),
                           Container(
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 12.0),
