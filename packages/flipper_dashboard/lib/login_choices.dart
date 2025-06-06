@@ -194,6 +194,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       final branches = await ProxyService.strategy.branches(
         serverId: business.serverId,
         includeSelf: false,
+        fetchOnline: false,
       );
 
       if (branches.length == 1) {
@@ -387,7 +388,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-        serverId: ProxyService.box.getBusinessId()!, includeSelf: false);
+        fetchOnline: false,
+        serverId: ProxyService.box.getBusinessId()!,
+        includeSelf: false);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
