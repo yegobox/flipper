@@ -210,7 +210,7 @@ Future<void> main() async {
     );
   }, (error, stackTrace) {
     // Catch uncaught async errors
-    Sentry.captureException(error, stackTrace: stackTrace``);
+    Sentry.captureException(error, stackTrace: stackTrace);
     // Also log to our LogService
     LogService()
         .logException(error, stackTrace: stackTrace, type: 'zone_error');
