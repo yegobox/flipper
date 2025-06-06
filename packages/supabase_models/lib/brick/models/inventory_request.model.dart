@@ -61,4 +61,29 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
     this.updatedAt,
     this.financing,
   }) : id = id ?? const Uuid().v4();
+
+  Future<InventoryRequest> copyWith({ Branch? branch,Financing? financing}) async {
+    return InventoryRequest(
+      id: id,
+      mainBranchId: mainBranchId,
+      subBranchId: subBranchId,
+      branchId: branchId,
+      createdAt: createdAt,
+      status: status,
+      deliveryDate: deliveryDate,
+      deliveryNote: deliveryNote,
+      financingId: financingId,
+      orderNote: orderNote,
+      customerReceivedOrder: customerReceivedOrder,
+      driverRequestDeliveryConfirmation: driverRequestDeliveryConfirmation,
+      driverId: driverId,
+      transactionItems: transactionItems,
+      updatedAt: updatedAt,
+      itemCounts: itemCounts,
+      bhfId: bhfId,
+      tinNumber: tinNumber,
+      financing: financing,
+      branch: branch,
+    );
+  }
 }

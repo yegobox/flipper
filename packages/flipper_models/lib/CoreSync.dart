@@ -29,6 +29,7 @@ import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
@@ -1286,30 +1287,89 @@ class CoreSync extends AiStrategyImpl
   Stream<List<InventoryRequest>> requestsStream(
       {required int branchId, String? filter}) {
     try {
-      if (filter != null && filter == RequestStatus.approved) {
-        final query = repository.subscribeToRealtime<InventoryRequest>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: brick.Query(where: [
-              brick.Where('mainBranchId').isExactly(branchId),
-              brick.Where('status').isExactly(RequestStatus.approved),
-            ]));
+      final buildQuery = () {
+        if (filter != null && filter == RequestStatus.approved) {
+          return brick.Query(where: [
+            brick.Where('mainBranchId').isExactly(branchId),
+            brick.Where('status').isExactly(RequestStatus.approved),
+          ]);
+        } else {
+          return brick.Query(where: [
+            brick.Where('mainBranchId').isExactly(branchId),
+            brick.Where('status').isExactly(RequestStatus.pending),
+            brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+          ]);
+        }
+      };
+      final query = repository.subscribeToRealtime<InventoryRequest>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: buildQuery(),
+      );
 
-        return query
-            .map((changes) => changes.toList())
-            .debounceTime(Duration(milliseconds: 100));
-      } else {
-        final query = repository.subscribeToRealtime<InventoryRequest>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: brick.Query(where: [
-              brick.Where('mainBranchId').isExactly(branchId),
-              brick.Where('status').isExactly(RequestStatus.pending),
-              brick.Or('status').isExactly(RequestStatus.partiallyApproved),
-            ]));
+      // Hydrate branch association after receiving the main object
+      return query
+          .map((changes) => changes.toList())
+          .asyncMap((requests) async {
+        return Future.wait(requests.map((req) async {
+          Branch? hydratedBranch = req.branch;
 
-        return query
-            .map((changes) => changes.toList())
-            .debounceTime(Duration(milliseconds: 100));
-      }
+          // Hydrate branch association if needed
+          if (hydratedBranch == null && req.branchId != null) {
+            final branches = await repository.get<Branch>(
+              policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+              query: brick.Query(where: [
+                brick.Where('serverId').isExactly(req.subBranchId),
+              ]),
+            );
+            if (branches.isNotEmpty) {
+              hydratedBranch = branches.first;
+            }
+          }
+
+          // Hydrate financing association if needed
+          Financing? financingToUse;
+
+          final financingList = await repository.get<Financing>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+            query: brick.Query(where: [
+              brick.Where('id').isExactly(req.financingId),
+            ]),
+          );
+          if (financingList.isNotEmpty) {
+            financingToUse = financingList.first;
+          }
+          final transactionItems = await repository.get<TransactionItem>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+            query: brick.Query(where: [
+              brick.Where('inventoryRequestId').isExactly(req.id),
+            ]),
+          );
+          for (var item in transactionItems) {
+            item.inventoryRequest = req;
+            await repository.upsert(item);
+          }
+          if (transactionItems.isEmpty) {
+            GlobalErrorHandler.logError(
+              'TransactionItem Sync Failed: ${req.id} Length: ${transactionItems.length}',
+              type: "tax_error",
+              context: {
+                'resultCode': "",
+                'businessId': ProxyService.box.getBusinessId(),
+                'timestamp': DateTime.now().toIso8601String(),
+              },
+            );
+          }
+
+          // If branch has changed or financing was just hydrated
+
+          final hydrated = await req.copyWith(
+            branch: hydratedBranch,
+            financing: financingToUse,
+          );
+          await repository.upsert(hydrated);
+          return hydrated;
+        }));
+      }).debounceTime(const Duration(milliseconds: 100));
     } catch (e) {
       talker.error(e);
       rethrow;
