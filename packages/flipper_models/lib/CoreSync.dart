@@ -1289,26 +1289,36 @@ class CoreSync extends AiStrategyImpl
     String? filter,
   }) async* {
     // Define the query builder function
-    final buildQuery = () {
-      if (filter != null && filter == RequestStatus.approved) {
-        return brick.Query(where: [
-          brick.Where('mainBranchId').isExactly(branchId),
-          brick.Where('status').isExactly(RequestStatus.approved),
-        ]);
-      } else {
-        return brick.Query(where: [
-          brick.Where('mainBranchId').isExactly(branchId),
-          brick.Where('status').isExactly(RequestStatus.pending),
-          brick.Or('status').isExactly(RequestStatus.partiallyApproved),
-        ]);
-      }
-    };
+    Query buildQuery;
+    if (filter != null && filter == RequestStatus.approved) {
+      buildQuery = brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Where('status').isExactly(RequestStatus.approved),
+      ]);
+    } else {
+      buildQuery = brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Where('status').isExactly(RequestStatus.pending),
+        brick.Or('status').isExactly(RequestStatus.partiallyApproved),
+      ]);
+    }
 
     try {
       // 1. First, get the initial data
-      final initialData = await repository.get<InventoryRequest>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: buildQuery(),
+      final initialData = await repository
+          .get<InventoryRequest>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: buildQuery,
+      )
+          .timeout(
+        const Duration(seconds: 3),
+        onTimeout: () async {
+          // Fallback to local data if timeout occurs
+          return await repository.get<InventoryRequest>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: buildQuery,
+          );
+        },
       );
 
       // 2. Process and yield initial data if it exists
@@ -1321,7 +1331,7 @@ class CoreSync extends AiStrategyImpl
       final realtimeStream = repository
           .subscribeToRealtime<InventoryRequest>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: buildQuery(),
+        query: buildQuery,
       )
           .asyncExpand((changes) async* {
         if (changes.isNotEmpty) {

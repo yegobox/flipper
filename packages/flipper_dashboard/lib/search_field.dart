@@ -204,15 +204,15 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   toggleSearch(),
                   notices(notice: notice.value ?? []),
-                  // if (deviceType == 'Phone' || deviceType == 'Phablet')
-                  //   calc(model: model),
-                  //if (deviceType != 'Phone' && deviceType != 'Phablet')
                   orders.when(
                     data: (orders) => widget.showOrderButton
-                        ? orderButton(orders).shouldSeeTheApp(ref,
+                        ? orderButton(orders.length).shouldSeeTheApp(ref,
                             featureName: AppFeature.Orders)
                         : const SizedBox.shrink(),
-                    loading: () => const SizedBox.shrink(),
+                    loading: () => widget.showOrderButton
+                        ? orderButton(0).shouldSeeTheApp(ref,
+                            featureName: AppFeature.Orders)
+                        : const SizedBox.shrink(),
                     error: (err, stack) => Text('Error: $err'),
                   ),
                   if (widget.showIncomingButton &&
@@ -288,7 +288,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   IconButton orderButton(
-    List<InventoryRequest> orders,
+    int orders,
   ) {
     return IconButton(
       onPressed: () {
@@ -308,10 +308,10 @@ class SearchFieldState extends ConsumerState<SearchField>
     }
   }
 
-  Widget _buildOrderIcon(List<InventoryRequest> orders) {
+  Widget _buildOrderIcon(int orders) {
     return badges.Badge(
-      badgeContent: Text(orders.length.toString(),
-          style: const TextStyle(color: Colors.white)),
+      badgeContent:
+          Text(orders.toString(), style: const TextStyle(color: Colors.white)),
       child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
     );
   }

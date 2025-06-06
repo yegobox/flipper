@@ -280,6 +280,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     bool? ebmSynced,
     bool? partOfComposite,
     double? compositePrice,
+    InventoryRequest? inventoryRequest,
   }) {
     return TransactionItem(
       id: id ?? this.id,
@@ -336,6 +337,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       ebmSynced: ebmSynced ?? this.ebmSynced,
       partOfComposite: partOfComposite ?? this.partOfComposite,
       compositePrice: compositePrice ?? this.compositePrice,
+      inventoryRequest: inventoryRequest ?? this.inventoryRequest,
     );
   }
 }
