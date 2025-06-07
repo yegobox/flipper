@@ -28,6 +28,7 @@ Future<Counter> _$CounterFromSupabase(
             : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
+    bhfId: data['bhf_id'] as String,
   );
 }
 
@@ -46,6 +47,7 @@ Future<Map<String, dynamic>> _$CounterToSupabase(
     'invc_no': instance.invcNo,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'created_at': instance.createdAt?.toIso8601String(),
+    'bhf_id': instance.bhfId,
   };
 }
 
@@ -76,6 +78,7 @@ Future<Counter> _$CounterFromSqlite(
             : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
+    bhfId: data['bhf_id'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -94,6 +97,7 @@ Future<Map<String, dynamic>> _$CounterToSqlite(
     'invc_no': instance.invcNo,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'created_at': instance.createdAt?.toIso8601String(),
+    'bhf_id': instance.bhfId,
   };
 }
 
@@ -142,6 +146,10 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
+    ),
+    'bhfId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'bhf_id',
     ),
   };
   @override
@@ -209,6 +217,12 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       columnName: 'created_at',
       iterable: false,
       type: DateTime,
+    ),
+    'bhfId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'bhf_id',
+      iterable: false,
+      type: String,
     ),
   };
   @override

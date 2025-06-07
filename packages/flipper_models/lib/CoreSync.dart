@@ -30,7 +30,6 @@ import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/GlobalLogError.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -1985,6 +1984,7 @@ class CoreSync extends AiStrategyImpl
         createdAt: DateTime.now().toUtc(),
         lastTouched: DateTime.now().toUtc(),
         id: counter.id,
+        bhfId: counter.bhfId,
         branchId: counter.branchId,
         curRcptNo: receiptSignature!.data?.rcptNo ?? 0,
         totRcptNo: receiptSignature.data?.totRcptNo ?? 0,

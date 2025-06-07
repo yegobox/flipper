@@ -18,6 +18,7 @@ class Counter extends OfflineFirstWithSupabaseModel {
   int? invcNo;
   final DateTime? lastTouched;
   final DateTime? createdAt;
+  String bhfId;
   Counter({
     String? id,
     required this.branchId,
@@ -28,5 +29,6 @@ class Counter extends OfflineFirstWithSupabaseModel {
     required this.createdAt,
     required this.lastTouched,
     required this.receiptType,
+    required this.bhfId,
   }) : id = id ?? const Uuid().v4();
 }
