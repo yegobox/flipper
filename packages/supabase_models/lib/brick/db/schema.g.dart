@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250606075501.migration.dart';
+part '20250607051913.migration.dart';
 part '20250314135245.migration.dart';
 part '20250522185231.migration.dart';
 part '20250413072827.migration.dart';
@@ -48,10 +48,11 @@ part '20250603082309.migration.dart';
 part '20250603134014.migration.dart';
 part '20250606051026.migration.dart';
 part '20250606053104.migration.dart';
+part '20250606075501.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250606075501(),
+  const Migration20250607051913(),
   const Migration20250314135245(),
   const Migration20250522185231(),
   const Migration20250413072827(),
@@ -98,11 +99,12 @@ final migrations = <Migration>{
   const Migration20250603134014(),
   const Migration20250606051026(),
   const Migration20250606053104(),
+  const Migration20250606075501(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250606053104,
+  20250606075501,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -193,6 +195,7 @@ final schema = Schema(
         SchemaColumn('invc_no', Column.integer),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('bhf_id', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
