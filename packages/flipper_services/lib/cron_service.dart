@@ -10,6 +10,9 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_models/brick/databasePath.dart';
+import 'package:flipper_models/services/sqlite_service.dart';
+import 'package:path/path.dart' as path;
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -82,7 +85,18 @@ class CronService {
       final queueLength = await ProxyService.strategy.queueLength();
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
+        final dbDir = await DatabasePath.getDatabaseDirectory();
 
+        ///temporaly work around for missing bhf_id column in Counter table
+        try {
+          final dbPath = path.join(dbDir, 'flipper_v17.sqlite');
+          SqliteService.execute(dbPath,
+              'ALTER TABLE Counter ADD COLUMN bhf_id TEXT DEFAULT "00"');
+        } catch (e) {
+          talker.error("Failed to add bhf_id column to Counter table: $e");
+        }
+
+        /// end of work around
         // Hydrate essential data
         try {
           await Future.wait<void>([

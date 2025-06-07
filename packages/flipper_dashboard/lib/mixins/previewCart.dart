@@ -234,6 +234,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
+      talker.error("Error in complete transaction flow: $e", s);
+
       /// first check if there is other pending transaction delete it before we set this transaction to pending, this
       /// facilitate to get items back on QuickSell as there is only one pending transaction at a time
       final pendingTransactions = await ProxyService.strategy
