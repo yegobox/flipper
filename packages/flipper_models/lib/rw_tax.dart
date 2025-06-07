@@ -524,7 +524,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           Where('taxType').isExactly(item.taxTyCd ?? "B"),
           Where('branchId').isExactly(ProxyService.box.getBranchId()!),
         ]));
-    Configurations taxConfig = taxConfigs.first;
+    Configurations? taxConfig;
+    try {
+      taxConfig = taxConfigs.first;
+    } catch (e) {
+      throw Exception("Failed to get tax config");
+    }
 
     // Base calculations
     final unitPrice = item.price;
