@@ -30,7 +30,9 @@ class AndroidNotifications extends BaseNotifications {
 
     // Use a microtask to slightly defer initialization to allow UI to render first
     await Future<void>.microtask(() async {
-      const initSettingsAndroid = AndroidInitializationSettings('ic_launcher');
+      // Use the launcher icon for notifications
+      const initSettingsAndroid =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
 
       final initSettings = InitializationSettings(
         android: initSettingsAndroid,
