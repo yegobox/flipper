@@ -33,6 +33,14 @@ class Plan extends OfflineFirstWithSupabaseModel {
   int? numberOfPayments;
 
   String? phoneNumber;
+  String? externalId;
+
+  String? paymentStatus;
+  DateTime? lastProcessedAt;
+  String? lastError;
+  DateTime? updatedAt;
+  DateTime? lastUpdated;
+  String? processingStatus;
 
   Plan({
     String? id,
@@ -50,5 +58,12 @@ class Plan extends OfflineFirstWithSupabaseModel {
     this.numberOfPayments,
     this.addons = const [],
     this.phoneNumber,
+    this.externalId,
+    this.paymentStatus,
+    this.lastProcessedAt,
+    this.lastError,
+    this.updatedAt,
+    this.lastUpdated,
+    this.processingStatus,
   }) : id = id ?? const Uuid().v4();
 }
