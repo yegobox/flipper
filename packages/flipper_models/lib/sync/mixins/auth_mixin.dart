@@ -668,6 +668,10 @@ mixin AuthMixin implements AuthInterface {
 
     try {
       talker.debug("Sending login request to API for phone: $phoneNumber");
+      // Only add '+' prefix if it's a phone number (not email) and doesn't start with '+'
+      if (!phoneNumber.startsWith('+') && !phoneNumber.contains('@')) {
+        phoneNumber = '+$phoneNumber';
+      }
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
         body: jsonEncode(

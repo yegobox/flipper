@@ -61,6 +61,36 @@ Future<Plan> _$PlanFromSupabase(
             : data['number_of_payments'] as int?,
     phoneNumber:
         data['phone_number'] == null ? null : data['phone_number'] as String?,
+    externalId:
+        data['external_id'] == null ? null : data['external_id'] as String?,
+    paymentStatus:
+        data['payment_status'] == null
+            ? null
+            : data['payment_status'] as String?,
+    lastProcessedAt:
+        data['last_processed_at'] == null
+            ? null
+            : data['last_processed_at'] == null
+            ? null
+            : DateTime.tryParse(data['last_processed_at'] as String),
+    lastError:
+        data['last_error'] == null ? null : data['last_error'] as String?,
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+    lastUpdated:
+        data['last_updated'] == null
+            ? null
+            : data['last_updated'] == null
+            ? null
+            : DateTime.tryParse(data['last_updated'] as String),
+    processingStatus:
+        data['processing_status'] == null
+            ? null
+            : data['processing_status'] as String?,
   );
 }
 
@@ -95,6 +125,13 @@ Future<Map<String, dynamic>> _$PlanToSupabase(
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
     'number_of_payments': instance.numberOfPayments,
     'phone_number': instance.phoneNumber,
+    'external_id': instance.externalId,
+    'payment_status': instance.paymentStatus,
+    'last_processed_at': instance.lastProcessedAt?.toIso8601String(),
+    'last_error': instance.lastError,
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'last_updated': instance.lastUpdated?.toIso8601String(),
+    'processing_status': instance.processingStatus,
   };
 }
 
@@ -163,6 +200,36 @@ Future<Plan> _$PlanFromSqlite(
             : data['number_of_payments'] as int?,
     phoneNumber:
         data['phone_number'] == null ? null : data['phone_number'] as String?,
+    externalId:
+        data['external_id'] == null ? null : data['external_id'] as String?,
+    paymentStatus:
+        data['payment_status'] == null
+            ? null
+            : data['payment_status'] as String?,
+    lastProcessedAt:
+        data['last_processed_at'] == null
+            ? null
+            : data['last_processed_at'] == null
+            ? null
+            : DateTime.tryParse(data['last_processed_at'] as String),
+    lastError:
+        data['last_error'] == null ? null : data['last_error'] as String?,
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+    lastUpdated:
+        data['last_updated'] == null
+            ? null
+            : data['last_updated'] == null
+            ? null
+            : DateTime.tryParse(data['last_updated'] as String),
+    processingStatus:
+        data['processing_status'] == null
+            ? null
+            : data['processing_status'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -190,6 +257,13 @@ Future<Map<String, dynamic>> _$PlanToSqlite(
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
     'number_of_payments': instance.numberOfPayments,
     'phone_number': instance.phoneNumber,
+    'external_id': instance.externalId,
+    'payment_status': instance.paymentStatus,
+    'last_processed_at': instance.lastProcessedAt?.toIso8601String(),
+    'last_error': instance.lastError,
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'last_updated': instance.lastUpdated?.toIso8601String(),
+    'processing_status': instance.processingStatus,
   };
 }
 
@@ -264,6 +338,34 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     'phoneNumber': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'phone_number',
+    ),
+    'externalId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'external_id',
+    ),
+    'paymentStatus': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'payment_status',
+    ),
+    'lastProcessedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_processed_at',
+    ),
+    'lastError': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_error',
+    ),
+    'updatedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'updated_at',
+    ),
+    'lastUpdated': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'last_updated',
+    ),
+    'processingStatus': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'processing_status',
     ),
   };
   @override
@@ -365,6 +467,48 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
     'phoneNumber': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'phone_number',
+      iterable: false,
+      type: String,
+    ),
+    'externalId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'external_id',
+      iterable: false,
+      type: String,
+    ),
+    'paymentStatus': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'payment_status',
+      iterable: false,
+      type: String,
+    ),
+    'lastProcessedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_processed_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'lastError': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_error',
+      iterable: false,
+      type: String,
+    ),
+    'updatedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'updated_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'lastUpdated': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'last_updated',
+      iterable: false,
+      type: DateTime,
+    ),
+    'processingStatus': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'processing_status',
       iterable: false,
       type: String,
     ),
