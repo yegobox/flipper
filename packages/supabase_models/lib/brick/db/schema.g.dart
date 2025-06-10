@@ -1,110 +1,15 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250314135245.migration.dart';
-part '20250522185231.migration.dart';
-part '20250308132353.migration.dart';
-part '20250510051829.migration.dart';
-part '20250516110357.migration.dart';
-part '20250315100347.migration.dart';
-part '20250402121901.migration.dart';
-part '20250413074407.migration.dart';
-part '20250319191328.migration.dart';
-part '20250315043528.migration.dart';
-part '20250418120045.migration.dart';
-part '20250404182927.migration.dart';
-part '20250327105039.migration.dart';
-part '20250319183234.migration.dart';
-part '20250424114545.migration.dart';
-part '20250404180953.migration.dart';
-part '20250518164333.migration.dart';
-part '20250423035546.migration.dart';
-part '20250422100452.migration.dart';
-part '20250402132301.migration.dart';
-part '20250326102213.migration.dart';
-part '20250423043938.migration.dart';
-part '20250329090821.migration.dart';
-part '20250308114254.migration.dart';
-part '20250422110248.migration.dart';
-part '20250418154241.migration.dart';
-part '20250315044419.migration.dart';
-part '20250420154013.migration.dart';
-part '20250301162356.migration.dart';
-part '20250308112114.migration.dart';
-part '20250523210831.migration.dart';
-part '20250528195902.migration.dart';
-part '20250603044146.migration.dart';
-part '20250603051746.migration.dart';
-part '20250603071803.migration.dart';
-part '20250603072709.migration.dart';
-part '20250603072903.migration.dart';
-part '20250603073132.migration.dart';
-part '20250603073228.migration.dart';
-part '20250603073308.migration.dart';
-part '20250603082309.migration.dart';
-part '20250603134014.migration.dart';
-part '20250606051026.migration.dart';
-part '20250606053104.migration.dart';
-part '20250606075501.migration.dart';
-part '20250607051913.migration.dart';
-part '20250609133534.migration.dart';
-part '20250610172550.migration.dart';
+part '20250610174300.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250314135245(),
-  const Migration20250522185231(),
-  const Migration20250308132353(),
-  const Migration20250510051829(),
-  const Migration20250516110357(),
-  const Migration20250315100347(),
-  const Migration20250402121901(),
-  const Migration20250413074407(),
-  const Migration20250319191328(),
-  const Migration20250315043528(),
-  const Migration20250418120045(),
-  const Migration20250404182927(),
-  const Migration20250327105039(),
-  const Migration20250319183234(),
-  const Migration20250424114545(),
-  const Migration20250404180953(),
-  const Migration20250518164333(),
-  const Migration20250423035546(),
-  const Migration20250422100452(),
-  const Migration20250402132301(),
-  const Migration20250326102213(),
-  const Migration20250423043938(),
-  const Migration20250329090821(),
-  const Migration20250308114254(),
-  const Migration20250422110248(),
-  const Migration20250418154241(),
-  const Migration20250315044419(),
-  const Migration20250420154013(),
-  const Migration20250301162356(),
-  const Migration20250308112114(),
-  const Migration20250523210831(),
-  const Migration20250528195902(),
-  const Migration20250603044146(),
-  const Migration20250603051746(),
-  const Migration20250603071803(),
-  const Migration20250603072709(),
-  const Migration20250603072903(),
-  const Migration20250603073132(),
-  const Migration20250603073228(),
-  const Migration20250603073308(),
-  const Migration20250603082309(),
-  const Migration20250603134014(),
-  const Migration20250606051026(),
-  const Migration20250606053104(),
-  const Migration20250606075501(),
-  const Migration20250607051913(),
-  const Migration20250609133534(),
-  const Migration20250610172550(),
-};
+  const Migration20250610174300(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250610172550,
+  0,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
