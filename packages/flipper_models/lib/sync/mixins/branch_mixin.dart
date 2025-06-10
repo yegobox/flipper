@@ -28,10 +28,10 @@ mixin BranchMixin implements BranchInterface {
   @override
   Future<List<Branch>> branches({
     required int serverId,
-    bool? active = false,
+    bool? active,
     bool fetchOnline = false,
   }) async {
-    return await _getBranches(serverId, !active!, fetchOnline);
+    return await _getBranches(serverId, active, fetchOnline);
   }
 
   Future<List<Branch>> _getBranches(
@@ -40,21 +40,37 @@ mixin BranchMixin implements BranchInterface {
       Where('businessId').isExactly(serverId),
       if (active != null) Where('active').isExactly(active),
     ];
-    final query = Query(where: filters);
+    var query = Query(where: filters);
 
     try {
+      // First get local branches
+      final localBranches = await repository.get<Branch>(
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: query,
+      );
+
       if (fetchOnline) {
         try {
-          return await repository
-              .get<Branch>(
-                policy: OfflineFirstGetPolicy.alwaysHydrate,
-                query: query,
-              )
-              .timeout(
-                const Duration(seconds: 3),
-                onTimeout: () =>
-                    throw TimeoutException('Remote fetch timed out'),
-              );
+          // Create a query to only fetch branches that aren't in our local cache
+          final localBranchIds = localBranches.map((b) => b.serverId).toSet();
+          for (var branchId in localBranchIds) {
+            query = Query(where: [
+              ...filters,
+              Where('serverId').isNot(branchId),
+            ]);
+            // Fetch only the missing branches
+            final onlineBranches = await repository
+                .get<Branch>(
+                  policy: OfflineFirstGetPolicy.alwaysHydrate,
+                  query: query,
+                )
+                .timeout(
+                  const Duration(seconds: 3),
+                  onTimeout: () =>
+                      throw TimeoutException('Remote fetch timed out'),
+                );
+            return [...localBranches, ...onlineBranches];
+          }
         } on TimeoutException {
           talker.warning(
             'Branch remote fetch timed out after 3 seconds, falling back to local data',
@@ -62,12 +78,7 @@ mixin BranchMixin implements BranchInterface {
         }
       }
 
-      final branches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: query,
-      );
-
-      return branches;
+      return localBranches;
     } catch (e, s) {
       talker.error(e);
       talker.error(s);

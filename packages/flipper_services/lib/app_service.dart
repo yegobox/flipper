@@ -95,6 +95,17 @@ class AppService with ListenableServiceMixin {
     _contacts.value = contacts;
   }
 
+  Future<void> updateAllBranchesInactive() async {
+    final branches = await ProxyService.strategy.branches(
+        serverId: ProxyService.box.getBusinessId()!,
+        active: true,
+        fetchOnline: false);
+    for (final branch in branches) {
+      await ProxyService.strategy.updateBranch(
+          branchId: branch.serverId!, active: false, isDefault: false);
+    }
+  }
+
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
@@ -110,6 +121,7 @@ class AppService with ListenableServiceMixin {
     bool hasMultipleBranches = branches.length > 1;
 
     if (businesses.length == 1) {
+      
       // set it as default
       await ProxyService.strategy.updateBusiness(
         businessId: businesses.first.serverId,
@@ -118,6 +130,7 @@ class AppService with ListenableServiceMixin {
       );
     }
     if (branches.length == 1) {
+      updateAllBranchesInactive();
       // set it as default directly
       await ProxyService.strategy.updateBranch(
           branchId: branches.first.serverId!, active: true, isDefault: true);

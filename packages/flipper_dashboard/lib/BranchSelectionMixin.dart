@@ -4,13 +4,14 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
-
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
 import 'dart:async'; // Add missing import for Timer
@@ -89,6 +90,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   }) async {
     setLoadingState(branch.serverId?.toString());
     setIsLoading(true);
+    final appService = loc.getIt<AppService>();
 
     try {
       // Store the current branch ID before making changes
@@ -100,7 +102,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         await _syncBranchWithDatabase(branch);
 
         // Then update branch status in the database
-        await _updateAllBranchesInactive();
+        await appService.updateAllBranchesInactive();
         await _updateBranchActive(branch);
 
         // Call setDefaultBranch but wrap it in try/catch to prevent app reload
@@ -372,17 +374,6 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         ),
       ),
     );
-  }
-
-  Future<void> _updateAllBranchesInactive() async {
-    final branches = await ProxyService.strategy.branches(
-        serverId: ProxyService.box.getBusinessId()!,
-        active: true,
-        fetchOnline: false);
-    for (final branch in branches) {
-      await ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!, active: false, isDefault: false);
-    }
   }
 
   Future<void> _updateBranchActive(Branch branch) async {
