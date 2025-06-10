@@ -692,8 +692,8 @@ final branchesProvider = FutureProvider.autoDispose
   final businessId = ProxyService.box.getBusinessId();
 
   // Awaiting the asynchronous call
-  final branches = await ProxyService.strategy.branches(
-      serverId: businessId!, includeSelf: includeSelf, fetchOnline: false);
+  final branches = await ProxyService.strategy
+      .branches(serverId: businessId!, active: includeSelf, fetchOnline: false);
 
   return branches;
 });
