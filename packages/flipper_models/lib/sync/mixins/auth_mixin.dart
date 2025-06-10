@@ -440,7 +440,7 @@ mixin AuthMixin implements AuthInterface {
             // Only go to login_choices if there are multiple branches
             if (branches.length > 1) {
               await ProxyService.box.writeBool(key: 'from_login', value: true);
-              throw LoginChoicesException(term: 'branch');
+              throw LoginChoicesException(term: 'Business');
             }
 
             // If there's only one branch, set it as active and default
