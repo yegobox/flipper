@@ -377,7 +377,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
         serverId: ProxyService.box.getBusinessId()!,
-        includeSelf: true,
+        active: true,
         fetchOnline: false);
     for (final branch in branches) {
       await ProxyService.strategy.updateBranch(
@@ -488,7 +488,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
     try {
       final branches = await ProxyService.strategy.branches(
         serverId: ProxyService.box.getBusinessId()!,
-        includeSelf: false,
+        active: false,
         fetchOnline: false,
       );
 

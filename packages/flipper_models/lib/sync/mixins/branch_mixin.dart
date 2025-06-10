@@ -28,14 +28,14 @@ mixin BranchMixin implements BranchInterface {
   @override
   Future<List<Branch>> branches({
     required int serverId,
-    bool? includeSelf = false,
+    bool? active = false,
     bool fetchOnline = false,
   }) async {
-    return await _getBranches(serverId, includeSelf!, fetchOnline, includeSelf);
+    return await _getBranches(serverId, !active!, fetchOnline);
   }
 
   Future<List<Branch>> _getBranches(
-      int serverId, bool? active, bool fetchOnline, bool includeSelf) async {
+      int serverId, bool? active, bool fetchOnline) async {
     final filters = <Where>[
       Where('businessId').isExactly(serverId),
       if (active != null) Where('active').isExactly(active),
@@ -62,10 +62,12 @@ mixin BranchMixin implements BranchInterface {
         }
       }
 
-      return await repository.get<Branch>(
+      final branches = await repository.get<Branch>(
         policy: OfflineFirstGetPolicy.localOnly,
         query: query,
       );
+
+      return branches;
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
