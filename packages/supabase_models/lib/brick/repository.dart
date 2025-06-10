@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sqflite_common/sqlite_api.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -57,6 +58,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Lock detection
   static bool _isBackupInProgress = false;
   static bool _isCleanupInProgress = false;
+  static bool _isMigrationInProgress = false;
   static DateTime? _lastBackupTime;
 
   /// Set the storage for database configuration
@@ -156,6 +158,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         await queueDir.create(recursive: true);
       }
 
+      // Ensure the queue database is properly initialized
+      await _ensureQueueDatabaseInitialized(queuePath);
+
       // Check if the database exists and verify its integrity
       if (await File(dbPath).exists()) {
         try {
@@ -198,10 +203,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         _logger.info('Reattempting offline request: ${request.url}');
         try {
           final statusBefore = await _singleton?._queueManager.getQueueStatus();
-          _logger.info('Queue status before deletion (onReattempt): $statusBefore');
+          _logger.info(
+              'Queue status before deletion (onReattempt): $statusBefore');
           await _singleton?._queueManager.deleteFailedRequests();
           final statusAfter = await _singleton?._queueManager.getQueueStatus();
-          _logger.info('Queue status after deletion (onReattempt): $statusAfter');
+          _logger
+              .info('Queue status after deletion (onReattempt): $statusAfter');
         } catch (e) {
           _logger.severe('Error handling queue cleanup on reattempt: $e');
         }
@@ -549,5 +556,191 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
     }
     return await super.delete(instance, policy: policy, query: query);
+  }
+
+  /// Ensures that the queue database is properly initialized with the required tables
+  /// This is especially important for Windows platforms where migrations might fail
+  static Future<void> _ensureQueueDatabaseInitialized(String queuePath) async {
+    if (kIsWeb) {
+      return;
+    }
+
+    _logger.info('Ensuring queue database is initialized: $queuePath');
+    final dbFactory = PlatformHelpers.getDatabaseFactory();
+
+    try {
+      // Open the database with explicit creation of tables
+      final db = await dbFactory.openDatabase(
+        queuePath,
+        options: OpenDatabaseOptions(
+          version: 1,
+          onCreate: (Database db, int version) async {
+            _logger.info('Creating queue database tables');
+            await db.execute('''
+              CREATE TABLE IF NOT EXISTS "HttpJobs" (
+                "id" INTEGER,
+                "attempts" INTEGER DEFAULT 1,
+                "body" TEXT,
+                "encoding" TEXT,
+                "headers" TEXT,
+                "locked" INTEGER DEFAULT 0,
+                "request_method" TEXT,
+                "updated_at" INTEGER DEFAULT 0,
+                "url" TEXT,
+                "created_at" INTEGER DEFAULT 0,
+                PRIMARY KEY("id" AUTOINCREMENT)
+              );
+            ''');
+          },
+          onOpen: (Database db) async {
+            // Verify the table exists, create it if it doesn't
+            final tables = await db.query('sqlite_master',
+                columns: ['name'],
+                where: "type = 'table' AND name = 'HttpJobs'");
+
+            if (tables.isEmpty) {
+              _logger
+                  .warning('Queue database missing tables, creating them now');
+              await db.execute('''
+                CREATE TABLE IF NOT EXISTS "HttpJobs" (
+                  "id" INTEGER,
+                  "attempts" INTEGER DEFAULT 1,
+                  "body" TEXT,
+                  "encoding" TEXT,
+                  "headers" TEXT,
+                  "locked" INTEGER DEFAULT 0,
+                  "request_method" TEXT,
+                  "updated_at" INTEGER DEFAULT 0,
+                  "url" TEXT,
+                  "created_at" INTEGER DEFAULT 0,
+                  PRIMARY KEY("id" AUTOINCREMENT)
+                );
+              ''');
+            } else {
+              _logger.info('Queue database tables verified');
+            }
+          },
+        ),
+      );
+
+      await db.close();
+      _logger.info('Queue database initialization complete');
+    } catch (e) {
+      _logger.severe('Error initializing queue database: $e');
+      // Try a more direct approach if the standard approach fails
+      await _directQueueDatabaseInitialization(queuePath);
+    }
+  }
+
+  /// A more direct approach to initialize the queue database
+  /// Used as a fallback when the standard approach fails
+  static Future<void> _directQueueDatabaseInitialization(
+      String queuePath) async {
+    _logger.info('Attempting direct queue database initialization');
+
+    try {
+      // If the file doesn't exist, create it
+      final file = File(queuePath);
+      if (!await file.exists()) {
+        await file.create(recursive: true);
+      }
+
+      final dbFactory = PlatformHelpers.getDatabaseFactory();
+      Database? db;
+
+      try {
+        db = await dbFactory.openDatabase(queuePath);
+
+        // Create the requests table directly
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS "HttpJobs" (
+            "id" INTEGER,
+            "attempts" INTEGER DEFAULT 1,
+            "body" TEXT,
+            "encoding" TEXT,
+            "headers" TEXT,
+            "locked" INTEGER DEFAULT 0,
+            "request_method" TEXT,
+            "updated_at" INTEGER DEFAULT 0,
+            "url" TEXT,
+            "created_at" INTEGER DEFAULT 0,
+            PRIMARY KEY("id" AUTOINCREMENT)
+          );
+        ''');
+
+        _logger.info('Direct queue database initialization successful');
+      } finally {
+        await db?.close();
+      }
+    } catch (e) {
+      _logger.severe('Direct queue database initialization failed: $e');
+    }
+  }
+
+  /// Manually initialize the queue database with a SQL script
+  /// This can be used as a last resort when other methods fail
+  ///
+  /// [sqlScriptPath] - Path to the SQL script file for the queue database
+  /// Returns true if successful, false otherwise
+  Future<bool> initializeQueueWithScript(String sqlScriptPath) async {
+    if (kIsWeb) {
+      _logger.warning('Cannot initialize queue database on web platform');
+      return false;
+    }
+
+    if (_isMigrationInProgress) {
+      _logger.info('Another migration is already in progress, skipping');
+      return false;
+    }
+
+    _isMigrationInProgress = true;
+
+    try {
+      final directory = await DatabasePath.getDatabaseDirectory();
+      final queuePath = join(directory, queueName);
+
+      // Read the SQL script file
+      final file = File(sqlScriptPath);
+      if (!await file.exists()) {
+        _logger.severe('SQL script file not found: $sqlScriptPath');
+        _isMigrationInProgress = false;
+        return false;
+      }
+
+      final script = await file.readAsString();
+
+      // Close any active connections to the queue database
+      // We don't have direct access to close connections through QueueManager
+      // so we'll rely on the database factory's mechanisms
+
+      // Split the script into individual statements
+      final statements = script
+          .split(';')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
+      final dbFactory = PlatformHelpers.getDatabaseFactory();
+      Database? db;
+
+      try {
+        db = await dbFactory.openDatabase(queuePath);
+
+        // Execute each statement
+        for (final statement in statements) {
+          await db.execute(statement);
+        }
+
+        _logger.info('Queue database initialization with script successful');
+        _isMigrationInProgress = false;
+        return true;
+      } finally {
+        await db?.close();
+      }
+    } catch (e) {
+      _logger.severe('Error initializing queue database with script: $e');
+      _isMigrationInProgress = false;
+      return false;
+    }
   }
 }

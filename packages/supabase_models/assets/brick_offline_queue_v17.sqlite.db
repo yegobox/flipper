@@ -1,0 +1,15 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS "HttpJobs" (
+	"id"	INTEGER,
+	"attempts"	INTEGER DEFAULT 1,
+	"body"	TEXT,
+	"encoding"	TEXT,
+	"headers"	TEXT,
+	"locked"	INTEGER DEFAULT 0,
+	"request_method"	TEXT,
+	"updated_at"	INTEGER DEFAULT 0,
+	"url"	TEXT,
+	"created_at"	INTEGER DEFAULT 0,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+COMMIT;
