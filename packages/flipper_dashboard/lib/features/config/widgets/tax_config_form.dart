@@ -40,7 +40,7 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
     // Load VAT enabled status
     if (ebm != null) {
       setState(() {
-        _vatEnabled = ebm.vatEnabled;
+        _vatEnabled = ebm.vatEnabled??false;
       });
     }
   }
