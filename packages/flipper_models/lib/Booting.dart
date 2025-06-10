@@ -131,6 +131,7 @@ mixin Booting {
   Future<void> addOrUpdateBranches(List<IBranch> branches,
       {required bool usenewVersion}) async {
     for (IBranch branch in branches) {
+      if (branch.serverId == null) continue;
       Branch? exist =
           await ProxyService.strategy.branch(serverId: branch.serverId!);
       if (exist == null) {
