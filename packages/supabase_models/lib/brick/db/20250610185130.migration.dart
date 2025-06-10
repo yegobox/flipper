@@ -8,12 +8,13 @@ part of 'schema.g.dart';
 // they are created to ensure the correct inference was made.
 
 // The migration version must **always** mirror the file name
+// Updated to current date (June 10, 2025) to ensure migration runs
 
-const List<MigrationCommand> _migration_20250601143831_up = [
+const List<MigrationCommand> _migration_20250610185130_up = [
   InsertColumn('vat_enabled', Column.boolean, onTable: 'Ebm'),
 ];
 
-const List<MigrationCommand> _migration_20250601143831_down = [
+const List<MigrationCommand> _migration_20250610185130_down = [
   DropColumn('vat_enabled', onTable: 'Ebm'),
 ];
 
@@ -22,15 +23,15 @@ const List<MigrationCommand> _migration_20250601143831_down = [
 //
 
 @Migratable(
-  version: '20250601143831',
-  up: _migration_20250601143831_up,
-  down: _migration_20250601143831_down,
+  version: '20250610185130',
+  up: _migration_20250610185130_up,
+  down: _migration_20250610185130_down,
 )
-class Migration20250601143831 extends Migration {
-  const Migration20250601143831()
+class Migration20250610185130 extends Migration {
+  const Migration20250610185130()
       : super(
-          version: 20250601143831,
-          up: _migration_20250601143831_up,
-          down: _migration_20250601143831_down,
+          version: 20250610185130,
+          up: _migration_20250610185130_up,
+          down: _migration_20250610185130_down,
         );
 }

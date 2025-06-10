@@ -35,7 +35,7 @@ part '20250301162356.migration.dart';
 part '20250308112114.migration.dart';
 part '20250523210831.migration.dart';
 part '20250528195902.migration.dart';
-part '20250601143831.migration.dart';
+part '20250610185130.migration.dart';
 part '20250603044146.migration.dart';
 part '20250603051746.migration.dart';
 part '20250603071803.migration.dart';
@@ -86,7 +86,7 @@ final migrations = <Migration>{
   const Migration20250308112114(),
   const Migration20250523210831(),
   const Migration20250528195902(),
-  const Migration20250601143831(),
+  const Migration20250610185130(),
   const Migration20250603044146(),
   const Migration20250603051746(),
   const Migration20250603071803(),
