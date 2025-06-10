@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250609133534.migration.dart';
+part '20250610172550.migration.dart';
 part '20250314135245.migration.dart';
 part '20250522185231.migration.dart';
 part '20250413072827.migration.dart';
@@ -35,7 +35,6 @@ part '20250301162356.migration.dart';
 part '20250308112114.migration.dart';
 part '20250523210831.migration.dart';
 part '20250528195902.migration.dart';
-part '20250610185130.migration.dart';
 part '20250603044146.migration.dart';
 part '20250603051746.migration.dart';
 part '20250603071803.migration.dart';
@@ -50,10 +49,13 @@ part '20250606051026.migration.dart';
 part '20250606053104.migration.dart';
 part '20250606075501.migration.dart';
 part '20250607051913.migration.dart';
+part '20250609133534.migration.dart';
+// part '20250610172404.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250609133534(),
+  const Migration20250610172550(),
+  const Migration20250314135245(),
   const Migration20250522185231(),
   const Migration20250413072827(),
   const Migration20250308132353(),
@@ -86,7 +88,6 @@ final migrations = <Migration>{
   const Migration20250308112114(),
   const Migration20250523210831(),
   const Migration20250528195902(),
-  const Migration20250610185130(),
   const Migration20250603044146(),
   const Migration20250603051746(),
   const Migration20250603071803(),
@@ -101,11 +102,12 @@ final migrations = <Migration>{
   const Migration20250606053104(),
   const Migration20250606075501(),
   const Migration20250607051913(),
+  const Migration20250609133534(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250607051913,
+  20250610185130,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1732,6 +1734,9 @@ final schema = Schema(
         SchemaColumn('payment_status', Column.varchar),
         SchemaColumn('last_processed_at', Column.datetime),
         SchemaColumn('last_error', Column.varchar),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('last_updated', Column.datetime),
+        SchemaColumn('processing_status', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

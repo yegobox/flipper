@@ -15,7 +15,8 @@ Future<Ebm> _$EbmFromSupabase(
     taxServerUrl: data['tax_server_url'] as String,
     businessId: data['business_id'] as int,
     branchId: data['branch_id'] as int,
-    vatEnabled: data['vat_enabled'] as bool,
+    vatEnabled:
+        data['vat_enabled'] == null ? null : data['vat_enabled'] as bool?,
   );
 }
 
@@ -51,7 +52,7 @@ Future<Ebm> _$EbmFromSqlite(
     taxServerUrl: data['tax_server_url'] as String,
     businessId: data['business_id'] as int,
     branchId: data['branch_id'] as int,
-    vatEnabled: data['vat_enabled'] == 1,
+    vatEnabled: data['vat_enabled'] == null ? null : data['vat_enabled'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -69,7 +70,8 @@ Future<Map<String, dynamic>> _$EbmToSqlite(
     'tax_server_url': instance.taxServerUrl,
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
-    'vat_enabled': instance.vatEnabled ? 1 : 0,
+    'vat_enabled':
+        instance.vatEnabled == null ? null : (instance.vatEnabled! ? 1 : 0),
   };
 }
 
