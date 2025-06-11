@@ -289,7 +289,7 @@ class _AuthState extends State<Auth> {
 
         while (retryCount < 2 && !timeoutOccurred) {
           try {
-            loginData = await _loginViewModel.processUserLogin(user);
+            loginData = await _loginViewModel.processUserLogin(user: user);
             break; // Success, exit retry loop
           } catch (e) {
             if (e.toString().contains('network') && retryCount < 1) {
@@ -311,8 +311,7 @@ class _AuthState extends State<Auth> {
         final Pin userPin = loginData['pin'];
         final IUser userData = loginData['user'];
 
-        await _loginViewModel.completeLoginProcess(userPin, _loginViewModel,
-            user: userData);
+        await _loginViewModel.completeLoginProcess(userPin, user: userData);
 
         // Track login event with PosthogService
         PosthogService.instance.capture('login_success', properties: {
