@@ -57,8 +57,7 @@ class LoginViewModel extends FlipperBaseModel
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
 
-  Future<void> completeLoginProcess(Pin userPin, LoginViewModel model,
-      {IUser? user}) async {
+  Future<void> completeLoginProcess(Pin userPin, {IUser? user}) async {
     talker.info(
         '[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
     try {
@@ -103,39 +102,132 @@ class LoginViewModel extends FlipperBaseModel
   }
 
   /// Process user login and retrieve PIN information
-  Future<Map<String, dynamic>> processUserLogin(firebase.User user) async {
+  Future<Map<String, dynamic>> processUserLogin(
+      {required firebase.User user}) async {
+    print('🔵 processUserLogin START with user: ${user.uid}');
+    talker.info('[processUserLogin] Starting with user: ${user.uid}');
     try {
-      final User? myuser = await ProxyService.strategy.authUser(uuid: user.uid);
+      // Step 1: Get user from database
+      print(
+          '🔵 STEP 1: Calling ProxyService.strategy.authUser with uuid: ${user.uid}');
+      talker.info('[processUserLogin] Calling authUser with uuid: ${user.uid}');
+      final User? myuser = await ProxyService.strategy
+          .authUser(uuid: user.uid)
+          .timeout(Duration(seconds: 10), onTimeout: () {
+        print('🔴 TIMEOUT: authUser call timed out after 10 seconds');
+        talker.error(
+            '[processUserLogin] authUser call timed out after 10 seconds');
+        throw TimeoutException('authUser call timed out');
+      });
+
+      print(
+          '🔵 STEP 1 COMPLETE: authUser result: ${myuser != null ? "User found with key: ${myuser.key}" : "User not found"}');
+      talker.info(
+          '[processUserLogin] authUser result: ${myuser != null ? "User found" : "User not found"}');
+
+      // Step 2: Determine key for login request
       String key = '';
       if (myuser == null) {
         // fallback to old habit
         key = user.phoneNumber ?? user.email!;
+        print('🔵 STEP 2: Using fallback key: $key');
+        talker.info('[processUserLogin] Using fallback key: $key');
       } else {
         key = myuser.key!;
+        print('🔵 STEP 2: Using user key: $key');
+        talker.info('[processUserLogin] Using user key: $key');
       }
-      // Get user information
+
+      // Step 3: Send login request
+      print('🔵 STEP 3: Sending login request with key: $key');
+      talker.info('[processUserLogin] Sending login request with key: $key');
       final response = await ProxyService.strategy
-          .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd);
+          .sendLoginRequest(key, ProxyService.http, AppSecrets.apihubProd)
+          .timeout(Duration(seconds: 15), onTimeout: () {
+        print('🔴 TIMEOUT: sendLoginRequest timed out after 15 seconds');
+        talker.error(
+            '[processUserLogin] sendLoginRequest timed out after 15 seconds');
+        throw TimeoutException('sendLoginRequest timed out');
+      });
+
+      print('🔵 STEP 3 COMPLETE: Login request response received');
+      talker.info('[processUserLogin] Login request response received');
+
+      // Step 4: Parse response and check for tenants
+      print('🔵 STEP 4: Parsing response and checking tenants');
+      talker.info('[processUserLogin] Parsing response and checking tenants');
       final userJson = json.decode(response.body);
-      // Safely handle empty tenants array
       final tenants = userJson['tenants'] as List<dynamic>?;
       final tenant = tenants != null && tenants.isNotEmpty ? tenants[0] : null;
+      print('🔵 STEP 4 COMPLETE: Tenants found: ${tenants?.length ?? 0}');
+      talker.info('[processUserLogin] Tenants found: ${tenants?.length ?? 0}');
 
-      // Only attempt to ensure admin access if we have a tenant
+      // Step 5: Ensure admin access if needed
+      print('🔵 STEP 5: Checking admin access');
+      talker.info('[processUserLogin] Checking admin access');
       if (tenant != null) {
-        await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker);
+        try {
+          // Add timeout to prevent blocking the flow indefinitely
+          await ensureAdminAccessIfNeeded(tenant: tenant, talker: talker)
+              .timeout(Duration(seconds: 5), onTimeout: () {
+            print(
+                '🟠 WARNING: ensureAdminAccessIfNeeded timed out after 5 seconds');
+            talker.warning(
+                '[processUserLogin] ensureAdminAccessIfNeeded timed out after 5 seconds');
+            // Return null or appropriate value to continue the flow
+            return null;
+          });
+          print('🔵 STEP 5 COMPLETE: Admin access check completed');
+          talker.info('[processUserLogin] Admin access check completed');
+        } catch (e) {
+          // Log error but continue the flow
+          print('🟠 WARNING: Error in ensureAdminAccessIfNeeded: $e');
+          talker.error(
+              '[processUserLogin] Error in ensureAdminAccessIfNeeded: $e');
+        }
       } else {
-        talker.info('No tenants found for user during login');
+        print('🟠 WARNING: No tenants found for user during login');
+        talker
+            .info('[processUserLogin] No tenants found for user during login');
       }
+
+      // Step 6: Create user object
+      print('🔵 STEP 6: Creating IUser object from response');
+      talker.info('[processUserLogin] Creating IUser object from response');
       final iUser = IUser.fromJson(json.decode(response.body));
+      print('🔵 STEP 6 COMPLETE: IUser created with id: ${iUser.id}');
+      talker.info('[processUserLogin] IUser created with id: ${iUser.id}');
 
-      // Get PIN information
-      final pin = await ProxyService.strategy.getPin(
-          pinString: iUser.id.toString(), flipperHttpClient: ProxyService.http);
+      // Step 7: Get PIN information
+      print('🔵 STEP 7: Getting PIN information for user id: ${iUser.id}');
+      talker.info(
+          '[processUserLogin] Getting PIN information for user id: ${iUser.id}');
+      final pin = await ProxyService.strategy
+          .getPin(
+              pinString: iUser.id.toString(),
+              flipperHttpClient: ProxyService.http)
+          .timeout(Duration(seconds: 10), onTimeout: () {
+        print('🔴 TIMEOUT: getPin call timed out after 10 seconds');
+        talker
+            .error('[processUserLogin] getPin call timed out after 10 seconds');
+        throw TimeoutException('getPin call timed out');
+      });
 
-      return {
+      if (pin == null) {
+        print('🔴 ERROR: PIN is null');
+        talker.error('[processUserLogin] PIN is null');
+        throw Exception('PIN is null');
+      }
+
+      print('🔵 STEP 7 COMPLETE: PIN retrieved successfully');
+      talker.info('[processUserLogin] PIN retrieved successfully');
+
+      // Step 8: Return final result
+      print('🔵 STEP 8: Returning final result');
+      talker.info('[processUserLogin] Returning final result');
+      final result = {
         'pin': Pin(
-            userId: int.parse(pin!.userId),
+            userId: int.parse(pin.userId),
             pin: pin.pin,
             branchId: pin.branchId,
             businessId: pin.businessId,
@@ -145,8 +237,13 @@ class LoginViewModel extends FlipperBaseModel
             phoneNumber: iUser.phoneNumber),
         'user': iUser
       };
+      print('🔵 processUserLogin COMPLETED SUCCESSFULLY');
+      talker.info('[processUserLogin] Completed successfully');
+      return result;
     } catch (e, s) {
-      talker.error(e, s);
+      print('🔴 ERROR in processUserLogin: $e');
+      talker.error('[processUserLogin] Error: $e');
+      talker.error(s);
       rethrow;
     }
   }
@@ -188,12 +285,15 @@ class LoginViewModel extends FlipperBaseModel
     talker.error(e, s);
 
     if (e is LoginChoicesException) {
+      talker.error('LoginChoicesException');
       locator<RouterService>().navigateTo(LoginChoicesRoute());
       return;
     } else if (e is NeedSignUpException || e is BusinessNotFoundException) {
+      talker.error('NeedSignUpException or BusinessNotFoundException');
       locator<RouterService>().navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       return;
     } else if (e is NoPaymentPlanFound) {
+      talker.error('NoPaymentPlanFound');
       locator<RouterService>().navigateTo(PaymentPlanUIRoute());
       return;
     }

@@ -2,19 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'package:stacked/stacked.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
-import 'package:flipper_ui/flipper_ui.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'internal/responsive_page.dart' as b;
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -62,6 +58,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   final _formKey = GlobalKey<FormState>();
   String _smsCode = '';
   String _selectedCountryCode = '';
+  late LoginViewModel _loginViewModel;
 
   bool _isLoading = false;
   bool _showVerificationUI = false;
@@ -85,6 +82,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
   @override
   void initState() {
     super.initState();
+    _loginViewModel = LoginViewModel();
     _selectedCountryCode = widget.countryCode;
 
     _animationController = AnimationController(
@@ -98,13 +96,16 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   // Show authentication loading dialog
   void _showAuthenticationDialog() {
+    // Debug print for dialog state
+    print(
+        'Dialog state: _isAuthDialogShowing=[93m[1m[4m$_isAuthDialogShowing[0m, mounted=$mounted, _showVerificationUI=$_showVerificationUI');
     // Don't show dialog if already showing, not mounted, or still in verification UI
-    if (_isAuthDialogShowing || !mounted || _showVerificationUI) return;
+    if (_isAuthDialogShowing || !mounted) return;
 
     _isAuthDialogShowing = true;
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return const LoadingDialog(message: 'Finalizing authentication...');
       },
@@ -342,6 +343,10 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       // Only show the loading dialog after successful credential verification
       // This prevents blocking the UI during OTP entry
       if (user.user != null) {
+        print(
+            '🚀 User authenticated successfully, about to call handleAuthStateChanges');
+        handleAuthStateChanges();
+        print('🚀 handleAuthStateChanges completed, about to show dialog');
         // Now it's safe to show the authentication dialog for subsequent steps
         _showAuthenticationDialog();
 
@@ -391,28 +396,39 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   /// Handles user authentication state changes and login flow
   /// This is only needed for non-Windows platforms
-  Future<void> handleAuthStateChanges(LoginViewModel model) async {
-    if (Platform.isWindows) return;
+  Future<void> handleAuthStateChanges() async {
+    print('⭐️ handleAuthStateChanges called');
+    if (Platform.isWindows) {
+      print('⭐️ Platform is Windows, returning early');
+      return;
+    }
 
-    firebase.FirebaseAuth.instance.authStateChanges().listen((user) async {
-      /// bellow steps is done in @login file so doing it here is redundant
-      if (user == null) return;
+    /// bellow steps is done in @login file so doing it here is redundant
+    final user = firebase.FirebaseAuth.instance.currentUser;
+    print('⭐️ Current user: ${user?.uid ?? "null"}');
+    if (user == null) {
+      print('⭐️ User is null, returning early');
+      return;
+    }
 
-      final bool shouldProcessLogin = !await ProxyService.box.pinLogin()! &&
-          !await ProxyService.box.authComplete();
+    try {
+      print('⭐️ About to call processUserLogin with user: ${user.uid}');
+      final loginData = await _loginViewModel.processUserLogin(user: user);
+      print('⭐️ processUserLogin completed successfully');
+      final Pin userPin = loginData['pin'];
+      final IUser userData = loginData['user'];
 
-      if (!shouldProcessLogin) return;
-
-      try {
-        final loginData = await model.processUserLogin(user);
-        final Pin userPin = loginData['pin'];
-        final IUser userData = loginData['user'];
-
-        await model.completeLoginProcess(userPin, model, user: userData);
-      } catch (e, s) {
-        model.handleLoginError(e, s);
-      }
-    });
+      print('⭐️ About to call completeLoginProcess');
+      await _loginViewModel.completeLoginProcess(userPin, user: userData);
+      print('⭐️ completeLoginProcess completed successfully');
+    } catch (e, s) {
+      print('⭐️ Error in handleAuthStateChanges: $e');
+      // Make sure to dismiss any loading dialog before handling the error
+      _hideAuthenticationDialog();
+      // Add a small delay to ensure dialog is fully dismissed
+      await Future.delayed(Duration(milliseconds: 100));
+      _loginViewModel.handleLoginError(e, s);
+    }
   }
 
   @override
@@ -421,26 +437,22 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return ViewModelBuilder<LoginViewModel>.reactive(
-      onViewModelReady: (model) => handleAuthStateChanges(model),
-      viewModelBuilder: () => LoginViewModel(),
-      builder: (context, model, child) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: Icon(Icons.arrow_back_ios_new,
-                    size: 16, color: colorScheme.primary),
-              ),
-              onPressed: () {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white.withOpacity(0.85),
+        elevation: 4,
+        shadowColor: Colors.black.withOpacity(0.06),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+        ),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
                 if (_showVerificationUI) {
                   setState(() {
                     _showVerificationUI = false;
@@ -450,34 +462,50 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                   Navigator.of(context).pop();
                 }
               },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.07),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Icon(Icons.arrow_back_ios_new,
+                    size: 20, color: colorScheme.primary),
+              ),
             ),
           ),
-          body: FirebaseUIActions(
-            actions: widget.actions ?? [],
-            child: b.ResponsivePage(
-              desktopLayoutDirection: widget.desktopLayoutDirection,
-              sideBuilder: widget.sideBuilder,
-              headerBuilder: widget.headerBuilder,
-              headerMaxExtent: widget.headerMaxExtent,
-              breakpoint: widget.breakpoint,
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 28),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 300),
-                      child: _showVerificationUI
-                          ? _buildVerificationUI(context, colorScheme)
-                          : _buildPhoneInputUI(context, l, colorScheme),
-                    ),
-                  ),
+        ),
+      ),
+      body: FirebaseUIActions(
+        actions: widget.actions ?? [],
+        child: b.ResponsivePage(
+          desktopLayoutDirection: widget.desktopLayoutDirection,
+          sideBuilder: widget.sideBuilder,
+          headerBuilder: widget.headerBuilder,
+          headerMaxExtent: widget.headerMaxExtent,
+          breakpoint: widget.breakpoint,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _showVerificationUI
+                      ? _buildVerificationUI(
+                          context,
+                          colorScheme,
+                        )
+                      : _buildPhoneInputUI(
+                          context,
+                          l,
+                          colorScheme,
+                        ),
                 ),
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -545,26 +573,32 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         // Phone Input
         Form(
           key: _formKey,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.ease,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 20,
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 32,
                   spreadRadius: 0,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    // Country code picker
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Row(
+                children: [
+                  // Country code picker
+                  Material(
+                    elevation: 2,
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.grey.shade50,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: CountryCodePicker(
                         onChanged: (CountryCode code) {
                           setState(() {
@@ -577,51 +611,64 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
                         showOnlyCountryWhenClosed: false,
                         alignLeft: false,
                         padding: EdgeInsets.zero,
-                        flagWidth: 30,
+                        flagWidth: 28,
                         textStyle: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-
-                    // Vertical divider
-                    Container(
-                      height: 30,
-                      width: 1,
-                      color: Colors.grey.withOpacity(0.3),
-                    ),
-
-                    // Phone number field
-                    Expanded(
-                      child: TextFormField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        validator: _validatePhone,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: '123 456 7890',
-                          hintStyle: GoogleFonts.poppins(
-                            color: Colors.grey.withOpacity(0.5),
-                            fontSize: 15,
+                  ),
+                  // Vertical divider
+                  Container(
+                    height: 32,
+                    width: 1.4,
+                    color: Colors.grey.withOpacity(0.18),
+                  ),
+                  // Phone number field
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8, right: 8),
+                      child: Focus(
+                        child: TextFormField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          validator: _validatePhone,
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                          decoration: InputDecoration(
+                            hintText: '123 456 7890',
+                            hintStyle: GoogleFonts.poppins(
+                              color: Colors.grey.withOpacity(0.5),
+                              fontSize: 15,
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: Colors.grey.withOpacity(0.18),
+                                width: 1.2,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide(
+                                color: colorScheme.primary,
+                                width: 2.0,
+                              ),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 18, vertical: 18),
+                            filled: true,
+                            fillColor: Colors.white,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 16),
-                          filled: true,
-                          fillColor: Colors.white,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -629,16 +676,52 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
         const SizedBox(height: 40),
 
         // Continue Button
-        SizedBox(
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.ease,
           height: 56,
-          child: FlipperButton(
-            text: _isLoading ? 'Sending code...' : 'Continue',
-            textColor: Colors.white,
-            color: colorScheme.primary,
+          child: ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return colorScheme.primary.withOpacity(0.5);
+                }
+                return colorScheme.primary;
+              }),
+              elevation: WidgetStateProperty.all(6),
+              shape: WidgetStateProperty.all(
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              overlayColor: WidgetStateProperty.all(
+                  colorScheme.primary.withOpacity(0.08)),
+              foregroundColor: WidgetStateProperty.all(Colors.white),
+            ),
             onPressed: _isLoading
                 ? null
                 : () => _verifyPhoneNumber(context, _phoneController.text),
-            isLoading: _isLoading,
+            child: _isLoading
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                      const SizedBox(width: 18),
+                      Text('Sending code...',
+                          style: GoogleFonts.poppins(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
+                    ],
+                  )
+                : Text('Continue',
+                    style: GoogleFonts.poppins(
+                        fontSize: 18, fontWeight: FontWeight.w600)),
           ),
         ),
 
@@ -698,191 +781,238 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
 
   Widget _buildVerificationUI(BuildContext context, ColorScheme colorScheme) {
     return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Column(
-        key: const ValueKey('verification_ui'),
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Illustration
-          Container(
-            height: 120,
-            alignment: Alignment.center,
-            child: Image.asset(
-              package: 'flipper_login',
-              // 'assets/images/sms_verification.png',
-              'assets/flipper_logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Icon(
-                Icons.sms_outlined,
-                size: 80,
-                color: colorScheme.primary,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Title
-          Text(
-            'Verification Code',
-            style: GoogleFonts.poppins(
-              fontSize: 28,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.primary,
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Subtitle with phone number
-          RichText(
-            text: TextSpan(
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                color: Colors.grey[600],
-                height: 1.5,
-              ),
-              children: [
-                const TextSpan(text: 'Enter the 6-digit code sent to '),
-                TextSpan(
-                  text: '$_selectedCountryCode ${_phoneController.text}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+        opacity: _fadeAnimation,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.ease,
+          child: Column(
+            key: const ValueKey('verification_ui'),
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Illustration
+              Container(
+                height: 120,
+                alignment: Alignment.center,
+                child: Image.asset(
+                  package: 'flipper_login',
+                  // 'assets/images/sms_verification.png',
+                  'assets/flipper_logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.sms_outlined,
+                    size: 80,
+                    color: colorScheme.primary,
+                  ),
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 40),
-
-          // PIN Code Fields
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: PinCodeTextField(
-              appContext: context,
-              length: 6,
-              obscureText: false,
-              animationType: AnimationType.fade,
-              pinTheme: PinTheme(
-                shape: PinCodeFieldShape.box,
-                borderRadius: BorderRadius.circular(12),
-                fieldHeight: 56,
-                fieldWidth: 44,
-                activeFillColor: Colors.white,
-                inactiveFillColor: Colors.grey.shade50,
-                selectedFillColor: Colors.white,
-                activeColor: colorScheme.primary,
-                inactiveColor: Colors.grey.shade300,
-                selectedColor: colorScheme.primary,
               ),
-              animationDuration: const Duration(milliseconds: 300),
-              backgroundColor: Colors.transparent,
-              enableActiveFill: true,
-              keyboardType: TextInputType.number,
-              onCompleted: (v) {
-                _smsCode = v;
-                _verifyCode();
-              },
-              onChanged: (value) {
-                setState(() {
-                  _smsCode = value;
-                });
-              },
-            ),
-          ),
 
-          const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-          // Resend code timer or expiration notice
-          Align(
-            alignment: Alignment.center,
-            child: _otpExpired
-                ? TextButton(
-                    onPressed: () => _resendCode(context),
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.red.withOpacity(0.1),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+              // Title
+              Text(
+                'Verification Code',
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.primary,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Subtitle with phone number
+              RichText(
+                text: TextSpan(
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                  children: [
+                    const TextSpan(text: 'Enter the 6-digit code sent to '),
+                    TextSpan(
+                      text: '$_selectedCountryCode ${_phoneController.text}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    child: Text(
-                      'Code Expired - Tap to Resend',
-                      style: GoogleFonts.poppins(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
-                : _canResend
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // PIN Code Fields
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: PinCodeTextField(
+                  appContext: context,
+                  length: 6,
+                  obscureText: false,
+                  animationType: AnimationType.fade,
+                  pinTheme: PinTheme(
+                    shape: PinCodeFieldShape.box,
+                    borderRadius: BorderRadius.circular(16),
+                    fieldHeight: 56,
+                    fieldWidth: 44,
+                    activeFillColor: Colors.white,
+                    inactiveFillColor: Colors.grey.shade100,
+                    selectedFillColor: colorScheme.primary.withOpacity(0.07),
+                    activeColor: colorScheme.primary,
+                    inactiveColor: Colors.grey.shade300,
+                    selectedColor: colorScheme.primary,
+                    fieldOuterPadding:
+                        const EdgeInsets.symmetric(horizontal: 2),
+                  ),
+                  animationDuration: const Duration(milliseconds: 350),
+                  backgroundColor: Colors.transparent,
+                  enableActiveFill: true,
+                  keyboardType: TextInputType.number,
+                  onCompleted: (v) {
+                    _smsCode = v;
+                    _verifyCode();
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      _smsCode = value;
+                    });
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Resend code timer or expiration notice
+              Align(
+                alignment: Alignment.center,
+                child: _otpExpired
                     ? TextButton(
-                        onPressed: () => _resendCode(context),
+                        onPressed: () => _resendCode(
+                          context,
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.red.withOpacity(0.1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                        ),
                         child: Text(
-                          'Resend Code',
+                          'Code Expired - Tap to Resend',
                           style: GoogleFonts.poppins(
-                            color: colorScheme.primary,
+                            color: Colors.red,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       )
-                    : RichText(
-                        text: TextSpan(
-                          style: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                          children: [
-                            const TextSpan(text: 'Resend code in '),
-                            TextSpan(
-                              text: '$_timerSeconds seconds',
-                              style: TextStyle(
+                    : _canResend
+                        ? TextButton(
+                            onPressed: () => _resendCode(
+                              context,
+                            ),
+                            child: Text(
+                              'Resend Code',
+                              style: GoogleFonts.poppins(
                                 color: colorScheme.primary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ],
-                        ),
+                          )
+                        : RichText(
+                            text: TextSpan(
+                              style: GoogleFonts.poppins(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                              children: [
+                                const TextSpan(text: 'Resend code in '),
+                                TextSpan(
+                                  text: '$_timerSeconds seconds',
+                                  style: TextStyle(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Verify Button
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.ease,
+                height: 56,
+                child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStateProperty.resolveWith<Color>((states) {
+                      if (states.contains(WidgetState.disabled)) {
+                        // ignore: deprecated_member_use
+                        return colorScheme.primary.withOpacity(0.5);
+                      }
+                      return colorScheme.primary;
+                    }),
+                    elevation: WidgetStateProperty.all(6),
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
-          ),
-
-          const SizedBox(height: 40),
-
-          // Verify Button
-          SizedBox(
-            height: 56,
-            child: FlipperButton(
-              text: _isLoading ? 'Verifying...' : 'Verify Code',
-              textColor: Colors.white,
-              color: colorScheme.primary,
-              onPressed: _isLoading ? null : _verifyCode,
-              isLoading: _isLoading,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Change number option
-          Center(
-            child: TextButton.icon(
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      setState(() {
-                        _showVerificationUI = false;
-                        _animationController.reverse();
-                      });
-                    },
-              icon: Icon(Icons.edit, size: 18, color: colorScheme.primary),
-              label: Text(
-                'Change Phone Number',
-                style: GoogleFonts.poppins(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w500,
+                    ),
+                    overlayColor: WidgetStateProperty.all(
+                        colorScheme.primary.withOpacity(0.08)),
+                    foregroundColor: WidgetStateProperty.all(Colors.white),
+                  ),
+                  onPressed: _isLoading ? null : () => _verifyCode(),
+                  child: _isLoading
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                            const SizedBox(width: 18),
+                            Text('Verifying...',
+                                style: GoogleFonts.poppins(
+                                    fontSize: 16, fontWeight: FontWeight.w600)),
+                          ],
+                        )
+                      : Text('Verify Code',
+                          style: GoogleFonts.poppins(
+                              fontSize: 18, fontWeight: FontWeight.w600)),
                 ),
               ),
-            ),
-          ),
 
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
+              const SizedBox(height: 24),
+
+              // Change number option
+              Center(
+                child: TextButton.icon(
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          setState(() {
+                            _showVerificationUI = false;
+                            _animationController.reverse();
+                          });
+                        },
+                  icon: Icon(Icons.edit, size: 18, color: colorScheme.primary),
+                  label: Text(
+                    'Change Phone Number',
+                    style: GoogleFonts.poppins(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
+        ));
   }
 }
