@@ -130,8 +130,8 @@ class PhoneInputUI extends StatelessWidget {
                         onChanged: (CountryCode code) {
                           state.selectedCountryCode = code.dialCode ?? '';
                         },
-                        initialSelection:
-                            state.selectedCountryCode.replaceAll('+', ''),
+                        initialSelection: 'RW', // Rwanda
+                        favorite: const ['RW'],
                         showCountryOnly: false,
                         showOnlyCountryWhenClosed: false,
                         alignLeft: false,
@@ -164,10 +164,20 @@ class PhoneInputUI extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                           decoration: InputDecoration(
-                            hintText: '123 456 7890',
+                            labelText: 'Phone Number',
+                            hintText: '783054874 (without leading 0)',
                             hintStyle: GoogleFonts.poppins(
                               color: Colors.grey.withOpacity(0.5),
                               fontSize: 15,
+                            ),
+                            labelStyle: GoogleFonts.poppins(
+                              color: colorScheme.primary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            helperStyle: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.grey[600],
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -225,7 +235,12 @@ class PhoneInputUI extends StatelessWidget {
             ),
             onPressed: state.isLoading
                 ? null
-                : () => onVerifyPhone(context, state.phoneController.text),
+                : () {
+                    print('Continue button pressed');
+                    print('Phone number: ${state.phoneController.text}');
+                    print('Country code: ${state.selectedCountryCode}');
+                    onVerifyPhone(context, state.phoneController.text);
+                  },
             child: state.isLoading
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,

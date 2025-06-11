@@ -55,7 +55,7 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       curve: Curves.easeIn,
     ));
 
-    // Initialize state with default country code
+    // Initialize state with default country code for Rwanda (RW)
     _state = PhoneAuthState('+250');
 
     // Initialize services
@@ -126,25 +126,30 @@ class _PhoneInputScreenState extends State<PhoneInputScreen>
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: SingleChildScrollView(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            child: _state.showVerificationUI
-                ? VerificationUI(
-                    state: _state,
-                    colorScheme: colorScheme,
-                    fadeAnimation: _fadeAnimation,
-                    onVerifyCode: _verifyCode,
-                    onResendCode: _resendCode,
-                    onChangePhoneNumber: _changePhoneNumber,
-                  )
-                : PhoneInputUI(
-                    state: _state,
-                    colorScheme: colorScheme,
-                    l: localizations,
-                    onVerifyPhone: _verifyPhoneNumber,
-                    subtitleBuilder: widget.subtitleBuilder,
-                    footerBuilder: widget.footerBuilder,
-                  ),
+          child: AnimatedBuilder(
+            animation: _state,
+            builder: (context, _) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                child: _state.showVerificationUI
+                    ? VerificationUI(
+                        state: _state,
+                        colorScheme: colorScheme,
+                        fadeAnimation: _fadeAnimation,
+                        onVerifyCode: _verifyCode,
+                        onResendCode: _resendCode,
+                        onChangePhoneNumber: _changePhoneNumber,
+                      )
+                    : PhoneInputUI(
+                        state: _state,
+                        colorScheme: colorScheme,
+                        l: localizations,
+                        onVerifyPhone: _verifyPhoneNumber,
+                        subtitleBuilder: widget.subtitleBuilder,
+                        footerBuilder: widget.footerBuilder,
+                      ),
+              );
+            },
           ),
         ),
       ),

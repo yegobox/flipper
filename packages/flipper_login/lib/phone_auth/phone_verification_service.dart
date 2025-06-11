@@ -16,7 +16,7 @@ class PhoneVerificationService {
   final Function(String) showErrorSnackBar;
   final Function() startResendTimer;
   final AnimationController animationController;
-  
+
   PhoneVerificationService({
     required this.state,
     required this.context,
@@ -27,14 +27,24 @@ class PhoneVerificationService {
 
   /// Verify phone number with Firebase
   Future<void> verifyPhoneNumber(String phoneNumber) async {
-    if (state.formKey.currentState?.validate() != true) return;
+    print('PhoneVerificationService.verifyPhoneNumber called');
+    print('Phone number: $phoneNumber');
 
+    // Set loading state first so UI updates immediately
     state.isLoading = true;
-    
+
+    if (state.formKey.currentState?.validate() != true) {
+      print('Form validation failed');
+      state.isLoading = false;
+      return;
+    }
+
+    print('Form validation passed');
+
     if (state.selectedCountryCode == 'RW') {
       state.selectedCountryCode = '+250';
     }
-    
+
     final fullPhoneNumber = state.selectedCountryCode + phoneNumber;
 
     try {
@@ -48,7 +58,8 @@ class PhoneVerificationService {
         verificationFailed: (FirebaseAuthException e) async {
           state.isLoading = false;
           await Sentry.captureException(e, stackTrace: e);
-          showErrorSnackBar('Verification failed: ${e.message ?? "An unknown error occurred"}');
+          showErrorSnackBar(
+              'Verification failed: ${e.message ?? "An unknown error occurred"}');
         },
         codeSent: (String verificationId, int? resendToken) {
           state.isLoading = false;
@@ -56,7 +67,7 @@ class PhoneVerificationService {
           state.resendToken = resendToken;
           state.showVerificationUI = true;
           state.otpExpired = false;
-          
+
           animationController.forward();
           startResendTimer();
         },
@@ -78,7 +89,8 @@ class PhoneVerificationService {
     state.isLoading = true;
     state.smsCode = '';
 
-    final fullPhoneNumber = state.selectedCountryCode + state.phoneController.text;
+    final fullPhoneNumber =
+        state.selectedCountryCode + state.phoneController.text;
 
     try {
       await FirebaseAuth.instance.verifyPhoneNumber(
@@ -91,14 +103,15 @@ class PhoneVerificationService {
         verificationFailed: (FirebaseAuthException e) async {
           state.isLoading = false;
           await Sentry.captureException(e, stackTrace: e);
-          showErrorSnackBar('Verification failed: ${e.message ?? "An unknown error occurred"}');
+          showErrorSnackBar(
+              'Verification failed: ${e.message ?? "An unknown error occurred"}');
         },
         codeSent: (String verificationId, int? resendToken) {
           state.isLoading = false;
           state.verificationId = verificationId;
           state.resendToken = resendToken;
           state.otpExpired = false;
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('New verification code sent'),
@@ -126,7 +139,8 @@ class PhoneVerificationService {
     }
 
     if (state.otpExpired) {
-      showErrorSnackBar('This verification code has expired. Please request a new one.');
+      showErrorSnackBar(
+          'This verification code has expired. Please request a new one.');
       return;
     }
 
@@ -143,10 +157,12 @@ class PhoneVerificationService {
       state.isLoading = false;
 
       if (e is FirebaseAuthException &&
-          (e.code == 'invalid-verification-code' || e.code == 'session-expired')) {
+          (e.code == 'invalid-verification-code' ||
+              e.code == 'session-expired')) {
         state.otpExpired = true;
         state.canResend = true;
-        showErrorSnackBar('Verification code has expired. Please request a new one.');
+        showErrorSnackBar(
+            'Verification code has expired. Please request a new one.');
       } else {
         showErrorSnackBar('Failed to verify code: ${e.toString()}');
       }
@@ -158,10 +174,12 @@ class PhoneVerificationService {
     try {
       state.isLoading = true;
 
-      UserCredential user = await FirebaseAuth.instance.signInWithCredential(credential);
+      UserCredential user =
+          await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (user.user != null) {
-        print('🚀 User authenticated successfully, about to call handleAuthStateChanges');
+        print(
+            '🚀 User authenticated successfully, about to call handleAuthStateChanges');
         handleAuthStateChanges();
         print('🚀 handleAuthStateChanges completed, about to show dialog');
         showAuthenticationDialog();
@@ -187,7 +205,7 @@ class PhoneVerificationService {
   void showAuthenticationDialog() {
     print(
         'Dialog state: _isAuthDialogShowing=${state.isAuthDialogShowing}, mounted=${context.mounted}, _showVerificationUI=${state.showVerificationUI}');
-    
+
     if (state.isAuthDialogShowing || !context.mounted) return;
 
     state.isAuthDialogShowing = true;
