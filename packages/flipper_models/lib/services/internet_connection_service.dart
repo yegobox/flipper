@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -22,10 +23,10 @@ class InternetConnectionService {
       InternetConnectionService._internal();
   final _routerService = locator<RouterService>();
   Timer? _connectionCheckTimer;
-  
+
   // Key for storing the last connection timestamp in local storage
   static const String _lastConnectionKey = 'last_internet_connection_timestamp';
-  
+
   // The number of days after which internet connection is required
   static const int _requiredConnectionIntervalDays = 5;
 
@@ -81,46 +82,50 @@ class InternetConnectionService {
       // Get the last connection timestamp
       final lastConnectionTimestamp = _getLastConnectionTimestamp();
       final currentTime = DateTime.now().millisecondsSinceEpoch;
-      
+
       // Calculate days since last connection
-      final daysSinceLastConnection = _calculateDaysBetween(
-        lastConnectionTimestamp, 
-        currentTime
-      );
-      
-      talker.info('Days since last internet connection: $daysSinceLastConnection');
-      
+      final daysSinceLastConnection =
+          _calculateDaysBetween(lastConnectionTimestamp, currentTime);
+
+      talker.info(
+          'Days since last internet connection: $daysSinceLastConnection');
+
       // Check if internet connection is required
       if (daysSinceLastConnection >= _requiredConnectionIntervalDays) {
-        // Check current internet connectivity
+        // Check current internet connectivity with multiple attempts
         final isConnected = await _checkInternetConnectivity();
-        
+
         if (isConnected) {
           // If connected, update the last connection timestamp
           _updateLastConnectionTimestamp();
-          
+
           talker.info('Internet connection requirement satisfied');
-          
+
           // If we were on a connection required screen, navigate back to the main app
           if (_isOnConnectionRequiredScreen) {
-            talker.info('Returning to main app after successful internet connection');
+            talker.info(
+                'Returning to main app after successful internet connection');
             _clearConnectionRequiredScreenFlag();
             _routerService.navigateTo(FlipperAppRoute());
           }
-          
+
           return true;
         } else {
           // Not connected and connection is required
           talker.warning('Internet connection required but not available');
-          _setOnConnectionRequiredScreen();
-          // Navigate to the internet connection required screen
-          // We use NoNetRoute as a temporary solution since it's an existing route for internet connectivity issues
-          _routerService.navigateTo(NoNetRoute());
+
+          // Only navigate to connection required screen if we're not already there
+          if (!_isOnConnectionRequiredScreen) {
+            _setOnConnectionRequiredScreen();
+            _routerService.navigateTo(NoNetRoute());
+          }
+
           return false;
         }
       }
-      
+
       // Connection not required yet
+      talker.info('Internet connection not required yet');
       return true;
     } catch (e) {
       talker.error('Error during internet connection check: $e');
@@ -131,48 +136,133 @@ class InternetConnectionService {
   /// Force immediate internet connection check
   /// This can be called from any part of the app when internet connection verification is needed
   Future<bool> forceInternetConnectionCheck() async {
+    talker.info('Forcing internet connection check');
     final isConnected = await _checkInternetConnectivity();
-    
+
     if (isConnected) {
       _updateLastConnectionTimestamp();
       talker.info('Forced internet connection check successful');
       return true;
     } else {
-      talker.warning('Forced internet connection check failed - internet not available');
+      talker.warning(
+          'Forced internet connection check failed - internet not available');
       return false;
     }
   }
-  
+
   /// Get the timestamp of the last successful internet connection
   int _getLastConnectionTimestamp() {
-    return ProxyService.box.readInt(key: _lastConnectionKey) ?? 0;
+    final timestamp = ProxyService.box.readInt(key: _lastConnectionKey) ?? 0;
+    talker.info('Retrieved last connection timestamp: $timestamp');
+    return timestamp;
   }
-  
+
   /// Update the timestamp of the last successful internet connection to current time
   void _updateLastConnectionTimestamp() {
     final currentTime = DateTime.now().millisecondsSinceEpoch;
     ProxyService.box.writeInt(key: _lastConnectionKey, value: currentTime);
     talker.info('Last internet connection timestamp updated: $currentTime');
   }
-  
+
   /// Calculate the number of days between two timestamps
   int _calculateDaysBetween(int startTimestamp, int endTimestamp) {
-    if (startTimestamp == 0) return _requiredConnectionIntervalDays; // Force connection on first run
-    
+    if (startTimestamp == 0) {
+      talker.info('First run detected, forcing connection requirement');
+      return _requiredConnectionIntervalDays; // Force connection on first run
+    }
+
     final difference = endTimestamp - startTimestamp;
     final daysDifference = difference / (1000 * 60 * 60 * 24);
-    return daysDifference.floor();
+    final days = daysDifference.floor();
+
+    talker.info(
+        'Calculated days difference: $days (from timestamps: $startTimestamp to $endTimestamp)');
+    return days;
   }
-  
+
   /// Check if the device currently has internet connectivity
+  /// Uses multiple methods to ensure accurate connectivity detection
   Future<bool> _checkInternetConnectivity() async {
+    talker.info('Starting internet connectivity check');
+
+    // List of reliable endpoints to test
+    final testUrls = [
+      'https://www.google.com',
+      'https://www.cloudflare.com',
+      'https://www.microsoft.com',
+      'https://httpbin.org/status/200',
+    ];
+
+    // Try socket connection first (fastest method)
     try {
-      // Use the ProxyService.http client to make a simple request to check connectivity
-      final response = await ProxyService.http.get(Uri.parse('https://google.com'));
-      return response.statusCode >= 200 && response.statusCode < 300;
+      talker.info('Attempting socket connection test');
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 5));
+
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        talker.info('Socket connection test successful');
+
+        // Verify with HTTP request to be sure
+        return await _verifyHttpConnection(testUrls);
+      }
     } catch (e) {
-      talker.error('Internet connectivity check failed: $e');
-      return false;
+      talker.warning('Socket connection test failed: $e');
     }
+
+    // If socket test fails, try HTTP requests
+    return await _verifyHttpConnection(testUrls);
+  }
+
+  /// Verify internet connection using HTTP requests
+  Future<bool> _verifyHttpConnection(List<String> testUrls) async {
+    talker.info('Starting HTTP connection verification');
+
+    for (final url in testUrls) {
+      try {
+        talker.info('Testing connection to: $url');
+
+        final response = await ProxyService.http
+            .get(Uri.parse(url))
+            .timeout(const Duration(seconds: 10));
+
+        if (response.statusCode >= 200 && response.statusCode < 400) {
+          talker.info(
+              'HTTP connection test successful for: $url (Status: ${response.statusCode})');
+          return true;
+        } else {
+          talker.warning(
+              'HTTP connection test failed for: $url (Status: ${response.statusCode})');
+        }
+      } catch (e) {
+        talker.warning('HTTP connection test error for $url: $e');
+        continue; // Try next URL
+      }
+    }
+
+    talker.error('All HTTP connection tests failed');
+    return false;
+  }
+
+  /// Get the number of days remaining before internet connection is required
+  int getDaysUntilConnectionRequired() {
+    final lastConnectionTimestamp = _getLastConnectionTimestamp();
+    final currentTime = DateTime.now().millisecondsSinceEpoch;
+    final daysSinceLastConnection =
+        _calculateDaysBetween(lastConnectionTimestamp, currentTime);
+
+    final daysRemaining =
+        _requiredConnectionIntervalDays - daysSinceLastConnection;
+    return daysRemaining < 0 ? 0 : daysRemaining;
+  }
+
+  /// Check if internet connection is currently required
+  bool isConnectionRequired() {
+    return getDaysUntilConnectionRequired() <= 0;
+  }
+
+  /// Reset the connection requirement (for testing purposes)
+  void resetConnectionRequirement() {
+    ProxyService.box.remove(key: _lastConnectionKey);
+    talker.info('Connection requirement reset');
   }
 }
