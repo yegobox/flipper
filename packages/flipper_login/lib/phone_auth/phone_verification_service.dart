@@ -131,6 +131,7 @@ class PhoneVerificationService {
     }
   }
 
+//
   /// Verify OTP code
   Future<void> verifyCode() async {
     if (state.smsCode.length < 6) {
