@@ -10,17 +10,17 @@ class RealmStockCache implements CacheLayer<Stock> {
 
   /// Singleton instance
   static final RealmStockCache _instance = RealmStockCache._internal();
-  
+
   /// Factory constructor to return the singleton instance
   factory RealmStockCache() => _instance;
-  
+
   /// Private constructor for singleton pattern
   RealmStockCache._internal();
 
   @override
   Future<void> initialize() async {
     if (_isInitialized) return;
-    
+
     // Define the schema for the Realm database
     final config = Configuration.local([StockRealm.schema]);
     _realm = Realm(config);
@@ -39,10 +39,10 @@ class RealmStockCache implements CacheLayer<Stock> {
   Future<void> save(Stock stock) async {
     try {
       await _ensureInitialized();
-      
+
       // Convert to Realm model
       final realmItem = _convertToRealmModel(stock);
-      
+
       // Save to Realm
       await _realm.writeAsync(() {
         _realm.add(realmItem, update: true);
@@ -52,15 +52,15 @@ class RealmStockCache implements CacheLayer<Stock> {
       rethrow;
     }
   }
-  
+
   /// Save a stock with an associated variant ID
   Future<void> saveWithVariantId(Stock item, String variantId) async {
     try {
       await _ensureInitialized();
-      
+
       // Convert to Realm model with variant ID
       final realmItem = _convertToRealmModel(item, variantId: variantId);
-      
+
       // Save to Realm
       await _realm.writeAsync(() {
         _realm.add(realmItem, update: true);
@@ -74,14 +74,33 @@ class RealmStockCache implements CacheLayer<Stock> {
   @override
   Future<void> saveAll(List<Stock> stocks) async {
     _checkInitialized();
-    
-    // Convert all Stock models to StockRealm models
-    final stockRealms = stocks.map(_convertToRealmModel).toList();
-    
-    // Write all to Realm database
+
+    // Process each stock individually to preserve variant IDs
     _realm.write(() {
-      for (final stockRealm in stockRealms) {
-        _realm.add(stockRealm, update: true);
+      for (final stock in stocks) {
+        if (stock.id.isNotEmpty) {
+          // Check if this stock already exists in the cache
+          final existingStockRealm = _realm.find<StockRealm>(stock.id);
+
+          if (existingStockRealm != null &&
+              existingStockRealm.variantId != null &&
+              existingStockRealm.variantId!.isNotEmpty) {
+            // Preserve the variant ID association
+            final updatedStockRealm = _convertToRealmModel(stock,
+                variantId: existingStockRealm.variantId);
+            _realm.add(updatedStockRealm, update: true);
+            print(
+                'Preserved variantId ${existingStockRealm.variantId} for stock ${stock.id}');
+          } else {
+            // No existing variant ID association, just add the stock
+            final stockRealm = _convertToRealmModel(stock);
+            _realm.add(stockRealm, update: true);
+          }
+        } else {
+          // Stock has no ID, just add it as is
+          final stockRealm = _convertToRealmModel(stock);
+          _realm.add(stockRealm, update: true);
+        }
       }
     });
   }
@@ -89,32 +108,32 @@ class RealmStockCache implements CacheLayer<Stock> {
   @override
   Future<Stock?> get(String id) async {
     _checkInitialized();
-    
+
     // Find StockRealm by ID
     final stockRealm = _realm.find<StockRealm>(id);
-    
+
     // Convert to Stock model if found
     return stockRealm != null ? _convertFromRealmModel(stockRealm) : null;
   }
-  
+
   /// Get a single stock by variant ID
   Stock? getByVariantIdSingle(String variantId) {
     _checkInitialized();
-    
+
     // Query for stocks with matching variant ID
     final results = _realm.query<StockRealm>('variantId == \$0', [variantId]);
-    
+
     // Return the first result if any
     return results.isNotEmpty ? _convertFromRealmModel(results.first) : null;
   }
-  
+
   /// Watch a stock by variant ID and get updates as a stream
   Stream<Stock?> watchByVariantId(String variantId) {
     _checkInitialized();
-    
+
     // Query for stocks with matching variant ID
     final results = _realm.query<StockRealm>('variantId == \$0', [variantId]);
-    
+
     // Create a stream from the RealmResults
     return results.changes.map((change) {
       if (change.results.isNotEmpty) {
@@ -127,21 +146,23 @@ class RealmStockCache implements CacheLayer<Stock> {
   @override
   Future<List<Stock>> getAll({Map<String, dynamic>? filter}) async {
     _checkInitialized();
-    
+
     // Get all StockRealm objects
     RealmResults<StockRealm> results;
-    
+
     if (filter != null && filter.containsKey('variantId')) {
       // Filter by variant ID if provided
-      results = _realm.query<StockRealm>('variantId == \$0', [filter['variantId']]);
+      results =
+          _realm.query<StockRealm>('variantId == \$0', [filter['variantId']]);
     } else if (filter != null && filter.containsKey('branchId')) {
       // Filter by branch ID if provided
-      results = _realm.query<StockRealm>('branchId == \$0', [filter['branchId']]);
+      results =
+          _realm.query<StockRealm>('branchId == \$0', [filter['branchId']]);
     } else {
       // Get all stocks
       results = _realm.all<StockRealm>();
     }
-    
+
     // Convert all to Stock models
     return results.map(_convertFromRealmModel).toList();
   }
@@ -149,7 +170,7 @@ class RealmStockCache implements CacheLayer<Stock> {
   @override
   Future<void> clear() async {
     _checkInitialized();
-    
+
     // Delete all StockRealm objects
     _realm.write(() {
       _realm.deleteAll<StockRealm>();
@@ -199,8 +220,8 @@ class RealmStockCache implements CacheLayer<Stock> {
       active: stockRealm.active,
       value: stockRealm.value,
       rsdQty: stockRealm.rsdQty,
-      lastTouched: stockRealm.lastTouched != null 
-          ? DateTime.parse(stockRealm.lastTouched!) 
+      lastTouched: stockRealm.lastTouched != null
+          ? DateTime.parse(stockRealm.lastTouched!)
           : null,
       ebmSynced: stockRealm.ebmSynced,
       initialStock: stockRealm.initialStock,
@@ -210,15 +231,16 @@ class RealmStockCache implements CacheLayer<Stock> {
   /// Helper method to check if the cache is initialized
   void _checkInitialized() {
     if (!_isInitialized) {
-      throw StateError('RealmStockCache not initialized. Call initialize() first.');
+      throw StateError(
+          'RealmStockCache not initialized. Call initialize() first.');
     }
   }
-  
+
   /// Get stocks by variant ID
   Future<List<Stock>> getByVariantId(String variantId) async {
     return getAll(filter: {'variantId': variantId});
   }
-  
+
   /// Get stocks by branch ID
   Future<List<Stock>> getByBranchId(int branchId) async {
     return getAll(filter: {'branchId': branchId});
