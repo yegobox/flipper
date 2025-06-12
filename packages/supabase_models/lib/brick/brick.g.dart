@@ -46,6 +46,7 @@ import '../brick/models/business_analytic.model.dart';
 import '../brick/models/universalProduct.model.dart';
 import '../brick/models/conversation.model.dart';
 import '../brick/models/customer_payments.model.dart';
+import '../brick/models/notice.model.dart';
 import '../brick/models/transaction.model.dart';
 import '../brick/models/message.model.dart';
 import '../brick/models/financing.model.dart';
@@ -90,7 +91,6 @@ import '../brick/models/asset.model.dart';
 import '../brick/models/ai_conversation.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
-import '../brick/models/notice.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -101,6 +101,7 @@ part 'adapters/business_analytic_adapter.g.dart';
 part 'adapters/unversal_product_adapter.g.dart';
 part 'adapters/conversation_adapter.g.dart';
 part 'adapters/customer_payments_adapter.g.dart';
+part 'adapters/notice_adapter.g.dart';
 part 'adapters/i_transaction_adapter.g.dart';
 part 'adapters/message_adapter.g.dart';
 part 'adapters/financing_adapter.g.dart';
@@ -145,7 +146,6 @@ part 'adapters/assets_adapter.g.dart';
 part 'adapters/ai_conversation_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
-part 'adapters/notice_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -158,6 +158,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   UnversalProduct: UnversalProductAdapter(),
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
+  Notice: NoticeAdapter(),
   ITransaction: ITransactionAdapter(),
   Message: MessageAdapter(),
   Financing: FinancingAdapter(),
@@ -201,8 +202,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Assets: AssetsAdapter(),
   AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  Notice: NoticeAdapter()
+  Drawers: DrawersAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -217,6 +217,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   UnversalProduct: UnversalProductAdapter(),
   Conversation: ConversationAdapter(),
   CustomerPayments: CustomerPaymentsAdapter(),
+  Notice: NoticeAdapter(),
   ITransaction: ITransactionAdapter(),
   Message: MessageAdapter(),
   Financing: FinancingAdapter(),
@@ -260,7 +261,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Assets: AssetsAdapter(),
   AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
-  Notice: NoticeAdapter()
+  Drawers: DrawersAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
