@@ -20,14 +20,19 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
-  final tinNumber = TextFieldBloc();
+  late final TextFieldBloc<String> tinNumber = TextFieldBloc<String>(
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    asyncValidatorDebounceTime: const Duration(milliseconds: 300),
+  );
 
   final SignupViewModel signupViewModel;
   final countryName = SelectFieldBloc<String, String>(
     items: ['Zambia', 'Mozambique', 'Rwanda'],
     initialValue: 'Rwanda',
   );
-  
+
   final businessTypes = SelectFieldBloc<BusinessType, Object>(
       name: 'businessType',
       items: BusinessType.fromJsonList(jsonEncode([
@@ -36,13 +41,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       validators: [
         FieldBlocValidators.required,
       ]);
-      
-  AsyncFieldValidationFormBloc({
-    required this.signupViewModel, 
-    required String country
-  }) {
+
+  AsyncFieldValidationFormBloc(
+      {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
-    
+
     // Load business types from API
     ProxyService.strategy.businessTypes().then((data) {
       log(data.toString(), name: 'AsyncFieldValidationFormBloc');
@@ -93,7 +96,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   void onSubmitting() async {
     try {
       signupViewModel.startRegistering();
-      
+
       // Transfer form values to view model
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
@@ -101,7 +104,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.tin =
           tinNumber.value.isEmpty ? "999909695" : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
-      
+
       // Perform signup
       await signupViewModel.signup();
       emitSuccess();
