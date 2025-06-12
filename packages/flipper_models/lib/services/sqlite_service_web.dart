@@ -4,6 +4,11 @@ class SqliteService {
     throw UnsupportedError('SqliteService is not supported on web');
   }
 
+  static void addColumnIfNotExists(String dbPath, String tableName,
+      String columnName, String columnDefinition) {
+    throw UnsupportedError('SqliteService is not supported on web');
+  }
+
   static List<Map<String, Object?>> select(String dbPath, String sql,
       [List<Object?> params = const []]) {
     throw UnsupportedError('SqliteService is not supported on web');
