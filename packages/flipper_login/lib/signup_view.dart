@@ -9,6 +9,7 @@ import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'blocs/signup_form_bloc.dart';
 import 'viewmodels/signup_viewmodel.dart';
 import 'components/signup_components.dart' as components;
+import 'components/tin_input_field.dart';
 
 
 
@@ -98,12 +99,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                         },
                                       ),
                                       if (_showTinField)
-                                        components.SignupComponents.buildInputField(
-                                          fieldBloc: formBloc.tinNumber,
-                                          label: 'TIN Number',
-                                          icon: Icons.numbers_outlined,
-                                          keyboardType: TextInputType.number,
-                                          hint: 'Enter your TIN number',
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 16.0),
+                                          child: TinInputField(
+                                            tinNumberBloc: formBloc.tinNumber,
+                                          ),
                                         ),
                                       components.SignupComponents.buildDropdownField<String>(
                                         fieldBloc: formBloc.countryName,
