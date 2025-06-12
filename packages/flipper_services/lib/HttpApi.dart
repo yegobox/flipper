@@ -398,7 +398,7 @@ class HttpApi implements HttpApiInterface {
 
       final request = http.Request(
         'POST',
-        Uri.parse('${AppSecrets.apihubProd}/pdf/extract'),
+        Uri.parse('${AppSecrets.apihubProd}/document-intelligence/analyze'),
       );
 
       // Set headers
