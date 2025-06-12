@@ -14,6 +14,7 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_models/cache/cache_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
@@ -125,21 +126,41 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   void _initImageCache() {
-    if (widget.imageUrl != null) {
+    try {
       _imageUrl = widget.imageUrl;
-      if (widget.forceRemoteUrl && widget.variant?.branchId != null) {
-        _branchId = widget.variant!.branchId!;
-        _cachedRemoteUrlFuture = _lock.synchronized(
-            () => preSignedUrl(branchId: _branchId!, imageInS3: _imageUrl!));
-      } else {
-        _cachedLocalPathFuture = _lock
-            .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
-      }
+      _branchId = ProxyService.box.getBranchId();
 
-      // Initialize the asset path cache regardless of remote/local mode
-      // This will be used as a fallback in both cases
-      _cachedAssetPathFuture =
-          _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
+      if (_imageUrl != null && _imageUrl!.isNotEmpty && _branchId != null) {
+        // Initialize image loading futures
+        _cachedRemoteUrlFuture = preSignedUrl(
+          imageInS3: _imageUrl!,
+          branchId: _branchId!,
+        );
+
+        // Try to load from asset path
+        if (!widget.forceRemoteUrl) {
+          _cachedAssetPathFuture = _tryLoadFromAssetPath(_imageUrl!);
+        }
+      }
+    } catch (e) {
+      talker.error('Error initializing image cache: $e');
+    }
+  }
+  
+  /// Get a stream of stock updates for the current variant from cache
+  /// This provides live updates when stock changes
+  Stream<Stock?> _getStockStreamForVariant() {
+    // Skip if variant is null or has no ID
+    if (widget.variant == null || widget.variant!.id.isEmpty) {
+      return Stream.value(null);
+    }
+    
+    try {
+      // Get a stream of stock updates from cache using variant ID
+      return CacheManager().watchStockByVariantId(widget.variant!.id);
+    } catch (e) {
+      print('Error setting up stock stream from cache: $e');
+      return Stream.value(null);
     }
   }
 
@@ -371,17 +392,26 @@ class _RowItemState extends ConsumerState<RowItem>
             overflow: TextOverflow.ellipsis,
           ),
 
-        // Stock display
-        if (widget.variant?.stock?.currentStock != null)
-          Text(
-            '${widget.variant?.stock?.currentStock ?? 0} in stock',
-            style: textTheme.bodySmall?.copyWith(
-              color: Colors.grey[600],
-              fontSize: 10,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+        // Stock display with live updates from cache
+        StreamBuilder<Stock?>(
+          // Use stream from cache for live updates
+          stream: _getStockStreamForVariant(),
+          builder: (context, snapshot) {
+            // Always use cache data when available
+            final stockValue = snapshot.data?.currentStock ?? 0;
+            
+            return Text(
+              '$stockValue in stock',
+              style: textTheme.bodySmall?.copyWith(
+                color: stockValue > 0 ? Colors.green[700] : Colors.red[700],
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+        ),
       ],
     );
   }

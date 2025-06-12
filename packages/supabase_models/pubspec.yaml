@@ -23,7 +23,9 @@ dependencies:
   mockito: ^5.4.5
   brick_offline_first: ^4.0.0
   sqflite_common_ffi_web: ^1.0.0
-  # flutter_blue_plus: ^1.35.4
+  # never use realm for real data, we use realm as cache layer on whatever we aim to have real time update
+  # e.g querying variant come with stock but refreshing this stock might be time consuming or not effient
+  realm: ^20.1.1
 dependency_overrides: 
   device_info_plus: ^11.2.2
   
@@ -34,3 +36,4 @@ dev_dependencies:
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
   build_runner: ^2.4.15
+  # realm_generator: ^20.1.1

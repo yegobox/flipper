@@ -4,6 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:collection/collection.dart';
 import 'dart:async';
+import 'package:supabase_models/cache/cache_export.dart';
 part 'outer_variant_provider.g.dart';
 
 @riverpod
@@ -20,8 +21,39 @@ class OuterVariants extends _$OuterVariants {
     _hasMore = true;
     _isLoading = false;
 
+    // Initialize cache manager if needed
+    await _initializeCacheManager();
+
     // Load initial variants
     return await _loadVariants(branchId, fetchRemote: fetchRemote);
+  }
+
+  /// Initialize the cache manager
+  Future<void> _initializeCacheManager() async {
+    try {
+      await CacheManager().initialize();
+      print('Cache manager initialized successfully');
+    } catch (e) {
+      print('Failed to initialize cache manager: $e');
+    }
+  }
+
+  /// Save Stock objects to cache
+  Future<void> _saveStocksToCache(List<Variant> variants) async {
+    try {
+      // Filter variants with stock information
+      final variantsWithStock = variants.where((v) => v.stock != null).toList();
+
+      if (variantsWithStock.isNotEmpty) {
+        print('Saving ${variantsWithStock.length} stocks to cache');
+
+        // Save stocks to cache
+        await CacheManager().saveStocksForVariants(variants);
+        print('Stocks saved to cache successfully');
+      }
+    } catch (e) {
+      print('Failed to save stocks to cache: $e');
+    }
   }
 
   Future<List<Variant>> _loadVariants(int branchId,
@@ -70,6 +102,9 @@ class OuterVariants extends _$OuterVariants {
           if (remoteVariants.isNotEmpty) {
             print('Found ${remoteVariants.length} variants from remote');
             variants = remoteVariants;
+
+            // Save Stock objects to cache
+            _saveStocksToCache(remoteVariants);
           }
         } catch (e) {
           // If remote fetch fails, continue with local results
@@ -82,6 +117,7 @@ class OuterVariants extends _$OuterVariants {
         _currentPage++;
         _hasMore = variants.length == _itemsPerPage;
         print('Loaded ${variants.length} variants (no search filter)');
+        _saveStocksToCache(variants);
         return variants;
       }
 
@@ -99,6 +135,8 @@ class OuterVariants extends _$OuterVariants {
                     .toLowerCase()
                     .contains(searchString.toLowerCase()));
       }).toList();
+
+      // also save stock in cache
 
       // If no matches, try fetching by barcode if the search string looks like a barcode
       if (filteredVariants.isEmpty && _isNumeric(searchString)) {
