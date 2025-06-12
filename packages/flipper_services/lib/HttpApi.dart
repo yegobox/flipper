@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
@@ -37,6 +40,14 @@ abstract class HttpApiInterface {
   Future<bool> checkPaymentStatus(
       {required HttpClientInterface flipperHttpClient,
       required String paymentReference});
+
+  /// Uploads a PDF document and extracts company information from it
+  /// Returns a Map containing the extracted company information
+  Future<Map<String, dynamic>> extractCompanyInfoFromPdf({
+    required HttpClientInterface flipperHttpClient,
+    required String filePath,
+    String? fileName,
+  });
 }
 
 class HttpApi implements HttpApiInterface {
@@ -374,6 +385,51 @@ class HttpApi implements HttpApiInterface {
       talker.error('Error updating payment status', e, stackTrace);
     }
   }
+
+  @override
+  Future<Map<String, dynamic>> extractCompanyInfoFromPdf({
+    required HttpClientInterface flipperHttpClient,
+    required String filePath,
+    String? fileName,
+  }) async {
+    try {
+      final file = File(filePath);
+      final bytes = await file.readAsBytes();
+
+      final request = http.Request(
+        'POST',
+        Uri.parse('${AppSecrets.apihubProd}/pdf/extract'),
+      );
+
+      // Set headers
+      request.headers['Content-Type'] = 'application/octet-stream';
+      final credentials = base64Encode(
+        utf8.encode('${AppSecrets.username}:${AppSecrets.password}'),
+      );
+      request.headers['Authorization'] = 'Basic $credentials';
+
+      // Set the file bytes as the request body
+      request.bodyBytes = bytes;
+
+      // Send the request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        // Parse and return the response
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        return responseData;
+      } else {
+        talker.error(
+            'PDF extraction failed: ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Failed to extract company info from PDF: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      talker.error('Error in extractCompanyInfoFromPdf', e, stackTrace);
+      rethrow;
+    }
+  }
 }
 
 class RealmViaHttpServiceMock implements HttpApiInterface {
@@ -438,5 +494,32 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
       required String paymentReference}) {
     // TODO: implement checkPaymentStatus
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> extractCompanyInfoFromPdf({
+    required HttpClientInterface flipperHttpClient,
+    required String filePath,
+    String? fileName,
+  }) async {
+    // Mock implementation for testing
+    return {
+      "Producer":
+          "Microsoft Reporting Services PDF Rendering Extension 11.0.0.0",
+      "Content": {
+        "CompanyName": "YEGOBOX Ltd",
+        "ShareCapital": "5000000",
+        "Type": "Limited by shares",
+        "Category": "Type: Limited by shares",
+        "Email": "info@yegobox.com",
+        "RegistrationDate": "05/04/2019",
+        "Address": "Management details:",
+        "MainBusinessActivityDescription": "Computer programming activities",
+        "PhoneNumber": "+250788360058",
+        "CompanyCode": "108754813"
+      },
+      "Title": "DomesticDetail",
+      "Creator": "Microsoft Reporting Services 11.0.0.0"
+    };
   }
 }
