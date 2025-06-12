@@ -146,7 +146,7 @@ class _RowItemState extends ConsumerState<RowItem>
       talker.error('Error initializing image cache: $e');
     }
   }
-  
+
   /// Get a stream of stock updates for the current variant from cache
   /// This provides live updates when stock changes
   Stream<Stock?> _getStockStreamForVariant() {
@@ -154,7 +154,7 @@ class _RowItemState extends ConsumerState<RowItem>
     if (widget.variant == null || widget.variant!.id.isEmpty) {
       return Stream.value(null);
     }
-    
+
     try {
       // Get a stream of stock updates from cache using variant ID
       return CacheManager().watchStockByVariantId(widget.variant!.id);
@@ -399,7 +399,7 @@ class _RowItemState extends ConsumerState<RowItem>
           builder: (context, snapshot) {
             // Always use cache data when available
             final stockValue = snapshot.data?.currentStock ?? 0;
-            
+
             return Text(
               '$stockValue in stock',
               style: textTheme.bodySmall?.copyWith(
@@ -799,18 +799,29 @@ class _RowItemState extends ConsumerState<RowItem>
 
       // Only check stock if we're not in ordering mode
       if (!isOrdering) {
+        // Get the latest stock from cache
+        Stock? cachedStock;
+        if (widget.variant != null && widget.variant!.id.isNotEmpty) {
+          cachedStock =
+              await CacheManager().getStockByVariantId(widget.variant!.id);
+        }
+
+        // Use cached stock if available, otherwise fall back to variant.stock
+        final currentStock =
+            cachedStock?.currentStock ?? widget.variant?.stock?.currentStock;
+
         /// because item of tax type D are not supposed to have stock so it can be sold without stock.
         if (widget.variant?.taxTyCd != "D" &&
 
             /// itemTyCd is 3 it is a service
-            widget.variant?.stock?.currentStock == null &&
+            currentStock == null &&
             widget.variant?.itemTyCd != "3") {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           toast("You do not have enough stock");
           return;
         }
         if (widget.variant?.taxTyCd != "D" &&
-            (widget.variant?.stock?.currentStock ?? 0) <= 0 &&
+            (currentStock ?? 0) <= 0 &&
             widget.variant?.itemTyCd != "3") {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           toast("You do not have enough stock");
