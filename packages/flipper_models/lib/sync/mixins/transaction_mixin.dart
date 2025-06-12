@@ -51,6 +51,7 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE), // Ensure default value
+      Where('isOriginalTransaction').isExactly(true),
       if (!includeZeroSubTotal)
         Where('subTotal').isGreaterThan(0), // Optional condition
       if (id != null) Where('id').isExactly(id),
@@ -231,6 +232,7 @@ mixin TransactionMixin implements TransactionInterface {
           subTotal: 0.0,
           cashReceived: 0.0,
           updatedAt: now,
+          receiptType: getReceiptType(),
           customerChangeDue: 0.0,
           paymentType: ProxyService.box.paymentType() ?? "CASH",
           branchId: branchId,
@@ -246,6 +248,16 @@ mixin TransactionMixin implements TransactionInterface {
         _isProcessingTransaction = false;
       }
     });
+  }
+
+  String getReceiptType() {
+    if (ProxyService.box.isProformaMode()) {
+      return "PS";
+    } else if (ProxyService.box.isTrainingMode()) {
+      return "TS";
+    } else {
+      return "NS";
+    }
   }
 
   @override
@@ -510,6 +522,7 @@ mixin TransactionMixin implements TransactionInterface {
       await ProxyService.strategy.addTransactionItem(
         doneWithTransaction: doneWithTransaction,
         transaction: pendingTransaction,
+        ignoreForReport: false,
         lastTouched: DateTime.now().toUtc(),
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
@@ -749,6 +762,7 @@ mixin TransactionMixin implements TransactionInterface {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
+      Where('isOriginalTransaction').isExactly(true),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
       if (isCashOut) Where('isExpense').isExactly(isCashOut),

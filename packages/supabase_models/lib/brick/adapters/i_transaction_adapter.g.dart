@@ -128,7 +128,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     billingFrequency:
         data['billing_frequency'] == null
             ? null
-            : data['billing_frequency'] as String? ?? "monthly",
+            : data['billing_frequency'] as String? ?? 'monthly',
     billingAmount:
         data['billing_amount'] == null
             ? null
@@ -165,6 +165,14 @@ Future<ITransaction> _$ITransactionFromSupabase(
         data['last_payment_amount'] == null
             ? null
             : data['last_payment_amount'] as num? ?? 0.0,
+    originalTransactionId:
+        data['original_transaction_id'] == null
+            ? null
+            : data['original_transaction_id'] as String?,
+    isOriginalTransaction:
+        data['is_original_transaction'] == null
+            ? null
+            : data['is_original_transaction'] as bool?,
   );
 }
 
@@ -225,6 +233,8 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'remaining_balance': instance.remainingBalance,
     'last_payment_date': instance.lastPaymentDate?.toIso8601String(),
     'last_payment_amount': instance.lastPaymentAmount,
+    'original_transaction_id': instance.originalTransactionId,
+    'is_original_transaction': instance.isOriginalTransaction,
   };
 }
 
@@ -375,6 +385,14 @@ Future<ITransaction> _$ITransactionFromSqlite(
         data['last_payment_amount'] == null
             ? null
             : data['last_payment_amount'] as num?,
+    originalTransactionId:
+        data['original_transaction_id'] == null
+            ? null
+            : data['original_transaction_id'] as String?,
+    isOriginalTransaction:
+        data['is_original_transaction'] == null
+            ? null
+            : data['is_original_transaction'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -443,6 +461,11 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'remaining_balance': instance.remainingBalance,
     'last_payment_date': instance.lastPaymentDate?.toIso8601String(),
     'last_payment_amount': instance.lastPaymentAmount,
+    'original_transaction_id': instance.originalTransactionId,
+    'is_original_transaction':
+        instance.isOriginalTransaction == null
+            ? null
+            : (instance.isOriginalTransaction! ? 1 : 0),
   };
 }
 
@@ -656,6 +679,14 @@ class ITransactionAdapter
     'lastPaymentAmount': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_payment_amount',
+    ),
+    'originalTransactionId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'original_transaction_id',
+    ),
+    'isOriginalTransaction': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_original_transaction',
     ),
   };
   @override
@@ -969,6 +1000,18 @@ class ITransactionAdapter
       columnName: 'last_payment_amount',
       iterable: false,
       type: num,
+    ),
+    'originalTransactionId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'original_transaction_id',
+      iterable: false,
+      type: String,
+    ),
+    'isOriginalTransaction': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_original_transaction',
+      iterable: false,
+      type: bool,
     ),
   };
   @override

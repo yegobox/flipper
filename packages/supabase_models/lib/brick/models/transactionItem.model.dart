@@ -111,6 +111,9 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   // so that Brick can notify Supabase of the association.
   // @Sqlite(ignore: true)
   String? inventoryRequestId;
+
+  @Sqlite(defaultValue: '0')
+  bool? ignoreForReport;
   TransactionItem({
     this.splyAmt,
     this.inventoryRequest,
@@ -168,6 +171,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.isrcAmt,
     String? inventoryRequestId,
     required this.prc,
+    this.ignoreForReport,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         lastTouched = lastTouched ?? DateTime.now().toUtc(),

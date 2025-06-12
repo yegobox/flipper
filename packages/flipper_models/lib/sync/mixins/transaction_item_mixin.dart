@@ -13,6 +13,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   @override
   Future<void> addTransactionItem({
     ITransaction? transaction,
+    required bool ignoreForReport,
     required bool partOfComposite,
     required DateTime lastTouched,
     required double discount,
@@ -39,6 +40,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       if (item != null) {
         // Use the provided `TransactionItem`
         transactionItem = item;
+        transactionItem.ignoreForReport = ignoreForReport;
         transactionItem.qty = quantity; // Update quantity
         transactionItem.doneWithTransaction =
             doneWithTransaction ?? transactionItem.doneWithTransaction;
@@ -177,6 +179,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   }) {
     List<Where> _buildConditions(dynamic branchIdValue) {
       final List<Where> conditions = [];
+      conditions.add(Where('ignoreForReport').isExactly(false));
       if (branchIdValue != null) {
         conditions.add(Where('branchId').isExactly(branchIdValue));
       }

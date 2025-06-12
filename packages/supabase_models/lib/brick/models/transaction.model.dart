@@ -112,6 +112,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(defaultValue: "0.0")
   num? lastPaymentAmount;
 
+  String? originalTransactionId;
+  bool? isOriginalTransaction;
+
   ITransaction({
     this.ticketName,
     String? id,
@@ -164,6 +167,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? remainingBalance,
     this.lastPaymentDate,
     num? lastPaymentAmount,
+    this.originalTransactionId,
+    this.isOriginalTransaction,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
