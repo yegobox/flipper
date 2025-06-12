@@ -879,6 +879,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               await ProxyService.strategy.updateTransactionItem(
                 transactionItemId: item.id.toString(),
                 active: false,
+                ignoreForReport: false,
               );
               ref.invalidate(
                 transactionItemsStreamProvider(
@@ -897,6 +898,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       AsyncValue<ITransaction> transactionAsyncValue) async {
     await ProxyService.strategy.updateTransactionItem(
       transactionItemId: item.id.toString(),
+      ignoreForReport: false,
       qty: newQty.toDouble(),
     );
     ref.invalidate(

@@ -1,6 +1,33 @@
 import 'package:sqlite3/sqlite3.dart';
 
 class SqliteService {
+  /// Safely adds a column to a table only if it doesn't already exist.
+  static void addColumnIfNotExists(String dbPath, String tableName,
+      String columnName, String columnDefinition) {
+    Database? db;
+    try {
+      db = sqlite3.open(dbPath);
+
+      // Get existing columns in the table
+      final result = db.select('PRAGMA table_info($tableName)');
+      final columnExists = result.any((row) => row['name'] == columnName);
+
+      if (!columnExists) {
+        final alterSql =
+            'ALTER TABLE $tableName ADD COLUMN $columnName $columnDefinition';
+        db.execute(alterSql);
+      } else {
+        print(
+            'Column "$columnName" already exists in table "$tableName". Skipping ALTER.');
+      }
+    } catch (e) {
+      print('SQLite addColumnIfNotExists error: $e');
+      rethrow;
+    } finally {
+      db?.dispose();
+    }
+  }
+
   /// Executes a raw SQL statement on the given database path.
   /// [dbPath]: Path to the SQLite database file.
   /// [sql]: The SQL statement to execute.

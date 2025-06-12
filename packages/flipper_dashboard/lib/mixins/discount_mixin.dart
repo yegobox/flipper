@@ -83,6 +83,7 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
     await ProxyService.strategy.updateTransactionItem(
       transactionItemId: item.id,
       dcRt: discountRate,
+      ignoreForReport: false,
       dcAmt: itemDiscountAmount,
     );
   }

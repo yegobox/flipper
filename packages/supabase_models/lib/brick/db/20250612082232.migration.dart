@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250610174300_up = [
+const List<MigrationCommand> _migration_20250612082232_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -203,6 +203,8 @@ const List<MigrationCommand> _migration_20250610174300_up = [
   InsertColumn('remaining_balance', Column.num, onTable: 'ITransaction'),
   InsertColumn('last_payment_date', Column.datetime, onTable: 'ITransaction'),
   InsertColumn('last_payment_amount', Column.num, onTable: 'ITransaction'),
+  InsertColumn('original_transaction_id', Column.varchar, onTable: 'ITransaction'),
+  InsertColumn('is_original_transaction', Column.boolean, onTable: 'ITransaction'),
   InsertColumn('id', Column.varchar, onTable: 'Message', unique: true),
   InsertColumn('text', Column.varchar, onTable: 'Message'),
   InsertColumn('phone_number', Column.varchar, onTable: 'Message'),
@@ -314,6 +316,7 @@ const List<MigrationCommand> _migration_20250610174300_up = [
   InsertColumn('composite_price', Column.Double, onTable: 'TransactionItem'),
   InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
   InsertColumn('inventory_request_id', Column.varchar, onTable: 'TransactionItem'),
+  InsertColumn('ignore_for_report', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('id', Column.varchar, onTable: 'LPermission', unique: true),
   InsertColumn('name', Column.varchar, onTable: 'LPermission'),
   InsertColumn('user_id', Column.integer, onTable: 'LPermission'),
@@ -840,7 +843,7 @@ const List<MigrationCommand> _migration_20250610174300_up = [
   CreateIndex(columns: ['id'], onTable: 'Notice', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250610174300_down = [
+const List<MigrationCommand> _migration_20250612082232_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1034,6 +1037,8 @@ const List<MigrationCommand> _migration_20250610174300_down = [
   DropColumn('remaining_balance', onTable: 'ITransaction'),
   DropColumn('last_payment_date', onTable: 'ITransaction'),
   DropColumn('last_payment_amount', onTable: 'ITransaction'),
+  DropColumn('original_transaction_id', onTable: 'ITransaction'),
+  DropColumn('is_original_transaction', onTable: 'ITransaction'),
   DropColumn('id', onTable: 'Message'),
   DropColumn('text', onTable: 'Message'),
   DropColumn('phone_number', onTable: 'Message'),
@@ -1145,6 +1150,7 @@ const List<MigrationCommand> _migration_20250610174300_down = [
   DropColumn('composite_price', onTable: 'TransactionItem'),
   DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
   DropColumn('inventory_request_id', onTable: 'TransactionItem'),
+  DropColumn('ignore_for_report', onTable: 'TransactionItem'),
   DropColumn('id', onTable: 'LPermission'),
   DropColumn('name', onTable: 'LPermission'),
   DropColumn('user_id', onTable: 'LPermission'),
@@ -1676,15 +1682,15 @@ const List<MigrationCommand> _migration_20250610174300_down = [
 //
 
 @Migratable(
-  version: '20250610174300',
-  up: _migration_20250610174300_up,
-  down: _migration_20250610174300_down,
+  version: '20250612082232',
+  up: _migration_20250612082232_up,
+  down: _migration_20250612082232_down,
 )
-class Migration20250610174300 extends Migration {
-  const Migration20250610174300()
+class Migration20250612082232 extends Migration {
+  const Migration20250612082232()
     : super(
-        version: 20250610174300,
-        up: _migration_20250610174300_up,
-        down: _migration_20250610174300_down,
+        version: 20250612082232,
+        up: _migration_20250612082232_up,
+        down: _migration_20250612082232_down,
       );
 }

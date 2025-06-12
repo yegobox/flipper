@@ -687,6 +687,7 @@ mixin StockRequestApprovalLogic {
       // Finally update the transaction item
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
+        ignoreForReport: false,
         quantityApproved: approvedQuantity,
       );
     } catch (e, s) {

@@ -120,6 +120,10 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
         data['inventory_request_id'] == null
             ? null
             : data['inventory_request_id'] as String?,
+    ignoreForReport:
+        data['ignore_for_report'] == null
+            ? null
+            : data['ignore_for_report'] as bool?,
   );
 }
 
@@ -192,6 +196,7 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
             )
             : null,
     'inventory_request_id': instance.inventoryRequestId,
+    'ignore_for_report': instance.ignoreForReport,
   };
 }
 
@@ -317,6 +322,10 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
         data['inventory_request_id'] == null
             ? null
             : data['inventory_request_id'] as String?,
+    ignoreForReport:
+        data['ignore_for_report'] == null
+            ? null
+            : data['ignore_for_report'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -397,6 +406,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
                 )
             : null,
     'inventory_request_id': instance.inventoryRequestId,
+    'ignore_for_report':
+        instance.ignoreForReport == null
+            ? null
+            : (instance.ignoreForReport! ? 1 : 0),
   };
 }
 
@@ -637,6 +650,10 @@ class TransactionItemAdapter
     'inventoryRequestId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'inventory_request_id',
+    ),
+    'ignoreForReport': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'ignore_for_report',
     ),
   };
   @override
@@ -986,6 +1003,12 @@ class TransactionItemAdapter
       columnName: 'inventory_request_id',
       iterable: false,
       type: String,
+    ),
+    'ignoreForReport': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'ignore_for_report',
+      iterable: false,
+      type: bool,
     ),
   };
   @override

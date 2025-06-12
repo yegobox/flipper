@@ -12,6 +12,8 @@ import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
+import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/cache/cache_manager.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -540,6 +542,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Only upsert locally for Counter
       return await super.upsert(instance,
           policy: OfflineFirstUpsertPolicy.optimisticLocal, query: query);
+    }
+    if (instance is Stock) {
+      // Only upsert locally for Stock
+      await CacheManager().saveStocks([instance]);
     }
     return await super.upsert(instance, policy: policy, query: query);
   }

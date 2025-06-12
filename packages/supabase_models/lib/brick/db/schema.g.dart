@@ -1,15 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250610174300.migration.dart';
+part '20250612082232.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
-final migrations = <Migration>{
-  const Migration20250610174300(),};
+final migrations = <Migration>{const Migration20250612082232()};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  0,
+  20250612082232,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -234,6 +233,29 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'Notice',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('notice_no', Column.integer),
+        SchemaColumn('title', Column.varchar),
+        SchemaColumn('cont', Column.varchar),
+        SchemaColumn('dtl_url', Column.varchar),
+        SchemaColumn('regr_nm', Column.varchar),
+        SchemaColumn('reg_dt', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
       'ITransaction',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -293,6 +315,8 @@ final schema = Schema(
         SchemaColumn('remaining_balance', Column.num),
         SchemaColumn('last_payment_date', Column.datetime),
         SchemaColumn('last_payment_amount', Column.num),
+        SchemaColumn('original_transaction_id', Column.varchar),
+        SchemaColumn('is_original_transaction', Column.boolean),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -569,6 +593,7 @@ final schema = Schema(
           onDeleteSetDefault: false,
         ),
         SchemaColumn('inventory_request_id', Column.varchar),
+        SchemaColumn('ignore_for_report', Column.boolean),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1675,29 +1700,6 @@ final schema = Schema(
         SchemaColumn('deleted_at', Column.datetime),
         SchemaColumn('business_id', Column.integer),
         SchemaColumn('branch_id', Column.integer),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
-      'Notice',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('notice_no', Column.integer),
-        SchemaColumn('title', Column.varchar),
-        SchemaColumn('cont', Column.varchar),
-        SchemaColumn('dtl_url', Column.varchar),
-        SchemaColumn('regr_nm', Column.varchar),
-        SchemaColumn('reg_dt', Column.varchar),
-        SchemaColumn('branch_id', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

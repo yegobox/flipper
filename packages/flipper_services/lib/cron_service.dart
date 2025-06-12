@@ -83,18 +83,27 @@ class CronService {
 
       ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
+      final dbDir = await DatabasePath.getDatabaseDirectory();
+
+      ///temporaly work around for missing bhf_id column in Counter table
+      try {
+        final dbPath = path.join(dbDir, 'flipper_v17.sqlite');
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Counter', 'bhf_id', 'TEXT DEFAULT "00"');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'ITransaction', 'original_transaction_id', 'TEXT');
+
+        SqliteService.addColumnIfNotExists(dbPath, 'ITransaction',
+            'is_original_transaction', 'INTEGER DEFAULT 1');
+
+        SqliteService.addColumnIfNotExists(dbPath, 'TransactionItem',
+            'ignore_for_report', 'INTEGER NOT NULL DEFAULT 0');
+      } catch (e) {
+        talker.error("Failed to add bhf_id column to Counter table: $e");
+      }
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
-        final dbDir = await DatabasePath.getDatabaseDirectory();
-
-        ///temporaly work around for missing bhf_id column in Counter table
-        try {
-          final dbPath = path.join(dbDir, 'flipper_v17.sqlite');
-          SqliteService.execute(dbPath,
-              'ALTER TABLE Counter ADD COLUMN bhf_id TEXT DEFAULT "00"');
-        } catch (e) {
-          talker.error("Failed to add bhf_id column to Counter table: $e");
-        }
 
         /// end of work around
         // Hydrate essential data

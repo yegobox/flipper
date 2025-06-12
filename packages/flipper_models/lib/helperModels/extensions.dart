@@ -415,6 +415,18 @@ extension DateTimeToYYYMMdd on DateTime {
   String toYYYYMMddHHmmss() {
     return DateFormat('yyyyMMddHHmmss').format(this);
   }
+
+  String toYYYYMMddHHmm() {
+    return DateFormat('yyyyMMddHHmm').format(this);
+  }
+
+  String toFormattedDateTime() {
+    return DateFormat('yyyy-MM-dd HH:mm:ss').format(this);
+  }
+
+  String toFormattedDateTimeNoSeconds() {
+    return DateFormat('yyyy-MM-dd HH:mm').format(this);
+  }
 }
 
 /// validate a string tin is valid tin

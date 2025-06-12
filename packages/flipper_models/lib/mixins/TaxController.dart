@@ -330,14 +330,14 @@ class TaxController<OBJ> {
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
-        String qrCode = generateQRCode(
-            receiptSignature.data?.vsdcRcptPbctDate
-                    ?.toCompactDateTime()
-                    ?.toYYYYMMddHHmmss() ??
-                "",
-            receiptSignature,
-            receiptType: receiptType,
-            whenCreated: now);
+        // Convert the date string to DateTime first, then format it properly
+        final dateTime =
+            receiptSignature.data?.vsdcRcptPbctDate?.toCompactDateTime();
+        final formattedDate =
+            dateTime != null ? dateTime.toFormattedDateTime() : "";
+
+        String qrCode = generateQRCode(formattedDate, receiptSignature,
+            receiptType: receiptType, whenCreated: formattedDate);
 
         /// update transaction with receipt number and total receipt number
 
@@ -346,6 +346,8 @@ class TaxController<OBJ> {
             receiptType == "TR" ||
             receiptType == "CS") {
           final newTransactionId = ITransaction(
+            originalTransactionId: transaction.id,
+            isOriginalTransaction: false,
             receiptNumber: receiptSignature.data?.rcptNo,
             totalReceiptNumber: receiptSignature.data?.totRcptNo,
             invoiceNumber: counter.invcNo,
@@ -401,6 +403,7 @@ class TaxController<OBJ> {
             await ProxyService.strategy.addTransactionItem(
               transaction: newTransactionId,
               item: copy,
+              ignoreForReport: true,
               variation: variant,
               partOfComposite: item.partOfComposite ?? false,
               lastTouched: item.lastTouched ?? DateTime.now().toUtc(),
@@ -508,18 +511,16 @@ class TaxController<OBJ> {
   }
 
   String generateQRCode(String formattedDate, RwApiResponse receiptSignature,
-      {required String receiptType, required DateTime whenCreated}) {
-    final timeFormatter = DateFormat('HH:mm:ss');
-    final currentTime = timeFormatter.format(whenCreated);
+      {required String receiptType, required String whenCreated}) {
+    // No need to parse the date again, we already have it formatted correctly
 
     final data = receiptSignature.data;
     if (data == null) {
-      throw ArgumentError('Receipt signature data is null');
+      return '';
     }
 
     final qrCodeParts = [
-      formattedDate,
-      currentTime,
+      formattedDate, // Already formatted without seconds
       data.sdcId ?? 'N/A',
       '${data.rcptNo ?? 'N/A'}/${data.totRcptNo ?? 'N/A'}/$receiptType',
       data.intrlData ?? 'N/A',

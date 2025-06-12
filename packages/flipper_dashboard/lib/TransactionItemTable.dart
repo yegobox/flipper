@@ -350,6 +350,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
         qty: newQty,
+        ignoreForReport: false,
         incrementQty: false,
         quantityRequested: newQty.toInt(),
       );
@@ -403,6 +404,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           await ProxyService.strategy.updateTransactionItem(
             transactionItemId: item.id,
             price: doubleValue,
+            ignoreForReport: false,
             qty: item.qty,
           );
           _refreshTransactionItems(isOrdering,

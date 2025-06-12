@@ -423,10 +423,13 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         if (item.price.toInt() <= discount.amount!) {
           // item.discount = item.price;
           ProxyService.strategy.updateTransactionItem(
-              transactionItemId: item.id, discount: item.price);
+              ignoreForReport: false,
+              transactionItemId: item.id,
+              discount: item.price);
         } else {
           ProxyService.strategy.updateTransactionItem(
               transactionItemId: item.id,
+              ignoreForReport: false,
               discount: discount.amount!.toDouble());
         }
       }

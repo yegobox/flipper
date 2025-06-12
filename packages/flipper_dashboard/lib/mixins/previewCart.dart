@@ -92,6 +92,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
+      ignoreForReport: false,
       pendingTransaction: pendingTransaction,
     );
   }
@@ -149,6 +150,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         ProxyService.strategy.updateTransactionItem(
           transactionItemId: item.id,
           dcRt: discountRate,
+          ignoreForReport: false,
           dcAmt: itemDiscountAmount,
         );
       }
