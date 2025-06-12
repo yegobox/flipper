@@ -57,6 +57,6 @@ abstract class TransactionItemInterface {
     double? taxblAmt,
     double? totAmt,
     double? dcRt,
-    double? dcAmt,
+    double? dcAmt, required bool ignoreForReport,
   });
 }

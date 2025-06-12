@@ -345,6 +345,7 @@ mixin TransactionMixin implements TransactionInterface {
     Purchase? purchase,
     required bool doneWithTransaction,
     double? updatableQty,
+    bool ignoreForReport = false,
 
     /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
     /// transaction i.e not original transaction
@@ -355,6 +356,7 @@ mixin TransactionMixin implements TransactionInterface {
       // Save the transaction item
       await saveTransactionItem(
         variation: variant,
+        ignoreForReport: ignoreForReport,
         updatableQty: updatableQty,
         doneWithTransaction: doneWithTransaction,
         amountTotal: variant.retailPrice!,
@@ -441,7 +443,8 @@ mixin TransactionMixin implements TransactionInterface {
       required bool doneWithTransaction,
       TransactionItem? item,
       double? updatableQty,
-      String? sarTyCd}) async {
+      String? sarTyCd,
+      required bool ignoreForReport}) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy
           .getTransactionItem(
@@ -454,6 +457,7 @@ mixin TransactionMixin implements TransactionInterface {
         name: variation.name,
         sarTyCd: sarTyCd,
         variation: variation,
+        ignoreForReport: ignoreForReport,
         currentStock: currentStock,
         amountTotal: amountTotal,
         updatableQty: updatableQty,
@@ -486,12 +490,14 @@ mixin TransactionMixin implements TransactionInterface {
       bool useTransactionItemForQty = false,
       String? sarTyCd,
       bool? doneWithTransaction,
-      double? updatableQty}) async {
+      double? updatableQty,
+      required bool ignoreForReport}) async {
     try {
       // Update existing item if found and not custom
       if (item != null && !isCustom) {
         await _updateExistingTransactionItem(
           item: item,
+          ignoreForReport: ignoreForReport,
 
           /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
           quantity: updatableQty != null
@@ -553,9 +559,11 @@ mixin TransactionMixin implements TransactionInterface {
     required double quantity,
     required Variant variation,
     required double amountTotal,
+    required bool ignoreForReport,
   }) async {
     await ProxyService.strategy.updateTransactionItem(
       transactionItemId: item.id,
+      ignoreForReport: ignoreForReport,
       doneWithTransaction: false,
       qty: quantity,
       taxblAmt: variation.retailPrice! * quantity,
@@ -591,6 +599,7 @@ mixin TransactionMixin implements TransactionInterface {
   Future<void> markItemAsDoneWithTransaction(
       {required List<TransactionItem> inactiveItems,
       required ITransaction pendingTransaction,
+      required bool ignoreForReport,
       bool isDoneWithTransaction = false}) async {
     if (inactiveItems.isNotEmpty) {
       for (TransactionItem inactiveItem in inactiveItems) {
@@ -598,6 +607,7 @@ mixin TransactionMixin implements TransactionInterface {
         if (isDoneWithTransaction) {
           await ProxyService.strategy.updateTransactionItem(
             transactionItemId: inactiveItem.id,
+            ignoreForReport: ignoreForReport,
             doneWithTransaction: true,
           );
         }

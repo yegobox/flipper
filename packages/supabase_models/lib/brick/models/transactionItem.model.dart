@@ -171,9 +171,10 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.isrcAmt,
     String? inventoryRequestId,
     required this.prc,
-    this.ignoreForReport,
+    bool? ignoreForReport,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
+        ignoreForReport = false,
         lastTouched = lastTouched ?? DateTime.now().toUtc(),
         inventoryRequestId = inventoryRequest?.id,
         updatedAt = updatedAt ?? DateTime.now().toUtc();

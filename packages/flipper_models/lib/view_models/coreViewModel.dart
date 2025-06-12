@@ -156,6 +156,7 @@ class CoreViewModel extends FlipperBaseModel
           item.active = true;
           ProxyService.strategy.updateTransactionItem(
             transactionItemId: item.id,
+            ignoreForReport: false,
             active: true,
           );
         }
@@ -282,6 +283,7 @@ class CoreViewModel extends FlipperBaseModel
           transactionItemId: existTransactionItem.id,
           qty: existTransactionItem.qty + 1,
           price: amount,
+          ignoreForReport: false,
           prc: amount,
         );
         ProxyService.strategy.updateTransaction(
@@ -317,6 +319,7 @@ class CoreViewModel extends FlipperBaseModel
     } else {
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: items.last.id,
+        ignoreForReport: false,
         taxAmt: double.parse((amount * 18 / 118).toStringAsFixed(2)),
         price: amount,
         prc: double.parse((amount * 18 / 118).toStringAsFixed(2)),
@@ -764,6 +767,7 @@ class CoreViewModel extends FlipperBaseModel
         partOfComposite: false,
         doneWithTransaction: false,
         variation: variant!,
+        ignoreForReport: false,
         amountTotal: amountTotal,
         customItem: false,
         currentStock: variant.stock!.currentStock!,

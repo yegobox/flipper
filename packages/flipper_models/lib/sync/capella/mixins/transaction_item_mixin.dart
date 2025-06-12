@@ -61,6 +61,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       required String transactionItemId,
       double? discount,
       bool? active,
+      bool? ignoreForReport,
       double? taxAmt,
       int? quantityApproved,
       int? quantityRequested,

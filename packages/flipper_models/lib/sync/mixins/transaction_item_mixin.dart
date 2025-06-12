@@ -292,6 +292,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   @override
   FutureOr<void> updateTransactionItem(
       {double? qty,
+      bool? ignoreForReport,
       required String transactionItemId,
       double? discount,
       bool? active,
@@ -317,6 +318,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     if (item != null) {
       item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
       item.discount = discount ?? item.discount;
+      item.ignoreForReport = ignoreForReport ?? item.ignoreForReport;
       item.active = active ?? item.active;
       item.price = price ?? item.price;
       item.prc = prc ?? item.price;

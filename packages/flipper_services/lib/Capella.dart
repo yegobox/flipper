@@ -1037,6 +1037,7 @@ class Capella extends AiStrategyImpl
       double? discount,
       bool? active,
       double? taxAmt,
+      bool ignoreForReport = false,
       int? quantityApproved,
       int? quantityRequested,
       bool? ebmSynced,
@@ -1824,6 +1825,7 @@ class Capella extends AiStrategyImpl
   Future<void> markItemAsDoneWithTransaction(
       {required List<brick.TransactionItem> inactiveItems,
       required brick.ITransaction pendingTransaction,
+      bool ignoreForReport = false,
       bool isDoneWithTransaction = false}) {
     // TODO: implement markItemAsDoneWithTransaction
     throw UnimplementedError();
@@ -1833,6 +1835,7 @@ class Capella extends AiStrategyImpl
   Future<bool> saveTransactionItem(
       {double? compositePrice,
       double? updatableQty,
+      bool ignoreForReport = false,
       required brick.Variant variation,
       required double amountTotal,
       required bool doneWithTransaction,

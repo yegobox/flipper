@@ -238,6 +238,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
         // STEP 1: Save the transaction item directly using the strategy
         final success = await ProxyService.strategy.saveTransactionItem(
           variation: variant,
+          ignoreForReport: false,
           amountTotal: variant.retailPrice!,
           customItem: false,
           doneWithTransaction: false,
