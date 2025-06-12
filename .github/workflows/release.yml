@@ -291,7 +291,7 @@ jobs:
           dart pub global activate melos 6.3.2
           melos bootstrap
 
-      - name: Configure Missing files
+      - name: Configure Missing files 
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
@@ -310,6 +310,9 @@ jobs:
 
       - name: Build and Package
         run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+          cd apps/flipper
           flutter clean
           dart run msix:create --store
 
