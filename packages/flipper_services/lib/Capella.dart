@@ -1694,6 +1694,7 @@ class Capella extends AiStrategyImpl
       required double discount,
       double? compositePrice,
       required double quantity,
+      required bool ignoreForReport,
       bool? doneWithTransaction,
       required double currentStock,
       brick.Variant? variation,

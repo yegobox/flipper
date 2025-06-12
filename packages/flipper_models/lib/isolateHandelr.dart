@@ -296,6 +296,8 @@ mixin PatchTransactionItem {
       if (transaction.customerName == null ||
           transaction.customerTin == null ||
           transaction.sarNo == null ||
+          transaction.receiptType == "TS" ||
+          transaction.receiptType == "PS" ||
           transaction.ebmSynced!) {
         continue;
       }

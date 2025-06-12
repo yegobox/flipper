@@ -12,6 +12,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   Future<void> addTransactionItem(
       {ITransaction? transaction,
       required bool partOfComposite,
+      required bool ignoreForReport,
       required DateTime lastTouched,
       required double discount,
       double? compositePrice,
