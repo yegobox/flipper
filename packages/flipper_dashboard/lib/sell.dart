@@ -65,6 +65,7 @@ class SellState extends ConsumerState<Sell> {
                   partOfComposite: false,
                   doneWithTransaction: false,
                   variation: variant!,
+                  ignoreForReport: false,
                   amountTotal: model.amountTotal,
                   customItem: false,
                   currentStock: variant.stock!.currentStock!,

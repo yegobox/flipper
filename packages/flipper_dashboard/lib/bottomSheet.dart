@@ -174,6 +174,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent> {
                             try {
                               await ProxyService.strategy.updateTransactionItem(
                                 qty: qty,
+                                ignoreForReport: false,
                                 transactionItemId: transactionItem.id,
                               );
 

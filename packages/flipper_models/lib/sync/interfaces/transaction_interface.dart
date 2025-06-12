@@ -90,6 +90,7 @@ abstract class TransactionInterface {
       {double? compositePrice,
       required Variant variation,
       required double amountTotal,
+      required bool ignoreForReport,
       required bool customItem,
       required bool doneWithTransaction,
       required ITransaction pendingTransaction,
@@ -103,6 +104,7 @@ abstract class TransactionInterface {
   Future<void> markItemAsDoneWithTransaction(
       {required List<TransactionItem> inactiveItems,
       required ITransaction pendingTransaction,
+      required bool ignoreForReport,
       bool isDoneWithTransaction = false});
   FutureOr<void> updateTransaction({
     required ITransaction? transaction,

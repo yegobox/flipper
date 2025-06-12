@@ -803,6 +803,7 @@ class _RowItemState extends ConsumerState<RowItem>
               await ProxyService.strategy.saveTransactionItem(
                 variation: variant,
                 doneWithTransaction: false,
+                ignoreForReport: false,
                 amountTotal: variant.retailPrice!,
                 customItem: false,
                 currentStock: variant.stock?.currentStock ?? 0,
@@ -817,6 +818,7 @@ class _RowItemState extends ConsumerState<RowItem>
           await ProxyService.strategy.saveTransactionItem(
             variation: widget.variant!,
             doneWithTransaction: false,
+            ignoreForReport: false,
             amountTotal: widget.variant?.retailPrice ?? 0,
             customItem: false,
             currentStock: widget.variant!.stock?.currentStock ?? 0,

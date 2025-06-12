@@ -100,6 +100,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   Future<bool> saveTransactionItem(
       {double? compositePrice,
+      bool? ignoreForReport,
       double? updatableQty,
       required Variant variation,
       required bool doneWithTransaction,
@@ -118,6 +119,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   Future<void> markItemAsDoneWithTransaction(
       {required List<TransactionItem> inactiveItems,
+      bool? ignoreForReport,
       required ITransaction pendingTransaction,
       bool isDoneWithTransaction = false}) {
     throw UnimplementedError(
