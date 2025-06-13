@@ -914,22 +914,21 @@ mixin AuthMixin implements AuthInterface {
             await Supabase.instance.client.auth
                 .signOut(); // Sign out if necessary
           }
-          AuthResponse auth =
-              await Supabase.instance.client.auth.signInWithPassword(
-            email: "1@flipper.rw",
-            password: "1@flipper.rw",
-          );
 
-          _saveSessionData(auth);
-          talker.debug('Supabase user created and signed in successfully');
-        } catch (signUpError) {
-          // If sign up fails (likely because user already exists), try sign in
-          talker.debug('Sign up failed, attempting sign in: $signUpError');
-          await _attemptSignIn(email);
+          // First attempt to sign up the user
+          talker.debug('Attempting to sign up user with email: $email');
           await Supabase.instance.client.auth.signUp(
             email: email,
             password: email,
           );
+          talker.debug('Supabase user created successfully, now signing in');
+
+          // After sign up, attempt to sign in
+          await _attemptSignIn(email);
+        } catch (signUpError) {
+          // If sign up fails (likely because user already exists), try sign in directly
+          talker.debug('Sign up failed, attempting sign in: $signUpError');
+          await _attemptSignIn(email);
         }
       } else {
         // User exists but session is invalid, just sign in

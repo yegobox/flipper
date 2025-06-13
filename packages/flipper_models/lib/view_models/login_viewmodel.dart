@@ -17,6 +17,7 @@ import 'package:supabase_models/brick/models/user.model.dart';
 import 'dart:async';
 
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:stacked/stacked.dart';
 
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
@@ -286,17 +287,24 @@ class LoginViewModel extends FlipperBaseModel
 
     if (e is LoginChoicesException) {
       talker.error('LoginChoicesException');
-      locator<RouterService>().navigateTo(LoginChoicesRoute());
+      _navigateWithTransition(LoginChoicesRoute());
       return;
     } else if (e is NeedSignUpException || e is BusinessNotFoundException) {
       talker.error('NeedSignUpException or BusinessNotFoundException');
-      locator<RouterService>().navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+      _navigateWithTransition(SignUpViewRoute(countryNm: "Rwanda"));
       return;
     } else if (e is NoPaymentPlanFound) {
       talker.error('NoPaymentPlanFound');
-      locator<RouterService>().navigateTo(PaymentPlanUIRoute());
+      _navigateWithTransition(PaymentPlanUIRoute());
       return;
     }
     throw e;
+  }
+  
+  /// Navigate to a route with a smooth transition
+  void _navigateWithTransition(PageRouteInfo<dynamic> route) {
+    // Use the router service to navigate with a smoother transition
+    // The actual transition is controlled by the router configuration
+    locator<RouterService>().navigateTo(route);
   }
 }
