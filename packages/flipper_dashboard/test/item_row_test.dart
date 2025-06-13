@@ -208,7 +208,7 @@ void main() {
   group('CheckOuts Tests', () {
     setUpAll(() async {
       // Initialize dependencies for test environment
-      await initializeDependenciesForTest();
+      // await initializeDependenciesForTest();
     });
 
     setUp(() {});
