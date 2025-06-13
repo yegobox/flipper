@@ -1216,7 +1216,6 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
-    bool fetchRemote = false,
   }) async {
     try {
       final repository = brick.Repository();
@@ -1885,7 +1884,7 @@ class CoreSync extends AiStrategyImpl
     final branches =
         await ProxyService.strategy.branches(fetchOnline: false, active: false);
     for (final branch in branches) {
-      ProxyService.strategy.updateBranch(
+      await ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
     }
   }
