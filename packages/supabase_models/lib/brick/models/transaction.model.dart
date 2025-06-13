@@ -168,7 +168,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.lastPaymentDate,
     num? lastPaymentAmount,
     this.originalTransactionId,
-    this.isOriginalTransaction,
+    bool? isOriginalTransaction,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
@@ -176,6 +176,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
         billingAmount = billingAmount ?? 0.0,
         totalInstallments = totalInstallments ?? 1,
         paidInstallments = paidInstallments ?? 0,
+        isOriginalTransaction = isOriginalTransaction ?? true,
         originalLoanAmount = originalLoanAmount ?? subTotal,
         remainingBalance =
             remainingBalance ?? (originalLoanAmount ?? subTotal ?? 0.0),
