@@ -15,18 +15,6 @@ mixin BusinessMixin implements BusinessInterface {
   Repository get repository;
 
   @override
-  Future<Branch> activeBranch() async {
-    final branches = await repository.get<Branch>(
-      policy: OfflineFirstGetPolicy.localOnly,
-    );
-
-    return branches.firstWhere(
-      (branch) => branch.isDefault == true || branch.isDefault == 1,
-      orElse: () => throw Exception("No default branch found"),
-    );
-  }
-
-  @override
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
       {"id": "1", "typeName": "Flipper Retailer"}
@@ -41,12 +29,13 @@ mixin BusinessMixin implements BusinessInterface {
 
   @override
   Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false}) async {
     return await repository.get<Business>(
         policy: fetchOnline
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [Where('userId').isExactly(userId)]));
+        query: Query(
+            where: [if (userId != null) Where('userId').isExactly(userId)]));
   }
 
   @override
@@ -237,6 +226,7 @@ mixin BusinessMixin implements BusinessInterface {
       String? backupFileId}) async {
     final query = Query(where: [Where('serverId').isExactly(businessId)]);
     final business = await repository.get<Business>(query: query);
+    
     if (business.firstOrNull != null) {
       Business businessUpdate = business.first;
 

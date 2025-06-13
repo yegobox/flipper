@@ -104,6 +104,8 @@ class CronService {
       }
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
+        final businessId = ProxyService.box.getBusinessId()!;
+        talker.info("Hydrating data for businessId: $businessId");
 
         /// end of work around
         // Hydrate essential data
@@ -119,9 +121,7 @@ class CronService {
                 .then((_) {}),
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
             ProxyService.strategy
-                .branches(
-                    serverId: ProxyService.box.getBusinessId()!,
-                    fetchOnline: true)
+                .branches(serverId: businessId, fetchOnline: true)
                 .then((_) {}),
             // ProxyService.strategy
             //     .variants(branchId: branchId, fetchRemote: true)

@@ -121,7 +121,6 @@ class AppService with ListenableServiceMixin {
     bool hasMultipleBranches = branches.length > 1;
 
     if (businesses.length == 1) {
-      
       // set it as default
       await ProxyService.strategy.updateBusiness(
         businessId: businesses.first.serverId,
@@ -130,7 +129,7 @@ class AppService with ListenableServiceMixin {
       );
     }
     if (branches.length == 1) {
-      updateAllBranchesInactive();
+      await updateAllBranchesInactive();
       // set it as default directly
       await ProxyService.strategy.updateBranch(
           branchId: branches.first.serverId!, active: true, isDefault: true);

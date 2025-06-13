@@ -68,6 +68,7 @@ class LoginViewModel extends FlipperBaseModel
 
       await ProxyService.strategy.login(
         userPhone: userPin.phoneNumber!,
+        isInSignUpProgress: false,
         skipDefaultAppSetup: false,
         pin: userPin,
         existingUser: user,
@@ -300,7 +301,7 @@ class LoginViewModel extends FlipperBaseModel
     }
     throw e;
   }
-  
+
   /// Navigate to a route with a smooth transition
   void _navigateWithTransition(PageRouteInfo<dynamic> route) {
     // Use the router service to navigate with a smoother transition
