@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
@@ -1210,6 +1211,8 @@ class CoreSync extends AiStrategyImpl
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
+  final _internetConnectionService = InternetConnectionService();
+
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
@@ -1217,13 +1220,15 @@ class CoreSync extends AiStrategyImpl
   }) async {
     try {
       final repository = brick.Repository();
+      final isOnline =
+          await _internetConnectionService.isOnline(deepCheck: true);
 
       final query = brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
           query: query,
-          policy: fetchRemote
+          policy: isOnline
               ? OfflineFirstGetPolicy.alwaysHydrate
               : OfflineFirstGetPolicy.localOnly);
       return result.firstOrNull;
