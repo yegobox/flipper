@@ -240,7 +240,7 @@ class PhoneVerificationService {
         _dialogKey.currentState!.dismissWithAnimation();
       } else {
         // Fallback to standard pop if we don't have the dialog reference
-        Navigator.of(context, rootNavigator: true).pop();
+        Navigator.of(context, rootNavigator: true).maybePop();
       }
       state.isAuthDialogShowing = false;
     }

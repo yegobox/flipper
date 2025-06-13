@@ -215,8 +215,8 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
-    final Plan? plan = await ProxyService.strategy
-        .getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
+    final Plan? plan =
+        await ProxyService.strategy.getPaymentPlan(businessId: businessId);
 
     if (plan == null) {
       throw NoPaymentPlanFound(
