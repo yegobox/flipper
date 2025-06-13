@@ -2,14 +2,14 @@
 // import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // import 'TestApp.dart';
-import 'package:flipper_rw/dependencyInitializer.dart';
+// import 'package:flipper_rw/dependencyInitializer.dart';
 
 // flutter test test/check_out_test.dart  --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('CheckOuts Tests', () {
     setUpAll(() async {
       // Initialize dependencies for test environment
-      await initializeDependenciesForTest();
+      // await initializeDependenciesForTest();
     });
 
     setUp(() {});

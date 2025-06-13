@@ -2386,14 +2386,20 @@ class CoreSync extends AiStrategyImpl
 
       if (variant != null && variant.stock != null) {
         final currentStock = variant.stock?.currentStock ?? 0;
-        final finalStock = currentStock - item.qty;
-        final stockValue = finalStock * (variant.retailPrice ?? 0);
+        // in proforma we do not update stock
+        if (!ProxyService.box.isProformaMode() &&
+            !ProxyService.box.isTrainingMode()) {
+          final finalStock = currentStock - item.qty;
+          final stockValue = finalStock * (variant.retailPrice ?? 0);
 
-        // Update all stock-related fields
-        variant.stock!.rsdQty = finalStock;
-        variant.stock!.currentStock = finalStock;
+          // Update all stock-related fields
+          variant.stock!.rsdQty = finalStock;
+          variant.stock!.currentStock = finalStock;
 
-        variant.stock!.value = stockValue;
+          variant.stock!.value = stockValue;
+          item.remainingStock = finalStock;
+        }
+
         variant.stock!.ebmSynced = false;
 
         // Update stock in repository
@@ -2402,7 +2408,7 @@ class CoreSync extends AiStrategyImpl
         // Update transaction item flags
         item.active = true;
         item.doneWithTransaction = true;
-        item.remainingStock = finalStock;
+
         item.updatedAt = DateTime.now().toUtc().toLocal();
         item.lastTouched = DateTime.now().toUtc().toLocal();
         await repository.upsert<TransactionItem>(item);
