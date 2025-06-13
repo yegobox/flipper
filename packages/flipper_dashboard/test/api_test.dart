@@ -1,10 +1,10 @@
-// import 'package:flipper_rw/dependencyInitializer.dart';
+import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Purchase with Variants', () {
     setUp(() async {
-      // await initializeDependenciesForTest();
+      await initializeDependenciesForTest();
     });
     // tearDown(mock.tearDown);
 

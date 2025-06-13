@@ -1,4 +1,4 @@
-// import 'package:flipper_rw/dependencyInitializer.dart';
+import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -8,7 +8,7 @@ void main() {
 
   group('IncomingOrdersWidget Integration Tests', () {
     setUpAll(() async {
-      // await initializeDependenciesForTest();
+      await initializeDependenciesForTest();
     });
     tearDownAll(() async {
       // ProxyService.strategy.deleteAll<Product>(tableName: productsTable);

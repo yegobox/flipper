@@ -336,9 +336,10 @@ Future<void> initializeDependenciesForTest() async {
 
   // Initialize only the necessary dependencies for tests
   await loadSupabase();
-  await initDependencies();
 
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();
+
+  await initDependencies();
 }
