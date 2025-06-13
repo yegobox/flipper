@@ -97,7 +97,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
           branchIdString: branchIdString,
           fetchRemote: false)
       .map((transactions) {
-    talker.debug('Received ${transactions.length} transactions');
+    talker.debug('Received ${transactions.length} transactions items');
     return transactions;
   }).handleError((error, stackTrace) {
     talker.error('Error loading transaction items: $error');
