@@ -71,6 +71,7 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
 
         await ProxyService.strategy.login(
           pin: thePin,
+          isInSignUpProgress: false,
           flipperHttpClient: ProxyService.http,
           skipDefaultAppSetup: false,
           userPhone: pin.phoneNumber,

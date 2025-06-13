@@ -191,6 +191,7 @@ class EventService
             // Use the standard login flow from auth_mixin
             await ProxyService.strategy.login(
               pin: thePin,
+              isInSignUpProgress: false,
               flipperHttpClient: ProxyService.http,
               skipDefaultAppSetup: false,
               userPhone: loginData.phone,

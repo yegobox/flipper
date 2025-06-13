@@ -385,9 +385,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<List<Branch>> branches(
-      {required int serverId,
-      bool? active = false,
-      required bool fetchOnline}) {
+      {int? serverId, bool? active = false, required bool fetchOnline}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -680,6 +678,7 @@ class Capella extends AiStrategyImpl
   Future<extensions.IUser> login(
       {required String userPhone,
       IUser? existingUser,
+      required bool isInSignUpProgress,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
@@ -1417,7 +1416,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<List<brick.Business>> businesses(
-      {required int userId, bool fetchOnline = false}) {
+      {int? userId, bool fetchOnline = false}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }
@@ -2305,6 +2304,12 @@ class Capella extends AiStrategyImpl
   @override
   Future<void> cleanDuplicatePlans() {
     // TODO: implement cleanDuplicatePlans
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> saveBranch(brick.Branch branch) {
+    // TODO: implement saveBranch
     throw UnimplementedError();
   }
 }

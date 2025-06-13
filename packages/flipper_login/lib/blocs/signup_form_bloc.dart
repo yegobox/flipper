@@ -1,12 +1,14 @@
 import 'dart:developer';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/viewmodels/signup_viewmodel.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/locator.dart' as loc;
 
 /// Form bloc for handling signup form validation and submission
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
@@ -116,15 +118,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       log('Signup completed successfully',
           name: 'AsyncFieldValidationFormBloc');
 
+      loc.getIt<AppService>().appInit();
       // If we're still on this screen, navigate to the app
       final routerService = locator<RouterService>();
-      final defaultApp = ProxyService.box.getDefaultApp();
 
-      if (defaultApp == "2") {
-        routerService.navigateTo(const SocialHomeViewRoute());
-      } else {
-        routerService.navigateTo(const FlipperAppRoute());
-      }
+      routerService.navigateTo(StartUpViewRoute());
 
       emitSuccess();
       signupViewModel.stopRegistering(); // Ensure we stop the loading state

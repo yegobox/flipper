@@ -356,10 +356,40 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
-    await configureTheBox(userPhone, user);
-    await saveNeccessaryData(user);
+    // Add system configuration logic here
+    if (user.id == null) {
+      talker.error(
+          'User ID is null in configureSystem for user: ${user.phoneNumber}');
+      return;
+    }
+    if (offlineLogin == false) {
+      await saveNeccessaryData(user);
+    }
+    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
+    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
+
+    // Ensure the PIN record has the correct UID to prevent duplicates
+    if (user.uid != null) {
+      // Check if a PIN with this userId already exists
+      final existingPin = await ProxyService.strategy.getPinLocal(
+          userId: user.id!,
+          alwaysHydrate: false // Use local-only to avoid network calls
+          );
+
+      if (existingPin != null) {
+        // Update the existing PIN with the correct UID
+        if (existingPin.uid != user.uid) {
+          talker.debug(
+              "Updating existing PIN with correct UID during configureSystem");
+          await ProxyService.strategy.updatePin(
+              userId: user.id!, tokenUid: user.uid, phoneNumber: userPhone);
+        }
+      }
+    }
+
     if (!offlineLogin) {
-      await supabaseAuth();
+      // Perform online-specific configuration
+      await firebaseLogin();
     }
   }
 
@@ -1723,7 +1753,7 @@ class CoreSync extends AiStrategyImpl
         talker.error('Response body: ${response.body}');
         throw InternalServerError(term: response.body.toString());
       }
-      
+
       talker.info('Signup: Business created successfully, parsing response');
       final responseBody = response.body;
       talker.debug('Response body: $responseBody');
@@ -1734,12 +1764,17 @@ class CoreSync extends AiStrategyImpl
       try {
         jsonData = jsonDecode(responseBody);
         bus = Business.fromMap(jsonData);
-        talker.info('Signup: Business parsed successfully, ID: ${bus.serverId}');
+        talker
+            .info('Signup: Business parsed successfully, ID: ${bus.serverId}');
       } catch (e, s) {
         talker.error('Signup: Error parsing business data: $e', s);
         throw e;
       }
-      
+
+      /// deactivate any other branch/or business already set, this is the case for a user
+      /// who can signup on a device that had account
+      await resetForNewDevice();
+
       // Save branch and business IDs early
       ProxyService.box.writeInt(key: 'businessId', value: bus.serverId);
       ProxyService.box.writeInt(key: 'branchId', value: bus.serverId);
@@ -1793,6 +1828,7 @@ class CoreSync extends AiStrategyImpl
       try {
         talker.info('Signup: Logging in with new PIN');
         await login(
+            isInSignUpProgress: true,
             pin: savedPin,
             userPhone: business['phoneNumber'],
             skipDefaultAppSetup: true,
@@ -1828,6 +1864,24 @@ class CoreSync extends AiStrategyImpl
     } catch (e, s) {
       talker.error('Signup: Unhandled error: $e', s);
       rethrow;
+    }
+  }
+
+  Future<void> resetForNewDevice() async {
+    final businesses =
+        await ProxyService.strategy.businesses(fetchOnline: false);
+    for (final business in businesses) {
+      await ProxyService.strategy.updateBusiness(
+        businessId: business.serverId,
+        active: false,
+        isDefault: false,
+      );
+    }
+    final branches =
+        await ProxyService.strategy.branches(fetchOnline: false, active: false);
+    for (final branch in branches) {
+      ProxyService.strategy.updateBranch(
+          branchId: branch.serverId!, active: false, isDefault: false);
     }
   }
 

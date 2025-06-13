@@ -7,11 +7,12 @@ abstract class BranchInterface {
   Future<bool> logOut();
   FutureOr<Branch?> branch({required int serverId});
   Future<List<Branch>> branches(
-      {required int serverId, bool? active, required bool fetchOnline});
+      {int? serverId, bool? active, required bool fetchOnline});
   void clearData({required ClearData data, required int identifier});
   Future<List<Business>> businesses({required int userId});
   Future<List<Category>> categories({required int branchId});
   Stream<List<Category>> categoryStream();
   Future<Branch> activeBranch();
   Stream<Branch> activeBranchStream();
+  Future<void> saveBranch(Branch branch);
 }
