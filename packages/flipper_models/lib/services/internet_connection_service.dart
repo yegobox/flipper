@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:http/http.dart' as http;
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -264,5 +265,24 @@ class InternetConnectionService {
   void resetConnectionRequirement() {
     ProxyService.box.remove(key: _lastConnectionKey);
     talker.info('Connection requirement reset');
+  }
+
+  /// Check if the device currently has an internet connection
+  /// Returns true if online, false if offline
+  Future<bool> isOnline({bool deepCheck = false}) async {
+    talker.info('Checking if device is online (deepCheck: $deepCheck)');
+
+    if (deepCheck) {
+      return await _checkInternetConnectivity();
+    }
+
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 3));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      talker.warning('Simple connectivity check failed: $e');
+      return false;
+    }
   }
 }
