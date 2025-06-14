@@ -20,7 +20,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   @override
   Widget build(BuildContext context) {
-    final branches = ref.watch(branchesProvider((includeSelf: false)));
+    final branches = ref.watch(branchesProvider((active: false)));
     final isProcessing = ref.watch(isProcessingProvider);
     final theme = Theme.of(context);
 
@@ -361,7 +361,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           branchId: branch.serverId!,
           flipperHttpClient: ProxyService.http,
         );
-        ref.refresh(branchesProvider((includeSelf: false)));
+        ref.refresh(branchesProvider((active: false)));
       }
     });
   }
@@ -379,7 +379,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           userOwnerPhoneNumber: ProxyService.box.getUserPhone()!,
           flipperHttpClient: ProxyService.http,
         );
-        ref.refresh(branchesProvider((includeSelf: false)));
+        ref.refresh(branchesProvider((active: false)));
         _nameController.clear();
         _locationController.clear();
         setState(() {

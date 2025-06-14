@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flipper_models/services/sqlite_service.dart';
 import 'package:path/path.dart' as path;
+import 'package:supabase_models/brick/repository.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -83,11 +84,13 @@ class CronService {
 
       ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
-      final dbDir = await DatabasePath.getDatabaseDirectory();
 
       ///temporaly work around for missing bhf_id column in Counter table
       try {
-        final dbPath = path.join(dbDir, 'flipper_v17.sqlite');
+        // Get the database directory and construct the path using Repository.dbFileName
+        final dbDir = await DatabasePath.getDatabaseDirectory();
+        // Use the imported path package correctly
+        final dbPath = path.join(dbDir, Repository.dbFileName);
         SqliteService.addColumnIfNotExists(
             dbPath, 'Counter', 'bhf_id', 'TEXT DEFAULT "00"');
 
@@ -147,9 +150,7 @@ class CronService {
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
-            ProxyService.strategy
-                .branches(serverId: businessId, fetchOnline: true)
-                .then((_) {}),
+
             // ProxyService.strategy
             //     .variants(branchId: branchId, fetchRemote: true)
             //     .then((_) {}),

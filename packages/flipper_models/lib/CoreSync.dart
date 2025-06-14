@@ -2944,23 +2944,6 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-  @override
-  FutureOr<void> updateBranch(
-      {required int branchId,
-      String? name,
-      bool? active,
-      bool? isDefault}) async {
-    final query =
-        brick.Query(where: [brick.Where('serverId').isExactly(branchId)]);
-    final branch = await repository.get<Branch>(query: query);
-    if (branch.firstOrNull != null) {
-      final updated = branch.first.copyWith(
-        active: active,
-        isDefault: isDefault,
-      );
-      await repository.upsert<Branch>(updated);
-    }
-  }
 
   @override
   Future<DatabaseSyncInterface> configureLocal(

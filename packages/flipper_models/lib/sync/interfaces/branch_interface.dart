@@ -15,4 +15,6 @@ abstract class BranchInterface {
   Future<Branch> activeBranch();
   Stream<Branch> activeBranchStream();
   Future<void> saveBranch(Branch branch);
+  FutureOr<void> updateBranch(
+      {required int branchId, String? name, bool? active, bool? isDefault});
 }

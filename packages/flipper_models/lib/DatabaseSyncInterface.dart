@@ -495,8 +495,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<void> updateReport({required String reportId, bool? downloaded});
 
-  FutureOr<void> updateBranch(
-      {required int branchId, String? name, bool? active, bool? isDefault});
 
   FutureOr<void> updateNotification(
       {required String notificationId, bool? completed});

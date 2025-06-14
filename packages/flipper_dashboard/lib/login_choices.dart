@@ -40,7 +40,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, viewModel, child) {
         final businesses = ref.watch(businessesProvider);
-        final branches = ref.watch(branchesProvider((includeSelf: false)));
+        final branches = ref.watch(branchesProvider((active: false,)));
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -207,7 +207,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           _selectedBusiness = business;
           _isSelectingBranch = true;
         });
-        ref.refresh(branchesProvider((includeSelf: false)));
+        ref.refresh(branchesProvider((active: false)));
       }
     } catch (e) {
       talker.error('Error handling business selection: $e');
@@ -230,10 +230,16 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
-    // Set loading state for the selected branch
+    // Set loading state for the selected branch and immediately hide branch selection
     setState(() {
       _loadingItemId = branch.serverId?.toString();
+      _isLoading = true; // Show loading indicator instead of branch selection
+      _isSelectingBranch = false; // Hide branch selection immediately
     });
+
+    // Set flag to prevent branch selection from showing again during navigation
+    await ProxyService.box
+        .writeBool(key: 'branch_navigation_in_progress', value: true);
 
     try {
       await _setDefaultBranch(branch);
@@ -334,6 +340,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
       await ProxyService.box
           .writeString(key: 'branchIdString', value: branch.id);
+      // Set switched flag for other components to detect
+      await ProxyService.box.writeBool(key: 'branch_switched', value: true);
+      await ProxyService.box.writeInt(
+          key: 'last_branch_switch_timestamp',
+          value: DateTime.now().millisecondsSinceEpoch);
+      await ProxyService.box
+          .writeInt(key: 'active_branch_id', value: branch.serverId!);
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
     } catch (e) {
@@ -408,11 +421,22 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       'source': 'login_choices',
       if (_selectedBusiness != null) 'business_id': _selectedBusiness!.serverId,
     });
+
+    // Use pushReplacementNamed to completely replace the current screen
+    // This prevents the branch selection from reappearing momentarily
+    // Navigator.of(context).pushReplacementNamed(FlipperAppRoute().path);
+
     _routerService.navigateTo(FlipperAppRoute());
+
+    // Clear the navigation flag after a delay
+    Future.delayed(const Duration(seconds: 2), () {
+      ProxyService.box
+          .writeBool(key: 'branch_navigation_in_progress', value: false);
+    });
   }
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider((includeSelf: false)));
+    ref.refresh(branchesProvider((active: false)));
   }
 }

@@ -146,8 +146,17 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   TextEditingController getDiscountController(String variantId,
       {int? defaultDiscount}) {
     if (!_discountControllers.containsKey(variantId)) {
+      // First check if this variant exists in scannedVariants and has a dcRt value
+      final variant = scannedVariants.firstWhere((v) => v.id == variantId,
+          orElse: () => Variant(id: variantId, name: ''));
+
+      // Use variant's dcRt if available, otherwise use defaultDiscount or 0
+      final discountValue = variant.dcRt != null
+          ? variant.dcRt!.toInt().toString()
+          : defaultDiscount?.toString() ?? '0';
+
       _discountControllers[variantId] = TextEditingController(
-        text: defaultDiscount?.toString() ?? '0',
+        text: discountValue,
       );
     }
     return _discountControllers[variantId]!;
@@ -515,7 +524,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             variant.expirationDate =
                 DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
           }
-          
+
           // Update discount rate from discount controller if available
           if (_discountControllers.containsKey(variant.id)) {
             final discountText = _discountControllers[variant.id]!.text;
@@ -528,7 +537,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               }
             }
           }
-          
+
           await ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
             color: color,

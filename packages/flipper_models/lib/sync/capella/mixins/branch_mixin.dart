@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -11,6 +13,16 @@ mixin CapellaBranchMixin implements BranchInterface {
   @override
   Future<Branch?> branch({required int serverId}) async {
     throw UnimplementedError('branch needs to be implemented for Capella');
+  }
+
+  @override
+  FutureOr<void> updateBranch(
+      {required int branchId,
+      String? name,
+      bool? active,
+      bool? isDefault}) async {
+    throw UnimplementedError(
+        'updateBranch needs to be implemented for Capella');
   }
 
   @override
