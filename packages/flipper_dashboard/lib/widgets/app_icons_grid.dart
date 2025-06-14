@@ -64,9 +64,6 @@ class AppIconsGrid extends ConsumerWidget {
       case "Contacts":
         await _routerService.navigateTo(CustomersRoute());
         break;
-      case "Orders":
-        await _routerService.navigateTo(InventoryRequestMobileViewRoute());
-        break;
       case "Credits":
         await _routerService.navigateTo(CreditAppRoute());
         break;
@@ -115,13 +112,6 @@ class AppIconsGrid extends ConsumerWidget {
         'page': "Contacts",
         'label': "Contacts",
         'feature': 'Contacts'
-      },
-      {
-        'icon': Icons.store_rounded,
-        'color': Colors.green,
-        'page': "Orders",
-        'label': "Orders",
-        'feature': 'Orders'
       },
       {
         'icon': Icons.call,
