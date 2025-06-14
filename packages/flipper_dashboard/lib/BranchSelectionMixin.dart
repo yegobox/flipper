@@ -88,6 +88,11 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required VoidCallback onComplete,
     required void Function(bool) setIsLoading,
   }) async {
+    // Prevent multiple branch switches at once
+    if (ProxyService.box.readBool(key: 'branch_switching') ?? false) {
+      print('Branch switch already in progress, ignoring request');
+      return;
+    }
     setLoadingState(branch.serverId?.toString());
     setIsLoading(true);
     final appService = loc.getIt<AppService>();
@@ -136,7 +141,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  // New method to force refresh after branch switch
+  // Method to force refresh after branch switch without causing navigation loops
   Future<void> _forceRefreshAfterBranchSwitch(int branchId) async {
     try {
       // Set flags to trigger refresh in other components
@@ -147,7 +152,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       await ProxyService.box.writeInt(key: 'active_branch_id', value: branchId);
 
       // Force refresh of branch providers
-      ref.invalidate(branchesProvider((includeSelf: false)));
+      ref.invalidate(branchesProvider((active: false)));
 
       // Trigger a search refresh to force variant reload
       // First emit "search" to trigger the refresh
@@ -233,6 +238,14 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     required VoidCallback onLogout,
     required void Function(String? id) setLoadingState,
   }) async {
+    // Check if we're already in the middle of branch navigation
+    // This prevents the branch selection dialog from showing up again during navigation
+    if (ProxyService.box.readBool(key: 'branch_navigation_in_progress') ??
+        false) {
+      print(
+          'Branch navigation already in progress, skipping branch selection dialog');
+      return;
+    }
     // Show dialog immediately without waiting for branches
     await showDialog(
       context: context,
@@ -398,7 +411,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     // This method refreshes data after branch switch without requiring a full app reload
     try {
       // Force a refresh of branch providers
-      ref.invalidate(branchesProvider((includeSelf: false)));
+      ref.invalidate(branchesProvider((active: false)));
 
       // Set a flag in storage to indicate a branch switch occurred
       // This can be used by other widgets to detect when they should refresh
@@ -876,15 +889,35 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                 }
                               },
                               onComplete: () {
-                                Navigator.of(context).pop();
-                                // Don't reload the entire app, just refresh the current view
-                                // This prevents getting stuck in the startup view
+                                // First navigate to main app route to prevent branch selection from showing again
+                                // Then close the dialog
                                 if (mounted) {
+                                  // Set a flag to indicate we're handling navigation ourselves
+                                  ProxyService.box.writeBool(
+                                      key: 'branch_navigation_in_progress',
+                                      value: true);
+
+                                  // Force immediate navigation to the main app route
+                                  locator<RouterService>()
+                                      .replaceWith(FlipperAppRoute());
+
+                                  // Close the dialog after navigation is initiated
+                                  Navigator.of(context).pop();
+
+                                  // Show feedback to the user
                                   showCustomSnackBarUtil(
                                     context,
                                     'Switched to ${branch.name}',
                                     duration: const Duration(seconds: 2),
                                   );
+
+                                  // Clear the navigation flag after a delay
+                                  Future.delayed(const Duration(seconds: 2),
+                                      () {
+                                    ProxyService.box.writeBool(
+                                        key: 'branch_navigation_in_progress',
+                                        value: false);
+                                  });
                                 }
                               },
                               setIsLoading: (_) {},

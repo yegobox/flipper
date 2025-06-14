@@ -243,7 +243,7 @@ class IconRowState extends ConsumerState<IconRow>
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider((includeSelf: false)));
+    ref.refresh(branchesProvider((active: false)));
   }
 
   void _showBranchPerformanceMobile(BuildContext context) {

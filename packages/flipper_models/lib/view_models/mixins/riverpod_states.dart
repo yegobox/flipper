@@ -687,13 +687,13 @@ final variantsProvider = FutureProvider.autoDispose
   return await ProxyService.strategy.variants(branchId: branchId);
 });
 final branchesProvider = FutureProvider.autoDispose
-    .family<List<Branch>, ({bool? includeSelf})>((ref, params) async {
-  final (:includeSelf) = params;
+    .family<List<Branch>, ({bool? active})>((ref, params) async {
+  final (:active) = params;
   final businessId = ProxyService.box.getBusinessId();
 
   // Awaiting the asynchronous call
   final branches = await ProxyService.strategy
-      .branches(serverId: businessId!, active: includeSelf, fetchOnline: false);
+      .branches(serverId: businessId!, active: active, fetchOnline: false);
 
   return branches;
 });

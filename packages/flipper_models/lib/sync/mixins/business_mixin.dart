@@ -10,6 +10,10 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:http/http.dart' as http;
+import 'package:flipper_models/services/sqlite_service.dart';
+import 'package:supabase_models/brick/databasePath.dart';
+import 'package:path/path.dart' as path;
+import 'package:flipper_models/helperModels/talker.dart';
 
 mixin BusinessMixin implements BusinessInterface {
   Repository get repository;
@@ -224,43 +228,71 @@ mixin BusinessMixin implements BusinessInterface {
       bool? active,
       bool? isDefault,
       String? backupFileId}) async {
-    final query = Query(where: [Where('serverId').isExactly(businessId)]);
-    final business = await repository.get<Business>(query: query);
-    
-    if (business.firstOrNull != null) {
-      Business businessUpdate = business.first;
+    try {
+      // Get the database directory and construct the path using Repository.dbFileName
+      final dbDir = await DatabasePath.getDatabaseDirectory();
+      final dbPath = path.join(dbDir, Repository.dbFileName);
 
-      // Special handling for isDefault flag
-      // Only update isDefault to true when explicitly set to true
-      // Preserve existing isDefault value when set to false during logout
+      // First, check if we need special handling for isDefault flag
+      bool updateIsDefault = false;
+      bool isDefaultValue = false;
+
       if (isDefault != null) {
         // Only set isDefault to true when explicitly requested
-        // Ignore attempts to set it to false during automatic logouts
         if (isDefault == true) {
-          businessUpdate.isDefault = true;
+          updateIsDefault = true;
+          isDefaultValue = true;
         }
         // If we're in login_choices.dart and explicitly setting isDefault to false, allow it
-        // This is needed for proper business switching
         else if (StackTrace.current.toString().contains('login_choices.dart')) {
-          businessUpdate.isDefault = false;
+          updateIsDefault = true;
+          isDefaultValue = false;
         }
         // Otherwise preserve the existing isDefault value (don't change it during auto-logout)
       }
 
-      // Update active status when provided
+      // Build the SQL update statement with only the fields that are provided
+      final List<String> updateParts = [];
+      final List<Object?> params = [];
+
       if (active != null) {
-        businessUpdate.active = active;
+        updateParts.add('active = ?');
+        params.add(active ? 1 : 0); // SQLite uses 1 for true, 0 for false
       }
 
-      // Update other properties
+      if (updateIsDefault) {
+        updateParts.add('is_default = ?');
+        params.add(isDefaultValue ? 1 : 0);
+      }
+
       if (name != null) {
-        businessUpdate.name = name;
-      }
-      if (backupFileId != null) {
-        businessUpdate.backupFileId = backupFileId;
+        updateParts.add('name = ?');
+        params.add(name);
       }
 
-      repository.upsert<Business>(businessUpdate);
+      if (backupFileId != null) {
+        updateParts.add('backup_file_id = ?');
+        params.add(backupFileId);
+      }
+
+      // Only proceed if we have fields to update
+      if (updateParts.isNotEmpty) {
+        // Add the business ID to the params list
+        params.add(businessId);
+
+        final sql =
+            'UPDATE business SET ${updateParts.join(', ')} WHERE server_id = ?';
+
+        // Execute the raw SQL update
+        final rowsAffected = SqliteService.execute(dbPath, sql, params);
+
+        talker
+            .debug('Updated business $businessId: $rowsAffected rows affected');
+      }
+    } catch (e, stack) {
+      talker.error('Error in updateBusiness: $e');
+      talker.error('Stack trace: $stack');
+      rethrow;
     }
   }
 

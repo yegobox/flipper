@@ -18,7 +18,7 @@ class Orders extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final suppliers = ref.watch(branchesProvider((includeSelf: false)));
+    final suppliers = ref.watch(branchesProvider((active: false)));
     final theme = Theme.of(context);
     final pendingTransaction =
         ref.watch(pendingTransactionStreamProvider(isExpense: true));
