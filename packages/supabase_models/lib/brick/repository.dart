@@ -52,6 +52,15 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static DatabaseConfigStorage? _configStorage;
   static SharedPreferenceStorage? _sharedPreferenceStorage;
 
+  // Constants for database filenames and versioning
+  static const _dbFileBaseName = 'flipper';
+  static const _queueFileBaseName = 'brick_offline_queue';
+  static const _standardVersion = 17;
+  static const _mobileTargetVersion = 18;
+
+  // Flag to override version increment behavior (null = use platform default)
+  static bool? _overrideVersionIncrement;
+
   // Managers for different responsibilities
   late final BackupManager _backupManager;
   late final DatabaseManager _databaseManager;
@@ -62,6 +71,44 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static bool _isCleanupInProgress = false;
   static bool _isMigrationInProgress = false;
   static DateTime? _lastBackupTime;
+
+  /// Override the default version increment behavior
+  ///
+  /// @param incrementOverride - Controls version increment behavior:
+  ///   - null: Use platform default (increment on mobile, default on others)
+  ///   - true: Force increment on all platforms
+  ///   - false: Force no increment on all platforms
+  static void setVersionIncrementOverride(bool? incrementOverride) {
+    _overrideVersionIncrement = incrementOverride;
+    _logger
+        .info('Database version increment override set to: $incrementOverride');
+    _logger.info('Using database filename: $_generatedDefaultDbFileName');
+    _logger.info('Using queue filename: $_generatedDefaultQueueFileName');
+  }
+
+  // Dynamic version getter based on platform and override flag
+  static int get _effectiveVersion {
+    // If override is set, use it
+    if (_overrideVersionIncrement != null) {
+      return _overrideVersionIncrement!
+          ? _mobileTargetVersion
+          : _standardVersion;
+    }
+
+    // Otherwise use platform default (mobile version on mobile platforms)
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      return _mobileTargetVersion;
+    }
+    return _standardVersion;
+  }
+
+  static String get _generatedDefaultDbFileName {
+    return '${_dbFileBaseName}_v$_effectiveVersion.sqlite';
+  }
+
+  static String get _generatedDefaultQueueFileName {
+    return '${_queueFileBaseName}_v$_effectiveVersion.sqlite';
+  }
 
   /// Set the storage for database configuration
   static void setConfigStorage(DatabaseConfigStorage storage) {
@@ -83,13 +130,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     return _sharedPreferenceStorage!;
   }
 
-  // Get the database filename from storage or use default
+  // Get the database filename from storage or use dynamic default
   static String get dbFileName =>
-      _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
+      _configStorage?.getDatabaseFilename() ?? _generatedDefaultDbFileName;
 
-  // Get the queue filename from storage or use default
+  // Get the queue filename from storage or use dynamic default
   static String get queueName =>
-      _configStorage?.getQueueFilename() ?? defaultQueueName;
+      _configStorage?.getQueueFilename() ?? _generatedDefaultQueueFileName;
 
   Repository._({
     required super.supabaseProvider,

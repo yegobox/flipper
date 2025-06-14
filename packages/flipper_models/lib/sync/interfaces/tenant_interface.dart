@@ -33,7 +33,6 @@ abstract class TenantInterface {
 
   Stream<Tenant?> getDefaultTenant({required int businessId});
 
-  Future<Branch> activeBranch();
   Future<User?> authUser({required String uuid});
   // save user
   Future<User> saveUser({required User user});

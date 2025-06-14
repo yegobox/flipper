@@ -73,7 +73,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
-      appService.appInit();
+      await appService.appInit();
       // Handle navigation based on user state and app settings.
       _routerService.navigateTo(FlipperAppRoute());
       talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");

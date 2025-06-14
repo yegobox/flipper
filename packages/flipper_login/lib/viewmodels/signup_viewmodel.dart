@@ -48,16 +48,25 @@ class SignupViewModel extends BaseViewModel {
 
   /// Perform signup
   Future<void> signup() async {
+    String? phoneNumber = ProxyService.box.getUserPhone();
+    int? userId = ProxyService.box.getUserId();
     try {
       // Create business map with all required fields
       final Map<String, dynamic> businessMap = {
         'name': name ?? '',
         'fullName': fullName ?? '',
         'country': country ?? '',
-        'tin': tin ?? '',
-        'businessType': businessType?.id ?? '',
+        'tinNumber': tin ?? '',
+        'businessType': businessType?.id ?? '1',
+        'phoneNumber': phoneNumber ?? '',
+        'currency': 'RWF',
+        'longitude': 1,
+        'latitude': 1,
+        'bhfid': '00',
+        'businessTypeId': "1",
+        'userId': userId,
       };
-      
+
       // Signup logic implementation with correct signature
       await ProxyService.strategy.signup(
         business: businessMap,

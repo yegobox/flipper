@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:io';
 
-import '../LoadingDialog.dart';
+import '../animated_loading_dialog.dart';
 import 'phone_auth_state.dart';
 
 /// Service class to handle phone verification logic
@@ -16,6 +16,10 @@ class PhoneVerificationService {
   final Function(String) showErrorSnackBar;
   final Function() startResendTimer;
   final AnimationController animationController;
+
+  // Reference to the animated dialog
+  GlobalKey<AnimatedLoadingDialogState> _dialogKey =
+      GlobalKey<AnimatedLoadingDialogState>();
 
   PhoneVerificationService({
     required this.state,
@@ -202,7 +206,7 @@ class PhoneVerificationService {
     }
   }
 
-  /// Show authentication loading dialog
+  /// Show authentication loading dialog with fade animation
   void showAuthenticationDialog() {
     print(
         'Dialog state: _isAuthDialogShowing=${state.isAuthDialogShowing}, mounted=${context.mounted}, _showVerificationUI=${state.showVerificationUI}');
@@ -210,21 +214,34 @@ class PhoneVerificationService {
     if (state.isAuthDialogShowing || !context.mounted) return;
 
     state.isAuthDialogShowing = true;
+
+    // Show the animated dialog with a global key for state access
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return const LoadingDialog(message: 'Finalizing authentication...');
+        return AnimatedLoadingDialog(
+          key: _dialogKey,
+          message: 'Finalizing authentication...',
+          animationDuration: const Duration(milliseconds: 300),
+        );
       },
     ).then((_) {
       state.isAuthDialogShowing = false;
     });
   }
 
-  /// Hide authentication loading dialog
+  /// Hide authentication loading dialog with standard pop
   void hideAuthenticationDialog() {
     if (state.isAuthDialogShowing && context.mounted) {
-      Navigator.of(context, rootNavigator: true).pop();
+      // If we have a reference to the animated dialog, use it for dismissal
+      if (_dialogKey.currentState != null) {
+        // This will trigger the fade-out animation before popping
+        _dialogKey.currentState!.dismissWithAnimation();
+      } else {
+        // Fallback to standard pop if we don't have the dialog reference
+        Navigator.of(context, rootNavigator: true).maybePop();
+      }
       state.isAuthDialogShowing = false;
     }
   }
@@ -256,11 +273,52 @@ class PhoneVerificationService {
       print('⭐️ completeLoginProcess completed successfully');
     } catch (e, s) {
       print('⭐️ Error in handleAuthStateChanges: $e');
-      // Make sure to dismiss any loading dialog before handling the error
-      hideAuthenticationDialog();
-      // Add a small delay to ensure dialog is fully dismissed
-      await Future.delayed(Duration(milliseconds: 100));
+      // Handle the error with a smooth transition
+      await handleErrorWithSmoothTransition(e, s);
+    }
+  }
+
+  /// Handles errors with a smooth transition for dialog dismissal and navigation
+  Future<void> handleErrorWithSmoothTransition(Object e, StackTrace s) async {
+    // First determine if this error will lead to navigation
+    final bool willNavigate = e is NeedSignUpException ||
+        e is BusinessNotFoundException ||
+        e is LoginChoicesException ||
+        e is NoPaymentPlanFound;
+
+    if (willNavigate) {
+      // Use a fade transition for the dialog dismissal
+      if (state.isAuthDialogShowing && context.mounted) {
+        // For navigation cases, use a smoother dismissal
+        await dismissDialogWithAnimation();
+      }
+
+      // Now handle the error which will trigger navigation
       state.loginViewModel.handleLoginError(e, s);
+    } else {
+      // For non-navigation errors, use standard dismissal
+      hideAuthenticationDialog();
+      state.loginViewModel.handleLoginError(e, s);
+    }
+  }
+
+  /// Dismisses the dialog with a true fade animation for smoother transitions
+  Future<void> dismissDialogWithAnimation() async {
+    if (!state.isAuthDialogShowing || !context.mounted) return;
+
+    // Set flag to prevent multiple dismissals
+    state.isAuthDialogShowing = false;
+
+    // If we have a reference to the animated dialog, use it for dismissal with animation
+    if (_dialogKey.currentState != null) {
+      // This will trigger the fade-out animation before popping
+      await _dialogKey.currentState!.dismissWithAnimation();
+    } else {
+      // Fallback to standard pop with a delay if we don't have the dialog reference
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // Wait for the animation to complete
+      await Future.delayed(const Duration(milliseconds: 250));
     }
   }
 }

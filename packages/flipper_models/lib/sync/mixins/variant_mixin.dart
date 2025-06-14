@@ -189,6 +189,7 @@ mixin VariantMixin implements VariantInterface {
       String? productName,
       String? unit,
       String? pkgUnitCd,
+      double? dcRt,
       DateTime? expirationDate,
       bool? ebmSynced}) async {
     if (variantId != null) {
@@ -221,16 +222,15 @@ mixin VariantMixin implements VariantInterface {
       updatables[i].categoryName = category?.name ?? updatables[i].categoryName;
       updatables[i].itemStdNm = name;
       updatables[i].spplrItemNm = name;
-      double rate = rates?[updatables[i].id] == null
-          ? 0
-          : double.parse(rates![updatables[i].id]!);
       if (color != null) {
         updatables[i].color = color;
       }
       updatables[i].bhfId = updatables[i].bhfId ?? "00";
       updatables[i].itemNm = name;
       updatables[i].expirationDate = expirationDate;
-
+      if (dcRt != null) {
+        updatables[i].dcRt = dcRt;
+      }
       updatables[i].ebmSynced = ebmSynced ?? false;
       updatables[i].retailPrice =
           newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
@@ -238,7 +238,6 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].itemTyCd = selectedProductType;
       }
 
-      updatables[i].dcRt = rate;
       updatables[i].expirationDate = dates?[updatables[i].id] == null
           ? null
           : DateTime.tryParse(dates![updatables[i].id]!);

@@ -232,9 +232,6 @@ mixin Booting {
     await ProxyService.box
         .writeString(key: 'bearerToken', value: user.token ?? "");
 
-    /// FIXME: should set branchId and businessId by looking into what is set to be default
-    /// when we enable for a user to login on multiple
-
     talker.warning("Upon login: UserId ${user.id}: UserPhone: ${userPhone}");
 
     /// the token from firebase that link this user with firebase
@@ -242,29 +239,8 @@ mixin Booting {
     await ProxyService.box.writeString(key: 'uid', value: user.uid ?? "");
     await ProxyService.box.writeInt(key: 'userId', value: user.id!);
 
-    if (user.tenants.isEmpty) {
-      talker.error("User created does not have tenants");
-      throw BusinessNotFoundException(
-          term:
-              "No tenant added to the user, if a business is added it should have one tenant");
-    }
-    if (user.tenants.first.businesses!.isEmpty ||
-        user.tenants.first.branches!.isEmpty) {
-      throw BusinessNotFoundException(
-          term:
-              "No tenant added to the user, if a business is added it should have one tenant");
-    }
-
-    /// find admin permission in permission list from yegobox
-    // for (IPermission permission in user.tenants.first.permissions) {
-    //   if (permission == 'admin') {
-    //     ProxyService.box.writeString(
-    //         key: 'yegoboxLoggedInUserPermission',
-    //         value: user.tenants.first.permissions.first.name);
-    //   }
-    // }
-    int? branchId = user.tenants.first.branches!.first.serverId;
-    int? businessId = user.tenants.first.businesses!.first.serverId;
+    int? branchId = user.tenants.first.branches?.first.serverId;
+    int? businessId = user.tenants.first.businesses?.first.serverId;
     if (branchId == null) {
       // get any local saved branch
       Branch branch = await ProxyService.strategy.activeBranch();
@@ -276,10 +252,12 @@ mixin Booting {
     await ProxyService.box
         .writeInt(key: 'branchId', value: user.tenants.isEmpty ? 0 : branchId);
 
-    await ProxyService.box.writeInt(
-        key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
+    if (businessId != null) {
+      await ProxyService.box.writeInt(
+          key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
+    }
     await ProxyService.box.writeString(
         key: 'encryptionKey',
-        value: user.tenants.first.businesses!.first.encryptionKey ?? "");
+        value: user.tenants.first.businesses?.first.encryptionKey ?? "");
   }
 }

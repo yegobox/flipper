@@ -9,6 +9,7 @@ abstract class AuthInterface {
   Future<bool> logOut();
   Future<IUser> login({
     required String userPhone,
+    required bool isInSignUpProgress,
     required bool skipDefaultAppSetup,
     bool stopAfterConfigure = false,
     required Pin pin,

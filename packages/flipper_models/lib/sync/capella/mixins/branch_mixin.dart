@@ -14,10 +14,13 @@ mixin CapellaBranchMixin implements BranchInterface {
   }
 
   @override
+  Future<void> saveBranch(Branch branch) async {
+    throw UnimplementedError('saveBranch needs to be implemented for Capella');
+  }
+
+  @override
   Future<List<Branch>> branches(
-      {required int serverId,
-      bool? active = false,
-      required bool fetchOnline}) async {
+      {int? serverId, bool? active = false, required bool fetchOnline}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 
@@ -28,7 +31,7 @@ mixin CapellaBranchMixin implements BranchInterface {
 
   @override
   Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 

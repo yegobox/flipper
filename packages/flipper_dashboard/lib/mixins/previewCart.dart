@@ -169,7 +169,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
     bool immediateCompletion = false, // New parameter
   }) async {
-    try {
+    try { 
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return;
       // update this transaction as completed

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_services/proxy.dart';

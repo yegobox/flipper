@@ -1,9 +1,14 @@
 import 'dart:developer';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_login/viewmodels/signup_viewmodel.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/locator.dart' as loc;
 
 /// Form bloc for handling signup form validation and submission
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
@@ -107,8 +112,22 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
       // Perform signup
       await signupViewModel.signup();
+
+      // The signup method in CoreSync already handles login and navigation
+      // We just need to ensure the loading state is stopped
+      log('Signup completed successfully',
+          name: 'AsyncFieldValidationFormBloc');
+
+      loc.getIt<AppService>().appInit();
+      // If we're still on this screen, navigate to the app
+      final routerService = locator<RouterService>();
+
+      routerService.navigateTo(StartUpViewRoute());
+
       emitSuccess();
+      signupViewModel.stopRegistering(); // Ensure we stop the loading state
     } catch (e) {
+      log('Error during signup: $e', name: 'AsyncFieldValidationFormBloc');
       signupViewModel.stopRegistering();
       emitFailure();
     }

@@ -18,18 +18,6 @@ mixin TenantMixin implements TenantInterface {
   Repository get repository;
 
   @override
-  Future<Branch> activeBranch() async {
-    final branches = await repository.get<Branch>(
-      policy: OfflineFirstGetPolicy.localOnly,
-    );
-
-    return branches.firstWhere(
-      (branch) => branch.isDefault == true || branch.isDefault == 1,
-      orElse: () => throw Exception("No default branch found"),
-    );
-  }
-
-  @override
   Future<Business?> activeBusiness({int? userId}) async {
     return (await repository.get<Business>(
       policy: OfflineFirstGetPolicy.localOnly,

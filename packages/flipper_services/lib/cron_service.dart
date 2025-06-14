@@ -99,11 +99,40 @@ class CronService {
 
         SqliteService.addColumnIfNotExists(dbPath, 'TransactionItem',
             'ignore_for_report', 'INTEGER NOT NULL DEFAULT 0');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'branch_id', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'phone_number', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'external_id', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'payment_status', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'last_error', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'processing_status', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'last_processed_at', 'DATETIME DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'updated_at', 'DATETIME DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'last_updated', 'DATETIME DEFAULT NULL');
       } catch (e) {
         talker.error("Failed to add bhf_id column to Counter table: $e");
       }
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
+        final businessId = ProxyService.box.getBusinessId()!;
+        talker.info("Hydrating data for businessId: $businessId");
 
         /// end of work around
         // Hydrate essential data
@@ -119,9 +148,7 @@ class CronService {
                 .then((_) {}),
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
             ProxyService.strategy
-                .branches(
-                    serverId: ProxyService.box.getBusinessId()!,
-                    fetchOnline: true)
+                .branches(serverId: businessId, fetchOnline: true)
                 .then((_) {}),
             // ProxyService.strategy
             //     .variants(branchId: branchId, fetchRemote: true)

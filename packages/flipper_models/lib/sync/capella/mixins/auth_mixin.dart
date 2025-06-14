@@ -18,7 +18,7 @@ mixin CapellaAuthMixin implements AuthInterface {
 
   @override
   Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 
@@ -39,6 +39,7 @@ mixin CapellaAuthMixin implements AuthInterface {
     required String userPhone,
     required bool skipDefaultAppSetup,
     IUser? existingUser,
+    required bool isInSignUpProgress,
     bool stopAfterConfigure = false,
     required Pin pin,
     required HttpClientInterface flipperHttpClient,
@@ -75,9 +76,7 @@ mixin CapellaAuthMixin implements AuthInterface {
 
   @override
   Future<List<Branch>> branches(
-      {required int serverId,
-      bool? active = false,
-      required bool fetchOnline}) async {
+      {int? serverId, bool? active = false, required bool fetchOnline}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 

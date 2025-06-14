@@ -26,8 +26,13 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
+  Future<void> saveBranch(Branch branch) async {
+    await repository.upsert<Branch>(branch);
+  }
+
+  @override
   Future<List<Branch>> branches({
-    required int serverId,
+    int? serverId,
     bool? active,
     bool fetchOnline = false,
   }) async {
@@ -35,9 +40,9 @@ mixin BranchMixin implements BranchInterface {
   }
 
   Future<List<Branch>> _getBranches(
-      int serverId, bool? active, bool fetchOnline) async {
+      int? serverId, bool? active, bool fetchOnline) async {
     final filters = <Where>[
-      Where('businessId').isExactly(serverId),
+      if (serverId != null) Where('businessId').isExactly(serverId),
       if (active != null) Where('active').isExactly(active),
     ];
     var query = Query(where: filters);
@@ -119,9 +124,13 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false}) async {
     return await repository.get<Business>(
-      query: Query(where: [Where('userId').isExactly(userId)]),
+      policy: fetchOnline
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
+      query:
+          Query(where: [if (userId != null) Where('userId').isExactly(userId)]),
     );
   }
 
@@ -155,17 +164,11 @@ mixin BranchMixin implements BranchInterface {
         return branches.first;
       }
 
-      // If no branch with isDefault=true, try with isDefault=1
-      final branchesWithNumericDefault = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [Where('isDefault').isExactly(1)]),
-      );
-
-      if (branchesWithNumericDefault.isEmpty) {
+      if (branches.isEmpty) {
         throw Exception("No default branch found");
       }
 
-      return branchesWithNumericDefault.first;
+      return branches.first;
     } catch (e) {
       await logOut();
       rethrow;
