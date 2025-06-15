@@ -60,14 +60,73 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       } else {
         // Create a new `TransactionItem` from the `variation` object
         final double price = variation!.retailPrice!;
-        // Ensure precise calculation for decimal quantities
-        final double taxblAmt = (price * quantity).toDouble();
-        final double taxAmt =
-            double.parse((amountTotal * 18 / 118).toStringAsFixed(2));
-        // Ensure precise calculation for decimal quantities
-        final double totAmt = (price * quantity).toDouble();
-        final double dcAmt =
-            (price * (variation.qty ?? 1.0)) * (variation.dcRt ?? 0.0);
+
+        // Calculate discount amount based on dcRt
+        final double dcRt = variation.dcRt ?? 0.0;
+        final double originalAmount = (price * quantity).toDouble();
+        final double dcAmt = (originalAmount * dcRt) / 100;
+
+        // Calculate price after discount
+        final double priceAfterDiscount = originalAmount - dcAmt;
+
+        // Log tax calculation inputs
+        talker.info('TAX CALCULATION - INPUTS:');
+        talker.info('  variation.taxTyCd: ${variation.taxTyCd}');
+        talker.info('  price: $price');
+        talker.info('  quantity: $quantity');
+        talker.info('  originalAmount (price * quantity): $originalAmount');
+        talker.info('  dcRt: $dcRt');
+        talker.info('  dcAmt: $dcAmt');
+        talker.info('  priceAfterDiscount: $priceAfterDiscount');
+        talker.info('  amountTotal: $amountTotal');
+
+        // Calculate tax amount
+        double taxAmt;
+        double taxblAmt;
+        double totAmt;
+
+        if (variation.taxTyCd == 'B') {
+          // For taxTyCd == 'B', tax is included in the price
+          // Use priceAfterDiscount (which accounts for discount) instead of amountTotal
+          taxAmt =
+              double.parse((priceAfterDiscount * 18 / 118).toStringAsFixed(2));
+          taxblAmt = priceAfterDiscount - taxAmt;
+          totAmt = priceAfterDiscount;
+
+          talker.info('  TAX CALCULATION - TYPE B (with discount):');
+          talker.info('    Formula: priceAfterDiscount * 18 / 118');
+          talker.info(
+              '    Calculation: $priceAfterDiscount * 18 / 118 = $taxAmt');
+          talker.info('    taxblAmt = priceAfterDiscount - taxAmt = $taxblAmt');
+          talker.info('    totAmt = priceAfterDiscount = $totAmt');
+
+          // For comparison with previous calculation
+          double oldTaxAmt =
+              double.parse((amountTotal * 18 / 118).toStringAsFixed(2));
+          talker.info(
+              '    Previous calculation (without discount): $amountTotal * 18 / 118 = $oldTaxAmt');
+
+          // Example calculation with actual values
+          talker.info('    Example with actual values:');
+          talker.info('      originalAmount = $originalAmount');
+          talker.info('      dcRt = $dcRt');
+          talker.info('      dcAmt = $originalAmount * $dcRt = $dcAmt');
+          talker.info(
+              '      priceAfterDiscount = $originalAmount - $dcAmt = $priceAfterDiscount');
+          talker
+              .info('      taxAmt = $priceAfterDiscount * 18 / 118 = $taxAmt');
+        } else {
+          // For other tax types, tax is added to the price
+          taxblAmt = priceAfterDiscount;
+          taxAmt = double.parse((taxblAmt * 18 / 100).toStringAsFixed(2));
+          totAmt = taxblAmt + taxAmt;
+
+          talker.info('  TAX CALCULATION - OTHER TYPE (with discount):');
+          talker.info('    taxblAmt = priceAfterDiscount = $taxblAmt');
+          talker.info('    Formula: taxblAmt * 18 / 100');
+          talker.info('    Calculation: $taxblAmt * 18 / 100 = $taxAmt');
+          talker.info('    totAmt = taxblAmt + taxAmt = $totAmt');
+        }
 
         transactionItem = TransactionItem(
           itemNm: variation.itemNm ?? variation.name, // Required
@@ -75,7 +134,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           name: name, // Use the passed `name` parameter
           qty: quantity, // Required
           price: price, // Required
-          discount: discount, // Use the passed `discount` parameter
+          discount:
+              dcAmt, // Use the calculated discount amount instead of the passed parameter
           prc: price, // Required
           splyAmt: variation.supplyPrice,
           taxTyCd: variation.taxTyCd,
