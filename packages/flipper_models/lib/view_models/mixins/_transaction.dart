@@ -131,7 +131,8 @@ mixin TransactionMixinOld {
       final responseFrom =
           await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
-        filterType: getFilterType(transactionType: transaction.receiptType!),
+        filterType:
+            getFilterType(transactionType: transaction.receiptType ?? "NS"),
       );
       final (:response, :bytes) = responseFrom;
 
