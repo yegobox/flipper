@@ -266,6 +266,45 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         final excel.Worksheet reportSheet = workbook.worksheets[0];
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
+        // Add header information
+        // 1. Insert rows for header
+        reportSheet.insertRow(1, 3); // Insert 3 rows at the top
+
+        // 2. Add business information (trade name and TIN)
+        if (business != null) {
+          // Get or create a style for the header
+          final headerStyle =
+              _getOrCreateStyle(workbook, 'CustomHeaderStyle', (style) {
+            style.fontName = 'Calibri';
+            style.fontSize = 12;
+            style.bold = true;
+          });
+
+          // Row 1: Trade name and TIN
+          final tradeNameCell = reportSheet.getRangeByIndex(1, 1);
+          tradeNameCell.setText(
+              'Trade Name: ${business.name ?? ""}, TIN: ${business.tinNumber?.toString() ?? ""}');
+          tradeNameCell.cellStyle = headerStyle;
+
+          // Row 2: Date and time
+          final dateTimeCell = reportSheet.getRangeByIndex(2, 1);
+          final now = DateTime.now();
+          final formattedDateTime =
+              DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+          dateTimeCell.setText('Date and Time: $formattedDateTime');
+          dateTimeCell.cellStyle = headerStyle;
+
+          // Row 3: X Daily Report
+          final reportTitleCell = reportSheet.getRangeByIndex(3, 1);
+          reportTitleCell.setText('X Daily Report');
+          reportTitleCell.cellStyle = headerStyle;
+
+          // Merge cells for header rows to span across columns
+          reportSheet.getRangeByIndex(1, 1, 1, 5).merge();
+          reportSheet.getRangeByIndex(2, 1, 2, 5).merge();
+          reportSheet.getRangeByIndex(3, 1, 3, 5).merge();
+        }
+
         // Check if we have manual data to populate the workbook with
         if (manualData != null &&
             manualData.isNotEmpty &&
@@ -274,41 +313,43 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           talker.info(
               'Populating workbook with manual data (${manualData.length} rows)');
 
-          // Create a proper header style that matches DataGrid export
-          final headerStyle = workbook.styles.add('HeaderStyle');
-          headerStyle.fontName = 'Calibri';
-          headerStyle.fontSize = 11;
-          headerStyle.bold = true;
-          headerStyle.hAlign = excel.HAlignType.center;
-          headerStyle.vAlign = excel.VAlignType.center;
-          headerStyle.backColor =
-              '#D9D9D9'; // Light gray background like DataGrid export
-          headerStyle.fontColor = '#000000'; // Black text like DataGrid export
-          headerStyle.borders.all.lineStyle = excel.LineStyle.none;
-          headerStyle.borders.all.color = '#A6A6A6';
+          // Create a header style that matches DataGrid export
+          final headerStyle = _getOrCreateStyle(workbook, 'ManualDataHeaderStyle', (style) {
+            style.fontName = 'Calibri';
+            style.fontSize = 11;
+            style.bold = true;
+            style.hAlign = excel.HAlignType.center;
+            style.vAlign = excel.VAlignType.center;
+            style.backColor = '#D9D9D9'; // Light gray background like DataGrid export
+            style.fontColor = '#000000'; // Black text like DataGrid export
+            style.borders.all.lineStyle = excel.LineStyle.none;
+            style.borders.all.color = '#A6A6A6';
+          });
 
           // Create a data cell style that matches DataGrid export
-          final dataStyle = workbook.styles.add('DataStyle');
-          dataStyle.fontName = 'Calibri';
-          dataStyle.fontSize = 11;
-          dataStyle.hAlign = excel.HAlignType.left;
-          dataStyle.vAlign = excel.VAlignType.center;
-          dataStyle.borders.all.lineStyle = excel.LineStyle.none;
-          dataStyle.borders.all.color = '#A6A6A6';
+          final dataStyle = _getOrCreateStyle(workbook, 'ManualDataStyle', (style) {
+            style.fontName = 'Calibri';
+            style.fontSize = 11;
+            style.hAlign = excel.HAlignType.left;
+            style.vAlign = excel.VAlignType.center;
+            style.borders.all.lineStyle = excel.LineStyle.none;
+            style.borders.all.color = '#A6A6A6';
+          });
 
           // Create a numeric cell style
-          final numericStyle = workbook.styles.add('NumericStyle');
-          numericStyle.fontName = 'Calibri';
-          numericStyle.fontSize = 11;
-          numericStyle.hAlign = excel.HAlignType.left;
-          numericStyle.vAlign = excel.VAlignType.center;
-          numericStyle.numberFormat = '#,##0.00';
-          numericStyle.borders.all.lineStyle = excel.LineStyle.none;
-          numericStyle.borders.all.color = '#A6A6A6';
+          final numericStyle = _getOrCreateStyle(workbook, 'ManualNumericStyle', (style) {
+            style.fontName = 'Calibri';
+            style.fontSize = 11;
+            style.hAlign = excel.HAlignType.left;
+            style.vAlign = excel.VAlignType.center;
+            style.numberFormat = '#,##0.00';
+            style.borders.all.lineStyle = excel.LineStyle.none;
+            style.borders.all.color = '#A6A6A6';
+          });
 
-          // Add column headers
+          // Add column headers (starting at row 4 due to the added header information)
           for (int i = 0; i < columnNames.length; i++) {
-            final cell = reportSheet.getRangeByIndex(1, i + 1);
+            final cell = reportSheet.getRangeByIndex(4, i + 1);
             cell.setText(columnNames[i]);
             cell.cellStyle = headerStyle;
 
@@ -317,7 +358,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 i + 1, 120); // Initial width before auto-fit
           }
 
-          // Add data rows
+          // Add data rows (starting at row 5 due to the added header information)
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
             final item = manualData[rowIndex];
             Map<String, dynamic> rowData;
@@ -345,7 +386,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
               final colName = columnNames[colIndex];
               final cell =
-                  reportSheet.getRangeByIndex(rowIndex + 2, colIndex + 1);
+                  reportSheet.getRangeByIndex(rowIndex + 5, colIndex + 1);
 
               // Get the value for this column
               var value = rowData[colName];
@@ -381,9 +422,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
         } else {
           // Add a header row to ensure the workbook has some content
-          if (workbook.worksheets[0].getLastRow() < 1) {
+          if (workbook.worksheets[0].getLastRow() < 4) {
+            // Adjusted for header rows
             talker.info('Adding basic structure to empty workbook');
-            reportSheet.getRangeByName('A1').setText('Report');
+            reportSheet.getRangeByName('A4').setText('Report');
           }
         }
 
@@ -996,6 +1038,28 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (await permission.Permission.notification.isDenied) {
       await permission.Permission.notification.request();
     }
+  }
+
+  // Helper method to get an existing style or create a new one if it doesn't exist
+  excel.Style _getOrCreateStyle(excel.Workbook workbook, String styleName,
+      Function(excel.Style) configureStyle) {
+    excel.Style style;
+
+    try {
+      // Try to get the existing style
+      final existingStyle = workbook.styles[styleName];
+      if (existingStyle != null) {
+        style = existingStyle;
+      } else {
+        throw Exception('Style not found');
+      }
+    } catch (e) {
+      // Style doesn't exist, create it
+      style = workbook.styles.add(styleName);
+      configureStyle(style);
+    }
+
+    return style;
   }
 
   final _mimeTypes = {
