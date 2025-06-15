@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -14,10 +16,23 @@ mixin CapellaBranchMixin implements BranchInterface {
   }
 
   @override
+  FutureOr<void> updateBranch(
+      {required int branchId,
+      String? name,
+      bool? active,
+      bool? isDefault}) async {
+    throw UnimplementedError(
+        'updateBranch needs to be implemented for Capella');
+  }
+
+  @override
+  Future<void> saveBranch(Branch branch) async {
+    throw UnimplementedError('saveBranch needs to be implemented for Capella');
+  }
+
+  @override
   Future<List<Branch>> branches(
-      {required int serverId,
-      bool? active = false,
-      required bool fetchOnline}) async {
+      {int? serverId, bool? active = false, required bool fetchOnline}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 
@@ -28,7 +43,7 @@ mixin CapellaBranchMixin implements BranchInterface {
 
   @override
   Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 

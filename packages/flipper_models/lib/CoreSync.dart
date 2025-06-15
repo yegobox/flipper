@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
+import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
@@ -356,10 +357,40 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
-    await configureTheBox(userPhone, user);
-    await saveNeccessaryData(user);
+    // Add system configuration logic here
+    if (user.id == null) {
+      talker.error(
+          'User ID is null in configureSystem for user: ${user.phoneNumber}');
+      return;
+    }
+    if (offlineLogin == false) {
+      await saveNeccessaryData(user);
+    }
+    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
+    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
+
+    // Ensure the PIN record has the correct UID to prevent duplicates
+    if (user.uid != null) {
+      // Check if a PIN with this userId already exists
+      final existingPin = await ProxyService.strategy.getPinLocal(
+          userId: user.id!,
+          alwaysHydrate: false // Use local-only to avoid network calls
+          );
+
+      if (existingPin != null) {
+        // Update the existing PIN with the correct UID
+        if (existingPin.uid != user.uid) {
+          talker.debug(
+              "Updating existing PIN with correct UID during configureSystem");
+          await ProxyService.strategy.updatePin(
+              userId: user.id!, tokenUid: user.uid, phoneNumber: userPhone);
+        }
+      }
+    }
+
     if (!offlineLogin) {
-      await supabaseAuth();
+      // Perform online-specific configuration
+      await firebaseLogin();
     }
   }
 
@@ -1180,20 +1211,23 @@ class CoreSync extends AiStrategyImpl
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
+  final _internetConnectionService = InternetConnectionService();
+
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
-    bool fetchRemote = false,
   }) async {
     try {
       final repository = brick.Repository();
+      final isOnline =
+          await _internetConnectionService.isOnline(deepCheck: true);
 
       final query = brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
       ]);
       final result = await repository.get<models.Plan>(
           query: query,
-          policy: fetchRemote
+          policy: isOnline
               ? OfflineFirstGetPolicy.alwaysHydrate
               : OfflineFirstGetPolicy.localOnly);
       return result.firstOrNull;
@@ -1683,6 +1717,8 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> sendMessageToIsolate() async {
     if (ProxyService.box.stopTaxService() ?? false) return;
+    if (ProxyService.box.getBusinessId() == null) return;
+    if (ProxyService.box.getBranchId() == null) return;
 
     Business? business =
         await getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -1716,111 +1752,140 @@ class CoreSync extends AiStrategyImpl
           Uri.parse("$apihub/v2/api/business"),
           body: jsonEncode(business));
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        talker.info('Signup: Business created successfully, parsing response');
-        final responseBody = response.body;
-        talker.debug('Response body: $responseBody');
-
-        // Step 2: Parse business object
-        try {
-          final Map<String, dynamic> jsonData = jsonDecode(responseBody);
-          final bus = Business.fromMap(jsonData);
-          talker.info(
-              'Signup: Business parsed successfully, ID: ${bus.serverId}');
-
-          // Step 3: Create PIN
-          try {
-            talker.info('Signup: Creating PIN');
-            // Ensure userId is not null
-            if (bus.userId == null) {
-              talker.error('Signup: Business userId is null');
-              throw Exception('Business userId is null');
-            }
-
-            await ProxyService.strategy.createPin(
-                flipperHttpClient: flipperHttpClient,
-                phoneNumber: business['phoneNumber'],
-                pin: bus.userId ?? 0, // Handle null case with default value
-                branchId: bus.serverId.toString(),
-                businessId: bus.serverId.toString(),
-                defaultApp: 1);
-            talker.info('Signup: PIN created successfully');
-
-            // Step 4: Save PIN locally
-            try {
-              talker.info('Signup: Saving PIN locally');
-              Pin? savedPin = await savePin(
-                  pin: Pin(
-                      userId: bus.userId,
-                      id: bus.userId.toString(),
-                      branchId: bus.serverId,
-                      businessId: bus.serverId,
-                      ownerName: business['name'] ?? '',
-                      phoneNumber: business['phoneNumber'] ?? ''));
-
-              if (savedPin == null) {
-                talker.error('Signup: Failed to save PIN');
-                throw Exception('Failed to save PIN');
-              }
-              talker.info('Signup: PIN saved successfully');
-
-              // Step 5: Login
-              try {
-                talker.info('Signup: Logging in with new PIN');
-                await login(
-                    pin: savedPin,
-                    userPhone: business['phoneNumber'],
-                    skipDefaultAppSetup: true,
-                    flipperHttpClient: flipperHttpClient,
-                    freshUser: true);
-                talker.info('Signup: Login successful');
-
-                // Step 6: Configure local
-                try {
-                  talker.info('Signup: Configuring local storage');
-                  configureLocal(useInMemory: false, box: ProxyService.box);
-
-                  // Step 7: Save business ID
-                  try {
-                    talker.info('Signup: Saving business ID: ${bus.serverId}');
-                    ProxyService.box
-                        .writeInt(key: 'businessId', value: bus.serverId);
-                    talker.info('Signup: Business ID saved successfully');
-                  } catch (e) {
-                    talker.error('Signup: Failed to save business ID: $e');
-                    // Continue even if this fails
-                  }
-
-                  talker.info('Signup: Process completed successfully');
-                  return bus;
-                } catch (e, s) {
-                  talker.error('Signup: Error in configuring local: $e', s);
-                  throw e;
-                }
-              } catch (e, s) {
-                talker.error('Signup: Error in login: $e', s);
-                throw e;
-              }
-            } catch (e, s) {
-              talker.error('Signup: Error in saving PIN: $e', s);
-              throw e;
-            }
-          } catch (e, s) {
-            talker.error('Signup: Error in creating PIN: $e', s);
-            throw e;
-          }
-        } catch (e, s) {
-          talker.error('Signup: Error parsing business data: $e', s);
-          throw e;
-        }
-      } else {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         talker.error('Signup: API returned error: ${response.statusCode}');
         talker.error('Response body: ${response.body}');
         throw InternalServerError(term: response.body.toString());
       }
+
+      talker.info('Signup: Business created successfully, parsing response');
+      final responseBody = response.body;
+      talker.debug('Response body: $responseBody');
+
+      // Step 2: Parse business object
+      final Map<String, dynamic> jsonData;
+      final Business bus;
+      try {
+        jsonData = jsonDecode(responseBody);
+        bus = Business.fromMap(jsonData);
+        talker
+            .info('Signup: Business parsed successfully, ID: ${bus.serverId}');
+      } catch (e, s) {
+        talker.error('Signup: Error parsing business data: $e', s);
+        throw e;
+      }
+
+      /// deactivate any other branch/or business already set, this is the case for a user
+      /// who can signup on a device that had account
+      await resetForNewDevice();
+
+      // Save branch and business IDs early
+      ProxyService.box.writeInt(key: 'businessId', value: bus.serverId);
+      ProxyService.box.writeInt(key: 'branchId', value: bus.serverId);
+
+      // Step 3: Create PIN
+      // Ensure userId is not null
+      if (bus.userId == null) {
+        talker.error('Signup: Business userId is null');
+        throw Exception('Business userId is null');
+      }
+
+      try {
+        talker.info('Signup: Creating PIN');
+        await ProxyService.strategy.createPin(
+            flipperHttpClient: flipperHttpClient,
+            phoneNumber: business['phoneNumber'],
+            pin: bus.userId ?? 0, // Handle null case with default value
+            branchId: bus.serverId.toString(),
+            businessId: bus.serverId.toString(),
+            defaultApp: 1);
+        talker.info('Signup: PIN created successfully');
+      } catch (e, s) {
+        talker.error('Signup: Error in creating PIN: $e', s);
+        throw e;
+      }
+
+      // Step 4: Save PIN locally
+      Pin? savedPin;
+      try {
+        talker.info('Signup: Saving PIN locally');
+        savedPin = await savePin(
+            pin: Pin(
+                userId: bus.userId,
+                id: bus.userId.toString(),
+                branchId: bus.serverId,
+                businessId: bus.serverId,
+                ownerName: business['name'] ?? '',
+                phoneNumber: business['phoneNumber'] ?? ''));
+
+        if (savedPin == null) {
+          talker.error('Signup: Failed to save PIN');
+          throw Exception('Failed to save PIN');
+        }
+        talker.info('Signup: PIN saved successfully');
+      } catch (e, s) {
+        talker.error('Signup: Error in saving PIN: $e', s);
+        throw e;
+      }
+
+      // Step 5: Login
+      try {
+        talker.info('Signup: Logging in with new PIN');
+        await login(
+            isInSignUpProgress: true,
+            pin: savedPin,
+            userPhone: business['phoneNumber'],
+            skipDefaultAppSetup: true,
+            flipperHttpClient: flipperHttpClient,
+            freshUser: true);
+        talker.info('Signup: Login successful');
+      } catch (e, s) {
+        talker.error('Signup: Error in login: $e', s);
+        throw e;
+      }
+
+      // Step 6: Configure local
+      try {
+        talker.info('Signup: Configuring local storage');
+        configureLocal(useInMemory: false, box: ProxyService.box);
+      } catch (e, s) {
+        talker.error('Signup: Error in configuring local: $e', s);
+        throw e;
+      }
+
+      // Step 7: Save business ID again (redundant but keeping for safety)
+      try {
+        talker.info('Signup: Saving business ID: ${bus.serverId}');
+        ProxyService.box.writeInt(key: 'businessId', value: bus.serverId);
+        talker.info('Signup: Business ID saved successfully');
+      } catch (e) {
+        talker.error('Signup: Failed to save business ID: $e');
+        // Continue even if this fails
+      }
+
+      talker.info('Signup: Process completed successfully');
+      return bus;
     } catch (e, s) {
       talker.error('Signup: Unhandled error: $e', s);
       rethrow;
+    }
+  }
+
+  Future<void> resetForNewDevice() async {
+    final businesses =
+        await ProxyService.strategy.businesses(fetchOnline: false);
+    for (final business in businesses) {
+      await ProxyService.strategy.updateBusiness(
+        businessId: business.serverId,
+        active: false,
+        isDefault: false,
+      );
+    }
+    final branches =
+        await ProxyService.strategy.branches(fetchOnline: false, active: false);
+    for (final branch in branches) {
+      await ProxyService.strategy.updateBranch(
+          branchId: branch.serverId!, active: false, isDefault: false);
     }
   }
 
@@ -2320,14 +2385,20 @@ class CoreSync extends AiStrategyImpl
 
       if (variant != null && variant.stock != null) {
         final currentStock = variant.stock?.currentStock ?? 0;
-        final finalStock = currentStock - item.qty;
-        final stockValue = finalStock * (variant.retailPrice ?? 0);
+        // in proforma we do not update stock
+        if (!ProxyService.box.isProformaMode() &&
+            !ProxyService.box.isTrainingMode()) {
+          final finalStock = currentStock - item.qty;
+          final stockValue = finalStock * (variant.retailPrice ?? 0);
 
-        // Update all stock-related fields
-        variant.stock!.rsdQty = finalStock;
-        variant.stock!.currentStock = finalStock;
+          // Update all stock-related fields
+          variant.stock!.rsdQty = finalStock;
+          variant.stock!.currentStock = finalStock;
 
-        variant.stock!.value = stockValue;
+          variant.stock!.value = stockValue;
+          item.remainingStock = finalStock;
+        }
+
         variant.stock!.ebmSynced = false;
 
         // Update stock in repository
@@ -2336,7 +2407,7 @@ class CoreSync extends AiStrategyImpl
         // Update transaction item flags
         item.active = true;
         item.doneWithTransaction = true;
-        item.remainingStock = finalStock;
+
         item.updatedAt = DateTime.now().toUtc().toLocal();
         item.lastTouched = DateTime.now().toUtc().toLocal();
         await repository.upsert<TransactionItem>(item);
@@ -2873,23 +2944,6 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-  @override
-  FutureOr<void> updateBranch(
-      {required int branchId,
-      String? name,
-      bool? active,
-      bool? isDefault}) async {
-    final query =
-        brick.Query(where: [brick.Where('serverId').isExactly(branchId)]);
-    final branch = await repository.get<Branch>(query: query);
-    if (branch.firstOrNull != null) {
-      final updated = branch.first.copyWith(
-        active: active,
-        isDefault: isDefault,
-      );
-      await repository.upsert<Branch>(updated);
-    }
-  }
 
   @override
   Future<DatabaseSyncInterface> configureLocal(

@@ -147,8 +147,7 @@ mixin AuthMixin implements AuthInterface {
 
   // Required methods that should be provided by other mixins
   @override
-  Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false});
+  Future<List<Business>> businesses({int? userId, bool fetchOnline = false});
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
@@ -216,8 +215,8 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
-    final Plan? plan = await ProxyService.strategy
-        .getPaymentPlan(businessId: businessId, fetchRemote: fetchRemote);
+    final Plan? plan =
+        await ProxyService.strategy.getPaymentPlan(businessId: businessId);
 
     if (plan == null) {
       throw NoPaymentPlanFound(
@@ -251,7 +250,9 @@ mixin AuthMixin implements AuthInterface {
 
   Future<IUser> _authenticateUser(
       String phoneNumber, Pin pin, HttpClientInterface flipperHttpClient,
-      {bool forceOffline = false, bool freshUser = false}) async {
+      {bool forceOffline = false,
+      bool freshUser = false,
+      required bool isInSignUpProgress}) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
     List<Branch> branchesE =
         await branches(serverId: pin.businessId!, fetchOnline: false);
@@ -291,7 +292,8 @@ mixin AuthMixin implements AuthInterface {
     if (currentUser != null &&
         existingToken != null &&
         existingUserId != null &&
-        existingUserId.toString() == pin.userId.toString()) {
+        existingUserId.toString() == pin.userId.toString() &&
+        !isInSignUpProgress) {
       talker.debug("Using existing Firebase authentication");
 
       // Create a user object from existing data
@@ -345,6 +347,7 @@ mixin AuthMixin implements AuthInterface {
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false,
       required Pin pin,
+      required bool isInSignUpProgress,
       bool freshUser = false,
       required HttpClientInterface flipperHttpClient,
       IUser? existingUser}) async {
@@ -357,8 +360,9 @@ mixin AuthMixin implements AuthInterface {
     print('Before _authenticateUser');
     final IUser user = existingUser ??
         await _authenticateUser(phoneNumber, pin, flipperHttpClient,
-            freshUser: freshUser);
+            freshUser: freshUser, isInSignUpProgress: isInSignUpProgress);
     print('After _authenticateUser');
+
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
     print('After configureSystem');
     await ProxyService.box.writeBool(key: 'authComplete', value: true);
@@ -366,8 +370,6 @@ mixin AuthMixin implements AuthInterface {
 
     if (stopAfterConfigure) return user;
     if (!skipDefaultAppSetup) {
-      await setDefaultApp(user);
-
       // Ensure business and branch IDs are set in storage
       // This is critical for when a user logs in again
       if (pin.businessId != null) {
@@ -527,47 +529,6 @@ mixin AuthMixin implements AuthInterface {
   String _formatPhoneNumber(String phoneNumber) {
     // Add phone number formatting logic here
     return phoneNumber;
-  }
-
-  Future<void> configureSystem(String userPhone, IUser user,
-      {required bool offlineLogin}) async {
-    // Add system configuration logic here
-    if (user.id == null) {
-      talker.error(
-          'User ID is null in configureSystem for user: ${user.phoneNumber}');
-      return;
-    }
-
-    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
-    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
-
-    // Ensure the PIN record has the correct UID to prevent duplicates
-    if (user.uid != null) {
-      // Check if a PIN with this userId already exists
-      final existingPin = await ProxyService.strategy.getPinLocal(
-          userId: user.id!,
-          alwaysHydrate: false // Use local-only to avoid network calls
-          );
-
-      if (existingPin != null) {
-        // Update the existing PIN with the correct UID
-        if (existingPin.uid != user.uid) {
-          talker.debug(
-              "Updating existing PIN with correct UID during configureSystem");
-          await ProxyService.strategy.updatePin(
-              userId: user.id!, tokenUid: user.uid, phoneNumber: userPhone);
-        }
-      }
-    }
-
-    if (!offlineLogin) {
-      // Perform online-specific configuration
-      await firebaseLogin();
-    }
-  }
-
-  Future<void> setDefaultApp(IUser user) async {
-    // Add default app setup logic here
   }
 
   @override
@@ -914,22 +875,21 @@ mixin AuthMixin implements AuthInterface {
             await Supabase.instance.client.auth
                 .signOut(); // Sign out if necessary
           }
-          AuthResponse auth =
-              await Supabase.instance.client.auth.signInWithPassword(
-            email: "1@flipper.rw",
-            password: "1@flipper.rw",
-          );
 
-          _saveSessionData(auth);
-          talker.debug('Supabase user created and signed in successfully');
-        } catch (signUpError) {
-          // If sign up fails (likely because user already exists), try sign in
-          talker.debug('Sign up failed, attempting sign in: $signUpError');
-          await _attemptSignIn(email);
+          // First attempt to sign up the user
+          talker.debug('Attempting to sign up user with email: $email');
           await Supabase.instance.client.auth.signUp(
             email: email,
             password: email,
           );
+          talker.debug('Supabase user created successfully, now signing in');
+
+          // After sign up, attempt to sign in
+          await _attemptSignIn(email);
+        } catch (signUpError) {
+          // If sign up fails (likely because user already exists), try sign in directly
+          talker.debug('Sign up failed, attempting sign in: $signUpError');
+          await _attemptSignIn(email);
         }
       } else {
         // User exists but session is invalid, just sign in

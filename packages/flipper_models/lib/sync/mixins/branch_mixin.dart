@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-
+import 'package:flipper_models/services/sqlite_service.dart';
+import 'package:path/path.dart' as path;
 mixin BranchMixin implements BranchInterface {
   Repository get repository;
 
@@ -26,8 +28,63 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
+  Future<void> saveBranch(Branch branch) async {
+    await repository.upsert<Branch>(branch);
+  }
+
+  @override
+  FutureOr<void> updateBranch(
+      {required int branchId,
+      String? name,
+      bool? active,
+      bool? isDefault}) async {
+    try {
+      // Get the database directory and construct the path using Repository.dbFileName
+      final dbDir = await DatabasePath.getDatabaseDirectory();
+      // Use the imported path package correctly
+      final dbPath = path.join(dbDir, Repository.dbFileName);
+      
+      // Build the SQL update statement with only the fields that are provided
+      final List<String> updateParts = [];
+      final List<Object?> params = [];
+      
+      if (active != null) {
+        updateParts.add('active = ?');
+        params.add(active ? 1 : 0); // SQLite uses 1 for true, 0 for false
+      }
+      
+      if (isDefault != null) {
+        updateParts.add('is_default = ?');
+        params.add(isDefault ? 1 : 0);
+      }
+      
+      if (name != null) {
+        updateParts.add('name = ?');
+        params.add(name);
+      }
+      
+      // Only proceed if we have fields to update
+      if (updateParts.isNotEmpty) {
+        // Add the branch ID to the params list
+        params.add(branchId);
+        
+        final sql = 'UPDATE branch SET ${updateParts.join(', ')} WHERE server_id = ?';
+        
+        // Execute the raw SQL update
+        final rowsAffected = SqliteService.execute(dbPath, sql, params);
+        
+        talker.debug('Updated branch $branchId: $rowsAffected rows affected');
+      }
+    } catch (e, stack) {
+      talker.error('Error in updateBranch: $e');
+      talker.error('Stack trace: $stack');
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<Branch>> branches({
-    required int serverId,
+    int? serverId,
     bool? active,
     bool fetchOnline = false,
   }) async {
@@ -35,9 +92,9 @@ mixin BranchMixin implements BranchInterface {
   }
 
   Future<List<Branch>> _getBranches(
-      int serverId, bool? active, bool fetchOnline) async {
+      int? serverId, bool? active, bool fetchOnline) async {
     final filters = <Where>[
-      Where('businessId').isExactly(serverId),
+      if (serverId != null) Where('businessId').isExactly(serverId),
       if (active != null) Where('active').isExactly(active),
     ];
     var query = Query(where: filters);
@@ -119,9 +176,13 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Business>> businesses(
-      {required int userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false}) async {
     return await repository.get<Business>(
-      query: Query(where: [Where('userId').isExactly(userId)]),
+      policy: fetchOnline
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly,
+      query:
+          Query(where: [if (userId != null) Where('userId').isExactly(userId)]),
     );
   }
 
@@ -155,17 +216,11 @@ mixin BranchMixin implements BranchInterface {
         return branches.first;
       }
 
-      // If no branch with isDefault=true, try with isDefault=1
-      final branchesWithNumericDefault = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [Where('isDefault').isExactly(1)]),
-      );
-
-      if (branchesWithNumericDefault.isEmpty) {
+      if (branches.isEmpty) {
         throw Exception("No default branch found");
       }
 
-      return branchesWithNumericDefault.first;
+      return branches.first;
     } catch (e) {
       await logOut();
       rethrow;

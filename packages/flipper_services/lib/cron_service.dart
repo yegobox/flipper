@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flipper_models/services/sqlite_service.dart';
 import 'package:path/path.dart' as path;
+import 'package:supabase_models/brick/repository.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -83,11 +84,13 @@ class CronService {
 
       ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
-      final dbDir = await DatabasePath.getDatabaseDirectory();
 
       ///temporaly work around for missing bhf_id column in Counter table
       try {
-        final dbPath = path.join(dbDir, 'flipper_v17.sqlite');
+        // Get the database directory and construct the path using Repository.dbFileName
+        final dbDir = await DatabasePath.getDatabaseDirectory();
+        // Use the imported path package correctly
+        final dbPath = path.join(dbDir, Repository.dbFileName);
         SqliteService.addColumnIfNotExists(
             dbPath, 'Counter', 'bhf_id', 'TEXT DEFAULT "00"');
 
@@ -99,11 +102,40 @@ class CronService {
 
         SqliteService.addColumnIfNotExists(dbPath, 'TransactionItem',
             'ignore_for_report', 'INTEGER NOT NULL DEFAULT 0');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'branch_id', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'phone_number', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'external_id', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'payment_status', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'last_error', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'processing_status', 'TEXT  NULL DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'last_processed_at', 'DATETIME DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'updated_at', 'DATETIME DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Plan', 'last_updated', 'DATETIME DEFAULT NULL');
       } catch (e) {
         talker.error("Failed to add bhf_id column to Counter table: $e");
       }
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
+        final businessId = ProxyService.box.getBusinessId()!;
+        talker.info("Hydrating data for businessId: $businessId");
 
         /// end of work around
         // Hydrate essential data
@@ -118,11 +150,7 @@ class CronService {
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
-            ProxyService.strategy
-                .branches(
-                    serverId: ProxyService.box.getBusinessId()!,
-                    fetchOnline: true)
-                .then((_) {}),
+
             // ProxyService.strategy
             //     .variants(branchId: branchId, fetchRemote: true)
             //     .then((_) {}),

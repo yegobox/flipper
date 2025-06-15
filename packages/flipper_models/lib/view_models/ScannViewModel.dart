@@ -146,8 +146,17 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   TextEditingController getDiscountController(String variantId,
       {int? defaultDiscount}) {
     if (!_discountControllers.containsKey(variantId)) {
+      // First check if this variant exists in scannedVariants and has a dcRt value
+      final variant = scannedVariants.firstWhere((v) => v.id == variantId,
+          orElse: () => Variant(id: variantId, name: ''));
+
+      // Use variant's dcRt if available, otherwise use defaultDiscount or 0
+      final discountValue = variant.dcRt != null
+          ? variant.dcRt!.toInt().toString()
+          : defaultDiscount?.toString() ?? '0';
+
       _discountControllers[variantId] = TextEditingController(
-        text: defaultDiscount?.toString() ?? '0',
+        text: discountValue,
       );
     }
     return _discountControllers[variantId]!;
@@ -510,13 +519,29 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     if (editmode) {
       try {
         for (var variant in scannedVariants) {
+          // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
             variant.expirationDate =
                 DateFormat('yyyy-MM-dd').parse(dates[variant.id]!.text);
           }
+
+          // Update discount rate from discount controller if available
+          if (_discountControllers.containsKey(variant.id)) {
+            final discountText = _discountControllers[variant.id]!.text;
+            if (discountText.isNotEmpty) {
+              try {
+                final discount = int.parse(discountText);
+                variant.dcRt = discount.toDouble();
+              } catch (e) {
+                talker.error('Error parsing discount: $e');
+              }
+            }
+          }
+
           await ProxyService.strategy.updateVariant(
             updatables: scannedVariants,
             color: color,
+            dcRt: variant.dcRt,
             // because we are in edit mode if there is no category selected then user use the one on variant.
             categoryId: categoryId ?? variant.categoryId,
             selectedProductType: selectedProductType,

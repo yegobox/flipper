@@ -11,7 +11,7 @@ class BranchDropdown extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncBranches = ref.watch(branchesProvider((includeSelf: true)));
+    final asyncBranches = ref.watch(branchesProvider((active: true)));
 
     return DropdownButtonHideUnderline(
       child: asyncBranches.when(
