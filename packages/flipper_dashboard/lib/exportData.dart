@@ -305,6 +305,168 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           reportSheet.getRangeByIndex(3, 1, 3, 5).merge();
         }
 
+        // Calculate total sales for NS receipts including tax
+        double totalNSSales = 0.0;
+        Map<String, double> nsSalesByMainGroup = {};
+
+        if (!isStockRecount && !showProfitCalculations) {
+          // Only calculate for non-detailed reports (not stock recount and not detailed)
+          talker.info('Calculating NS sales totals for non-detailed report');
+
+          // Filter transactions with receiptType == 'NS'
+          final nsTransactions = config.transactions
+              .where((transaction) => transaction.receiptType == 'NS')
+              .toList();
+
+          // Calculate total NS sales including tax
+          for (final transaction in nsTransactions) {
+            // Add subtotal and tax amount for total including tax
+            final subtotal = transaction.subTotal ?? 0.0;
+            final taxAmount = transaction.taxAmount ?? 0.0;
+            final totalWithTax = subtotal + taxAmount;
+            totalNSSales += totalWithTax;
+
+            // Get transaction items to calculate by main group
+            try {
+              // Ensure transaction.id is converted to String
+              final transId = transaction.id.toString();
+              if (transId.isEmpty) {
+                talker.warning(
+                    'Transaction ID is null or empty, skipping items fetch');
+                continue;
+              }
+
+              final items = await ProxyService.strategy.transactionItems(
+                transactionId: transId,
+                branchId: (await ProxyService.strategy
+                        .branch(serverId: ProxyService.box.getBranchId()!))!
+                    .id,
+              );
+
+              for (final item in items) {
+                try {
+                  // Get the variant to determine its product
+                  final variantId =
+                      item.variantId != null ? item.variantId.toString() : '';
+                  if (variantId.isEmpty) {
+                    talker.warning(
+                        'Variant ID is null or empty for item ${item.id}');
+                    continue;
+                  }
+
+                  final variant = await ProxyService.strategy.getVariant(
+                    id: variantId,
+                  );
+
+                  // Get product category or use variant name as fallback
+                  String categoryName = 'Uncategorized';
+                  if (variant != null && variant.productId != null) {
+                    final product = await ProxyService.strategy.getProduct(
+                      id: variant.productId.toString(),
+                      branchId: ProxyService.box.getBranchId()!,
+                      businessId: ProxyService.box.getBusinessId()!,
+                    );
+
+                    // Add dummy category data for demonstration purposes
+                    if (product != null && product.categoryId != null) {
+                      // In a real implementation, you would fetch the category name from the categoryId
+                      // For now, use dummy category names based on categoryId to demonstrate the feature
+                      final categoryId = product.categoryId.toString();
+                      final category = await ProxyService.strategy.category(
+                        id: categoryId,
+                      );
+                      categoryName = category?.name ?? 'Uncategorized';
+                    }
+                  }
+
+                  final itemTotal =
+                      (item.price * item.qty) + (item.taxAmt ?? 0.0);
+
+                  // Add to category total
+                  nsSalesByMainGroup[categoryName] =
+                      (nsSalesByMainGroup[categoryName] ?? 0.0) + itemTotal;
+                } catch (e) {
+                  talker
+                      .warning('Error getting product for item ${item.id}: $e');
+                  // If we can't get the product, add to uncategorized
+                  final itemTotal =
+                      (item.price * item.qty) + (item.taxAmt ?? 0.0);
+                  nsSalesByMainGroup['Uncategorized'] =
+                      (nsSalesByMainGroup['Uncategorized'] ?? 0.0) + itemTotal;
+                }
+              }
+            } catch (e) {
+              talker.warning(
+                  'Error getting items for transaction ${transaction.id}: $e');
+            }
+          }
+
+          talker.info('Total NS sales (including tax): $totalNSSales');
+          talker.info('NS sales by main group: $nsSalesByMainGroup');
+
+          // Add NS sales summary to Excel report
+          if (totalNSSales > 0) {
+            // Find the last row of data to position our summary
+            int summaryStartRow = 5; // Default starting row
+
+            // If we have data, find the last row and add some space
+            if (manualData != null && manualData.isNotEmpty) {
+              summaryStartRow = 5 +
+                  manualData.length +
+                  3; // Data starts at row 5, add 3 for spacing
+            } else if (config.transactions.isNotEmpty) {
+              // For non-manual data, estimate based on transactions
+              summaryStartRow = 5 + config.transactions.length + 3;
+            }
+
+            // Add NS Sales Summary header
+            final headerCell = reportSheet.getRangeByIndex(summaryStartRow, 1);
+            headerCell.setText('NS Sales Summary');
+            headerCell.cellStyle.bold = true;
+            headerCell.cellStyle.fontSize = 14;
+
+            // Add Total NS Sales row
+            reportSheet
+                .getRangeByIndex(summaryStartRow + 2, 1)
+                .setText('Total NS Sales (incl. Tax)');
+            final totalCell =
+                reportSheet.getRangeByIndex(summaryStartRow + 2, 2);
+            totalCell.setNumber(totalNSSales);
+            totalCell.numberFormat = '#,##0.00';
+            totalCell.cellStyle.hAlign = excel.HAlignType.right;
+
+            // Add Sales by Main Group header
+            reportSheet
+                .getRangeByIndex(summaryStartRow + 4, 1)
+                .setText('Sales by Main Group');
+            reportSheet.getRangeByIndex(summaryStartRow + 4, 1).cellStyle.bold =
+                true;
+
+            // Add column headers for the breakdown
+            reportSheet
+                .getRangeByIndex(summaryStartRow + 5, 1)
+                .setText('Category');
+            reportSheet
+                .getRangeByIndex(summaryStartRow + 5, 2)
+                .setText('Amount');
+            reportSheet.getRangeByIndex(summaryStartRow + 5, 1).cellStyle.bold =
+                true;
+            reportSheet.getRangeByIndex(summaryStartRow + 5, 2).cellStyle.bold =
+                true;
+
+            // Add rows for each category
+            int rowIndex = summaryStartRow + 6;
+            nsSalesByMainGroup.forEach((category, amount) {
+              reportSheet.getRangeByIndex(rowIndex, 1).setText(category);
+              final amountCell = reportSheet.getRangeByIndex(rowIndex, 2);
+              amountCell.setNumber(amount);
+              amountCell.numberFormat = '#,##0.00';
+              amountCell.cellStyle.hAlign = excel.HAlignType.right;
+              rowIndex++;
+            });
+          }
+        }
+
         // Check if we have manual data to populate the workbook with
         if (manualData != null &&
             manualData.isNotEmpty &&
@@ -314,20 +476,23 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               'Populating workbook with manual data (${manualData.length} rows)');
 
           // Create a header style that matches DataGrid export
-          final headerStyle = _getOrCreateStyle(workbook, 'ManualDataHeaderStyle', (style) {
+          final headerStyle =
+              _getOrCreateStyle(workbook, 'ManualDataHeaderStyle', (style) {
             style.fontName = 'Calibri';
             style.fontSize = 11;
             style.bold = true;
             style.hAlign = excel.HAlignType.center;
             style.vAlign = excel.VAlignType.center;
-            style.backColor = '#D9D9D9'; // Light gray background like DataGrid export
+            style.backColor =
+                '#D9D9D9'; // Light gray background like DataGrid export
             style.fontColor = '#000000'; // Black text like DataGrid export
             style.borders.all.lineStyle = excel.LineStyle.none;
             style.borders.all.color = '#A6A6A6';
           });
 
           // Create a data cell style that matches DataGrid export
-          final dataStyle = _getOrCreateStyle(workbook, 'ManualDataStyle', (style) {
+          final dataStyle =
+              _getOrCreateStyle(workbook, 'ManualDataStyle', (style) {
             style.fontName = 'Calibri';
             style.fontSize = 11;
             style.hAlign = excel.HAlignType.left;
@@ -337,7 +502,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           });
 
           // Create a numeric cell style
-          final numericStyle = _getOrCreateStyle(workbook, 'ManualNumericStyle', (style) {
+          final numericStyle =
+              _getOrCreateStyle(workbook, 'ManualNumericStyle', (style) {
             style.fontName = 'Calibri';
             style.fontSize = 11;
             style.hAlign = excel.HAlignType.left;
@@ -359,6 +525,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
 
           // Add data rows (starting at row 5 due to the added header information)
+
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
             final item = manualData[rowIndex];
             Map<String, dynamic> rowData;
