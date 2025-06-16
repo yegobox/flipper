@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
+import 'package:flipper_dashboard/import_purchase_dialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
@@ -8,9 +9,8 @@ import 'package:flipper_dashboard/notice.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
-import 'package:flipper_dashboard/ImportPurchasePage.dart';
-import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -333,58 +333,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handlePurchaseImport() {
-    showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (context) {
-        final deviceType = _getDeviceType(context);
-        if (deviceType == "Phone" || deviceType == "Phablet") {
-          return const SizedBox.shrink();
-        }
-        return Dialog(
-          backgroundColor: Colors.white,
-          insetPadding: EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.9,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  color: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Import & Purchase Management',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: Colors.black87),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(height: 1),
-                Expanded(
-                  child: ImportPurchasePage(),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    ImportPurchaseDialog.show(context);
   }
 
   void _handleShowingCustomAmountCalculator({required CoreViewModel model}) {
