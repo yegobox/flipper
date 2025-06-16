@@ -811,11 +811,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                             }
                             try {
                               model.onScanItem(
-                                countryCode:
-                                    countryOfOriginController.text.isEmpty ==
-                                            true
-                                        ? "RW"
-                                        : countryOfOriginController.text,
+                                countryCode: countryOfOriginController.text,
                                 editmode: widget.productId != null,
                                 barCode: result.trim(),
                                 retailPrice: double.tryParse(
@@ -879,9 +875,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 }
                 try {
                   model.onScanItem(
-                    countryCode: countryOfOriginController.text.isEmpty == true
-                        ? "RW"
-                        : countryOfOriginController.text,
+                    countryCode: countryOfOriginController.text,
                     editmode: widget.productId != null,
                     barCode: barCodeInput,
                     retailPrice:

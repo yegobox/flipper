@@ -107,9 +107,9 @@ mixin ProductMixin {
         variations[i].bcd = variations[i].bcd;
         variations[i].splyAmt = variations[i].supplyPrice;
 
-        /// country of origin for this item we default until we support something different
+        /// country of origin for this item comes from the selected country in CountryOfOriginSelector
         /// and this will happen when we do import.
-        variations[i].orgnNatCd = "RW";
+        variations[i].orgnNatCd = countryofOrigin;
         variations[i].itemNm = productName;
         variations[i].name = productName;
 
