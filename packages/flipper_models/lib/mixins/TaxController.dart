@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
 // import 'package:cbl/cbl.dart'
@@ -345,11 +344,11 @@ class TaxController<OBJ> {
             receiptType == "NR" ||
             receiptType == "TR" ||
             receiptType == "CS") {
-          final newTransactionId = ITransaction(
+          final newTransaction = ITransaction(
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
-            receiptNumber: receiptSignature.data?.rcptNo,
-            totalReceiptNumber: receiptSignature.data?.totRcptNo,
+            receiptNumber: counter.invcNo,
+            totalReceiptNumber: counter.totRcptNo,
             invoiceNumber: counter.invcNo,
             paymentType: transaction.paymentType,
             subTotal: transaction.subTotal,
@@ -359,11 +358,11 @@ class TaxController<OBJ> {
             transactionNumber: transaction.transactionNumber,
             branchId: transaction.branchId,
             status: COMPLETE,
-            transactionType: transaction.transactionType,
+            transactionType: receiptType,
+            receiptType: receiptType,
             cashReceived: transaction.cashReceived,
             customerChangeDue: transaction.customerChangeDue,
             createdAt: transaction.createdAt ?? DateTime.now().toUtc(),
-            receiptType: receiptType,
             updatedAt: transaction.updatedAt,
             customerId: transaction.customerId,
             customerType: transaction.customerType,
@@ -381,8 +380,10 @@ class TaxController<OBJ> {
             remark: transaction.remark,
             customerBhfId: transaction.customerBhfId,
             sarTyCd: transaction.sarTyCd,
+            taxAmount: transaction.taxAmount,
           );
-          ProxyService.strategy.addTransaction(transaction: newTransactionId);
+          await ProxyService.strategy
+              .addTransaction(transaction: newTransaction);
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
@@ -393,7 +394,7 @@ class TaxController<OBJ> {
           for (TransactionItem item in items) {
             final copy = item.copyWith(
               id: const Uuid().v4(), // Generate a new ID
-              transactionId: newTransactionId.id, // Update transactionId
+              transactionId: newTransaction.id, // Update transactionId
               variantId: transaction.id, // Update variantId
             );
             // get variant
@@ -401,7 +402,7 @@ class TaxController<OBJ> {
                 await ProxyService.strategy.getVariant(id: item.variantId);
 
             await ProxyService.strategy.addTransactionItem(
-              transaction: newTransactionId,
+              transaction: newTransaction,
               item: copy,
               ignoreForReport: true,
               variation: variant,
@@ -421,8 +422,8 @@ class TaxController<OBJ> {
           ProxyService.strategy.updateTransaction(
             transaction: transaction,
             receiptType: receiptType,
-            receiptNumber: receiptSignature.data?.rcptNo,
-            totalReceiptNumber: receiptSignature.data?.totRcptNo,
+            receiptNumber: counter.invcNo,
+            totalReceiptNumber: counter.totRcptNo,
             invoiceNumber: counter.invcNo,
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),

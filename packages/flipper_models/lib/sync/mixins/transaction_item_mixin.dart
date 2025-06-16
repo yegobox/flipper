@@ -41,6 +41,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       if (item != null) {
         // Use the provided `TransactionItem`
         transactionItem = item;
+
         transactionItem.ignoreForReport = ignoreForReport;
         transactionItem.qty = quantity; // Update quantity
         transactionItem.doneWithTransaction =
@@ -215,6 +216,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         await ProxyService.strategy.updateTransaction(
           transaction: transaction,
           subTotal: newSubTotal,
+          cashReceived: ProxyService.box.getCashReceived(),
           taxAmount: (transaction.taxAmount ?? 0) + taxAmt,
           updatedAt: DateTime.now(),
           lastTouched: DateTime.now(),

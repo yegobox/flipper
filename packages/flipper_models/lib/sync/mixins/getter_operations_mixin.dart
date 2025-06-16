@@ -34,6 +34,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     int? branchId,
     bool isExpense = false,
     bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
   });
 
   @override

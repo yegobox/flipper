@@ -16,7 +16,10 @@ abstract class TransactionInterface {
     bool includeZeroSubTotal = false,
     bool fetchRemote = false,
     bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
   });
+
+  FutureOr<void> addTransaction({required ITransaction transaction});
 
   Stream<ITransaction> pendingTransaction({
     int? branchId,

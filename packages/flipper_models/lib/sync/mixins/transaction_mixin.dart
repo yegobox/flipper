@@ -48,10 +48,12 @@ mixin TransactionMixin implements TransactionInterface {
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool skipOriginalTransactionCheck = false,  
   }) async {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE), // Ensure default value
-      Where('isOriginalTransaction').isExactly(true),
+      if (skipOriginalTransactionCheck == false)
+        Where('isOriginalTransaction').isExactly(true),
       if (!includeZeroSubTotal)
         Where('subTotal').isGreaterThan(0), // Optional condition
       if (id != null) Where('id').isExactly(id),
@@ -475,6 +477,13 @@ mixin TransactionMixin implements TransactionInterface {
       talker.error(s);
       rethrow;
     }
+  }
+
+
+
+  @override
+  FutureOr<void> addTransaction({required ITransaction transaction}) {
+    repository.upsert(transaction);
   }
 
   Future<void> addTransactionItems(

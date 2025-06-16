@@ -307,15 +307,28 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         // Calculate total sales for NS receipts including tax
         double totalNSSales = 0.0;
+        double totalNSTaxableAmount = 0.0;
+        double totalNSTaxAmount = 0.0;
         Map<String, double> nsSalesByMainGroup = {};
+
+        // Calculate total refunds for NR receipts including tax
+        double totalNRRefunds = 0.0;
+        double totalNRTaxableAmount = 0.0;
+        double totalNRTaxAmount = 0.0;
 
         if (!isStockRecount && !showProfitCalculations) {
           // Only calculate for non-detailed reports (not stock recount and not detailed)
-          talker.info('Calculating NS sales totals for non-detailed report');
+          talker.info(
+              'Calculating NS sales and NR refunds totals for non-detailed report');
 
           // Filter transactions with receiptType == 'NS'
           final nsTransactions = config.transactions
               .where((transaction) => transaction.receiptType == 'NS')
+              .toList();
+
+          // Filter transactions with receiptType == 'NR'
+          final nrTransactions = config.transactions
+              .where((transaction) => transaction.receiptType == 'NR')
               .toList();
 
           // Calculate total NS sales including tax
@@ -325,6 +338,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             final taxAmount = transaction.taxAmount ?? 0.0;
             final totalWithTax = subtotal + taxAmount;
             totalNSSales += totalWithTax;
+            totalNSTaxableAmount += subtotal;
+            totalNSTaxAmount += taxAmount;
 
             // Get transaction items to calculate by main group
             try {
@@ -401,11 +416,25 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             }
           }
 
+          // Calculate total NR refunds including tax
+          for (final transaction in nrTransactions) {
+            // Add subtotal and tax amount for total including tax
+            final subtotal = transaction.subTotal ?? 0.0;
+            final taxAmount = transaction.taxAmount ?? 0.0;
+            final totalWithTax = subtotal + taxAmount;
+            totalNRRefunds += totalWithTax;
+            totalNRTaxableAmount += subtotal;
+            totalNRTaxAmount += taxAmount;
+          }
+
           talker.info('Total NS sales (including tax): $totalNSSales');
           talker.info('NS sales by main group: $nsSalesByMainGroup');
+          talker.info('Total NR refunds (including tax): $totalNRRefunds');
+          talker.info('Number of NS receipts: ${nsTransactions.length}');
+          talker.info('Number of NR receipts: ${nrTransactions.length}');
 
           // Add NS sales summary to Excel report
-          if (totalNSSales > 0) {
+          if (totalNSSales > 0 || totalNRRefunds > 0) {
             // Find the last row of data to position our summary
             int summaryStartRow = 5; // Default starting row
 
@@ -464,6 +493,92 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               amountCell.cellStyle.hAlign = excel.HAlignType.right;
               rowIndex++;
             });
+
+            // Add number of NS receipts
+            rowIndex += 2; // Add some space
+            reportSheet
+                .getRangeByIndex(rowIndex, 1)
+                .setText('Number of NS Sales Receipts');
+            reportSheet
+                .getRangeByIndex(rowIndex, 2)
+                .setNumber(nsTransactions.length.toDouble());
+
+            // Add Tax Summary for NS Sales
+            rowIndex += 2;
+            final taxHeaderCell = reportSheet.getRangeByIndex(rowIndex, 1);
+            taxHeaderCell.setText('Tax Summary (NS Sales)');
+            taxHeaderCell.cellStyle.bold = true;
+            taxHeaderCell.cellStyle.fontSize = 12;
+
+            rowIndex++;
+            reportSheet
+                .getRangeByIndex(rowIndex, 1)
+                .setText('Total Taxable Amount (NS)');
+            final taxableAmountCell = reportSheet.getRangeByIndex(rowIndex, 2);
+            taxableAmountCell.setNumber(totalNSTaxableAmount);
+            taxableAmountCell.numberFormat = '#,##0.00';
+            taxableAmountCell.cellStyle.hAlign = excel.HAlignType.right;
+
+            rowIndex++;
+            reportSheet
+                .getRangeByIndex(rowIndex, 1)
+                .setText('Total Tax Amount (NS)');
+            final taxAmountCell = reportSheet.getRangeByIndex(rowIndex, 2);
+            taxAmountCell.setNumber(totalNSTaxAmount);
+            taxAmountCell.numberFormat = '#,##0.00';
+            taxAmountCell.cellStyle.hAlign = excel.HAlignType.right;
+
+            // Add NR Refund Summary if there are any refunds
+            if (totalNRRefunds > 0) {
+              rowIndex += 2;
+              final refundHeaderCell = reportSheet.getRangeByIndex(rowIndex, 1);
+              refundHeaderCell.setText('NR Refund Summary');
+              refundHeaderCell.cellStyle.bold = true;
+              refundHeaderCell.cellStyle.fontSize = 14;
+
+              rowIndex += 2;
+              reportSheet
+                  .getRangeByIndex(rowIndex, 1)
+                  .setText('Total NR Refunds (incl. Tax)');
+              final refundTotalCell = reportSheet.getRangeByIndex(rowIndex, 2);
+              refundTotalCell.setNumber(totalNRRefunds);
+              refundTotalCell.numberFormat = '#,##0.00';
+              refundTotalCell.cellStyle.hAlign = excel.HAlignType.right;
+
+              rowIndex++;
+              reportSheet
+                  .getRangeByIndex(rowIndex, 1)
+                  .setText('Number of NR Refund Receipts');
+              reportSheet
+                  .getRangeByIndex(rowIndex, 2)
+                  .setNumber(nrTransactions.length.toDouble());
+
+              // Add Tax Summary for NR Refunds
+              rowIndex += 2;
+              final nrTaxHeaderCell = reportSheet.getRangeByIndex(rowIndex, 1);
+              nrTaxHeaderCell.setText('Tax Summary (NR Refunds)');
+              nrTaxHeaderCell.cellStyle.bold = true;
+              nrTaxHeaderCell.cellStyle.fontSize = 12;
+
+              rowIndex++;
+              reportSheet
+                  .getRangeByIndex(rowIndex, 1)
+                  .setText('Total Taxable Amount (NR)');
+              final nrTaxableAmountCell =
+                  reportSheet.getRangeByIndex(rowIndex, 2);
+              nrTaxableAmountCell.setNumber(totalNRTaxableAmount);
+              nrTaxableAmountCell.numberFormat = '#,##0.00';
+              nrTaxableAmountCell.cellStyle.hAlign = excel.HAlignType.right;
+
+              rowIndex++;
+              reportSheet
+                  .getRangeByIndex(rowIndex, 1)
+                  .setText('Total Tax Amount (NR)');
+              final nrTaxAmountCell = reportSheet.getRangeByIndex(rowIndex, 2);
+              nrTaxAmountCell.setNumber(totalNRTaxAmount);
+              nrTaxAmountCell.numberFormat = '#,##0.00';
+              nrTaxAmountCell.cellStyle.hAlign = excel.HAlignType.right;
+            }
           }
         }
 

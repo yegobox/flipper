@@ -587,6 +587,9 @@ class DataViewState extends ConsumerState<DataView>
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
+
+      /// this include NR,CR etc.. in the list needed for full report X,Z report.
+      skipOriginalTransactionCheck: true,
       branchId: ProxyService.box.getBranchId(),
     );
 

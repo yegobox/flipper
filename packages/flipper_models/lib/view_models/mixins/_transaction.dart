@@ -113,6 +113,18 @@ mixin TransactionMixinOld {
   }
 
   FilterType getFilterType({required String transactionType}) {
+    if (transactionType == "NR") {
+      return FilterType.NR;
+    }
+    if (transactionType == "CR") {
+      return FilterType.CR;
+    }
+    if (transactionType == "CS") {
+      return FilterType.CS;
+    }
+    if (transactionType == "TR") {
+      return FilterType.TR;
+    }
     if (ProxyService.box.isProformaMode()) {
       return FilterType.PS;
     } else if (ProxyService.box.isTrainingMode()) {
@@ -131,8 +143,7 @@ mixin TransactionMixinOld {
       final responseFrom =
           await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
-        filterType:
-            getFilterType(transactionType: transaction.receiptType ?? "NS"),
+        filterType: getFilterType(transactionType: transaction.receiptType!),
       );
       final (:response, :bytes) = responseFrom;
 
