@@ -9,11 +9,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final selectedCountryProvider = StateProvider<String?>((ref) => null);
 
 class CountryOfOriginSelector extends ConsumerWidget {
-  final void Function(Country) onCountrySelected;
+  final void Function(Country)? onCountrySelected;
+  final TextEditingController controller;
 
   const CountryOfOriginSelector({
     Key? key,
-    required this.onCountrySelected,
+    this.onCountrySelected,
+    required this.controller,
   }) : super(key: key);
 
   @override
@@ -35,7 +37,10 @@ class CountryOfOriginSelector extends ConsumerWidget {
             if (selectedCountryCode == null && countries.isNotEmpty) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 final firstCountry = countries.first;
-                onCountrySelected(firstCountry);
+                if (onCountrySelected != null) {
+                  onCountrySelected!(firstCountry);
+                }
+                controller.text = firstCountry.code;
                 ref.read(selectedCountryProvider.notifier).state =
                     firstCountry.code;
               });
@@ -49,7 +54,10 @@ class CountryOfOriginSelector extends ConsumerWidget {
                   final selectedCountry = countries.firstWhere(
                     (country) => country.code == newValue,
                   );
-                  onCountrySelected(selectedCountry);
+                  if (onCountrySelected != null) {
+                    onCountrySelected!(selectedCountry);
+                  }
+                  controller.text = newValue;
                   ref.read(selectedCountryProvider.notifier).state = newValue;
                 }
               },

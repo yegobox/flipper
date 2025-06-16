@@ -513,6 +513,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         },
                       ),
                       CountryOfOriginSelector(
+                        controller: countryOfOriginController,
                         onCountrySelected: (Country country) {
                           print("Selected country: ${country.name}");
                           countryOfOriginController.text = country.code;

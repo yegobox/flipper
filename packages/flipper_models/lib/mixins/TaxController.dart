@@ -350,6 +350,7 @@ class TaxController<OBJ> {
             receiptNumber: counter.invcNo,
             totalReceiptNumber: counter.totRcptNo,
             invoiceNumber: counter.invcNo,
+            customerName: transaction.customerName ?? "N/A",
             paymentType: transaction.paymentType,
             subTotal: transaction.subTotal,
             // Adding other fields from transaction object
@@ -375,7 +376,6 @@ class TaxController<OBJ> {
             isIncome: transaction.isIncome,
             isExpense: transaction.isExpense,
             isRefunded: transaction.isRefunded,
-            customerName: transaction.customerName,
             customerTin: transaction.customerTin,
             remark: transaction.remark,
             customerBhfId: transaction.customerBhfId,
