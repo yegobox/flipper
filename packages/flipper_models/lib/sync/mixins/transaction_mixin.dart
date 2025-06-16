@@ -407,6 +407,7 @@ mixin TransactionMixin implements TransactionInterface {
     await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
+      taxAmount: pendingTransaction.taxAmount ?? 0,
       sarNo: invoiceNumber != null
           ? invoiceNumber.toString()
           : purchase?.spplrInvcNo.toString(),
@@ -633,6 +634,7 @@ mixin TransactionMixin implements TransactionInterface {
     await ProxyService.strategy.updateTransaction(
       transaction: pendingTransaction,
       subTotal: newSubTotal,
+      taxAmount: pendingTransaction.taxAmount ?? 0,
       updatedAt: newUpdatedAt,
       lastTouched: newLastTouched,
       receiptType: "NS",
@@ -651,6 +653,7 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   FutureOr<void> updateTransaction({
     required ITransaction? transaction,
+    num taxAmount = 0.0,
     String? receiptType,
     double? subTotal,
     String? note,
@@ -708,6 +711,8 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
     transaction.ticketName = ticketName ?? transaction.ticketName;
+    transaction.taxAmount =
+        taxAmount == 0.0 ? transaction.taxAmount : taxAmount;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;

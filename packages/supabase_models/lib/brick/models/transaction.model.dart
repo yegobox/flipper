@@ -115,6 +115,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? originalTransactionId;
   bool? isOriginalTransaction;
 
+  num? taxAmount;
+
   ITransaction({
     this.ticketName,
     String? id,
@@ -169,9 +171,11 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? lastPaymentAmount,
     this.originalTransactionId,
     bool? isOriginalTransaction,
+    num? taxAmount,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
+        taxAmount = taxAmount ?? 0.0,
         billingFrequency = billingFrequency ?? 'monthly',
         billingAmount = billingAmount ?? 0.0,
         totalInstallments = totalInstallments ?? 1,
