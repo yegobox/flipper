@@ -1527,6 +1527,7 @@ class Capella extends AiStrategyImpl
       FilterType? filterType,
       int? branchId,
       bool includeZeroSubTotal = false,
+      bool skipOriginalTransactionCheck = false,
       bool includePending = false}) {
     // TODO: implement transactions
     throw UnimplementedError();

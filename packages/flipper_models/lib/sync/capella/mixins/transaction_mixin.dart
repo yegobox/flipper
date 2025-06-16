@@ -23,9 +23,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool isExpense = false,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
   }) async {
     throw UnimplementedError(
         'transactions needs to be implemented for Capella');
+  }
+
+  @override
+  FutureOr<void> addTransaction({required ITransaction transaction}) {
+    throw UnimplementedError(
+        'addTransaction needs to be implemented for Capella');
   }
 
   @override

@@ -145,6 +145,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     DateTime? startDate,
     DateTime? endDate,
     String? status,
+    bool skipOriginalTransactionCheck = false,
     String? transactionType,
     bool isCashOut = false,
     bool fetchRemote = false,

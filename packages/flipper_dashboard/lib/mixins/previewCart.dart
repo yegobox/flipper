@@ -156,6 +156,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
       ProxyService.strategy.updateTransaction(
         transaction: transaction,
+        cashReceived: ProxyService.box.getCashReceived(),
         subTotal: itemsTotal - discountAmount,
       );
     } catch (e) {
@@ -169,13 +170,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
     bool immediateCompletion = false, // New parameter
   }) async {
-    try { 
+    try {
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return;
       // update this transaction as completed
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: COMPLETE,
+        cashReceived: ProxyService.box.getCashReceived(),
       );
       // Save payment methods
       for (var payment in paymentMethods) {
@@ -253,6 +255,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: PENDING,
+        cashReceived: ProxyService.box.getCashReceived(),
       );
       // Example: Stop loading from another widget or function
       ref.read(payButtonStateProvider.notifier).stopLoading();

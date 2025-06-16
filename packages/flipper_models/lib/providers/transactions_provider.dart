@@ -217,18 +217,20 @@ Stream<double> netProfitStream(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
+    talker.debug('Net Profit: Total Income: $totalIncome');
 
     // Calculate total for expense transactions (operational expenses)
     final totalExpenses = expenseTransactions.fold<double>(
       0.0,
       (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
-
+    talker.debug('Net Profit: Total Expenses: $totalExpenses');
     // Calculate total tax payable from all transaction items in the period
     final totalTaxPayable = allTransactionItems.fold<double>(
       0.0,
       (sum, item) => sum + (item.taxAmt ?? 0.0),
     );
+    talker.debug('Net Profit: Total Tax Payable: $totalTaxPayable');
 
     // Calculate COGS (Cost of Goods Sold)
     double totalCOGS = 0.0;

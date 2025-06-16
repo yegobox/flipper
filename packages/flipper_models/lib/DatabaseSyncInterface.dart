@@ -583,7 +583,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required TransactionItem item,
       required int subBranchId});
 
-  FutureOr<void> addTransaction({required ITransaction transaction});
   FutureOr<bool> isBranchEnableForPayment(
       {required String currentBranchId, bool fetchRemote = false});
   FutureOr<void> setBranchPaymentStatus(

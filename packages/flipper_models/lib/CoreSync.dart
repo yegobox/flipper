@@ -3070,11 +3070,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addTransaction({required models.ITransaction transaction}) {
-    repository.upsert(transaction);
-  }
-
-  @override
   Future<int> addFavorite({required models.Favorite data}) async {
     try {
       Favorite? fav = (await repository.get<Favorite>(
