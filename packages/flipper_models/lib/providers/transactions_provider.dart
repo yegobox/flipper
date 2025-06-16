@@ -184,17 +184,6 @@ Stream<double> netProfitStream(
       )
       .asBroadcastStream();
 
-  // Fetch all transaction items for the period, for tax computation
-  final taxItemsStream = ProxyService.strategy
-      .transactionItemsStreams(
-        startDate: startDate,
-        endDate: endDate,
-        branchId: ProxyService.box.branchIdString(),
-        fetchRemote:
-            false, // Changed to false to match other streams and avoid unnecessary network calls
-      )
-      .asBroadcastStream();
-
   await for (final incomeTransactions in incomeStream) {
     // Log the number of income transactions for debugging
     talker.debug(
@@ -204,87 +193,46 @@ Stream<double> netProfitStream(
     talker.debug(
         'Net Profit: Found ${expenseTransactions.length} expense transactions');
 
-    final allTransactionItems = await taxItemsStream.first;
-    talker.debug(
-        'Net Profit: Found ${allTransactionItems.length} transaction items');
-
-    // Filter out any transactions that are marked as expenses in the income stream
-    final filteredIncome =
-        incomeTransactions.where((tx) => !(tx.isExpense ?? false)).toList();
+    // Filter out any transactions that are marked as expenses or refunded in the income stream
+    final filteredIncome = incomeTransactions
+        .where((tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false))
+        .toList();
 
     // Calculate total from filtered income transactions (revenue)
     final totalIncome = filteredIncome.fold<double>(
       0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+      (sum, transaction) => sum + (transaction.subTotal ?? 0.0),
     );
-    talker.debug('Net Profit: Total Income: $totalIncome');
 
-    // Calculate total for expense transactions (operational expenses)
+    // Calculate total from expense transactions
     final totalExpenses = expenseTransactions.fold<double>(
       0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+      (sum, transaction) => sum + (transaction.subTotal ?? 0.0),
     );
-    talker.debug('Net Profit: Total Expenses: $totalExpenses');
-    // Calculate total tax payable from all transaction items in the period
-    final totalTaxPayable = allTransactionItems.fold<double>(
-      0.0,
-      (sum, item) => sum + (item.taxAmt ?? 0.0),
-    );
-    talker.debug('Net Profit: Total Tax Payable: $totalTaxPayable');
 
-    // Calculate COGS (Cost of Goods Sold)
+    // Calculate tax payable directly from transactions
+    double totalTaxPayable = 0.0;
     double totalCOGS = 0.0;
 
-    // Process each income transaction to calculate COGS
+    // Use the tax amount directly from transactions for better performance
     for (final transaction in filteredIncome) {
-      try {
-        // Get transaction items for this transaction
-        final transactionItems = await ProxyService.strategy.transactionItems(
-          transactionId: transaction.id,
-        );
-
-        // If transaction has items, calculate COGS based on variants
-        if (transactionItems.isNotEmpty) {
-          for (final item in transactionItems) {
-            if (item.variantId != null) {
-              try {
-                // Check if splyAmt is available
-                if (item.splyAmt != null) {
-                  // splyAmt already includes quantity as per our fix in transaction_item_mixin.dart
-                  // So we just add it directly to totalCOGS
-                  totalCOGS += item.splyAmt!;
-
-                  talker.debug(
-                      'Item: ${item.name}, Qty: ${item.qty}, Supply Amount: ${item.splyAmt}, COGS: ${item.splyAmt}');
-                } else {
-                  // Fallback: estimate COGS as 70% of item price * quantity
-                  final itemCOGS = item.price * item.qty * 0.7;
-                  totalCOGS += itemCOGS;
-
-                  talker.debug(
-                      'Item: ${item.name}, Qty: ${item.qty}, Using fallback calculation, COGS: $itemCOGS');
-                }
-              } catch (e) {
-                talker
-                    .error('Error calculating COGS for item ${item.name}: $e');
-                // Fallback: estimate COGS as 70% of item price * quantity
-                final itemCOGS = item.price * item.qty * 0.7;
-                totalCOGS += itemCOGS;
-                talker.debug('Using fallback COGS for ${item.name}: $itemCOGS');
-              }
-            }
-          }
-        } else {
-          // If transaction has no items, it's likely a non-inventory transaction
-          // Current implementation already handles this correctly
-          talker.debug(
-              'Transaction ${transaction.id} has no items, skipping COGS calculation');
-        }
-      } catch (e) {
-        talker.error(
-            'Error fetching items for transaction ${transaction.id}: $e');
-      }
+      // Add tax amount from transaction
+      totalTaxPayable += transaction.taxAmount ?? 0.0;
     }
+
+    // For COGS, we'll use a simplified approach based on transaction subtotals
+    // This avoids the expensive item-by-item variant lookups
+    // Assuming average COGS is approximately 60% of revenue
+    totalCOGS = filteredIncome.fold<double>(
+      0.0,
+      (sum, transaction) => sum + ((transaction.subTotal ?? 0.0) * 0.6),
+    );
+
+    talker.debug('Using simplified COGS calculation: 60% of revenue');
+    talker.debug('This avoids expensive item-by-item variant lookups');
+
+    // If more accurate COGS is needed, consider pre-calculating and storing
+    // COGS values when items are added to transactions
 
     talker.debug('Total COGS: $totalCOGS');
     talker.debug('Total tax payable: $totalTaxPayable');
@@ -292,6 +240,7 @@ Stream<double> netProfitStream(
     talker.debug('Total expenses: $totalExpenses');
 
     // Net profit = Revenue - COGS - Operational Expenses - Taxes
+    // totalCOGS
     final netProfit = totalIncome - totalCOGS - totalExpenses - totalTaxPayable;
 
     // Detailed logging for debugging the calculation
@@ -330,8 +279,9 @@ Stream<double> grossProfitStream(
 
   await for (final incomeTransactions in incomeStream) {
     // Filter out any transactions that are marked as expenses in the income stream
-    final filteredIncome =
-        incomeTransactions.where((tx) => !(tx.isExpense ?? false)).toList();
+    final filteredIncome = incomeTransactions
+        .where((tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false))
+        .toList();
 
     // Calculate total from filtered income transactions
     final totalIncome = filteredIncome.fold<double>(

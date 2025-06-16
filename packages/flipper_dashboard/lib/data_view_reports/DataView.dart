@@ -439,6 +439,7 @@ class DataViewState extends ConsumerState<DataView>
         startDate: widget.startDate,
         endDate: widget.endDate,
         isExpense: false,
+        skipOriginalTransactionCheck: false,
         branchId: ProxyService.box.getBranchId(),
       );
       transactions.fold<double>(
@@ -493,12 +494,14 @@ class DataViewState extends ConsumerState<DataView>
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
+      skipOriginalTransactionCheck: false,
       branchId: ProxyService.box.getBranchId(),
     );
     final sales = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
+      skipOriginalTransactionCheck: true,
       branchId: ProxyService.box.getBranchId(),
     );
     // Convert transactions to Expense model
@@ -580,6 +583,7 @@ class DataViewState extends ConsumerState<DataView>
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
+      skipOriginalTransactionCheck: false,
       branchId: ProxyService.box.getBranchId(),
     );
 
