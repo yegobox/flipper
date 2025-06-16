@@ -95,7 +95,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
           endDate: endDate,
           branchId: branchId,
           branchIdString: branchIdString,
-          fetchRemote: false)
+          fetchRemote: true)
       .map((transactions) {
     talker.debug('Received ${transactions.length} transactions items');
     return transactions;
