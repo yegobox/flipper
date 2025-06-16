@@ -150,6 +150,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _databaseManager =
         DatabaseManager(dbFileName: dbFileName, backupManager: _backupManager);
     _queueManager = QueueManager(offlineRequestQueue);
+
+    // Log the final database filename being used
+    _logger.info('FINAL DATABASE FILENAME: $dbFileName');
+    _logger.info('FINAL DATABASE PATH: $dbPath');
   }
 
   factory Repository() {

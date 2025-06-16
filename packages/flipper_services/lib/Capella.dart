@@ -1866,6 +1866,7 @@ class Capella extends AiStrategyImpl
       String? receiptType,
       double? subTotal,
       String? note,
+      num taxAmount = 0.0,
       String? status,
       String? customerId,
       bool? ebmSynced,

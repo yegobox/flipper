@@ -36,6 +36,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       }
 
       TransactionItem transactionItem;
+      num taxAmt = 0;
 
       if (item != null) {
         // Use the provided `TransactionItem`
@@ -81,9 +82,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         talker.info('  amountTotal: $amountTotal');
 
         // Calculate tax amount
-        double taxAmt;
-        double taxblAmt;
-        double totAmt;
+        num taxblAmt;
+        num totAmt;
 
         if (variation.taxTyCd == 'B') {
           // For taxTyCd == 'B', tax is included in the price
@@ -176,9 +176,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           active: true,
           dcRt: variation.dcRt,
           dcAmt: dcAmt,
-          taxblAmt: taxblAmt,
-          taxAmt: taxAmt,
-          totAmt: totAmt,
+          taxblAmt: taxblAmt.toDouble(),
+          taxAmt: taxAmt.toDouble(),
+          totAmt: totAmt.toDouble(),
           itemSeq: variation.itemSeq,
           isrccCd: variation.isrccCd,
           isrccNm: variation.isrccNm,
@@ -215,6 +215,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         await ProxyService.strategy.updateTransaction(
           transaction: transaction,
           subTotal: newSubTotal,
+          taxAmount: (transaction.taxAmount ?? 0) + taxAmt,
           updatedAt: DateTime.now(),
           lastTouched: DateTime.now(),
         );

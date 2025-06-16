@@ -90,13 +90,26 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     );
   }
 
-  DataGridRow _buildITransactionRow(ITransaction item) {
+  DataGridRow _buildITransactionRow(ITransaction trans) {
+    // Calculate tax as 18% of subtotal (same estimation as in DataView.dart)
+
+    // Debug logging for tax amount issues
+    print(
+        'DEBUG: Transaction #${trans.id} - taxAmount: ${trans.taxAmount}, runtimeType: ${trans.taxAmount?.runtimeType}');
+
+    // Convert taxAmount to double explicitly with debug info
+    final taxValue = (trans.taxAmount ?? 0.0).toDouble();
+    print(
+        'DEBUG: After conversion - taxValue: $taxValue, runtimeType: ${taxValue.runtimeType}');
+
     return DataGridRow(cells: [
       DataGridCell<String>(
-          columnName: 'Name', value: item.invoiceNumber?.toString() ?? "-"),
-      DataGridCell<String>(columnName: 'Type', value: item.receiptType ?? "-"),
-      DataGridCell<double>(columnName: 'Amount', value: item.subTotal ?? 0.0),
-      DataGridCell<double>(columnName: 'Cash', value: item.cashReceived ?? 0.0),
+          columnName: 'Name', value: trans.invoiceNumber?.toString() ?? "-"),
+      DataGridCell<String>(columnName: 'Type', value: trans.receiptType ?? "-"),
+      DataGridCell<double>(columnName: 'Amount', value: trans.subTotal ?? 0.0),
+      DataGridCell<double>(columnName: 'Tax', value: taxValue),
+      DataGridCell<double>(
+          columnName: 'Cash', value: trans.cashReceived ?? 0.0),
     ]);
   }
 

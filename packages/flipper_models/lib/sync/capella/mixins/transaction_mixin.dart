@@ -153,6 +153,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     int? invoiceNumber,
     DateTime? lastTouched,
     int? supplierId,
+    num? taxAmount,
     int? receiptNumber,
     int? totalReceiptNumber,
     bool? isProformaMode,

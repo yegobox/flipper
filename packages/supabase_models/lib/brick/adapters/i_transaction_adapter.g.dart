@@ -128,7 +128,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     billingFrequency:
         data['billing_frequency'] == null
             ? null
-            : data['billing_frequency'] as String? ?? 'monthly',
+            : data['billing_frequency'] as String? ?? "monthly",
     billingAmount:
         data['billing_amount'] == null
             ? null
@@ -173,6 +173,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
         data['is_original_transaction'] == null
             ? null
             : data['is_original_transaction'] as bool?,
+    taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
   );
 }
 
@@ -235,6 +236,7 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'last_payment_amount': instance.lastPaymentAmount,
     'original_transaction_id': instance.originalTransactionId,
     'is_original_transaction': instance.isOriginalTransaction,
+    'tax_amount': instance.taxAmount,
   };
 }
 
@@ -393,6 +395,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
         data['is_original_transaction'] == null
             ? null
             : data['is_original_transaction'] == 1,
+    taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -466,6 +469,7 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
         instance.isOriginalTransaction == null
             ? null
             : (instance.isOriginalTransaction! ? 1 : 0),
+    'tax_amount': instance.taxAmount,
   };
 }
 
@@ -687,6 +691,10 @@ class ITransactionAdapter
     'isOriginalTransaction': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_original_transaction',
+    ),
+    'taxAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tax_amount',
     ),
   };
   @override
@@ -1012,6 +1020,12 @@ class ITransactionAdapter
       columnName: 'is_original_transaction',
       iterable: false,
       type: bool,
+    ),
+    'taxAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tax_amount',
+      iterable: false,
+      type: num,
     ),
   };
   @override

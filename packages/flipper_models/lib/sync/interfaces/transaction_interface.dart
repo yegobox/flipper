@@ -138,6 +138,7 @@ abstract class TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
+    num taxAmount = 0.0,
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo, required int branchId, String? id});

@@ -2944,7 +2944,6 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-
   @override
   Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {

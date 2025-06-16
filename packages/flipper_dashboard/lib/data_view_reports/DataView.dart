@@ -663,12 +663,35 @@ class DataViewState extends ConsumerState<DataView>
       manualData = preparedData;
     } else if (_dataGridSource is TransactionDataSource) {
       // Use transactions directly from widget
-      manualData = widget.transactions ?? [];
+      final transactions = widget.transactions ?? [];
+
+      // Prepare data with explicit mapping to ensure all columns are included
+      List<Map<String, dynamic>> preparedData = [];
+
+      for (final transaction in transactions) {
+        final Map<String, dynamic> rowData = {};
+
+        // Map all the columns explicitly based on the actual Transaction properties
+        rowData['Name'] =
+            transaction.invoiceNumber?.toString() ?? transaction.id.toString();
+        rowData['Type'] = transaction.receiptType ?? 'Sale';
+        rowData['Amount'] = transaction.subTotal ?? 0.0;
+
+        // Get tax amount directly from the transaction
+        // The taxAmount property has been added to ITransaction and is populated with the sum of all transaction items' tax amounts
+        double totalTax = (transaction.taxAmount ?? 0.0).toDouble();
+
+        rowData['Tax'] = totalTax;
+        rowData['Cash'] = transaction.cashReceived ?? 0.0;
+
+        preparedData.add(rowData);
+      }
 
       // Get column names from the headers
       columnNames = _getTableHeaders().map((col) => col.columnName).toList();
       talker.info(
-          'Prepared ${manualData.length} transactions for export with ${columnNames.length} columns');
+          'Prepared ${preparedData.length} transactions for export with ${columnNames.length} columns');
+      manualData = preparedData;
     }
 
     // Use the exportDataGrid method with our config and manual data

@@ -129,8 +129,11 @@ class CronService {
 
         SqliteService.addColumnIfNotExists(
             dbPath, 'Plan', 'last_updated', 'DATETIME DEFAULT NULL');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'ITransaction', 'tax_amount', 'DOUBLE DEFAULT 0.0');
       } catch (e) {
-        talker.error("Failed to add bhf_id column to Counter table: $e");
+        talker.error("Failed to add columns to tables: $e");
       }
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
