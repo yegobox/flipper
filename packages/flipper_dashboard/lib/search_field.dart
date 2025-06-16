@@ -345,7 +345,7 @@ class SearchFieldState extends ConsumerState<SearchField>
           backgroundColor: Colors.white,
           insetPadding: EdgeInsets.all(16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Container(
             width: MediaQuery.of(context).size.width * 0.9,
