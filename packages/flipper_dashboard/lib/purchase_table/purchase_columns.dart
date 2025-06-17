@@ -86,5 +86,18 @@ List<GridColumn> buildPurchaseColumns() {
         ),
       ),
     ),
+    GridColumn(
+      columnName: 'Status',
+      width: 120,
+      label: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerLeft,
+        child: const Text(
+          'Status',
+          style: headerStyle,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    ),
   ];
 }

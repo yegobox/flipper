@@ -126,7 +126,7 @@ mixin PurchaseMixin
           variantsList = await variants(
             branchId: ProxyService.box.getBranchId()!,
             imptItemsttsCd: "2",
-            excludeApprovedInWaitingOrCanceledItems: true,
+            excludeApprovedInWaitingOrCanceledItems: false,
           );
           print(
               "Total variants found: ${variantsList.length}"); // Log total variants
@@ -187,6 +187,7 @@ mixin PurchaseMixin
     required int tin,
     required String url,
     required String lastRequestdate,
+    String? pchsSttsCd,
   }) async {
     try {
       RwApiResponse response;
@@ -240,6 +241,7 @@ mixin PurchaseMixin
           variantsList = await variants(
             branchId: branchId,
             excludeApprovedInWaitingOrCanceledItems: true,
+            pchsSttsCd: pchsSttsCd,
           );
           return variantsList;
         }
@@ -344,6 +346,7 @@ mixin PurchaseMixin
       variantsList = await variants(
         branchId: branchId,
         excludeApprovedInWaitingOrCanceledItems: true,
+        pchsSttsCd: pchsSttsCd,
       );
 
       return variantsList;

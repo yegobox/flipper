@@ -10,6 +10,7 @@ abstract class VariantInterface {
     int? page,
     String? variantId,
     String? name,
+    String? pchsSttsCd,
     String? bcd,
     String? purchaseId,
     int? itemsPerPage,
@@ -45,7 +46,8 @@ abstract class VariantInterface {
       String? pkgUnitCd,
       DateTime? expirationDate,
       bool? ebmSynced,
-      String? categoryId, double? dcRt});
+      String? categoryId,
+      double? dcRt});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 

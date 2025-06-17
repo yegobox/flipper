@@ -1743,6 +1743,7 @@ class Capella extends AiStrategyImpl
       String? productId,
       String? variantId,
       int? page,
+      String? pchsSttsCd,
       String? purchaseId,
       bool excludeApprovedInWaitingOrCanceledItems = false,
       int? itemsPerPage,
@@ -1759,6 +1760,7 @@ class Capella extends AiStrategyImpl
     required String bhfId,
     required int tin,
     required String url,
+    String? pchsSttsCd,
     required String lastRequestdate,
   }) {
     // TODO: implement selectPurchases

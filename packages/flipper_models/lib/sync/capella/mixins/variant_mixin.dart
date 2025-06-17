@@ -15,6 +15,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     String? productId,
     String? variantId,
     int? page,
+    String? pchsSttsCd,
     String? purchaseId,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     int? itemsPerPage,

@@ -230,7 +230,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required String bhfId,
       required int tin,
       required String url,
-      required String lastRequestdate});
+      required String lastRequestdate,
+      String? pchsSttsCd});
 
   Future<Variant?> getVariant(
       {String? id,
@@ -494,7 +495,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required String colorId, String? name, bool? active});
 
   FutureOr<void> updateReport({required String reportId, bool? downloaded});
-
 
   FutureOr<void> updateNotification(
       {required String notificationId, bool? completed});
