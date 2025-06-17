@@ -118,7 +118,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Future<List<model.Variant>> _fetchDataPurchase(
-      {required DateTime selectedDate}) async {
+      {required DateTime selectedDate, String? pchsSttsCd}) async {
     try {
       final convertedDate = DateTime.now().toYYYYMMddHHmmss();
       final business = await ProxyService.strategy
@@ -129,6 +129,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         bhfId: (await ProxyService.box.bhfId()) ?? "00",
         tin: business?.tinNumber ?? ProxyService.box.tin(),
         url: url!,
+        pchsSttsCd: pchsSttsCd,
       );
       talker.warning(rwResponse);
       return rwResponse; // Return data directly

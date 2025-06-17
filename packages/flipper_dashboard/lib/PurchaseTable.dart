@@ -221,11 +221,16 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                   ),
                                 ),
                                 data: (purchaseVariants) {
-                                  final unapprovedVariants = purchaseVariants
-                                      .where((v) => v.pchsSttsCd == '01')
+                                  final relevantVariants = purchaseVariants
+                                      .where((v) =>
+                                              v.pchsSttsCd == '01' || // Waiting
+                                              v.pchsSttsCd ==
+                                                  '02' || // Approved
+                                              v.pchsSttsCd == '04' // Declined
+                                          )
                                       .toList();
 
-                                  if (unapprovedVariants.isEmpty) {
+                                  if (relevantVariants.isEmpty) {
                                     return Container(
                                       padding: EdgeInsets.all(16),
                                       child: Row(
@@ -263,7 +268,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                       ),
                                       child: Column(
                                         children: [
-                                          if (unapprovedVariants.isNotEmpty)
+                                          if (relevantVariants.isNotEmpty)
                                             SizedBox(
                                               // Or Container with a height
                                               height:
@@ -272,7 +277,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                 key:
                                                     UniqueKey(), // Add a key to force a rebuild when data changes
                                                 source: PurchaseDataSource(
-                                                  unapprovedVariants,
+                                                  relevantVariants,
                                                   _editedRetailPrices,
                                                   _editedSupplyPrices,
                                                   talker,
@@ -297,7 +302,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                           .rowIndex >
                                                       0) {
                                                     final item =
-                                                        unapprovedVariants[details
+                                                        relevantVariants[details
                                                                 .rowColumnIndex
                                                                 .rowIndex -
                                                             1];

@@ -30,6 +30,7 @@ mixin VariantMixin implements VariantInterface {
     String? bcd,
     String? purchaseId,
     int? itemsPerPage,
+    String? pchsSttsCd,
     String? imptItemsttsCd,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
@@ -55,12 +56,15 @@ mixin VariantMixin implements VariantInterface {
         ] else if (productId != null) ...[
           Where('productId').isExactly(productId),
           Where('branchId').isExactly(branchId)
+        ] else if (pchsSttsCd != null) ...[
+          Where('pchsSttsCd').isExactly(pchsSttsCd),
+          Where('branchId').isExactly(branchId)
         ] else ...[
           Where('branchId').isExactly(branchId),
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
           // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
-          if (!excludeApprovedInWaitingOrCanceledItems) ...[
+          if (excludeApprovedInWaitingOrCanceledItems == false) ...[
             Where('imptItemSttsCd').isNot("2"),
             Where('imptItemSttsCd').isNot("4"),
             Where('pchsSttsCd').isNot("04"),
@@ -68,11 +72,11 @@ mixin VariantMixin implements VariantInterface {
           ],
 
           /// 01 is waiting for approval.
-          if (excludeApprovedInWaitingOrCanceledItems)
+          if (excludeApprovedInWaitingOrCanceledItems == true)
             Where('pchsSttsCd').isExactly("01"),
           if (purchaseId != null) Where('purchaseId').isExactly(purchaseId),
           // Apply the purchaseId filter only if includePurchases is true
-          if (excludeApprovedInWaitingOrCanceledItems)
+          if (excludeApprovedInWaitingOrCanceledItems == true)
             Where('purchaseId').isNot(null),
         ]
       ]);
