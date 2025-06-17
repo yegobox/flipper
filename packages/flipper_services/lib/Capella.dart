@@ -2319,4 +2319,16 @@ class Capella extends AiStrategyImpl
     // TODO: implement saveBranch
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<brick.Variant>> allImportsToDate() {
+    // TODO: implement allImportsToDate
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> allPurchasesToDate() {
+    // TODO: implement allPurchasesToDate
+    throw UnimplementedError();
+  }
 }

@@ -438,4 +438,40 @@ mixin PurchaseMixin
       ),
     );
   }
+
+  @override
+  Future<List<Variant>> allImportsToDate() async {
+    final branchId = ProxyService.box.getBranchId()!;
+    return await repository.get<Variant>(
+      query: brick.Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('imptItemSttsCd').isExactly('2'),
+          Or('branchId').isExactly(branchId),
+          Where('imptItemSttsCd').isExactly("3"),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<List<Variant>> allPurchasesToDate() async {
+    final branchId = ProxyService.box.getBranchId()!;
+    return await repository.get<Variant>(
+      query: brick.Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("01"),
+
+          // OR (branchId = ? AND pchsSttsCd = '02')
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("02"),
+
+          // OR (branchId = ? AND pchsSttsCd = '04')
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("04"),
+        ],
+      ),
+    );
+  }
 }

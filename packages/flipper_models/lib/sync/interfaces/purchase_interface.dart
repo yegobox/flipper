@@ -18,6 +18,9 @@ abstract class PurchaseInterface {
     required String lastRequestdate,
   });
 
+  Future<List<Variant>> allImportsToDate();
+  Future<List<Variant>> allPurchasesToDate();
+
   Future<void> saveVariant(
     Variant item,
     Business business,

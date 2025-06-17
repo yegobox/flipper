@@ -50,4 +50,16 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
   }) {
     throw UnimplementedError('getPurchase needs to be implemented for Capella');
   }
+
+  @override
+  Future<List<Variant>> allImportsToDate() {
+    throw UnimplementedError(
+        'allImportsToDate needs to be implemented for Capella');
+  }
+
+  @override
+  Future<List<Variant>> allPurchasesToDate() {
+    throw UnimplementedError(
+        'allPurchasesToDate needs to be implemented for Capella');
+  }
 }
