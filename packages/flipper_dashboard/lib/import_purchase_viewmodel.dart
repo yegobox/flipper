@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/export/export_purchase.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:supabase_models/brick/models/variant.model.dart';
 
@@ -30,8 +31,8 @@ class ImportPurchaseViewModel
     }
   }
 
-  Future<void> exportPurchase() async {
-    List<Variant> purchases = await ProxyService.strategy.allPurchasesToDate();
+    Future<void> exportPurchase() async {
+    List<PurchaseReportItem> purchases = await ProxyService.strategy.allPurchasesToDate();
     if (purchases.isNotEmpty) {
       await ExportPurchase().export(purchases);
     } else {
