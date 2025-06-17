@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/purchase_report_item.dart';
 
 abstract class PurchaseInterface {
   Future<List<Variant>> selectImportItems({
@@ -19,7 +20,7 @@ abstract class PurchaseInterface {
   });
 
   Future<List<Variant>> allImportsToDate();
-  Future<List<Variant>> allPurchasesToDate();
+  Future<List<PurchaseReportItem>> allPurchasesToDate();
 
   Future<void> saveVariant(
     Variant item,

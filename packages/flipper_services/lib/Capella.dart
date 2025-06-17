@@ -7,6 +7,7 @@ import 'dart:typed_data';
 // import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -2327,7 +2328,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Variant>> allPurchasesToDate() {
+  Future<List<PurchaseReportItem>> allPurchasesToDate() {
     // TODO: implement allPurchasesToDate
     throw UnimplementedError();
   }

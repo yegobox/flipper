@@ -4,6 +4,7 @@ import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -454,25 +455,36 @@ mixin PurchaseMixin
     );
   }
 
-
   @override
-  Future<List<Variant>> allPurchasesToDate() async {
+  Future<List<PurchaseReportItem>> allPurchasesToDate() async {
     final branchId = ProxyService.box.getBranchId()!;
-    return await repository.get<Variant>(
+    final variants = await repository.get<Variant>(
       query: brick.Query(
         where: [
           Where('branchId').isExactly(branchId),
           Where('pchsSttsCd').isExactly("01"),
-
-          // OR (branchId = ? AND pchsSttsCd = '02')
           Or('branchId').isExactly(branchId),
           Where('pchsSttsCd').isExactly("02"),
-
-          // OR (branchId = ? AND pchsSttsCd = '04')
           Or('branchId').isExactly(branchId),
           Where('pchsSttsCd').isExactly("04"),
         ],
       ),
     );
+
+    List<PurchaseReportItem> reportItems = [];
+    for (var variant in variants) {
+      Purchase? purchase;
+      if (variant.purchaseId != null) {
+        final purchases = await repository.get<Purchase>(
+          query:
+              brick.Query(where: [Where('id').isExactly(variant.purchaseId!)]),
+        );
+        if (purchases.isNotEmpty) {
+          purchase = purchases.first;
+        }
+      }
+      reportItems.add(PurchaseReportItem(variant: variant, purchase: purchase));
+    }
+    return reportItems;
   }
 }
