@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
+import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 
 class ImportPurchaseDialog extends StatelessWidget {
   const ImportPurchaseDialog({Key? key}) : super(key: key);
@@ -35,8 +37,9 @@ class ImportPurchaseDialog extends StatelessWidget {
       ),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 1200,
           maxHeight: MediaQuery.of(context).size.height * 0.9,
+          minWidth: MediaQuery.of(context).size.width *
+              0.9, 
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -54,26 +57,60 @@ class ImportPurchaseDialog extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Import & Purchase Management',
-            style: TextStyle(
-              color: Colors.black87,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+    return Consumer(
+      builder: (context, ref, _) {
+        final isImport = ref.watch(importPurchaseViewModelProvider).when(
+              data: (state) => state.isImport,
+              loading: () => true,
+              error: (_, __) => true,
+            );
+
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.black87),
-            onPressed: () => Navigator.of(context).pop(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Import & Purchase Management',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon:
+                        const Icon(Icons.file_download, color: Colors.black87),
+                    tooltip: 'Export',
+                    onPressed: () {
+                      final message = isImport
+                          ? 'Exporting imports'
+                          : 'Exporting purchases';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(message)),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.black87),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
