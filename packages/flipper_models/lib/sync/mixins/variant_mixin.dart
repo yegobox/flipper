@@ -27,95 +27,105 @@ mixin VariantMixin implements VariantInterface {
     int? page,
     String? variantId,
     String? name,
+    String? pchsSttsCd,
     String? bcd,
     String? purchaseId,
     int? itemsPerPage,
-    String? pchsSttsCd,
-    String? imptItemsttsCd,
+    String? imptItemSttsCd,
+    bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   }) async {
     try {
-      final query = Query(orderBy: [
-        OrderBy('lastTouched', ascending: false)
-      ], where: [
-        if (variantId != null)
-          Where('id').isExactly(variantId)
-        else if (name != null && name.isNotEmpty) ...[
+      final List<WhereCondition> conditions = [];
+
+      if (forPurchaseScreen) {
+        conditions.addAll([
+          // (branchId = ? AND pchsSttsCd = '01')
+          Where('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("01"),
+
+          // OR (branchId = ? AND pchsSttsCd = '02')
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("02"),
+
+          // OR (branchId = ? AND pchsSttsCd = '04')
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("04"),
+        ]);
+      } else if (variantId != null) {
+        conditions.add(Where('id').isExactly(variantId));
+      } else if (name != null && name.isNotEmpty) {
+        conditions.addAll([
           Where('name').contains(name),
           Where('branchId').isExactly(branchId),
-        ] else if (bcd != null) ...[
+        ]);
+      } else if (bcd != null) {
+        conditions.addAll([
           Where('bcd').isExactly(bcd),
           Where('branchId').isExactly(branchId),
-        ] else if (imptItemsttsCd != null) ...[
-          Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-          Where('branchId').isExactly(branchId)
-        ] else if (purchaseId != null) ...[
+        ]);
+      } else if (imptItemSttsCd != null) {
+        conditions.addAll([
+          Where('imptItemSttsCd').isExactly(imptItemSttsCd),
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else if (purchaseId != null) {
+        conditions.addAll([
           Where('purchaseId').isExactly(purchaseId),
-          Where('branchId').isExactly(branchId)
-        ] else if (productId != null) ...[
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else if (productId != null) {
+        conditions.addAll([
           Where('productId').isExactly(productId),
-          Where('branchId').isExactly(branchId)
-        ] else if (pchsSttsCd != null) ...[
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else if (pchsSttsCd != null) {
+        conditions.addAll([
           Where('pchsSttsCd').isExactly(pchsSttsCd),
-          Where('branchId').isExactly(branchId)
-        ] else ...[
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else {
+        conditions.addAll([
           Where('branchId').isExactly(branchId),
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
-          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
-          if (excludeApprovedInWaitingOrCanceledItems == false) ...[
+        ]);
+        if (!excludeApprovedInWaitingOrCanceledItems) {
+          conditions.addAll([
             Where('imptItemSttsCd').isNot("2"),
             Where('imptItemSttsCd').isNot("4"),
-            Where('pchsSttsCd').isNot("04"),
-            Where('pchsSttsCd').isNot("01"),
-          ],
-
-          /// 01 is waiting for approval.
-          if (excludeApprovedInWaitingOrCanceledItems == true)
-            Where('pchsSttsCd').isExactly("01"),
-          if (purchaseId != null) Where('purchaseId').isExactly(purchaseId),
-          // Apply the purchaseId filter only if includePurchases is true
-          if (excludeApprovedInWaitingOrCanceledItems == true)
-            Where('purchaseId').isNot(null),
-        ]
-      ]);
-
-      // Try local first
-      List<Variant> variants = await repository.get<Variant>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: query,
-      );
-
-      // If no results found locally, fetch from remote
-      if (variants.isEmpty && fetchRemote == true) {
-        try {
-          variants = await repository.get<Variant>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: query,
-          );
-        } catch (e, s) {
-          // Catch authentication or network errors but don't fail the whole operation
-          talker.error('Error fetching variants from remote: $e');
-          talker.error(s);
-          // Continue with whatever we have locally (which may be empty)
+          ]);
+          if (purchaseId == null) {
+            conditions.addAll([
+              Where('pchsSttsCd').isNot("04"),
+              Where('pchsSttsCd').isNot("01"),
+            ]);
+          }
+        } else {
+          conditions.add(Where('pchsSttsCd').isExactly("01"));
+          if (purchaseId != null) {
+            conditions.add(Where('purchaseId').isExactly(purchaseId));
+          }
+          conditions.add(Where('purchaseId').isNot(null));
         }
       }
 
-      // Pagination logic (if needed)
+      final query = Query(
+        orderBy: [const OrderBy('name', ascending: true)],
+        where: conditions,
+      );
+
+      List<Variant> variants = await repository.get<Variant>(
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
+        query: query,
+      );
+
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
-        final filtered = variants
-            .where((variant) =>
-                variant.pchsSttsCd != "01" &&
-                variant.pchsSttsCd != "04" &&
-                variant.pchsSttsCd != "1")
-            .skip(offset)
-            .take(itemsPerPage)
-            .toList();
-        talker.info(
-            '[VariantMixin] Loaded ${filtered.length} items for page=$page, itemsPerPage=$itemsPerPage, offset=$offset');
-        return filtered;
+        return variants.skip(offset).take(itemsPerPage).toList();
       }
 
       return variants;
