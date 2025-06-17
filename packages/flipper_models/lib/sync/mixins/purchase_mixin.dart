@@ -454,6 +454,7 @@ mixin PurchaseMixin
     );
   }
 
+
   @override
   Future<List<Variant>> allPurchasesToDate() async {
     final branchId = ProxyService.box.getBranchId()!;
