@@ -13,6 +13,7 @@ import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
   @override
@@ -35,7 +36,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   List<model.Variant> importList = [];
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   bool isLoading = false;
-  bool isImport = true;
+  // bool isImport = true; // Removed, will use ViewModel
   final Map<String, model.Variant> _variantMap = {}; // Initialize the map here
 
   @override
@@ -45,9 +46,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Future<void> _initializeData() async {
+    final isImportState =
+        ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
     setState(() => isLoading = true);
     try {
-      if (isImport) {
+      if (isImportState) {
         final importResponse = _fetchDataImport(selectedDate: _selectedDate);
         _futureImportResponse = importResponse;
         await importResponse;
@@ -78,9 +81,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Future<void> _fetchData() async {
+    final isImportState =
+        ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
     setState(() => isLoading = true);
     try {
-      if (isImport) {
+      if (isImportState) {
         final importResponse = _fetchDataImport(selectedDate: _selectedDate);
         _futureImportResponse = importResponse;
         await importResponse;
@@ -166,7 +171,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
   void _saveChangeMadeOnItem() {
     if (_importFormKey.currentState?.validate() ?? false) {
-      if (isImport && _selectedItem != null) {
+      final isImportState =
+          ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
+      if (isImportState && _selectedItem != null) {
         setState(() {
           _selectedItem!.itemNm = _nameController.text;
           _selectedItem!.supplyPrice =
@@ -178,7 +185,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                   item.hsCd == _selectedItem!.hsCd ? _selectedItem! : item)
               .toList();
         });
-      } else if (!isImport && _selectedPurchaseItem != null) {
+      } else if (!isImportState && _selectedPurchaseItem != null) {
         setState(() {
           _selectedPurchaseItem?.retailPrice =
               double.tryParse(_retailPriceController.text) ?? 0;
@@ -250,7 +257,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           ),
           const SizedBox(height: 8),
           Text(
-            isImport
+            (ref.watch(importPurchaseViewModelProvider).value?.isImport ?? true)
                 ? 'No import items available for the selected date.'
                 : 'No purchase items available for the selected date.',
             textAlign: TextAlign.center,
@@ -273,7 +280,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         children: [
           Expanded(
             child: Text(
-              isImport
+              (ref.watch(importPurchaseViewModelProvider).value?.isImport ??
+                      true)
                   ? 'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}'
                   : 'Purchase From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -284,20 +292,30 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                isImport ? 'Import' : 'Purchase',
+                (ref.watch(importPurchaseViewModelProvider).value?.isImport ??
+                        true)
+                    ? 'Import'
+                    : 'Purchase',
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(width: 8),
               Switch(
-                value: isImport,
+                value: ref
+                        .watch(importPurchaseViewModelProvider)
+                        .value
+                        ?.isImport ??
+                    true,
                 onChanged: (value) {
+                  ref
+                      .read(importPurchaseViewModelProvider.notifier)
+                      .toggleImportPurchase(value);
+                  // Clear local state that depends on import/purchase mode
                   setState(() {
                     _selectItem(null);
                     _selectedPurchaseItem = null;
                     finalItemList = [];
                     salesList = [];
                     _variantMap.clear();
-                    isImport = value;
                   });
                   _fetchData();
                 },
@@ -321,7 +339,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             Expanded(
               child: isLoading
                   ? _buildLoadingIndicator()
-                  : isImport
+                  : (ref
+                              .watch(importPurchaseViewModelProvider)
+                              .value
+                              ?.isImport ??
+                          true)
                       ? _buildImportView(coreViewModel)
                       : _buildPurchaseView(coreViewModel),
             ),

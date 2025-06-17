@@ -38,8 +38,7 @@ class ImportPurchaseDialog extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.9,
-          minWidth: MediaQuery.of(context).size.width *
-              0.9, 
+          minWidth: MediaQuery.of(context).size.width * 0.9,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -92,12 +91,11 @@ class ImportPurchaseDialog extends StatelessWidget {
                         const Icon(Icons.file_download, color: Colors.black87),
                     tooltip: 'Export',
                     onPressed: () {
-                      final message = isImport
-                          ? 'Exporting imports'
-                          : 'Exporting purchases';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(message)),
-                      );
+                      if (isImport) {
+                        ref.read(importPurchaseViewModelProvider.notifier).exportImport();
+                      } else {
+                        ref.read(importPurchaseViewModelProvider.notifier).exportPurchase();
+                      }
                     },
                   ),
                   const SizedBox(width: 8),
