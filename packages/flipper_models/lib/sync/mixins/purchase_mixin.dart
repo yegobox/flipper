@@ -387,22 +387,34 @@ mixin PurchaseMixin
   }
 
   Future<Purchase?> _processPurchase(Purchase purchase) async {
-    // Fetch variants for the current purchase
-    final variants = await repository.get<Variant>(
+    // Fetch all variants for the current purchase
+    final allVariantsForPurchase = await repository.get<Variant>(
       query: brick.Query(
         where: [brick.Where('purchaseId').isExactly(purchase.id)],
       ),
     );
 
-    bool hasUnapprovedVariants =
-        variants.any((variant) => variant.pchsSttsCd == '01');
+    // Assign the filtered list to purchase.variants
+    // This is crucial for the PurchaseTable UI
+    purchase.variants = allVariantsForPurchase;
 
-    if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
-      purchase.hasUnApprovedVariant = hasUnapprovedVariants;
-      await repository.upsert<Purchase>(purchase); // Update only if necessary
+    // Determine if the purchase has any unapproved variants based on the relevant variants
+    bool newHasUnapprovedVariant =
+        allVariantsForPurchase.any((variant) => variant.pchsSttsCd == '01');
+
+    if (purchase.hasUnApprovedVariant != newHasUnapprovedVariant) {
+      // If the status changed, update the purchase object directly
+      purchase.hasUnApprovedVariant = newHasUnapprovedVariant;
+      // Upsert the modified purchase object
+      await repository.upsert<Purchase>(purchase);
+      // The 'purchase' instance is now updated in the database and in memory.
+      // It already has purchase.variants = relevantVariants from the lines above.
+      return purchase;
+    } else {
+      // If no change in hasUnApprovedVariant, still return the purchase with its variants populated.
+      // purchase.variants was already set earlier.
+      return purchase;
     }
-
-    return purchase;
   }
 
   @override
