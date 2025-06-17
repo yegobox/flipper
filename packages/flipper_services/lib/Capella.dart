@@ -1738,19 +1738,21 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Variant>> variants(
-      {required int branchId,
-      String? productId,
-      String? variantId,
-      int? page,
-      String? pchsSttsCd,
-      String? purchaseId,
-      bool excludeApprovedInWaitingOrCanceledItems = false,
-      int? itemsPerPage,
-      String? name,
-      String? bcd,
-      bool fetchRemote = false,
-      String? imptItemsttsCd}) {
+  Future<List<brick.Variant>> variants({
+    required int branchId,
+    String? productId,
+    int? page,
+    String? variantId,
+    String? name,
+    String? pchsSttsCd,
+    String? bcd,
+    String? purchaseId,
+    int? itemsPerPage,
+    String? imptItemSttsCd,
+    bool forPurchaseScreen = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
+    bool fetchRemote = false,
+  }) {
     // TODO: implement variants
     throw UnimplementedError();
   }

@@ -14,7 +14,8 @@ abstract class VariantInterface {
     String? bcd,
     String? purchaseId,
     int? itemsPerPage,
-    String? imptItemsttsCd,
+    String? imptItemSttsCd,
+    bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
   });

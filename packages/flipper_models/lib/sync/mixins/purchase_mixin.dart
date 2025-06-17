@@ -125,7 +125,7 @@ mixin PurchaseMixin
         if (response.data == null || response.data!.itemList == null) {
           variantsList = await variants(
             branchId: ProxyService.box.getBranchId()!,
-            imptItemsttsCd: "2",
+            imptItemSttsCd: "2",
             excludeApprovedInWaitingOrCanceledItems: false,
           );
           print(
@@ -170,7 +170,7 @@ mixin PurchaseMixin
       // Return the newly imported variants OR existing variants if no API call was made
       variantsList = await variants(
         branchId: ProxyService.box.getBranchId()!,
-        imptItemsttsCd: "2",
+        imptItemSttsCd: "2",
         excludeApprovedInWaitingOrCanceledItems: true,
       );
 
@@ -240,7 +240,7 @@ mixin PurchaseMixin
         if (response.data?.saleList?.isEmpty ?? false) {
           variantsList = await variants(
             branchId: branchId,
-            excludeApprovedInWaitingOrCanceledItems: true,
+            forPurchaseScreen: true,
             pchsSttsCd: pchsSttsCd,
           );
           return variantsList;
@@ -261,6 +261,7 @@ mixin PurchaseMixin
           if (purchase.variants != null) {
             // Check if variants is null. Protect from null exception
             for (final variant in purchase.variants!) {
+              purchase.branchId = ProxyService.box.getBranchId()!;
               // Using non-null assertion operator safely because of previous null check
               futures.add(() async {
                 // Wrap in an explicit `async` function for safety.
@@ -345,8 +346,7 @@ mixin PurchaseMixin
 
       variantsList = await variants(
         branchId: branchId,
-        excludeApprovedInWaitingOrCanceledItems: true,
-        pchsSttsCd: pchsSttsCd,
+        forPurchaseScreen: true,
       );
 
       return variantsList;
@@ -365,7 +365,9 @@ mixin PurchaseMixin
     // Fetch all purchases with unapproved variants
     final purchases = await repository.get<Purchase>(
       query: brick.Query(
-        where: [brick.Where('hasUnApprovedVariant').isExactly(true)],
+        where: [
+          brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!)
+        ],
       ),
     );
 
@@ -400,7 +402,7 @@ mixin PurchaseMixin
       await repository.upsert<Purchase>(purchase); // Update only if necessary
     }
 
-    return hasUnapprovedVariants ? purchase : null;
+    return purchase;
   }
 
   @override
