@@ -80,7 +80,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
           ],
         ),
       ),
-      data: (variants) {
+      data: (allBranchVariants) {
         // Define the status filter options
         final Map<String?, String> statusOptions = {
           null: 'All',
@@ -89,60 +89,81 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
           '04': 'Declined',
         };
 
+        // Filter purchases based on the selected status filter and variant availability
+        final List<Purchase> displayablePurchases =
+            widget.purchases.where((purchase) {
+          // Rule 1: Purchase must have variants relevant to the purchase screen.
+          // purchase.variants is populated by PurchaseMixin with items having pchsSttsCd '01', '02', or '04'.
+          if (purchase.variants == null || purchase.variants!.isEmpty) {
+            return false;
+          }
+          // Rule 2: If a specific status filter is active, purchase must have variants matching that status.
+          if (_selectedStatusFilter != null) {
+            return purchase.variants!
+                .any((v) => v.pchsSttsCd == _selectedStatusFilter);
+          }
+          // Rule 3: If filter is "All" (null), and it passed Rule 1, show it.
+          return true;
+        }).toList();
+
         return Container(
           width: double.infinity,
           color: Colors.grey[50],
-          child: widget.purchases.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.shopping_bag_outlined,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No Purchases Found',
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+          child: Column(
+            // Main column that always shows the filter
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField<String?>(
+                  value: _selectedStatusFilter,
+                  decoration: InputDecoration(
+                    labelText: 'Filter by Status',
+                    border: OutlineInputBorder(),
                   ),
-                )
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: DropdownButtonFormField<String?>(
-                        value: _selectedStatusFilter,
-                        decoration: InputDecoration(
-                          labelText: 'Filter by Status',
-                          border: OutlineInputBorder(),
+                  items: statusOptions.entries.map((entry) {
+                    return DropdownMenuItem<String?>(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedStatusFilter = newValue;
+                    });
+                  },
+                ),
+              ),
+              Expanded(
+                child: displayablePurchases.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.filter_list_off_outlined,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              _selectedStatusFilter == null
+                                  ? 'No Purchases Found'
+                                  : 'No Purchases Match Selected Filter',
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
-                        items: statusOptions.entries.map((entry) {
-                          return DropdownMenuItem<String?>(
-                            value: entry.key,
-                            child: Text(entry.value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedStatusFilter = newValue;
-                          });
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: ListView.builder(
+                      )
+                    : ListView.builder(
                         padding: EdgeInsets.all(12),
-                        itemCount: widget.purchases.length,
+                        itemCount: displayablePurchases.length,
                         itemBuilder: (context, index) {
-                          final purchase = widget.purchases[index];
+                          final purchase = displayablePurchases[index];
                           final isExpanded =
                               _expandedPurchases[purchase.id] ?? false;
 
@@ -277,20 +298,11 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                     .toList();
                                           }
 
-                                          // This filtering is now for keeping items visible, not for the top-level filter
-                                          final relevantVariants =
-                                              filteredPurchaseVariants
-                                                  .where((v) =>
-                                                          v.pchsSttsCd ==
-                                                              '01' || // Waiting
-                                                          v.pchsSttsCd ==
-                                                              '02' || // Approved
-                                                          v.pchsSttsCd ==
-                                                              '04' // Declined
-                                                      )
-                                                  .toList();
-
-                                          if (relevantVariants.isEmpty) {
+                                          // The filteredPurchaseVariants already only contain items matching the _selectedStatusFilter (or all '01','02','04' if filter is null)
+                                          // because purchaseVariantProvider uses forPurchaseScreen:true, which pre-filters to '01', '02', '04'.
+                                          // Thus, the additional 'relevantVariants' check is redundant here.
+                                          if (filteredPurchaseVariants
+                                              .isEmpty) {
                                             return Container(
                                               padding: EdgeInsets.all(16),
                                               child: Row(
@@ -330,7 +342,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                               ),
                                               child: Column(
                                                 children: [
-                                                  if (relevantVariants
+                                                  if (filteredPurchaseVariants
                                                       .isNotEmpty)
                                                     SizedBox(
                                                       // Or Container with a height
@@ -341,7 +353,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                             UniqueKey(), // Add a key to force a rebuild when data changes
                                                         source:
                                                             PurchaseDataSource(
-                                                          relevantVariants,
+                                                          filteredPurchaseVariants, // Use filteredPurchaseVariants directly
                                                           _editedRetailPrices,
                                                           _editedSupplyPrices,
                                                           talker,
@@ -373,7 +385,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                                   .rowIndex >
                                                               0) {
                                                             final item =
-                                                                relevantVariants[details
+                                                                filteredPurchaseVariants[details
                                                                         .rowColumnIndex
                                                                         .rowIndex -
                                                                     1];
@@ -407,9 +419,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                           );
                         },
                       ),
-                    ),
-                  ], // End of Column children
-                ), // End of Column (that's the 'else' part of the ternary)
+              ),
+            ], // End of Column children
+          ), // End of Column (that's the 'else' part of the ternary)
         ); // End of Container (returned by the data callback)
       }, // End of data: (variants) { ... } callback block
     ); // End of variantsAsync.when(...)
