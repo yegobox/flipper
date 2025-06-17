@@ -81,6 +81,25 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
         ),
       ),
       data: (allBranchVariants) {
+        talker.info(
+            "PurchaseTable.build: Received ${widget.purchases.length} purchases.");
+        for (var p_ui_log in widget.purchases) {
+          talker.info(
+              "  UI Purchase ID: ${p_ui_log.id}, Invoice: ${p_ui_log.spplrInvcNo}");
+          if (p_ui_log.variants == null) {
+            talker.info("    p_ui_log.variants is NULL");
+          } else if (p_ui_log.variants!.isEmpty) {
+            talker.info("    p_ui_log.variants is EMPTY");
+          } else {
+            talker.info(
+                "    p_ui_log.variants contents (${p_ui_log.variants!.length} items):");
+            for (var v_ui_log in p_ui_log.variants!) {
+              talker.info(
+                  "      UI Variant ID: ${v_ui_log.id}, Status: ${v_ui_log.pchsSttsCd}, Name: ${v_ui_log.name}");
+            }
+          }
+        }
+
         // Define the status filter options
         final Map<String?, String> statusOptions = {
           null: 'All',
