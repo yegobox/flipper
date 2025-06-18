@@ -1,10 +1,9 @@
 // import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_models/cache/cache_export.dart';
 
 void main() {
   group('Stock Cache Tests', () {
-    late CacheManager cacheManager;
+    // late CacheManager cacheManager; // Commented out as tests are disabled
 
     setUp(() async {
       // Initialize cache manager before each test
