@@ -16,7 +16,9 @@ class ImportPurchaseViewModel
     extends StateNotifier<AsyncValue<ImportPurchaseState>> {
   ImportPurchaseViewModel()
       : super(AsyncValue.data(ImportPurchaseState(
-            selectedDate: DateTime.now(), isImport: true))) {}
+          selectedDate: DateTime.now(),
+          isImport: true,
+        )));
 
   void toggleImportPurchase(bool isImport) {
     state = AsyncValue.data(
@@ -31,12 +33,21 @@ class ImportPurchaseViewModel
     }
   }
 
-    Future<void> exportPurchase() async {
-    List<PurchaseReportItem> purchases = await ProxyService.strategy.allPurchasesToDate();
-    if (purchases.isNotEmpty) {
-      await ExportPurchase().export(purchases);
-    } else {
-      talker.info('No purchases to export');
+  Future<void> exportPurchase() async {
+    state = AsyncValue.data(state.value!.copyWith(isExporting: true));
+    try {
+      List<PurchaseReportItem> purchases =
+          await ProxyService.strategy.allPurchasesToDate();
+      if (purchases.isNotEmpty) {
+        await ExportPurchase().export(purchases);
+      } else {
+        talker.info('No purchases to export');
+      }
+    } catch (e, s) {
+      talker.error('Failed to export purchases', e, s);
+      // Optionally, update the state to show an error message to the user
+    } finally {
+      state = AsyncValue.data(state.value!.copyWith(isExporting: false));
     }
   }
 }
@@ -47,14 +58,16 @@ class ImportPurchaseState {
   final List<model.Purchase> purchases;
   final DateTime selectedDate;
   final bool isImport;
+  final bool isExporting;
   final String? error;
 
-  const ImportPurchaseState({
+  ImportPurchaseState({
     this.importItems = const [],
     this.purchaseItems = const [],
     this.purchases = const [],
     required this.selectedDate,
     required this.isImport,
+    this.isExporting = false,
     this.error,
   });
 
@@ -64,6 +77,7 @@ class ImportPurchaseState {
     List<model.Purchase>? purchases,
     DateTime? selectedDate,
     bool? isImport,
+    bool? isExporting,
     String? error,
   }) {
     return ImportPurchaseState(
@@ -72,6 +86,7 @@ class ImportPurchaseState {
       purchases: purchases ?? this.purchases,
       selectedDate: selectedDate ?? this.selectedDate,
       isImport: isImport ?? this.isImport,
+      isExporting: isExporting ?? this.isExporting,
       error: error ?? this.error,
     );
   }
