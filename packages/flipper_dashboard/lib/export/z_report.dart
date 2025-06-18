@@ -106,32 +106,67 @@ class ZReport {
   void _drawHeader(PdfPage page, Size pageSize, Business? business) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont businessDetailsFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 10);
+        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
+    final PdfFont labelFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
     final PdfFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold);
+        PdfStandardFont(PdfFontFamily.helvetica, 22, style: PdfFontStyle.bold);
+    final PdfFont subtitleFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
+    final PdfBrush blueBrush = PdfSolidBrush(PdfColor(173, 216, 230));
+    final PdfBrush whiteBrush = PdfBrushes.white;
+    final PdfBrush blackBrush = PdfBrushes.black;
 
-    final businessName = business?.name ?? 'NYARUTARAMA SPORTS TRUST CLUB Ltd';
-    final tin = business?.tinNumber ?? '933000005';
+    final businessName = business?.name ?? 'Demo';
+    final tin = business?.tinNumber?.toString() ?? '933000005';
     final mrc = 'WISO000001';
     final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-    double currentYPosition = 20;
+    // Draw blue rectangle for the header background
+    const double headerHeight = 60;
+    graphics.drawRectangle(
+      brush: blueBrush,
+      bounds: Rect.fromLTWH(0, 0, pageSize.width, headerHeight),
+    );
 
-    graphics.drawString('Trade Name: $businessName', businessDetailsFont,
-        bounds: Rect.fromLTWH(0, currentYPosition, pageSize.width, 20));
-    currentYPosition += 20;
-    graphics.drawString('TIN: $tin', businessDetailsFont,
-        bounds: Rect.fromLTWH(0, currentYPosition, pageSize.width, 20));
-    currentYPosition += 20;
-    graphics.drawString('MRC: $mrc', businessDetailsFont,
-        bounds: Rect.fromLTWH(0, currentYPosition, pageSize.width, 20));
-    currentYPosition += 20;
-    graphics.drawString('Date: $date', businessDetailsFont,
-        bounds: Rect.fromLTWH(0, currentYPosition, pageSize.width, 20));
-    currentYPosition += 30;
-
+    // Draw "Z Report" title centered in the blue header
     graphics.drawString('Z Report', titleFont,
-        bounds: Rect.fromLTWH(0, currentYPosition, pageSize.width, 30),
+        brush: whiteBrush,
+        bounds: Rect.fromLTWH(0, 10, pageSize.width, 40),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center));
+
+    // Draw business details below the blue header, left aligned
+    double detailsY = headerHeight + 10;
+    graphics.drawString('Trade Name: ', labelFont,
+        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
+    graphics.drawString(businessName, businessDetailsFont,
+        brush: blackBrush,
+        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+    detailsY += 18;
+    graphics.drawString('TIN: ', labelFont,
+        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
+    graphics.drawString(tin.toString(), businessDetailsFont,
+        brush: blackBrush,
+        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+    detailsY += 18;
+    graphics.drawString('MRC: ', labelFont,
+        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
+    graphics.drawString(mrc, businessDetailsFont,
+        brush: blackBrush,
+        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+    detailsY += 18;
+    graphics.drawString('Date: ', labelFont,
+        brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
+    graphics.drawString(date, businessDetailsFont,
+        brush: blackBrush,
+        bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+    detailsY += 25;
+
+    // Draw "All Transactions" subtitle centered and with blue color
+    graphics.drawString('All Transactions', subtitleFont,
+        brush:
+            PdfSolidBrush(PdfColor(173, 90, 48)), // brownish as in screenshot
+        bounds: Rect.fromLTWH(0, detailsY, pageSize.width, 20),
         format: PdfStringFormat(alignment: PdfTextAlignment.center));
   }
 
@@ -158,8 +193,9 @@ class ZReport {
     final PdfGridRow header = grid.headers.add(1)[0];
     header.cells[0].value = 'Description';
     header.cells[1].value = 'Amount (RWF)';
-    header.style.backgroundBrush = PdfSolidBrush(PdfColor(255, 165, 0));
-    header.style.textBrush = PdfBrushes.white;
+    header.style.backgroundBrush =
+        PdfSolidBrush(PdfColor(173, 216, 230)); // Light Blue
+    header.style.textBrush = PdfBrushes.black;
     header.style.font =
         PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
 
@@ -299,7 +335,9 @@ class ZReport {
       }
     }
 
-    final double estimatedHeaderHeight = (4 * 20) + 30 + 30 + 20;
+    // Increase vertical space between subtitle and table
+    final double estimatedHeaderHeight =
+        197; // header (60) + details (4*18+3*0) + subtitle (20) + padding (10+25+10)
     grid.draw(
       page: page,
       bounds: Rect.fromLTWH(0, estimatedHeaderHeight, pageSize.width,
