@@ -99,7 +99,7 @@ mixin VariantMixin implements VariantInterface {
           if (purchaseId == null) {
             conditions.addAll([
               Where('pchsSttsCd').isNot("04"),
-              Where('pchsSttsCd').isNot("01"),
+              if (forPurchaseScreen) Where('pchsSttsCd').isNot("01"),
             ]);
           }
         } else {
@@ -107,12 +107,11 @@ mixin VariantMixin implements VariantInterface {
           if (purchaseId != null) {
             conditions.add(Where('purchaseId').isExactly(purchaseId));
           }
-          conditions.add(Where('purchaseId').isNot(null));
         }
       }
 
       final query = Query(
-        orderBy: [const OrderBy('name', ascending: true)],
+        orderBy: [const OrderBy('lastTouched', ascending: false)],
         where: conditions,
       );
 
