@@ -24,6 +24,24 @@ class ExportPurchase {
     final PdfPage page = document.pages.add();
     final Size pageSize = page.getClientSize();
 
+    // Footer template for logo
+    final PdfPageTemplateElement footerTemplate = PdfPageTemplateElement(
+        Rect.fromLTWH(0, 0, pageSize.width, 50)); // Footer area height 50
+    try {
+      final ByteData imageData =
+          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
+      const double logoWidth = 25;
+      const double logoHeight = 25;
+      final double xLogoPosition = (pageSize.width - logoWidth) / 2;
+      // Draw logo at the top of the footer area, centered
+      footerTemplate.graphics.drawImage(
+          logoImage, Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight));
+    } catch (e) {
+      print('Error loading logo for footer: $e');
+    }
+    document.template.bottom = footerTemplate;
+
     final allPurchases = reportItems
         .map((item) => item.purchase)
         .where((p) => p != null)
@@ -31,23 +49,6 @@ class ExportPurchase {
         .toList();
     _drawHeader(page, pageSize, allPurchases, business);
     _drawTable(page, pageSize, groupedByPurchase);
-
-    // Add Flipper logo at the bottom
-    try {
-      final ByteData imageData =
-          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
-      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
-      const double logoWidth = 25;
-      const double logoHeight = 25;
-      final double xPosition = (pageSize.width - logoWidth) / 2;
-      // Position above the very bottom of the page, considering potential footers or just for visual spacing.
-      final double yPosition = pageSize.height - logoHeight - 20;
-      page.graphics.drawImage(logoImage,
-          Rect.fromLTWH(xPosition, yPosition, logoWidth, logoHeight));
-    } catch (e) {
-      // Log error if logo can't be loaded/drawn, but don't fail the export
-      print('Error drawing Flipper logo: $e');
-    }
 
     final List<int> bytes = await document.save();
     document.dispose();
@@ -155,7 +156,8 @@ class ExportPurchase {
 
     grid.draw(
       page: page,
-      bounds: Rect.fromLTWH(0, 120, pageSize.width, pageSize.height - 120),
+      bounds: Rect.fromLTWH(0, 120, pageSize.width,
+          pageSize.height - 170), // Adjusted for header (120) and footer (50)
     );
   }
 
