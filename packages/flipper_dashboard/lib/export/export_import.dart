@@ -117,11 +117,9 @@ class ExportImport {
     // Apply border to header cells
     for (int i = 0; i < header.cells.count; i++) {
       final PdfGridCell cell = header.cells[i];
-      cell.style.borders.all = testPen; // This ensures all borders are applied
+      cell.style.borders.all =
+          testPen; // Relying on this to set all header borders
     }
-
-    // Additional step: Ensure the last header cell has proper right border
-    header.cells[header.cells.count - 1].style.borders.right = testPen;
 
     for (int i = 0; i < variants.length; i++) {
       final variant = variants[i];
@@ -133,9 +131,6 @@ class ExportImport {
         cell.style.borders.all =
             testPen; // This ensures all borders are applied
       }
-
-      // Additional step: Ensure the last cell in each row has proper right border
-      row.cells[row.cells.count - 1].style.borders.right = testPen;
 
       row.cells[0].value = (i + 1).toString();
       row.cells[1].value = variant.dclDe ?? '';
@@ -162,7 +157,7 @@ class ExportImport {
     grid.columns[7].width = 52; // Agent name
     grid.columns[8].width = 70; // Invoice Foreign Currency Amount
     grid.columns[9].width =
-        80; // Foreign Currency (increased for full visibility)
+        50; // Foreign Currency (increased for full visibility)
     // Total: 535 points - should fit comfortably within page width
 
     grid.style.cellPadding = PdfPaddings(left: 2, right: 2, top: 2, bottom: 2);
