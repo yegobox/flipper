@@ -146,7 +146,7 @@ class ExportImport {
 
     // Optimized column widths to fit within page margins (A4 page ~595 points width)
     // Leaving minimal margins to maximize table width
-    // Available width: ~585 points
+    // Available width: ~585 pointsex
     grid.columns[0].width = 18; // #
     grid.columns[1].width = 48; // Request Date
     grid.columns[2].width = 52; // Declaration Number
