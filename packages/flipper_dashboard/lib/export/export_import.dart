@@ -113,29 +113,29 @@ class ExportImport {
     // Define pens
     final PdfPen testPen = PdfPen(PdfColor(192, 192, 192),
         width: 0.75); // Silver, slightly thicker
-    final PdfPen blackPen = PdfPens.black;
 
     // Apply border to header cells
     for (int i = 0; i < header.cells.count; i++) {
       final PdfGridCell cell = header.cells[i];
-      cell.style.borders.top = testPen;
-      cell.style.borders.bottom = testPen;
-      cell.style.borders.left = testPen;
-      cell.style.borders.right = testPen;
+      cell.style.borders.all = testPen; // This ensures all borders are applied
     }
+
+    // Additional step: Ensure the last header cell has proper right border
+    header.cells[header.cells.count - 1].style.borders.right = testPen;
 
     for (int i = 0; i < variants.length; i++) {
       final variant = variants[i];
       final PdfGridRow row = grid.rows.add();
 
-      // Apply border to data cells for each new row
+      // Apply border to all data cells for each row
       for (int j = 0; j < row.cells.count; j++) {
         final PdfGridCell cell = row.cells[j];
-        cell.style.borders.top = testPen;
-        cell.style.borders.bottom = testPen;
-        cell.style.borders.left = testPen;
-        cell.style.borders.right = testPen;
+        cell.style.borders.all =
+            testPen; // This ensures all borders are applied
       }
+
+      // Additional step: Ensure the last cell in each row has proper right border
+      row.cells[row.cells.count - 1].style.borders.right = testPen;
 
       row.cells[0].value = (i + 1).toString();
       row.cells[1].value = variant.dclDe ?? '';
@@ -167,6 +167,8 @@ class ExportImport {
 
     grid.style.cellPadding = PdfPaddings(left: 2, right: 2, top: 2, bottom: 2);
     grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 8);
+
+    // Remove this line - PdfGridStyle doesn't have borderPen property
 
     // Use available page width with minimal margins
     final double tableWidth =
