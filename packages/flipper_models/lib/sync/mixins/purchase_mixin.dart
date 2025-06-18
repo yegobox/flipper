@@ -451,13 +451,14 @@ mixin PurchaseMixin
           Where('imptItemSttsCd').isExactly('2'),
           Or('branchId').isExactly(branchId),
           Where('imptItemSttsCd').isExactly("3"),
+          Where('dclNo').isNot(null),
         ],
       ),
     );
   }
 
   @override
-    Future<List<PurchaseReportItem>> allPurchasesToDate() async {
+  Future<List<PurchaseReportItem>> allPurchasesToDate() async {
     final branchId = ProxyService.box.getBranchId()!;
     final variants = await repository.get<Variant>(
       query: brick.Query(
@@ -475,11 +476,8 @@ mixin PurchaseMixin
     if (variants.isEmpty) return [];
 
     // Collect all unique purchase IDs to fetch them in a single query.
-    final purchaseIds = variants
-        .map((v) => v.purchaseId)
-        .nonNulls
-        .toSet()
-        .toList();
+    final purchaseIds =
+        variants.map((v) => v.purchaseId).nonNulls.toSet().toList();
 
     // If there are no associated purchases, it means no variants are valid purchases.
     if (purchaseIds.isEmpty) {
