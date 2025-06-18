@@ -1103,6 +1103,7 @@ class CoreViewModel extends FlipperBaseModel
 
       /// we preserve the original status code (3 for approved) and mark as ebm synced to avoid accidental
       /// syncing it again.
+      incomingNewItem.assigned = true;
       incomingNewItem.ebmSynced = true;
       await ProxyService.strategy.updateVariant(updatables: [incomingNewItem]);
 
