@@ -286,7 +286,7 @@ mixin ProductMixin implements ProductInterface {
       taskCd: taskCd ?? "",
       dclDe: dclDe ?? "",
       hsCd: hsCd ?? "",
-      imptItemSttsCd: imptItemsttsCd ?? "",
+      imptItemSttsCd: imptItemsttsCd ?? null,
       lastTouched: DateTime.now().toUtc(),
       name: product?.name ?? name,
       sku: sku.toString(),

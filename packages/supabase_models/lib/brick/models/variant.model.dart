@@ -28,8 +28,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productId;
   String? unit;
   String? productName;
-  String? categoryId;  // Reference to the category
-  String? categoryName;  // Name of the category
+  String? categoryId; // Reference to the category
+  String? categoryName; // Name of the category
   int? branchId;
   String? taxName;
 
@@ -140,7 +140,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   Variant({
     String? id,
-    String? pchsSttsCd,
+    this.pchsSttsCd,
     bool? isShared,
     this.qty,
     this.stock,
@@ -205,7 +205,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.taskCd,
     this.dclDe,
     this.hsCd,
-    String? imptItemSttsCd,
+    this.imptItemSttsCd,
     this.barCode,
     this.bcdU,
     this.quantity,
@@ -217,10 +217,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
     bool? assigned,
     this.dcAmt = 0.0,
   })  : id = id ?? const Uuid().v4(),
-        imptItemSttsCd = imptItemSttsCd ?? '3',
         assigned = assigned ?? false,
         isShared = isShared ?? false,
-        pchsSttsCd = pchsSttsCd ?? '3',
         modrId = modrId ?? const Uuid().v4().substring(0, 5);
 
   // fromJson method

@@ -10,11 +10,15 @@ Future<List<Variant>> variant(
   Ref ref, {
   required int branchId,
   String? key,
+  bool forImportScreen = false,
+  bool forPurchaseScreen = false,
 }) async {
   print('Fetching variants for branchId: $branchId');
   final variants = await ProxyService.strategy.variants(
     name: key,
     branchId: branchId,
+    forImportScreen: forImportScreen,
+    forPurchaseScreen: forPurchaseScreen,
   );
   print('Fetched ${variants.length} variants for branchId: $branchId');
   return variants;

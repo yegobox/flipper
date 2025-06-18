@@ -24,7 +24,7 @@ final transactionsProvider =
 // ignore: unused_element
 typedef TransactionsRef = AutoDisposeStreamProviderRef<List<ITransaction>>;
 String _$transactionItemListHash() =>
-    r'c80baf70d53fdd8195dbea6e027dd48b2e768f64';
+    r'ec1b3cabdc58cf23b937071ddcfb60abb93df1d3';
 
 /// See also [transactionItemList].
 @ProviderFor(transactionItemList)
@@ -364,7 +364,7 @@ class _ExpensesStreamProviderElement
   int? get branchId => (origin as ExpensesStreamProvider).branchId;
 }
 
-String _$netProfitStreamHash() => r'db6b5d484e28f125ba911c48938a92deb0380c7a';
+String _$netProfitStreamHash() => r'29fe4187d6582bd4dad8c68e0140184d383ffad4';
 
 /// See also [netProfitStream].
 @ProviderFor(netProfitStream)
@@ -527,7 +527,7 @@ class _NetProfitStreamProviderElement
   int? get branchId => (origin as NetProfitStreamProvider).branchId;
 }
 
-String _$grossProfitStreamHash() => r'2bcfc75a48a00bb8930f83d532f303bbe9241f40';
+String _$grossProfitStreamHash() => r'4b4fee2d6d7e8721fd9d94316ea5b23b4e5a3a5f';
 
 /// See also [grossProfitStream].
 @ProviderFor(grossProfitStream)

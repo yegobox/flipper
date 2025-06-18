@@ -582,7 +582,7 @@ class _FeatureAccessProviderElement extends AutoDisposeProviderElement<bool>
 }
 
 String _$featureAccessLevelHash() =>
-    r'66ee2a84a6c1236d466e90fa6af131c8543bf75c';
+    r'7325be65b8384fac7ea13e03ed91ae48db73fb33';
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access

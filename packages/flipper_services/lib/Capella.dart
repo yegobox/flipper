@@ -1744,6 +1744,7 @@ class Capella extends AiStrategyImpl
     String? productId,
     int? page,
     String? variantId,
+    bool forImportScreen = false,
     String? name,
     String? pchsSttsCd,
     String? bcd,

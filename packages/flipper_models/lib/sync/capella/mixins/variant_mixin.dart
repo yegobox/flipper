@@ -14,6 +14,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     required int branchId,
     String? productId,
     int? page,
+    bool forImportScreen = false,
     String? variantId,
     String? name,
     String? pchsSttsCd,
@@ -69,7 +70,8 @@ mixin CapellaVariantMixin implements VariantInterface {
       double? dcRt,
       bool? ebmSynced,
       Map<String, String>? dates}) {
-    throw UnimplementedError('updateVariant needs to be implemented for Capella');
+    throw UnimplementedError(
+        'updateVariant needs to be implemented for Capella');
   }
 
   @override
@@ -89,4 +91,3 @@ mixin CapellaVariantMixin implements VariantInterface {
         'getExpiredItems needs to be implemented for Capella');
   }
 }
-
