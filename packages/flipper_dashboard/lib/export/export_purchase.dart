@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -9,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter/services.dart' show rootBundle;
 
 class ExportPurchase {
   Future<void> export(List<PurchaseReportItem> reportItems) async {
@@ -29,6 +31,23 @@ class ExportPurchase {
         .toList();
     _drawHeader(page, pageSize, allPurchases, business);
     _drawTable(page, pageSize, groupedByPurchase);
+
+    // Add Flipper logo at the bottom
+    try {
+      final ByteData imageData =
+          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
+      const double logoWidth = 25;
+      const double logoHeight = 25;
+      final double xPosition = (pageSize.width - logoWidth) / 2;
+      // Position above the very bottom of the page, considering potential footers or just for visual spacing.
+      final double yPosition = pageSize.height - logoHeight - 20;
+      page.graphics.drawImage(logoImage,
+          Rect.fromLTWH(xPosition, yPosition, logoWidth, logoHeight));
+    } catch (e) {
+      // Log error if logo can't be loaded/drawn, but don't fail the export
+      print('Error drawing Flipper logo: $e');
+    }
 
     final List<int> bytes = await document.save();
     document.dispose();
