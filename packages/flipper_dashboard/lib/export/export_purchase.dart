@@ -76,16 +76,12 @@ class ExportPurchase {
         bounds: Rect.fromLTWH(0, 60, pageSize.width, 20));
 
     if (purchases.isNotEmpty) {
-      final dates = purchases
-          .map((p) => DateTime.tryParse(p.salesDt))
-          .where((d) => d != null)
-          .cast<DateTime>()
-          .toList();
+      final dates = purchases.map((p) => p.createdAt).cast<DateTime>().toList();
 
       if (dates.isNotEmpty) {
         dates.sort();
         final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
-        final endDate = DateFormat('yyyy-MM-dd').format(dates.last);
+        final endDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
         graphics.drawString('Date: $startDate - $endDate', headerFont,
             bounds: Rect.fromLTWH(0, 80, pageSize.width, 20));
       }

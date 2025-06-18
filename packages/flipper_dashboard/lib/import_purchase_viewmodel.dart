@@ -27,9 +27,18 @@ class ImportPurchaseViewModel
   }
 
   Future<void> exportImport() async {
-    List<Variant> imports = await ProxyService.strategy.allImportsToDate();
-    if (imports.isNotEmpty) {
-      await ExportImport().export(imports);
+    state = AsyncValue.data(state.value!.copyWith(isExporting: true));
+    try {
+      List<Variant> imports = await ProxyService.strategy.allImportsToDate();
+      if (imports.isNotEmpty) {
+        await ExportImport().export(imports);
+      } else {
+        talker.info('No imports to export');
+      }
+    } catch (e, s) {
+      talker.error('Failed to export imports', e, s);
+    } finally {
+      state = AsyncValue.data(state.value!.copyWith(isExporting: false));
     }
   }
 
