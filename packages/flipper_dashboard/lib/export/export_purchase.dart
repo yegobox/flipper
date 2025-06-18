@@ -15,8 +15,8 @@ class ExportPurchase {
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-    final groupedByPurchase =
-        groupBy(reportItems, (item) => item.purchase?.id); // Group by String? id
+    final groupedByPurchase = groupBy(
+        reportItems, (item) => item.purchase?.id); // Group by String? id
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
@@ -36,8 +36,8 @@ class ExportPurchase {
     await _saveAndLaunchFile(bytes, 'PurchaseReport.pdf');
   }
 
-  void _drawHeader(
-      PdfPage page, Size pageSize, List<Purchase> purchases, Business? business) {
+  void _drawHeader(PdfPage page, Size pageSize, List<Purchase> purchases,
+      Business? business) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont titleFont =
         PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
@@ -86,12 +86,12 @@ class ExportPurchase {
     header.cells[5].value = 'Items';
     header.cells[6].value = 'Total Items';
 
-    header.style = PdfGridCellStyle(
-      backgroundBrush: PdfSolidBrush(PdfColor(0, 0, 255)), // Blue color
-      textBrush: PdfBrushes.white,
-      font: PdfStandardFont(PdfFontFamily.helvetica, 10,
-          style: PdfFontStyle.bold),
-    );
+    header.style.backgroundBrush =
+        PdfSolidBrush(PdfColor(173, 216, 230)); // Light Blue
+    header.style.textBrush = PdfBrushes
+        .black; // Changed to black for better contrast with light blue
+    header.style.font =
+        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
 
     for (final entry in groupedItems.entries) {
       final purchase = entry.value.first.purchase;
@@ -101,7 +101,8 @@ class ExportPurchase {
           entry.value.map((item) => item.variant).toList();
 
       final itemsString = variantsInPurchase
-          .map((v) => '${v.itemNm ?? ''}=>${v.itemCd ?? ''}=>${v.pkgUnitCd ?? ''}')
+          .map((v) =>
+              '${v.itemNm ?? ''}=>${v.itemCd ?? ''}=>${v.pkgUnitCd ?? ''}')
           .join('\n');
 
       final PdfGridRow row = grid.rows.add();
@@ -116,6 +117,22 @@ class ExportPurchase {
 
     grid.style.cellPadding = PdfPaddings(left: 5, right: 5, top: 5, bottom: 5);
     grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 9);
+
+    final PdfPen lightGrayPen =
+        PdfPen(PdfColor(211, 211, 211), width: 0.5); // Light Gray, thinner
+
+    // Apply border to header cells
+    for (int i = 0; i < header.cells.count; i++) {
+      header.cells[i].style.borders.all = lightGrayPen;
+    }
+
+    // Apply border to data cells
+    for (int i = 0; i < grid.rows.count; i++) {
+      PdfGridRow row = grid.rows[i];
+      for (int j = 0; j < row.cells.count; j++) {
+        row.cells[j].style.borders.all = lightGrayPen;
+      }
+    }
 
     grid.draw(
       page: page,
