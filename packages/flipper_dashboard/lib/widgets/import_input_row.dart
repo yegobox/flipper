@@ -1,26 +1,57 @@
 import 'package:flipper_dashboard/constants/import_options.dart';
-import 'package:flipper_models/providers/variants_provider.dart';
-import 'package:flipper_services/proxy.dart';
+import './variant_selection_dropdown.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
+/// A widget representing the input row for managing an import item.
+///
+/// This includes fields for item name, supply price, retail price, variant selection,
+/// action buttons (save, accept all), and a status filter dropdown.
 class ImportInputRow extends HookConsumerWidget {
+  /// Controller for the item name text field.
   final TextEditingController nameController;
+
+  /// Controller for the supply price text field.
   final TextEditingController supplyPriceController;
+
+  /// Controller for the retail price text field.
   final TextEditingController retailPriceController;
-  final Variant? selectedItemForDropdown; // For the variant selection dropdown
+
+  /// The variant currently selected in the dropdown, used to pre-fill the dropdown state.
+  /// This typically represents the variant associated with the item being edited.
+  final Variant? selectedItemForDropdown;
+
+  /// A map to store and manage variant selections, keyed by the original item's ID.
   final Map<String, Variant> variantMap;
+
+  /// The variant that was selected when a row in the data grid was clicked.
+  /// This helps maintain context for which item's variant is being manipulated.
   final Variant? variantSelectedWhenClickingOnRow;
+
+  /// The complete list of items being imported, used by the 'Accept All' action.
   final List<Variant> finalItemList;
+
+  /// Callback invoked when a variant is selected from the dropdown.
   final void Function(Variant?) selectItemCallback;
+
+  /// Callback invoked when the 'Save Changes' button is pressed.
   final void Function() saveChangeMadeOnItemCallback;
+
+  /// Callback invoked when the 'Accept All' button is pressed.
   final void Function(List<Variant>) acceptAllImportCallback;
-  final bool anyLoading; // To enable/disable action buttons
+
+  /// Flag indicating if any background operation is in progress, used to disable action buttons.
+  final bool anyLoading;
+
+  /// The currently selected status for filtering items.
   final String? selectedFilterStatus;
+
+  /// Callback invoked when the filter status is changed.
   final void Function(String?) onFilterStatusChanged;
 
+  /// Creates an [ImportInputRow] widget.
   const ImportInputRow({
     super.key,
     required this.nameController,
@@ -53,7 +84,8 @@ class ImportInputRow extends HookConsumerWidget {
       maxLines: 3,
       minLines: 1,
       onChanged: (value) {
-        // If stateful, call setState(() {});
+        // This onChanged callback is available if needed for immediate reactions
+        // to text field changes, though currently not used for state updates here.
       },
       validator: validator,
     );
@@ -85,6 +117,8 @@ class ImportInputRow extends HookConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment:
+              CrossAxisAlignment.start, // Align items to the top
           children: [
             Expanded(
               child: _buildTextField(
@@ -114,69 +148,30 @@ class ImportInputRow extends HookConsumerWidget {
               ),
             ),
             const SizedBox(width: 16),
-            Consumer(
-              builder: (context, ref, child) {
-                final variantProviders = ref.watch(
-                  variantProvider(branchId: ProxyService.box.getBranchId()!),
-                );
-
-                return variantProviders.when(
-                  data: (variants) {
-                    final Variant? selectedVariantObject =
-                        selectedItemForDropdown != null
-                            ? variants.firstWhere(
-                                (variant) =>
-                                    variant.id == selectedItemForDropdown!.id,
-                                orElse: () => variants
-                                    .first, // Consider if this default is okay
-                              )
-                            : null;
-
-                    return Column(
-                      children: [
-                        DropdownButton<String>(
-                          value: selectedVariantObject?.id,
-                          hint: const Text('Select Variant'),
-                          items: variants.map((variant) {
-                            return DropdownMenuItem<String>(
-                              value: variant.id,
-                              child: Text(variant.name),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              final selectedVariant = variants
-                                  .firstWhere((variant) => variant.id == value);
-                              variantMap.clear();
-                              if (variantSelectedWhenClickingOnRow != null) {
-                                variantMap.putIfAbsent(
-                                    variantSelectedWhenClickingOnRow!.id,
-                                    () => selectedVariant);
-                              } else if (finalItemList.isNotEmpty) {
-                                // This logic might need care if finalItemList is empty
-                                // or if the first item isn't the one being edited.
-                                variantMap.putIfAbsent(finalItemList.first.id,
-                                    () => selectedVariant);
-                              }
-                              selectItemCallback(selectedVariant);
-                            } else {
-                              selectItemCallback(null);
-                            }
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Error: $error'),
-                );
-              },
+            // Variant Selection Dropdown
+            Expanded(
+              flex: 2,
+              child: VariantSelectionDropdown(
+                initialSelectedVariantId: selectedItemForDropdown?.id,
+                onVariantSelected: (selectedVariant) {
+                  if (variantSelectedWhenClickingOnRow != null &&
+                      selectedVariant != null) {
+                    variantMap[variantSelectedWhenClickingOnRow!.id] =
+                        selectedVariant;
+                  } else if (variantSelectedWhenClickingOnRow != null &&
+                      selectedVariant == null) {
+                    variantMap.remove(variantSelectedWhenClickingOnRow!.id);
+                  }
+                  selectItemCallback(selectedVariant);
+                },
+              ),
             ),
             const SizedBox(width: 16),
             _buildActionButtons(context),
             const SizedBox(width: 16),
             // Status Filter Dropdown
             Expanded(
+              flex: 1,
               child: DropdownButtonFormField<String?>(
                 value: selectedFilterStatus,
                 decoration: const InputDecoration(
