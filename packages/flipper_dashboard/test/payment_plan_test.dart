@@ -1,12 +1,6 @@
-import 'package:flipper_dashboard/payment/PaymentPlan.dart';
-import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:mockito/mockito.dart';
-import 'package:stacked_services/stacked_services.dart';
 
-class MockRouterService extends Mock implements RouterService {}
+// class MockRouterService extends Mock implements RouterService {}
 
 // flutter test test/payment_plan_test.dart --dart-define=FLUTTER_TEST_ENV=true
 

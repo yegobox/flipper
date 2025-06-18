@@ -90,6 +90,7 @@ mixin VariantMixin implements VariantInterface {
           Where('branchId').isExactly(branchId),
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
+          Where('assigned').isExactly(false),
         ]);
         if (!excludeApprovedInWaitingOrCanceledItems) {
           conditions.addAll([

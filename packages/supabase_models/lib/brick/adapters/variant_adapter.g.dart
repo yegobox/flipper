@@ -125,6 +125,8 @@ Future<Variant> _$VariantFromSupabase(
     pchsSttsCd:
         data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
+    assigned:
+        data['assigned'] == null ? null : data['assigned'] as bool? ?? false,
   );
 }
 
@@ -211,6 +213,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'tot_amt': instance.totAmt,
     'pchs_stts_cd': instance.pchsSttsCd,
     'is_shared': instance.isShared,
+    'assigned': instance.assigned,
   };
 }
 
@@ -340,6 +343,7 @@ Future<Variant> _$VariantFromSqlite(
     pchsSttsCd:
         data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
+    assigned: data['assigned'] == null ? null : data['assigned'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -428,6 +432,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'pchs_stts_cd': instance.pchsSttsCd,
     'is_shared':
         instance.isShared == null ? null : (instance.isShared! ? 1 : 0),
+    'assigned': instance.assigned == null ? null : (instance.assigned! ? 1 : 0),
   };
 }
 
@@ -722,6 +727,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'isShared': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_shared',
+    ),
+    'assigned': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'assigned',
     ),
   };
   @override
@@ -1153,6 +1162,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'isShared': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'is_shared',
+      iterable: false,
+      type: bool,
+    ),
+    'assigned': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'assigned',
       iterable: false,
       type: bool,
     ),

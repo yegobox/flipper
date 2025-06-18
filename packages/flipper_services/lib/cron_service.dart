@@ -132,6 +132,9 @@ class CronService {
 
         SqliteService.addColumnIfNotExists(
             dbPath, 'ITransaction', 'tax_amount', 'DOUBLE DEFAULT 0.0');
+
+        SqliteService.addColumnIfNotExists(
+            dbPath, 'Variant', 'assigned', 'BOOLEAN NOT NULL DEFAULT false');
       } catch (e) {
         talker.error("Failed to add columns to tables: $e");
       }

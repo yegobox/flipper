@@ -134,6 +134,10 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   bool? isShared;
 
+  @Sqlite(defaultValue: "false")
+  @Supabase(defaultValue: "false")
+  bool? assigned;
+
   Variant({
     String? id,
     String? pchsSttsCd,
@@ -210,9 +214,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.totAmt,
     this.taxblAmt,
     this.taxAmt,
+    bool? assigned,
     this.dcAmt = 0.0,
   })  : id = id ?? const Uuid().v4(),
         imptItemSttsCd = imptItemSttsCd ?? '3',
+        assigned = assigned ?? false,
         isShared = isShared ?? false,
         pchsSttsCd = pchsSttsCd ?? '3',
         modrId = modrId ?? const Uuid().v4().substring(0, 5);
