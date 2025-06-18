@@ -69,7 +69,7 @@ class ExportImport {
       final dates = variants
           .map((v) {
             try {
-              return DateTime.parse(v.dclDe!);
+              return v.lastTouched;
             } catch (e) {
               return null;
             }
@@ -81,7 +81,7 @@ class ExportImport {
       if (dates.isNotEmpty) {
         dates.sort();
         final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
-        final endDate = DateFormat('yyyy-MM-dd').format(dates.last);
+        final endDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
         graphics.drawString('Date: $startDate - $endDate', headerFont,
             bounds: Rect.fromLTWH(0, 80, pageSize.width, 20));
       }
