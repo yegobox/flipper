@@ -58,11 +58,17 @@ class ImportPurchaseDialog extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     return Consumer(
       builder: (context, ref, _) {
-        final isImport = ref.watch(importPurchaseViewModelProvider).when(
-              data: (state) => state.isImport,
-              loading: () => true,
-              error: (_, __) => true,
-            );
+        final state = ref.watch(importPurchaseViewModelProvider);
+        final isImport = state.when(
+          data: (s) => s.isImport,
+          loading: () => true,
+          error: (_, __) => true,
+        );
+        final isExporting = state.when(
+          data: (s) => s.isExporting,
+          loading: () => false,
+          error: (_, __) => false,
+        );
 
         return Container(
           decoration: BoxDecoration(
@@ -87,16 +93,27 @@ class ImportPurchaseDialog extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    icon:
-                        const Icon(Icons.file_download, color: Colors.black87),
+                    icon: isExporting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2.0),
+                          )
+                        : const Icon(Icons.file_download, color: Colors.black87),
                     tooltip: 'Export',
-                    onPressed: () {
-                      if (isImport) {
-                        ref.read(importPurchaseViewModelProvider.notifier).exportImport();
-                      } else {
-                        ref.read(importPurchaseViewModelProvider.notifier).exportPurchase();
-                      }
-                    },
+                    onPressed: isExporting
+                        ? null
+                        : () {
+                            if (isImport) {
+                              ref
+                                  .read(importPurchaseViewModelProvider.notifier)
+                                  .exportImport();
+                            } else {
+                              ref
+                                  .read(importPurchaseViewModelProvider.notifier)
+                                  .exportPurchase();
+                            }
+                          },
                   ),
                   const SizedBox(width: 8),
                   IconButton(

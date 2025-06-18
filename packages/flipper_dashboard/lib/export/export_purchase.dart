@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -14,14 +15,20 @@ class ExportPurchase {
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
+    final groupedByPurchase =
+        groupBy(reportItems, (item) => item.purchase?.id); // Group by String? id
+
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
     final Size pageSize = page.getClientSize();
 
-    // Extract variants for header date calculation if needed, or pass reportItems directly
-    final variantsForHeader = reportItems.map((item) => item.variant).toList();
-    _drawHeader(page, pageSize, variantsForHeader, business);
-    _drawTable(page, pageSize, reportItems); // Pass reportItems to _drawTable
+    final allPurchases = reportItems
+        .map((item) => item.purchase)
+        .where((p) => p != null)
+        .cast<Purchase>()
+        .toList();
+    _drawHeader(page, pageSize, allPurchases, business);
+    _drawTable(page, pageSize, groupedByPurchase);
 
     final List<int> bytes = await document.save();
     document.dispose();
@@ -29,8 +36,8 @@ class ExportPurchase {
     await _saveAndLaunchFile(bytes, 'PurchaseReport.pdf');
   }
 
-    void _drawHeader(
-      PdfPage page, Size pageSize, List<Variant> variants, Business? business) {
+  void _drawHeader(
+      PdfPage page, Size pageSize, List<Purchase> purchases, Business? business) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont titleFont =
         PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
@@ -40,7 +47,7 @@ class ExportPurchase {
         bounds: Rect.fromLTWH(0, 0, pageSize.width, 30),
         format: PdfStringFormat(alignment: PdfTextAlignment.center));
 
-    final businessName = business?.name ?? 'NYARUTARAMA SPORTS TRUST CLUB Ltd';
+    final businessName = business?.name ?? 'Demo';
     final tin = business?.tinNumber ?? '933000005';
 
     graphics.drawString(businessName, headerFont,
@@ -48,9 +55,9 @@ class ExportPurchase {
     graphics.drawString('TIN: $tin', headerFont,
         bounds: Rect.fromLTWH(0, 60, pageSize.width, 20));
 
-    if (variants.isNotEmpty) {
-      final dates = variants
-          .map((v) => v.lastTouched)
+    if (purchases.isNotEmpty) {
+      final dates = purchases
+          .map((p) => DateTime.tryParse(p.salesDt))
           .where((d) => d != null)
           .cast<DateTime>()
           .toList();
@@ -65,18 +72,19 @@ class ExportPurchase {
     }
   }
 
-    void _drawTable(PdfPage page, Size pageSize, List<PurchaseReportItem> reportItems) {
+  void _drawTable(PdfPage page, Size pageSize,
+      Map<String?, List<PurchaseReportItem>> groupedItems) {
     final PdfGrid grid = PdfGrid();
-    grid.columns.add(count: 7); // Increased column count for supplier info
+    grid.columns.add(count: 7);
 
     final PdfGridRow header = grid.headers.add(1)[0];
-    header.cells[0].value = '#';
-    header.cells[1].value = 'Item Name';
-    header.cells[2].value = 'Quantity';
-    header.cells[3].value = 'Supply Price';
-    header.cells[4].value = 'Retail Price';
-    header.cells[5].value = 'Supplier Name';
-    header.cells[6].value = 'Supplier TIN';
+    header.cells[0].value = 'Supplier TIN';
+    header.cells[1].value = 'Supplier Name';
+    header.cells[2].value = 'Invoice Number';
+    header.cells[3].value = 'Request Date';
+    header.cells[4].value = 'Total Amount';
+    header.cells[5].value = 'Items';
+    header.cells[6].value = 'Total Items';
 
     header.style = PdfGridCellStyle(
       backgroundBrush: PdfSolidBrush(PdfColor(0, 0, 255)), // Blue color
@@ -85,22 +93,33 @@ class ExportPurchase {
           style: PdfFontStyle.bold),
     );
 
-    for (int i = 0; i < reportItems.length; i++) {
-      final item = reportItems[i];
-      final variant = item.variant;
+    for (final entry in groupedItems.entries) {
+      final purchase = entry.value.first.purchase;
+      if (purchase == null) continue;
+
+      final variantsInPurchase =
+          entry.value.map((item) => item.variant).toList();
+
+      final itemsString = variantsInPurchase
+          .map((v) => '${v.itemNm ?? ''}=>${v.itemCd ?? ''}=>${v.pkgUnitCd ?? ''}')
+          .join('\n');
+
       final PdfGridRow row = grid.rows.add();
-      row.cells[0].value = (i + 1).toString();
-      row.cells[1].value = variant.itemNm ?? '';
-      row.cells[2].value = variant.qty?.toStringAsFixed(0) ?? '';
-      row.cells[3].value = variant.supplyPrice?.toStringAsFixed(2) ?? '';
-      row.cells[4].value = variant.retailPrice?.toStringAsFixed(2) ?? '';
-      row.cells[5].value = item.supplierName ?? '';
-      row.cells[6].value = item.supplierTin ?? '';
+      row.cells[0].value = purchase.spplrTin;
+      row.cells[1].value = purchase.spplrNm;
+      row.cells[2].value = purchase.spplrInvcNo.toString();
+      row.cells[3].value = purchase.salesDt;
+      row.cells[4].value = purchase.totAmt.toStringAsFixed(2);
+      row.cells[5].value = itemsString;
+      row.cells[6].value = purchase.totItemCnt.toString();
     }
+
+    grid.style.cellPadding = PdfPaddings(left: 5, right: 5, top: 5, bottom: 5);
+    grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 9);
 
     grid.draw(
       page: page,
-      bounds: Rect.fromLTWH(0, 120, 0, 0), // Adjust Y position if header height changed
+      bounds: Rect.fromLTWH(0, 120, pageSize.width, pageSize.height - 120),
     );
   }
 
