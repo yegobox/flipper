@@ -87,6 +87,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   DateTime? nextBillingDate;
 
   @Supabase(defaultValue: "monthly")
+  @Sqlite(defaultValue: "monthly")
   String? billingFrequency; // 'daily', 'weekly', 'monthly'
 
   @Supabase(defaultValue: "0.0")
@@ -116,6 +117,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   bool? isOriginalTransaction;
 
   num? taxAmount;
+  int? numberOfItems;
+  // all discount found on this transaction
+  num? discountAmount;
 
   ITransaction({
     this.ticketName,
@@ -160,7 +164,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.dueDate,
     bool? isAutoBilled,
     this.nextBillingDate,
-    String? billingFrequency,
+    this.billingFrequency,
     num? billingAmount,
     int? totalInstallments,
     int? paidInstallments,
@@ -172,11 +176,12 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.originalTransactionId,
     bool? isOriginalTransaction,
     num? taxAmount,
+    this.numberOfItems,
+    num? discountAmount,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
         taxAmount = taxAmount ?? 0.0,
-        billingFrequency = billingFrequency ?? 'monthly',
         billingAmount = billingAmount ?? 0.0,
         totalInstallments = totalInstallments ?? 1,
         paidInstallments = paidInstallments ?? 0,
