@@ -35,11 +35,22 @@ mixin VariantMixin implements VariantInterface {
     bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
+    bool forImportScreen = false,
   }) async {
     try {
       final List<WhereCondition> conditions = [];
 
-      if (forPurchaseScreen) {
+      if (forImportScreen) {
+        conditions.addAll([
+          Where('imptItemSttsCd').isExactly("2"),
+          Where('branchId').isExactly(branchId),
+          Or('imptItemSttsCd').isExactly("3"),
+          Where('branchId').isExactly(branchId),
+          Or('dclDe').isNot(null),
+          Where('branchId').isExactly(branchId),
+          Or('imptItemSttsCd').isExactly("4"),
+        ]);
+      } else if (forPurchaseScreen) {
         conditions.addAll([
           // (branchId = ? AND pchsSttsCd = '01')
           Where('branchId').isExactly(branchId),
@@ -65,11 +76,6 @@ mixin VariantMixin implements VariantInterface {
           Where('bcd').isExactly(bcd),
           Where('branchId').isExactly(branchId),
         ]);
-      } else if (imptItemSttsCd != null) {
-        conditions.addAll([
-          Where('imptItemSttsCd').isExactly(imptItemSttsCd),
-          Where('branchId').isExactly(branchId),
-        ]);
       } else if (purchaseId != null) {
         conditions.addAll([
           Where('purchaseId').isExactly(purchaseId),
@@ -86,24 +92,15 @@ mixin VariantMixin implements VariantInterface {
           Where('branchId').isExactly(branchId),
         ]);
       } else {
+        talker.info(
+            "TEMPORARY LOGGING (Corrected): Entering general variant fetch for branchId: $branchId. ProductId: $productId, Name: $name, BCD: $bcd, PurchaseID: $purchaseId, pchsSttsCd_param: $pchsSttsCd, imptItemSttsCd_param: $imptItemSttsCd, excludeApproved: $excludeApprovedInWaitingOrCanceledItems");
         conditions.addAll([
           Where('branchId').isExactly(branchId),
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
           Where('assigned').isExactly(false),
         ]);
-        if (!excludeApprovedInWaitingOrCanceledItems) {
-          conditions.addAll([
-            Where('imptItemSttsCd').isNot("2"),
-            Where('imptItemSttsCd').isNot("4"),
-          ]);
-          if (purchaseId == null) {
-            conditions.addAll([
-              Where('pchsSttsCd').isNot("04"),
-              if (forPurchaseScreen) Where('pchsSttsCd').isNot("01"),
-            ]);
-          }
-        } else {
+        if (excludeApprovedInWaitingOrCanceledItems) {
           conditions.add(Where('pchsSttsCd').isExactly("01"));
           if (purchaseId != null) {
             conditions.add(Where('purchaseId').isExactly(purchaseId));
@@ -112,23 +109,35 @@ mixin VariantMixin implements VariantInterface {
       }
 
       final query = Query(
-        orderBy: [const OrderBy('lastTouched', ascending: false)],
         where: conditions,
+        orderBy: [const OrderBy('lastTouched', ascending: false)],
       );
 
-      List<Variant> variants = await repository.get<Variant>(
+      List<Variant> fetchedVariants = await repository.get<Variant>(
+        query: query,
         policy: fetchRemote
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,
-        query: query,
       );
+
+      if (!forImportScreen && !forPurchaseScreen) {
+        fetchedVariants = fetchedVariants.where((v) {
+          final isWaitingImport = v.imptItemSttsCd == "2";
+          final isCancelledImport = v.imptItemSttsCd == "4";
+          final isCancelledPurchase = v.pchsSttsCd == "04";
+
+          return !isWaitingImport && !isCancelledImport && !isCancelledPurchase;
+        }).toList();
+      }
 
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
-        return variants.skip(offset).take(itemsPerPage).toList();
+        // Ensure we don't go out of bounds if fetchedVariants is smaller than offset + itemsPerPage
+        if (offset >= fetchedVariants.length) return [];
+        return fetchedVariants.skip(offset).take(itemsPerPage).toList();
       }
 
-      return variants;
+      return fetchedVariants;
     } catch (e, s) {
       talker.error(s);
       rethrow;

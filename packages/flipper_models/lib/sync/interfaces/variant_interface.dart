@@ -18,6 +18,7 @@ abstract class VariantInterface {
     bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
+    bool forImportScreen = false,
   });
   Future<Variant?> getVariant({required String id});
 
