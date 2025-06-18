@@ -230,12 +230,12 @@ class ImportsState extends ConsumerState<Imports> {
                 child: Form(
                   key: widget.formKey,
                   child: Column(
+                    mainAxisSize:
+                        MainAxisSize.min, // Ensure column takes minimum space
                     children: [
                       _buildInputRow(),
                       const SizedBox(height: 16),
-                      Expanded(
-                        child: _buildDataGrid(),
-                      ),
+                      _buildDataGrid(), // Removed Expanded
                     ],
                   ),
                 ),
