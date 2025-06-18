@@ -2133,6 +2133,12 @@ class CoreSync extends AiStrategyImpl
           branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
+        // Update numberOfItems before completing the sale
+        transaction.numberOfItems = items.length;
+
+        // sum up all discount found on item then save them on a transaction
+        transaction.discountAmount = items.fold(0, (a, b) => a! + b.dcAmt!);
+
         double subTotalFinalized = 0.0;
         double cash = ProxyService.box.getCashReceived() ?? cashReceived;
         if (isIncome) {

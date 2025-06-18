@@ -174,6 +174,14 @@ Future<ITransaction> _$ITransactionFromSupabase(
             ? null
             : data['is_original_transaction'] as bool?,
     taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
+    numberOfItems:
+        data['number_of_items'] == null
+            ? null
+            : data['number_of_items'] as int?,
+    discountAmount:
+        data['discount_amount'] == null
+            ? null
+            : data['discount_amount'] as num?,
   );
 }
 
@@ -237,6 +245,8 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'original_transaction_id': instance.originalTransactionId,
     'is_original_transaction': instance.isOriginalTransaction,
     'tax_amount': instance.taxAmount,
+    'number_of_items': instance.numberOfItems,
+    'discount_amount': instance.discountAmount,
   };
 }
 
@@ -352,7 +362,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
     billingFrequency:
         data['billing_frequency'] == null
             ? null
-            : data['billing_frequency'] as String?,
+            : data['billing_frequency'] as String? ?? "monthly",
     billingAmount:
         data['billing_amount'] == null ? null : data['billing_amount'] as num?,
     totalInstallments:
@@ -396,6 +406,14 @@ Future<ITransaction> _$ITransactionFromSqlite(
             ? null
             : data['is_original_transaction'] == 1,
     taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
+    numberOfItems:
+        data['number_of_items'] == null
+            ? null
+            : data['number_of_items'] as int?,
+    discountAmount:
+        data['discount_amount'] == null
+            ? null
+            : data['discount_amount'] as num?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -470,6 +488,8 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
             ? null
             : (instance.isOriginalTransaction! ? 1 : 0),
     'tax_amount': instance.taxAmount,
+    'number_of_items': instance.numberOfItems,
+    'discount_amount': instance.discountAmount,
   };
 }
 
@@ -695,6 +715,14 @@ class ITransactionAdapter
     'taxAmount': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tax_amount',
+    ),
+    'numberOfItems': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'number_of_items',
+    ),
+    'discountAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'discount_amount',
     ),
   };
   @override
@@ -1024,6 +1052,18 @@ class ITransactionAdapter
     'taxAmount': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_amount',
+      iterable: false,
+      type: num,
+    ),
+    'numberOfItems': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'number_of_items',
+      iterable: false,
+      type: int,
+    ),
+    'discountAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'discount_amount',
       iterable: false,
       type: num,
     ),

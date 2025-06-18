@@ -53,7 +53,10 @@ class ZReport {
         0.0, (sum, t) => sum + ((t.subTotal ?? 0.0) * 0.18));
 
     // Calculate item counts
-    final totalItemsSold = 10;
+    final totalItemsSold =
+        salesTransactions.fold(0, (sum, t) => sum + (t.numberOfItems ?? 0));
+    final totalDiscount = salesTransactions.fold(
+        0.0, (sum, t) => sum + (t.discountAmount ?? 0.0));
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
@@ -91,6 +94,7 @@ class ZReport {
       taxRateSales,
       taxRateRefunds,
       totalItemsSold,
+      totalDiscount,
     );
 
     final List<int> bytes = await document.save();
@@ -145,6 +149,7 @@ class ZReport {
     double taxRateSales,
     double taxRateRefunds,
     int totalItemsSold,
+    double totalDiscount,
   ) {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 2);
@@ -249,7 +254,7 @@ class ZReport {
           },
         ]);
 
-    addRow('All discounts', '0 RWF');
+    addRow('All discounts', '${totalDiscount.toStringAsFixed(0)} RWF');
     addRow('Number of incomplete sales', '0');
     addRow(
         'Other registrations that have reduced the day sales and their amount',
