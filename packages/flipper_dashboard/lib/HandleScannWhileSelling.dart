@@ -24,11 +24,12 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
   Future<void> handleScanningMode(String value, CoreViewModel model,
       TextEditingController controller) async {
-    controller.clear();
-    hasText = false;
     final isScanningModeEnabled = ref.read(toggleProvider.notifier).state;
 
     if (isScanningModeEnabled) {
+      // Only clear controller and set hasText if in scanning mode
+      controller.clear();
+      hasText = false;
       if (value.isNotEmpty) {
         // Show loading indicator immediately to give feedback to the user
         // This helps with perceived performance, especially on Windows

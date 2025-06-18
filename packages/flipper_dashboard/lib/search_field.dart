@@ -130,7 +130,7 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   @override
   Widget build(BuildContext context) {
-    final stringValue = ref.watch(stringProvider);
+    final stringValue = ref.watch(searchStringProvider);
     final orders = ref.watch(stockRequestsProvider((filter: stringValue)));
     final notice = ref.watch(noticesProvider);
 
