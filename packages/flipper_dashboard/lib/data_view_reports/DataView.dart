@@ -18,6 +18,8 @@ import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_dashboard/data_view_reports/StockRecount.dart';
+import 'package:flipper_dashboard/data_view_reports/report_actions_row.dart';
+import 'package:flipper_dashboard/export/z_report.dart';
 
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
@@ -53,6 +55,15 @@ class DataView extends StatefulHookConsumerWidget {
 
 class DataViewState extends ConsumerState<DataView>
     with ExportMixin, DateCoreWidget, Headers {
+  Future<void> _handleToggleReport() async {
+    // Toggle the report view
+    ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+
+    // Give the UI time to update and rebuild the DataGrid
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) setState(() {});
+  }
+
   static const double dataPagerHeight = 60;
   late DataGridSource _dataGridSource;
 
@@ -169,42 +180,26 @@ class DataViewState extends ConsumerState<DataView>
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              Row(
-                children: [
-                  _buildReportTypeSwitch(showDetailed),
-                  Spacer(),
-                  Tooltip(
-                    message: 'Export as CSV',
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: _isExporting
-                          ? Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : IconButton(
-                              icon: Icon(Icons.download_rounded),
-                              onPressed: () async {
-                                setState(() => _isExporting = true);
-                                await _export(
-                                    headerTitle: "Report",
-                                    workBookKey: widget.workBookKey);
-                                setState(() => _isExporting = false);
-                              },
-                            ),
-                    ),
-                  ),
-                  Tooltip(
-                    message: 'Print',
-                    child: IconButton(
-                      icon: Icon(Icons.print),
-                      onPressed: () {
-                        // TODO: Implement print
-                      },
-                    ),
-                  ),
-                ],
+              ReportActionsRow(
+                showDetailed: showDetailed,
+                isExporting: _isExporting,
+                onExportPressed: () async {
+                  setState(() => _isExporting = true);
+                  await _export(
+                      headerTitle: "Report", workBookKey: widget.workBookKey);
+                  setState(() => _isExporting = false);
+                },
+                workBookKey: widget.workBookKey,
+                onPrintPressed: () {
+                  // TODO: Implement print
+                },
+                onToggleReport: _handleToggleReport,
+                onXReportPressed: () {
+                  // TODO: Implement X Report
+                },
+                onZReportPressed: () {
+                  ZReport().generateZReport();
+                },
               ),
               const SizedBox(height: 10),
               Row(
@@ -715,64 +710,5 @@ class DataViewState extends ConsumerState<DataView>
         columnNames: columnNames,
         // Only show profit calculations in detailed report mode
         showProfitCalculations: widget.showDetailedReport);
-  }
-
-  Widget _buildReportTypeSwitch(bool showDetailed) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-            onPressed: showDetailed
-                ? () async {
-                    // Toggle the report view
-                    ref
-                        .read(toggleBooleanValueProvider.notifier)
-                        .toggleReport();
-
-                    // Give the UI time to update and rebuild the DataGrid
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (mounted) setState(() {});
-                  }
-                : null,
-            style: TextButton.styleFrom(
-              backgroundColor: !showDetailed ? Colors.blue : Colors.transparent,
-              foregroundColor: !showDetailed ? Colors.white : Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            child: Text('Summarized'),
-          ),
-          TextButton(
-            onPressed: !showDetailed
-                ? () async {
-                    // Toggle the report view
-                    ref
-                        .read(toggleBooleanValueProvider.notifier)
-                        .toggleReport();
-
-                    // Give the UI time to update and rebuild the DataGrid
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (mounted) setState(() {});
-                  }
-                : null,
-            style: TextButton.styleFrom(
-              backgroundColor: showDetailed ? Colors.blue : Colors.transparent,
-              foregroundColor: showDetailed ? Colors.white : Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            child: Text('Detailed'),
-          ),
-        ],
-      ),
-    );
   }
 }
