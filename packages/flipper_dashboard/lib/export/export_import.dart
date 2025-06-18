@@ -150,30 +150,31 @@ class ExportImport {
     }
 
     // Optimized column widths to fit within page margins (A4 page ~595 points width)
-    // Leaving ~30 points total margin (15 on each side)
-    // Available width: ~565 points
-    grid.columns[0].width = 20; // #
-    grid.columns[1].width = 50; // Request Date
-    grid.columns[2].width = 55; // Declaration Number
-    grid.columns[3].width = 75; // Item Name
-    grid.columns[4].width = 40; // Quantity
-    grid.columns[5].width = 40; // Quantity Unit Code
-    grid.columns[6].width = 80; // Supplier name
-    grid.columns[7].width = 55; // Agent name
-    grid.columns[8].width = 75; // Invoice Foreign Currency Amount
-    grid.columns[9].width = 75; // Foreign Currency
-    // Total: 565 points - should fit comfortably within page width
+    // Leaving minimal margins to maximize table width
+    // Available width: ~585 points
+    grid.columns[0].width = 18; // #
+    grid.columns[1].width = 48; // Request Date
+    grid.columns[2].width = 52; // Declaration Number
+    grid.columns[3].width = 70; // Item Name
+    grid.columns[4].width = 35; // Quantity
+    grid.columns[5].width = 35; // Quantity Unit Code
+    grid.columns[6].width = 75; // Supplier name
+    grid.columns[7].width = 52; // Agent name
+    grid.columns[8].width = 70; // Invoice Foreign Currency Amount
+    grid.columns[9].width =
+        80; // Foreign Currency (increased for full visibility)
+    // Total: 535 points - should fit comfortably within page width
 
     grid.style.cellPadding = PdfPaddings(left: 2, right: 2, top: 2, bottom: 2);
     grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 8);
 
-    // Use available page width with small margins
+    // Use available page width with minimal margins
     final double tableWidth =
-        pageSize.width - 15; // 7.5 points margin on each side
+        pageSize.width - 5; // 2.5 points margin on each side
     grid.draw(
       page: page,
       bounds: Rect.fromLTWH(
-          7.5, 120, tableWidth, pageSize.height - 170), // Reduced margins
+          2.5, 120, tableWidth, pageSize.height - 170), // Minimal margins
     );
   }
 
