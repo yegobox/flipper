@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +18,24 @@ class ExportImport {
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
     final Size pageSize = page.getClientSize();
+
+    // Footer template for logo
+    final PdfPageTemplateElement footerTemplate = PdfPageTemplateElement(
+        Rect.fromLTWH(0, 0, pageSize.width, 50)); // Footer area height 50
+    try {
+      final ByteData imageData =
+          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
+      const double logoWidth = 25;
+      const double logoHeight = 25;
+      final double xLogoPosition = (pageSize.width - logoWidth) / 2;
+      // Draw logo at the top of the footer area, centered
+      footerTemplate.graphics.drawImage(
+          logoImage, Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight));
+    } catch (e) {
+      print('Error loading logo for footer: $e');
+    }
+    document.template.bottom = footerTemplate;
 
     _drawHeader(page, pageSize, variants, business);
     _drawTable(page, pageSize, variants);
@@ -84,12 +104,34 @@ class ExportImport {
     header.cells[8].value = 'Invoice Foreign Currency Amount';
     header.cells[9].value = 'Invoice Foreign Currency';
 
-    header.style = PdfGridCellStyle(
-      backgroundBrush: PdfSolidBrush(PdfColor(0, 0, 255)), // Blue color
-      textBrush: PdfBrushes.white,
-      font: PdfStandardFont(PdfFontFamily.helvetica, 10,
-          style: PdfFontStyle.bold),
-    );
+    header.style.backgroundBrush =
+        PdfSolidBrush(PdfColor(173, 216, 230)); // Light Blue
+    header.style.textBrush = PdfBrushes.black; // Black text for better contrast
+    header.style.font =
+        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+
+    final PdfPen lightGrayPen =
+        PdfPen(PdfColor(211, 211, 211), width: 0.5); // Light Gray, thinner
+
+    // Apply border to header cells
+    for (int i = 0; i < header.cells.count; i++) {
+      final PdfGridCell cell = header.cells[i];
+      // Inner borders black
+      cell.style.borders.left = (i == 0) ? lightGrayPen : PdfPens.black;
+      cell.style.borders.right =
+          (i == header.cells.count - 1) ? lightGrayPen : PdfPens.black;
+      cell.style.borders.top = lightGrayPen;
+      cell.style.borders.bottom =
+          PdfPens.black; // Bottom of header cells black to separate from data
+    }
+
+    // Apply border to data cells
+    for (int i = 0; i < grid.rows.count; i++) {
+      PdfGridRow row = grid.rows[i];
+      for (int j = 0; j < row.cells.count; j++) {
+        row.cells[j].style.borders.all = lightGrayPen;
+      }
+    }
 
     for (int i = 0; i < variants.length; i++) {
       final variant = variants[i];
@@ -106,19 +148,26 @@ class ExportImport {
       row.cells[9].value = variant.invcFcurCd ?? '';
     }
 
-    for (int i = 0; i < grid.columns.count; i++) {
-      grid.columns[i].width = 70;
-    }
-    grid.columns[0].width = 20;
-    grid.columns[3].width = 120;
-    grid.columns[6].width = 120;
+    // Adjusted column widths to fit standard A4 page (approx 595 points wide)
+    // Total target width ~570 to leave some margin
+    grid.columns[0].width = 20; // #
+    grid.columns[1].width = 50; // Request Date
+    grid.columns[2].width = 50; // Declaration Number
+    grid.columns[3].width = 100; // Item Name
+    grid.columns[4].width = 50; // Quantity
+    grid.columns[5].width = 50; // Quantity Unit Code
+    grid.columns[6].width = 100; // Supplier name
+    grid.columns[7].width = 50; // Agent name
+    grid.columns[8].width = 50; // Invoice Foreign Currency Amount
+    grid.columns[9].width = 50; // Invoice Foreign Currency
+    // Total: 20 + 50*6 + 100*2 = 20 + 300 + 200 = 520. This leaves good margin.
 
     grid.style.cellPadding = PdfPaddings(left: 2, right: 2, top: 2, bottom: 2);
     grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 8);
 
     grid.draw(
       page: page,
-      bounds: Rect.fromLTWH(0, 120, 0, 0),
+      bounds: Rect.fromLTWH(0, 120, pageSize.width, pageSize.height - 120),
     );
   }
 
