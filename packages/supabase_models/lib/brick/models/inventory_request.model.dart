@@ -15,9 +15,6 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   final String id;
   int? mainBranchId;
   int? subBranchId;
-  Branch? branch;
-  // the requester same as subBranchId but this will use uuid representation of the subBranchId
-  String? branchId;
 
   DateTime? createdAt;
   // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"
@@ -28,8 +25,7 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   bool? customerReceivedOrder = false;
   bool? driverRequestDeliveryConfirmation = false;
   int? driverId;
-  @Supabase(ignore: true)
-  List<TransactionItem>? transactionItems;
+
   DateTime? updatedAt;
   num? itemCounts;
 
@@ -37,8 +33,17 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   String? tinNumber;
 
   // stock financing
+  @Supabase(foreignKey: 'financing_id')
   Financing? financing;
   String? financingId;
+
+  @Supabase(ignore: true)
+  List<TransactionItem>? transactionItems;
+
+  @Supabase(foreignKey: 'branch_id')
+  Branch? branch;
+  // the requester same as subBranchId but this will use uuid representation of the subBranchId
+  String? branchId;
   InventoryRequest({
     String? id,
     this.mainBranchId,

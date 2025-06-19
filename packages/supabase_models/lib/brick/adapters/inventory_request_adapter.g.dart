@@ -288,7 +288,7 @@ class InventoryRequestAdapter
     'branch': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'branch',
-      associationType: Map,
+      associationType: Branch,
       associationIsNullable: true,
     ),
     'branchId': const RuntimeSupabaseColumnDefinition(
@@ -330,7 +330,7 @@ class InventoryRequestAdapter
     'transactionItems': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'transaction_items',
-      associationType: Map,
+      associationType: TransactionItem,
       associationIsNullable: true,
     ),
     'updatedAt': const RuntimeSupabaseColumnDefinition(
@@ -394,7 +394,7 @@ class InventoryRequestAdapter
       association: true,
       columnName: 'branch_Branch_brick_id',
       iterable: false,
-      type: Map,
+      type: Branch,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -454,7 +454,7 @@ class InventoryRequestAdapter
       association: true,
       columnName: 'transaction_items',
       iterable: true,
-      type: Map,
+      type: TransactionItem,
     ),
     'updatedAt': const RuntimeSqliteColumnDefinition(
       association: false,
