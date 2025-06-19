@@ -64,6 +64,8 @@ class CreateMockdata {
 
       final mockStockRequests = [
         InventoryRequest(
+          branchId: "",
+          financingId: "",
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
@@ -82,6 +84,8 @@ class CreateMockdata {
           ],
         ),
         InventoryRequest(
+          branchId: "",
+          financingId: "",
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
