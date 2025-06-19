@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -72,7 +71,6 @@ class PdfHelper {
       'Unit Price',
       'Tax Rate',
       'Sold Qty',
-      'Orders',
       'Remain Qty',
     ];
 
@@ -83,7 +81,6 @@ class PdfHelper {
       1.0, // Unit Price
       0.8, // Tax Rate
       0.8, // Sold Qty
-      0.7, // Orders
       1.0, // Remain Qty
     ];
 
@@ -167,9 +164,6 @@ class PdfHelper {
         bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
       );
 
-      // Get order count for this item
-      final orderCount = row['orderCount']?.toString() ?? '0';
-
       // Draw cell values
       final values = [
         row['No'].toString(),
@@ -180,7 +174,6 @@ class PdfHelper {
             : row['Unit Price']?.toString() ?? '0.00'),
         row['Tax Rate']?.toString() ?? '0.00%',
         row['Sold Quantity']?.toString() ?? '0',
-        orderCount,
         row['Remain Quantity']?.toString() ?? '0',
       ];
 
