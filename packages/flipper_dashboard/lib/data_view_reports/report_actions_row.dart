@@ -14,6 +14,7 @@ class ReportActionsRow extends ConsumerWidget {
     required this.onXReportPressed,
     required this.onZReportPressed,
     required this.onSaleReportPressed,
+    required this.onPluReportPressed,
   });
 
   final bool showDetailed;
@@ -25,6 +26,7 @@ class ReportActionsRow extends ConsumerWidget {
   final VoidCallback onXReportPressed;
   final VoidCallback onZReportPressed;
   final VoidCallback onSaleReportPressed;
+  final VoidCallback onPluReportPressed;
 
   Widget _buildReportTypeSwitch(WidgetRef ref) {
     return Container(
@@ -112,6 +114,13 @@ class ReportActionsRow extends ConsumerWidget {
           child: IconButton(
             icon: const Icon(Icons.receipt_long),
             onPressed: onSaleReportPressed,
+          ),
+        ),
+        Tooltip(
+          message: 'PLU Report',
+          child: IconButton(
+            icon: const Icon(Icons.list_alt),
+            onPressed: onPluReportPressed,
           ),
         ),
       ],

@@ -206,6 +206,10 @@ class DataViewState extends ConsumerState<DataView>
                   SaleReport().generateSaleReport(
                       startDate: widget.startDate, endDate: widget.endDate);
                 },
+                onPluReportPressed: () {
+                  PLUReport().generatePLUReport(
+                      startDate: widget.startDate, endDate: widget.endDate);
+                },
               ),
               const SizedBox(height: 10),
               Row(
