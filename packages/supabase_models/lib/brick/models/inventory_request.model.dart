@@ -16,6 +16,8 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   int? mainBranchId;
   int? subBranchId;
   Branch? branch;
+  // the requester same as subBranchId but this will use uuid representation of the subBranchId
+  String? branchId;
 
   DateTime? createdAt;
   // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"
@@ -36,6 +38,7 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
 
   // stock financing
   Financing? financing;
+  String? financingId;
   InventoryRequest({
     String? id,
     this.mainBranchId,
@@ -45,9 +48,11 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
     this.subBranchId,
     this.createdAt,
     this.status,
+    required this.branchId,
     this.branch,
     this.deliveryDate,
     this.deliveryNote,
+    required this.financingId,
     this.orderNote,
     this.customerReceivedOrder,
     this.driverRequestDeliveryConfirmation,
@@ -57,27 +62,29 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
     this.financing,
   }) : id = id ?? const Uuid().v4();
 
-  Future<InventoryRequest> copyWith(
-      {Branch? branch, Financing? financing}) async {
-    return InventoryRequest(
-      id: id,
-      mainBranchId: mainBranchId,
-      subBranchId: subBranchId,
-      createdAt: createdAt,
-      status: status,
-      deliveryDate: deliveryDate,
-      deliveryNote: deliveryNote,
-      orderNote: orderNote,
-      customerReceivedOrder: customerReceivedOrder,
-      driverRequestDeliveryConfirmation: driverRequestDeliveryConfirmation,
-      driverId: driverId,
-      transactionItems: transactionItems,
-      updatedAt: updatedAt,
-      itemCounts: itemCounts,
-      bhfId: bhfId,
-      tinNumber: tinNumber,
-      financing: financing,
-      branch: branch,
-    );
-  }
+  // Future<InventoryRequest> copyWith(
+  //     {Branch? branch, Financing? financing}) async {
+  //   return InventoryRequest(
+  //     id: id,
+  //     mainBranchId: mainBranchId,
+  //     subBranchId: subBranchId,
+  //     branchId: branchId,
+  //     createdAt: createdAt,
+  //     status: status,
+  //     deliveryDate: deliveryDate,
+  //     deliveryNote: deliveryNote,
+  //     financingId: financingId,
+  //     orderNote: orderNote,
+  //     customerReceivedOrder: customerReceivedOrder,
+  //     driverRequestDeliveryConfirmation: driverRequestDeliveryConfirmation,
+  //     driverId: driverId,
+  //     transactionItems: transactionItems,
+  //     updatedAt: updatedAt,
+  //     itemCounts: itemCounts,
+  //     bhfId: bhfId,
+  //     tinNumber: tinNumber,
+  //     financing: financing,
+  //     branch: branch,
+  //   );
+  // }
 }

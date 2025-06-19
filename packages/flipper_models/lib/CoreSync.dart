@@ -3153,6 +3153,8 @@ class CoreSync extends AiStrategyImpl
         // Now that the adapter is fixed, this should work correctly
         final stockRequest = InventoryRequest(
           id: orderId,
+          branchId: branch.id,
+          financingId: financing.id,
           itemCounts: items.length,
           deliveryDate: deliveryDate,
           deliveryNote: deliveryNote,
