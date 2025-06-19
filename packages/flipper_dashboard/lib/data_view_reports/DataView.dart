@@ -72,7 +72,12 @@ class DataViewState extends ConsumerState<DataView>
 
   int pageIndex = 0;
   final talker = TalkerFlutter.init();
-  bool _isExporting = false;
+  // Track loading states for different export operations
+  bool _isExportingExcel = false;
+  bool _isExportingXReport = false;
+  bool _isExportingZReport = false;
+  bool _isExportingSaleReport = false;
+  bool _isExportingPLUReport = false;
 
   @override
   void initState() {
@@ -185,31 +190,68 @@ class DataViewState extends ConsumerState<DataView>
             children: [
               ReportActionsRow(
                 showDetailed: showDetailed,
-                isExporting: _isExporting,
+                isExporting: _isExportingExcel,
+                isXReportLoading: _isExportingXReport,
+                isZReportLoading: _isExportingZReport,
+                isSaleReportLoading: _isExportingSaleReport,
+                isPLUReportLoading: _isExportingPLUReport,
                 onExportPressed: () async {
-                  setState(() => _isExporting = true);
-                  await _export(
-                      headerTitle: "Report", workBookKey: widget.workBookKey);
-                  setState(() => _isExporting = false);
+                  setState(() => _isExportingExcel = true);
+                  try {
+                    await _export(
+                        headerTitle: "Report", workBookKey: widget.workBookKey);
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingExcel = false);
+                    }
+                  }
                 },
                 workBookKey: widget.workBookKey,
                 onPrintPressed: () {
                   // TODO: Implement print
                 },
                 onToggleReport: _handleToggleReport,
-                onXReportPressed: () {
-                  XReport().generateXReport();
+                onXReportPressed: () async {
+                  setState(() => _isExportingXReport = true);
+                  try {
+                    await XReport().generateXReport();
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingXReport = false);
+                    }
+                  }
                 },
-                onZReportPressed: () {
-                  ZReport().generateZReport();
+                onZReportPressed: () async {
+                  setState(() => _isExportingZReport = true);
+                  try {
+                    await ZReport().generateZReport();
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingZReport = false);
+                    }
+                  }
                 },
-                onSaleReportPressed: () {
-                  SaleReport().generateSaleReport(
-                      startDate: widget.startDate, endDate: widget.endDate);
+                onSaleReportPressed: () async {
+                  setState(() => _isExportingSaleReport = true);
+                  try {
+                    await SaleReport().generateSaleReport(
+                        startDate: widget.startDate, endDate: widget.endDate);
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingSaleReport = false);
+                    }
+                  }
                 },
-                onPluReportPressed: () {
-                  PLUReport().generatePLUReport(
-                      startDate: widget.startDate, endDate: widget.endDate);
+                onPluReportPressed: () async {
+                  setState(() => _isExportingPLUReport = true);
+                  try {
+                    await PLUReport().generatePLUReport(
+                        startDate: widget.startDate, endDate: widget.endDate);
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingPLUReport = false);
+                    }
+                  }
                 },
               ),
               const SizedBox(height: 10),
