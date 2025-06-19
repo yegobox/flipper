@@ -60,9 +60,10 @@ class PdfHelper {
       );
       return startY + 20;
     }
-    const double rowHeight = 20;
-    const double headerHeight = 25;
-    const double cellPadding = 5;
+
+    const double rowHeight = 25;
+    const double headerHeight = 30;
+    const double cellPadding = 4;
 
     final headers = [
       'No',
@@ -76,13 +77,13 @@ class PdfHelper {
     ];
 
     final columnWidths = [
-      0.5, // No
-      2.5, // Item Name
-      1.2, // Item Code
-      1.2, // Unit Price
+      0.4, // No
+      2.8, // Item Name
+      1.3, // Item Code
+      1.0, // Unit Price
       0.8, // Tax Rate
       0.8, // Sold Qty
-      0.8, // Orders
+      0.7, // Orders
       1.0, // Remain Qty
     ];
 
@@ -90,52 +91,80 @@ class PdfHelper {
     final totalWidth = columnWidths.fold(0.0, (sum, width) => sum + width);
     final availableWidth = pageWidth - (2 * margin);
 
+    // Create pen for borders
+    final borderPen = PdfPen(PdfColor(100, 100, 100), width: 0.5);
+    final headerBrush = PdfSolidBrush(PdfColor(220, 220, 220));
+
     // Draw table header
     double x = margin;
     double y = startY;
 
-    // Draw header background
+    // Draw header background with border
     page.graphics.drawRectangle(
-      brush: PdfBrushes.lightGray,
+      brush: headerBrush,
+      pen: borderPen,
       bounds: ui.Rect.fromLTWH(x, y, availableWidth, headerHeight),
     );
 
-    // Draw header text
+    // Draw header cell borders and text
+    double currentX = x;
     for (var i = 0; i < headers.length; i++) {
       final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
-      drawText(
-        page: page,
-        text: headers[i],
-        font: boldFont,
-        x: x + cellPadding,
-        y: y + (headerHeight - 12) / 2,
-        width: colWidth - (2 * cellPadding),
-        align: i == 0 ? PdfTextAlignment.left : PdfTextAlignment.right,
+
+      // Draw vertical border for each header cell (except first one)
+      if (i > 0) {
+        page.graphics.drawLine(
+          borderPen,
+          ui.Offset(currentX, y),
+          ui.Offset(currentX, y + headerHeight),
+        );
+      }
+
+      // Draw header text with better alignment
+      page.graphics.drawString(
+        headers[i],
+        boldFont,
+        bounds: ui.Rect.fromLTWH(
+          currentX + cellPadding,
+          y + (headerHeight - boldFont.height) / 2,
+          colWidth - (2 * cellPadding),
+          boldFont.height,
+        ),
+        format: PdfStringFormat(
+          alignment: i == 0 || i == 1
+              ? PdfTextAlignment.left
+              : PdfTextAlignment.center,
+          lineAlignment: PdfVerticalAlignment.middle,
+        ),
       );
-      x += colWidth;
+
+      currentX += colWidth;
     }
 
     y += headerHeight;
 
     // Draw table rows
-    for (final row in data) {
-      x = margin;
+    for (int rowIndex = 0; rowIndex < data.length; rowIndex++) {
+      final row = data[rowIndex];
+      currentX = margin;
 
       // Skip if row doesn't have required data
       if (row['Item Name'] == null) continue;
 
       // Alternate row background
-      if (data.indexOf(row) % 2 == 0) {
+      PdfBrush? rowBrush;
+      if (rowIndex % 2 == 0) {
+        rowBrush = PdfSolidBrush(PdfColor(248, 248, 248));
         page.graphics.drawRectangle(
-          brush: PdfBrushes.whiteSmoke,
-          bounds: ui.Rect.fromLTWH(x, y, availableWidth, rowHeight),
+          brush: rowBrush,
+          bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
         );
       }
 
-      // Draw row border
+      // Draw row border (top and bottom)
       page.graphics.drawRectangle(
-        pen: PdfPen(PdfColor(200, 200, 200)),
-        bounds: ui.Rect.fromLTWH(x, y, availableWidth, rowHeight),
+        pen: borderPen,
+        bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
       );
 
       // Get order count for this item
@@ -151,30 +180,96 @@ class PdfHelper {
             : row['Unit Price']?.toString() ?? '0.00'),
         row['Tax Rate']?.toString() ?? '0.00%',
         row['Sold Quantity']?.toString() ?? '0',
-        orderCount, // Add order count column
+        orderCount,
         row['Remain Quantity']?.toString() ?? '0',
       ];
 
       for (var i = 0; i < values.length; i++) {
         final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
-        drawText(
-          page: page,
-          text: values[i],
-          font: normalFont,
-          x: x + cellPadding,
-          y: y + (rowHeight - 12) / 2,
-          width: colWidth - (2 * cellPadding),
-          align: i == 0 ? PdfTextAlignment.left : PdfTextAlignment.right,
+
+        // Draw vertical border for each cell (except first one)
+        if (i > 0) {
+          page.graphics.drawLine(
+            borderPen,
+            ui.Offset(currentX, y),
+            ui.Offset(currentX, y + rowHeight),
+          );
+        }
+
+        // Draw cell text with proper alignment
+        page.graphics.drawString(
+          values[i],
+          normalFont,
+          bounds: ui.Rect.fromLTWH(
+            currentX + cellPadding,
+            y + (rowHeight - normalFont.height) / 2,
+            colWidth - (2 * cellPadding),
+            normalFont.height,
+          ),
+          format: PdfStringFormat(
+            alignment: i == 0 || i == 1
+                ? PdfTextAlignment.left
+                : PdfTextAlignment.center,
+            lineAlignment: PdfVerticalAlignment.middle,
+          ),
         );
-        x += colWidth;
+
+        currentX += colWidth;
       }
 
       y += rowHeight;
 
       // Check for page break
-      if (y > page.getClientSize().height - 50) {
+      if (y > page.getClientSize().height - 100) {
         page = document.pages.add();
         y = margin;
+
+        // Redraw header on new page
+        currentX = margin;
+
+        // Draw header background with border
+        page.graphics.drawRectangle(
+          brush: headerBrush,
+          pen: borderPen,
+          bounds: ui.Rect.fromLTWH(currentX, y, availableWidth, headerHeight),
+        );
+
+        // Draw header cell borders and text
+        currentX = margin;
+        for (var i = 0; i < headers.length; i++) {
+          final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
+
+          // Draw vertical border for each header cell (except first one)
+          if (i > 0) {
+            page.graphics.drawLine(
+              borderPen,
+              ui.Offset(currentX, y),
+              ui.Offset(currentX, y + headerHeight),
+            );
+          }
+
+          // Draw header text
+          page.graphics.drawString(
+            headers[i],
+            boldFont,
+            bounds: ui.Rect.fromLTWH(
+              currentX + cellPadding,
+              y + (headerHeight - boldFont.height) / 2,
+              colWidth - (2 * cellPadding),
+              boldFont.height,
+            ),
+            format: PdfStringFormat(
+              alignment: i == 0 || i == 1
+                  ? PdfTextAlignment.left
+                  : PdfTextAlignment.center,
+              lineAlignment: PdfVerticalAlignment.middle,
+            ),
+          );
+
+          currentX += colWidth;
+        }
+
+        y += headerHeight;
       }
     }
 
@@ -258,63 +353,53 @@ class PLUReport {
 
     // Set font
     final headerFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 18, style: PdfFontStyle.bold);
+        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
     final titleFont =
         PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
-    final normalFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
+    final normalFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
     final boldFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+        PdfStandardFont(PdfFontFamily.helvetica, 9, style: PdfFontStyle.bold);
 
     // Draw header
-    double yPosition = 40; // Start below top margin
-    final double margin = 40;
+    double yPosition = 30; // Start below top margin
+    final double margin = 30;
 
-    // Report title
-    PdfHelper.drawText(
-      page: page,
-      text: 'PLU REPORT',
-      font: headerFont,
-      x: 0,
-      y: yPosition,
-      width: pageSize.width,
-      align: PdfTextAlignment.center,
+    // Report title - centered
+    page.graphics.drawString(
+      'PLU REPORT',
+      headerFont,
+      bounds: ui.Rect.fromLTWH(0, yPosition, pageSize.width, headerFont.height),
+      format: PdfStringFormat(alignment: PdfTextAlignment.center),
     );
-    yPosition += 30;
+    yPosition += 35;
 
     // Business info
-    PdfHelper.drawText(
-      page: page,
-      text: business?.name ?? 'N/A',
-      font: titleFont,
-      x: margin,
-      y: yPosition,
-      width: pageSize.width - (2 * margin),
-      align: PdfTextAlignment.left,
+    page.graphics.drawString(
+      business?.name ?? 'N/A',
+      titleFont,
+      bounds: ui.Rect.fromLTWH(
+          margin, yPosition, pageSize.width - (2 * margin), titleFont.height),
+      format: PdfStringFormat(alignment: PdfTextAlignment.left),
     );
     yPosition += 20;
 
-    PdfHelper.drawText(
-      page: page,
-      text: 'TIN: ${business?.tinNumber ?? 'N/A'}',
-      font: normalFont,
-      x: margin,
-      y: yPosition,
-      width: pageSize.width - (2 * margin),
-      align: PdfTextAlignment.left,
+    page.graphics.drawString(
+      'TIN: ${business?.tinNumber ?? 'N/A'}',
+      normalFont,
+      bounds: ui.Rect.fromLTWH(
+          margin, yPosition, pageSize.width - (2 * margin), normalFont.height),
+      format: PdfStringFormat(alignment: PdfTextAlignment.left),
     );
     yPosition += 15;
 
-    PdfHelper.drawText(
-      page: page,
-      text:
-          'Date: ${DateFormat('yyyy-MM-dd').format(startDate)} - ${DateFormat('yyyy-MM-dd').format(endDate)}',
-      font: normalFont,
-      x: margin,
-      y: yPosition,
-      width: pageSize.width - (2 * margin),
-      align: PdfTextAlignment.left,
+    page.graphics.drawString(
+      'Date: ${DateFormat('yyyy-MM-dd').format(startDate)} - ${DateFormat('yyyy-MM-dd').format(endDate)}',
+      normalFont,
+      bounds: ui.Rect.fromLTWH(
+          margin, yPosition, pageSize.width - (2 * margin), normalFont.height),
+      format: PdfStringFormat(alignment: PdfTextAlignment.left),
     );
-    yPosition += 30;
+    yPosition += 25;
 
     // Draw table
     yPosition = await PdfHelper.drawTable(
@@ -339,15 +424,12 @@ class PLUReport {
         120; // Position near bottom with space for logo
 
     // Draw generation info
-    PdfHelper.drawText(
-      page: page,
-      text:
-          'Generated on: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}',
-      font: PdfStandardFont(PdfFontFamily.helvetica, 8),
-      x: margin,
-      y: yPosition,
-      width: pageSize.width - (2 * margin),
-      align: PdfTextAlignment.center,
+    page.graphics.drawString(
+      'Generated on: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}',
+      PdfStandardFont(PdfFontFamily.helvetica, 8),
+      bounds: ui.Rect.fromLTWH(
+          margin, yPosition, pageSize.width - (2 * margin), 10),
+      format: PdfStringFormat(alignment: PdfTextAlignment.center),
     );
     yPosition += 15;
 
@@ -378,14 +460,11 @@ class PLUReport {
     } catch (e) {
       // If logo loading fails, just add text fallback
       debugPrint('Failed to load logo: $e');
-      PdfHelper.drawText(
-        page: page,
-        text: 'Powered by Flipper POS',
-        font: PdfStandardFont(PdfFontFamily.helvetica, 9),
-        x: 0,
-        y: yPosition,
-        width: pageSize.width,
-        align: PdfTextAlignment.center,
+      page.graphics.drawString(
+        'Powered by Flipper POS',
+        PdfStandardFont(PdfFontFamily.helvetica, 9),
+        bounds: ui.Rect.fromLTWH(0, yPosition, pageSize.width, 15),
+        format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
     }
 
@@ -408,6 +487,4 @@ class PLUReport {
       rethrow;
     }
   }
-
-  // PDF helper methods are now in the PdfHelper class
 }
