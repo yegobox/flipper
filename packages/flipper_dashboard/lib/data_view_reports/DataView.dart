@@ -22,6 +22,7 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_dashboard/data_view_reports/StockRecount.dart';
 import 'package:flipper_dashboard/data_view_reports/report_actions_row.dart';
 import 'package:flipper_dashboard/export/z_report.dart';
+import 'package:flipper_dashboard/export/plu_report.dart';
 
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
