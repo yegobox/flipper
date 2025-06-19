@@ -7,6 +7,10 @@ class ReportActionsRow extends ConsumerWidget {
     super.key,
     required this.showDetailed,
     required this.isExporting,
+    this.isXReportLoading = false,
+    this.isZReportLoading = false,
+    this.isSaleReportLoading = false,
+    this.isPLUReportLoading = false,
     required this.onExportPressed,
     required this.workBookKey,
     required this.onPrintPressed,
@@ -19,14 +23,18 @@ class ReportActionsRow extends ConsumerWidget {
 
   final bool showDetailed;
   final bool isExporting;
+  final bool isXReportLoading;
+  final bool isZReportLoading;
+  final bool isSaleReportLoading;
+  final bool isPLUReportLoading;
   final VoidCallback onExportPressed;
   final GlobalKey<SfDataGridState> workBookKey;
   final VoidCallback onPrintPressed;
   final Future<void> Function() onToggleReport;
-  final VoidCallback onXReportPressed;
-  final VoidCallback onZReportPressed;
-  final VoidCallback onSaleReportPressed;
-  final VoidCallback onPluReportPressed;
+  final Future<void> Function() onXReportPressed;
+  final Future<void> Function() onZReportPressed;
+  final Future<void> Function() onSaleReportPressed;
+  final Future<void> Function() onPluReportPressed;
 
   Widget _buildReportTypeSwitch(WidgetRef ref) {
     return Container(
@@ -97,30 +105,66 @@ class ReportActionsRow extends ConsumerWidget {
         ),
         Tooltip(
           message: 'X Report',
-          child: IconButton(
-            icon: const Icon(Icons.description),
-            onPressed: onXReportPressed,
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: isXReportLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.receipt_long_outlined),
+                    onPressed: onXReportPressed,
+                  ),
           ),
         ),
         Tooltip(
           message: 'Z Report',
-          child: IconButton(
-            icon: const Icon(Icons.assessment),
-            onPressed: onZReportPressed,
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: isZReportLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.assessment),
+                    onPressed: onZReportPressed,
+                  ),
           ),
         ),
         Tooltip(
-          message: 'Sales Report',
-          child: IconButton(
-            icon: const Icon(Icons.receipt_long),
-            onPressed: onSaleReportPressed,
+          message: 'Sale Report',
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: isSaleReportLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.analytics_outlined),
+                    onPressed: onSaleReportPressed,
+                  ),
           ),
         ),
         Tooltip(
           message: 'PLU Report',
-          child: IconButton(
-            icon: const Icon(Icons.list_alt),
-            onPressed: onPluReportPressed,
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: isPLUReportLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.list_alt_rounded),
+                    onPressed: onPluReportPressed,
+                  ),
           ),
         ),
       ],
