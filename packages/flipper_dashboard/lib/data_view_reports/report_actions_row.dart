@@ -13,6 +13,7 @@ class ReportActionsRow extends ConsumerWidget {
     required this.onToggleReport,
     required this.onXReportPressed,
     required this.onZReportPressed,
+    required this.onSaleReportPressed,
   });
 
   final bool showDetailed;
@@ -23,6 +24,7 @@ class ReportActionsRow extends ConsumerWidget {
   final Future<void> Function() onToggleReport;
   final VoidCallback onXReportPressed;
   final VoidCallback onZReportPressed;
+  final VoidCallback onSaleReportPressed;
 
   Widget _buildReportTypeSwitch(WidgetRef ref) {
     return Container(
@@ -106,10 +108,10 @@ class ReportActionsRow extends ConsumerWidget {
           ),
         ),
         Tooltip(
-          message: 'Print',
+          message: 'Sales Report',
           child: IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: onPrintPressed,
+            icon: const Icon(Icons.receipt_long),
+            onPressed: onSaleReportPressed,
           ),
         ),
       ],

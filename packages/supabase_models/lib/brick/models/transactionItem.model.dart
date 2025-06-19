@@ -18,7 +18,9 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   int? quantityRequested;
   int? quantityApproved;
   int? quantityShipped;
+  @Sqlite(index: true)
   String? transactionId;
+  @Sqlite(index: true)
   String? variantId;
   // quantity
   double qty;

@@ -675,7 +675,7 @@ final stockRequestsProvider = StreamProvider.autoDispose
       .map((requests) => requests
           .where((req) =>
               // Filter out requests that are to the same branch
-              req.branchId != req.subBranchId)
+              req.branch!.id != req.subBranchId)
           .toList())
       .distinct();
 });

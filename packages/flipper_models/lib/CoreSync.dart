@@ -1394,7 +1394,7 @@ class CoreSync extends AiStrategyImpl
     Financing? financingToUse;
 
     // Hydrate branch
-    if (hydratedBranch == null && req.branchId != null) {
+    if (hydratedBranch == null) {
       final branches = await repository.get<Branch>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(where: [
@@ -1407,11 +1407,11 @@ class CoreSync extends AiStrategyImpl
     }
 
     // Hydrate financing
-    if (req.financingId != null) {
+    if (req.financing != null) {
       final financingList = await repository.get<Financing>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(where: [
-          brick.Where('id').isExactly(req.financingId),
+          brick.Where('id').isExactly(req.financing!.id),
         ]),
       );
       if (financingList.isNotEmpty) {
@@ -3157,13 +3157,13 @@ class CoreSync extends AiStrategyImpl
           deliveryDate: deliveryDate,
           deliveryNote: deliveryNote,
           mainBranchId: mainBranchId,
-          branchId: branch.id,
+          // branchId: branch.id,
           branch: branch, // We can now include the branch object directly
           subBranchId: ProxyService.box.getBranchId(),
           status: RequestStatus.pending,
           updatedAt: DateTime.now().toUtc().toLocal(),
           createdAt: DateTime.now().toUtc().toLocal(),
-          financingId: financing.id,
+          // financingId: financing.id,
           financing:
               financing, // We can now include the financing object directly
         );

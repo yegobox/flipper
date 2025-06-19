@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/data_view_reports/HeaderTransactionItem.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
+import 'package:flipper_dashboard/export/sale_report.dart';
 import 'package:flipper_dashboard/export/x_report.dart';
 
 import 'package:flipper_dashboard/exportData.dart';
@@ -200,6 +201,10 @@ class DataViewState extends ConsumerState<DataView>
                 },
                 onZReportPressed: () {
                   ZReport().generateZReport();
+                },
+                onSaleReportPressed: () {
+                  SaleReport().generateSaleReport(
+                      startDate: widget.startDate, endDate: widget.endDate);
                 },
               ),
               const SizedBox(height: 10),

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 // import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
@@ -2331,6 +2332,25 @@ class Capella extends AiStrategyImpl
   @override
   Future<List<PurchaseReportItem>> allPurchasesToDate() {
     // TODO: implement allPurchasesToDate
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<TransactionWithItems>> transactionsAndItems(
+      {DateTime? startDate,
+      DateTime? endDate,
+      String? status,
+      String? transactionType,
+      int? branchId,
+      bool isCashOut = false,
+      bool fetchRemote = false,
+      String? id,
+      bool isExpense = false,
+      FilterType? filterType,
+      bool includeZeroSubTotal = false,
+      bool includePending = false,
+      bool skipOriginalTransactionCheck = false}) {
+    // TODO: implement transactionsAndItems
     throw UnimplementedError();
   }
 }
