@@ -33,7 +33,7 @@ mixin StockRequestApprovalLogic {
             item: item,
             request: request,
             subBranchId: request.subBranchId!,
-            sourceBranchId: request.branchId!)),
+            sourceBranchId: request.branch!.id)),
       );
 
       final List<TransactionItem> itemsNeedingApproval = [];

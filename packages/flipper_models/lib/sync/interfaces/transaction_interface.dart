@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 
 abstract class TransactionInterface {
@@ -148,4 +149,19 @@ abstract class TransactionInterface {
   Future<bool> deleteTransaction({required ITransaction transaction});
 
   Future<bool> migrateToNewDateTime({required int branchId});
+  Future<List<TransactionWithItems>> transactionsAndItems({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool fetchRemote = false,
+    String? id,
+    bool isExpense = false,
+    FilterType? filterType,
+    bool includeZeroSubTotal = false,
+    bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
+  });
 }

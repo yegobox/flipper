@@ -20,7 +20,6 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
               provider: provider,
               repository: repository,
             ),
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     createdAt:
         data['created_at'] == null
             ? null
@@ -66,8 +65,6 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
               provider: provider,
               repository: repository,
             ),
-    financingId:
-        data['financing_id'] == null ? null : data['financing_id'] as String?,
   );
 }
 
@@ -88,7 +85,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
               repository: repository,
             )
             : null,
-    'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
@@ -110,7 +106,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
               repository: repository,
             )
             : null,
-    'financing_id': instance.financingId,
   };
 }
 
@@ -137,7 +132,6 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
                   ),
                 ))?.first
                 : null),
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     createdAt:
         data['created_at'] == null
             ? null
@@ -205,8 +199,6 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
                   ),
                 ))?.first
                 : null),
-    financingId:
-        data['financing_id'] == null ? null : data['financing_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -227,7 +219,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
                   repository: repository,
                 )
             : null,
-    'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
@@ -258,7 +249,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
                   repository: repository,
                 )
             : null,
-    'financing_id': instance.financingId,
   };
 }
 
@@ -290,10 +280,6 @@ class InventoryRequestAdapter
       columnName: 'branch',
       associationType: Branch,
       associationIsNullable: true,
-    ),
-    'branchId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'branch_id',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -355,10 +341,6 @@ class InventoryRequestAdapter
       associationType: Financing,
       associationIsNullable: true,
     ),
-    'financingId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'financing_id',
-    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -395,12 +377,6 @@ class InventoryRequestAdapter
       columnName: 'branch_Branch_brick_id',
       iterable: false,
       type: Branch,
-    ),
-    'branchId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'branch_id',
-      iterable: false,
-      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -485,12 +461,6 @@ class InventoryRequestAdapter
       columnName: 'financing_Financing_brick_id',
       iterable: false,
       type: Financing,
-    ),
-    'financingId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'financing_id',
-      iterable: false,
-      type: String,
     ),
   };
   @override

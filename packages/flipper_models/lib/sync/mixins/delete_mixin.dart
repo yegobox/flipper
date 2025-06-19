@@ -145,7 +145,7 @@ mixin DeleteMixin implements DeleteInterface {
         if (request != null) {
           // get dependent first
           final financing = await repository.get<Financing>(
-            query: Query(where: [Where('id').isExactly(request.financingId)]),
+            query: Query(where: [Where('id').isExactly(request.financing!.id)]),
           );
           try {
             await repository.delete<Financing>(

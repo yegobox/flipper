@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
@@ -204,5 +205,25 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       required bool isExpense}) {
     throw UnimplementedError(
         'pendingTransactionFuture needs to be implemented for Capella');
+  }
+
+  @override
+  Future<List<TransactionWithItems>> transactionsAndItems({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool fetchRemote = false,
+    String? id,
+    bool isExpense = false,
+    FilterType? filterType,
+    bool includeZeroSubTotal = false,
+    bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
+  }) async {
+    throw UnimplementedError(
+        'transactions needs to be implemented for Capella');
   }
 }
