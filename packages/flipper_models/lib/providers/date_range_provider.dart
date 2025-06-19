@@ -7,7 +7,21 @@ class DateRangeModel {
   final DateTime? startDate;
   final DateTime? endDate;
 
-  const DateRangeModel({this.startDate, this.endDate});
+  DateRangeModel({
+    DateTime? startDate,
+    DateTime? endDate,
+  })  : startDate = startDate ?? _todayAtStartOfDay(),
+        endDate = endDate ?? _todayAtEndOfDay();
+
+  static DateTime _todayAtStartOfDay() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  static DateTime _todayAtEndOfDay() {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, 23, 59, 59);
+  }
 
   /// Creates a copy of the current model with updated properties.
   DateRangeModel copyWith({
@@ -24,9 +38,9 @@ class DateRangeModel {
 /// A provider for managing date range state.
 @riverpod
 class DateRange extends _$DateRange {
-  /// Initializes the date range with an empty model.
+  /// Initializes the date range with today's date by default.
   @override
-  DateRangeModel build() => const DateRangeModel();
+  DateRangeModel build() => DateRangeModel();
 
   /// Updates the start date in the date range.
   void setStartDate(DateTime date) {
