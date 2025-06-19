@@ -106,8 +106,8 @@ class IconRowState extends ConsumerState<IconRow>
                 const Key('home_desktop'), () {
               _showTaxDialog(context);
             }),
-            _buildIconText(context, Icons.sync_outlined, 'Z Report', 1,
-                const Key('zreport_desktop')),
+            _buildIconText(context, Icons.sync_outlined, 'Reports', 1,
+                const Key('reports_desktop')),
             _buildIconText(context, Icons.payment_outlined, 'EOD', 2,
                 const Key('eod_desktop')),
             _buildIconText(context, Icons.dashboard_outlined, 'Reports', 3,
