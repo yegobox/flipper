@@ -266,322 +266,45 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         final excel.Worksheet reportSheet = workbook.worksheets[0];
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
-        // Add header information
-        // 1. Insert rows for header
-        reportSheet.insertRow(1, 3); // Insert 3 rows at the top
-
         // 2. Add business information (trade name and TIN)
         if (business != null) {
+          // Add header information
+          // 1. Insert rows for header
+          // reportSheet.insertRow(1, 3); // Insert 3 rows at the top
+
           // Get or create a style for the header
-          final headerStyle =
-              _getOrCreateStyle(workbook, 'CustomHeaderStyle', (style) {
-            style.fontName = 'Calibri';
-            style.fontSize = 12;
-            style.bold = true;
-          });
-
+          /// start of the header
+          // final headerStyle =
+          //     _getOrCreateStyle(workbook, 'CustomHeaderStyle', (style) {
+          //   style.fontName = 'Calibri';
+          //   style.fontSize = 12;
+          //   style.bold = true;
+          // });
           // Row 1: Trade name and TIN
-          final tradeNameCell = reportSheet.getRangeByIndex(1, 1);
-          tradeNameCell.setText(
-              'Trade Name: ${business.name ?? ""}, TIN: ${business.tinNumber?.toString() ?? ""}');
-          tradeNameCell.cellStyle = headerStyle;
+          // final tradeNameCell = reportSheet.getRangeByIndex(1, 1);
+          // tradeNameCell.setText(
+          //     'Trade Name: ${business.name ?? ""}, TIN: ${business.tinNumber?.toString() ?? ""}');
+          // tradeNameCell.cellStyle = headerStyle;
 
-          // Row 2: Date and time
-          final dateTimeCell = reportSheet.getRangeByIndex(2, 1);
-          final now = DateTime.now();
-          final formattedDateTime =
-              DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-          dateTimeCell.setText('Date and Time: $formattedDateTime');
-          dateTimeCell.cellStyle = headerStyle;
+          // // Row 2: Date and time
+          // final dateTimeCell = reportSheet.getRangeByIndex(2, 1);
+          // final now = DateTime.now();
+          // final formattedDateTime =
+          //     DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
+          // dateTimeCell.setText('Date and Time: $formattedDateTime');
+          // dateTimeCell.cellStyle = headerStyle;
 
-          // Row 3: X Daily Report
-          final reportTitleCell = reportSheet.getRangeByIndex(3, 1);
-          reportTitleCell.setText('X Daily Report');
-          reportTitleCell.cellStyle = headerStyle;
+          // // Row 3: X Daily Report
+          // final reportTitleCell = reportSheet.getRangeByIndex(3, 1);
+          // reportTitleCell.setText('X Daily Report');
+          // reportTitleCell.cellStyle = headerStyle;
+          /// end of header
 
           // Merge cells for header rows to span across columns
-          reportSheet.getRangeByIndex(1, 1, 1, 5).merge();
-          reportSheet.getRangeByIndex(2, 1, 2, 5).merge();
-          reportSheet.getRangeByIndex(3, 1, 3, 5).merge();
+          // reportSheet.getRangeByIndex(1, 1, 1, 5).merge();
+          // reportSheet.getRangeByIndex(2, 1, 2, 5).merge();
+          // reportSheet.getRangeByIndex(3, 1, 3, 5).merge();
         }
-
-        // Calculate total sales for NS receipts including tax
-        double totalNSSales = 0.0;
-        double totalNSTaxableAmount = 0.0;
-        double totalNSTaxAmount = 0.0;
-        Map<String, double> nsSalesByMainGroup = {};
-
-        // Calculate total refunds for NR receipts including tax
-        double totalNRRefunds = 0.0;
-        double totalNRTaxableAmount = 0.0;
-        double totalNRTaxAmount = 0.0;
-
-        if (!isStockRecount && !showProfitCalculations) {
-          // Only calculate for non-detailed reports (not stock recount and not detailed)
-          talker.info(
-              'Calculating NS sales and NR refunds totals for non-detailed report');
-
-          // Filter transactions with receiptType == 'NS'
-          final nsTransactions = config.transactions
-              .where((transaction) => transaction.receiptType == 'NS')
-              .toList();
-
-          // Filter transactions with receiptType == 'NR'
-          final nrTransactions = config.transactions
-              .where((transaction) => transaction.receiptType == 'NR')
-              .toList();
-
-          // Calculate total NS sales including tax
-          for (final transaction in nsTransactions) {
-            // Add subtotal and tax amount for total including tax
-            final subtotal = transaction.subTotal ?? 0.0;
-            final taxAmount = transaction.taxAmount ?? 0.0;
-            final totalWithTax = subtotal + taxAmount;
-            totalNSSales += totalWithTax;
-            totalNSTaxableAmount += subtotal;
-            totalNSTaxAmount += taxAmount;
-
-            // Get transaction items to calculate by main group
-            try {
-              // Ensure transaction.id is converted to String
-              final transId = transaction.id.toString();
-              if (transId.isEmpty) {
-                talker.warning(
-                    'Transaction ID is null or empty, skipping items fetch');
-                continue;
-              }
-
-              final items = await ProxyService.strategy.transactionItems(
-                transactionId: transId,
-                branchId: (await ProxyService.strategy
-                        .branch(serverId: ProxyService.box.getBranchId()!))!
-                    .id,
-              );
-
-              for (final item in items) {
-                try {
-                  // Get the variant to determine its product
-                  final variantId =
-                      item.variantId != null ? item.variantId.toString() : '';
-                  if (variantId.isEmpty) {
-                    talker.warning(
-                        'Variant ID is null or empty for item ${item.id}');
-                    continue;
-                  }
-
-                  final variant = await ProxyService.strategy.getVariant(
-                    id: variantId,
-                  );
-
-                  // Get product category or use variant name as fallback
-                  String categoryName = 'Uncategorized';
-                  if (variant != null && variant.productId != null) {
-                    final product = await ProxyService.strategy.getProduct(
-                      id: variant.productId.toString(),
-                      branchId: ProxyService.box.getBranchId()!,
-                      businessId: ProxyService.box.getBusinessId()!,
-                    );
-
-                    // Add dummy category data for demonstration purposes
-                    if (product != null && product.categoryId != null) {
-                      // In a real implementation, you would fetch the category name from the categoryId
-                      // For now, use dummy category names based on categoryId to demonstrate the feature
-                      final categoryId = product.categoryId.toString();
-                      final category = await ProxyService.strategy.category(
-                        id: categoryId,
-                      );
-                      categoryName = category?.name ?? 'Uncategorized';
-                    }
-                  }
-
-                  final itemTotal =
-                      (item.price * item.qty) + (item.taxAmt ?? 0.0);
-
-                  // Add to category total
-                  nsSalesByMainGroup[categoryName] =
-                      (nsSalesByMainGroup[categoryName] ?? 0.0) + itemTotal;
-                } catch (e) {
-                  talker
-                      .warning('Error getting product for item ${item.id}: $e');
-                  // If we can't get the product, add to uncategorized
-                  final itemTotal =
-                      (item.price * item.qty) + (item.taxAmt ?? 0.0);
-                  nsSalesByMainGroup['Uncategorized'] =
-                      (nsSalesByMainGroup['Uncategorized'] ?? 0.0) + itemTotal;
-                }
-              }
-            } catch (e) {
-              talker.warning(
-                  'Error getting items for transaction ${transaction.id}: $e');
-            }
-          }
-
-          // Calculate total NR refunds including tax
-          for (final transaction in nrTransactions) {
-            // Add subtotal and tax amount for total including tax
-            final subtotal = transaction.subTotal ?? 0.0;
-            final taxAmount = transaction.taxAmount ?? 0.0;
-            final totalWithTax = subtotal + taxAmount;
-            totalNRRefunds += totalWithTax;
-            totalNRTaxableAmount += subtotal;
-            totalNRTaxAmount += taxAmount;
-          }
-
-          talker.info('Total NS sales (including tax): $totalNSSales');
-          talker.info('NS sales by main group: $nsSalesByMainGroup');
-          talker.info('Total NR refunds (including tax): $totalNRRefunds');
-          talker.info('Number of NS receipts: ${nsTransactions.length}');
-          talker.info('Number of NR receipts: ${nrTransactions.length}');
-
-          // Add NS sales summary to Excel report
-          if (totalNSSales > 0 || totalNRRefunds > 0) {
-            // Find the last row of data to position our summary
-            int summaryStartRow = 5; // Default starting row
-
-            // If we have data, find the last row and add some space
-            if (manualData != null && manualData.isNotEmpty) {
-              summaryStartRow = 5 +
-                  manualData.length +
-                  3; // Data starts at row 5, add 3 for spacing
-            } else if (config.transactions.isNotEmpty) {
-              // For non-manual data, estimate based on transactions
-              summaryStartRow = 5 + config.transactions.length + 3;
-            }
-
-            // Add NS Sales Summary header
-            final headerCell = reportSheet.getRangeByIndex(summaryStartRow, 1);
-            headerCell.setText('NS Sales Summary');
-            headerCell.cellStyle.bold = true;
-            headerCell.cellStyle.fontSize = 14;
-
-            // Add Total NS Sales row
-            reportSheet
-                .getRangeByIndex(summaryStartRow + 2, 1)
-                .setText('Total NS Sales (incl. Tax)');
-            final totalCell =
-                reportSheet.getRangeByIndex(summaryStartRow + 2, 2);
-            totalCell.setNumber(totalNSSales);
-            totalCell.numberFormat = '#,##0.00';
-            totalCell.cellStyle.hAlign = excel.HAlignType.right;
-
-            // Add Sales by Main Group header
-            reportSheet
-                .getRangeByIndex(summaryStartRow + 4, 1)
-                .setText('Sales by Main Group');
-            reportSheet.getRangeByIndex(summaryStartRow + 4, 1).cellStyle.bold =
-                true;
-
-            // Add column headers for the breakdown
-            reportSheet
-                .getRangeByIndex(summaryStartRow + 5, 1)
-                .setText('Category');
-            reportSheet
-                .getRangeByIndex(summaryStartRow + 5, 2)
-                .setText('Amount');
-            reportSheet.getRangeByIndex(summaryStartRow + 5, 1).cellStyle.bold =
-                true;
-            reportSheet.getRangeByIndex(summaryStartRow + 5, 2).cellStyle.bold =
-                true;
-
-            // Add rows for each category
-            int rowIndex = summaryStartRow + 6;
-            nsSalesByMainGroup.forEach((category, amount) {
-              reportSheet.getRangeByIndex(rowIndex, 1).setText(category);
-              final amountCell = reportSheet.getRangeByIndex(rowIndex, 2);
-              amountCell.setNumber(amount);
-              amountCell.numberFormat = '#,##0.00';
-              amountCell.cellStyle.hAlign = excel.HAlignType.right;
-              rowIndex++;
-            });
-
-            // Add number of NS receipts
-            rowIndex += 2; // Add some space
-            reportSheet
-                .getRangeByIndex(rowIndex, 1)
-                .setText('Number of NS Sales Receipts');
-            reportSheet
-                .getRangeByIndex(rowIndex, 2)
-                .setNumber(nsTransactions.length.toDouble());
-
-            // Add Tax Summary for NS Sales
-            rowIndex += 2;
-            final taxHeaderCell = reportSheet.getRangeByIndex(rowIndex, 1);
-            taxHeaderCell.setText('Tax Summary (NS Sales)');
-            taxHeaderCell.cellStyle.bold = true;
-            taxHeaderCell.cellStyle.fontSize = 12;
-
-            rowIndex++;
-            reportSheet
-                .getRangeByIndex(rowIndex, 1)
-                .setText('Total Taxable Amount (NS)');
-            final taxableAmountCell = reportSheet.getRangeByIndex(rowIndex, 2);
-            taxableAmountCell.setNumber(totalNSTaxableAmount);
-            taxableAmountCell.numberFormat = '#,##0.00';
-            taxableAmountCell.cellStyle.hAlign = excel.HAlignType.right;
-
-            rowIndex++;
-            reportSheet
-                .getRangeByIndex(rowIndex, 1)
-                .setText('Total Tax Amount (NS)');
-            final taxAmountCell = reportSheet.getRangeByIndex(rowIndex, 2);
-            taxAmountCell.setNumber(totalNSTaxAmount);
-            taxAmountCell.numberFormat = '#,##0.00';
-            taxAmountCell.cellStyle.hAlign = excel.HAlignType.right;
-
-            // Add NR Refund Summary if there are any refunds
-            if (totalNRRefunds > 0) {
-              rowIndex += 2;
-              final refundHeaderCell = reportSheet.getRangeByIndex(rowIndex, 1);
-              refundHeaderCell.setText('NR Refund Summary');
-              refundHeaderCell.cellStyle.bold = true;
-              refundHeaderCell.cellStyle.fontSize = 14;
-
-              rowIndex += 2;
-              reportSheet
-                  .getRangeByIndex(rowIndex, 1)
-                  .setText('Total NR Refunds (incl. Tax)');
-              final refundTotalCell = reportSheet.getRangeByIndex(rowIndex, 2);
-              refundTotalCell.setNumber(totalNRRefunds);
-              refundTotalCell.numberFormat = '#,##0.00';
-              refundTotalCell.cellStyle.hAlign = excel.HAlignType.right;
-
-              rowIndex++;
-              reportSheet
-                  .getRangeByIndex(rowIndex, 1)
-                  .setText('Number of NR Refund Receipts');
-              reportSheet
-                  .getRangeByIndex(rowIndex, 2)
-                  .setNumber(nrTransactions.length.toDouble());
-
-              // Add Tax Summary for NR Refunds
-              rowIndex += 2;
-              final nrTaxHeaderCell = reportSheet.getRangeByIndex(rowIndex, 1);
-              nrTaxHeaderCell.setText('Tax Summary (NR Refunds)');
-              nrTaxHeaderCell.cellStyle.bold = true;
-              nrTaxHeaderCell.cellStyle.fontSize = 12;
-
-              rowIndex++;
-              reportSheet
-                  .getRangeByIndex(rowIndex, 1)
-                  .setText('Total Taxable Amount (NR)');
-              final nrTaxableAmountCell =
-                  reportSheet.getRangeByIndex(rowIndex, 2);
-              nrTaxableAmountCell.setNumber(totalNRTaxableAmount);
-              nrTaxableAmountCell.numberFormat = '#,##0.00';
-              nrTaxableAmountCell.cellStyle.hAlign = excel.HAlignType.right;
-
-              rowIndex++;
-              reportSheet
-                  .getRangeByIndex(rowIndex, 1)
-                  .setText('Total Tax Amount (NR)');
-              final nrTaxAmountCell = reportSheet.getRangeByIndex(rowIndex, 2);
-              nrTaxAmountCell.setNumber(totalNRTaxAmount);
-              nrTaxAmountCell.numberFormat = '#,##0.00';
-              nrTaxAmountCell.cellStyle.hAlign = excel.HAlignType.right;
-            }
-          }
-        }
-
         // Check if we have manual data to populate the workbook with
         if (manualData != null &&
             manualData.isNotEmpty &&
