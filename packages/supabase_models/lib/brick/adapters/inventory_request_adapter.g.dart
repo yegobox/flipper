@@ -12,15 +12,6 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
         data['main_branch_id'] == null ? null : data['main_branch_id'] as int?,
     subBranchId:
         data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
-    branch:
-        data['branch'] == null
-            ? null
-            : await BranchAdapter().fromSupabase(
-              data['branch'],
-              provider: provider,
-              repository: repository,
-            ),
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     createdAt:
         data['created_at'] == null
             ? null
@@ -68,6 +59,15 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
             ),
     financingId:
         data['financing_id'] == null ? null : data['financing_id'] as String?,
+    branch:
+        data['branch'] == null
+            ? null
+            : await BranchAdapter().fromSupabase(
+              data['branch'],
+              provider: provider,
+              repository: repository,
+            ),
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   );
 }
 
@@ -80,15 +80,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
-    'branch':
-        instance.branch != null
-            ? await BranchAdapter().toSupabase(
-              instance.branch!,
-              provider: provider,
-              repository: repository,
-            )
-            : null,
-    'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
@@ -111,6 +102,15 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
             )
             : null,
     'financing_id': instance.financingId,
+    'branch':
+        instance.branch != null
+            ? await BranchAdapter().toSupabase(
+              instance.branch!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
+    'branch_id': instance.branchId,
   };
 }
 
@@ -125,19 +125,6 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
         data['main_branch_id'] == null ? null : data['main_branch_id'] as int?,
     subBranchId:
         data['sub_branch_id'] == null ? null : data['sub_branch_id'] as int?,
-    branch:
-        data['branch_Branch_brick_id'] == null
-            ? null
-            : (data['branch_Branch_brick_id'] > -1
-                ? (await repository?.getAssociation<Branch>(
-                  Query.where(
-                    'primaryKey',
-                    data['branch_Branch_brick_id'] as int,
-                    limit1: true,
-                  ),
-                ))?.first
-                : null),
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     createdAt:
         data['created_at'] == null
             ? null
@@ -164,24 +151,6 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
             ? null
             : data['driver_request_delivery_confirmation'] == 1,
     driverId: data['driver_id'] == null ? null : data['driver_id'] as int?,
-    transactionItems:
-        (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE l_InventoryRequest_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_TransactionItem_brick_id']);
-              return Future.wait<TransactionItem>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<TransactionItem>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<TransactionItem>(),
     updatedAt:
         data['updated_at'] == null
             ? null
@@ -207,6 +176,37 @@ Future<InventoryRequest> _$InventoryRequestFromSqlite(
                 : null),
     financingId:
         data['financing_id'] == null ? null : data['financing_id'] as String?,
+    transactionItems:
+        (await provider
+            .rawQuery(
+              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_InventoryRequest_transaction_items` WHERE l_InventoryRequest_brick_id = ?',
+              [data['_brick_id'] as int],
+            )
+            .then((results) {
+              final ids = results.map((r) => r['f_TransactionItem_brick_id']);
+              return Future.wait<TransactionItem>(
+                ids.map(
+                  (primaryKey) => repository!
+                      .getAssociation<TransactionItem>(
+                        Query.where('primaryKey', primaryKey, limit1: true),
+                      )
+                      .then((r) => r!.first),
+                ),
+              );
+            })).toList().cast<TransactionItem>(),
+    branch:
+        data['branch_Branch_brick_id'] == null
+            ? null
+            : (data['branch_Branch_brick_id'] > -1
+                ? (await repository?.getAssociation<Branch>(
+                  Query.where(
+                    'primaryKey',
+                    data['branch_Branch_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -219,15 +219,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
     'id': instance.id,
     'main_branch_id': instance.mainBranchId,
     'sub_branch_id': instance.subBranchId,
-    'branch_Branch_brick_id':
-        instance.branch != null
-            ? instance.branch!.primaryKey ??
-                await provider.upsert<Branch>(
-                  instance.branch!,
-                  repository: repository,
-                )
-            : null,
-    'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'status': instance.status,
     'delivery_date': instance.deliveryDate?.toIso8601String(),
@@ -242,10 +233,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
             ? null
             : (instance.driverRequestDeliveryConfirmation! ? 1 : 0),
     'driver_id': instance.driverId,
-    'transaction_items':
-        instance.transactionItems != null
-            ? jsonEncode(instance.transactionItems)
-            : null,
     'updated_at': instance.updatedAt?.toIso8601String(),
     'item_counts': instance.itemCounts,
     'bhf_id': instance.bhfId,
@@ -259,6 +246,19 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
                 )
             : null,
     'financing_id': instance.financingId,
+    'transaction_items':
+        instance.transactionItems != null
+            ? jsonEncode(instance.transactionItems)
+            : null,
+    'branch_Branch_brick_id':
+        instance.branch != null
+            ? instance.branch!.primaryKey ??
+                await provider.upsert<Branch>(
+                  instance.branch!,
+                  repository: repository,
+                )
+            : null,
+    'branch_id': instance.branchId,
   };
 }
 
@@ -284,16 +284,6 @@ class InventoryRequestAdapter
     'subBranchId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'sub_branch_id',
-    ),
-    'branch': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'branch',
-      associationType: Branch,
-      associationIsNullable: true,
-    ),
-    'branchId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'branch_id',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -327,12 +317,6 @@ class InventoryRequestAdapter
       association: false,
       columnName: 'driver_id',
     ),
-    'transactionItems': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'transaction_items',
-      associationType: TransactionItem,
-      associationIsNullable: true,
-    ),
     'updatedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'updated_at',
@@ -354,10 +338,28 @@ class InventoryRequestAdapter
       columnName: 'financing',
       associationType: Financing,
       associationIsNullable: true,
+      foreignKey: 'financing_id',
     ),
     'financingId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'financing_id',
+    ),
+    'transactionItems': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'transaction_items',
+      associationType: Map,
+      associationIsNullable: true,
+    ),
+    'branch': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'branch',
+      associationType: Branch,
+      associationIsNullable: true,
+      foreignKey: 'branch_id',
+    ),
+    'branchId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
     ),
   };
   @override
@@ -389,18 +391,6 @@ class InventoryRequestAdapter
       columnName: 'sub_branch_id',
       iterable: false,
       type: int,
-    ),
-    'branch': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'branch_Branch_brick_id',
-      iterable: false,
-      type: Branch,
-    ),
-    'branchId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'branch_id',
-      iterable: false,
-      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -450,12 +440,6 @@ class InventoryRequestAdapter
       iterable: false,
       type: int,
     ),
-    'transactionItems': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'transaction_items',
-      iterable: true,
-      type: TransactionItem,
-    ),
     'updatedAt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'updated_at',
@@ -489,6 +473,24 @@ class InventoryRequestAdapter
     'financingId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'financing_id',
+      iterable: false,
+      type: String,
+    ),
+    'transactionItems': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'transaction_items',
+      iterable: true,
+      type: Map,
+    ),
+    'branch': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'branch_Branch_brick_id',
+      iterable: false,
+      type: Branch,
+    ),
+    'branchId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'branch_id',
       iterable: false,
       type: String,
     ),

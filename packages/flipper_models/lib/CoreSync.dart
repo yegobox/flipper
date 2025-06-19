@@ -1321,64 +1321,82 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     String? filter,
   }) async* {
-    // Define the query builder function
-    Query buildQuery;
-    if (filter != null && filter == RequestStatus.approved) {
-      buildQuery = brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(RequestStatus.approved),
-      ]);
+    // Build the query
+    final whereConditions = <brick.Where>[
+      brick.Where('mainBranchId').isExactly(branchId),
+    ];
+
+    if (filter == RequestStatus.approved) {
+      whereConditions
+          .add(brick.Where('status').isExactly(RequestStatus.approved));
     } else {
-      buildQuery = brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
+      whereConditions.addAll([
         brick.Where('status').isExactly(RequestStatus.pending),
         brick.Or('status').isExactly(RequestStatus.partiallyApproved),
       ]);
     }
 
-    try {
-      // 1. First, get the initial data
-      final initialData = await repository
-          .get<InventoryRequest>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: buildQuery,
-      )
-          .timeout(
-        const Duration(seconds: 3),
-        onTimeout: () async {
-          // Fallback to local data if timeout occurs
-          return await repository.get<InventoryRequest>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: buildQuery,
-          );
-        },
-      );
+    final buildQuery = brick.Query(where: whereConditions);
 
-      // 2. Process and yield initial data if it exists
-      if (initialData.isNotEmpty) {
-        final hydratedInitial = await _hydrateRequests(initialData);
-        yield hydratedInitial;
-      }
+    // 1. First, yield local data immediately for instant UI update
+    final localData = await repository.get<InventoryRequest>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: buildQuery,
+    );
 
-      // 3. Subscribe to real-time updates
-      final realtimeStream = repository
-          .subscribeToRealtime<InventoryRequest>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: buildQuery,
-      )
-          .asyncExpand((changes) async* {
-        if (changes.isNotEmpty) {
-          final hydrated = await _hydrateRequests(changes.toList());
-          yield hydrated;
-        }
-      });
-
-      // 4. Yield both initial and real-time data
-      yield* realtimeStream;
-    } catch (e) {
-      talker.error('Error in requestsStream: $e');
-      rethrow;
+    if (localData.isNotEmpty) {
+      yield localData;
     }
+
+    // 2. Start fetching remote data in the background
+    final remoteDataFuture = repository
+        .get<InventoryRequest>(
+          policy: OfflineFirstGetPolicy.awaitRemote,
+          query: buildQuery,
+        )
+        .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => <InventoryRequest>[],
+        );
+
+    // 3. Set up real-time subscription
+    final realtimeController =
+        StreamController<List<InventoryRequest>>.broadcast();
+    final subscription = repository
+        .subscribeToRealtime<InventoryRequest>(
+      policy: OfflineFirstGetPolicy.awaitRemote,
+      query: buildQuery,
+    )
+        .listen(
+      (changes) async {
+        if (changes.isNotEmpty) {
+          realtimeController.add(changes.toList());
+        }
+      },
+      onError: (e) => talker.error('Realtime subscription error: $e'),
+    );
+
+    // 4. Process remote data when it arrives
+    try {
+      final remoteData = await remoteDataFuture;
+      if (remoteData.isNotEmpty && remoteData != localData) {
+        yield remoteData;
+      }
+    } catch (e) {
+      talker.error('Error fetching remote data: $e');
+    }
+
+    // 5. Yield real-time updates
+    yield* realtimeController.stream.asyncMap((requests) async {
+      if (requests.isEmpty) return requests;
+      return _hydrateRequests(requests);
+    });
+
+    // 6. Clean up on cancel
+    Future.microtask(() async {
+      await subscription.cancel();
+      await realtimeController.close();
+    });
   }
 
 // Helper method to hydrate a list of requests
