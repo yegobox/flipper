@@ -6,7 +6,7 @@ part of 'date_range_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$dateRangeHash() => r'ad16dc03d31a892339fecc6303cfb02940d02e5d';
+String _$dateRangeHash() => r'268af0ecad10e688f98dd6bc846a77173a9b7490';
 
 /// A provider for managing date range state.
 ///

@@ -763,7 +763,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, String? filter}) {
+      {required int branchId, String filter = RequestStatus.pending, String? search}) {
     // TODO: implement requestsStream
     throw UnimplementedError();
   }

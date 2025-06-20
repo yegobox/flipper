@@ -661,24 +661,6 @@ final branchSelectionProvider =
   (ref) => BranchSelectionNotifier(),
 );
 
-final stockRequestsProvider = StreamProvider.autoDispose
-    .family<List<InventoryRequest>, ({String? filter})>((ref, params) {
-  final branchId = ProxyService.box.getBranchId();
-  final (:filter) = params;
-  if (branchId == null) {
-    return Stream.empty();
-  }
-  // Add distinct() to prevent unnecessary updates and ensure quantities are preserved
-  return ProxyService.strategy
-      .requestsStream(
-          branchId: branchId, filter: filter ?? RequestStatus.pending)
-      .map((requests) => requests
-          .where((req) =>
-              // Filter out requests that are to the same branch
-              req.branch!.id != req.subBranchId)
-          .toList())
-      .distinct();
-});
 
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, ({int branchId})>((ref, params) async {

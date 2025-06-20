@@ -182,7 +182,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
         updatedAt = updatedAt ?? DateTime.now().toUtc();
 
   // toJson method
-  Map<String, dynamic> toJson() => <String, dynamic>{
+  Map<String, dynamic> toFlipperJson() => <String, dynamic>{
         'id': id,
         'name': name,
         'transactionId': transactionId,

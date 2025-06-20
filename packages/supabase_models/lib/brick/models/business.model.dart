@@ -242,4 +242,51 @@ class Business extends OfflineFirstWithSupabaseModel {
           map['encryptionKey'] as String?, // Changed from encryption_key
     );
   }
+  // to json
+  Map<String, dynamic> toFlipperJson() {
+    return {
+      'id': id,
+      'server_id': serverId,
+      'name': name,
+      'currency': currency,
+      'category_id': categoryId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'user_id': userId,
+      'time_zone': timeZone,
+      'country': country,
+      'business_url': businessUrl,
+      'hex_color': hexColor,
+      'image_url': imageUrl,
+      'type': type,
+      'active': active,
+      'chat_uid': chatUid,
+      'metadata': metadata,
+      'role': role,
+      'last_seen': lastSeen,
+      'first_name': firstName,
+      'last_name': lastName,
+      'deviceToken': deviceToken,
+      'backUpEnabled': backUpEnabled,
+      'subscriptionPlan': subscriptionPlan,
+      'nextBillingDate': nextBillingDate,
+      'previousBillingDate': previousBillingDate,
+      'isLastSubscriptionPaymentSucceeded': isLastSubscriptionPaymentSucceeded,
+      'backupFileId': backupFileId,
+      'email': email,
+      'lastDbBackup': lastDbBackup,
+      'fullName': fullName,
+      'tinNumber': tinNumber,
+      'bhfId': bhfId,
+      'dvcSrlNo': dvcSrlNo,
+      'adrs': adrs,
+      'taxEnabled': taxEnabled,
+      'taxServerUrl': taxServerUrl,
+      'isDefault': isDefault,
+      'businessTypeId': businessTypeId,
+      'lastTouched': lastTouched,
+      'deletedAt': deletedAt,
+      'encryptionKey': encryptionKey,
+    };
+  }
 }

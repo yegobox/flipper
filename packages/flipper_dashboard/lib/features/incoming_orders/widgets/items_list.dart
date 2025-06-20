@@ -3,6 +3,7 @@
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -143,7 +144,9 @@ class ItemsList extends ConsumerWidget
     try {
       approveSingleItem(request: request, item: item, context: context);
       final stringValue = ref.watch(stringProvider);
-      ref.refresh(stockRequestsProvider((filter: stringValue)));
+      ref.refresh(stockRequestsProvider(
+          status: RequestStatus.pending,
+          search: stringValue?.isNotEmpty == true ? stringValue : null));
     } catch (e) {
       showCustomSnackBar(
         context,

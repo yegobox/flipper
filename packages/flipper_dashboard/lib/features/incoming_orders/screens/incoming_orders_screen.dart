@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/NoOrderPlaceholder.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart' show RequestStatus;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -11,8 +13,11 @@ class IncomingOrdersScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stringValue = ref.watch(stringProvider);
-    final stockRequests =
-        ref.watch(stockRequestsProvider((filter: stringValue)));
+    final stockRequests = ref.watch(
+      stockRequestsProvider(
+          status: RequestStatus.pending,
+          search: stringValue?.isNotEmpty == true ? stringValue : null),
+    );
     final incomingBranchAsync = ref.watch(activeBranchProvider);
 
     return Container(

@@ -63,4 +63,20 @@ class Branch extends OfflineFirstWithSupabaseModel {
       isOnline: isOnline ?? this.isOnline,
     );
   }
+
+  Map<String, dynamic> toFlipperJson() {
+    return {
+      'id': id,
+      'name': name,
+      'serverId': serverId,
+      'location': location,
+      'description': description,
+      'active': active,
+      'businessId': businessId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'isDefault': isDefault,
+      'isOnline': isOnline,
+    };
+  }
 }

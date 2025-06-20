@@ -1319,13 +1319,15 @@ class CoreSync extends AiStrategyImpl
   @override
   Stream<List<InventoryRequest>> requestsStream({
     required int branchId,
-    String? filter,
+    String filter = RequestStatus.pending,
+    String? search,
   }) async* {
-    // Build the query
+    // Build the base query conditions
     final whereConditions = <brick.Where>[
       brick.Where('mainBranchId').isExactly(branchId),
     ];
 
+    // Add status filter conditions
     if (filter == RequestStatus.approved) {
       whereConditions
           .add(brick.Where('status').isExactly(RequestStatus.approved));
@@ -1334,6 +1336,17 @@ class CoreSync extends AiStrategyImpl
         brick.Where('status').isExactly(RequestStatus.pending),
         brick.Or('status').isExactly(RequestStatus.partiallyApproved),
       ]);
+    }
+
+    // Add search condition if search term is provided
+    if (search != null && search.isNotEmpty) {
+      // Search in request ID, delivery note, or any other relevant fields
+      whereConditions.add(brick.Or('id')
+          .contains(search)
+          // .or('deliveryNote')
+          .contains(search)
+          // .or('orderNote')
+          .contains(search));
     }
 
     final buildQuery = brick.Query(where: whereConditions);
@@ -3174,6 +3187,7 @@ class CoreSync extends AiStrategyImpl
           branchId: branch.id,
           financingId: financing.id,
           itemCounts: items.length,
+          transactionItems: items,
           deliveryDate: deliveryDate,
           deliveryNote: deliveryNote,
           mainBranchId: mainBranchId,

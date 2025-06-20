@@ -112,7 +112,7 @@ mixin TransactionMixinOld {
     }
   }
 
-  FilterType getFilterType({required String transactionType}) {
+  FilterType getFilterType({String? transactionType}) {
     if (transactionType == "NR") {
       return FilterType.NR;
     }
@@ -143,7 +143,7 @@ mixin TransactionMixinOld {
       final responseFrom =
           await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
-        filterType: getFilterType(transactionType: transaction.receiptType!),
+        filterType: getFilterType(transactionType: transaction.receiptType),
       );
       final (:response, :bytes) = responseFrom;
 

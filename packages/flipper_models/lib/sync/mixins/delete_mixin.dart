@@ -1,5 +1,4 @@
 import 'dart:async' show FutureOr;
-import 'dart:io';
 
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -161,11 +160,7 @@ mixin DeleteMixin implements DeleteInterface {
             }
           }
 
-          await repository.delete<InventoryRequest>(
-            request,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
+          await repository.delete<InventoryRequest>(request);
         }
       case 'tenant':
         final tenant = (await ProxyService.strategy.tenant(

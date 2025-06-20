@@ -9,6 +9,7 @@ part '20250618200431.migration.dart';
 part '20250619064435.migration.dart';
 part '20250619071133.migration.dart';
 part '20250619090951.migration.dart';
+part '20250619175248.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -20,11 +21,12 @@ final migrations = <Migration>{
   const Migration20250619064435(),
   const Migration20250619071133(),
   const Migration20250619090951(),
+  const Migration20250619175248(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250619090951,
+  20250619175248,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1082,7 +1084,6 @@ final schema = Schema(
           onDeleteSetDefault: false,
         ),
         SchemaColumn('financing_id', Column.varchar),
-        SchemaColumn('transaction_items', Column.varchar),
         SchemaColumn(
           'branch_Branch_brick_id',
           Column.integer,

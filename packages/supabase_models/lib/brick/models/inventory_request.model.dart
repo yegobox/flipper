@@ -37,7 +37,6 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   Financing? financing;
   String? financingId;
 
-  @Supabase(ignore: true)
   List<TransactionItem>? transactionItems;
 
   @Supabase(foreignKey: 'branch_id')
