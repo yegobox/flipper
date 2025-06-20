@@ -182,6 +182,22 @@ Future<ITransaction> _$ITransactionFromSupabase(
         data['discount_amount'] == null
             ? null
             : data['discount_amount'] as num?,
+    items:
+        data['items'] == null
+            ? null
+            : await Future.wait<TransactionItem>(
+              data['items']
+                      ?.map(
+                        (d) => TransactionItemAdapter().fromSupabase(
+                          d,
+                          provider: provider,
+                          repository: repository,
+                        ),
+                      )
+                      .toList()
+                      .cast<Future<TransactionItem>>() ??
+                  [],
+            ),
   );
 }
 
@@ -247,6 +263,18 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'tax_amount': instance.taxAmount,
     'number_of_items': instance.numberOfItems,
     'discount_amount': instance.discountAmount,
+    'items': await Future.wait<Map<String, dynamic>>(
+      instance.items
+              ?.map(
+                (s) => TransactionItemAdapter().toSupabase(
+                  s,
+                  provider: provider,
+                  repository: repository,
+                ),
+              )
+              .toList() ??
+          [],
+    ),
   };
 }
 
@@ -414,6 +442,24 @@ Future<ITransaction> _$ITransactionFromSqlite(
         data['discount_amount'] == null
             ? null
             : data['discount_amount'] as num?,
+    items:
+        (await provider
+            .rawQuery(
+              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_ITransaction_items` WHERE l_ITransaction_brick_id = ?',
+              [data['_brick_id'] as int],
+            )
+            .then((results) {
+              final ids = results.map((r) => r['f_TransactionItem_brick_id']);
+              return Future.wait<TransactionItem>(
+                ids.map(
+                  (primaryKey) => repository!
+                      .getAssociation<TransactionItem>(
+                        Query.where('primaryKey', primaryKey, limit1: true),
+                      )
+                      .then((r) => r!.first),
+                ),
+              );
+            })).toList().cast<TransactionItem>(),
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -723,6 +769,12 @@ class ITransactionAdapter
     'discountAmount': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'discount_amount',
+    ),
+    'items': const RuntimeSupabaseColumnDefinition(
+      association: true,
+      columnName: 'items',
+      associationType: TransactionItem,
+      associationIsNullable: true,
     ),
   };
   @override
@@ -1067,6 +1119,12 @@ class ITransactionAdapter
       iterable: false,
       type: num,
     ),
+    'items': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'items',
+      iterable: true,
+      type: TransactionItem,
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
@@ -1089,6 +1147,50 @@ class ITransactionAdapter
 
   @override
   final String tableName = 'ITransaction';
+  @override
+  Future<void> afterSave(instance, {required provider, repository}) async {
+    if (instance.primaryKey != null) {
+      final itemsOldColumns = await provider.rawQuery(
+        'SELECT `f_TransactionItem_brick_id` FROM `_brick_ITransaction_items` WHERE `l_ITransaction_brick_id` = ?',
+        [instance.primaryKey],
+      );
+      final itemsOldIds = itemsOldColumns.map(
+        (a) => a['f_TransactionItem_brick_id'],
+      );
+      final itemsNewIds =
+          instance.items?.map((s) => s.primaryKey).whereType<int>() ?? [];
+      final itemsIdsToDelete = itemsOldIds.where(
+        (id) => !itemsNewIds.contains(id),
+      );
+
+      await Future.wait<void>(
+        itemsIdsToDelete.map((id) async {
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_ITransaction_items` WHERE `l_ITransaction_brick_id` = ? AND `f_TransactionItem_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
+        }),
+      );
+
+      await Future.wait<int?>(
+        instance.items?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<TransactionItem>(
+                    s,
+                    repository: repository,
+                  );
+              return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_ITransaction_items` (`l_ITransaction_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
+      );
+    }
+  }
 
   @override
   Future<ITransaction> fromSupabase(

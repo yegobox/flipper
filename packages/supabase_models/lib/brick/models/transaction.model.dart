@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
@@ -120,6 +121,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? numberOfItems;
   // all discount found on this transaction
   num? discountAmount;
+  List<TransactionItem>? items;
 
   ITransaction({
     this.ticketName,
@@ -178,6 +180,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? taxAmount,
     this.numberOfItems,
     num? discountAmount,
+    this.items,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,

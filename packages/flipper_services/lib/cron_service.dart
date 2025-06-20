@@ -32,7 +32,7 @@ class CronService {
   /// Constants for timer durations
   // static const int _counterSyncMinutes = 40;
   static const int _isolateMessageSeconds = 40;
-  static const int _analyticsSyncMinutes = 1;
+  static const int _analyticsSyncMinutes = 30;
   // static const int _databaseBackupMinutes = 30;
   // static const int _queueCleanupMinutes = 40;
 
