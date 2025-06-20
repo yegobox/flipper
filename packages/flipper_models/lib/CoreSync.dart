@@ -2169,6 +2169,7 @@ class CoreSync extends AiStrategyImpl
 
         // sum up all discount found on item then save them on a transaction
         transaction.discountAmount = items.fold(0, (a, b) => a! + b.dcAmt!);
+        transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
 
         double subTotalFinalized = 0.0;
         double cash = ProxyService.box.getCashReceived() ?? cashReceived;

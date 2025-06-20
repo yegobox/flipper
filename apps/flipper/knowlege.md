@@ -64,3 +64,4 @@
   - This is important when you have a model in singular form (like `Branch`) nested into another model (like `InventoryRequest`)
   - The view allows PostgREST to find the relationship between tables with singular/plural naming differences
   - If you get a PGRST201 error about multiple relationships, you need to either drop one constraint or use the specific relationship name in your query
+  - Know this https://github.com/GetDutchie/brick/blob/main/packages/brick_offline_first/lib/src/offline_first_repository.dart#L246-L283 is available so leverage it in future.

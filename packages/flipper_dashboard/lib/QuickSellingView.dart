@@ -1209,8 +1209,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                   ),
                                   transactionId: transactionId);
 
-                          // Save the payment method code in ProxyService.box
-                          // Map payment methods to their corresponding codes:
+                          // Save the payment method in ProxyService.box
+                          ProxyService.box
+                              .writeString(key: 'paymentType', value: newValue);
+
+                          // Map payment methods to their corresponding codes for reference:
                           // Cash: 01
                           // Credit Card: 02
                           // CASH/CREDIT: 03
