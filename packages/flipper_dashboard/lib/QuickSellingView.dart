@@ -1139,18 +1139,33 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       maxLines: 3,
       minLines: 1,
       suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
-      onChanged: (value) => ProxyService.box
-          .writeString(key: 'currentSaleCustomerPhoneNumber', value: value),
+      onChanged: (value) {
+        ProxyService.box
+            .writeString(key: 'currentSaleCustomerPhoneNumber', value: value);
+        // Only update customerTin if it's not already set
+        if (ProxyService.box.customerTin() == null) {
+          ProxyService.box.writeString(key: 'customerTin', value: value);
+        }
+      },
       validator: (String? value) {
-        if (value == null || value.isEmpty) {
+        final customerTin = ProxyService.box.customerTin();
+
+        // If customer TIN is not set, phone number becomes mandatory
+        if ((customerTin == null || customerTin.isEmpty) &&
+            (value == null || value.isEmpty)) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Please enter a phone number';
+          return 'Phone number is required when customer TIN is not available';
         }
-        final phoneExp = RegExp(r'^[1-9]\d{8}$');
-        if (!phoneExp.hasMatch(value)) {
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Please enter a valid 9-digit phone number without a leading zero';
+
+        // If phone number is provided, validate its format
+        if (value != null && value.isNotEmpty) {
+          final phoneExp = RegExp(r'^[1-9]\d{8}$');
+          if (!phoneExp.hasMatch(value)) {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            return 'Please enter a valid 9-digit phone number without a leading zero';
+          }
         }
+
         return null;
       },
     );
