@@ -41,7 +41,7 @@ class RequestHeader extends ConsumerWidget with SnackBarMixin {
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Request From ${request.branch?.name}',
+                  'Request From ${request.branch?.name} (${request.transactionItems?.length} items)',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,

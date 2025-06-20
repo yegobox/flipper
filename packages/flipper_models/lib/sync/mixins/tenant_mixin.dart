@@ -57,37 +57,14 @@ mixin TenantMixin implements TenantInterface {
       ],
       "businesses": [
         {
+          ...business.toFlipperJson(),
           'id': business.serverId,
-          'name': business.name,
-          'serverId': business.serverId,
-          'currency': business.currency,
-          'categoryId': business.categoryId,
-          'latitude': business.latitude,
-          'longitude': business.longitude,
-          'userId': business.userId,
-          'timeZone': business.timeZone,
-          'country': business.country,
-          'businessUrl': business.businessUrl,
-          'hexColor': business.hexColor,
-          'imageUrl': business.imageUrl,
-          'type': business.type,
-          'active': business.active,
-          'chatUid': business.chatUid,
         }
       ],
       "branches": [
         {
+          ...branch.toFlipperJson(),
           'id': branch.serverId,
-          'name': branch.name,
-          'serverId': branch.serverId,
-          'location': branch.location,
-          'description': branch.description,
-          'active': branch.active,
-          'businessId': branch.businessId,
-          'latitude': branch.latitude,
-          'longitude': branch.longitude,
-          'isDefault': branch.isDefault,
-          'isOnline': branch.isOnline,
         }
       ]
     });

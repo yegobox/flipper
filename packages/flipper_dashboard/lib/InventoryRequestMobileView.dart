@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/NoOrderPlaceholder.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -18,12 +20,12 @@ class InventoryRequestMobileView extends ConsumerStatefulWidget {
 class _InventoryRequestMobileViewState
     extends ConsumerState<InventoryRequestMobileView>
     with StockRequestApprovalLogic {
-  String _selectedFilter = 'all';
+  String _selectedStatus = RequestStatus.pending;
 
   @override
   Widget build(BuildContext context) {
     final stockRequests =
-        ref.watch(stockRequestsProvider((filter: _selectedFilter)));
+        ref.watch(stockRequestsProvider(status: _selectedStatus, search: null));
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -60,17 +62,16 @@ class _InventoryRequestMobileViewState
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('all', 'All'),
+                  _buildFilterChip(RequestStatus.pending, 'Pending'),
                   const SizedBox(width: 8),
-                  _buildFilterChip('pending', 'Pending'),
+                  _buildFilterChip(RequestStatus.approved, 'Approved'),
                   const SizedBox(width: 8),
-                  _buildFilterChip('approved', 'Approved'),
+                  _buildFilterChip(
+                      RequestStatus.partiallyApproved, 'Partially Approved'),
                   const SizedBox(width: 8),
-                  _buildFilterChip('partiallyApproved', 'Partially'),
+                  _buildFilterChip(RequestStatus.rejected, 'Rejected'),
                   const SizedBox(width: 8),
-                  _buildFilterChip('rejected', 'Rejected'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('fulfilled', 'Fulfilled'),
+                  _buildFilterChip(RequestStatus.fulfilled, 'Fulfilled'),
                 ],
               ),
             ),
@@ -116,22 +117,22 @@ class _InventoryRequestMobileViewState
   }
 
   Widget _buildFilterChip(String value, String label) {
-    final isSelected = _selectedFilter == value;
+    final isSelected = _selectedStatus == value;
     return FilterChip(
       selected: isSelected,
       label: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black,
+          color: isSelected ? Colors.white : Colors.black87,
           fontWeight: FontWeight.w500,
         ),
       ),
       backgroundColor: Colors.white,
       selectedColor: Theme.of(context).colorScheme.primary,
       onSelected: (selected) {
-        setState(() => _selectedFilter = value);
+        setState(() => _selectedStatus = value);
       },
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(

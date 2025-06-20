@@ -16,6 +16,7 @@ class ZReport {
     final transactions = await ProxyService.strategy.transactions(
       startDate: DateTime.now().toLocal().subtract(const Duration(days: 1)),
       endDate: DateTime.now().toLocal(),
+      skipOriginalTransactionCheck: true,
     );
 
     // Data processing
@@ -95,6 +96,7 @@ class ZReport {
       taxRateRefunds,
       totalItemsSold,
       totalDiscount,
+      transactions: transactions,
     );
 
     final List<int> bytes = await document.save();
@@ -184,8 +186,9 @@ class ZReport {
     double taxRateSales,
     double taxRateRefunds,
     int totalItemsSold,
-    double totalDiscount,
-  ) {
+    double totalDiscount, {
+    required List<ITransaction> transactions,
+  }) {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 2);
 
@@ -269,9 +272,36 @@ class ZReport {
       },
     ]);
 
-    addRow('Number of Receipt Copies (CS/CR)', 'CS : 1 | CR : 1');
-    addRow('Number of Receipts in Training Mode (TS/TR)', 'TS : 1 | TR : 1');
-    addRow('Number of Advance Receipts in Proforma Mode (PS)', '1');
+    // Count different receipt types
+    final receiptTypeCounts = transactions.fold<Map<String, int>>(
+      {
+        'CS': 0,
+        'CR': 0,
+        'TS': 0,
+        'TR': 0,
+        'PS': 0,
+      },
+      (counts, t) {
+        final type = t.receiptType;
+        if (type != null && counts.containsKey(type)) {
+          counts[type] = counts[type]! + 1;
+        }
+        return counts;
+      },
+    );
+
+    addRow(
+      'Number of Receipt Copies (CS/CR)',
+      'CS : ${receiptTypeCounts['CS'] ?? 0} | CR : ${receiptTypeCounts['CR'] ?? 0}',
+    );
+    addRow(
+      'Number of Receipts in Training Mode (TS/TR)',
+      'TS : ${receiptTypeCounts['TS'] ?? 0} | TR : ${receiptTypeCounts['TR'] ?? 0}',
+    );
+    addRow(
+      'Number of Advance Receipts in Proforma Mode (PS)',
+      '${receiptTypeCounts['PS'] ?? 0}',
+    );
 
     // Payment split nested table
     addNestedTableRow(

@@ -580,7 +580,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       bcd: item.bcd,
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
-      orgnNatCd: item.orgnNatCd?? "RW",
+      orgnNatCd: item.orgnNatCd ?? "RW",
       pkgUnitCd: "NT",
       splyAmt: item.price * item.qty,
       price: item.price,
@@ -596,7 +596,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       modrId: item.modrId ?? randomString().substring(0, 8),
       modrNm: item.modrNm ?? randomString().substring(0, 8),
       name: item.name,
-    ).toJson();
+    ).toFlipperJson();
     itemJson.removeWhere((key, value) =>
         [
           "active",

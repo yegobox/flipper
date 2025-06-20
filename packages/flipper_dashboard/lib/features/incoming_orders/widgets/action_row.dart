@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -186,7 +187,9 @@ class ActionRow extends ConsumerWidget
       try {
         await approveRequest(request: request, context: context);
         final stringValue = ref.watch(stringProvider);
-        ref.refresh(stockRequestsProvider((filter: stringValue)));
+        ref.refresh(stockRequestsProvider(
+            status: RequestStatus.pending,
+            search: stringValue?.isNotEmpty == true ? stringValue : null));
       } catch (e) {
         // Error handling is already done in approveRequest
       }
@@ -284,7 +287,11 @@ class ActionRow extends ConsumerWidget
                   }
 
                   final stringValue = ref.watch(stringProvider);
-                  ref.refresh(stockRequestsProvider((filter: stringValue)));
+                  ref.refresh(stockRequestsProvider(
+                      status: RequestStatus.voided,
+                      search: stringValue?.isNotEmpty == true
+                          ? stringValue
+                          : null));
                   Navigator.of(context).pop();
                   showCustomSnackBar(context, 'Request voided successfully');
                 } catch (e, s) {

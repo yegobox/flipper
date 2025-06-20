@@ -59,6 +59,22 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
             ),
     financingId:
         data['financing_id'] == null ? null : data['financing_id'] as String?,
+    transactionItems:
+        data['transaction_items'] == null
+            ? null
+            : await Future.wait<TransactionItem>(
+              data['transaction_items']
+                      ?.map(
+                        (d) => TransactionItemAdapter().fromSupabase(
+                          d,
+                          provider: provider,
+                          repository: repository,
+                        ),
+                      )
+                      .toList()
+                      .cast<Future<TransactionItem>>() ??
+                  [],
+            ),
     branch:
         data['branch'] == null
             ? null
@@ -102,6 +118,18 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
             )
             : null,
     'financing_id': instance.financingId,
+    'transaction_items': await Future.wait<Map<String, dynamic>>(
+      instance.transactionItems
+              ?.map(
+                (s) => TransactionItemAdapter().toSupabase(
+                  s,
+                  provider: provider,
+                  repository: repository,
+                ),
+              )
+              .toList() ??
+          [],
+    ),
     'branch':
         instance.branch != null
             ? await BranchAdapter().toSupabase(
@@ -246,10 +274,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSqlite(
                 )
             : null,
     'financing_id': instance.financingId,
-    'transaction_items':
-        instance.transactionItems != null
-            ? jsonEncode(instance.transactionItems)
-            : null,
     'branch_Branch_brick_id':
         instance.branch != null
             ? instance.branch!.primaryKey ??
@@ -347,7 +371,7 @@ class InventoryRequestAdapter
     'transactionItems': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'transaction_items',
-      associationType: Map,
+      associationType: TransactionItem,
       associationIsNullable: true,
     ),
     'branch': const RuntimeSupabaseColumnDefinition(
@@ -480,7 +504,7 @@ class InventoryRequestAdapter
       association: true,
       columnName: 'transaction_items',
       iterable: true,
-      type: Map,
+      type: TransactionItem,
     ),
     'branch': const RuntimeSqliteColumnDefinition(
       association: true,
