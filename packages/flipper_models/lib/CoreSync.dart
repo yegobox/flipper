@@ -2167,6 +2167,8 @@ class CoreSync extends AiStrategyImpl
         // Update numberOfItems before completing the sale
         transaction.numberOfItems = items.length;
 
+        transaction.items = items;
+
         // sum up all discount found on item then save them on a transaction
         transaction.discountAmount = items.fold(0, (a, b) => a! + b.dcAmt!);
         transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
@@ -2183,7 +2185,12 @@ class CoreSync extends AiStrategyImpl
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
           /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
-          await _updateStockAndItems(items: items, branchId: branchId);
+          final adjustmentTransaction = await _createAdjustmentTransaction();
+          adjustmentTransaction?.items = items;
+          await _updateStockAndItems(
+              items: items,
+              branchId: branchId,
+              adjustmentTransaction: adjustmentTransaction);
         }
         _updateTransactionDetails(
           transaction: transaction,
@@ -2280,9 +2287,9 @@ class CoreSync extends AiStrategyImpl
   Future<void> _updateStockAndItems({
     required List<TransactionItem> items,
     required int branchId,
+    models.ITransaction? adjustmentTransaction,
   }) async {
     try {
-      final adjustmentTransaction = await _createAdjustmentTransaction();
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final serverUrl = await ProxyService.box.getServerUrl();
@@ -2313,14 +2320,31 @@ class CoreSync extends AiStrategyImpl
 
   Future<ITransaction?> _createAdjustmentTransaction() async {
     try {
-      return await ProxyService.strategy.manageTransaction(
+      talker.info('Creating new adjustment transaction', {
+        'branchId': ProxyService.box.getBranchId(),
+        'timestamp': DateTime.now().toIso8601String()
+      });
+
+      final transaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
         branchId: ProxyService.box.getBranchId()!,
       );
+
+      if (transaction != null) {
+        talker.info('Successfully created adjustment transaction', {
+          'transactionId': transaction.id,
+          'branchId': transaction.branchId,
+          'createdAt': transaction.createdAt?.toIso8601String()
+        });
+      } else {
+        talker.warning(
+            'Failed to create adjustment transaction - received null transaction');
+      }
+
+      return transaction;
     } catch (e, s) {
-      talker.error(s);
-      talker.warning(e);
+      talker.error('Error creating adjustment transaction', e, s);
       return null; // Handle transaction creation failure gracefully
     }
   }

@@ -98,6 +98,20 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
   }
 
+  /// Saves stock item transactions to the RRA (Rwanda Revenue Authority) system.
+  /// 
+  /// IMPORTANT: Before calling this method, you must first save the item/variant details
+  /// using [saveItem()] to ensure the item exists in the RRA system.
+  /// 
+  /// This method is used for recording stock movements (in/out) and requires:
+  /// - The item must already exist in the RRA system (via saveItem)
+  /// - Transaction details including customer information
+  /// - Tax and amount calculations
+  /// - Business location details (bhfId)
+  /// 
+  /// The [sarTyCd] parameter indicates the type of stock movement:
+  /// - '11' for sales (stock out)
+  /// - Other codes for different stock movement types
   @override
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,
@@ -298,14 +312,22 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     log('Error: $error\nStack Trace: $stackTrace');
   }
 
-  /// save item to rra api for later purchase
-  /// in flipper we don't save product we have variation of product
-  /// since this variation are the one to be reported to EBM server at the end.
-  /// @[itemCd] @[itemClsCd] @[itemStdNm] and others will be required to be passed
-  /// when creating an invoice or receipt
-  ///  you can save the product information in server. This API function performs storing item information managed by the taxpayer client in
-  /// the server. For more information, refer to '3.2.4.1 ItemSaveReq/Res'
-  /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
+  /// Saves an item/variant to the RRA (Rwanda Revenue Authority) system.
+  /// 
+  /// This method MUST be called before using [saveStockItems()] for any item.
+  /// It registers the item's details with the tax authority, including:
+  /// - Item code (itemCd)
+  /// - Item classification (itemClsCd)
+  /// - Standard name (itemStdNm)
+  /// - Tax information
+  /// 
+  /// In Flipper, we work with product variations rather than base products,
+  /// as these variations are what get reported to the EBM server.
+  /// 
+  /// After successfully saving an item, you can use the items/selectItems
+  /// endpoint to retrieve the saved item information.
+  /// 
+  /// For more details, refer to RRA API documentation section '3.2.4.1 ItemSaveReq/Res'.
   @override
   Future<RwApiResponse> saveItem(
       {required Variant variation, required String URI}) async {

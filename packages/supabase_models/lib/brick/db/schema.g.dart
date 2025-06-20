@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250620192605.migration.dart';
 part '20250612082232.migration.dart';
 part '20250615170656.migration.dart';
 part '20250618092427.migration.dart';
@@ -13,6 +14,7 @@ part '20250619175248.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20250620192605(),
   const Migration20250612082232(),
   const Migration20250615170656(),
   const Migration20250618092427(),
@@ -271,6 +273,40 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      '_brick_ITransaction_items',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn(
+          'l_ITransaction_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'ITransaction',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn(
+          'f_TransactionItem_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'TransactionItem',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(
+          columns: ['l_ITransaction_brick_id', 'f_TransactionItem_brick_id'],
+          unique: true,
+        ),
       },
     ),
     SchemaTable(

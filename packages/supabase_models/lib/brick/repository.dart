@@ -8,11 +8,13 @@ import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
+import 'package:supabase_models/brick/TransactionType.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
@@ -597,6 +599,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (instance is Stock) {
       // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
+    }
+    if (instance is ITransaction) {
+      if (instance.ebmSynced == false &&
+          instance.transactionType == TransactionType.adjustment) {
+        // perform stock io and then master
+        print("items on save ${instance.items?.length}");
+      }
     }
     return await super.upsert(instance, policy: policy, query: query);
   }
