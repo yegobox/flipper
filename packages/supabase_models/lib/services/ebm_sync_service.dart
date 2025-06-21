@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
@@ -13,12 +15,12 @@ class EbmSyncService {
     required String serverUrl,
   }) async {
     talker.info("Hererooo on save \\${instance.id}");
-    await repository.upsert(instance);
-    instance.ebmSynced = false;
-
     final response =
         await ProxyService.tax.saveItem(variation: instance, URI: serverUrl);
     if (response.resultCd == "000") {
+      final stockMasterResponse = await ProxyService.tax
+          .saveStockMaster(variant: instance, URI: serverUrl);
+
       Business? business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
       final pendingTransaction = await ProxyService.strategy.manageTransaction(
@@ -30,6 +32,7 @@ class EbmSyncService {
         variant: instance,
         doneWithTransaction: true,
         invoiceNumber: 0,
+        updatableQty: instance.stock?.currentStock,
         pendingTransaction: pendingTransaction!,
         business: business!,
         randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
@@ -51,7 +54,7 @@ class EbmSyncService {
       }
       final totalTaxB = Repository.calculateTotalTax(taxB, taxConfigTaxB);
       totalvat = totalTaxB;
-      await ProxyService.tax.saveStockItems(
+      final responseSaveStockInput = await ProxyService.tax.saveStockItems(
         transaction: pendingTransaction,
         tinNumber: ProxyService.box.tin().toString(),
         bhFId: (await ProxyService.box.bhfId())!,
@@ -67,9 +70,15 @@ class EbmSyncService {
         ocrnDt: pendingTransaction.updatedAt ?? DateTime.now().toUtc(),
         URI: serverUrl,
       );
-      instance.ebmSynced = true;
-      await repository.upsert(instance);
-      return true;
+      if (stockMasterResponse.resultCd == "000" &&
+          responseSaveStockInput.resultCd == "000") {
+        instance.ebmSynced = true;
+        await repository.upsert(instance);
+        ProxyService.notification
+            .sendLocalNotification(body: "Synced ${instance.itemCd}");
+        return true;
+      }
+      return false;
     }
     return false;
   }

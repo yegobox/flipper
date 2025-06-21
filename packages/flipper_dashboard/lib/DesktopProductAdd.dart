@@ -13,9 +13,12 @@ import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_dashboard/dataMixer.dart'; // Import dataMixer for assetProvider
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
+// Models and ViewModels
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_models/view_models/ScannViewModel.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -47,7 +50,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Map<String, TextEditingController> _rates = {};
   Map<String, TextEditingController> _dates = {};
 
-  String selectedPackageUnitValue = "BJ: Bucket Bucket";
+  // Default to the first packaging unit option (Ampoule)
+  String selectedPackageUnitValue = RRADEFAULTS.packagingUnit.first;
   String? selectedCategoryId;
 
   TextEditingController productNameController = TextEditingController();
@@ -458,6 +462,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                   label: "Packaging Unit",
                                   selectedValue: selectedPackageUnitValue,
                                   options: model.pkgUnits,
+                                  // Create a map of full values to display names (extract the description part after the second colon)
+                                  displayNames: Map.fromEntries(model.pkgUnits
+                                      .map((unit) => MapEntry(
+                                          unit,
+                                          unit
+                                              .split(':')
+                                              .sublist(2)
+                                              .join(':')))),
                                   onChanged: (String? newValue) {
                                     if (!_isDisposed && newValue != null) {
                                       setState(() {
@@ -623,15 +635,35 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 scannedInputFocusNode: _scannedInputFocusNode,
                                 unitOfMeasures: [],
                                 model: model,
-                                onUnitOfMeasureChanged: (newValue) {
-                                  if (newValue != null) {
-                                    // Loop through model.scannedVariants
-                                    for (var scannedVariant
-                                        in model.scannedVariants) {
-                                      // Update the variant.unit with the value of newValue
-                                      scannedVariant.unit = newValue;
-                                      break; // Exit the loop since the variant is found and updated
-                                    }
+                                onUnitOfMeasureChanged: (unitCode, variantId) {
+                                  // Get the units list from the provider
+                                  final units =
+                                      ref.read(unitsProvider).value?.value ??
+                                          [];
+                                  // Find the unit with the matching code
+                                  final unit = units.firstWhere(
+                                    (u) => u.code == unitCode,
+                                    orElse: () => units.firstWhere(
+                                      (u) => u.name == unitCode,
+                                      orElse: () => units.firstWhere(
+                                        (u) =>
+                                            u.name ==
+                                            model.scannedVariants.first.unit,
+                                        orElse: () => units.first,
+                                      ),
+                                    ),
+                                  );
+
+                                  // Find and update only the specific variant
+                                  final variantIndex = model.scannedVariants
+                                      .indexWhere((v) => v.id == variantId);
+                                  if (variantIndex != -1) {
+                                    final variant =
+                                        model.scannedVariants[variantIndex];
+                                    // Update the unit code fields
+                                    variant.qtyUnitCd = unitCode;
+                                    // Update the display name
+                                    variant.unit = unit.name ?? unitCode;
                                   }
                                 },
                               )

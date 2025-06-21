@@ -210,7 +210,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   Future<void> initialize() async {
     setProductName(name: null);
-    pkgUnits = RRADEFAULTS.packagingUnits;
+    pkgUnits = RRADEFAULTS.packagingUnit;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
     log((await ProxyService.box.bhfId()).toString(), name: "ScannViewModel");
 

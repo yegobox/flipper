@@ -580,7 +580,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       remainingStock: item.remainingStock!,
       itemCd: item.itemCd,
       variantId: item.variantId,
-      qtyUnitCd: "U",
+      qtyUnitCd: item.qtyUnitCd,
       regrNm: item.regrNm ?? "Registrar",
 
       // Fixed calculations
