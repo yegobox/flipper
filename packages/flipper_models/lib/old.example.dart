@@ -217,11 +217,11 @@
 //                   branchId: ProxyService.box.getBranchId()!))
 //               .firstOrNull;
 //           talker.warning("Variant ${variant?.id}");
-          // pendingTransaction = await ProxyService.strategy.manageTransaction(
-          //   transactionType: TransactionType.purchase,
-          //   isExpense: true,
-          //   branchId: ProxyService.box.getBranchId()!,
-          // );
+// pendingTransaction = await ProxyService.strategy.manageTransaction(
+//   transactionType: TransactionType.purchase,
+//   isExpense: true,
+//   branchId: ProxyService.box.getBranchId()!,
+// );
 //           if (variant != null) {
 //             model.saveTransaction(
 //               variation: variant,

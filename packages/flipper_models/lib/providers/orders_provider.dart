@@ -25,9 +25,7 @@ Stream<List<InventoryRequest>> stockRequests(
         filter: status,
         search: search,
       )
-      .map((requests) => requests
-          .where((req) => req.branch?.id != req.subBranchId)
-          .toList())
+      .map((requests) =>
+          requests.where((req) => req.branch?.id != req.subBranchId).toList())
       .distinct();
 }
-

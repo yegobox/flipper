@@ -20,9 +20,8 @@ class FileUploadSection extends StatelessWidget {
         FlipperButton(
           textColor: Colors.black,
           onPressed: onSelectFile,
-          text: selectedFile == null
-              ? 'Choose Excel File'
-              : 'Change Excel File',
+          text:
+              selectedFile == null ? 'Choose Excel File' : 'Change Excel File',
         ),
         if (selectedFile != null)
           Padding(

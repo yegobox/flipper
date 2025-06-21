@@ -16,7 +16,6 @@ import 'package:flipper_models/helperModels/random.dart';
 // Models and ViewModels
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/all_providers.dart';
-import 'package:flipper_models/view_models/ScannViewModel.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';

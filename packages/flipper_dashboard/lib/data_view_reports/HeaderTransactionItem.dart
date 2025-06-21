@@ -193,8 +193,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('profit Made',
-              overflow: TextOverflow.ellipsis),
+          child: const Text('profit Made', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(
@@ -230,8 +229,8 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Gross profit Made',
-              overflow: TextOverflow.ellipsis),
+          child:
+              const Text('Gross profit Made', overflow: TextOverflow.ellipsis),
         ),
       ),
     ];

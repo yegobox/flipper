@@ -37,16 +37,16 @@ class ProductDataTable extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             DataColumn(
-              label: Text('Name',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              label:
+                  Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             DataColumn(
               label: Text('Category',
                   style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             DataColumn(
-              label: Text('Price',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              label:
+                  Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             DataColumn(
               label: Text('Quantity',
@@ -73,8 +73,7 @@ class ProductDataTable extends StatelessWidget {
             }
             if (!model.quantityControllers.containsKey(barCode)) {
               model.quantityControllers[barCode] =
-                  TextEditingController(
-                      text: product['Quantity'] ?? '0');
+                  TextEditingController(text: product['Quantity'] ?? '0');
             }
 
             return DataRow(

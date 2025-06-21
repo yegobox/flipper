@@ -59,7 +59,9 @@ class ExcelUtils {
 
     Map<String, excel.Range> namedRanges = {};
 
-    for (var i = 0, infoRow = startRow + 1; i < infoData.length; i++, infoRow++) {
+    for (var i = 0, infoRow = startRow + 1;
+        i < infoData.length;
+        i++, infoRow++) {
       // Insert Net Profit row just after Gross Profit
       if (infoData[i][0] == 'Gross Profit') {
         // Write Gross Profit row
@@ -70,7 +72,7 @@ class ExcelUtils {
         final cell = reportSheet.getRangeByName('B$infoRow');
         // Find the Amount column in the data grid (usually column C or D)
         // We need to find the first data row and the last data row
-        
+
         // Looking at the screenshot, we need to find where the actual transaction data begins
         // This is typically after the header row with "Name", "Type", "Amount", "Cash"
         int firstDataRow = startRow + 1;
@@ -81,7 +83,7 @@ class ExcelUtils {
             break;
           }
         }
-        
+
         // Find the last row before the "Total Gross Profit" row
         int lastDataRow = reportSheet.getLastRow();
         for (int i = firstDataRow; i <= reportSheet.getLastRow(); i++) {
@@ -91,7 +93,7 @@ class ExcelUtils {
             break;
           }
         }
-        
+
         // Set formula to sum the Amount column (column C)
         // Based on the screenshot, the Amount column is the third column (C)
         cell.setFormula('=SUM(C$firstDataRow:C$lastDataRow)');
@@ -431,8 +433,8 @@ class ExcelUtils {
   }
 
   /// Adds an expenses sheet to the workbook
-  static void addExpensesSheet(excel.Workbook workbook,
-      List<Expense> expenses, ExcelStyler styler, String currencyFormat) {
+  static void addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
+      ExcelStyler styler, String currencyFormat) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
     final expenseHeaderStyle = styler.createStyle(
         fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
@@ -445,9 +447,7 @@ class ExcelUtils {
 
     for (int i = 0; i < expenses.length; i++) {
       final rowIndex = i + 2;
-      expenseSheet
-          .getRangeByIndex(rowIndex, 1)
-          .setText(expenses[i].name);
+      expenseSheet.getRangeByIndex(rowIndex, 1).setText(expenses[i].name);
       expenseSheet.getRangeByIndex(rowIndex, 2).setValue(expenses[i].amount);
     }
 

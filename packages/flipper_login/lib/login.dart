@@ -125,14 +125,15 @@ class _LoginState extends State<Login> {
             context: context,
             barrierDismissible: false,
             builder: (BuildContext context) {
-              return const LoadingDialog(message: 'Finalizing authentication...');
+              return const LoadingDialog(
+                  message: 'Finalizing authentication...');
             },
           );
-          
+
           // Pop back to Login widget where Firebase auth state changes will be detected
           // by the centralized handler in AuthWithMultipleProviders
           Navigator.of(context).pop();
-          
+
           // Email verification handling if needed
           if (!state.user!.emailVerified) {
             // Handle email verification if needed

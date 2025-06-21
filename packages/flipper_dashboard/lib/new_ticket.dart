@@ -177,7 +177,9 @@ class NewTicketState extends State<NewTicket> {
                                       _isLoan = val ?? false;
                                       // If checked, set default due date if not already set
                                       if (_isLoan && _dueDate == null) {
-                                        _dueDate = DateTime.now().toUtc().add(const Duration(days: 7));
+                                        _dueDate = DateTime.now()
+                                            .toUtc()
+                                            .add(const Duration(days: 7));
                                       }
                                       // If unchecked, clear due date
                                       if (!_isLoan) {
@@ -200,9 +202,14 @@ class NewTicketState extends State<NewTicket> {
                                     onTap: () async {
                                       DateTime? picked = await showDatePicker(
                                         context: context,
-                                        initialDate: _dueDate ?? DateTime.now().toUtc().add(const Duration(days: 7)),
+                                        initialDate: _dueDate ??
+                                            DateTime.now()
+                                                .toUtc()
+                                                .add(const Duration(days: 7)),
                                         firstDate: DateTime.now().toUtc(),
-                                        lastDate: DateTime.now().toUtc().add(const Duration(days: 365)),
+                                        lastDate: DateTime.now()
+                                            .toUtc()
+                                            .add(const Duration(days: 365)),
                                       );
                                       if (picked != null) {
                                         setState(() {
@@ -212,7 +219,8 @@ class NewTicketState extends State<NewTicket> {
                                     },
                                     child: Row(
                                       children: [
-                                        Icon(Icons.event, color: Colors.blue, size: 20),
+                                        Icon(Icons.event,
+                                            color: Colors.blue, size: 20),
                                         const SizedBox(width: 4),
                                         Text(
                                           _dueDate != null
@@ -277,7 +285,8 @@ class NewTicketState extends State<NewTicket> {
                                 if (_formKey.currentState!.validate()) {
                                   // Set loan value and due date on transaction before saving
                                   widget.transaction.isLoan = _isLoan;
-                                  widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
+                                  widget.transaction.dueDate =
+                                      _isLoan ? _dueDate?.toUtc() : null;
                                   model.saveTicket(
                                     ticketName: _swipeController.text,
                                     transaction: widget.transaction,

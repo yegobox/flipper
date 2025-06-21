@@ -1,5 +1,4 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -186,16 +185,6 @@ mixin TransactionMixinOld {
             transaction: pendingTransaction,
             status: COMPLETE,
             ebmSynced: false);
-        final tinNumber = ProxyService.box.tin();
-        final bhfId = await ProxyService.box.bhfId();
-        PatchTransactionItem.patchTransactionItem(
-          tinNumber: tinNumber,
-          bhfId: bhfId!,
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: "Stock IO");
-          },
-        );
       } catch (e) {
         // Rethrow the error instead of silently catching it
         // This ensures the transaction isn't marked as complete when there's an error

@@ -9,7 +9,7 @@ class PaymentVerificationButton extends ConsumerWidget {
   final IconData icon;
   final Color? color;
   final bool showLoading;
-  
+
   const PaymentVerificationButton({
     Key? key,
     this.label = 'Verify Payment',
@@ -21,10 +21,10 @@ class PaymentVerificationButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final verificationState = ref.watch(verifyPaymentProvider);
-    
+
     return ElevatedButton.icon(
-      onPressed: verificationState.isLoading 
-          ? null 
+      onPressed: verificationState.isLoading
+          ? null
           : () {
               talker.info('Manual payment verification triggered');
               // Refresh the provider and ignore the result since we don't need it
@@ -50,7 +50,7 @@ class PaymentVerificationButton extends ConsumerWidget {
 class PaymentVerificationMenuItem extends ConsumerWidget {
   final String label;
   final IconData icon;
-  
+
   const PaymentVerificationMenuItem({
     Key? key,
     this.label = 'Verify Payment Status',

@@ -99,18 +99,21 @@ class ImportPurchaseDialog extends StatelessWidget {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2.0),
                           )
-                        : const Icon(Icons.file_download, color: Colors.black87),
+                        : const Icon(Icons.file_download,
+                            color: Colors.black87),
                     tooltip: 'Export',
                     onPressed: isExporting
                         ? null
                         : () {
                             if (isImport) {
                               ref
-                                  .read(importPurchaseViewModelProvider.notifier)
+                                  .read(
+                                      importPurchaseViewModelProvider.notifier)
                                   .exportImport();
                             } else {
                               ref
-                                  .read(importPurchaseViewModelProvider.notifier)
+                                  .read(
+                                      importPurchaseViewModelProvider.notifier)
                                   .exportPurchase();
                             }
                           },

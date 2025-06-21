@@ -160,5 +160,4 @@ void main() {
     String str2 = "2023-03-22T10:38:37.057Z-0000";
     expect(isGreaterThan(str1, str2), false);
   });
-  
 }

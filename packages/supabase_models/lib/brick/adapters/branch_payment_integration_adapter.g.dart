@@ -131,39 +131,43 @@ class BranchPaymentIntegrationAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchPaymentIntegrationFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BranchPaymentIntegrationFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     BranchPaymentIntegration input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchPaymentIntegrationToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BranchPaymentIntegrationToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<BranchPaymentIntegration> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchPaymentIntegrationFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BranchPaymentIntegrationFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     BranchPaymentIntegration input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BranchPaymentIntegrationToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BranchPaymentIntegrationToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

@@ -97,4 +97,3 @@ enum OAuthButtonVariant {
   text,
   iconAndText,
 }
-

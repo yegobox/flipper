@@ -15,7 +15,8 @@ abstract class TransactionItemInterface {
     Variant? variation,
     required double amountTotal,
     required String name,
-    TransactionItem? item, required bool ignoreForReport,
+    TransactionItem? item,
+    required bool ignoreForReport,
   });
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
@@ -57,6 +58,7 @@ abstract class TransactionItemInterface {
     double? taxblAmt,
     double? totAmt,
     double? dcRt,
-    double? dcAmt, required bool ignoreForReport,
+    double? dcAmt,
+    required bool ignoreForReport,
   });
 }

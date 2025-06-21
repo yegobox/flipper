@@ -38,7 +38,8 @@ class PosthogService {
     }
   }
 
-  Future<void> _captureViaApi(String event, Map<String, Object>? properties) async {
+  Future<void> _captureViaApi(
+      String event, Map<String, Object>? properties) async {
     final payload = {
       'api_key': AppSecrets.postHogApiKey,
       'event': event,

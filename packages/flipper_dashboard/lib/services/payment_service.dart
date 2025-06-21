@@ -1,8 +1,7 @@
-
-
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+
 class PaymentService {
   final BuildContext context;
 

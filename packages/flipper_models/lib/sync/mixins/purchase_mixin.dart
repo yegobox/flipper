@@ -126,9 +126,7 @@ mixin PurchaseMixin
 
         if (response.data == null || response.data!.itemList == null) {
           variantsList = await variants(
-            branchId: ProxyService.box.getBranchId()!,
-            forImportScreen: true
-          );
+              branchId: ProxyService.box.getBranchId()!, forImportScreen: true);
           print(
               "Total variants found: ${variantsList.length}"); // Log total variants
           return variantsList;
@@ -170,9 +168,7 @@ mixin PurchaseMixin
 
       // Return the newly imported variants OR existing variants if no API call was made
       variantsList = await variants(
-        branchId: ProxyService.box.getBranchId()!,
-        forImportScreen: true
-      );
+          branchId: ProxyService.box.getBranchId()!, forImportScreen: true);
 
       return variantsList;
     } catch (e, stackTrace) {

@@ -12,12 +12,10 @@ import 'features/tickets/screens/tickets_screen.dart';
 
 /// @deprecated Use TicketsScreen instead
 class TicketsList extends StatelessWidget {
-  const TicketsList({
-    Key? key, 
-    required this.transaction, 
-    this.showAppBar = true
-  }) : super(key: key);
-  
+  const TicketsList(
+      {Key? key, required this.transaction, this.showAppBar = true})
+      : super(key: key);
+
   final ITransaction? transaction;
   final bool showAppBar;
 

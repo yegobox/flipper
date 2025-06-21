@@ -2,6 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
+import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:uuid/uuid.dart';
 
 // Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count
@@ -73,7 +74,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   // Item origin
   String? orgnNatCd;
   // packaging unit code
-  String? pkg;
+  int? pkg;
   // item code
   String? itemCd;
 
@@ -81,7 +82,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   String? qtyUnitCd;
   // same as name but for rra happiness
-  String itemNm;
+  String? itemNm;
   // unit price
   // check if prc is saved as same as retailPrice again this property is same as price on this model!
   double prc;
@@ -100,6 +101,39 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   DateTime? lastTouched;
 
+  // Additional fields from Variant
+  String? purchaseId;
+  Stock? stock;
+  String? stockId;
+  num? taxPercentage;
+  String? color;
+  String? sku;
+  String? productId;
+  String? unit;
+  String? productName;
+  String? categoryId;
+  String? categoryName;
+  String? taxName;
+  double? supplyPrice;
+  double? retailPrice;
+  String? spplrItemNm;
+  int? totWt;
+  int? netWt;
+  String? spplrNm;
+  String? agntNm;
+  int? invcFcurAmt;
+  String? invcFcurCd;
+  double? invcFcurExcrt;
+  String? exptNatCd;
+  String? dclNo;
+  String? taskCd;
+  String? dclDe;
+  String? hsCd;
+  String? imptItemSttsCd;
+  bool? isShared;
+  bool? assigned;
+  String? spplrItemClsCd;
+  String? spplrItemCd;
   String? branchId;
   bool? ebmSynced;
   bool? partOfComposite;
@@ -114,9 +148,53 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   // @Sqlite(ignore: true)
   String? inventoryRequestId;
 
-  @Sqlite(defaultValue: '0')
-  bool? ignoreForReport;
+  @Sqlite(defaultValue: 'false')
+  bool ignoreForReport;
+
+  /// Creates a new TransactionItem with required fields for proper functionality
+  ///
+  /// Required fields:
+  /// - [name]: The name of the item
+  /// - [qty]: The quantity of the item
+  /// - [price]: The price of the item
+  /// - [discount]: The discount applied to the item
+  /// - [itemNm]: The display name of the item (same as name)
+  /// - [prc]: The price of the item (same as price)
+  /// - [itemCd]: The item code for identification
+  /// - [itemTyCd]: The item type code for RRA compliance
+  /// - [pkgUnitCd]: The packaging unit code
+  /// - [qtyUnitCd]: The quantity unit code
   TransactionItem({
+    this.purchaseId,
+    this.stock,
+    this.stockId,
+    this.taxPercentage,
+    this.color,
+    this.sku,
+    this.productId,
+    this.unit,
+    this.productName,
+    this.categoryId,
+    this.categoryName,
+    this.taxName,
+    this.supplyPrice,
+    this.retailPrice,
+    this.spplrItemNm,
+    this.totWt,
+    this.netWt,
+    this.spplrNm,
+    this.agntNm,
+    this.invcFcurAmt,
+    this.invcFcurCd,
+    this.invcFcurExcrt,
+    this.exptNatCd,
+    this.dclNo,
+    this.taskCd,
+    this.dclDe,
+    this.hsCd,
+    this.imptItemSttsCd,
+    this.isShared,
+    this.assigned,
     this.splyAmt,
     this.inventoryRequest,
     String? id,
@@ -130,7 +208,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.itemCd,
     this.pkgUnitCd,
     this.qtyUnitCd,
-    required this.itemNm,
+    this.itemNm,
     this.tin,
     this.bhfId,
     this.dftPrc,
@@ -173,6 +251,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.isrcAmt,
     String? inventoryRequestId,
     required this.prc,
+    this.spplrItemClsCd,
+    this.spplrItemCd,
     bool? ignoreForReport,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
@@ -180,77 +260,18 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
         lastTouched = lastTouched ?? DateTime.now().toUtc(),
         inventoryRequestId = inventoryRequest?.id,
         updatedAt = updatedAt ?? DateTime.now().toUtc();
-
-  // toJson method
-  Map<String, dynamic> toFlipperJson() => <String, dynamic>{
-        'id': id,
-        'name': name,
-        'transactionId': transactionId,
-        'variantId': variantId,
-        'qty': qty,
-        'price': price,
-        'discount': discount,
-        'remainingStock': remainingStock,
-        'createdAt': createdAt,
-        'updatedAt': updatedAt,
-        'isRefunded': isRefunded,
-        'doneWithTransaction': doneWithTransaction,
-        'active': active,
-        'dcRt': dcRt,
-        'dcAmt': dcAmt,
-        'taxblAmt': taxblAmt,
-        'taxAmt': taxAmt,
-        'totAmt': totAmt,
-        'itemSeq': itemSeq,
-        'isrccCd': isrccCd,
-        'isrccNm': isrccNm,
-        'isrcRt': isrcRt,
-        'isrcAmt': isrcAmt,
-        'taxTyCd': taxTyCd,
-        'bcd': bcd,
-        'itemClsCd': itemClsCd,
-        'itemTyCd': itemTyCd,
-        'itemStdNm': itemStdNm,
-        'orgnNatCd': orgnNatCd,
-        'pkg': pkg,
-        'itemCd': itemCd,
-        'pkgUnitCd': pkgUnitCd,
-        'qtyUnitCd': qtyUnitCd,
-        'itemNm': itemNm,
-        'prc': prc,
-        'splyAmt': splyAmt,
-        'tin': tin,
-        'bhfId': bhfId,
-        'dftPrc': dftPrc,
-        'addInfo': addInfo,
-        'isrcAplcbYn': isrcAplcbYn,
-        'useYn': useYn,
-        'regrId': regrId,
-        'regrNm': regrNm,
-        'modrId': modrId,
-        'modrNm': modrNm,
-        'lastTouched': lastTouched,
-        'branchId': branchId,
-      };
   TransactionItem copyWith({
     String? id,
-    double? qty,
-    double? discount,
-    double? remainingStock,
-    String? itemCd,
-    String? transactionId,
-    String? variantId,
-    String? qtyUnitCd,
-    double? prc,
-    String? regrId,
-    String? regrNm,
-    String? modrId,
-    String? modrNm,
     String? name,
     int? quantityRequested,
     int? quantityApproved,
     int? quantityShipped,
+    String? transactionId,
+    String? variantId,
+    double? qty,
     double? price,
+    double? discount,
+    double? remainingStock,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isRefunded,
@@ -266,14 +287,19 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? isrccNm,
     int? isrcRt,
     int? isrcAmt,
-    String? taxTyCd,
-    String? bcd,
+    String? inventoryRequestId,
+    double? prc,
+    String? spplrItemClsCd,
+    String? spplrItemCd,
+    bool? ignoreForReport,
     String? itemClsCd,
     String? itemTyCd,
     String? itemStdNm,
     String? orgnNatCd,
-    String? pkg,
+    int? pkg,
+    String? itemCd,
     String? pkgUnitCd,
+    String? qtyUnitCd,
     String? itemNm,
     double? splyAmt,
     int? tin,
@@ -282,69 +308,230 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? addInfo,
     String? isrcAplcbYn,
     String? useYn,
+    String? regrId,
+    String? regrNm,
+    String? modrId,
+    String? modrNm,
     DateTime? lastTouched,
+    String? purchaseId,
+    Stock? stock,
+    String? stockId,
+    num? taxPercentage,
+    String? color,
+    String? sku,
+    String? productId,
+    String? unit,
+    String? productName,
+    String? categoryId,
+    String? categoryName,
+    String? taxName,
+    double? supplyPrice,
+    double? retailPrice,
+    String? spplrItemNm,
+    int? totWt,
+    int? netWt,
+    String? spplrNm,
+    String? agntNm,
+    int? invcFcurAmt,
+    String? invcFcurCd,
+    double? invcFcurExcrt,
+    String? exptNatCd,
+    String? dclNo,
+    String? taskCd,
+    String? dclDe,
+    String? hsCd,
+    String? imptItemSttsCd,
+    bool? isShared,
+    bool? assigned,
     String? branchId,
     bool? ebmSynced,
     bool? partOfComposite,
     double? compositePrice,
     InventoryRequest? inventoryRequest,
+    String? taxTyCd,
   }) {
     return TransactionItem(
-      id: id ?? this.id,
-      qty: qty ?? this.qty,
-      discount: discount ?? this.discount,
-      remainingStock: remainingStock ?? this.remainingStock,
-      itemCd: itemCd ?? this.itemCd,
-      transactionId: transactionId ?? this.transactionId,
-      variantId: variantId ?? this.variantId,
-      qtyUnitCd: qtyUnitCd ?? this.qtyUnitCd,
-      prc: prc ?? this.prc,
-      regrId: regrId ?? this.regrId,
-      regrNm: regrNm ?? this.regrNm,
-      modrId: modrId ?? this.modrId,
-      modrNm: modrNm ?? this.modrNm,
-      name: name ?? this.name,
-      quantityRequested: quantityRequested ?? this.quantityRequested,
-      quantityApproved: quantityApproved ?? this.quantityApproved,
-      quantityShipped: quantityShipped ?? this.quantityShipped,
-      price: price ?? this.price,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      isRefunded: isRefunded ?? this.isRefunded,
-      doneWithTransaction: doneWithTransaction ?? this.doneWithTransaction,
-      active: active ?? this.active,
-      dcRt: dcRt ?? this.dcRt,
-      dcAmt: dcAmt ?? this.dcAmt,
-      taxblAmt: taxblAmt ?? this.taxblAmt,
-      taxAmt: taxAmt ?? this.taxAmt,
-      totAmt: totAmt ?? this.totAmt,
-      itemSeq: itemSeq ?? this.itemSeq,
-      isrccCd: isrccCd ?? this.isrccCd,
-      isrccNm: isrccNm ?? this.isrccNm,
-      isrcRt: isrcRt ?? this.isrcRt,
-      isrcAmt: isrcAmt ?? this.isrcAmt,
-      taxTyCd: taxTyCd ?? this.taxTyCd,
-      bcd: bcd ?? this.bcd,
-      itemClsCd: itemClsCd ?? this.itemClsCd,
-      itemTyCd: itemTyCd ?? this.itemTyCd,
-      itemStdNm: itemStdNm ?? this.itemStdNm,
-      orgnNatCd: orgnNatCd ?? this.orgnNatCd,
-      pkg: pkg ?? this.pkg,
-      pkgUnitCd: pkgUnitCd ?? this.pkgUnitCd,
-      itemNm: itemNm ?? this.itemNm,
-      splyAmt: splyAmt ?? this.splyAmt,
-      tin: tin ?? this.tin,
-      bhfId: bhfId ?? this.bhfId,
-      dftPrc: dftPrc ?? this.dftPrc,
-      addInfo: addInfo ?? this.addInfo,
-      isrcAplcbYn: isrcAplcbYn ?? this.isrcAplcbYn,
-      useYn: useYn ?? this.useYn,
-      lastTouched: lastTouched ?? this.lastTouched,
-      branchId: branchId ?? this.branchId,
-      ebmSynced: ebmSynced ?? this.ebmSynced,
-      partOfComposite: partOfComposite ?? this.partOfComposite,
-      compositePrice: compositePrice ?? this.compositePrice,
-      inventoryRequest: inventoryRequest ?? this.inventoryRequest,
+      id: id,
+      name: name!,
+      quantityRequested: quantityRequested,
+      quantityApproved: quantityApproved,
+      quantityShipped: quantityShipped,
+      transactionId: transactionId,
+      variantId: variantId,
+      qty: qty!,
+      price: price!,
+      discount: discount!,
+      remainingStock: remainingStock,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isRefunded: isRefunded,
+      doneWithTransaction: doneWithTransaction,
+      active: active,
+      dcRt: dcRt,
+      dcAmt: dcAmt,
+      taxblAmt: taxblAmt,
+      taxAmt: taxAmt,
+      totAmt: totAmt,
+      itemSeq: itemSeq,
+      isrccCd: isrccCd,
+      isrccNm: isrccNm,
+      isrcRt: isrcRt,
+      isrcAmt: isrcAmt,
+      inventoryRequestId: inventoryRequestId,
+      prc: prc!,
+      spplrItemClsCd: spplrItemClsCd,
+      spplrItemCd: spplrItemCd,
+      ignoreForReport: ignoreForReport,
+      itemClsCd: itemClsCd,
+      itemTyCd: itemTyCd,
+      itemStdNm: itemStdNm,
+      orgnNatCd: orgnNatCd,
+      pkg: pkg,
+      itemCd: itemCd,
+      pkgUnitCd: pkgUnitCd,
+      qtyUnitCd: qtyUnitCd,
+      itemNm: itemNm,
+      splyAmt: splyAmt,
+      tin: tin,
+      bhfId: bhfId,
+      dftPrc: dftPrc,
+      addInfo: addInfo,
+      isrcAplcbYn: isrcAplcbYn,
+      useYn: useYn,
+      regrId: regrId,
+      regrNm: regrNm,
+      modrId: modrId,
+      modrNm: modrNm,
+      lastTouched: lastTouched,
+      purchaseId: purchaseId,
+      stock: stock,
+      stockId: stockId,
+      taxPercentage: taxPercentage,
+      color: color,
+      sku: sku,
+      productId: productId,
+      unit: unit,
+      productName: productName,
+      categoryId: categoryId,
+      categoryName: categoryName,
+      taxName: taxName,
+      supplyPrice: supplyPrice,
+      retailPrice: retailPrice,
+      spplrItemNm: spplrItemNm,
+      totWt: totWt,
+      netWt: netWt,
+      spplrNm: spplrNm,
+      agntNm: agntNm,
+      invcFcurAmt: invcFcurAmt,
+      invcFcurCd: invcFcurCd,
+      invcFcurExcrt: invcFcurExcrt,
+      exptNatCd: exptNatCd,
+      dclNo: dclNo,
+      taskCd: taskCd,
+      dclDe: dclDe,
+      hsCd: hsCd,
+      imptItemSttsCd: imptItemSttsCd,
+      isShared: isShared,
+      assigned: assigned,
+      branchId: branchId,
+      ebmSynced: ebmSynced,
+      partOfComposite: partOfComposite,
+      compositePrice: compositePrice,
+      inventoryRequest: inventoryRequest,
+      taxTyCd: taxTyCd,
     );
+  }
+
+  Map<String, dynamic> toFlipperJson() {
+    return {
+      'id': id,
+      'name': name,
+      'quantityRequested': quantityRequested,
+      'quantityApproved': quantityApproved,
+      'quantityShipped': quantityShipped,
+      'transactionId': transactionId,
+      'variantId': variantId,
+      'qty': qty,
+      'price': price,
+      'discount': discount,
+      'remainingStock': remainingStock,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'isRefunded': isRefunded,
+      'doneWithTransaction': doneWithTransaction,
+      'active': active,
+      'dcRt': dcRt,
+      'dcAmt': dcAmt,
+      'taxblAmt': taxblAmt,
+      'taxAmt': taxAmt,
+      'totAmt': totAmt,
+      'itemSeq': itemSeq,
+      'isrccCd': isrccCd,
+      'isrccNm': isrccNm,
+      'isrcRt': isrcRt,
+      'isrcAmt': isrcAmt,
+      'inventoryRequestId': inventoryRequestId,
+      'prc': prc,
+      'spplrItemClsCd': spplrItemClsCd,
+      'spplrItemCd': spplrItemCd,
+      'ignoreForReport': ignoreForReport,
+      'itemClsCd': itemClsCd,
+      'itemTyCd': itemTyCd,
+      'itemStdNm': itemStdNm,
+      'orgnNatCd': orgnNatCd,
+      'pkg': pkg,
+      'itemCd': itemCd,
+      'pkgUnitCd': pkgUnitCd,
+      'qtyUnitCd': qtyUnitCd,
+      'itemNm': itemNm,
+      'splyAmt': splyAmt,
+      'tin': tin,
+      'bhfId': bhfId,
+      'dftPrc': dftPrc,
+      'addInfo': addInfo,
+      'isrcAplcbYn': isrcAplcbYn,
+      'useYn': useYn,
+      'regrId': regrId,
+      'regrNm': regrNm,
+      'modrId': modrId,
+      'modrNm': modrNm,
+      'lastTouched': lastTouched,
+      'purchaseId': purchaseId,
+      'stock': stock,
+      'stockId': stockId,
+      'taxPercentage': taxPercentage,
+      'color': color,
+      'sku': sku,
+      'productId': productId,
+      'unit': unit,
+      'productName': productName,
+      'categoryId': categoryId,
+      'categoryName': categoryName,
+      'taxName': taxName,
+      'supplyPrice': supplyPrice,
+      'retailPrice': retailPrice,
+      'spplrItemNm': spplrItemNm,
+      'totWt': totWt,
+      'netWt': netWt,
+      'spplrNm': spplrNm,
+      'agntNm': agntNm,
+      'invcFcurAmt': invcFcurAmt,
+      'invcFcurCd': invcFcurCd,
+      'invcFcurExcrt': invcFcurExcrt,
+      'exptNatCd': exptNatCd,
+      'dclNo': dclNo,
+      'taskCd': taskCd,
+      'dclDe': dclDe,
+      'hsCd': hsCd,
+      'imptItemSttsCd': imptItemSttsCd,
+      'isShared': isShared,
+      'assigned': assigned,
+      'branchId': branchId,
+      'ebmSynced': ebmSynced,
+      'partOfComposite': partOfComposite,
+      'compositePrice': compositePrice,
+      'inventoryRequest': inventoryRequest,
+      'taxTyCd': taxTyCd,
+    };
   }
 }

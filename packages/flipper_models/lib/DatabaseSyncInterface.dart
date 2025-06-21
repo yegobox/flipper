@@ -346,7 +346,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required int userId, String? featureName, required bool fetchRemote});
   Future<List<Access>> allAccess({required int userId});
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, 
+      {required int branchId,
       String filter = RequestStatus.pending,
       String? search});
   FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});

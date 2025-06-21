@@ -78,7 +78,9 @@ class PurchaseDataSource extends DataGridSource {
           ),
           DataGridCell<String>(
             columnName: 'Status',
-            value: _statusDisplayMap[variant.pchsSttsCd] ?? variant.pchsSttsCd ?? 'Unknown',
+            value: _statusDisplayMap[variant.pchsSttsCd] ??
+                variant.pchsSttsCd ??
+                'Unknown',
           ),
         ],
       );

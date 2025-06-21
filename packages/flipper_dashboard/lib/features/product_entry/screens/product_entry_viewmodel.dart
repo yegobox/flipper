@@ -13,7 +13,7 @@
 //   final TextEditingController countryOfOriginController = TextEditingController();
 //   final TextEditingController scannedInputController = TextEditingController();
 //   final FocusNode scannedInputFocusNode = FocusNode();
-  
+
 //   // State
 //   Color pickerColor = Colors.amber;
 //   bool isColorPicked = false;
@@ -28,11 +28,11 @@
 //       ref.read(unsavedProductProvider.notifier).emitProduct(value: productRef!);
 //       productNameController.text = productRef!.name;
 //       setProductName(name: productRef!.name);
-      
+
 //       List<Variant> variants = await ProxyService.strategy.variants(
 //           productId: productId,
 //           branchId: ProxyService.box.getBranchId()!);
-          
+
 //       if (variants.isNotEmpty) {
 //         pickerColor = getColorOrDefault(variants.first.color!);
 //         supplyPriceController.text = variants.first.supplyPrice.toString();

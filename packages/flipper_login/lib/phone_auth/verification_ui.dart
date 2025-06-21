@@ -75,7 +75,8 @@ class VerificationUI extends StatelessWidget {
                 children: [
                   const TextSpan(text: 'Enter the 6-digit code sent to '),
                   TextSpan(
-                    text: '${state.selectedCountryCode} ${state.phoneController.text}',
+                    text:
+                        '${state.selectedCountryCode} ${state.phoneController.text}',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
