@@ -84,7 +84,11 @@ mixin ProductMixin {
         variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
         variations[i].isrccNm = "";
         variations[i].isrcRt = 0;
-        variations[i].categoryId = category?.id;
+        if (variations[i].qtyUnitCd == null ||
+            variations[i].qtyUnitCd!.isEmpty ||
+            variations[i].qtyUnitCd!.length == 'null') {
+          variations[i].qtyUnitCd = "U";
+        }
         variations[i].categoryName = category?.name;
         variations[i].dcRt = rates?[variations[i]] == null
             ? 0
