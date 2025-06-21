@@ -3926,21 +3926,21 @@ class CoreSync extends AiStrategyImpl
   }) async {
     final URI = await ProxyService.box.getServerUrl();
 
-    if (foundation.kDebugMode) {
-      // Mock response in debug mode
-      print("Running in debug mode - using mock data");
-      // Simulate a delay to mimic a network request
-      await Future.delayed(Duration(seconds: 1));
+    // if (foundation.kDebugMode) {
+    //   // Mock response in debug mode
+    //   print("Running in debug mode - using mock data");
+    //   // Simulate a delay to mimic a network request
+    //   await Future.delayed(Duration(seconds: 1));
 
-      // Create a BusinessInfo object directly from the mock data
+    //   // Create a BusinessInfo object directly from the mock data
 
-      return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
-    } else {
-      // Call the API in release mode
-      final initialisable = await ProxyService.tax
-          .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
-      return initialisable;
-    }
+    //   return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
+    // } else {
+    // Call the API in release mode
+    final initialisable = await ProxyService.tax
+        .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
+    return initialisable;
+    // }
   }
 
   @override

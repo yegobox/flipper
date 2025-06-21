@@ -77,25 +77,36 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     request.headers.addAll(headers);
 
     http.StreamedResponse streamedResponse = await request.send();
-
-    if (streamedResponse.statusCode == 200) {
-      // Read the response body as a string
-      String responseBody = await streamedResponse.stream.bytesToString();
-
-      // Decode the JSON string into a Map
-      Map<String, dynamic> jsonMap = jsonDecode(responseBody);
-
-      // Create a BusinessInfoResponse object from the Map
-      BusinessInfoResponse response = BusinessInfoResponse.fromJson(jsonMap);
-
-      // Return the BusinessInfo object from the BusinessInfoResponse
-      return response.data.info;
-    } else {
-      // Handle the error case
-      print(streamedResponse.reasonPhrase);
-      throw Exception(
-          'Failed to load BusinessInfo: ${streamedResponse.reasonPhrase}'); // Throw an exception to indicate failure
-    }
+    String responseBody = await streamedResponse.stream.bytesToString();
+  
+    // Parse the response body to check for error messages
+    try {
+      final jsonResponse = jsonDecode(responseBody);
+      
+      // Check if this is an error response
+      if (jsonResponse is Map<String, dynamic> && 
+          jsonResponse.containsKey('resultCd') && 
+          jsonResponse['resultCd'] != '0000') {
+        // This is an error response from the API
+        final errorMessage = jsonResponse['resultMsg'] ?? 'Unknown error';
+        throw Exception(errorMessage);
+      }
+      
+      // If we get here, it's a successful response
+      if (streamedResponse.statusCode == 200) {
+        // Create a BusinessInfoResponse object from the response
+        BusinessInfoResponse response = BusinessInfoResponse.fromJson(jsonResponse);
+        return response.data.info;
+      } else {
+        throw Exception('Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}');
+      }
+    } catch (e) {
+      // If JSON parsing fails or any other error occurs, rethrow with the original response
+      if (e is FormatException) {
+        throw Exception('Invalid response from server: $responseBody');
+      }
+      rethrow; // Rethrow the original exception if it's not a FormatException
+    }  
   }
 
   /// Saves stock item transactions to the RRA (Rwanda Revenue Authority) system.
