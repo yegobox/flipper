@@ -235,7 +235,12 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Failed to initialize EBM: ${e.toString()}';
+        // If the error message is already user-friendly (from our API handling), use it as is
+        // Otherwise, prepend a generic error message
+        final errorMessage = e.toString();
+        _errorMessage = errorMessage.startsWith('Exception: ')
+            ? errorMessage.substring('Exception: '.length)
+            : 'Failed to initialize EBM: $errorMessage';
       });
     }
   }
