@@ -7,6 +7,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:uuid/uuid.dart';
 
 mixin VariantMixin implements VariantInterface {
   Repository get repository;
@@ -149,11 +150,54 @@ mixin VariantMixin implements VariantInterface {
     required List<Variant> variations,
     required int branchId,
   }) async {
-    for (var variant in variations) {
-      variant.branchId = branchId;
-      await repository.upsert<Variant>(variant);
-    }
-    return variations.length;
+    final results = await Future.wait(
+      variations.map((variant) async {
+        try {
+          // Create a new variant with a UUID if one doesn't exist
+          final variantToSave = variant.id.isEmpty
+              ? variant.copyWith(
+                  id: const Uuid().v4(),
+                  branchId: branchId,
+                )
+              : variant.copyWith(branchId: branchId);
+
+          // Handle stock if it exists
+          if (variantToSave.stock != null && variantToSave.stock!.id.isEmpty) {
+            final newStockId = const Uuid().v4();
+            // Create a new Stock instance with the new ID
+            final updatedStock = Stock(
+              id: newStockId,
+              branchId: branchId,
+              currentStock: variantToSave.stock!.currentStock,
+              lowStock: variantToSave.stock!.lowStock,
+              canTrackingStock: variantToSave.stock!.canTrackingStock,
+              showLowStockAlert: variantToSave.stock!.showLowStockAlert,
+              active: variantToSave.stock!.active,
+              value: variantToSave.stock!.value,
+              rsdQty: variantToSave.stock!.rsdQty,
+              lastTouched: variantToSave.stock!.lastTouched,
+              ebmSynced: variantToSave.stock!.ebmSynced,
+              initialStock: variantToSave.stock!.initialStock,
+            );
+
+            // Update the variant with the new stock and stockId
+            return await repository.upsert<Variant>(
+              variantToSave.copyWith(
+                stock: updatedStock,
+                stockId: newStockId,
+              ),
+            );
+          }
+
+          return await repository.upsert<Variant>(variantToSave);
+        } catch (e, stackTrace) {
+          talker.error('Error adding variant', e, stackTrace);
+          rethrow;
+        }
+      }),
+    );
+
+    return results.length;
   }
 
   @override

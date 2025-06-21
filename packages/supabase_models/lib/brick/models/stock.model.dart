@@ -9,7 +9,7 @@ import 'package:uuid/uuid.dart';
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
-  final String id;
+  String id;
 
   int? tin;
 

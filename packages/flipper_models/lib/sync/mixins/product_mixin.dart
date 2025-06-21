@@ -190,7 +190,7 @@ mixin ProductMixin implements ProductInterface {
           spplrItemCd: spplrItemCd,
           spplrItemClsCd: spplrItemClsCd,
         );
-        talker.info('New variant created: ${newVariant.toJson()}');
+        talker.info('New variant created: ${newVariant.toFlipperJson()}');
         final Stock stock = Stock(
             lastTouched: DateTime.now().toUtc(),
             rsdQty: qty,
@@ -394,7 +394,9 @@ mixin ProductMixin implements ProductInterface {
 
     // Save the new item code in the database
     final newItem = ItemCode(
-        code: newItemCode, createdAt: DateTime.now().toUtc(), branchId: branchId);
+        code: newItemCode,
+        createdAt: DateTime.now().toUtc(),
+        branchId: branchId);
     await repository.upsert(newItem);
 
     return newItemCode;

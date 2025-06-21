@@ -99,16 +99,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   /// Saves stock item transactions to the RRA (Rwanda Revenue Authority) system.
-  /// 
+  ///
   /// IMPORTANT: Before calling this method, you must first save the item/variant details
   /// using [saveItem()] to ensure the item exists in the RRA system.
-  /// 
+  ///
   /// This method is used for recording stock movements (in/out) and requires:
   /// - The item must already exist in the RRA system (via saveItem)
   /// - Transaction details including customer information
   /// - Tax and amount calculations
   /// - Business location details (bhfId)
-  /// 
+  ///
   /// The [sarTyCd] parameter indicates the type of stock movement:
   /// - '11' for sales (stock out)
   /// - Other codes for different stock movement types
@@ -117,8 +117,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       {required ITransaction transaction,
       required String tinNumber,
       required String bhFId,
-      required String customerName,
-      required String custTin,
+      String? customerName,
+      String? custTin,
       String? regTyCd = "A",
       //sarTyCd 11 is for sale
       required String sarTyCd,
@@ -168,7 +168,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "tin": tinNumber,
         "bhfId": bhFId,
         "regTyCd": regTyCd,
-        "custTin": custTin.isValidTin() ? custTin : "",
+        "custTin": custTin == null ? null : custTin.isValidTin(),
         "custNm": effectiveCustomerName,
         "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
@@ -186,7 +186,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
-      if (!custTin.isValidTin()) {
+      if (custTin != null && !custTin.isValidTin()) {
         json.remove('custTin');
       }
       talker.info(json);
@@ -248,12 +248,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       variant.rsdQty =
           double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
-      talker.warning("RSD QTY: ${variant.toJson()}");
+      talker.warning("RSD QTY: ${variant.toFlipperJson()}");
       // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
       if (variant.itemTyCd == '3') {
         variant.rsdQty = 0;
       }
-      Response response = await sendPostRequest(url, variant.toJson());
+      Response response = await sendPostRequest(url, variant.toFlipperJson());
 
       final data = RwApiResponse.fromJson(
         response.data,
@@ -313,20 +313,20 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   /// Saves an item/variant to the RRA (Rwanda Revenue Authority) system.
-  /// 
+  ///
   /// This method MUST be called before using [saveStockItems()] for any item.
   /// It registers the item's details with the tax authority, including:
   /// - Item code (itemCd)
   /// - Item classification (itemClsCd)
   /// - Standard name (itemStdNm)
   /// - Tax information
-  /// 
+  ///
   /// In Flipper, we work with product variations rather than base products,
   /// as these variations are what get reported to the EBM server.
-  /// 
+  ///
   /// After successfully saving an item, you can use the items/selectItems
   /// endpoint to retrieve the saved item information.
-  /// 
+  ///
   /// For more details, refer to RRA API documentation section '3.2.4.1 ItemSaveReq/Res'.
   @override
   Future<RwApiResponse> saveItem(
@@ -350,7 +350,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       }
 
       /// first remove fields for imports
-      final itemJson = variation.toJson();
+      final itemJson = variation.toFlipperJson();
       itemJson.removeWhere((key, value) =>
           [
             "totWt",
@@ -991,7 +991,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     data['rcptTyCd'] = rcptTyCd;
     data['itemList'] = variants.map((variant) {
       variant.qty = variant.stock?.currentStock ?? 0;
-      return variant.toJson();
+      return variant.toFlipperJson();
     }).toList();
     final talker = Talker();
     try {
@@ -1096,7 +1096,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .replace(path: Uri.parse(URI).path + 'imports/updateImportItems')
         .toString();
 
-    final data = item.toJson();
+    final data = item.toFlipperJson();
     final talker = Talker();
 
     try {

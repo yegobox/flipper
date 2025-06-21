@@ -52,7 +52,7 @@ dependencies:
   archive: ^3.1.0
   mime: ^1.0.6
   firebase_core: ^3.13.0
-  sqlite3_flutter_libs: ^0.5.31
+  sqlite3_flutter_libs: '>=0.5.31 <0.6.0'
   permission_handler: ^11.3.1
   json_annotation: ^4.9.0
   supabase_flutter: ^2.9.0
@@ -61,7 +61,7 @@ dependencies:
   pdf: ^3.11.3
   injectfy: ^1.0.1
   mock_supabase_http_client: 0.0.3+1
-  sqlite3_web: ^0.3.0
+  sqlite3_web: '>=0.2.1 <0.4.0'
   synchronized: ^3.3.0+3
   email_validator: ^2.1.17
   
