@@ -19,10 +19,9 @@ Future<Product> _$ProductFromSupabase(
         data['supplier_id'] == null ? null : data['supplier_id'] as String?,
     categoryId:
         data['category_id'] == null ? null : data['category_id'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     unit: data['unit'] == null ? null : data['unit'] as String?,
@@ -30,45 +29,39 @@ Future<Product> _$ProductFromSupabase(
     expiryDate:
         data['expiry_date'] == null ? null : data['expiry_date'] as String?,
     barCode: data['bar_code'] == null ? null : data['bar_code'] as String?,
-    nfcEnabled:
-        data['nfc_enabled'] == null
-            ? null
-            : data['nfc_enabled'] as bool? ?? false,
-    bindedToTenantId:
-        data['binded_to_tenant_id'] == null
-            ? null
-            : data['binded_to_tenant_id'] as String?,
-    isFavorite:
-        data['is_favorite'] == null
-            ? null
-            : data['is_favorite'] as bool? ?? false,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    nfcEnabled: data['nfc_enabled'] == null
+        ? null
+        : data['nfc_enabled'] as bool? ?? false,
+    bindedToTenantId: data['binded_to_tenant_id'] == null
+        ? null
+        : data['binded_to_tenant_id'] as String?,
+    isFavorite: data['is_favorite'] == null
+        ? null
+        : data['is_favorite'] as bool? ?? false,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
-    isComposite:
-        data['is_composite'] == null
-            ? null
-            : data['is_composite'] as bool? ?? false,
-    composites:
-        data['composites'] == null
-            ? null
-            : await Future.wait<Composite>(
-              data['composites']
-                      ?.map(
-                        (d) => CompositeAdapter().fromSupabase(
-                          d,
-                          provider: provider,
-                          repository: repository,
-                        ),
-                      )
-                      .toList()
-                      .cast<Future<Composite>>() ??
-                  [],
-            ),
+    isComposite: data['is_composite'] == null
+        ? null
+        : data['is_composite'] as bool? ?? false,
+    composites: data['composites'] == null
+        ? null
+        : await Future.wait<Composite>(
+            data['composites']
+                    ?.map(
+                      (d) => CompositeAdapter().fromSupabase(
+                        d,
+                        provider: provider,
+                        repository: repository,
+                      ),
+                    )
+                    .toList()
+                    .cast<Future<Composite>>() ??
+                [],
+          ),
   );
 }
 
@@ -131,10 +124,9 @@ Future<Product> _$ProductFromSqlite(
         data['supplier_id'] == null ? null : data['supplier_id'] as String?,
     categoryId:
         data['category_id'] == null ? null : data['category_id'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     unit: data['unit'] == null ? null : data['unit'] as String?,
@@ -143,38 +135,35 @@ Future<Product> _$ProductFromSqlite(
         data['expiry_date'] == null ? null : data['expiry_date'] as String?,
     barCode: data['bar_code'] == null ? null : data['bar_code'] as String?,
     nfcEnabled: data['nfc_enabled'] == null ? null : data['nfc_enabled'] == 1,
-    bindedToTenantId:
-        data['binded_to_tenant_id'] == null
-            ? null
-            : data['binded_to_tenant_id'] as String?,
+    bindedToTenantId: data['binded_to_tenant_id'] == null
+        ? null
+        : data['binded_to_tenant_id'] as String?,
     isFavorite: data['is_favorite'] == null ? null : data['is_favorite'] == 1,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
     isComposite:
         data['is_composite'] == null ? null : data['is_composite'] == 1,
-    composites:
-        (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_Composite_brick_id` FROM `_brick_Product_composites` WHERE l_Product_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_Composite_brick_id']);
-              return Future.wait<Composite>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<Composite>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<Composite>(),
+    composites: (await provider.rawQuery(
+      'SELECT DISTINCT `f_Composite_brick_id` FROM `_brick_Product_composites` WHERE l_Product_brick_id = ?',
+      [data['_brick_id'] as int],
+    ).then((results) {
+      final ids = results.map((r) => r['f_Composite_brick_id']);
+      return Future.wait<Composite>(
+        ids.map(
+          (primaryKey) => repository!
+              .getAssociation<Composite>(
+                Query.where('primaryKey', primaryKey, limit1: true),
+              )
+              .then((r) => r!.first),
+        ),
+      );
+    }))
+        .toList()
+        .cast<Composite>(),
     searchMatch:
         data['search_match'] == null ? null : data['search_match'] == 1,
   )..primaryKey = data['_brick_id'] as int;
@@ -495,19 +484,16 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
 
       await Future.wait<void>(
         compositesIdsToDelete.map((id) async {
-          return await provider
-              .rawExecute(
-                'DELETE FROM `_brick_Product_composites` WHERE `l_Product_brick_id` = ? AND `f_Composite_brick_id` = ?',
-                [instance.primaryKey, id],
-              )
-              .catchError((e) => null);
+          return await provider.rawExecute(
+            'DELETE FROM `_brick_Product_composites` WHERE `l_Product_brick_id` = ? AND `f_Composite_brick_id` = ?',
+            [instance.primaryKey, id],
+          ).catchError((e) => null);
         }),
       );
 
       await Future.wait<int?>(
         instance.composites?.map((s) async {
-              final id =
-                  s.primaryKey ??
+              final id = s.primaryKey ??
                   await provider.upsert<Composite>(s, repository: repository);
               return await provider.rawInsert(
                 'INSERT OR IGNORE INTO `_brick_Product_composites` (`l_Product_brick_id`, `f_Composite_brick_id`) VALUES (?, ?)',
@@ -524,39 +510,43 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ProductFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ProductFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Product input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ProductToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ProductToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Product> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ProductFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ProductFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Product input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ProductToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ProductToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

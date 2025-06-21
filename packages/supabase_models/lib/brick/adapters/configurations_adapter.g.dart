@@ -9,10 +9,9 @@ Future<Configurations> _$ConfigurationsFromSupabase(
   return Configurations(
     id: data['id'] as String?,
     taxType: data['tax_type'] == null ? null : data['tax_type'] as String?,
-    taxPercentage:
-        data['tax_percentage'] == null
-            ? null
-            : data['tax_percentage'] as double?,
+    taxPercentage: data['tax_percentage'] == null
+        ? null
+        : data['tax_percentage'] as double?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -41,10 +40,9 @@ Future<Configurations> _$ConfigurationsFromSqlite(
   return Configurations(
     id: data['id'] as String,
     taxType: data['tax_type'] == null ? null : data['tax_type'] as String?,
-    taxPercentage:
-        data['tax_percentage'] == null
-            ? null
-            : data['tax_percentage'] as double?,
+    taxPercentage: data['tax_percentage'] == null
+        ? null
+        : data['tax_percentage'] as double?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -167,39 +165,43 @@ class ConfigurationsAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConfigurationsFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConfigurationsFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Configurations input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConfigurationsToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConfigurationsToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Configurations> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConfigurationsFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConfigurationsFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Configurations input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConfigurationsToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConfigurationsToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

@@ -9,7 +9,8 @@ import '../models/notification.dart';
 /// Utility class for notification-related operations
 class NotificationUtils {
   /// Create a notification object from a conversation
-  static Notification createNotificationFromConversation(Conversation conversation) {
+  static Notification createNotificationFromConversation(
+      Conversation conversation) {
     final createdAt = conversation.createdAt ?? DateTime.now().toLocal();
     final dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 

@@ -87,9 +87,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   DateTime? nextBillingDate;
 
-  @Supabase(defaultValue: "monthly")
-  @Sqlite(defaultValue: "monthly")
-  String? billingFrequency; // 'daily', 'weekly', 'monthly'
+  String? billingFrequency;
 
   @Supabase(defaultValue: "0.0")
   num? billingAmount;

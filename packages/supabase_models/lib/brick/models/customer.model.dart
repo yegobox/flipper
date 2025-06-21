@@ -67,7 +67,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.customerType,
   }) : id = id ?? const Uuid().v4();
   // toJson method
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFlipperJson() {
     return {
       'id': id,
       'custNm': custNm,

@@ -16,7 +16,7 @@
 //   ProductEntryScreenState createState() => ProductEntryScreenState();
 // }
 
-// class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> 
+// class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 //     with TransactionMixin {
 //   final _formKey = GlobalKey<FormState>();
 //   final _fieldComposite = GlobalKey<FormState>();

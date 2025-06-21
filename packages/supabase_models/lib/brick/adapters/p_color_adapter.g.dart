@@ -13,16 +13,14 @@ Future<PColor> _$PColorFromSupabase(
         data['colors'] == null ? null : data['colors']?.toList().cast<String>(),
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     active: data['active'] as bool,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
   );
@@ -54,16 +52,14 @@ Future<PColor> _$PColorFromSqlite(
     name: data['name'] == null ? null : data['name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     active: data['active'] == 1,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -199,31 +195,34 @@ class PColorAdapter extends OfflineFirstWithSupabaseAdapter<PColor> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PColorFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PColorFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     PColor input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PColorToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PColorToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<PColor> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PColorFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PColorFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     PColor input, {

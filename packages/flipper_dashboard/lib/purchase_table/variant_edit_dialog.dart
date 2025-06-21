@@ -36,8 +36,8 @@ Future<void> showVariantEditDialog(
                 builder: (context, ref, _) {
                   final selectedVariant =
                       ref.watch(selectedVariantProvider(item.id));
-                  final setSelectedVariant = ref.read(
-                      selectedVariantProvider(item.id).notifier);
+                  final setSelectedVariant =
+                      ref.read(selectedVariantProvider(item.id).notifier);
 
                   return DropdownSearch<Variant>(
                     selectedItem: selectedVariant,

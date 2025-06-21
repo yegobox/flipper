@@ -10,18 +10,15 @@ Future<VariantBranch> _$VariantBranchFromSupabase(
     id: data['id'] as String?,
     variantId:
         data['variant_id'] == null ? null : data['variant_id'] as String?,
-    newVariantId:
-        data['new_variant_id'] == null
-            ? null
-            : data['new_variant_id'] as String?,
-    sourceBranchId:
-        data['source_branch_id'] == null
-            ? null
-            : data['source_branch_id'] as String?,
-    destinationBranchId:
-        data['destination_branch_id'] == null
-            ? null
-            : data['destination_branch_id'] as String?,
+    newVariantId: data['new_variant_id'] == null
+        ? null
+        : data['new_variant_id'] as String?,
+    sourceBranchId: data['source_branch_id'] == null
+        ? null
+        : data['source_branch_id'] as String?,
+    destinationBranchId: data['destination_branch_id'] == null
+        ? null
+        : data['destination_branch_id'] as String?,
   );
 }
 
@@ -48,18 +45,15 @@ Future<VariantBranch> _$VariantBranchFromSqlite(
     id: data['id'] as String,
     variantId:
         data['variant_id'] == null ? null : data['variant_id'] as String?,
-    newVariantId:
-        data['new_variant_id'] == null
-            ? null
-            : data['new_variant_id'] as String?,
-    sourceBranchId:
-        data['source_branch_id'] == null
-            ? null
-            : data['source_branch_id'] as String?,
-    destinationBranchId:
-        data['destination_branch_id'] == null
-            ? null
-            : data['destination_branch_id'] as String?,
+    newVariantId: data['new_variant_id'] == null
+        ? null
+        : data['new_variant_id'] as String?,
+    sourceBranchId: data['source_branch_id'] == null
+        ? null
+        : data['source_branch_id'] as String?,
+    destinationBranchId: data['destination_branch_id'] == null
+        ? null
+        : data['destination_branch_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -179,39 +173,43 @@ class VariantBranchAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantBranchFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantBranchFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     VariantBranch input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantBranchToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantBranchToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<VariantBranch> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantBranchFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantBranchFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     VariantBranch input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantBranchToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantBranchToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

@@ -11,8 +11,6 @@ import 'viewmodels/signup_viewmodel.dart';
 import 'components/signup_components.dart' as components;
 import 'components/tin_input_field.dart';
 
-
-
 class SignUpView extends StatefulHookConsumerWidget {
   const SignUpView({Key? key, this.countryNm = "Rwanda"}) : super(key: key);
   final String? countryNm;
@@ -42,7 +40,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
           child: Builder(
             builder: (context) {
               final formBloc = context.read<AsyncFieldValidationFormBloc>();
-              
+
               return Scaffold(
                 backgroundColor: const Color(0xFFF7FAFC),
                 body: SafeArea(
@@ -67,23 +65,27 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                   padding: const EdgeInsets.all(24),
                                   child: Column(
                                     children: [
-                                      components.SignupComponents.buildInputField(
+                                      components.SignupComponents
+                                          .buildInputField(
                                         fieldBloc: formBloc.username,
                                         label: 'Username',
                                         icon: Icons.person_outline,
                                         hint: 'Enter your username',
                                       ),
-                                      components.SignupComponents.buildInputField(
+                                      components.SignupComponents
+                                          .buildInputField(
                                         fieldBloc: formBloc.fullName,
                                         label: 'Full Name',
                                         icon: Icons.badge_outlined,
                                         hint: 'First name, Last name',
                                       ),
-                                      components.SignupComponents.buildDropdownField<BusinessType>(
+                                      components.SignupComponents
+                                          .buildDropdownField<BusinessType>(
                                         fieldBloc: formBloc.businessTypes,
                                         label: 'Business Type',
                                         icon: Icons.business_outlined,
-                                        itemBuilder: (context, value) => FieldItem(
+                                        itemBuilder: (context, value) =>
+                                            FieldItem(
                                           child: Text(
                                             value.typeName,
                                             style: GoogleFonts.poppins(
@@ -100,16 +102,19 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                       ),
                                       if (_showTinField)
                                         Padding(
-                                          padding: const EdgeInsets.only(bottom: 16.0),
+                                          padding: const EdgeInsets.only(
+                                              bottom: 16.0),
                                           child: TinInputField(
                                             tinNumberBloc: formBloc.tinNumber,
                                           ),
                                         ),
-                                      components.SignupComponents.buildDropdownField<String>(
+                                      components.SignupComponents
+                                          .buildDropdownField<String>(
                                         fieldBloc: formBloc.countryName,
                                         label: 'Country',
                                         icon: Icons.public_outlined,
-                                        itemBuilder: (context, value) => FieldItem(
+                                        itemBuilder: (context, value) =>
+                                            FieldItem(
                                           child: Text(
                                             value,
                                             style: GoogleFonts.poppins(
@@ -119,7 +124,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                           ),
                                         ),
                                       ),
-                                      _buildSubmitButton(formBloc, model.registerStart),
+                                      _buildSubmitButton(
+                                          formBloc, model.registerStart),
                                     ],
                                   ),
                                 ),
@@ -151,8 +157,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
       },
     );
   }
-  
-  Widget _buildSubmitButton(AsyncFieldValidationFormBloc formBloc, bool isLoading) {
+
+  Widget _buildSubmitButton(
+      AsyncFieldValidationFormBloc formBloc, bool isLoading) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 30),
       width: double.infinity,

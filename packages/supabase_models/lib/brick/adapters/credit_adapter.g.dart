@@ -188,31 +188,34 @@ class CreditAdapter extends OfflineFirstWithSupabaseAdapter<Credit> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CreditFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CreditFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Credit input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CreditToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CreditToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Credit> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CreditFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CreditFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Credit input, {

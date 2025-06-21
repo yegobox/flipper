@@ -123,7 +123,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       //sarTyCd 11 is for sale
       required String sarTyCd,
       bool isStockIn = false,
-      String custBhfId = "",
+      String? custBhfId,
       required double totalSupplyPrice,
       required double totalvat,
       required double totalAmount,
@@ -138,12 +138,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final sar = randomNumber();
       final branchId = (await ProxyService.strategy.activeBranch()).id;
       // Query active, done items only
-      final items = await ProxyService.strategy.transactionItems(
+      List<TransactionItem> items =
+          await ProxyService.strategy.transactionItems(
         branchId: branchId,
         transactionId: transaction.id,
         doneWithTransaction: true,
         active: true,
       );
+      if (items.isEmpty) items = transaction.items ?? [];
 
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async => await mapItemToJson(item, bhfId: bhFId))
@@ -587,8 +589,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       dcRt: discountRate,
       dcAmt: totalDiscountAmount,
       totAmt: totalAfterDiscount,
-
-      pkg: quantity.toString(),
+      pkg: quantity.toInt(),
       taxblAmt: totalAfterDiscount,
       taxAmt: taxAmount,
       itemClsCd: item.itemClsCd,

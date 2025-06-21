@@ -129,6 +129,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           talker.info('    totAmt = taxblAmt + taxAmt = $totAmt');
         }
 
+        final qtyUnitCd = variation.qtyUnitCd!;
+
         transactionItem = TransactionItem(
           itemNm: variation.itemNm ?? variation.name, // Required
           lastTouched: lastTouched, // Required
@@ -142,13 +144,13 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           taxTyCd: variation.taxTyCd,
           bcd: variation.bcd,
           itemClsCd: variation.itemClsCd,
-          itemTyCd: variation.itemTyCd,
+          itemTyCd: variation.itemTyCd!,
           itemStdNm: variation.itemStdNm,
           orgnNatCd: variation.orgnNatCd,
-          pkg: variation.pkg.toString(),
-          itemCd: variation.itemCd,
-          pkgUnitCd: variation.pkgUnitCd,
-          qtyUnitCd: variation.qtyUnitCd,
+          pkg: variation.pkg!,
+          itemCd: variation.itemCd!,
+          pkgUnitCd: variation.pkgUnitCd!,
+          qtyUnitCd: qtyUnitCd,
           tin: variation.tin,
           bhfId: variation.bhfId,
           dftPrc: variation.dftPrc,
@@ -157,7 +159,39 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           useYn: variation.useYn,
           regrId: variation.regrId,
           regrNm: variation.regrNm,
+          stock: variation.stock,
+          stockId: variation.stockId,
+          taxPercentage: variation.taxPercentage,
+          color: variation.color,
+          sku: variation.sku,
+          productId: variation.productId,
+          unit: variation.unit,
+          productName: variation.productName,
+          categoryId: variation.categoryId,
+          categoryName: variation.categoryName,
+          taxName: variation.taxName,
+          supplyPrice: variation.supplyPrice,
+          retailPrice: variation.retailPrice,
+          spplrItemNm: variation.spplrItemNm,
+          totWt: variation.totWt,
+          netWt: variation.netWt,
+          spplrNm: variation.spplrNm,
+          agntNm: variation.agntNm,
+          invcFcurAmt: variation.invcFcurAmt,
+          invcFcurCd: variation.invcFcurCd,
+          invcFcurExcrt: variation.invcFcurExcrt,
+          exptNatCd: variation.exptNatCd,
+          dclNo: variation.dclNo,
+          taskCd: variation.taskCd,
+          dclDe: variation.dclDe,
+          hsCd: variation.hsCd,
+          imptItemSttsCd: variation.imptItemSttsCd,
+          isShared: variation.isShared,
 
+          assigned: variation.assigned,
+          spplrItemClsCd: variation.spplrItemClsCd,
+          spplrItemCd: variation.spplrItemCd,
+          purchaseId: variation.purchaseId,
           modrId: variation.modrId,
           modrNm: variation.modrNm,
           branchId: (await ProxyService.strategy.activeBranch()).id,
@@ -222,6 +256,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           lastTouched: DateTime.now(),
         );
       }
+      transaction.items = allItems;
+      await repository.upsert<ITransaction>(transaction);
     } catch (e, s) {
       talker.error(s);
       rethrow;

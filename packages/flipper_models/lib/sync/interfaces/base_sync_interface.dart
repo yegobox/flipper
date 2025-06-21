@@ -3,7 +3,7 @@ import 'package:supabase_models/brick/repository/storage.dart';
 
 abstract class BaseSyncInterface extends AiStrategy {
   Future<void> startReplicator();
-  
+
   Future<BaseSyncInterface> configureLocal({
     required bool useInMemory,
     required LocalStorage box,

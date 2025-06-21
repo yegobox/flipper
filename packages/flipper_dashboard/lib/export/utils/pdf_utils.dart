@@ -18,13 +18,12 @@ class CustomPdfHeaderFooterDetails {
 class PdfUtils {
   /// Exports data to PDF with header
   static void exportToPdf(
-      dynamic headerFooterExport,
-      Business business,
-      ExportConfig config,
+      dynamic headerFooterExport, Business business, ExportConfig config,
       {required String headerTitle}) {
-    final double width = headerFooterExport is DataGridPdfHeaderFooterExportDetails
-        ? headerFooterExport.pdfPage.getClientSize().width
-        : headerFooterExport.pdfPage.getClientSize().width;
+    final double width =
+        headerFooterExport is DataGridPdfHeaderFooterExportDetails
+            ? headerFooterExport.pdfPage.getClientSize().width
+            : headerFooterExport.pdfPage.getClientSize().width;
 
     // Adjust the header size to only fit the necessary content
     final PdfPageTemplateElement header = PdfPageTemplateElement(

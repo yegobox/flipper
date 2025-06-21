@@ -322,19 +322,6 @@ class CronService {
     }
 
     // Notification callback for patching operations
-    final notificationCallback = (String message) {
-      ProxyService.notification.sendLocalNotification(body: message);
-    };
-
-    // Patch variants
-    try {
-      await VariantPatch.patchVariant(
-        URI: uri,
-        sendPort: notificationCallback,
-      );
-    } catch (e) {
-      talker.error("Variant patching failed: $e");
-    }
 
     // Patch transaction items
     try {
@@ -346,21 +333,6 @@ class CronService {
 
       /// as I was testing realized callin this here might cause race condition
       /// the method should be called intentionally.
-      final tinNumber = ProxyService.box.tin();
-
-      await PatchTransactionItem.patchTransactionItem(
-        tinNumber: tinNumber,
-        bhfId: bhfId,
-        URI: uri,
-        sendPort: notificationCallback,
-      );
-      CustomerPatch.patchCustomer(
-        URI: uri,
-        tinNumber: tinNumber,
-        bhfId: bhfId,
-        branchId: ProxyService.box.getBranchId()!,
-        sendPort: notificationCallback,
-      );
     } catch (e) {
       talker.error("Transaction item patching failed: $e");
     }
@@ -508,64 +480,6 @@ class CronService {
   /// Returns the duration for file download schedule
   Duration _getDownloadFileSchedule() {
     return const Duration(minutes: 2);
-  }
-
-  /// Performs a periodic database backup if enough time has passed since the last backup
-  /// Uses a more resilient approach to handle potential database closure issues
-  Future<void> _performPeriodicDatabaseBackup() async {
-    // Skip backup during active transactions to avoid conflicts
-    if (ProxyService.box.transactionInProgress()) {
-      talker.info('Skipping database backup: transaction in progress');
-      return;
-    }
-
-    // try {
-    //   // Add a small delay to allow any pending database operations to complete
-    //   await Future.delayed(const Duration(milliseconds: 500));
-
-    // Call the performPeriodicBackup method on the Repository instance
-    // final result = await repo.Repository().performPeriodicBackup(
-    //     // Use a longer interval to reduce backup frequency
-    //     minInterval: const Duration(minutes: 30));
-
-    //   if (result == true) {
-    //     talker.info('Periodic database backup completed successfully');
-    //   } else {
-    //     talker.info(
-    //         'Periodic database backup skipped (not enough time passed since last backup)');
-    //   }
-    // } catch (e, stackTrace) {
-    //   talker.error('Error during periodic database backup: $e', stackTrace);
-    //   // Don't retry immediately if there was an error
-    // }
-  }
-
-  /// Performs cleanup of failed queue items
-  /// This removes requests that have failed to sync with Supabase
-  Future<void> _cleanupFailedQueue() async {
-    // Skip cleanup during active transactions to avoid conflicts
-    if (ProxyService.box.transactionInProgress()) {
-      talker.info('Skipping failed queue cleanup: transaction in progress');
-      return;
-    }
-
-    try {
-      // Add a small delay to allow any pending operations to complete
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Call the cleanupFailedRequests method on the Repository instance
-      // final deletedCount = await repo.Repository().cleanupFailedRequests();
-
-      // if (deletedCount > 0) {
-      //   talker.info(
-      //       'Failed queue cleanup: Deleted $deletedCount failed requests');
-      // } else {
-      //   talker.info('Failed queue cleanup: No failed requests found');
-      // }
-    } catch (e, stackTrace) {
-      talker.error('Error during failed queue cleanup: $e', stackTrace);
-      // Don't retry immediately if there was an error
-    }
   }
 
   /// Platform detection helpers

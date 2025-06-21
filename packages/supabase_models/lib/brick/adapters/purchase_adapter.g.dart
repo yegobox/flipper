@@ -8,22 +8,21 @@ Future<Purchase> _$PurchaseFromSupabase(
 }) async {
   return Purchase(
     id: data['id'] as String?,
-    variants:
-        data['variants'] == null
-            ? null
-            : await Future.wait<Variant>(
-              data['variants']
-                      ?.map(
-                        (d) => VariantAdapter().fromSupabase(
-                          d,
-                          provider: provider,
-                          repository: repository,
-                        ),
-                      )
-                      .toList()
-                      .cast<Future<Variant>>() ??
-                  [],
-            ),
+    variants: data['variants'] == null
+        ? null
+        : await Future.wait<Variant>(
+            data['variants']
+                    ?.map(
+                      (d) => VariantAdapter().fromSupabase(
+                        d,
+                        provider: provider,
+                        repository: repository,
+                      ),
+                    )
+                    .toList()
+                    .cast<Future<Variant>>() ??
+                [],
+          ),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -52,10 +51,9 @@ Future<Purchase> _$PurchaseFromSupabase(
     totAmt: data['tot_amt'] as num,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
-    hasUnApprovedVariant:
-        data['has_un_approved_variant'] == null
-            ? null
-            : data['has_un_approved_variant'] as bool?,
+    hasUnApprovedVariant: data['has_un_approved_variant'] == null
+        ? null
+        : data['has_un_approved_variant'] as bool?,
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
@@ -124,24 +122,23 @@ Future<Purchase> _$PurchaseFromSqlite(
 }) async {
   return Purchase(
     id: data['id'] as String,
-    variants:
-        (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_Variant_brick_id']);
-              return Future.wait<Variant>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<Variant>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<Variant>(),
+    variants: (await provider.rawQuery(
+      'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
+      [data['_brick_id'] as int],
+    ).then((results) {
+      final ids = results.map((r) => r['f_Variant_brick_id']);
+      return Future.wait<Variant>(
+        ids.map(
+          (primaryKey) => repository!
+              .getAssociation<Variant>(
+                Query.where('primaryKey', primaryKey, limit1: true),
+              )
+              .then((r) => r!.first),
+        ),
+      );
+    }))
+        .toList()
+        .cast<Variant>(),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -170,10 +167,9 @@ Future<Purchase> _$PurchaseFromSqlite(
     totAmt: data['tot_amt'] as num,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
-    hasUnApprovedVariant:
-        data['has_un_approved_variant'] == null
-            ? null
-            : data['has_un_approved_variant'] == 1,
+    hasUnApprovedVariant: data['has_un_approved_variant'] == null
+        ? null
+        : data['has_un_approved_variant'] == 1,
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
@@ -188,8 +184,6 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(
 }) async {
   return {
     'id': instance.id,
-    'variants':
-        instance.variants != null ? jsonEncode(instance.variants) : null,
     'spplr_tin': instance.spplrTin,
     'spplr_nm': instance.spplrNm,
     'spplr_bhf_id': instance.spplrBhfId,
@@ -217,10 +211,9 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(
     'tot_amt': instance.totAmt,
     'branch_id': instance.branchId,
     'remark': instance.remark,
-    'has_un_approved_variant':
-        instance.hasUnApprovedVariant == null
-            ? null
-            : (instance.hasUnApprovedVariant! ? 1 : 0),
+    'has_un_approved_variant': instance.hasUnApprovedVariant == null
+        ? null
+        : (instance.hasUnApprovedVariant! ? 1 : 0),
     'approved': instance.approved,
     'rejected': instance.rejected,
     'pending': instance.pending,
@@ -245,7 +238,7 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     'variants': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'variants',
-      associationType: Map,
+      associationType: Variant,
       associationIsNullable: true,
     ),
     'spplrTin': const RuntimeSupabaseColumnDefinition(
@@ -399,7 +392,7 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       association: true,
       columnName: 'variants',
       iterable: true,
-      type: Map,
+      type: Variant,
     ),
     'spplrTin': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -633,19 +626,16 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
 
       await Future.wait<void>(
         variantsIdsToDelete.map((id) async {
-          return await provider
-              .rawExecute(
-                'DELETE FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ? AND `f_Variant_brick_id` = ?',
-                [instance.primaryKey, id],
-              )
-              .catchError((e) => null);
+          return await provider.rawExecute(
+            'DELETE FROM `_brick_Purchase_variants` WHERE `l_Purchase_brick_id` = ? AND `f_Variant_brick_id` = ?',
+            [instance.primaryKey, id],
+          ).catchError((e) => null);
         }),
       );
 
       await Future.wait<int?>(
         instance.variants?.map((s) async {
-              final id =
-                  s.primaryKey ??
+              final id = s.primaryKey ??
                   await provider.upsert<Variant>(s, repository: repository);
               return await provider.rawInsert(
                 'INSERT OR IGNORE INTO `_brick_Purchase_variants` (`l_Purchase_brick_id`, `f_Variant_brick_id`) VALUES (?, ?)',
@@ -662,39 +652,43 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PurchaseFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PurchaseFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Purchase input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PurchaseToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PurchaseToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Purchase> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PurchaseFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PurchaseFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Purchase input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$PurchaseToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$PurchaseToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

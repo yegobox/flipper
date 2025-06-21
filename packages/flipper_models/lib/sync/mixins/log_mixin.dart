@@ -32,20 +32,20 @@ mixin LogMixin implements LogInterface {
     try {
       // Create a query to filter logs
       final whereConditions = <brick.Where>[];
-      
+
       if (type != null) {
         whereConditions.add(brick.Where('type').isExactly(type));
       }
-      
+
       if (businessId != null) {
         whereConditions.add(brick.Where('businessId').isExactly(businessId));
       }
-      
+
       final query = brick.Query(
         where: whereConditions,
         limit: limit,
       );
-      
+
       final logs = await repository.get<Log>(query: query);
       return logs;
     } catch (e, stackTrace) {
@@ -63,24 +63,24 @@ mixin LogMixin implements LogInterface {
       // Since Log model doesn't have a timestamp field by default,
       // we can't directly query by age. We'll need to fetch all logs
       // and filter them manually, or add a timestamp field to the Log model.
-      
+
       // For now, we'll just delete all logs of a specific business if provided
       final whereConditions = <brick.Where>[];
-      
+
       if (businessId != null) {
         whereConditions.add(brick.Where('businessId').isExactly(businessId));
       }
-      
+
       final query = brick.Query(where: whereConditions);
-      
+
       final logs = await repository.get<Log>(query: query);
-      
+
       int deletedCount = 0;
       for (final log in logs) {
         await repository.delete<Log>(log);
         deletedCount++;
       }
-      
+
       talker.info('Cleared $deletedCount logs');
       return deletedCount;
     } catch (e, stackTrace) {

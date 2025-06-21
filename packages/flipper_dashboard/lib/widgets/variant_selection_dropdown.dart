@@ -40,7 +40,8 @@ class VariantSelectionDropdown extends HookConsumerWidget {
       data: (variants) {
         if (variants.isEmpty) {
           return const Tooltip(
-            message: "No variants available to select. Please create variants first.",
+            message:
+                "No variants available to select. Please create variants first.",
             child: Text("No variants"),
           );
         }
@@ -49,7 +50,8 @@ class VariantSelectionDropdown extends HookConsumerWidget {
         Variant? currentlySelectedVariant;
         if (initialSelectedVariantId != null &&
             variants.any((v) => v.id == initialSelectedVariantId)) {
-          currentlySelectedVariant = variants.firstWhere((v) => v.id == initialSelectedVariantId);
+          currentlySelectedVariant =
+              variants.firstWhere((v) => v.id == initialSelectedVariantId);
         }
 
         return DropdownButton<String>(
@@ -73,10 +75,12 @@ class VariantSelectionDropdown extends HookConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2.0)),
+      loading: () =>
+          const Center(child: CircularProgressIndicator(strokeWidth: 2.0)),
       error: (error, stack) => Tooltip(
         message: error.toString(),
-        child: const Text('Error loading variants', style: TextStyle(color: Colors.red)),
+        child: const Text('Error loading variants',
+            style: TextStyle(color: Colors.red)),
       ),
     );
   }

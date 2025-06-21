@@ -417,7 +417,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement getReceiptFileName
     throw UnimplementedError();
   }
-  
+
   @override
   String? customerTin() {
     // TODO: implement customerTin

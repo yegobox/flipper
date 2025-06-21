@@ -1,11 +1,12 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250620195647.migration.dart';
+part '20250621191848.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250620195647(),};
+  const Migration20250621191848(),
+};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -600,7 +601,7 @@ final schema = Schema(
         SchemaColumn('item_ty_cd', Column.varchar),
         SchemaColumn('item_std_nm', Column.varchar),
         SchemaColumn('orgn_nat_cd', Column.varchar),
-        SchemaColumn('pkg', Column.varchar),
+        SchemaColumn('pkg', Column.integer),
         SchemaColumn('item_cd', Column.varchar),
         SchemaColumn('pkg_unit_cd', Column.varchar),
         SchemaColumn('qty_unit_cd', Column.varchar),
@@ -618,6 +619,45 @@ final schema = Schema(
         SchemaColumn('modr_id', Column.varchar),
         SchemaColumn('modr_nm', Column.varchar),
         SchemaColumn('last_touched', Column.datetime),
+        SchemaColumn('purchase_id', Column.varchar),
+        SchemaColumn(
+          'stock_Stock_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'Stock',
+          onDeleteCascade: false,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn('stock_id', Column.varchar),
+        SchemaColumn('tax_percentage', Column.num),
+        SchemaColumn('color', Column.varchar),
+        SchemaColumn('sku', Column.varchar),
+        SchemaColumn('product_id', Column.varchar),
+        SchemaColumn('unit', Column.varchar),
+        SchemaColumn('product_name', Column.varchar),
+        SchemaColumn('category_id', Column.varchar),
+        SchemaColumn('category_name', Column.varchar),
+        SchemaColumn('tax_name', Column.varchar),
+        SchemaColumn('supply_price', Column.Double),
+        SchemaColumn('retail_price', Column.Double),
+        SchemaColumn('spplr_item_nm', Column.varchar),
+        SchemaColumn('tot_wt', Column.integer),
+        SchemaColumn('net_wt', Column.integer),
+        SchemaColumn('spplr_nm', Column.varchar),
+        SchemaColumn('agnt_nm', Column.varchar),
+        SchemaColumn('invc_fcur_amt', Column.integer),
+        SchemaColumn('invc_fcur_cd', Column.varchar),
+        SchemaColumn('invc_fcur_excrt', Column.Double),
+        SchemaColumn('expt_nat_cd', Column.varchar),
+        SchemaColumn('dcl_no', Column.varchar),
+        SchemaColumn('task_cd', Column.varchar),
+        SchemaColumn('dcl_de', Column.varchar),
+        SchemaColumn('hs_cd', Column.varchar),
+        SchemaColumn('impt_item_stts_cd', Column.varchar),
+        SchemaColumn('is_shared', Column.boolean),
+        SchemaColumn('assigned', Column.boolean),
+        SchemaColumn('spplr_item_cls_cd', Column.varchar),
+        SchemaColumn('spplr_item_cd', Column.varchar),
         SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('ebm_synced', Column.boolean),
         SchemaColumn('part_of_composite', Column.boolean),
@@ -817,7 +857,6 @@ final schema = Schema(
           isPrimaryKey: true,
         ),
         SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('variants', Column.varchar),
         SchemaColumn('spplr_tin', Column.varchar),
         SchemaColumn('spplr_nm', Column.varchar),
         SchemaColumn('spplr_bhf_id', Column.varchar),
@@ -1388,6 +1427,8 @@ final schema = Schema(
         SchemaColumn('name', Column.varchar),
         SchemaColumn('value', Column.varchar),
         SchemaColumn('active', Column.boolean),
+        SchemaColumn('code', Column.varchar),
+        SchemaColumn('description', Column.varchar),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('created_at', Column.varchar),
       },

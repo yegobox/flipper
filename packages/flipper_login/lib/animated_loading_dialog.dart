@@ -51,12 +51,12 @@ class AnimatedLoadingDialogState extends State<AnimatedLoadingDialog>
   Future<void> dismissWithAnimation() async {
     // Reverse the animation (fade out)
     await _animationController.reverse();
-    
+
     // Call the onDismissComplete callback if provided
     if (widget.onDismissComplete != null) {
       widget.onDismissComplete!();
     }
-    
+
     // Pop the dialog if context is still valid
     if (mounted && Navigator.of(context).canPop()) {
       Navigator.of(context, rootNavigator: true).pop();

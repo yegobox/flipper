@@ -46,7 +46,7 @@ $formattedStack
 
       // Save to database
       await _saveLog(log);
-      
+
       // Also log to talker for immediate visibility
       talker.error('LogService captured: $exception', stackTrace);
     } catch (e, st) {

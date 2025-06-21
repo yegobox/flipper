@@ -35,7 +35,7 @@ abstract class TaxApi implements NoticeInterface {
       //sarTyCd 11 is for sale
       required String sarTyCd,
       bool isStockIn = false,
-      String custBhfId = "00",
+      String? custBhfId,
       required double totalSupplyPrice,
       required double totalvat,
       required double totalAmount,

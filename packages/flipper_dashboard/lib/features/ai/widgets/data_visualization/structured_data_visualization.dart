@@ -86,7 +86,8 @@ class StructuredDataVisualization implements VisualizationInterface {
       }
     }
 
-    final String currencyCode = data['currencyCode'] ?? '${ProxyService.box.defaultCurrency()}';
+    final String currencyCode =
+        data['currencyCode'] ?? '${ProxyService.box.defaultCurrency()}';
 
     // Include date in title if available
     final String displayTitle = date.isNotEmpty ? '$title for $date' : title;

@@ -16,7 +16,6 @@ import 'package:stacked_services/stacked_services.dart';
 import '../models/ticket_status.dart';
 import 'ticket_tile.dart';
 
-
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
 

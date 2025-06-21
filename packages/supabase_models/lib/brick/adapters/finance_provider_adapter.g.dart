@@ -82,9 +82,9 @@ class FinanceProviderAdapter
     ),
     'suppliersThatAcceptThisFinanceFacility':
         const RuntimeSupabaseColumnDefinition(
-          association: false,
-          columnName: 'suppliers_that_accept_this_finance_facility',
-        ),
+      association: false,
+      columnName: 'suppliers_that_accept_this_finance_facility',
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -118,11 +118,11 @@ class FinanceProviderAdapter
     ),
     'suppliersThatAcceptThisFinanceFacility':
         const RuntimeSqliteColumnDefinition(
-          association: false,
-          columnName: 'suppliers_that_accept_this_finance_facility',
-          iterable: false,
-          type: String,
-        ),
+      association: false,
+      columnName: 'suppliers_that_accept_this_finance_facility',
+      iterable: false,
+      type: String,
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
@@ -151,39 +151,43 @@ class FinanceProviderAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$FinanceProviderFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$FinanceProviderFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     FinanceProvider input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$FinanceProviderToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$FinanceProviderToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<FinanceProvider> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$FinanceProviderFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$FinanceProviderFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     FinanceProvider input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$FinanceProviderToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$FinanceProviderToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

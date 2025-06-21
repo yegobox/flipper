@@ -8,22 +8,27 @@ mixin CapellaSystemMixin implements SystemInterface {
   Talker get talker;
 
   @override
-  Future<void> configureSystem(String userPhone, IUser user, {required bool offlineLogin}) async {
-    throw UnimplementedError('configureSystem needs to be implemented for Capella');
+  Future<void> configureSystem(String userPhone, IUser user,
+      {required bool offlineLogin}) async {
+    throw UnimplementedError(
+        'configureSystem needs to be implemented for Capella');
   }
 
   @override
   Future<void> configureTheBox(String userPhone, IUser user) async {
-    throw UnimplementedError('configureTheBox needs to be implemented for Capella');
+    throw UnimplementedError(
+        'configureTheBox needs to be implemented for Capella');
   }
 
   @override
   Future<void> saveNeccessaryData(IUser user) async {
-    throw UnimplementedError('saveNeccessaryData needs to be implemented for Capella');
+    throw UnimplementedError(
+        'saveNeccessaryData needs to be implemented for Capella');
   }
 
   @override
   Future<void> suserbaseAuth() async {
-    throw UnimplementedError('suserbaseAuth needs to be implemented for Capella');
+    throw UnimplementedError(
+        'suserbaseAuth needs to be implemented for Capella');
   }
 }

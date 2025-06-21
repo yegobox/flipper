@@ -2187,6 +2187,14 @@ class CoreSync extends AiStrategyImpl
           /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
           final adjustmentTransaction = await _createAdjustmentTransaction();
           adjustmentTransaction?.items = items;
+          adjustmentTransaction?.orgSarNo = transaction.sarNo;
+          adjustmentTransaction?.sarNo = transaction.sarNo;
+          adjustmentTransaction?.customerName = transaction.customerName;
+          adjustmentTransaction?.customerTin = transaction.customerTin;
+          adjustmentTransaction?.remark = transaction.remark;
+          adjustmentTransaction?.customerBhfId = transaction.customerBhfId;
+          await repository.upsert<ITransaction>(adjustmentTransaction!);
+
           await _updateStockAndItems(
               items: items,
               branchId: branchId,
@@ -2292,8 +2300,6 @@ class CoreSync extends AiStrategyImpl
     try {
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-      final serverUrl = await ProxyService.box.getServerUrl();
-
       if (business == null) {
         throw Exception("Business not found");
       }
@@ -2306,10 +2312,10 @@ class CoreSync extends AiStrategyImpl
         branchId: branchId,
         adjustmentTransaction: adjustmentTransaction,
         business: business,
-        serverUrl: serverUrl,
       );
 
       // Assuming completeTransaction is defined in the same scope.
+
       await completeTransaction(pendingTransaction: adjustmentTransaction);
     } catch (e, s) {
       talker.error(s);
@@ -2354,7 +2360,6 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    String? serverUrl,
   }) async {
     for (TransactionItem item in items) {
       await _processSingleTransactionItem(
@@ -2362,7 +2367,6 @@ class CoreSync extends AiStrategyImpl
         branchId: branchId,
         adjustmentTransaction: adjustmentTransaction,
         business: business,
-        serverUrl: serverUrl,
       );
     }
   }
@@ -2372,7 +2376,6 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    String? serverUrl,
   }) async {
     if (!item.active!) {
       repository.delete(item);
@@ -2389,7 +2392,6 @@ class CoreSync extends AiStrategyImpl
       await _updateVariantAndPatchStock(
         variant: variant,
         item: item,
-        serverUrl: serverUrl,
       );
 
       // Assuming assignTransaction and randomNumber are defined in the same scope.
@@ -2423,20 +2425,10 @@ class CoreSync extends AiStrategyImpl
   Future<void> _updateVariantAndPatchStock({
     required Variant variant,
     required TransactionItem item,
-    String? serverUrl,
   }) async {
     ProxyService.box.writeBool(key: 'lockPatching', value: true);
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
-    if (serverUrl != null) {
-      VariantPatch. patchVariant(
-        URI: serverUrl,
-        identifier: variant.id,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-    }
   }
 
   Future<void> _updateStockForItem({
