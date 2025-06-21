@@ -17,6 +17,8 @@ class IUnit extends OfflineFirstWithSupabaseModel {
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
   bool? active;
+  String? code;
+  String? description;
 
   DateTime? lastTouched;
 
@@ -27,6 +29,8 @@ class IUnit extends OfflineFirstWithSupabaseModel {
     this.name,
     this.value,
     this.active,
+    this.code,
+    this.description,
     this.lastTouched,
     this.createdAt,
   }) : id = id ?? const Uuid().v4();

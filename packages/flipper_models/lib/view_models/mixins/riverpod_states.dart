@@ -5,6 +5,7 @@ import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -275,12 +276,18 @@ final variantsFutureProvider = FutureProvider.autoDispose
 final unitsProvider =
     FutureProvider.autoDispose<AsyncValue<List<IUnit>>>((ref) async {
   try {
-    final branchId = ProxyService.box.getBranchId()!;
+    // Use the unityOfQuantity constants from RRADEFAULTS
+    final units = RRADEFAULTS.unityOfQuantity.map((unitStr) {
+      final parts = unitStr.split(':');
+      return IUnit(
+        id: parts[1], // Use the number part as ID
+        name: parts[3], // Use the long description as name
+        code: parts[0], // Use the code
+        description: parts[3], // Use the long description
+      );
+    }).toList();
 
-    // Check if units are already present in the database
-    final existingUnits = await ProxyService.strategy.units(branchId: branchId);
-
-    return AsyncData(existingUnits);
+    return AsyncData(units);
   } catch (error) {
     // Return AsyncError with error and stack trace
     return AsyncError(error, StackTrace.current);
@@ -660,7 +667,6 @@ final branchSelectionProvider =
     StateNotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
   (ref) => BranchSelectionNotifier(),
 );
-
 
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, ({int branchId})>((ref, params) async {
