@@ -23,11 +23,17 @@ dependencies:
   mockito: ^5.4.5
   brick_offline_first: ^4.0.0
   sqflite_common_ffi_web: ^1.0.0
+  flipper_models: any
+  flipper_services: any
+  sqlite3_web: '>=0.2.1 <0.4.0'
+  sqlite3: ^2.7.5
   # never use realm for real data, we use realm as cache layer on whatever we aim to have real time update
   # e.g querying variant come with stock but refreshing this stock might be time consuming or not effient
   realm: ^20.1.1
-dependency_overrides: 
+dependency_overrides:
   device_info_plus: ^11.2.2
+  sqlite3: ^2.7.5
+  sqlite3_web: '>=0.2.1 <0.4.0'
   
 dev_dependencies:
   flutter_test:

@@ -6,15 +6,19 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
-import 'package:supabase_models/brick/TransactionType.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
+import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/services/ebm_sync_service.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
@@ -57,7 +61,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
   static const _queueFileBaseName = 'brick_offline_queue';
-  static const _standardVersion = 17;
+  static const _standardVersion = 18;
   static const _mobileTargetVersion = 18;
 
   // Flag to override version increment behavior (null = use platform default)
@@ -585,6 +589,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
   }
 
+  static double calculateTotalTax(double tax, Configurations config) {
+    final percentage = config.taxPercentage ?? 0;
+    return (tax * percentage) / 100 + percentage;
+  }
+
   @override
   Future<TModel> upsert<TModel extends OfflineFirstWithSupabaseModel>(
     TModel instance, {
@@ -602,9 +611,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     if (instance is ITransaction) {
       if (instance.ebmSynced == false &&
-          instance.transactionType == TransactionType.adjustment) {
-        // perform stock io and then master
-        print("items on save ${instance.items?.length}");
+          instance.status == COMPLETE) {
+        final serverUrl = await ProxyService.box.getServerUrl();
+        final ebmSyncService = EbmSyncService(this);
+        final synced = await ebmSyncService.syncTransactionWithEbm(
+          instance: instance,
+          serverUrl: serverUrl!,
+        );
+        if (synced) {
+          return instance;
+        }
+      }
+    }
+    if (instance is Variant) {
+      if (instance.ebmSynced == false) {
+        final serverUrl = await ProxyService.box.getServerUrl();
+        final ebmSyncService = EbmSyncService(this);
+        final synced = await ebmSyncService.syncVariantWithEbm(
+          instance: instance,
+          serverUrl: serverUrl!,
+        );
+        if (synced) {
+          return instance;
+        }
       }
     }
     return await super.upsert(instance, policy: policy, query: query);

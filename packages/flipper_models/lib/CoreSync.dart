@@ -2429,7 +2429,7 @@ class CoreSync extends AiStrategyImpl
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
     if (serverUrl != null) {
-      VariantPatch.patchVariant(
+      VariantPatch. patchVariant(
         URI: serverUrl,
         identifier: variant.id,
         sendPort: (message) {

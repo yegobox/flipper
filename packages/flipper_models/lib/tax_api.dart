@@ -29,8 +29,8 @@ abstract class TaxApi implements NoticeInterface {
       {required ITransaction transaction,
       required String tinNumber,
       required String bhFId,
-      required String customerName,
-      required String custTin,
+      String? customerName,
+      String? custTin,
       String? regTyCd = "A",
       //sarTyCd 11 is for sale
       required String sarTyCd,

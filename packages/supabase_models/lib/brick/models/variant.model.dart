@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
-  final String id;
+  String id;
 
   String? purchaseId;
 
@@ -321,7 +321,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   }
 
   // toJson() method
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFlipperJson() {
     return {
       'id': id,
       'name': name,

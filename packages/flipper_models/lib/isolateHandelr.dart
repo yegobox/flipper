@@ -164,8 +164,7 @@ mixin VariantPatch {
           sendPort(itemResponse.resultMsg);
         }
         return false;
-      }
-
+      } 
       // Then try to save the stock master
       final stockResponse =
           await RWTax().saveStockMaster(variant: variant, URI: URI);
