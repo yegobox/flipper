@@ -22,6 +22,13 @@ class EbmSyncService {
     /// sarTyCd is used to determine the type of transaction
     if (variant != null) {
       await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
+
+      /// skip saving a service in stock master
+      if (variant.itemCd != null &&
+          variant.itemCd!.isNotEmpty &&
+          variant.itemCd! == "3") {
+        throw Exception("Service item cannot be saved in stock master");
+      }
       await ProxyService.tax.saveStockMaster(variant: variant, URI: serverUrl);
     }
 
@@ -107,6 +114,14 @@ class EbmSyncService {
     ])))
         .firstOrNull;
     if (transaction != null) {
+      if (transaction.customerName == null ||
+          transaction.customerTin == null ||
+          transaction.sarNo == null ||
+          transaction.receiptType == "TS" ||
+          transaction.receiptType == "PS" ||
+          transaction.ebmSynced!) {
+        return false;
+      }
       talker
           .info("Syncing transaction with ${transaction.items?.length} items");
 
