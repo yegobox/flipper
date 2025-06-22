@@ -117,9 +117,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   // Cleanup timer when widget is disposed
+  // Controllers for quantity inputs per item (small device view)
+  final Map<String, TextEditingController> _quantityControllers = {};
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    for (final c in _quantityControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -1139,18 +1145,33 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       maxLines: 3,
       minLines: 1,
       suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
-      onChanged: (value) => ProxyService.box
-          .writeString(key: 'currentSaleCustomerPhoneNumber', value: value),
+      onChanged: (value) {
+        ProxyService.box
+            .writeString(key: 'currentSaleCustomerPhoneNumber', value: value);
+        // Only update customerTin if it's not already set
+        if (ProxyService.box.customerTin() == null) {
+          ProxyService.box.writeString(key: 'customerTin', value: value);
+        }
+      },
       validator: (String? value) {
-        if (value == null || value.isEmpty) {
+        final customerTin = ProxyService.box.customerTin();
+
+        // If customer TIN is not set, phone number becomes mandatory
+        if ((customerTin == null || customerTin.isEmpty) &&
+            (value == null || value.isEmpty)) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Please enter a phone number';
+          return 'Phone number is required when customer TIN is not available';
         }
-        final phoneExp = RegExp(r'^[1-9]\d{8}$');
-        if (!phoneExp.hasMatch(value)) {
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Please enter a valid 9-digit phone number without a leading zero';
+
+        // If phone number is provided, validate its format
+        if (value != null && value.isNotEmpty) {
+          final phoneExp = RegExp(r'^[1-9]\d{8}$');
+          if (!phoneExp.hasMatch(value)) {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            return 'Please enter a valid 9-digit phone number without a leading zero';
+          }
         }
+
         return null;
       },
     );
@@ -1209,8 +1230,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                   ),
                                   transactionId: transactionId);
 
-                          // Save the payment method code in ProxyService.box
-                          // Map payment methods to their corresponding codes:
+                          // Save the payment method in ProxyService.box
+                          ProxyService.box
+                              .writeString(key: 'paymentType', value: newValue);
+
+                          // Map payment methods to their corresponding codes for reference:
                           // Cash: 01
                           // Credit Card: 02
                           // CASH/CREDIT: 03

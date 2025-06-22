@@ -23,9 +23,19 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+// Stock validation functions have been moved to utils/stock_validator.dart
+
+/// Fetches transaction items for the given transaction ID
+Future<List<TransactionItem>> _getTransactionItems(
+    {required ITransaction transaction}) async {
+  final items = transaction.items ?? [];
+  return items.where((item) => item.active == true).toList();
+}
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
@@ -156,6 +166,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
       ProxyService.strategy.updateTransaction(
         transaction: transaction,
+        cashReceived: ProxyService.box.getCashReceived(),
         subTotal: itemsTotal - discountAmount,
       );
     } catch (e) {
@@ -172,10 +183,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try { 
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return;
+
+      // Validate stock levels before proceeding
+      final transactionItems =
+          await _getTransactionItems(transaction: transaction);
+      final outOfStockItems = await validateStockQuantity(transactionItems);
+      if (outOfStockItems.isNotEmpty) {
+        if (mounted) {
+          await showOutOfStockDialog(context, outOfStockItems);
+        }
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+        return;
+      }
       // update this transaction as completed
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: COMPLETE,
+        cashReceived: ProxyService.box.getCashReceived(),
       );
       // Save payment methods
       for (var payment in paymentMethods) {
@@ -253,6 +277,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: PENDING,
+        cashReceived: ProxyService.box.getCashReceived(),
       );
       // Example: Stop loading from another widget or function
       ref.read(payButtonStateProvider.notifier).stopLoading();

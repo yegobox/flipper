@@ -10,19 +10,17 @@ Future<Variant> _$VariantFromSupabase(
     id: data['id'] as String?,
     purchaseId:
         data['purchase_id'] == null ? null : data['purchase_id'] as String?,
-    stock:
-        data['stock'] == null
-            ? null
-            : await StockAdapter().fromSupabase(
-              data['stock'],
-              provider: provider,
-              repository: repository,
-            ),
+    stock: data['stock'] == null
+        ? null
+        : await StockAdapter().fromSupabase(
+            data['stock'],
+            provider: provider,
+            repository: repository,
+          ),
     stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
-    taxPercentage:
-        data['tax_percentage'] == null
-            ? null
-            : data['tax_percentage'] as num? ?? 18.0,
+    taxPercentage: data['tax_percentage'] == null
+        ? null
+        : data['tax_percentage'] as num? ?? 18.0,
     name: data['name'] as String,
     color: data['color'] == null ? null : data['color'] as String?,
     sku: data['sku'] == null ? null : data['sku'] as String?,
@@ -71,30 +69,27 @@ Future<Variant> _$VariantFromSupabase(
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
     modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
     modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     supplyPrice:
         data['supply_price'] == null ? null : data['supply_price'] as double?,
     retailPrice:
         data['retail_price'] == null ? null : data['retail_price'] as double?,
-    spplrItemClsCd:
-        data['spplr_item_cls_cd'] == null
-            ? null
-            : data['spplr_item_cls_cd'] as String?,
+    spplrItemClsCd: data['spplr_item_cls_cd'] == null
+        ? null
+        : data['spplr_item_cls_cd'] as String?,
     spplrItemCd:
         data['spplr_item_cd'] == null ? null : data['spplr_item_cd'] as String?,
     spplrItemNm:
         data['spplr_item_nm'] == null ? null : data['spplr_item_nm'] as String?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
     dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
-    expirationDate:
-        data['expiration_date'] == null
-            ? null
-            : data['expiration_date'] == null
+    expirationDate: data['expiration_date'] == null
+        ? null
+        : data['expiration_date'] == null
             ? null
             : DateTime.tryParse(data['expiration_date'] as String),
     totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
@@ -105,26 +100,26 @@ Future<Variant> _$VariantFromSupabase(
         data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
     invcFcurCd:
         data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
-    invcFcurExcrt:
-        data['invc_fcur_excrt'] == null
-            ? null
-            : data['invc_fcur_excrt'] as double?,
+    invcFcurExcrt: data['invc_fcur_excrt'] == null
+        ? null
+        : data['invc_fcur_excrt'] as double?,
     exptNatCd:
         data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
     dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
     taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
     dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
     hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-    imptItemSttsCd:
-        data['impt_item_stts_cd'] == null
-            ? null
-            : data['impt_item_stts_cd'] as String?,
+    imptItemSttsCd: data['impt_item_stts_cd'] == null
+        ? null
+        : data['impt_item_stts_cd'] as String?,
     taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
     taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
     totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
     pchsSttsCd:
         data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
+    assigned:
+        data['assigned'] == null ? null : data['assigned'] as bool? ?? false,
   );
 }
 
@@ -136,14 +131,13 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
   return {
     'id': instance.id,
     'purchase_id': instance.purchaseId,
-    'stock':
-        instance.stock != null
-            ? await StockAdapter().toSupabase(
-              instance.stock!,
-              provider: provider,
-              repository: repository,
-            )
-            : null,
+    'stock': instance.stock != null
+        ? await StockAdapter().toSupabase(
+            instance.stock!,
+            provider: provider,
+            repository: repository,
+          )
+        : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -211,6 +205,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'tot_amt': instance.totAmt,
     'pchs_stts_cd': instance.pchsSttsCd,
     'is_shared': instance.isShared,
+    'assigned': instance.assigned,
   };
 }
 
@@ -223,18 +218,18 @@ Future<Variant> _$VariantFromSqlite(
     id: data['id'] as String,
     purchaseId:
         data['purchase_id'] == null ? null : data['purchase_id'] as String?,
-    stock:
-        data['stock_Stock_brick_id'] == null
-            ? null
-            : (data['stock_Stock_brick_id'] > -1
-                ? (await repository?.getAssociation<Stock>(
-                  Query.where(
-                    'primaryKey',
-                    data['stock_Stock_brick_id'] as int,
-                    limit1: true,
-                  ),
-                ))?.first
-                : null),
+    stock: data['stock_Stock_brick_id'] == null
+        ? null
+        : (data['stock_Stock_brick_id'] > -1
+            ? (await repository?.getAssociation<Stock>(
+                Query.where(
+                  'primaryKey',
+                  data['stock_Stock_brick_id'] as int,
+                  limit1: true,
+                ),
+              ))
+                ?.first
+            : null),
     stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
     taxPercentage:
         data['tax_percentage'] == null ? null : data['tax_percentage'],
@@ -286,30 +281,27 @@ Future<Variant> _$VariantFromSqlite(
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
     modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
     modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     supplyPrice:
         data['supply_price'] == null ? null : data['supply_price'] as double?,
     retailPrice:
         data['retail_price'] == null ? null : data['retail_price'] as double?,
-    spplrItemClsCd:
-        data['spplr_item_cls_cd'] == null
-            ? null
-            : data['spplr_item_cls_cd'] as String?,
+    spplrItemClsCd: data['spplr_item_cls_cd'] == null
+        ? null
+        : data['spplr_item_cls_cd'] as String?,
     spplrItemCd:
         data['spplr_item_cd'] == null ? null : data['spplr_item_cd'] as String?,
     spplrItemNm:
         data['spplr_item_nm'] == null ? null : data['spplr_item_nm'] as String?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
     dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
-    expirationDate:
-        data['expiration_date'] == null
-            ? null
-            : data['expiration_date'] == null
+    expirationDate: data['expiration_date'] == null
+        ? null
+        : data['expiration_date'] == null
             ? null
             : DateTime.tryParse(data['expiration_date'] as String),
     totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
@@ -320,26 +312,25 @@ Future<Variant> _$VariantFromSqlite(
         data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
     invcFcurCd:
         data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
-    invcFcurExcrt:
-        data['invc_fcur_excrt'] == null
-            ? null
-            : data['invc_fcur_excrt'] as double?,
+    invcFcurExcrt: data['invc_fcur_excrt'] == null
+        ? null
+        : data['invc_fcur_excrt'] as double?,
     exptNatCd:
         data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
     dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
     taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
     dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
     hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-    imptItemSttsCd:
-        data['impt_item_stts_cd'] == null
-            ? null
-            : data['impt_item_stts_cd'] as String?,
+    imptItemSttsCd: data['impt_item_stts_cd'] == null
+        ? null
+        : data['impt_item_stts_cd'] as String?,
     taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
     taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
     totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
     pchsSttsCd:
         data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
+    assigned: data['assigned'] == null ? null : data['assigned'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -351,14 +342,13 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
   return {
     'id': instance.id,
     'purchase_id': instance.purchaseId,
-    'stock_Stock_brick_id':
-        instance.stock != null
-            ? instance.stock!.primaryKey ??
-                await provider.upsert<Stock>(
-                  instance.stock!,
-                  repository: repository,
-                )
-            : null,
+    'stock_Stock_brick_id': instance.stock != null
+        ? instance.stock!.primaryKey ??
+            await provider.upsert<Stock>(
+              instance.stock!,
+              repository: repository,
+            )
+        : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'name': instance.name,
@@ -428,6 +418,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'pchs_stts_cd': instance.pchsSttsCd,
     'is_shared':
         instance.isShared == null ? null : (instance.isShared! ? 1 : 0),
+    'assigned': instance.assigned == null ? null : (instance.assigned! ? 1 : 0),
   };
 }
 
@@ -722,6 +713,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'isShared': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_shared',
+    ),
+    'assigned': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'assigned',
     ),
   };
   @override
@@ -1156,6 +1151,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       iterable: false,
       type: bool,
     ),
+    'assigned': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'assigned',
+      iterable: false,
+      type: bool,
+    ),
   };
   @override
   Future<int?> primaryKeyByUniqueColumns(
@@ -1184,39 +1185,43 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Variant input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Variant> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Variant input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$VariantToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$VariantToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

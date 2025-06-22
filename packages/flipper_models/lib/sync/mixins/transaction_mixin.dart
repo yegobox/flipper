@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -48,10 +49,12 @@ mixin TransactionMixin implements TransactionInterface {
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
   }) async {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE), // Ensure default value
-      Where('isOriginalTransaction').isExactly(true),
+      if (skipOriginalTransactionCheck == false)
+        Where('isOriginalTransaction').isExactly(true),
       if (!includeZeroSubTotal)
         Where('subTotal').isGreaterThan(0), // Optional condition
       if (id != null) Where('id').isExactly(id),
@@ -110,6 +113,95 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
+  Future<List<TransactionWithItems>> transactionsAndItems({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool fetchRemote = false,
+    String? id,
+    bool isExpense = false,
+    FilterType? filterType,
+    bool includeZeroSubTotal = false,
+    bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
+  }) async {
+    // Step 1: Fetch transactions using the same logic as the transactions() method
+    final transactionss = await transactions(
+      startDate: startDate,
+      endDate: endDate,
+      status: status,
+      transactionType: transactionType,
+      branchId: branchId,
+      isCashOut: isCashOut,
+      fetchRemote: fetchRemote,
+      id: id,
+      isExpense: isExpense,
+      filterType: filterType,
+      includeZeroSubTotal: includeZeroSubTotal,
+      includePending: includePending,
+      skipOriginalTransactionCheck: skipOriginalTransactionCheck,
+    );
+    if (transactionss.isEmpty) return [];
+
+    // Step 2: Fetch all items for these transactions in one batch
+    final List<String> transactionIds = transactionss
+        .map((t) => t.id) // t.id is non-nullable String
+        .where((id) => id.isNotEmpty) // Only check for isNotEmpty
+        .toSet() // Remove duplicates
+        .toList(); // Convert the Set back to a List
+
+    List<TransactionItem> items = []; // Default to empty list
+
+    if (transactionIds.isNotEmpty) {
+      // Construct the list of OR conditions for transaction IDs
+      final List<WhereCondition> orConditions = transactionIds.map((id) {
+        // Each Where condition for an ID is optional (OR'd with the next)
+        return Where('transactionId',
+            value: id, compare: Compare.exact, isRequired: false);
+      }).toList();
+
+      // Create a WherePhrase to group these OR conditions.
+      // This phrase itself is required for the query.
+      final WherePhrase transactionIdInPhrase =
+          WherePhrase(orConditions, isRequired: true);
+
+      items = await repository.get<TransactionItem>(
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [transactionIdInPhrase]),
+      );
+    }
+
+    // Step 3: Map items to their transactions
+    final Map<String, List<TransactionItem>> itemsByTransactionId = {};
+    for (final item in items) {
+      final tid = item.transactionId;
+      if (tid == null) continue;
+      itemsByTransactionId.putIfAbsent(tid, () => []).add(item);
+    }
+
+    // Step 4: Build the result list, skipping transactions with no items
+    final List<TransactionWithItems> result = [];
+    for (final t in transactionss) {
+      final List<TransactionItem>? transactionSpecificItems =
+          itemsByTransactionId[t.id];
+      // Only include the transaction if it has associated items
+      if (transactionSpecificItems != null &&
+          transactionSpecificItems.isNotEmpty) {
+        result.add(TransactionWithItems(
+          transaction: t,
+          items: transactionSpecificItems,
+        ));
+      }
+    }
+    return result;
+  }
+
+  @override
   Future<List<Configurations>> taxes({required int branchId}) async {
     return await repository.get<Configurations>(
       query: Query(where: [
@@ -146,13 +238,14 @@ mixin TransactionMixin implements TransactionInterface {
     required String transactionType,
     required bool isExpense,
     bool includeSubTotalCheck = true,
+    required String status,
   }) async {
     try {
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
         Where('isExpense').isExactly(isExpense),
-        Where('status').isExactly(PENDING),
+        Where('status').isExactly(status),
         Where('transactionType').isExactly(transactionType),
       ];
 
@@ -200,6 +293,7 @@ mixin TransactionMixin implements TransactionInterface {
     required String transactionType,
     required bool isExpense,
     required int branchId,
+    String status = PENDING,
     bool includeSubTotalCheck = false,
   }) async {
     return await _transactionLock.synchronized(() async {
@@ -214,6 +308,7 @@ mixin TransactionMixin implements TransactionInterface {
           isExpense: isExpense,
           transactionType: transactionType,
           includeSubTotalCheck: true,
+          status: status,
         );
 
         if (existTransaction != null) return existTransaction;
@@ -274,6 +369,7 @@ mixin TransactionMixin implements TransactionInterface {
     ITransaction? transaction = await _pendingTransaction(
       branchId: branchId,
       isExpense: isExpense,
+      status: PENDING,
       transactionType: transactionType,
       includeSubTotalCheck: true,
     );
@@ -314,6 +410,7 @@ mixin TransactionMixin implements TransactionInterface {
       final updatedTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
+        status: PENDING,
         transactionType: transactionType,
         includeSubTotalCheck: true,
       );
@@ -407,6 +504,7 @@ mixin TransactionMixin implements TransactionInterface {
     await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
+      taxAmount: pendingTransaction.taxAmount ?? 0,
       sarNo: invoiceNumber != null
           ? invoiceNumber.toString()
           : purchase?.spplrInvcNo.toString(),
@@ -418,7 +516,7 @@ mixin TransactionMixin implements TransactionInterface {
       reference: randomNumber.toString(),
       invoiceNumber: invoiceNumber ?? randomNumber,
       receiptType: TransactionType.adjustment,
-      customerTin: ProxyService.box.tin().toString(),
+      customerTin: ProxyService.box.customerTin() ?? "",
       customerBhfId: await ProxyService.box.bhfId() ?? "00",
       subTotal: pendingTransaction.subTotal! > 0
           ? pendingTransaction.subTotal!
@@ -474,6 +572,11 @@ mixin TransactionMixin implements TransactionInterface {
       talker.error(s);
       rethrow;
     }
+  }
+
+  @override
+  FutureOr<void> addTransaction({required ITransaction transaction}) {
+    repository.upsert(transaction);
   }
 
   Future<void> addTransactionItems(
@@ -633,6 +736,7 @@ mixin TransactionMixin implements TransactionInterface {
     await ProxyService.strategy.updateTransaction(
       transaction: pendingTransaction,
       subTotal: newSubTotal,
+      taxAmount: pendingTransaction.taxAmount ?? 0,
       updatedAt: newUpdatedAt,
       lastTouched: newLastTouched,
       receiptType: "NS",
@@ -651,6 +755,7 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   FutureOr<void> updateTransaction({
     required ITransaction? transaction,
+    num taxAmount = 0.0,
     String? receiptType,
     double? subTotal,
     String? note,
@@ -708,6 +813,8 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
     transaction.ticketName = ticketName ?? transaction.ticketName;
+    transaction.taxAmount =
+        taxAmount == 0.0 ? transaction.taxAmount : taxAmount;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;

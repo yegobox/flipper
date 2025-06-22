@@ -1,5 +1,4 @@
 import 'dart:async' show FutureOr;
-import 'dart:io';
 
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -144,24 +143,24 @@ mixin DeleteMixin implements DeleteInterface {
             .firstOrNull;
         if (request != null) {
           // get dependent first
-          final financing = await repository.get<Financing>(
-            query: Query(where: [Where('id').isExactly(request.financingId)]),
-          );
-          try {
-            await repository.delete<Financing>(
-              financing.first,
-              query: Query(
-                  action: QueryAction.delete,
-                  where: [Where('id').isExactly(financing.first.id)]),
+          if (request.financing != null) {
+            final financing = await repository.get<Financing>(
+              query:
+                  Query(where: [Where('id').isExactly(request.financing!.id)]),
             );
-          } catch (e) {
-            talker.warning(e);
+            try {
+              await repository.delete<Financing>(
+                financing.first,
+                query: Query(
+                    action: QueryAction.delete,
+                    where: [Where('id').isExactly(financing.first.id)]),
+              );
+            } catch (e) {
+              talker.warning(e);
+            }
           }
-          await repository.delete<InventoryRequest>(
-            request,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
+
+          await repository.delete<InventoryRequest>(request);
         }
       case 'tenant':
         final tenant = (await ProxyService.strategy.tenant(

@@ -6,7 +6,7 @@ final ebmVatEnabledProvider = FutureProvider<bool>((ref) async {
   try {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) return false;
-    
+
     final ebm = await ProxyService.strategy.ebm(branchId: branchId);
     // Return the VAT enabled status, default to false if ebm is null
     return ebm?.vatEnabled ?? false;

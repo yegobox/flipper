@@ -2,6 +2,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 
 // "Request parameter error: Validation error for fields: [ 'regrNm': must not be empty. rejected value: 'null',  'regrId': must not be empty. rejected value: 'null',  'modrNm': must not be empty. rejected value: 'null']]",
@@ -11,7 +12,7 @@ import 'package:uuid/uuid.dart';
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
-  final String id;
+  String id;
 
   String? purchaseId;
 
@@ -28,8 +29,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productId;
   String? unit;
   String? productName;
-  String? categoryId;  // Reference to the category
-  String? categoryName;  // Name of the category
+  String? categoryId; // Reference to the category
+  String? categoryName; // Name of the category
   int? branchId;
   String? taxName;
 
@@ -134,9 +135,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   bool? isShared;
 
+  @Sqlite(defaultValue: "false")
+  @Supabase(defaultValue: "false")
+  bool? assigned;
+
   Variant({
     String? id,
-    String? pchsSttsCd,
+    this.pchsSttsCd,
     bool? isShared,
     this.qty,
     this.stock,
@@ -201,7 +206,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.taskCd,
     this.dclDe,
     this.hsCd,
-    String? imptItemSttsCd,
+    this.imptItemSttsCd,
     this.barCode,
     this.bcdU,
     this.quantity,
@@ -210,11 +215,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.totAmt,
     this.taxblAmt,
     this.taxAmt,
+    bool? assigned,
     this.dcAmt = 0.0,
   })  : id = id ?? const Uuid().v4(),
-        imptItemSttsCd = imptItemSttsCd ?? '3',
+        assigned = assigned ?? false,
         isShared = isShared ?? false,
-        pchsSttsCd = pchsSttsCd ?? '3',
         modrId = modrId ?? const Uuid().v4().substring(0, 5);
 
   // fromJson method
@@ -317,7 +322,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   }
 
   // toJson() method
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFlipperJson() {
     return {
       'id': id,
       'name': name,
@@ -545,6 +550,79 @@ class Variant extends OfflineFirstWithSupabaseModel {
       taxblAmt: taxblAmt ?? this.taxblAmt,
       taxAmt: taxAmt ?? this.taxAmt,
       purchaseId: purchaseId ?? this.purchaseId,
+    );
+  }
+
+  static Variant copyFromTransactionItem(TransactionItem item) {
+    return Variant(
+      id: item.variantId!,
+      name: item.name,
+      color: item.color,
+      stock: item.stock,
+      qty: item.qty,
+      sku: item.sku,
+      productId: item.productId,
+      unit: item.unit,
+      productName: item.productName,
+      categoryId: item.categoryId,
+      categoryName: item.categoryName,
+      branchId: 1,
+      taxName: item.taxName,
+      taxPercentage: item.taxPercentage,
+      itemSeq: item.itemSeq,
+      isrccCd: item.isrccCd,
+      isrccNm: item.isrccNm,
+      isrcRt: item.isrcRt,
+      isrcAmt: item.isrcAmt,
+      taxTyCd: item.taxTyCd,
+      bcd: item.bcd,
+      itemClsCd: item.itemClsCd,
+      itemTyCd: item.itemTyCd,
+      itemStdNm: item.itemStdNm,
+      orgnNatCd: item.orgnNatCd,
+      pkg: item.pkg,
+      itemCd: item.itemCd,
+      pkgUnitCd: item.pkgUnitCd,
+      qtyUnitCd: item.qtyUnitCd,
+      itemNm: item.itemNm,
+      prc: item.prc,
+      splyAmt: item.splyAmt,
+      tin: item.tin,
+      bhfId: item.bhfId,
+      dftPrc: item.dftPrc,
+      addInfo: item.addInfo,
+      isrcAplcbYn: item.isrcAplcbYn,
+      useYn: item.useYn,
+      regrId: item.regrId,
+      regrNm: item.regrNm,
+      modrId: item.modrId,
+      modrNm: item.modrNm,
+      lastTouched: item.lastTouched,
+      supplyPrice: item.supplyPrice,
+      retailPrice: item.retailPrice,
+      spplrItemClsCd: item.spplrItemClsCd,
+      spplrItemCd: item.spplrItemCd,
+      spplrItemNm: item.spplrItemNm,
+      ebmSynced: item.ebmSynced,
+      dcRt: item.dcRt,
+      totWt: item.totWt,
+      netWt: item.netWt,
+      spplrNm: item.spplrNm,
+      agntNm: item.agntNm,
+      invcFcurAmt: item.invcFcurAmt,
+      invcFcurCd: item.invcFcurCd,
+      invcFcurExcrt: item.invcFcurExcrt,
+      exptNatCd: item.exptNatCd,
+      dclNo: item.dclNo,
+      taskCd: item.taskCd,
+      dclDe: item.dclDe,
+      hsCd: item.hsCd,
+      imptItemSttsCd: item.imptItemSttsCd,
+      totAmt: item.totAmt,
+      taxblAmt: item.taxblAmt,
+      taxAmt: item.taxAmt,
+      dcAmt: item.dcAmt,
+      purchaseId: item.purchaseId,
     );
   }
 }

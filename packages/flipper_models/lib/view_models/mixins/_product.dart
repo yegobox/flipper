@@ -27,7 +27,7 @@ mixin ProductMixin {
 
   Future<void> addVariant(
       {List<Variant>? variations,
-      required packagingUnit,
+      required String packagingUnit,
       Map<String, TextEditingController>? rates,
       Map<String, TextEditingController>? dates,
       double? retailPrice,
@@ -62,13 +62,33 @@ mixin ProductMixin {
           await ProxyService.strategy.category(id: categoryId!);
       List<Variant> updatables = [];
       for (var i = 0; i < variations!.length; i++) {
-        variations[i].pkgUnitCd = packagingUnit;
+        // Parse the packagingUnit string to extract code and name
+        if (packagingUnit.isNotEmpty) {
+          final parts = packagingUnit.split(':');
+          if (parts.length >= 4) {
+            // Format: "CODE:NUMBER:SHORT_DESCRIPTION:LONG_DESCRIPTION"
+            final unitCode = parts[0];
+            // Set all unit-related fields
+            variations[i].pkgUnitCd = unitCode;
+          } else {
+            // Fallback if the format is different
+            variations[i].pkgUnitCd = parts[0];
+          }
+        } else {
+          // Fallback for non-string or empty packagingUnit
+          final unitStr = packagingUnit.toString();
+          variations[i].pkgUnitCd = unitStr;
+        }
         final number = randomNumber().toString().substring(0, 5);
 
         variations[i].itemClsCd = variations[i].itemClsCd ?? "5020230602";
         variations[i].isrccNm = "";
         variations[i].isrcRt = 0;
-        variations[i].categoryId = category?.id;
+        if (variations[i].qtyUnitCd == null ||
+            variations[i].qtyUnitCd!.isEmpty ||
+            variations[i].qtyUnitCd!.length == 'null') {
+          variations[i].qtyUnitCd = "U";
+        }
         variations[i].categoryName = category?.name;
         variations[i].dcRt = rates?[variations[i]] == null
             ? 0
@@ -107,9 +127,9 @@ mixin ProductMixin {
         variations[i].bcd = variations[i].bcd;
         variations[i].splyAmt = variations[i].supplyPrice;
 
-        /// country of origin for this item we default until we support something different
+        /// country of origin for this item comes from the selected country in CountryOfOriginSelector
         /// and this will happen when we do import.
-        variations[i].orgnNatCd = "RW";
+        variations[i].orgnNatCd = countryofOrigin;
         variations[i].itemNm = productName;
         variations[i].name = productName;
 
@@ -129,8 +149,8 @@ mixin ProductMixin {
         variations[i].spplrItemNm = productName;
         variations[i].ebmSynced = false;
 
-        /// Packaging Unit
-        variations[i].qtyUnitCd = "U"; // see 4.6 in doc
+        // Unit fields are already set above
+
         updatables.add(variations[i]);
       }
 

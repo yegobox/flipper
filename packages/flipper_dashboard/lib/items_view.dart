@@ -337,7 +337,10 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
               child: DataTable(
                 columnSpacing: 20,
                 headingRowColor: WidgetStateProperty.all(
-                  Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                  Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withOpacity(0.3),
                 ),
                 columns: const [
                   DataColumn(label: Text('ID')),

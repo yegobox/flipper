@@ -77,39 +77,66 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     request.headers.addAll(headers);
 
     http.StreamedResponse streamedResponse = await request.send();
+    String responseBody = await streamedResponse.stream.bytesToString();
 
-    if (streamedResponse.statusCode == 200) {
-      // Read the response body as a string
-      String responseBody = await streamedResponse.stream.bytesToString();
+    // Parse the response body to check for error messages
+    try {
+      final jsonResponse = jsonDecode(responseBody);
 
-      // Decode the JSON string into a Map
-      Map<String, dynamic> jsonMap = jsonDecode(responseBody);
+      // Check if this is an error response
+      if (jsonResponse is Map<String, dynamic> &&
+          jsonResponse.containsKey('resultCd') &&
+          jsonResponse['resultCd'] != '0000') {
+        // This is an error response from the API
+        final errorMessage = jsonResponse['resultMsg'] ?? 'Unknown error';
+        throw Exception(errorMessage);
+      }
 
-      // Create a BusinessInfoResponse object from the Map
-      BusinessInfoResponse response = BusinessInfoResponse.fromJson(jsonMap);
-
-      // Return the BusinessInfo object from the BusinessInfoResponse
-      return response.data.info;
-    } else {
-      // Handle the error case
-      print(streamedResponse.reasonPhrase);
-      throw Exception(
-          'Failed to load BusinessInfo: ${streamedResponse.reasonPhrase}'); // Throw an exception to indicate failure
+      // If we get here, it's a successful response
+      if (streamedResponse.statusCode == 200) {
+        // Create a BusinessInfoResponse object from the response
+        BusinessInfoResponse response =
+            BusinessInfoResponse.fromJson(jsonResponse);
+        return response.data.info;
+      } else {
+        throw Exception(
+            'Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}');
+      }
+    } catch (e) {
+      // If JSON parsing fails or any other error occurs, rethrow with the original response
+      if (e is FormatException) {
+        throw Exception('Invalid response from server: $responseBody');
+      }
+      rethrow; // Rethrow the original exception if it's not a FormatException
     }
   }
 
+  /// Saves stock item transactions to the RRA (Rwanda Revenue Authority) system.
+  ///
+  /// IMPORTANT: Before calling this method, you must first save the item/variant details
+  /// using [saveItem()] to ensure the item exists in the RRA system.
+  ///
+  /// This method is used for recording stock movements (in/out) and requires:
+  /// - The item must already exist in the RRA system (via saveItem)
+  /// - Transaction details including customer information
+  /// - Tax and amount calculations
+  /// - Business location details (bhfId)
+  ///
+  /// The [sarTyCd] parameter indicates the type of stock movement:
+  /// - '11' for sales (stock out)
+  /// - Other codes for different stock movement types
   @override
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,
       required String tinNumber,
       required String bhFId,
-      required String customerName,
-      required String custTin,
+      String? customerName,
+      String? custTin,
       String? regTyCd = "A",
       //sarTyCd 11 is for sale
       required String sarTyCd,
       bool isStockIn = false,
-      String custBhfId = "",
+      String? custBhfId,
       required double totalSupplyPrice,
       required double totalvat,
       required double totalAmount,
@@ -124,13 +151,17 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final sar = randomNumber();
       final branchId = (await ProxyService.strategy.activeBranch()).id;
       // Query active, done items only
-      final items = await ProxyService.strategy.transactionItems(
+      List<TransactionItem> items =
+          await ProxyService.strategy.transactionItems(
         branchId: branchId,
         transactionId: transaction.id,
         doneWithTransaction: true,
         active: true,
       );
-
+      if (items.isEmpty) items = transaction.items ?? [];
+      if (items.any((item) => item.itemCd == "3")) {
+        throw Exception("Service item cannot be saved in IO");
+      }
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async => await mapItemToJson(item, bhfId: bhFId))
           .toList());
@@ -154,7 +185,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "tin": tinNumber,
         "bhfId": bhFId,
         "regTyCd": regTyCd,
-        "custTin": custTin.isValidTin() ? custTin : "",
+        "custTin": custTin == null ? null : custTin.isValidTin(),
         "custNm": effectiveCustomerName,
         "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
@@ -172,7 +203,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
-      if (!custTin.isValidTin()) {
+      if (custTin != null && !custTin.isValidTin()) {
         json.remove('custTin');
       }
       talker.info(json);
@@ -234,12 +265,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       variant.rsdQty =
           double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
-      talker.warning("RSD QTY: ${variant.toJson()}");
+      talker.warning("RSD QTY: ${variant.toFlipperJson()}");
       // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
       if (variant.itemTyCd == '3') {
         variant.rsdQty = 0;
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "Invalid data while saving stock");
       }
-      Response response = await sendPostRequest(url, variant.toJson());
+      Response response = await sendPostRequest(url, variant.toFlipperJson());
 
       final data = RwApiResponse.fromJson(
         response.data,
@@ -298,14 +331,22 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     log('Error: $error\nStack Trace: $stackTrace');
   }
 
-  /// save item to rra api for later purchase
-  /// in flipper we don't save product we have variation of product
-  /// since this variation are the one to be reported to EBM server at the end.
-  /// @[itemCd] @[itemClsCd] @[itemStdNm] and others will be required to be passed
-  /// when creating an invoice or receipt
-  ///  you can save the product information in server. This API function performs storing item information managed by the taxpayer client in
-  /// the server. For more information, refer to '3.2.4.1 ItemSaveReq/Res'
-  /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
+  /// Saves an item/variant to the RRA (Rwanda Revenue Authority) system.
+  ///
+  /// This method MUST be called before using [saveStockItems()] for any item.
+  /// It registers the item's details with the tax authority, including:
+  /// - Item code (itemCd)
+  /// - Item classification (itemClsCd)
+  /// - Standard name (itemStdNm)
+  /// - Tax information
+  ///
+  /// In Flipper, we work with product variations rather than base products,
+  /// as these variations are what get reported to the EBM server.
+  ///
+  /// After successfully saving an item, you can use the items/selectItems
+  /// endpoint to retrieve the saved item information.
+  ///
+  /// For more details, refer to RRA API documentation section '3.2.4.1 ItemSaveReq/Res'.
   @override
   Future<RwApiResponse> saveItem(
       {required Variant variation, required String URI}) async {
@@ -328,7 +369,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       }
 
       /// first remove fields for imports
-      final itemJson = variation.toJson();
+      final itemJson = variation.toFlipperJson();
       itemJson.removeWhere((key, value) =>
           [
             "totWt",
@@ -558,15 +599,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       remainingStock: item.remainingStock!,
       itemCd: item.itemCd,
       variantId: item.variantId,
-      qtyUnitCd: "U",
+      qtyUnitCd: item.qtyUnitCd,
       regrNm: item.regrNm ?? "Registrar",
 
       // Fixed calculations
       dcRt: discountRate,
       dcAmt: totalDiscountAmount,
       totAmt: totalAfterDiscount,
-
-      pkg: quantity.toString(),
+      pkg: quantity.toInt(),
       taxblAmt: totalAfterDiscount,
       taxAmt: taxAmount,
       itemClsCd: item.itemClsCd,
@@ -580,8 +620,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       bcd: item.bcd,
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
-      orgnNatCd: "RW",
-      pkgUnitCd: "NT",
+      orgnNatCd: item.orgnNatCd ?? "RW",
+      pkgUnitCd: item.pkgUnitCd,
       splyAmt: item.price * item.qty,
       price: item.price,
       bhfId: item.bhfId ?? bhfId,
@@ -596,7 +636,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       modrId: item.modrId ?? randomString().substring(0, 8),
       modrNm: item.modrNm ?? randomString().substring(0, 8),
       name: item.name,
-    ).toJson();
+    ).toFlipperJson();
     itemJson.removeWhere((key, value) =>
         [
           "active",
@@ -969,7 +1009,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     data['rcptTyCd'] = rcptTyCd;
     data['itemList'] = variants.map((variant) {
       variant.qty = variant.stock?.currentStock ?? 0;
-      return variant.toJson();
+      return variant.toFlipperJson();
     }).toList();
     final talker = Talker();
     try {
@@ -1074,7 +1114,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .replace(path: Uri.parse(URI).path + 'imports/updateImportItems')
         .toString();
 
-    final data = item.toJson();
+    final data = item.toFlipperJson();
     final talker = Talker();
 
     try {

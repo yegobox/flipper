@@ -243,7 +243,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     );
   }
   // to json
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFlipperJson() {
     return {
       'id': id,
       'server_id': serverId,

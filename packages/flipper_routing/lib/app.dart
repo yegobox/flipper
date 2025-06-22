@@ -94,7 +94,7 @@ class App {}
 // modal_bottom_sheet: ^3.0.0-pre
 // ``dart run build_runner build --delete-conflicting-outputs``
 // dart run jnigen --config jnigen.yaml
-// flutter build apk --release 
+// flutter build apk --release
 // dart run build_runner watch
 // `dart run realm generate --watch`
 // dart pub cache clean
@@ -103,7 +103,6 @@ class App {}
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');
 // flutter attach -d <DEVICE_ID>
-
 
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
 // dart run msix:create
@@ -404,7 +403,7 @@ class App {}
 //TODO: People to hire to clean the UI: https://goods.overnice.com/
 // fix nuget issue : winget install Microsoft.NuGet
 //Show things on second screen: https://pub.dev/packages/presentation_displays
-//  /usr/local/apache-tomcat-9.0.89/bin/startup.sh 
+//  /usr/local/apache-tomcat-9.0.89/bin/startup.sh
 // https://pub.dev/packages/requests_inspector
 
 // Now need to heavily use sizer: ^2.0.15 for managing the scalability
@@ -564,10 +563,10 @@ class App {}
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
 /// git commit -am "test direct-build-windows test direct-build-android"
 /// https://github.com/XcodesOrg/xcodes
-/// 
+///
 /// git commit -am "test direct-build-windows"
 /// git commit -am "test direct-build-android"
-/// 
+///
 /// https://fly.io/docs/about/pricing/
 /// https://pub.dev/packages/wolt_modal_sheet#why-use-modaldecorator-for-state-management
 /// https://www.corbado.com/pricing
@@ -736,7 +735,6 @@ class App {}
 
 // https://pub.dev/packages/app_links
 
-
 // Find all comments in a file: //.*$|/\*[\s\S]*?\*/
 // brick knowledge: https://github.com/GetDutchie/brick/issues/454
 // https://github.com/GetDutchie/brick/issues/493
@@ -756,10 +754,9 @@ class App {}
 // TODO: on my watch: https://pub.dev/packages/ditto_live when they support windows that will be my trigger
 // see how others are using it https://github.com/ente-io/ente/commit/18cc16bcc00590f8852d02237d4f1bbe79b0c0b4
 
-
 // d0d742ef-4c6a-4cc7-9bd5-a3a4de5bc44e
 
-//62c494a9-53d3-4de2-a37a-055ec06fa606 
+//62c494a9-53d3-4de2-a37a-055ec06fa606
 
 // accounting research:
 // https://chat.deepseek.com/a/chat/s/d2353971-acce-41b8-875b-2bbb4cb66efe
@@ -782,29 +779,28 @@ class App {}
 // ls -1 | grep -v 'g\.dart$' | grep '\.dart$' | awk '{printf "export \x27%s\x27;\n", $0}' | pbcopy
 // https://medium.com/@matheusdeveloper.henrique/flutter-integration-test-with-gcloud-firebase-testlab-and-github-actions-31ba1f2c173c
 
-
 // TODO: check if ProxyService.strategy.updateStock( is being called propper
 // SELECT  tax_name,tax_ty_cd,regr_id,regr_nm,item_cd  from Variant;
 // SELECT constraint_name, constraint_type, table_name
 // FROM information_schema.table_constraints
 // WHERE table_name = 'your_table_name';
 
-// 
+//
 
-// SELECT 
-//     tc.constraint_name, 
-//     tc.table_name, 
-//     kcu.column_name, 
-//     ccu.table_name AS referenced_table, 
+// SELECT
+//     tc.constraint_name,
+//     tc.table_name,
+//     kcu.column_name,
+//     ccu.table_name AS referenced_table,
 //     ccu.column_name AS referenced_column
-// FROM 
+// FROM
 //     information_schema.table_constraints AS tc
 // JOIN information_schema.key_column_usage AS kcu
 //     ON tc.constraint_name = kcu.constraint_name
 // JOIN information_schema.constraint_column_usage AS ccu
 //     ON ccu.constraint_name = tc.constraint_name
-// WHERE 
-//     tc.constraint_type = 'FOREIGN KEY' 
+// WHERE
+//     tc.constraint_type = 'FOREIGN KEY'
 //     AND tc.table_name = 'import_purchase_dates';
 
 // TODO: keep track https://github.com/javaherisaber/open_filex/pull/19
@@ -819,8 +815,9 @@ class App {}
 
 // track this https://github.com/flutter/flutter/pull/165072 as I will use it to make one screen be a different window e.g showing KDS on different screen.
 // https://chatgpt.com/c/67f6c184-54dc-8002-b243-80433c70bf57
-// 
+//
 
 // https://search.google.com/u/1/search-console?resource_id=sc-domain%3Ayegobox.com
 
 // We need to follow https://julius.ai/ by enahncing our built-in ai
+// https://github.com/GetDutchie/brick/blob/main/packages/brick_offline_first/lib/src/offline_first_repository.dart#L246-L283

@@ -13,7 +13,8 @@ final verifyPaymentProvider = FutureProvider.autoDispose<bool>((ref) async {
 });
 
 /// Provider for forcing payment verification
-final forcePaymentVerificationProvider = FutureProvider.autoDispose<void>((ref) async {
+final forcePaymentVerificationProvider =
+    FutureProvider.autoDispose<void>((ref) async {
   final service = ref.watch(paymentVerificationProvider);
   await service.forcePaymentVerification();
 });

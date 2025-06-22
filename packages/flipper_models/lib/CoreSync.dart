@@ -1319,66 +1319,97 @@ class CoreSync extends AiStrategyImpl
   @override
   Stream<List<InventoryRequest>> requestsStream({
     required int branchId,
-    String? filter,
+    String filter = RequestStatus.pending,
+    String? search,
   }) async* {
-    // Define the query builder function
-    Query buildQuery;
-    if (filter != null && filter == RequestStatus.approved) {
-      buildQuery = brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(RequestStatus.approved),
-      ]);
+    // Build the base query conditions
+    final whereConditions = <brick.Where>[
+      brick.Where('mainBranchId').isExactly(branchId),
+    ];
+
+    // Add status filter conditions
+    if (filter == RequestStatus.approved) {
+      whereConditions
+          .add(brick.Where('status').isExactly(RequestStatus.approved));
     } else {
-      buildQuery = brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
+      whereConditions.addAll([
         brick.Where('status').isExactly(RequestStatus.pending),
         brick.Or('status').isExactly(RequestStatus.partiallyApproved),
       ]);
     }
 
-    try {
-      // 1. First, get the initial data
-      final initialData = await repository
-          .get<InventoryRequest>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: buildQuery,
-      )
-          .timeout(
-        const Duration(seconds: 3),
-        onTimeout: () async {
-          // Fallback to local data if timeout occurs
-          return await repository.get<InventoryRequest>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: buildQuery,
-          );
-        },
-      );
-
-      // 2. Process and yield initial data if it exists
-      if (initialData.isNotEmpty) {
-        final hydratedInitial = await _hydrateRequests(initialData);
-        yield hydratedInitial;
-      }
-
-      // 3. Subscribe to real-time updates
-      final realtimeStream = repository
-          .subscribeToRealtime<InventoryRequest>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: buildQuery,
-      )
-          .asyncExpand((changes) async* {
-        if (changes.isNotEmpty) {
-          final hydrated = await _hydrateRequests(changes.toList());
-          yield hydrated;
-        }
-      });
-
-      // 4. Yield both initial and real-time data
-      yield* realtimeStream;
-    } catch (e) {
-      talker.error('Error in requestsStream: $e');
-      rethrow;
+    // Add search condition if search term is provided
+    if (search != null && search.isNotEmpty) {
+      // Search in request ID, delivery note, or any other relevant fields
+      whereConditions.add(brick.Or('id')
+          .contains(search)
+          // .or('deliveryNote')
+          .contains(search)
+          // .or('orderNote')
+          .contains(search));
     }
+
+    final buildQuery = brick.Query(where: whereConditions);
+
+    // 1. First, yield local data immediately for instant UI update
+    final localData = await repository.get<InventoryRequest>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: buildQuery,
+    );
+
+    if (localData.isNotEmpty) {
+      yield localData;
+    }
+
+    // 2. Start fetching remote data in the background
+    final remoteDataFuture = repository
+        .get<InventoryRequest>(
+          policy: OfflineFirstGetPolicy.awaitRemote,
+          query: buildQuery,
+        )
+        .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => <InventoryRequest>[],
+        );
+
+    // 3. Set up real-time subscription
+    final realtimeController =
+        StreamController<List<InventoryRequest>>.broadcast();
+    final subscription = repository
+        .subscribeToRealtime<InventoryRequest>(
+      policy: OfflineFirstGetPolicy.awaitRemote,
+      query: buildQuery,
+    )
+        .listen(
+      (changes) async {
+        if (changes.isNotEmpty) {
+          realtimeController.add(changes.toList());
+        }
+      },
+      onError: (e) => talker.error('Realtime subscription error: $e'),
+    );
+
+    // 4. Process remote data when it arrives
+    try {
+      final remoteData = await remoteDataFuture;
+      if (remoteData.isNotEmpty && remoteData != localData) {
+        yield remoteData;
+      }
+    } catch (e) {
+      talker.error('Error fetching remote data: $e');
+    }
+
+    // 5. Yield real-time updates
+    yield* realtimeController.stream.asyncMap((requests) async {
+      if (requests.isEmpty) return requests;
+      return _hydrateRequests(requests);
+    });
+
+    // 6. Clean up on cancel
+    Future.microtask(() async {
+      await subscription.cancel();
+      await realtimeController.close();
+    });
   }
 
 // Helper method to hydrate a list of requests
@@ -1394,7 +1425,7 @@ class CoreSync extends AiStrategyImpl
     Financing? financingToUse;
 
     // Hydrate branch
-    if (hydratedBranch == null && req.branchId != null) {
+    if (hydratedBranch == null) {
       final branches = await repository.get<Branch>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(where: [
@@ -1407,11 +1438,11 @@ class CoreSync extends AiStrategyImpl
     }
 
     // Hydrate financing
-    if (req.financingId != null) {
+    if (req.financing != null) {
       final financingList = await repository.get<Financing>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(where: [
-          brick.Where('id').isExactly(req.financingId),
+          brick.Where('id').isExactly(req.financing!.id),
         ]),
       );
       if (financingList.isNotEmpty) {
@@ -2133,6 +2164,16 @@ class CoreSync extends AiStrategyImpl
           branchId: (await ProxyService.strategy.activeBranch()).id,
           transactionId: transaction.id,
         );
+        // Update numberOfItems before completing the sale
+        transaction.numberOfItems = items.length;
+
+        transaction.items = items;
+
+        // sum up all discount found on item then save them on a transaction
+        transaction.discountAmount = items.fold(0, (a, b) => a! + b.dcAmt!);
+        transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
+        transaction.customerTin = ProxyService.box.customerTin();
+
         double subTotalFinalized = 0.0;
         double cash = ProxyService.box.getCashReceived() ?? cashReceived;
         if (isIncome) {
@@ -2144,7 +2185,21 @@ class CoreSync extends AiStrategyImpl
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
           /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
-          await _updateStockAndItems(items: items, branchId: branchId);
+          final adjustmentTransaction = await _createAdjustmentTransaction();
+          adjustmentTransaction?.items = items;
+          adjustmentTransaction?.orgSarNo = transaction.sarNo;
+          adjustmentTransaction?.sarNo = transaction.sarNo;
+          adjustmentTransaction?.receiptType = transaction.receiptType;
+          adjustmentTransaction?.customerName = transaction.customerName;
+          adjustmentTransaction?.customerTin = transaction.customerTin;
+          adjustmentTransaction?.remark = transaction.remark;
+          adjustmentTransaction?.status = COMPLETE;
+          adjustmentTransaction?.customerBhfId = transaction.customerBhfId;
+          await repository.upsert<ITransaction>(adjustmentTransaction!);
+          await _updateStockAndItems(
+              items: items,
+              branchId: branchId,
+              adjustmentTransaction: adjustmentTransaction);
         }
         _updateTransactionDetails(
           transaction: transaction,
@@ -2157,7 +2212,7 @@ class CoreSync extends AiStrategyImpl
           transactionType: transactionType,
           categoryId: categoryId,
           customerName: customerName,
-          customerTin: customerTin,
+          customerTin: ProxyService.box.customerTin(),
         );
         // Handle receipt if required
         if (directlyHandleReceipt) {
@@ -2229,6 +2284,7 @@ class CoreSync extends AiStrategyImpl
     ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: transactionType,
+        status: PENDING,
         isExpense: false);
   }
 
@@ -2241,13 +2297,11 @@ class CoreSync extends AiStrategyImpl
   Future<void> _updateStockAndItems({
     required List<TransactionItem> items,
     required int branchId,
+    models.ITransaction? adjustmentTransaction,
   }) async {
     try {
-      final adjustmentTransaction = await _createAdjustmentTransaction();
       final business = await ProxyService.strategy
           .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-      final serverUrl = await ProxyService.box.getServerUrl();
-
       if (business == null) {
         throw Exception("Business not found");
       }
@@ -2260,10 +2314,10 @@ class CoreSync extends AiStrategyImpl
         branchId: branchId,
         adjustmentTransaction: adjustmentTransaction,
         business: business,
-        serverUrl: serverUrl,
       );
 
       // Assuming completeTransaction is defined in the same scope.
+
       await completeTransaction(pendingTransaction: adjustmentTransaction);
     } catch (e, s) {
       talker.error(s);
@@ -2274,14 +2328,32 @@ class CoreSync extends AiStrategyImpl
 
   Future<ITransaction?> _createAdjustmentTransaction() async {
     try {
-      return await ProxyService.strategy.manageTransaction(
+      talker.info('Creating new adjustment transaction', {
+        'branchId': ProxyService.box.getBranchId(),
+        'timestamp': DateTime.now().toIso8601String()
+      });
+
+      final transaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
+        status: PENDING,
         branchId: ProxyService.box.getBranchId()!,
       );
+
+      if (transaction != null) {
+        talker.info('Successfully created adjustment transaction', {
+          'transactionId': transaction.id,
+          'branchId': transaction.branchId,
+          'createdAt': transaction.createdAt?.toIso8601String()
+        });
+      } else {
+        talker.warning(
+            'Failed to create adjustment transaction - received null transaction');
+      }
+
+      return transaction;
     } catch (e, s) {
-      talker.error(s);
-      talker.warning(e);
+      talker.error('Error creating adjustment transaction', e, s);
       return null; // Handle transaction creation failure gracefully
     }
   }
@@ -2291,7 +2363,6 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    String? serverUrl,
   }) async {
     for (TransactionItem item in items) {
       await _processSingleTransactionItem(
@@ -2299,7 +2370,6 @@ class CoreSync extends AiStrategyImpl
         branchId: branchId,
         adjustmentTransaction: adjustmentTransaction,
         business: business,
-        serverUrl: serverUrl,
       );
     }
   }
@@ -2309,7 +2379,6 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     required ITransaction adjustmentTransaction,
     required Business business,
-    String? serverUrl,
   }) async {
     if (!item.active!) {
       repository.delete(item);
@@ -2326,7 +2395,6 @@ class CoreSync extends AiStrategyImpl
       await _updateVariantAndPatchStock(
         variant: variant,
         item: item,
-        serverUrl: serverUrl,
       );
 
       // Assuming assignTransaction and randomNumber are defined in the same scope.
@@ -2360,20 +2428,10 @@ class CoreSync extends AiStrategyImpl
   Future<void> _updateVariantAndPatchStock({
     required Variant variant,
     required TransactionItem item,
-    String? serverUrl,
   }) async {
     ProxyService.box.writeBool(key: 'lockPatching', value: true);
     variant.ebmSynced = false;
     await ProxyService.strategy.updateVariant(updatables: [variant]);
-    if (serverUrl != null) {
-      VariantPatch.patchVariant(
-        URI: serverUrl,
-        identifier: variant.id,
-        sendPort: (message) {
-          ProxyService.notification.sendLocalNotification(body: message);
-        },
-      );
-    }
   }
 
   Future<void> _updateStockForItem({
@@ -2944,7 +3002,6 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-
   @override
   Future<DatabaseSyncInterface> configureLocal(
       {required bool useInMemory, required storage.LocalStorage box}) async {
@@ -3071,11 +3128,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addTransaction({required models.ITransaction transaction}) {
-    repository.upsert(transaction);
-  }
-
-  @override
   Future<int> addFavorite({required models.Favorite data}) async {
     try {
       Favorite? fav = (await repository.get<Favorite>(
@@ -3153,17 +3205,20 @@ class CoreSync extends AiStrategyImpl
         // Now that the adapter is fixed, this should work correctly
         final stockRequest = InventoryRequest(
           id: orderId,
+          branchId: branch.id,
+          financingId: financing.id,
           itemCounts: items.length,
+          transactionItems: items,
           deliveryDate: deliveryDate,
           deliveryNote: deliveryNote,
           mainBranchId: mainBranchId,
-          branchId: branch.id,
+          // branchId: branch.id,
           branch: branch, // We can now include the branch object directly
           subBranchId: ProxyService.box.getBranchId(),
           status: RequestStatus.pending,
           updatedAt: DateTime.now().toUtc().toLocal(),
           createdAt: DateTime.now().toUtc().toLocal(),
-          financingId: financing.id,
+          // financingId: financing.id,
           financing:
               financing, // We can now include the financing object directly
         );
@@ -3874,21 +3929,21 @@ class CoreSync extends AiStrategyImpl
   }) async {
     final URI = await ProxyService.box.getServerUrl();
 
-    if (foundation.kDebugMode) {
-      // Mock response in debug mode
-      print("Running in debug mode - using mock data");
-      // Simulate a delay to mimic a network request
-      await Future.delayed(Duration(seconds: 1));
+    // if (foundation.kDebugMode) {
+    //   // Mock response in debug mode
+    //   print("Running in debug mode - using mock data");
+    //   // Simulate a delay to mimic a network request
+    //   await Future.delayed(Duration(seconds: 1));
 
-      // Create a BusinessInfo object directly from the mock data
+    //   // Create a BusinessInfo object directly from the mock data
 
-      return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
-    } else {
-      // Call the API in release mode
-      final initialisable = await ProxyService.tax
-          .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
-      return initialisable;
-    }
+    //   return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
+    // } else {
+    // Call the API in release mode
+    final initialisable = await ProxyService.tax
+        .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
+    return initialisable;
+    // }
   }
 
   @override

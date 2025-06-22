@@ -46,11 +46,12 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
               try {
                 if (model.excelData != null) {
                   await ProgressDialogHandler.showProgressDialog(
-                    context, 
+                    context,
                     model.saveAllWithProgress,
                     onComplete: () {
                       final combinedNotifier = ref.read(refreshProvider);
-                      combinedNotifier.performActions(productName: "", scanMode: true);
+                      combinedNotifier.performActions(
+                          productName: "", scanMode: true);
                       Navigator.maybePop(context);
                     },
                   );
@@ -76,18 +77,15 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
             ),
           ),
         const SizedBox(height: 24.0),
-        if (model.isLoading)
-          const Center(child: CircularProgressIndicator()),
+        if (model.isLoading) const Center(child: CircularProgressIndicator()),
         if (model.excelData == null &&
             model.selectedFile != null &&
             !model.isLoading)
           const Center(
             child: Text('Parsing Data...',
-                style:
-                    TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+                style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
           ),
-        if (model.excelData != null)
-          ProductDataTable(model: model),
+        if (model.excelData != null) ProductDataTable(model: model),
       ],
     );
   }

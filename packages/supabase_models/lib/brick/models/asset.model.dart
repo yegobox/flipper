@@ -15,14 +15,14 @@ class Assets extends OfflineFirstWithSupabaseModel {
   int? businessId;
   String? assetName;
   String? productId;
-  
+
   /// Tracks whether the asset has been uploaded to the cloud storage
   /// If false, the asset exists only locally and needs to be synced when online
   bool isUploaded;
-  
+
   /// Local file path for offline storage
   String? localPath;
-  
+
   Assets({
     String? id,
     this.branchId,

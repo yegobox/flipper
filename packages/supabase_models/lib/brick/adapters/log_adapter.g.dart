@@ -12,10 +12,9 @@ Future<Log> _$LogFromSupabase(
     type: data['type'] == null ? null : data['type'] as String?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as int?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
   );
@@ -46,10 +45,9 @@ Future<Log> _$LogFromSqlite(
     type: data['type'] == null ? null : data['type'] as String?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as int?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -170,11 +168,12 @@ class LogAdapter extends OfflineFirstWithSupabaseAdapter<Log> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$LogFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$LogFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Log input, {

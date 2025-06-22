@@ -262,15 +262,29 @@ class _RefundState extends ConsumerState<Refund> {
   Future<void> proceed({required String receiptType}) async {
     // Add stock back to same item refunded
     try {
+      // First create the refund transaction with the correct receipt type
       if (receiptType == "CR") {
         await handleReceipt(filterType: FilterType.CR);
       } else if (receiptType == "CS") {
         await handleReceipt(filterType: FilterType.CS);
       } else if (receiptType == "TR") {
+        // Mark the original transaction as refunded
+        await ProxyService.strategy.updateTransaction(
+          transaction: widget.transaction!,
+          isRefunded: true,
+        );
         await handleReceipt(filterType: FilterType.TR);
       } else if (receiptType == "NR") {
+        // Mark the original transaction as refunded
+        await ProxyService.strategy.updateTransaction(
+          transaction: widget.transaction!,
+          isRefunded: true,
+        );
         await handleReceipt(filterType: FilterType.NR);
       }
+
+      talker.info(
+          "Original transaction ${widget.transaction!.id} marked as refunded");
 
       List<TransactionItem> items = await ProxyService.strategy
           .transactionItems(
@@ -317,12 +331,6 @@ class _RefundState extends ConsumerState<Refund> {
 
             ProxyService.strategy.updateVariant(
                 updatables: [variant], variantId: variant.id, ebmSynced: false);
-
-            // Mark the transaction as refunded
-            ProxyService.strategy.updateTransaction(
-              transaction: widget.transaction!,
-              isRefunded: true,
-            );
           }
         }
       }
@@ -348,6 +356,18 @@ class _RefundState extends ConsumerState<Refund> {
           isPrintingCopy = false;
         }
       });
+
+      // Log the refund process start
+      talker.info(
+          "Processing ${filterType.toString()} for transaction ${widget.transaction!.id}");
+
+      // For refund operations (NR, CR, TR), ensure we're creating a new transaction with correct properties
+      if (filterType == FilterType.NR ||
+          filterType == FilterType.CR ||
+          filterType == FilterType.TR) {
+        talker.info(
+            "Creating refund transaction with receipt type: ${getStringReceiptType(filterType)}");
+      }
 
       await TaxController(object: widget.transaction)
           .handleReceipt(filterType: filterType);

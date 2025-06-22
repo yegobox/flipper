@@ -11,14 +11,14 @@ class Branch extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  final String? name;
-  final int? serverId;
-  final String? location;
-  final String? description;
+  String? name;
+  int? serverId;
+  String? location;
+  String? description;
   bool? active;
-  final int? businessId;
-  final String? latitude;
-  final String? longitude;
+  int? businessId;
+  String? latitude;
+  String? longitude;
   bool? isDefault;
   bool? isOnline;
 
@@ -64,8 +64,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
     );
   }
 
-  // to json
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFlipperJson() {
     return {
       'id': id,
       'name': name,

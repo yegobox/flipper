@@ -210,7 +210,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   Future<void> initialize() async {
     setProductName(name: null);
-    pkgUnits = RRADEFAULTS.packagingUnits;
+    pkgUnits = RRADEFAULTS.packagingUnit;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
     log((await ProxyService.box.bhfId()).toString(), name: "ScannViewModel");
 
@@ -264,7 +264,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       supplyPrice: supplyPrice,
       prc: retailPrice,
       regrNm: product.name,
-      qty: 1,
+      qty: 0,
       dcRt: 0,
       pkgUnitCd: "NT",
       // bcd is bar code
@@ -279,12 +279,12 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       lastTouched: DateTime.now().toUtc(),
     );
     final stock = Stock(
-      currentStock: 1,
+      currentStock: 0,
       branchId: branchId,
-      initialStock: 1,
-      rsdQty: 1,
+      initialStock: 0,
+      rsdQty: 0,
       tin: business?.tinNumber ?? ProxyService.box.tin(),
-      value: 1 * retailPrice,
+      value: 0 * retailPrice,
       ebmSynced: false,
       active: false,
       showLowStockAlert: true,

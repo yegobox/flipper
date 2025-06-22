@@ -3,9 +3,7 @@
 library flipper_login;
 
 import 'package:email_validator/email_validator.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -207,7 +205,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                               leading: const Icon(Icons.email_outlined),
                               // keyboardType: TextInputType.emailAddress,
                               validatorFunc: (value) {
-                                if (value != null && value.isNotEmpty && !isEmail(value)) {
+                                if (value != null &&
+                                    value.isNotEmpty &&
+                                    !isEmail(value)) {
                                   return 'Please enter a valid email address';
                                 }
                                 return null;
@@ -257,26 +257,6 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                       tinNumber: _tinNumberController.text,
                                       transactionId: widget.transactionId,
                                     );
-                                    final URI =
-                                        await ProxyService.box.getServerUrl();
-                                    final tinNumber = ProxyService.box.tin();
-                                    final bhfId =
-                                        await ProxyService.box.bhfId();
-                                    final branchId =
-                                        ProxyService.box.getBranchId()!;
-
-                                    CustomerPatch.patchCustomer(
-                                      URI: URI!,
-                                      tinNumber: tinNumber,
-                                      bhfId: bhfId!,
-                                      branchId: branchId,
-                                      sendPort: (message) {
-                                        ProxyService.notification
-                                            .sendLocalNotification(
-                                                body: message);
-                                      },
-                                    );
-
                                     ref.refresh(customersProvider);
                                     Navigator.of(context).pop();
                                     // Show success snack bar after closing modal using root navigator context

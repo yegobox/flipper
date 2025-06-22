@@ -12,16 +12,14 @@ Future<Category> _$CategoryFromSupabase(
     focused: data['focused'] as bool,
     name: data['name'] == null ? null : data['name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
   );
@@ -54,16 +52,14 @@ Future<Category> _$CategoryFromSqlite(
     focused: data['focused'] == 1,
     name: data['name'] == null ? null : data['name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -206,39 +202,43 @@ class CategoryAdapter extends OfflineFirstWithSupabaseAdapter<Category> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CategoryFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CategoryFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Category input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CategoryToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CategoryToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Category> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CategoryFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CategoryFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Category input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CategoryToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CategoryToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

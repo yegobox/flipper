@@ -17,5 +17,6 @@ class ExportConfig {
     this.netProfit,
     this.currencySymbol = 'RF',
     required this.transactions,
-  }) : currencyFormat = '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
+  }) : currencyFormat =
+            '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
 }

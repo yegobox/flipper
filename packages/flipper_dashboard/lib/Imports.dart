@@ -1,7 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_dashboard/widgets/import_input_row.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -44,6 +43,8 @@ class Imports extends StatefulHookConsumerWidget {
 }
 
 class ImportsState extends ConsumerState<Imports> {
+  String?
+      _selectedFilterStatus; // null for 'All', '2' for Wait, '3' for Approved, '4' for Rejected
   late VariantDataSource _variantDataSource;
   Variant? variantSelectedWhenClickingOnRow;
 
@@ -222,7 +223,25 @@ class ImportsState extends ConsumerState<Imports> {
               widget.finalItemList
                 ..clear()
                 ..addAll(itemList);
-              _variantDataSource = VariantDataSource(itemList, this,
+              List<Variant> filteredItemList = itemList;
+              if (_selectedFilterStatus != null) {
+                filteredItemList = itemList.where((variant) {
+                  // Assuming '4' is the status code for Rejected items.
+                  // If not '2' (Wait) and not '3' (Approved), it's considered Rejected for display.
+                  // For filtering, we need a concrete status or a more complex condition.
+                  // Let's assume imptItemSttsCd can be '4' for rejected.
+                  if (_selectedFilterStatus == '4') {
+                    return variant.imptItemSttsCd != '2' &&
+                        variant.imptItemSttsCd != '3';
+                  }
+                  return variant.imptItemSttsCd == _selectedFilterStatus;
+                }).toList();
+              }
+              widget.finalItemList
+                ..clear()
+                ..addAll(
+                    filteredItemList); // Use filtered list for finalItemList as well
+              _variantDataSource = VariantDataSource(filteredItemList, this,
                   buildStatusWidget: _buildStatusWidget,
                   buildActionsWidget: _buildActionsWidget);
               return SizedBox(
@@ -230,12 +249,32 @@ class ImportsState extends ConsumerState<Imports> {
                 child: Form(
                   key: widget.formKey,
                   child: Column(
+                    mainAxisSize:
+                        MainAxisSize.min, // Ensure column takes minimum space
                     children: [
-                      _buildInputRow(),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: _buildDataGrid(),
+                      ImportInputRow(
+                        nameController: widget.nameController,
+                        supplyPriceController: widget.supplyPriceController,
+                        retailPriceController: widget.retailPriceController,
+                        selectedItemForDropdown: widget.selectedItem,
+                        variantMap: widget.variantMap,
+                        variantSelectedWhenClickingOnRow:
+                            variantSelectedWhenClickingOnRow,
+                        finalItemList: widget.finalItemList,
+                        selectItemCallback: widget.selectItem,
+                        saveChangeMadeOnItemCallback:
+                            widget.saveChangeMadeOnItem,
+                        acceptAllImportCallback: widget.acceptAllImport,
+                        anyLoading: _variantDataSource.anyLoading,
+                        selectedFilterStatus: _selectedFilterStatus,
+                        onFilterStatusChanged: (String? newValue) {
+                          setState(() {
+                            _selectedFilterStatus = newValue;
+                          });
+                        },
                       ),
+                      const SizedBox(height: 16),
+                      _buildDataGrid(), // Removed Expanded
                     ],
                   ),
                 ),
@@ -244,144 +283,6 @@ class ImportsState extends ConsumerState<Imports> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildInputRow() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildTextField(
-                controller: widget.nameController,
-                hintText: 'Enter a name',
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildTextField(
-                controller: widget.supplyPriceController,
-                hintText: 'Enter supply price',
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Supply price is required' : null,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: _buildTextField(
-                controller: widget.retailPriceController,
-                hintText: 'Enter retail price',
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Retail price is required' : null,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Consumer(
-              builder: (context, ref, child) {
-                final variantProviders = ref.watch(
-                  variantProvider(branchId: ProxyService.box.getBranchId()!),
-                );
-
-                return variantProviders.when(
-                  data: (variants) {
-                    final Variant? selectedVariantObject =
-                        widget.selectedItem != null
-                            ? variants.firstWhere(
-                                (variant) =>
-                                    variant.id == widget.selectedItem!.id,
-                                orElse: () => variants.first,
-                              )
-                            : null;
-
-                    return Column(
-                      children: [
-                        DropdownButton<String>(
-                          value: selectedVariantObject?.id,
-                          hint: const Text('Select Variant'),
-                          items: variants.map((variant) {
-                            return DropdownMenuItem<String>(
-                              value: variant.id,
-                              child: Text(variant.name),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              final selectedVariant = variants
-                                  .firstWhere((variant) => variant.id == value);
-                              widget.variantMap.clear();
-                              if (variantSelectedWhenClickingOnRow != null) {
-                                widget.variantMap.putIfAbsent(
-                                    variantSelectedWhenClickingOnRow!.id,
-                                    () => selectedVariant);
-                              } else if (widget.finalItemList.isNotEmpty) {
-                                widget.variantMap.putIfAbsent(
-                                    widget.finalItemList.first.id,
-                                    () => selectedVariant);
-                              }
-                              widget.selectItem(selectedVariant);
-                            } else {
-                              widget.selectItem(null);
-                            }
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                  loading: () => const CircularProgressIndicator(),
-                  error: (error, stack) => Text('Error: $error'),
-                );
-              },
-            ),
-            const SizedBox(width: 16),
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    String? Function(String?)? validator,
-  }) {
-    return StyledTextFormField.create(
-      context: context,
-      labelText: hintText,
-      hintText: hintText,
-      controller: controller,
-      keyboardType: TextInputType.multiline,
-      maxLines: 3,
-      minLines: 1,
-      onChanged: (value) {
-        setState(() {});
-      },
-      validator: validator,
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        FlipperButton(
-          onPressed: _variantDataSource.anyLoading
-              ? null
-              : widget.saveChangeMadeOnItem,
-          text: 'Save Changes',
-          textColor: Colors.black,
-        ),
-        const SizedBox(width: 8),
-        FlipperIconButton(
-          onPressed: _variantDataSource.anyLoading
-              ? null
-              : () => widget.acceptAllImport(widget.finalItemList),
-          icon: Icons.done_all,
-          text: 'Accept All',
-        ),
-      ],
     );
   }
 

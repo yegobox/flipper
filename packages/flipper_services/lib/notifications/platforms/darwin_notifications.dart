@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helper_models.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart' hide RepeatInterval;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    hide RepeatInterval;
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -23,9 +24,9 @@ class DarwinNotifications extends BaseNotifications {
   @override
   Future<void> initialize() async {
     await super.initialize();
-    
+
     const initSettingsDarwin = DarwinInitializationSettings();
-    
+
     final initSettings = InitializationSettings(
       iOS: initSettingsDarwin,
       macOS: initSettingsDarwin,
@@ -33,7 +34,8 @@ class DarwinNotifications extends BaseNotifications {
 
     await notificationsPlugin.initialize(
       initSettings,
-      onDidReceiveBackgroundNotificationResponse: notificationBackgroundCallback,
+      onDidReceiveBackgroundNotificationResponse:
+          notificationBackgroundCallback,
       onDidReceiveNotificationResponse: notificationCallback,
     );
   }
@@ -70,7 +72,8 @@ class DarwinNotifications extends BaseNotifications {
   }
 
   Future<void> _scheduleNotificationDarwin(Notification notification) async {
-    final conversation = IConversation.fromJson(jsonDecode(notification.payload!));
+    final conversation =
+        IConversation.fromJson(jsonDecode(notification.payload!));
 
     final createdAt = conversation.createdAt;
     if (createdAt == null) {

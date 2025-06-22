@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
@@ -86,8 +87,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   DateTime? nextBillingDate;
 
-  @Supabase(defaultValue: "monthly")
-  String? billingFrequency; // 'daily', 'weekly', 'monthly'
+  String? billingFrequency;
 
   @Supabase(defaultValue: "0.0")
   num? billingAmount;
@@ -114,6 +114,12 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   String? originalTransactionId;
   bool? isOriginalTransaction;
+
+  num? taxAmount;
+  int? numberOfItems;
+  // all discount found on this transaction
+  num? discountAmount;
+  List<TransactionItem>? items;
 
   ITransaction({
     this.ticketName,
@@ -158,7 +164,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.dueDate,
     bool? isAutoBilled,
     this.nextBillingDate,
-    String? billingFrequency,
+    this.billingFrequency,
     num? billingAmount,
     int? totalInstallments,
     int? paidInstallments,
@@ -169,10 +175,14 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? lastPaymentAmount,
     this.originalTransactionId,
     bool? isOriginalTransaction,
+    num? taxAmount,
+    this.numberOfItems,
+    num? discountAmount,
+    this.items,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
-        billingFrequency = billingFrequency ?? 'monthly',
+        taxAmount = taxAmount ?? 0.0,
         billingAmount = billingAmount ?? 0.0,
         totalInstallments = totalInstallments ?? 1,
         paidInstallments = paidInstallments ?? 0,

@@ -106,4 +106,5 @@ abstract class LocalStorage {
   Future<void> setQueueFilename(String filename);
   Future<void> setForceLogout(bool value);
   bool getForceLogout();
+  String? customerTin();
 }

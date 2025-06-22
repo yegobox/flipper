@@ -57,13 +57,13 @@ mixin TenantMixin implements TenantInterface {
       ],
       "businesses": [
         {
-          ...business.toJson(),
+          ...business.toFlipperJson(),
           'id': business.serverId,
         }
       ],
       "branches": [
         {
-          ...branch.toJson(),
+          ...branch.toFlipperJson(),
           'id': branch.serverId,
         }
       ]

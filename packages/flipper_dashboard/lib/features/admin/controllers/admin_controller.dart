@@ -33,8 +33,10 @@ class AdminController extends ChangeNotifier {
   Future<void> _loadInitialSettings() async {
     _isPosDefault = ProxyService.box.readBool(key: 'isPosDefault') ?? false;
     _enableDebug = ProxyService.box.readBool(key: 'enableDebug') ?? false;
-    _isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
-    _filesDownloaded = ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
+    _isOrdersDefault =
+        ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
+    _filesDownloaded =
+        ProxyService.box.readBool(key: 'doneDownloadingAsset') ?? true;
     _forceUPSERT = ProxyService.box.forceUPSERT();
     _stopTaxService = ProxyService.box.stopTaxService() ?? false;
     _switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
@@ -96,7 +98,8 @@ class AdminController extends ChangeNotifier {
   Future<void> updateSmsConfig({String? phone, bool? enable}) async {
     if (phone != null && phone.isNotEmpty) {
       if (!AdminSettingsService.isValidPhoneNumber(phone)) {
-        _phoneError = 'Please enter a valid phone number with country code (e.g., +250783054874)';
+        _phoneError =
+            'Please enter a valid phone number with country code (e.g., +250783054874)';
         notifyListeners();
         return;
       }

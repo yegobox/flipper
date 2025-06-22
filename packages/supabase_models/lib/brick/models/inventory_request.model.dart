@@ -15,9 +15,6 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   final String id;
   int? mainBranchId;
   int? subBranchId;
-  Branch? branch;
-  // the requester same as subBranchId but this will use uuid representation of the subBranchId
-  String? branchId;
 
   DateTime? createdAt;
   // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"
@@ -28,8 +25,7 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   bool? customerReceivedOrder = false;
   bool? driverRequestDeliveryConfirmation = false;
   int? driverId;
-  @Supabase(ignore: true)
-  List<TransactionItem>? transactionItems;
+
   DateTime? updatedAt;
   num? itemCounts;
 
@@ -37,8 +33,16 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   String? tinNumber;
 
   // stock financing
+  @Supabase(foreignKey: 'financing_id')
   Financing? financing;
   String? financingId;
+
+  List<TransactionItem>? transactionItems;
+
+  @Supabase(foreignKey: 'branch_id')
+  Branch? branch;
+  // the requester same as subBranchId but this will use uuid representation of the subBranchId
+  String? branchId;
   InventoryRequest({
     String? id,
     this.mainBranchId,
@@ -48,11 +52,11 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
     this.subBranchId,
     this.createdAt,
     this.status,
-    this.branchId,
+    required this.branchId,
     this.branch,
     this.deliveryDate,
     this.deliveryNote,
-    this.financingId,
+    required this.financingId,
     this.orderNote,
     this.customerReceivedOrder,
     this.driverRequestDeliveryConfirmation,
@@ -62,7 +66,8 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
     this.financing,
   }) : id = id ?? const Uuid().v4();
 
-  Future<InventoryRequest> copyWith({ Branch? branch,Financing? financing}) async {
+  Future<InventoryRequest> copyWith(
+      {Branch? branch, Financing? financing}) async {
     return InventoryRequest(
       id: id,
       mainBranchId: mainBranchId,

@@ -37,7 +37,8 @@ class SupportSection extends StatelessWidget {
                 final Uri whatsappUri = Uri.parse(
                     'https://wa.me/250788360058?text=${Uri.encodeComponent(initialMessage)}');
                 if (await canLaunchUrl(whatsappUri)) {
-                  await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+                  await launchUrl(whatsappUri,
+                      mode: LaunchMode.externalApplication);
                 } else {
                   throw 'Could not launch $whatsappUri';
                 }

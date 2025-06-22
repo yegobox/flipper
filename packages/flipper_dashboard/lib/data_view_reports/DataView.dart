@@ -4,6 +4,8 @@ import 'package:flipper_dashboard/data_view_reports/HeaderTransactionItem.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
+import 'package:flipper_dashboard/export/sale_report.dart';
+import 'package:flipper_dashboard/export/x_report.dart';
 
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
@@ -18,6 +20,9 @@ import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_dashboard/data_view_reports/StockRecount.dart';
+import 'package:flipper_dashboard/data_view_reports/report_actions_row.dart';
+import 'package:flipper_dashboard/export/z_report.dart';
+import 'package:flipper_dashboard/export/plu_report.dart';
 
 class DataView extends StatefulHookConsumerWidget {
   const DataView({
@@ -53,12 +58,26 @@ class DataView extends StatefulHookConsumerWidget {
 
 class DataViewState extends ConsumerState<DataView>
     with ExportMixin, DateCoreWidget, Headers {
+  Future<void> _handleToggleReport() async {
+    // Toggle the report view
+    ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+
+    // Give the UI time to update and rebuild the DataGrid
+    await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) setState(() {});
+  }
+
   static const double dataPagerHeight = 60;
   late DataGridSource _dataGridSource;
 
   int pageIndex = 0;
   final talker = TalkerFlutter.init();
-  bool _isExporting = false;
+  // Track loading states for different export operations
+  bool _isExportingExcel = false;
+  bool _isExportingXReport = false;
+  bool _isExportingZReport = false;
+  bool _isExportingSaleReport = false;
+  bool _isExportingPLUReport = false;
 
   @override
   void initState() {
@@ -169,42 +188,71 @@ class DataViewState extends ConsumerState<DataView>
           padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              Row(
-                children: [
-                  _buildReportTypeSwitch(showDetailed),
-                  Spacer(),
-                  Tooltip(
-                    message: 'Export as CSV',
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: _isExporting
-                          ? Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : IconButton(
-                              icon: Icon(Icons.download_rounded),
-                              onPressed: () async {
-                                setState(() => _isExporting = true);
-                                await _export(
-                                    headerTitle: "Report",
-                                    workBookKey: widget.workBookKey);
-                                setState(() => _isExporting = false);
-                              },
-                            ),
-                    ),
-                  ),
-                  Tooltip(
-                    message: 'Print',
-                    child: IconButton(
-                      icon: Icon(Icons.print),
-                      onPressed: () {
-                        // TODO: Implement print
-                      },
-                    ),
-                  ),
-                ],
+              ReportActionsRow(
+                showDetailed: showDetailed,
+                isExporting: _isExportingExcel,
+                isXReportLoading: _isExportingXReport,
+                isZReportLoading: _isExportingZReport,
+                isSaleReportLoading: _isExportingSaleReport,
+                isPLUReportLoading: _isExportingPLUReport,
+                onExportPressed: () async {
+                  setState(() => _isExportingExcel = true);
+                  try {
+                    await _export(
+                        headerTitle: "Report", workBookKey: widget.workBookKey);
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingExcel = false);
+                    }
+                  }
+                },
+                workBookKey: widget.workBookKey,
+                onPrintPressed: () {
+                  // TODO: Implement print
+                },
+                onToggleReport: _handleToggleReport,
+                onXReportPressed: () async {
+                  setState(() => _isExportingXReport = true);
+                  try {
+                    await XReport().generateXReport();
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingXReport = false);
+                    }
+                  }
+                },
+                onZReportPressed: () async {
+                  setState(() => _isExportingZReport = true);
+                  try {
+                    await ZReport().generateZReport();
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingZReport = false);
+                    }
+                  }
+                },
+                onSaleReportPressed: () async {
+                  setState(() => _isExportingSaleReport = true);
+                  try {
+                    await SaleReport().generateSaleReport(
+                        startDate: widget.startDate, endDate: widget.endDate);
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingSaleReport = false);
+                    }
+                  }
+                },
+                onPluReportPressed: () async {
+                  setState(() => _isExportingPLUReport = true);
+                  try {
+                    await PLUReport().generatePLUReport(
+                        startDate: widget.startDate, endDate: widget.endDate);
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isExportingPLUReport = false);
+                    }
+                  }
+                },
               ),
               const SizedBox(height: 10),
               Row(
@@ -439,6 +487,7 @@ class DataViewState extends ConsumerState<DataView>
         startDate: widget.startDate,
         endDate: widget.endDate,
         isExpense: false,
+        skipOriginalTransactionCheck: false,
         branchId: ProxyService.box.getBranchId(),
       );
       transactions.fold<double>(
@@ -493,12 +542,14 @@ class DataViewState extends ConsumerState<DataView>
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
+      skipOriginalTransactionCheck: false,
       branchId: ProxyService.box.getBranchId(),
     );
     final sales = await ProxyService.strategy.transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
+      skipOriginalTransactionCheck: true,
       branchId: ProxyService.box.getBranchId(),
     );
     // Convert transactions to Expense model
@@ -580,6 +631,7 @@ class DataViewState extends ConsumerState<DataView>
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
+      skipOriginalTransactionCheck: false,
       branchId: ProxyService.box.getBranchId(),
     );
 
@@ -587,6 +639,9 @@ class DataViewState extends ConsumerState<DataView>
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
+
+      /// this include NR,CR etc.. in the list needed for full report X,Z report.
+      skipOriginalTransactionCheck: true,
       branchId: ProxyService.box.getBranchId(),
     );
 
@@ -663,12 +718,35 @@ class DataViewState extends ConsumerState<DataView>
       manualData = preparedData;
     } else if (_dataGridSource is TransactionDataSource) {
       // Use transactions directly from widget
-      manualData = widget.transactions ?? [];
+      final transactions = widget.transactions ?? [];
+
+      // Prepare data with explicit mapping to ensure all columns are included
+      List<Map<String, dynamic>> preparedData = [];
+
+      for (final transaction in transactions) {
+        final Map<String, dynamic> rowData = {};
+
+        // Map all the columns explicitly based on the actual Transaction properties
+        rowData['Name'] =
+            transaction.invoiceNumber?.toString() ?? transaction.id.toString();
+        rowData['Type'] = transaction.receiptType ?? 'Sale';
+        rowData['Amount'] = transaction.subTotal ?? 0.0;
+
+        // Get tax amount directly from the transaction
+        // The taxAmount property has been added to ITransaction and is populated with the sum of all transaction items' tax amounts
+        double totalTax = (transaction.taxAmount ?? 0.0).toDouble();
+
+        rowData['Tax'] = totalTax;
+        rowData['Cash'] = transaction.cashReceived ?? 0.0;
+
+        preparedData.add(rowData);
+      }
 
       // Get column names from the headers
       columnNames = _getTableHeaders().map((col) => col.columnName).toList();
       talker.info(
-          'Prepared ${manualData.length} transactions for export with ${columnNames.length} columns');
+          'Prepared ${preparedData.length} transactions for export with ${columnNames.length} columns');
+      manualData = preparedData;
     }
 
     // Use the exportDataGrid method with our config and manual data
@@ -685,64 +763,5 @@ class DataViewState extends ConsumerState<DataView>
         columnNames: columnNames,
         // Only show profit calculations in detailed report mode
         showProfitCalculations: widget.showDetailedReport);
-  }
-
-  Widget _buildReportTypeSwitch(bool showDetailed) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextButton(
-            onPressed: showDetailed
-                ? () async {
-                    // Toggle the report view
-                    ref
-                        .read(toggleBooleanValueProvider.notifier)
-                        .toggleReport();
-
-                    // Give the UI time to update and rebuild the DataGrid
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (mounted) setState(() {});
-                  }
-                : null,
-            style: TextButton.styleFrom(
-              backgroundColor: !showDetailed ? Colors.blue : Colors.transparent,
-              foregroundColor: !showDetailed ? Colors.white : Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            child: Text('Summarized'),
-          ),
-          TextButton(
-            onPressed: !showDetailed
-                ? () async {
-                    // Toggle the report view
-                    ref
-                        .read(toggleBooleanValueProvider.notifier)
-                        .toggleReport();
-
-                    // Give the UI time to update and rebuild the DataGrid
-                    await Future.delayed(const Duration(milliseconds: 100));
-                    if (mounted) setState(() {});
-                  }
-                : null,
-            style: TextButton.styleFrom(
-              backgroundColor: showDetailed ? Colors.blue : Colors.transparent,
-              foregroundColor: showDetailed ? Colors.white : Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-            ),
-            child: Text('Detailed'),
-          ),
-        ],
-      ),
-    );
   }
 }

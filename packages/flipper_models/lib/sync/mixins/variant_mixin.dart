@@ -7,6 +7,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:uuid/uuid.dart';
 
 mixin VariantMixin implements VariantInterface {
   Repository get repository;
@@ -27,94 +28,117 @@ mixin VariantMixin implements VariantInterface {
     int? page,
     String? variantId,
     String? name,
+    String? pchsSttsCd,
     String? bcd,
     String? purchaseId,
     int? itemsPerPage,
-    String? imptItemsttsCd,
+    String? imptItemSttsCd,
+    bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
+    bool forImportScreen = false,
   }) async {
     try {
-      final query = Query(orderBy: [
-        OrderBy('lastTouched', ascending: false)
-      ], where: [
-        if (variantId != null)
-          Where('id').isExactly(variantId)
-        else if (name != null && name.isNotEmpty) ...[
+      final List<WhereCondition> conditions = [];
+
+      if (forImportScreen) {
+        conditions.addAll([
+          Where('imptItemSttsCd').isExactly("2"),
+          Where('branchId').isExactly(branchId),
+          Or('imptItemSttsCd').isExactly("3"),
+          Where('branchId').isExactly(branchId),
+          Or('dclDe').isNot(null),
+          Where('branchId').isExactly(branchId),
+          Or('imptItemSttsCd').isExactly("4"),
+        ]);
+      } else if (forPurchaseScreen) {
+        conditions.addAll([
+          // (branchId = ? AND pchsSttsCd = '01')
+          Where('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("01"),
+
+          // OR (branchId = ? AND pchsSttsCd = '02')
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("02"),
+
+          // OR (branchId = ? AND pchsSttsCd = '04')
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("04"),
+        ]);
+      } else if (variantId != null) {
+        conditions.add(Where('id').isExactly(variantId));
+      } else if (name != null && name.isNotEmpty) {
+        conditions.addAll([
           Where('name').contains(name),
           Where('branchId').isExactly(branchId),
-        ] else if (bcd != null) ...[
+        ]);
+      } else if (bcd != null) {
+        conditions.addAll([
           Where('bcd').isExactly(bcd),
           Where('branchId').isExactly(branchId),
-        ] else if (imptItemsttsCd != null) ...[
-          Where('imptItemSttsCd').isExactly(imptItemsttsCd),
-          Where('branchId').isExactly(branchId)
-        ] else if (purchaseId != null) ...[
+        ]);
+      } else if (purchaseId != null) {
+        conditions.addAll([
           Where('purchaseId').isExactly(purchaseId),
-          Where('branchId').isExactly(branchId)
-        ] else if (productId != null) ...[
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else if (productId != null) {
+        conditions.addAll([
           Where('productId').isExactly(productId),
-          Where('branchId').isExactly(branchId)
-        ] else ...[
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else if (pchsSttsCd != null) {
+        conditions.addAll([
+          Where('pchsSttsCd').isExactly(pchsSttsCd),
+          Where('branchId').isExactly(branchId),
+        ]);
+      } else {
+        talker.info(
+            "TEMPORARY LOGGING (Corrected): Entering general variant fetch for branchId: $branchId. ProductId: $productId, Name: $name, BCD: $bcd, PurchaseID: $purchaseId, pchsSttsCd_param: $pchsSttsCd, imptItemSttsCd_param: $imptItemSttsCd, excludeApproved: $excludeApprovedInWaitingOrCanceledItems");
+        conditions.addAll([
           Where('branchId').isExactly(branchId),
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
-          // Exclude variants with imptItemSttsCd = 2 (waiting) or 4 (canceled),  3 is approved
-          if (!excludeApprovedInWaitingOrCanceledItems) ...[
-            Where('imptItemSttsCd').isNot("2"),
-            Where('imptItemSttsCd').isNot("4"),
-            Where('pchsSttsCd').isNot("04"),
-            Where('pchsSttsCd').isNot("01"),
-          ],
-
-          /// 01 is waiting for approval.
-          if (excludeApprovedInWaitingOrCanceledItems)
-            Where('pchsSttsCd').isExactly("01"),
-          if (purchaseId != null) Where('purchaseId').isExactly(purchaseId),
-          // Apply the purchaseId filter only if includePurchases is true
-          if (excludeApprovedInWaitingOrCanceledItems)
-            Where('purchaseId').isNot(null),
-        ]
-      ]);
-
-      // Try local first
-      List<Variant> variants = await repository.get<Variant>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: query,
-      );
-
-      // If no results found locally, fetch from remote
-      if (variants.isEmpty && fetchRemote == true) {
-        try {
-          variants = await repository.get<Variant>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: query,
-          );
-        } catch (e, s) {
-          // Catch authentication or network errors but don't fail the whole operation
-          talker.error('Error fetching variants from remote: $e');
-          talker.error(s);
-          // Continue with whatever we have locally (which may be empty)
+          Where('assigned').isExactly(false),
+        ]);
+        if (excludeApprovedInWaitingOrCanceledItems) {
+          conditions.add(Where('pchsSttsCd').isExactly("01"));
+          if (purchaseId != null) {
+            conditions.add(Where('purchaseId').isExactly(purchaseId));
+          }
         }
       }
 
-      // Pagination logic (if needed)
-      if (page != null && itemsPerPage != null) {
-        final offset = page * itemsPerPage;
-        final filtered = variants
-            .where((variant) =>
-                variant.pchsSttsCd != "01" &&
-                variant.pchsSttsCd != "04" &&
-                variant.pchsSttsCd != "1")
-            .skip(offset)
-            .take(itemsPerPage)
-            .toList();
-        talker.info(
-            '[VariantMixin] Loaded ${filtered.length} items for page=$page, itemsPerPage=$itemsPerPage, offset=$offset');
-        return filtered;
+      final query = Query(
+        where: conditions,
+        orderBy: [const OrderBy('lastTouched', ascending: false)],
+      );
+
+      List<Variant> fetchedVariants = await repository.get<Variant>(
+        query: query,
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.alwaysHydrate
+            : OfflineFirstGetPolicy.localOnly,
+      );
+
+      if (!forImportScreen && !forPurchaseScreen) {
+        fetchedVariants = fetchedVariants.where((v) {
+          final isWaitingImport = v.imptItemSttsCd == "2";
+          final isCancelledImport = v.imptItemSttsCd == "4";
+          final isCancelledPurchase = v.pchsSttsCd == "04";
+
+          return !isWaitingImport && !isCancelledImport && !isCancelledPurchase;
+        }).toList();
       }
 
-      return variants;
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        // Ensure we don't go out of bounds if fetchedVariants is smaller than offset + itemsPerPage
+        if (offset >= fetchedVariants.length) return [];
+        return fetchedVariants.skip(offset).take(itemsPerPage).toList();
+      }
+
+      return fetchedVariants;
     } catch (e, s) {
       talker.error(s);
       rethrow;
@@ -126,11 +150,54 @@ mixin VariantMixin implements VariantInterface {
     required List<Variant> variations,
     required int branchId,
   }) async {
-    for (var variant in variations) {
-      variant.branchId = branchId;
-      await repository.upsert<Variant>(variant);
-    }
-    return variations.length;
+    final results = await Future.wait(
+      variations.map((variant) async {
+        try {
+          // Create a new variant with a UUID if one doesn't exist
+          final variantToSave = variant.id.isEmpty
+              ? variant.copyWith(
+                  id: const Uuid().v4(),
+                  branchId: branchId,
+                )
+              : variant.copyWith(branchId: branchId);
+
+          // Handle stock if it exists
+          if (variantToSave.stock != null && variantToSave.stock!.id.isEmpty) {
+            final newStockId = const Uuid().v4();
+            // Create a new Stock instance with the new ID
+            final updatedStock = Stock(
+              id: newStockId,
+              branchId: branchId,
+              currentStock: variantToSave.stock!.currentStock,
+              lowStock: variantToSave.stock!.lowStock,
+              canTrackingStock: variantToSave.stock!.canTrackingStock,
+              showLowStockAlert: variantToSave.stock!.showLowStockAlert,
+              active: variantToSave.stock!.active,
+              value: variantToSave.stock!.value,
+              rsdQty: variantToSave.stock!.rsdQty,
+              lastTouched: variantToSave.stock!.lastTouched,
+              ebmSynced: variantToSave.stock!.ebmSynced,
+              initialStock: variantToSave.stock!.initialStock,
+            );
+
+            // Update the variant with the new stock and stockId
+            return await repository.upsert<Variant>(
+              variantToSave.copyWith(
+                stock: updatedStock,
+                stockId: newStockId,
+              ),
+            );
+          }
+
+          return await repository.upsert<Variant>(variantToSave);
+        } catch (e, stackTrace) {
+          talker.error('Error adding variant', e, stackTrace);
+          rethrow;
+        }
+      }),
+    );
+
+    return results.length;
   }
 
   @override

@@ -10,12 +10,15 @@ abstract class VariantInterface {
     int? page,
     String? variantId,
     String? name,
+    String? pchsSttsCd,
     String? bcd,
     String? purchaseId,
     int? itemsPerPage,
-    String? imptItemsttsCd,
+    String? imptItemSttsCd,
+    bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
+    bool forImportScreen = false,
   });
   Future<Variant?> getVariant({required String id});
 
@@ -45,7 +48,8 @@ abstract class VariantInterface {
       String? pkgUnitCd,
       DateTime? expirationDate,
       bool? ebmSynced,
-      String? categoryId, double? dcRt});
+      String? categoryId,
+      double? dcRt});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 

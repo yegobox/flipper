@@ -16,49 +16,42 @@ Future<Conversation> _$ConversationFromSupabase(
     fromNumber:
         data['from_number'] == null ? null : data['from_number'] as String?,
     toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     messageType:
         data['message_type'] == null ? null : data['message_type'] as String?,
-    phoneNumberId:
-        data['phone_number_id'] == null
-            ? null
-            : data['phone_number_id'] as String?,
+    phoneNumberId: data['phone_number_id'] == null
+        ? null
+        : data['phone_number_id'] as String?,
     messageId:
         data['message_id'] == null ? null : data['message_id'] as String?,
     respondedBy:
         data['responded_by'] == null ? null : data['responded_by'] as String?,
-    conversationId:
-        data['conversation_id'] == null
-            ? null
-            : data['conversation_id'] as String?,
-    businessPhoneNumber:
-        data['business_phone_number'] == null
-            ? null
-            : data['business_phone_number'] as String?,
+    conversationId: data['conversation_id'] == null
+        ? null
+        : data['conversation_id'] as String?,
+    businessPhoneNumber: data['business_phone_number'] == null
+        ? null
+        : data['business_phone_number'] as String?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as int?,
-    scheduledAt:
-        data['scheduled_at'] == null
-            ? null
-            : data['scheduled_at'] == null
+    scheduledAt: data['scheduled_at'] == null
+        ? null
+        : data['scheduled_at'] == null
             ? null
             : DateTime.tryParse(data['scheduled_at'] as String),
     delivered: data['delivered'] == null ? null : data['delivered'] as bool?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
   );
@@ -107,49 +100,42 @@ Future<Conversation> _$ConversationFromSqlite(
     fromNumber:
         data['from_number'] == null ? null : data['from_number'] as String?,
     toNumber: data['to_number'] == null ? null : data['to_number'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     messageType:
         data['message_type'] == null ? null : data['message_type'] as String?,
-    phoneNumberId:
-        data['phone_number_id'] == null
-            ? null
-            : data['phone_number_id'] as String?,
+    phoneNumberId: data['phone_number_id'] == null
+        ? null
+        : data['phone_number_id'] as String?,
     messageId:
         data['message_id'] == null ? null : data['message_id'] as String?,
     respondedBy:
         data['responded_by'] == null ? null : data['responded_by'] as String?,
-    conversationId:
-        data['conversation_id'] == null
-            ? null
-            : data['conversation_id'] as String?,
-    businessPhoneNumber:
-        data['business_phone_number'] == null
-            ? null
-            : data['business_phone_number'] as String?,
+    conversationId: data['conversation_id'] == null
+        ? null
+        : data['conversation_id'] as String?,
+    businessPhoneNumber: data['business_phone_number'] == null
+        ? null
+        : data['business_phone_number'] as String?,
     businessId:
         data['business_id'] == null ? null : data['business_id'] as int?,
-    scheduledAt:
-        data['scheduled_at'] == null
-            ? null
-            : data['scheduled_at'] == null
+    scheduledAt: data['scheduled_at'] == null
+        ? null
+        : data['scheduled_at'] == null
             ? null
             : DateTime.tryParse(data['scheduled_at'] as String),
     delivered: data['delivered'] == null ? null : data['delivered'] == 1,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -426,39 +412,43 @@ class ConversationAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConversationFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConversationFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Conversation input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConversationToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConversationToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Conversation> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConversationFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConversationFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Conversation input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$ConversationToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$ConversationToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

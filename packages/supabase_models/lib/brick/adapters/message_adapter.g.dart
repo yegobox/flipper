@@ -13,16 +13,14 @@ Future<Message> _$MessageFromSupabase(
     delivered: data['delivered'] as bool,
     branchId: data['branch_id'] as int,
     role: data['role'] == null ? null : data['role'] as String?,
-    timestamp:
-        data['timestamp'] == null
-            ? null
-            : data['timestamp'] == null
+    timestamp: data['timestamp'] == null
+        ? null
+        : data['timestamp'] == null
             ? null
             : DateTime.tryParse(data['timestamp'] as String),
-    conversationId:
-        data['conversation_id'] == null
-            ? null
-            : data['conversation_id'] as String?,
+    conversationId: data['conversation_id'] == null
+        ? null
+        : data['conversation_id'] as String?,
     aiResponse:
         data['ai_response'] == null ? null : data['ai_response'] as String?,
     aiContext:
@@ -61,16 +59,14 @@ Future<Message> _$MessageFromSqlite(
     delivered: data['delivered'] == 1,
     branchId: data['branch_id'] as int,
     role: data['role'] == null ? null : data['role'] as String?,
-    timestamp:
-        data['timestamp'] == null
-            ? null
-            : data['timestamp'] == null
+    timestamp: data['timestamp'] == null
+        ? null
+        : data['timestamp'] == null
             ? null
             : DateTime.tryParse(data['timestamp'] as String),
-    conversationId:
-        data['conversation_id'] == null
-            ? null
-            : data['conversation_id'] as String?,
+    conversationId: data['conversation_id'] == null
+        ? null
+        : data['conversation_id'] as String?,
     aiResponse:
         data['ai_response'] == null ? null : data['ai_response'] as String?,
     aiContext:
@@ -248,39 +244,43 @@ class MessageAdapter extends OfflineFirstWithSupabaseAdapter<Message> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$MessageFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$MessageFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Message input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$MessageToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$MessageToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Message> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$MessageFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$MessageFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Message input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$MessageToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$MessageToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

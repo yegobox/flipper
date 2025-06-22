@@ -40,7 +40,7 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
     // Load VAT enabled status
     if (ebm != null) {
       setState(() {
-        _vatEnabled = ebm.vatEnabled??false;
+        _vatEnabled = ebm.vatEnabled ?? false;
       });
     }
   }
@@ -148,6 +148,7 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 16, horizontal: 16),
                     ),
+                    validator: _validateMrc,
                   ),
                   const SizedBox(height: 16),
                   FlipperButton(
@@ -200,7 +201,17 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
 
   String? _validateBhfid(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a value';
+      return 'Branch ID is required';
+    }
+    return null;
+  }
+
+  String? _validateMrc(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'MRC is required';
+    }
+    if (value.length != 11) {
+      return 'MRC must be exactly 11 characters';
     }
     return null;
   }

@@ -52,11 +52,12 @@ class KitchenOrdersNotifier
       if (transaction.isLoan == true) {
         continue;
       }
-      
+
       // Each transaction should only appear in one column based on its status
       if (transaction.status == PARKED) {
         categorizedOrders[OrderStatus.incoming]!.add(transaction);
-      } else if (transaction.status == IN_PROGRESS || transaction.status == ORDERING) {
+      } else if (transaction.status == IN_PROGRESS ||
+          transaction.status == ORDERING) {
         categorizedOrders[OrderStatus.inProgress]!.add(transaction);
       } else if (transaction.status == WAITING) {
         categorizedOrders[OrderStatus.waiting]!.add(transaction);

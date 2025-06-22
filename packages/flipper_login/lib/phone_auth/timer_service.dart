@@ -25,7 +25,7 @@ class TimerService {
       setState(() {
         if (state.timerSeconds > 0) {
           state.timerSeconds--;
-          
+
           // Schedule the next decrement
           Future.delayed(const Duration(seconds: 1), decrementTimer);
         } else {

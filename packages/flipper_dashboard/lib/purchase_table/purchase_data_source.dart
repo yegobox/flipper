@@ -3,6 +3,12 @@ import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
+const Map<String, String> _statusDisplayMap = {
+  '01': 'Waiting',
+  '02': 'Approved',
+  '04': 'Declined',
+};
+
 class PurchaseDataSource extends DataGridSource {
   final List<Variant> variants;
   final Map<String, double> _editedRetailPrices;
@@ -69,6 +75,12 @@ class PurchaseDataSource extends DataGridSource {
               onDecline: () =>
                   _onStatusChange(variant.id, "04", isApprove: false),
             ),
+          ),
+          DataGridCell<String>(
+            columnName: 'Status',
+            value: _statusDisplayMap[variant.pchsSttsCd] ??
+                variant.pchsSttsCd ??
+                'Unknown',
           ),
         ],
       );
@@ -138,6 +150,12 @@ class PurchaseDataSource extends DataGridSource {
             child: dataGridCell.value as _ActionButtons,
           );
         } else if (dataGridCell.columnName == 'Name') {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            alignment: Alignment.centerLeft,
+            child: Text(dataGridCell.value.toString()),
+          );
+        } else if (dataGridCell.columnName == 'Status') {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             alignment: Alignment.centerLeft,

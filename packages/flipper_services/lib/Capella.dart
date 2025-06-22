@@ -7,6 +7,8 @@ import 'dart:typed_data';
 // import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
+import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -761,7 +763,9 @@ class Capella extends AiStrategyImpl
 
   @override
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, String? filter}) {
+      {required int branchId,
+      String filter = RequestStatus.pending,
+      String? search}) {
     // TODO: implement requestsStream
     throw UnimplementedError();
   }
@@ -1527,6 +1531,7 @@ class Capella extends AiStrategyImpl
       FilterType? filterType,
       int? branchId,
       bool includeZeroSubTotal = false,
+      bool skipOriginalTransactionCheck = false,
       bool includePending = false}) {
     // TODO: implement transactions
     throw UnimplementedError();
@@ -1737,18 +1742,22 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Variant>> variants(
-      {required int branchId,
-      String? productId,
-      String? variantId,
-      int? page,
-      String? purchaseId,
-      bool excludeApprovedInWaitingOrCanceledItems = false,
-      int? itemsPerPage,
-      String? name,
-      String? bcd,
-      bool fetchRemote = false,
-      String? imptItemsttsCd}) {
+  Future<List<brick.Variant>> variants({
+    required int branchId,
+    String? productId,
+    int? page,
+    String? variantId,
+    bool forImportScreen = false,
+    String? name,
+    String? pchsSttsCd,
+    String? bcd,
+    String? purchaseId,
+    int? itemsPerPage,
+    String? imptItemSttsCd,
+    bool forPurchaseScreen = false,
+    bool excludeApprovedInWaitingOrCanceledItems = false,
+    bool fetchRemote = false,
+  }) {
     // TODO: implement variants
     throw UnimplementedError();
   }
@@ -1758,6 +1767,7 @@ class Capella extends AiStrategyImpl
     required String bhfId,
     required int tin,
     required String url,
+    String? pchsSttsCd,
     required String lastRequestdate,
   }) {
     // TODO: implement selectPurchases
@@ -1853,6 +1863,7 @@ class Capella extends AiStrategyImpl
   @override
   Future<brick.ITransaction?> manageTransaction(
       {required String transactionType,
+      String status = PENDING,
       required bool isExpense,
       required int branchId,
       bool includeSubTotalCheck = false}) {
@@ -1866,6 +1877,7 @@ class Capella extends AiStrategyImpl
       String? receiptType,
       double? subTotal,
       String? note,
+      num taxAmount = 0.0,
       String? status,
       String? customerId,
       bool? ebmSynced,
@@ -2311,6 +2323,37 @@ class Capella extends AiStrategyImpl
   @override
   Future<void> saveBranch(brick.Branch branch) {
     // TODO: implement saveBranch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<brick.Variant>> allImportsToDate() {
+    // TODO: implement allImportsToDate
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<PurchaseReportItem>> allPurchasesToDate() {
+    // TODO: implement allPurchasesToDate
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<TransactionWithItems>> transactionsAndItems(
+      {DateTime? startDate,
+      DateTime? endDate,
+      String? status,
+      String? transactionType,
+      int? branchId,
+      bool isCashOut = false,
+      bool fetchRemote = false,
+      String? id,
+      bool isExpense = false,
+      FilterType? filterType,
+      bool includeZeroSubTotal = false,
+      bool includePending = false,
+      bool skipOriginalTransactionCheck = false}) {
+    // TODO: implement transactionsAndItems
     throw UnimplementedError();
   }
 }

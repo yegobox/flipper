@@ -1,5 +1,4 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -112,7 +111,19 @@ mixin TransactionMixinOld {
     }
   }
 
-  FilterType getFilterType({required String transactionType}) {
+  FilterType getFilterType({String? transactionType}) {
+    if (transactionType == "NR") {
+      return FilterType.NR;
+    }
+    if (transactionType == "CR") {
+      return FilterType.CR;
+    }
+    if (transactionType == "CS") {
+      return FilterType.CS;
+    }
+    if (transactionType == "TR") {
+      return FilterType.TR;
+    }
     if (ProxyService.box.isProformaMode()) {
       return FilterType.PS;
     } else if (ProxyService.box.isTrainingMode()) {
@@ -131,8 +142,7 @@ mixin TransactionMixinOld {
       final responseFrom =
           await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
-        filterType:
-            getFilterType(transactionType: transaction.receiptType ?? "NS"),
+        filterType: getFilterType(transactionType: transaction.receiptType),
       );
       final (:response, :bytes) = responseFrom;
 
@@ -175,16 +185,6 @@ mixin TransactionMixinOld {
             transaction: pendingTransaction,
             status: COMPLETE,
             ebmSynced: false);
-        final tinNumber = ProxyService.box.tin();
-        final bhfId = await ProxyService.box.bhfId();
-        PatchTransactionItem.patchTransactionItem(
-          tinNumber: tinNumber,
-          bhfId: bhfId!,
-          URI: (await ProxyService.box.getServerUrl())!,
-          sendPort: (message) {
-            ProxyService.notification.sendLocalNotification(body: "Stock IO");
-          },
-        );
       } catch (e) {
         // Rethrow the error instead of silently catching it
         // This ensures the transaction isn't marked as complete when there's an error

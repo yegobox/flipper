@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// A reusable segmented button widget that can be used throughout the app.
-/// 
+///
 /// This widget wraps Flutter's SegmentedButton with customizable styling and behavior.
 class CustomSegmentedButton<T> extends StatelessWidget {
   final List<ButtonSegment<T>> segments;
@@ -14,7 +14,7 @@ class CustomSegmentedButton<T> extends StatelessWidget {
   final Color? borderColor;
   final double borderRadius;
   final bool enabled;
-  
+
   const CustomSegmentedButton({
     Key? key,
     required this.segments,
@@ -27,13 +27,13 @@ class CustomSegmentedButton<T> extends StatelessWidget {
     this.borderColor,
     this.borderRadius = 4.0,
     this.enabled = true,
-  }) : onSelectionChanged = enabled ? onSelectionChanged : null,
-       super(key: key);
+  })  : onSelectionChanged = enabled ? onSelectionChanged : null,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     Widget button = SegmentedButton<T>(
       style: ButtonStyle(
         backgroundColor: WidgetStateProperty.resolveWith<Color>(

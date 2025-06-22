@@ -35,19 +35,20 @@ class LinuxNotifications extends BaseNotifications {
   @override
   Future<void> initialize() async {
     await super.initialize();
-    
+
     final initSettingsLinux = LinuxInitializationSettings(
       defaultActionName: 'Open notification',
       defaultIcon: AssetsLinuxIcon(AppIcons.linux),
     );
-    
+
     final initSettings = InitializationSettings(
       linux: initSettingsLinux,
     );
 
     await notificationsPlugin.initialize(
       initSettings,
-      onDidReceiveBackgroundNotificationResponse: notificationBackgroundCallback,
+      onDidReceiveBackgroundNotificationResponse:
+          notificationBackgroundCallback,
       onDidReceiveNotificationResponse: notificationCallback,
     );
   }

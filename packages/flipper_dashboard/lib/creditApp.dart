@@ -1,4 +1,3 @@
-
 /// This adapter file maintains backward compatibility while using the new feature-based structure.
 /// It simply re-exports the CreditApp from the features directory.
 export 'features/credits/credit_app.dart';

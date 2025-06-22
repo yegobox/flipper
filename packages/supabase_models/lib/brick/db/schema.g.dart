@@ -1,14 +1,16 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250612082232.migration.dart';
+part '20250621191848.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
-final migrations = <Migration>{const Migration20250612082232()};
+final migrations = <Migration>{
+  const Migration20250621191848(),
+};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250612082232,
+  0,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -256,6 +258,40 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      '_brick_ITransaction_items',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn(
+          'l_ITransaction_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'ITransaction',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn(
+          'f_TransactionItem_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'TransactionItem',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(
+          columns: ['l_ITransaction_brick_id', 'f_TransactionItem_brick_id'],
+          unique: true,
+        ),
+      },
+    ),
+    SchemaTable(
       'ITransaction',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -317,6 +353,9 @@ final schema = Schema(
         SchemaColumn('last_payment_amount', Column.num),
         SchemaColumn('original_transaction_id', Column.varchar),
         SchemaColumn('is_original_transaction', Column.boolean),
+        SchemaColumn('tax_amount', Column.num),
+        SchemaColumn('number_of_items', Column.integer),
+        SchemaColumn('discount_amount', Column.num),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -562,7 +601,7 @@ final schema = Schema(
         SchemaColumn('item_ty_cd', Column.varchar),
         SchemaColumn('item_std_nm', Column.varchar),
         SchemaColumn('orgn_nat_cd', Column.varchar),
-        SchemaColumn('pkg', Column.varchar),
+        SchemaColumn('pkg', Column.integer),
         SchemaColumn('item_cd', Column.varchar),
         SchemaColumn('pkg_unit_cd', Column.varchar),
         SchemaColumn('qty_unit_cd', Column.varchar),
@@ -580,6 +619,45 @@ final schema = Schema(
         SchemaColumn('modr_id', Column.varchar),
         SchemaColumn('modr_nm', Column.varchar),
         SchemaColumn('last_touched', Column.datetime),
+        SchemaColumn('purchase_id', Column.varchar),
+        SchemaColumn(
+          'stock_Stock_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'Stock',
+          onDeleteCascade: false,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn('stock_id', Column.varchar),
+        SchemaColumn('tax_percentage', Column.num),
+        SchemaColumn('color', Column.varchar),
+        SchemaColumn('sku', Column.varchar),
+        SchemaColumn('product_id', Column.varchar),
+        SchemaColumn('unit', Column.varchar),
+        SchemaColumn('product_name', Column.varchar),
+        SchemaColumn('category_id', Column.varchar),
+        SchemaColumn('category_name', Column.varchar),
+        SchemaColumn('tax_name', Column.varchar),
+        SchemaColumn('supply_price', Column.Double),
+        SchemaColumn('retail_price', Column.Double),
+        SchemaColumn('spplr_item_nm', Column.varchar),
+        SchemaColumn('tot_wt', Column.integer),
+        SchemaColumn('net_wt', Column.integer),
+        SchemaColumn('spplr_nm', Column.varchar),
+        SchemaColumn('agnt_nm', Column.varchar),
+        SchemaColumn('invc_fcur_amt', Column.integer),
+        SchemaColumn('invc_fcur_cd', Column.varchar),
+        SchemaColumn('invc_fcur_excrt', Column.Double),
+        SchemaColumn('expt_nat_cd', Column.varchar),
+        SchemaColumn('dcl_no', Column.varchar),
+        SchemaColumn('task_cd', Column.varchar),
+        SchemaColumn('dcl_de', Column.varchar),
+        SchemaColumn('hs_cd', Column.varchar),
+        SchemaColumn('impt_item_stts_cd', Column.varchar),
+        SchemaColumn('is_shared', Column.boolean),
+        SchemaColumn('assigned', Column.boolean),
+        SchemaColumn('spplr_item_cls_cd', Column.varchar),
+        SchemaColumn('spplr_item_cd', Column.varchar),
         SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('ebm_synced', Column.boolean),
         SchemaColumn('part_of_composite', Column.boolean),
@@ -597,6 +675,8 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['transaction_id'], unique: false),
+        SchemaIndex(columns: ['variant_id'], unique: false),
       },
     ),
     SchemaTable(
@@ -726,6 +806,7 @@ final schema = Schema(
         SchemaColumn('tot_amt', Column.Double),
         SchemaColumn('pchs_stts_cd', Column.varchar),
         SchemaColumn('is_shared', Column.boolean),
+        SchemaColumn('assigned', Column.boolean),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -776,7 +857,6 @@ final schema = Schema(
           isPrimaryKey: true,
         ),
         SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('variants', Column.varchar),
         SchemaColumn('spplr_tin', Column.varchar),
         SchemaColumn('spplr_nm', Column.varchar),
         SchemaColumn('spplr_bhf_id', Column.varchar),
@@ -1039,15 +1119,6 @@ final schema = Schema(
         SchemaColumn('id', Column.varchar, unique: true),
         SchemaColumn('main_branch_id', Column.integer),
         SchemaColumn('sub_branch_id', Column.integer),
-        SchemaColumn(
-          'branch_Branch_brick_id',
-          Column.integer,
-          isForeignKey: true,
-          foreignTableName: 'Branch',
-          onDeleteCascade: false,
-          onDeleteSetDefault: false,
-        ),
-        SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
         SchemaColumn('status', Column.varchar),
         SchemaColumn('delivery_date', Column.datetime),
@@ -1056,7 +1127,6 @@ final schema = Schema(
         SchemaColumn('customer_received_order', Column.boolean),
         SchemaColumn('driver_request_delivery_confirmation', Column.boolean),
         SchemaColumn('driver_id', Column.integer),
-        SchemaColumn('transaction_items', Column.varchar),
         SchemaColumn('updated_at', Column.datetime),
         SchemaColumn('item_counts', Column.num),
         SchemaColumn('bhf_id', Column.varchar),
@@ -1070,6 +1140,15 @@ final schema = Schema(
           onDeleteSetDefault: false,
         ),
         SchemaColumn('financing_id', Column.varchar),
+        SchemaColumn(
+          'branch_Branch_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'Branch',
+          onDeleteCascade: false,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn('branch_id', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1348,6 +1427,8 @@ final schema = Schema(
         SchemaColumn('name', Column.varchar),
         SchemaColumn('value', Column.varchar),
         SchemaColumn('active', Column.boolean),
+        SchemaColumn('code', Column.varchar),
+        SchemaColumn('description', Column.varchar),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('created_at', Column.varchar),
       },

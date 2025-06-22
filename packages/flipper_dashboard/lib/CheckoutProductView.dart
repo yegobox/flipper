@@ -223,7 +223,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
         duration: const Duration(seconds: 5),
       );
     });
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 180),

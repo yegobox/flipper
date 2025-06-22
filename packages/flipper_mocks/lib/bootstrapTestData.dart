@@ -64,11 +64,17 @@ class CreateMockdata {
 
       final mockStockRequests = [
         InventoryRequest(
+          branchId: "",
+          financingId: "",
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
           transactionItems: [
             TransactionItem(
+              itemTyCd: "",
+              pkgUnitCd: "",
+              qtyUnitCd: "",
+              itemCd: "",
               lastTouched: DateTime.now().toUtc(),
               itemNm: "itemNm",
               price: 100,
@@ -82,11 +88,17 @@ class CreateMockdata {
           ],
         ),
         InventoryRequest(
+          branchId: "",
+          financingId: "",
           mainBranchId: 1,
           subBranchId: 2,
           status: 'pending',
           transactionItems: [
             TransactionItem(
+              itemTyCd: "",
+              pkgUnitCd: "",
+              qtyUnitCd: "",
+              itemCd: "",
               lastTouched: DateTime.now().toUtc(),
               itemNm: "itemNm",
               price: 100,

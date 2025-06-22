@@ -71,7 +71,8 @@ class _AdminScreenContent extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -192,7 +193,9 @@ class _AdminScreenContent extends StatelessWidget {
           onTap: () {
             showDialog(
               context: context,
-              builder: (context) => TaxSettingsModal(branchId: ProxyService.box.getBranchId()!,),
+              builder: (context) => TaxSettingsModal(
+                branchId: ProxyService.box.getBranchId()!,
+              ),
             );
           },
           color: Colors.purple,
@@ -220,7 +223,8 @@ class _AdminScreenContent extends StatelessWidget {
       children: [
         Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -232,13 +236,15 @@ class _AdminScreenContent extends StatelessWidget {
                     hintText: '+250783054874',
                     errorText: controller.phoneError,
                   ),
-                  onChanged: (value) => controller.updateSmsConfig(phone: value),
+                  onChanged: (value) =>
+                      controller.updateSmsConfig(phone: value),
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile.adaptive(
                   title: const Text('Enable SMS Notifications'),
                   value: controller.enableSmsNotification,
-                  onChanged: (value) => controller.updateSmsConfig(enable: value),
+                  onChanged: (value) =>
+                      controller.updateSmsConfig(enable: value),
                 ),
               ],
             ),
@@ -248,7 +254,8 @@ class _AdminScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildSystemSettings(BuildContext context, AdminController controller) {
+  Widget _buildSystemSettings(
+      BuildContext context, AdminController controller) {
     return SettingsSection(
       title: 'System Settings',
       children: [

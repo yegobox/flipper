@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
+import 'package:collection/collection.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -124,10 +126,7 @@ mixin PurchaseMixin
 
         if (response.data == null || response.data!.itemList == null) {
           variantsList = await variants(
-            branchId: ProxyService.box.getBranchId()!,
-            imptItemsttsCd: "2",
-            excludeApprovedInWaitingOrCanceledItems: true,
-          );
+              branchId: ProxyService.box.getBranchId()!, forImportScreen: true);
           print(
               "Total variants found: ${variantsList.length}"); // Log total variants
           return variantsList;
@@ -169,10 +168,7 @@ mixin PurchaseMixin
 
       // Return the newly imported variants OR existing variants if no API call was made
       variantsList = await variants(
-        branchId: ProxyService.box.getBranchId()!,
-        imptItemsttsCd: "2",
-        excludeApprovedInWaitingOrCanceledItems: true,
-      );
+          branchId: ProxyService.box.getBranchId()!, forImportScreen: true);
 
       return variantsList;
     } catch (e, stackTrace) {
@@ -187,6 +183,7 @@ mixin PurchaseMixin
     required int tin,
     required String url,
     required String lastRequestdate,
+    String? pchsSttsCd,
   }) async {
     try {
       RwApiResponse response;
@@ -239,7 +236,8 @@ mixin PurchaseMixin
         if (response.data?.saleList?.isEmpty ?? false) {
           variantsList = await variants(
             branchId: branchId,
-            excludeApprovedInWaitingOrCanceledItems: true,
+            forPurchaseScreen: true,
+            pchsSttsCd: pchsSttsCd,
           );
           return variantsList;
         }
@@ -259,6 +257,7 @@ mixin PurchaseMixin
           if (purchase.variants != null) {
             // Check if variants is null. Protect from null exception
             for (final variant in purchase.variants!) {
+              purchase.branchId = ProxyService.box.getBranchId()!;
               // Using non-null assertion operator safely because of previous null check
               futures.add(() async {
                 // Wrap in an explicit `async` function for safety.
@@ -343,7 +342,7 @@ mixin PurchaseMixin
 
       variantsList = await variants(
         branchId: branchId,
-        excludeApprovedInWaitingOrCanceledItems: true,
+        forPurchaseScreen: true,
       );
 
       return variantsList;
@@ -362,7 +361,9 @@ mixin PurchaseMixin
     // Fetch all purchases with unapproved variants
     final purchases = await repository.get<Purchase>(
       query: brick.Query(
-        where: [brick.Where('hasUnApprovedVariant').isExactly(true)],
+        where: [
+          brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!)
+        ],
       ),
     );
 
@@ -382,22 +383,34 @@ mixin PurchaseMixin
   }
 
   Future<Purchase?> _processPurchase(Purchase purchase) async {
-    // Fetch variants for the current purchase
-    final variants = await repository.get<Variant>(
+    // Fetch all variants for the current purchase
+    final allVariantsForPurchase = await repository.get<Variant>(
       query: brick.Query(
         where: [brick.Where('purchaseId').isExactly(purchase.id)],
       ),
     );
 
-    bool hasUnapprovedVariants =
-        variants.any((variant) => variant.pchsSttsCd == '01');
+    // Assign the filtered list to purchase.variants
+    // This is crucial for the PurchaseTable UI
+    purchase.variants = allVariantsForPurchase;
 
-    if (purchase.hasUnApprovedVariant != hasUnapprovedVariants) {
-      purchase.hasUnApprovedVariant = hasUnapprovedVariants;
-      await repository.upsert<Purchase>(purchase); // Update only if necessary
+    // Determine if the purchase has any unapproved variants based on the relevant variants
+    bool newHasUnapprovedVariant =
+        allVariantsForPurchase.any((variant) => variant.pchsSttsCd == '01');
+
+    if (purchase.hasUnApprovedVariant != newHasUnapprovedVariant) {
+      // If the status changed, update the purchase object directly
+      purchase.hasUnApprovedVariant = newHasUnapprovedVariant;
+      // Upsert the modified purchase object
+      await repository.upsert<Purchase>(purchase);
+      // The 'purchase' instance is now updated in the database and in memory.
+      // It already has purchase.variants = relevantVariants from the lines above.
+      return purchase;
+    } else {
+      // If no change in hasUnApprovedVariant, still return the purchase with its variants populated.
+      // purchase.variants was already set earlier.
+      return purchase;
     }
-
-    return hasUnapprovedVariants ? purchase : null;
   }
 
   @override
@@ -420,5 +433,72 @@ mixin PurchaseMixin
         where: [brick.Where('branchId').isExactly(branchId)],
       ),
     );
+  }
+
+  @override
+  Future<List<Variant>> allImportsToDate() async {
+    final branchId = ProxyService.box.getBranchId()!;
+    return await repository.get<Variant>(
+      query: brick.Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('imptItemSttsCd').isExactly('2'),
+          Or('branchId').isExactly(branchId),
+          Where('imptItemSttsCd').isExactly("3"),
+          Where('dclNo').isNot(null),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<List<PurchaseReportItem>> allPurchasesToDate() async {
+    final branchId = ProxyService.box.getBranchId()!;
+    final variants = await repository.get<Variant>(
+      query: brick.Query(
+        where: [
+          Where('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("01"),
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("02"),
+          Or('branchId').isExactly(branchId),
+          Where('pchsSttsCd').isExactly("04"),
+        ],
+      ),
+    );
+
+    if (variants.isEmpty) return [];
+
+    // Collect all unique purchase IDs to fetch them in a single query.
+    final purchaseIds =
+        variants.map((v) => v.purchaseId).nonNulls.toSet().toList();
+
+    // If there are no associated purchases, it means no variants are valid purchases.
+    if (purchaseIds.isEmpty) {
+      return [];
+    }
+
+    // Build a query with multiple 'OR' conditions to simulate an 'IN' clause.
+    List<brick.Where> purchaseWheres = [];
+    purchaseWheres.add(brick.Where('id').isExactly(purchaseIds.first));
+    for (int i = 1; i < purchaseIds.length; i++) {
+      purchaseWheres.add(brick.Or('id').isExactly(purchaseIds[i]));
+    }
+
+    final purchases = await repository.get<Purchase>(
+      query: brick.Query(where: purchaseWheres),
+    );
+
+    // Create a lookup map for efficient access to purchases.
+    final purchaseMap = {for (var p in purchases) p.id: p};
+
+    // Combine variants with their corresponding purchases.
+    return variants
+        .where((v) => v.purchaseId != null)
+        .map((variant) => PurchaseReportItem(
+              variant: variant,
+              purchase: purchaseMap[variant.purchaseId],
+            ))
+        .toList();
   }
 }

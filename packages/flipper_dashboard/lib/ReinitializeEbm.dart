@@ -14,7 +14,43 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
   final _bhfIdController = TextEditingController();
   final _dvcSrlNoController = TextEditingController();
   bool _isLoading = false;
+  bool _isInitializing = true;
   String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingEbmData();
+  }
+
+  Future<void> _loadExistingEbmData() async {
+    try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        setState(() {
+          _isInitializing = false;
+          _errorMessage = 'No active branch found';
+        });
+        return;
+      }
+
+      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      if (ebm != null) {
+        _tinController.text = ebm.tinNumber.toString();
+        _bhfIdController.text = ebm.bhfId;
+        _dvcSrlNoController.text = ebm.dvcSrlNo;
+      }
+    } catch (e) {
+      // Silently handle errors - it's okay if we can't pre-fill the form
+      debugPrint('Error loading EBM data: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitializing = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,136 +75,144 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
-              children: [
-                Icon(Icons.refresh, color: theme.colorScheme.primary),
-                const SizedBox(width: 12),
-                Text(
-                  "Re-initialize EBM",
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: _isInitializing
+            ? const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.0),
+                  child: CircularProgressIndicator(),
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Form(
-              key: _formKey,
-              child: Column(
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildTextField(
-                    controller: _tinController,
-                    labelText: 'TIN',
-                    prefixIcon: Icons.numbers,
-                    validator: (value) =>
-                        value?.isEmpty ?? true ? 'TIN is required' : null,
+                  Row(
+                    children: [
+                      Icon(Icons.refresh, color: theme.colorScheme.primary),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Re-initialize EBM",
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        _buildTextField(
+                          controller: _tinController,
+                          labelText: 'TIN',
+                          prefixIcon: Icons.numbers,
+                          validator: (value) =>
+                              value?.isEmpty ?? true ? 'TIN is required' : null,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _bhfIdController,
+                          labelText: 'BHF ID',
+                          prefixIcon: Icons.business,
+                          validator: (value) => value?.isEmpty ?? true
+                              ? 'BHF ID is required'
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _dvcSrlNoController,
+                          labelText: 'Device Serial Number',
+                          prefixIcon: Icons.devices,
+                          validator: (value) => value?.isEmpty ?? true
+                              ? 'Device Serial Number is required'
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _bhfIdController,
-                    labelText: 'BHF ID',
-                    prefixIcon: Icons.business,
-                    validator: (value) =>
-                        value?.isEmpty ?? true ? 'BHF ID is required' : null,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _dvcSrlNoController,
-                    labelText: 'Device Serial Number',
-                    prefixIcon: Icons.devices,
-                    validator: (value) => value?.isEmpty ?? true
-                        ? 'Device Serial Number is required'
-                        : null,
+                  if (_errorMessage != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            color: theme.colorScheme.error,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        onPressed: _isLoading
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                              },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: theme.colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: _isLoading ? null : _handleReInitialize,
+                        child: _isLoading
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: theme.colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text('Processing...'),
+                                ],
+                              )
+                            : const Text('Re-initialize'),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            if (_errorMessage != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: theme.colorScheme.error,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(
-                          color: theme.colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          Navigator.of(context).pop();
-                        },
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    foregroundColor: theme.colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: _isLoading ? null : _handleReInitialize,
-                  child: _isLoading
-                      ? Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: theme.colorScheme.onPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text('Processing...'),
-                          ],
-                        )
-                      : const Text('Re-initialize'),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -235,7 +279,12 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Failed to initialize EBM: ${e.toString()}';
+        // If the error message is already user-friendly (from our API handling), use it as is
+        // Otherwise, prepend a generic error message
+        final errorMessage = e.toString();
+        _errorMessage = errorMessage.startsWith('Exception: ')
+            ? errorMessage.substring('Exception: '.length)
+            : 'Failed to initialize EBM: $errorMessage';
       });
     }
   }

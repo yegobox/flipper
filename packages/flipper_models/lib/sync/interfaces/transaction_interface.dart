@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 
 abstract class TransactionInterface {
@@ -16,7 +17,10 @@ abstract class TransactionInterface {
     bool includeZeroSubTotal = false,
     bool fetchRemote = false,
     bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
   });
+
+  FutureOr<void> addTransaction({required ITransaction transaction});
 
   Stream<ITransaction> pendingTransaction({
     int? branchId,
@@ -56,6 +60,7 @@ abstract class TransactionInterface {
     required String transactionType,
     required bool isExpense,
     required int branchId,
+    String status = PENDING,
     bool includeSubTotalCheck = false,
   });
 
@@ -138,10 +143,26 @@ abstract class TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
+    num taxAmount = 0.0,
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo, required int branchId, String? id});
   Future<bool> deleteTransaction({required ITransaction transaction});
 
   Future<bool> migrateToNewDateTime({required int branchId});
+  Future<List<TransactionWithItems>> transactionsAndItems({
+    DateTime? startDate,
+    DateTime? endDate,
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool fetchRemote = false,
+    String? id,
+    bool isExpense = false,
+    FilterType? filterType,
+    bool includeZeroSubTotal = false,
+    bool includePending = false,
+    bool skipOriginalTransactionCheck = false,
+  });
 }

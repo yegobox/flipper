@@ -6,7 +6,7 @@ part of 'variants_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$variantHash() => r'3e2e489d243c719820d5c9dd4e6682ada1c203b8';
+String _$variantHash() => r'c9ec01cd597980a1288e68ea6ab4555332dcc884';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -42,10 +42,14 @@ class VariantFamily extends Family<AsyncValue<List<Variant>>> {
   VariantProvider call({
     required int branchId,
     String? key,
+    bool forImportScreen = false,
+    bool forPurchaseScreen = false,
   }) {
     return VariantProvider(
       branchId: branchId,
       key: key,
+      forImportScreen: forImportScreen,
+      forPurchaseScreen: forPurchaseScreen,
     );
   }
 
@@ -56,6 +60,8 @@ class VariantFamily extends Family<AsyncValue<List<Variant>>> {
     return call(
       branchId: provider.branchId,
       key: provider.key,
+      forImportScreen: provider.forImportScreen,
+      forPurchaseScreen: provider.forPurchaseScreen,
     );
   }
 
@@ -80,11 +86,15 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
   VariantProvider({
     required int branchId,
     String? key,
+    bool forImportScreen = false,
+    bool forPurchaseScreen = false,
   }) : this._internal(
           (ref) => variant(
             ref as VariantRef,
             branchId: branchId,
             key: key,
+            forImportScreen: forImportScreen,
+            forPurchaseScreen: forPurchaseScreen,
           ),
           from: variantProvider,
           name: r'variantProvider',
@@ -96,6 +106,8 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
           allTransitiveDependencies: VariantFamily._allTransitiveDependencies,
           branchId: branchId,
           key: key,
+          forImportScreen: forImportScreen,
+          forPurchaseScreen: forPurchaseScreen,
         );
 
   VariantProvider._internal(
@@ -107,10 +119,14 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
     required super.from,
     required this.branchId,
     required this.key,
+    required this.forImportScreen,
+    required this.forPurchaseScreen,
   }) : super.internal();
 
   final int branchId;
   final String? key;
+  final bool forImportScreen;
+  final bool forPurchaseScreen;
 
   @override
   Override overrideWith(
@@ -127,6 +143,8 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
         debugGetCreateSourceHash: null,
         branchId: branchId,
         key: key,
+        forImportScreen: forImportScreen,
+        forPurchaseScreen: forPurchaseScreen,
       ),
     );
   }
@@ -140,7 +158,9 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
   bool operator ==(Object other) {
     return other is VariantProvider &&
         other.branchId == branchId &&
-        other.key == key;
+        other.key == key &&
+        other.forImportScreen == forImportScreen &&
+        other.forPurchaseScreen == forPurchaseScreen;
   }
 
   @override
@@ -148,6 +168,8 @@ class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
     hash = _SystemHash.combine(hash, key.hashCode);
+    hash = _SystemHash.combine(hash, forImportScreen.hashCode);
+    hash = _SystemHash.combine(hash, forPurchaseScreen.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -161,6 +183,12 @@ mixin VariantRef on AutoDisposeFutureProviderRef<List<Variant>> {
 
   /// The parameter `key` of this provider.
   String? get key;
+
+  /// The parameter `forImportScreen` of this provider.
+  bool get forImportScreen;
+
+  /// The parameter `forPurchaseScreen` of this provider.
+  bool get forPurchaseScreen;
 }
 
 class _VariantProviderElement
@@ -171,6 +199,10 @@ class _VariantProviderElement
   int get branchId => (origin as VariantProvider).branchId;
   @override
   String? get key => (origin as VariantProvider).key;
+  @override
+  bool get forImportScreen => (origin as VariantProvider).forImportScreen;
+  @override
+  bool get forPurchaseScreen => (origin as VariantProvider).forPurchaseScreen;
 }
 
 String _$purchaseVariantHash() => r'ecdb78389cbc2826c5d271cb8c1bfd897edc3263';

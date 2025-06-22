@@ -1,4 +1,3 @@
-
 class BillingService {
   /// catch error on backend trying to use a voucher more than once
   /// I should not base on used property since this property is mutated

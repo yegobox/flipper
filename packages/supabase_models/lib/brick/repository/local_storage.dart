@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqflite.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
+// ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -91,6 +92,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'queueFilename',
     'forceLogout',
     'branchIdString',
+    'customerTin'
   };
 
   SharedPreferences? _webPrefs;
@@ -113,10 +115,10 @@ class SharedPreferenceStorage implements LocalStorage {
       }
       return this;
     }
-    
+
     // Check if we're in a test environment
     bool isTestEnv = const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
-    
+
     try {
       // Get the document directory (same as used by repository.dart)
       final directory = await _getStorageDirectory();
@@ -139,13 +141,14 @@ class SharedPreferenceStorage implements LocalStorage {
     } catch (e) {
       // If there's an error, start with an empty cache
       _cache = {};
-      
+
       // In test environments, set default paths to avoid LateInitializationError
       if (isTestEnv) {
         try {
           final tempDir = Directory.systemTemp;
           _filePath = path.join(tempDir.path, 'test_preferences.json');
-          _backupFilePath = path.join(tempDir.path, 'test_preferences_backup.json');
+          _backupFilePath =
+              path.join(tempDir.path, 'test_preferences_backup.json');
         } catch (pathError) {
           // Fallback to hardcoded paths if even temp directory fails
           _filePath = 'test_preferences.json';
@@ -781,5 +784,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? getReceiptFileName() {
     return _cache['getReceiptFileName'] as String?;
+  }
+
+  @override
+  String? customerTin() {
+    return _cache['customerTin'] as String?;
   }
 }

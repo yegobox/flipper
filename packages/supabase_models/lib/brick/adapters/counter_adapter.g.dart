@@ -16,16 +16,14 @@ Future<Counter> _$CounterFromSupabase(
     totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
     curRcptNo: data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
     invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     bhfId: data['bhf_id'] as String,
@@ -66,16 +64,14 @@ Future<Counter> _$CounterFromSqlite(
     totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
     curRcptNo: data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
     invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     bhfId: data['bhf_id'] as String,
@@ -252,39 +248,43 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CounterFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CounterFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Counter input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CounterToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CounterToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Counter> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CounterFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CounterFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Counter input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$CounterToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$CounterToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

@@ -42,6 +42,18 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
+        columnName: 'Tax',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Tax', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
         columnName: 'Cash',
         label: Container(
           decoration: BoxDecoration(
@@ -181,8 +193,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('profit Made',
-              overflow: TextOverflow.ellipsis),
+          child: const Text('profit Made', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(
@@ -218,8 +229,8 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Gross profit Made',
-              overflow: TextOverflow.ellipsis),
+          child:
+              const Text('Gross profit Made', overflow: TextOverflow.ellipsis),
         ),
       ),
     ];

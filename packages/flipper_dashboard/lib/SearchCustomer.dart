@@ -174,6 +174,8 @@ class _SearchInputWithDropdownState
             value: customer.first.telNo!);
         ProxyService.box
             .writeString(key: 'customerName', value: customer.first.custNm!);
+        ProxyService.box
+            .writeString(key: 'customerTin', value: customer.first.custTin!);
         _searchController.text = customer.first.custNm!;
       }
     } else {
@@ -239,6 +241,12 @@ class _SearchInputWithDropdownState
         customerId: customer.id,
         transactionId: transaction.id,
       );
+
+      // Save customer's TIN for future use
+      if (customer.custTin != null && customer.custTin!.isNotEmpty) {
+        await ProxyService.box
+            .writeString(key: 'customerTin', value: customer.custTin!);
+      }
 
       // Show success alert
       showDialog(

@@ -12,10 +12,9 @@ void main() {
   );
 }
 
-
 class CreditApp extends StatelessWidget {
   const CreditApp({Key? key}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -45,17 +44,18 @@ class CreditApp extends StatelessWidget {
 
 class CreditHomePage extends StatefulWidget {
   const CreditHomePage({Key? key}) : super(key: key);
-  
+
   @override
   State<CreditHomePage> createState() => _CreditHomePageState();
 }
 
-class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProviderStateMixin {
+class _CreditHomePageState extends State<CreditHomePage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _buyCreditController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -63,14 +63,14 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0.0, 0.2),
       end: Offset.zero,
@@ -80,27 +80,27 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
         curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
       ),
     );
-    
+
     _animationController.forward();
   }
-  
+
   @override
   void dispose() {
     _buyCreditController.dispose();
     _animationController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
-    
+
     return Scaffold(
-      backgroundColor: isLightMode 
-        ? const Color(0xFFF5F5F7) // Apple light background
-        : const Color(0xFF121212), // Dark mode background
+      backgroundColor: isLightMode
+          ? const Color(0xFFF5F5F7) // Apple light background
+          : const Color(0xFF121212), // Dark mode background
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -157,9 +157,7 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: isLightMode
-                            ? Colors.white
-                            : colorScheme.surface,
+                        color: isLightMode ? Colors.white : colorScheme.surface,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
@@ -206,12 +204,14 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
                             height: 50,
                             child: ElevatedButton(
                               onPressed: () {
-                                final amount = int.tryParse(_buyCreditController.text);
+                                final amount =
+                                    int.tryParse(_buyCreditController.text);
                                 if (amount != null && amount > 0) {
-                                  Provider.of<CreditData>(context, listen: false)
+                                  Provider.of<CreditData>(context,
+                                          listen: false)
                                       .buyCredits(amount);
                                   _buyCreditController.clear();
-                                  
+
                                   // Show success message
                                   _showSuccessSnackBar(context, amount);
                                 } else {
@@ -257,7 +257,7 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
                     Consumer<CreditData>(
                       builder: (context, creditData, child) {
                         return Container(
-                          padding: const EdgeInsets. all(24),
+                          padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
                             color: isLightMode
                                 ? Colors.white
@@ -287,8 +287,10 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
                                 onPressed: creditData.availableCredits >= 10
                                     ? () {
                                         creditData.useCredits(10);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          _buildSnackBar('Used 10 credits', Icons.check_circle, Colors.blue),
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          _buildSnackBar('Used 10 credits',
+                                              Icons.check_circle, Colors.blue),
                                         );
                                       }
                                     : null,
@@ -298,8 +300,10 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
                                 onPressed: creditData.availableCredits >= 50
                                     ? () {
                                         creditData.useCredits(50);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          _buildSnackBar('Used 50 credits', Icons.check_circle, Colors.blue),
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          _buildSnackBar('Used 50 credits',
+                                              Icons.check_circle, Colors.blue),
                                         );
                                       }
                                     : null,
@@ -309,8 +313,10 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
                                 onPressed: creditData.availableCredits >= 100
                                     ? () {
                                         creditData.useCredits(100);
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          _buildSnackBar('Used 100 credits', Icons.check_circle, Colors.blue),
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          _buildSnackBar('Used 100 credits',
+                                              Icons.check_circle, Colors.blue),
                                         );
                                       }
                                     : null,
@@ -331,7 +337,7 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
       ),
     );
   }
-  
+
   SnackBar _buildSnackBar(String message, IconData icon, Color color) {
     return SnackBar(
       content: Row(
@@ -350,31 +356,30 @@ class _CreditHomePageState extends State<CreditHomePage> with SingleTickerProvid
       duration: const Duration(seconds: 2),
     );
   }
-  
+
   void _showSuccessSnackBar(BuildContext context, int amount) {
     ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('$amount credits added successfully', Icons.check_circle, Colors.green.shade600),
+      _buildSnackBar('$amount credits added successfully', Icons.check_circle,
+          Colors.green.shade600),
     );
   }
-  
+
   void _showErrorSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('Please enter a valid amount', Icons.error_outline, Colors.red.shade600),
+      _buildSnackBar('Please enter a valid amount', Icons.error_outline,
+          Colors.red.shade600),
     );
   }
 }
-
-
-
 
 class CreditDisplay extends StatelessWidget {
   final int credits;
   final int maxCredits;
   final ColorScheme colorScheme;
-  
+
   const CreditDisplay({
     Key? key,
-    required this.credits, 
+    required this.credits,
     required this.maxCredits,
     required this.colorScheme,
   }) : super(key: key);
@@ -382,7 +387,7 @@ class CreditDisplay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLightMode = Theme.of(context).brightness == Brightness.light;
-    
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -391,10 +396,10 @@ class CreditDisplay extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             isLightMode
-                ? const Color(0xFF0078D4)  // Microsoft blue
+                ? const Color(0xFF0078D4) // Microsoft blue
                 : const Color(0xFF104E8B), // Dark blue
             isLightMode
-                ? const Color(0xFF2B88D8)  // Lighter blue
+                ? const Color(0xFF2B88D8) // Lighter blue
                 : const Color(0xFF1A6BB2), // Medium blue
           ],
         ),
@@ -466,8 +471,8 @@ class CreditDisplay extends StatelessWidget {
               value: credits / maxCredits,
               backgroundColor: Colors.white.withOpacity(0.2),
               valueColor: AlwaysStoppedAnimation<Color>(
-                credits / maxCredits > 0.5 
-                    ? Colors.greenAccent 
+                credits / maxCredits > 0.5
+                    ? Colors.greenAccent
                     : credits / maxCredits > 0.2
                         ? Colors.amberAccent
                         : Colors.redAccent,
@@ -491,7 +496,7 @@ class CreditDisplay extends StatelessWidget {
 
 class QuickAmountsSelector extends StatelessWidget {
   final Function(int) onAmountSelected;
-  
+
   const QuickAmountsSelector({
     Key? key,
     required this.onAmountSelected,
@@ -501,15 +506,15 @@ class QuickAmountsSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isLightMode = Theme.of(context).brightness == Brightness.light;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Quick Add',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+                fontWeight: FontWeight.w600,
+              ),
         ),
         const SizedBox(height: 16),
         Row(
@@ -523,10 +528,10 @@ class QuickAmountsSelector extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget _buildQuickAmountButton(
-    BuildContext context, 
-    int amount, 
+    BuildContext context,
+    int amount,
     ColorScheme colorScheme,
     bool isLightMode,
   ) {
@@ -536,9 +541,7 @@ class QuickAmountsSelector extends StatelessWidget {
         child: OutlinedButton(
           onPressed: () => onAmountSelected(amount),
           style: OutlinedButton.styleFrom(
-            backgroundColor: isLightMode
-                ? Colors.white
-                : colorScheme.surface,
+            backgroundColor: isLightMode ? Colors.white : colorScheme.surface,
             side: BorderSide(
               color: colorScheme.outline.withOpacity(0.3),
               width: 1,

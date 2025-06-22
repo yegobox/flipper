@@ -16,6 +16,7 @@ import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/sync/interfaces/purchase_interface.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
@@ -230,7 +231,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required String bhfId,
       required int tin,
       required String url,
-      required String lastRequestdate});
+      required String lastRequestdate,
+      String? pchsSttsCd});
 
   Future<Variant?> getVariant(
       {String? id,
@@ -344,7 +346,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required int userId, String? featureName, required bool fetchRemote});
   Future<List<Access>> allAccess({required int userId});
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId, String? filter});
+      {required int branchId,
+      String filter = RequestStatus.pending,
+      String? search});
   FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 
@@ -495,7 +499,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<void> updateReport({required String reportId, bool? downloaded});
 
-
   FutureOr<void> updateNotification(
       {required String notificationId, bool? completed});
 
@@ -583,7 +586,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required TransactionItem item,
       required int subBranchId});
 
-  FutureOr<void> addTransaction({required ITransaction transaction});
   FutureOr<bool> isBranchEnableForPayment(
       {required String currentBranchId, bool fetchRemote = false});
   FutureOr<void> setBranchPaymentStatus(

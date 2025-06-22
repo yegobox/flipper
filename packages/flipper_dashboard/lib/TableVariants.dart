@@ -13,7 +13,8 @@ import 'package:intl/intl.dart';
 class TableVariants extends StatelessWidget {
   final ScannViewModel model;
   final List<String> unitOfMeasures;
-  final Function(String? newValue)? onUnitOfMeasureChanged;
+  final void Function(String? unitCode, String variantId)?
+      onUnitOfMeasureChanged;
   final FocusNode scannedInputFocusNode;
   final List<IUnit> units;
   final AsyncValue<List<UnversalProduct>>? unversalProducts;
@@ -204,7 +205,13 @@ class TableVariants extends StatelessWidget {
                       selectedItem: variant.unit,
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          onUnitOfMeasureChanged?.call(newValue);
+                          // Find the unit by name and pass its code and variant ID
+                          final unit = units.firstWhere(
+                              (u) => u.name == newValue,
+                              orElse: () => units
+                                  .firstWhere((u) => u.name == variant.unit));
+                          onUnitOfMeasureChanged?.call(
+                              unit.code ?? newValue, variant.id);
                         }
                       },
                     )),
@@ -368,7 +375,15 @@ class TableVariants extends StatelessWidget {
           selectedItem: variant.unit,
           onChanged: (String? newValue) {
             if (newValue != null) {
-              onUnitOfMeasureChanged?.call(newValue);
+              // Find the unit by name and pass its code and variant ID
+              final unit = units.firstWhere(
+                (u) => u.name == newValue,
+                orElse: () => units.firstWhere(
+                  (u) => u.name == variant.unit,
+                  orElse: () => units.first,
+                ),
+              );
+              onUnitOfMeasureChanged?.call(unit.code ?? newValue, variant.id);
             }
           },
         )),

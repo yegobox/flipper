@@ -1,4 +1,3 @@
-
 // // Core payment processing class
 // import 'package:flipper_dashboard/services/payment_service.dart';
 // import 'package:flipper_models/helperModels/talker.dart';
@@ -153,7 +152,7 @@
 //     if (data.isEmpty) return;
 
 //     talker.warning(data);
-    
+
 //     if (customer == null) {
 //       await finalizePayment(
 //         formKey: formKey,
@@ -177,7 +176,6 @@
 //       );
 //     }
 //   }
-  
 
 //   Future<void> _handleCashPayment(
 //     Customer? customer,
@@ -210,13 +208,13 @@
 //   void _handleError(dynamic error, StackTrace stackTrace) {
 //     talker.error(error, stackTrace);
 //     ref.read(loadingProvider.notifier).stopLoading();
-    
+
 //     String errorMessage = error
 //         .toString()
 //         .split('Caught Exception: ')
 //         .last
 //         .replaceAll("Exception: ", "");
-    
+
 //     _handlePaymentError(errorMessage, stackTrace, context);
 //     throw error; // Rethrow for upper-level handling if needed
 //   }
