@@ -238,13 +238,14 @@ mixin TransactionMixin implements TransactionInterface {
     required String transactionType,
     required bool isExpense,
     bool includeSubTotalCheck = true,
+    required String status,
   }) async {
     try {
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
         Where('isExpense').isExactly(isExpense),
-        Where('status').isExactly(PENDING),
+        Where('status').isExactly(status),
         Where('transactionType').isExactly(transactionType),
       ];
 
@@ -292,6 +293,7 @@ mixin TransactionMixin implements TransactionInterface {
     required String transactionType,
     required bool isExpense,
     required int branchId,
+    String status = PENDING,
     bool includeSubTotalCheck = false,
   }) async {
     return await _transactionLock.synchronized(() async {
@@ -306,6 +308,7 @@ mixin TransactionMixin implements TransactionInterface {
           isExpense: isExpense,
           transactionType: transactionType,
           includeSubTotalCheck: true,
+          status: status,
         );
 
         if (existTransaction != null) return existTransaction;
@@ -366,6 +369,7 @@ mixin TransactionMixin implements TransactionInterface {
     ITransaction? transaction = await _pendingTransaction(
       branchId: branchId,
       isExpense: isExpense,
+      status: PENDING,
       transactionType: transactionType,
       includeSubTotalCheck: true,
     );
@@ -406,6 +410,7 @@ mixin TransactionMixin implements TransactionInterface {
       final updatedTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
+        status: PENDING,
         transactionType: transactionType,
         includeSubTotalCheck: true,
       );

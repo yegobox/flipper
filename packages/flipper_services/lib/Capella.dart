@@ -1863,6 +1863,7 @@ class Capella extends AiStrategyImpl
   @override
   Future<brick.ITransaction?> manageTransaction(
       {required String transactionType,
+      String status = PENDING,
       required bool isExpense,
       required int branchId,
       bool includeSubTotalCheck = false}) {

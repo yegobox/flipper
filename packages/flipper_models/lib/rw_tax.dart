@@ -269,6 +269,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
       if (variant.itemTyCd == '3') {
         variant.rsdQty = 0;
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "Invalid data while saving stock");
       }
       Response response = await sendPostRequest(url, variant.toFlipperJson());
 
@@ -619,7 +621,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
       orgnNatCd: item.orgnNatCd ?? "RW",
-      pkgUnitCd: "NT",
+      pkgUnitCd: item.pkgUnitCd,
       splyAmt: item.price * item.qty,
       price: item.price,
       bhfId: item.bhfId ?? bhfId,

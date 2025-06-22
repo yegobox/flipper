@@ -2189,12 +2189,13 @@ class CoreSync extends AiStrategyImpl
           adjustmentTransaction?.items = items;
           adjustmentTransaction?.orgSarNo = transaction.sarNo;
           adjustmentTransaction?.sarNo = transaction.sarNo;
+          adjustmentTransaction?.receiptType = transaction.receiptType;
           adjustmentTransaction?.customerName = transaction.customerName;
           adjustmentTransaction?.customerTin = transaction.customerTin;
           adjustmentTransaction?.remark = transaction.remark;
+          adjustmentTransaction?.status = COMPLETE;
           adjustmentTransaction?.customerBhfId = transaction.customerBhfId;
           await repository.upsert<ITransaction>(adjustmentTransaction!);
-
           await _updateStockAndItems(
               items: items,
               branchId: branchId,
@@ -2283,6 +2284,7 @@ class CoreSync extends AiStrategyImpl
     ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: transactionType,
+        status: PENDING,
         isExpense: false);
   }
 
@@ -2334,6 +2336,7 @@ class CoreSync extends AiStrategyImpl
       final transaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
+        status: PENDING,
         branchId: ProxyService.box.getBranchId()!,
       );
 
