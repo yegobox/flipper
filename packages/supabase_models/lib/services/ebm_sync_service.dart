@@ -7,10 +7,33 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 
+/// Service responsible for synchronizing data with the EBM (Electronic Billing Machine) system.
+/// Handles synchronization of variants, transactions, and customers with the tax authority's system.
+
+/// Service that manages synchronization between the local database and the EBM system.
+/// Provides methods to sync product variants, transactions, and customer data with the tax authority.
 class EbmSyncService {
+  /// Repository instance for database operations
   final Repository repository;
+
+  /// Creates an instance of [EbmSyncService] with the provided [repository].
   EbmSyncService(this.repository);
 
+  /// Synchronizes a product variant with the EBM system, including its stock information.
+  ///
+  /// This method handles:
+  /// 1. Saving item and stock master data for the variant
+  /// 2. Creating or updating transactions if needed
+  /// 3. Calculating taxes
+  /// 4. Syncing stock movements
+  ///
+  /// Parameters:
+  /// - [variant]: The product variant to sync (optional if transaction is provided)
+  /// - [serverUrl]: The base URL of the EBM server
+  /// - [transaction]: Existing transaction (optional, will create one if not provided)
+  /// - [sarTyCd]: Transaction type code (e.g., '06' for stock adjustment, '11' for sale)
+  ///
+  /// Returns: `true` if synchronization was successful, `false` otherwise
   Future<bool> syncVariantWithEbm({
     Variant? variant,
     required String serverUrl,
@@ -109,6 +132,17 @@ class EbmSyncService {
     return false;
   }
 
+  /// Synchronizes a transaction with the EBM system.
+  ///
+  /// This method will sync all items in the transaction and mark the transaction
+  /// as synced if successful. Only processes transactions that are complete and
+  /// haven't been synced before.
+  ///
+  /// Parameters:
+  /// - [instance]: The transaction to sync
+  /// - [serverUrl]: The base URL of the EBM server
+  ///
+  /// Returns: `true` if synchronization was successful or not needed, `false` otherwise
   Future<bool> syncTransactionWithEbm(
       {required ITransaction instance, required String serverUrl}) async {
     if (instance.status == COMPLETE) {
@@ -138,6 +172,16 @@ class EbmSyncService {
     return true;
   }
 
+  /// Synchronizes customer information with the EBM system.
+  ///
+  /// This method sends customer data to the tax authority's system and updates
+  /// the local record to mark it as synced.
+  ///
+  /// Parameters:
+  /// - [instance]: The customer to sync
+  /// - [serverUrl]: The base URL of the EBM server
+  ///
+  /// Returns: `true` if synchronization was successful, `false` otherwise
   Future<bool> syncCustomerWithEbm(
       {required Customer instance, required String serverUrl}) async {
     try {
