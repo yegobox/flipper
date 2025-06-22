@@ -39,6 +39,7 @@ class EbmSyncService {
       pendingTransaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
+        status: PENDING,
         branchId: ProxyService.box.getBranchId()!,
       );
       await ProxyService.strategy.assignTransaction(
@@ -93,6 +94,9 @@ class EbmSyncService {
       if (responseSaveStockInput.resultCd == "000") {
         if (variant != null) {
           variant.ebmSynced = true;
+          pendingTransaction.status = COMPLETE;
+          pendingTransaction.ebmSynced = true;
+          await repository.upsert(pendingTransaction);
           await repository.upsert(variant);
           ProxyService.notification
               .sendLocalNotification(body: "Synced ${variant.itemCd}");
@@ -106,29 +110,22 @@ class EbmSyncService {
   }
 
   Future<bool> syncTransactionWithEbm(
-      {required TransactionItem instance, required String serverUrl}) async {
-    final transaction = (await repository.get<ITransaction>(
-            query: Query(where: [
-      Where('id').isExactly(instance.transactionId),
-      Where('transactionType').isExactly(TransactionType.adjustment),
-    ])))
-        .firstOrNull;
-    if (transaction != null) {
-      if (transaction.customerName == null ||
-          transaction.customerTin == null ||
-          transaction.sarNo == null ||
-          transaction.receiptType == "TS" ||
-          transaction.receiptType == "PS" ||
-          transaction.ebmSynced!) {
+      {required ITransaction instance, required String serverUrl}) async {
+    if (instance.status == COMPLETE) {
+      if (instance.customerName == null ||
+          instance.customerTin == null ||
+          instance.sarNo == null ||
+          instance.receiptType == "TS" ||
+          instance.receiptType == "PS" ||
+          instance.ebmSynced!) {
         return false;
       }
-      talker
-          .info("Syncing transaction with ${transaction.items?.length} items");
+      talker.info("Syncing transaction with ${instance.items?.length} items");
 
       // Variant variant = Variant.copyFromTransactionItem(item);
       // get transaction items
       await syncVariantWithEbm(
-          serverUrl: serverUrl, transaction: transaction, sarTyCd: "11");
+          serverUrl: serverUrl, transaction: instance, sarTyCd: "11");
 
       // If all items synced successfully, mark transaction as synced
       instance.ebmSynced = true;

@@ -60,6 +60,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required String transactionType,
     required bool isExpense,
     required int branchId,
+    String status = PENDING,
     bool includeSubTotalCheck = false,
   }) async {
     throw UnimplementedError(

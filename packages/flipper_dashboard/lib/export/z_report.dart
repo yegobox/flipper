@@ -19,9 +19,10 @@ class ZReport {
       skipOriginalTransactionCheck: true,
     );
 
-    // Data processing
-    final salesTransactions =
-        transactions.where((t) => t.receiptType == 'NS').toList();
+    // Data processing - exclude refunded transactions
+    final salesTransactions = transactions
+        .where((t) => t.receiptType == 'NS' && t.isRefunded != true)
+        .toList();
     final refundTransactions =
         transactions.where((t) => t.receiptType == 'NR').toList();
 
@@ -31,6 +32,7 @@ class ZReport {
         refundTransactions.fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
     final numSalesReceipts = salesTransactions.length;
     final numRefundReceipts = refundTransactions.length;
+    final netSalesReceipts = numSalesReceipts - numRefundReceipts;
 
     // Calculate payment method breakdowns
     final salesCash = salesTransactions
@@ -54,10 +56,13 @@ class ZReport {
         0.0, (sum, t) => sum + ((t.subTotal ?? 0.0) * 0.18));
 
     // Calculate item counts
-    final totalItemsSold =
-        salesTransactions.fold(0, (sum, t) => sum + (t.numberOfItems ?? 0));
-    final totalDiscount = salesTransactions.fold(
-        0.0, (sum, t) => sum + (t.discountAmount ?? 0.0));
+    final totalItemsSold = (netSalesReceipts > 0)
+        ? salesTransactions.fold(0, (sum, t) => sum + (t.numberOfItems ?? 0))
+        : 0;
+    final totalDiscount = (netSalesReceipts > 0)
+        ? salesTransactions.fold(
+            0.0, (sum, t) => sum + (t.discountAmount ?? 0.0))
+        : 0.0;
 
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
@@ -88,6 +93,7 @@ class ZReport {
       totalRefunds,
       numSalesReceipts,
       numRefundReceipts,
+      netSalesReceipts,
       salesCash,
       salesMobile,
       refundsCash,
@@ -179,6 +185,7 @@ class ZReport {
     double totalRefunds,
     int numSalesReceipts,
     int numRefundReceipts,
+    int netSalesReceipts,
     double salesCash,
     double salesMobile,
     double refundsCash,
@@ -234,7 +241,8 @@ class ZReport {
     // Add all rows according to the expected format
     addRow('Total Sales Amount (NS)', '${totalSales.toStringAsFixed(0)} RWF');
     addRow('Total Sales Amount by Main Groups', '0 RWF');
-    addRow('Number of Sales Receipts (NS)', numSalesReceipts.toString());
+    addRow('Number of Sales Receipts (NS)',
+        '${netSalesReceipts > 0 ? netSalesReceipts : 0}');
     addRow(
         'Total Refund Amount (NR)', '${totalRefunds.toStringAsFixed(0)} RWF');
     addRow('Number of Refund Receipts (NR)', numRefundReceipts.toString());

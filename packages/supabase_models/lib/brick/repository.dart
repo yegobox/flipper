@@ -6,6 +6,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
@@ -16,6 +17,7 @@ import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/services/ebm_sync_service.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
@@ -609,8 +611,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
     }
-    if (instance is TransactionItem) {
-      if (instance.ebmSynced == false) {
+    if (instance is ITransaction) {
+      if (instance.ebmSynced == false &&
+          instance.transactionType == TransactionType.adjustment &&
+          instance.status == COMPLETE &&
+          instance.items?.isNotEmpty == true) {
         final serverUrl = await ProxyService.box.getServerUrl();
         final ebmSyncService = EbmSyncService(this);
         await ebmSyncService.syncTransactionWithEbm(
