@@ -55,6 +55,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       {required List<Variant> updatables,
       String? color,
       String? taxTyCd,
+      double? dcRt,
       String? variantId,
       double? newRetailPrice,
       double? retailPrice,
