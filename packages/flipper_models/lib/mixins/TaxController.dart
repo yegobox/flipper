@@ -262,6 +262,7 @@ class TaxController<OBJ> {
             brandDescription: business.name!,
             brandFooter: business.name!,
             emails: ['info@yegobox.com'],
+            brandEmail: business.email,
             customerTin: customer?.custTin == null ||
                     customer?.custTin?.toLowerCase() == 'null'
                 ? null
