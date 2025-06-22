@@ -94,13 +94,13 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     // Calculate tax as 18% of subtotal (same estimation as in DataView.dart)
 
     // Debug logging for tax amount issues
-    print(
-        'DEBUG: Transaction #${trans.id} - taxAmount: ${trans.taxAmount}, runtimeType: ${trans.taxAmount?.runtimeType}');
+    // print(
+    //     'DEBUG: Transaction #${trans.id} - taxAmount: ${trans.taxAmount}, runtimeType: ${trans.taxAmount?.runtimeType}');
 
     // Convert taxAmount to double explicitly with debug info
     final taxValue = (trans.taxAmount ?? 0.0).toDouble();
-    print(
-        'DEBUG: After conversion - taxValue: $taxValue, runtimeType: ${taxValue.runtimeType}');
+    // print(
+    //     'DEBUG: After conversion - taxValue: $taxValue, runtimeType: ${taxValue.runtimeType}');
 
     return DataGridRow(cells: [
       DataGridCell<String>(

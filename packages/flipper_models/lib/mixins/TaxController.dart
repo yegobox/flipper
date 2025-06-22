@@ -216,6 +216,8 @@ class TaxController<OBJ> {
               .strategy
               .getPaymentType(transactionId: transaction.id);
           await print.print(
+            customerPhone: customer?.telNo ??
+                ProxyService.box.currentSaleCustomerPhoneNumber(),
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
             timeFromServer:
@@ -260,8 +262,10 @@ class TaxController<OBJ> {
             brandDescription: business.name!,
             brandFooter: business.name!,
             emails: ['info@yegobox.com'],
-            customerTin: customer?.custTin ??
-                "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!,
+            customerTin: customer?.custTin == null ||
+                    customer?.custTin?.toLowerCase() == 'null'
+                ? null
+                : customer?.custTin,
             receiptType: receiptType,
             customerName:
                 customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
@@ -348,6 +352,7 @@ class TaxController<OBJ> {
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
             receiptNumber: counter.invcNo,
+
             totalReceiptNumber: counter.totRcptNo,
             invoiceNumber: counter.invcNo,
             customerName: transaction.customerName ?? "N/A",
@@ -393,7 +398,8 @@ class TaxController<OBJ> {
           // copy TransactionItem
           for (TransactionItem item in items) {
             final copy = item.copyWith(
-              id: const Uuid().v4(), // Generate a new ID
+              id: const Uuid().v4(),
+              name: item.name,
               transactionId: newTransaction.id, // Update transactionId
               variantId: transaction.id, // Update variantId
             );
