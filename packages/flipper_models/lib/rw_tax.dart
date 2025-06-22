@@ -78,27 +78,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     http.StreamedResponse streamedResponse = await request.send();
     String responseBody = await streamedResponse.stream.bytesToString();
-  
+
     // Parse the response body to check for error messages
     try {
       final jsonResponse = jsonDecode(responseBody);
-      
+
       // Check if this is an error response
-      if (jsonResponse is Map<String, dynamic> && 
-          jsonResponse.containsKey('resultCd') && 
+      if (jsonResponse is Map<String, dynamic> &&
+          jsonResponse.containsKey('resultCd') &&
           jsonResponse['resultCd'] != '0000') {
         // This is an error response from the API
         final errorMessage = jsonResponse['resultMsg'] ?? 'Unknown error';
         throw Exception(errorMessage);
       }
-      
+
       // If we get here, it's a successful response
       if (streamedResponse.statusCode == 200) {
         // Create a BusinessInfoResponse object from the response
-        BusinessInfoResponse response = BusinessInfoResponse.fromJson(jsonResponse);
+        BusinessInfoResponse response =
+            BusinessInfoResponse.fromJson(jsonResponse);
         return response.data.info;
       } else {
-        throw Exception('Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}');
+        throw Exception(
+            'Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}');
       }
     } catch (e) {
       // If JSON parsing fails or any other error occurs, rethrow with the original response
@@ -106,7 +108,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         throw Exception('Invalid response from server: $responseBody');
       }
       rethrow; // Rethrow the original exception if it's not a FormatException
-    }  
+    }
   }
 
   /// Saves stock item transactions to the RRA (Rwanda Revenue Authority) system.
@@ -157,7 +159,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         active: true,
       );
       if (items.isEmpty) items = transaction.items ?? [];
-
+      if (items.any((item) => item.itemCd == "3")) {
+        throw Exception("Service item cannot be saved in IO");
+      }
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async => await mapItemToJson(item, bhfId: bhFId))
           .toList());

@@ -117,9 +117,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   // Cleanup timer when widget is disposed
+  // Controllers for quantity inputs per item (small device view)
+  final Map<String, TextEditingController> _quantityControllers = {};
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
+    for (final c in _quantityControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 

@@ -293,14 +293,14 @@ final repository = Repository();
 
 //       totalvat = totalTaxB;
 
-//       if (transaction.customerName == null ||
-//           transaction.customerTin == null ||
-//           transaction.sarNo == null ||
-//           transaction.receiptType == "TS" ||
-//           transaction.receiptType == "PS" ||
-//           transaction.ebmSynced!) {
-//         continue;
-//       }
+      // if (transaction.customerName == null ||
+      //     transaction.customerTin == null ||
+      //     transaction.sarNo == null ||
+      //     transaction.receiptType == "TS" ||
+      //     transaction.receiptType == "PS" ||
+      //     transaction.ebmSynced!) {
+      //   continue;
+      // }
 //       try {
 //         final response = await RWTax().saveStockItems(
 //             transaction: transaction,
