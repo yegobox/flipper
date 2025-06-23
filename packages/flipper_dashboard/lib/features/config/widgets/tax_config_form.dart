@@ -3,15 +3,17 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/style_widget/button.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 
-class TaxConfigForm extends StatefulWidget {
+class TaxConfigForm extends ConsumerStatefulWidget {
   const TaxConfigForm({Key? key}) : super(key: key);
 
   @override
-  _TaxConfigFormState createState() => _TaxConfigFormState();
+  ConsumerState<TaxConfigForm> createState() => _TaxConfigFormState();
 }
 
-class _TaxConfigFormState extends State<TaxConfigForm> {
+class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
   final _formKey = GlobalKey<FormState>();
   final _serverUrlController = TextEditingController();
   final _branchController = TextEditingController();
@@ -38,9 +40,19 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
     _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
 
     // Load VAT enabled status
+    final vatEnabled = await ProxyService.box.vatEnabled() as bool?;
     if (ebm != null) {
       setState(() {
-        _vatEnabled = ebm.vatEnabled ?? false;
+        _vatEnabled = vatEnabled ?? ebm.vatEnabled ?? false;
+      });
+      // Save the initial value if it came from EBM
+      if (ebm.vatEnabled != null) {
+        await ProxyService.box
+            .writeBool(key: 'vatEnabled', value: ebm.vatEnabled ?? false);
+      }
+    } else if (vatEnabled != null) {
+      setState(() {
+        _vatEnabled = vatEnabled;
       });
     }
   }
@@ -84,10 +96,20 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
                     value: _vatEnabled,
                     activeColor: Colors.blue,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                    onChanged: (bool value) {
+                    onChanged: (bool value) async {
                       setState(() {
                         _vatEnabled = value;
                       });
+                      // Save the new VAT status immediately
+                      await ProxyService.box.writeBool(
+                        key: 'vatEnabled',
+                        value: value,
+                      );
+                      // Invalidate the outerVariantsProvider to refresh the variants list
+                      final branchId = ProxyService.box.getBranchId();
+                      if (branchId != null) {
+                        ref.invalidate(outerVariantsProvider(branchId));
+                      }
                     },
                   ),
                   const SizedBox(height: 16),
@@ -221,10 +243,13 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
       // Get current MRC value from storage
       final currentMrc = ProxyService.box.mrc() ?? '';
       final newMrc = _mrcController.text;
+      final currentVatEnabled = ProxyService.box.vatEnabled();
 
-      // Check if MRC has changed
-      if (currentMrc.isNotEmpty && currentMrc == newMrc) {
-        toast("No changes detected in MRC");
+      // Check if MRC or VAT status has changed
+      if (currentMrc.isNotEmpty &&
+          currentMrc == newMrc &&
+          currentVatEnabled == _vatEnabled) {
+        toast("No changes detected");
         return;
       }
 
@@ -236,18 +261,27 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
           vatEnabled: _vatEnabled);
 
       // Save to local storage
-      await ProxyService.box.writeString(
-        key: "getServerUrl",
-        value: _serverUrlController.text,
-      );
-      await ProxyService.box.writeString(
-        key: "bhfId",
-        value: _branchController.text,
-      );
-      await ProxyService.box.writeString(
-        key: "mrc",
-        value: newMrc,
-      );
+      await Future.wait([
+        ProxyService.box.writeString(
+          key: "getServerUrl",
+          value: _serverUrlController.text,
+        ),
+        ProxyService.box.writeString(
+          key: "bhfId",
+          value: _branchController.text,
+        ),
+        ProxyService.box.writeString(
+          key: "mrc",
+          value: newMrc,
+        ),
+        ProxyService.box.writeBool(key: 'vatEnabled', value: _vatEnabled),
+      ]);
+
+      // Invalidate the outerVariantsProvider to refresh the variants list
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null) {
+        ref.invalidate(outerVariantsProvider(branchId));
+      }
 
       toast("Saved successfully");
     }
