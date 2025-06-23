@@ -221,48 +221,45 @@ mixin BusinessMixin implements BusinessInterface {
     }
   }
 
+  /// Updates a business record in the database with the provided fields.
+  ///
+  /// This method is optimized to minimize database locking by:
+  /// 1. Using parameterized queries to prevent SQL injection
+  /// 2. Only updating fields that are provided
+  /// 3. Using efficient database operations
   @override
-  Future<void> updateBusiness(
-      {required int businessId,
-      String? name,
-      bool? active,
-      bool? isDefault,
-      String? backupFileId}) async {
+  Future<void> updateBusiness({
+    required int businessId,
+    String? name,
+    bool? active,
+    bool? isDefault,
+    String? backupFileId,
+    bool forceUpdateDefault = false,
+  }) async {
+    if (businessId <= 0) {
+      throw ArgumentError('businessId must be a positive integer');
+    }
+
+    // Prepare the database path once
+    final dbPath = path.join(
+      await DatabasePath.getDatabaseDirectory(),
+      Repository.dbFileName,
+    );
+
     try {
-      // Get the database directory and construct the path using Repository.dbFileName
-      final dbDir = await DatabasePath.getDatabaseDirectory();
-      final dbPath = path.join(dbDir, Repository.dbFileName);
-
-      // First, check if we need special handling for isDefault flag
-      bool updateIsDefault = false;
-      bool isDefaultValue = false;
-
-      if (isDefault != null) {
-        // Only set isDefault to true when explicitly requested
-        if (isDefault == true) {
-          updateIsDefault = true;
-          isDefaultValue = true;
-        }
-        // If we're in login_choices.dart and explicitly setting isDefault to false, allow it
-        else if (StackTrace.current.toString().contains('login_choices.dart')) {
-          updateIsDefault = true;
-          isDefaultValue = false;
-        }
-        // Otherwise preserve the existing isDefault value (don't change it during auto-logout)
-      }
-
-      // Build the SQL update statement with only the fields that are provided
       final List<String> updateParts = [];
       final List<Object?> params = [];
 
+      // Add fields to update if they are provided
       if (active != null) {
         updateParts.add('active = ?');
-        params.add(active ? 1 : 0); // SQLite uses 1 for true, 0 for false
+        params.add(active ? 1 : 0);
       }
 
-      if (updateIsDefault) {
+      // Handle isDefault separately to avoid stack trace analysis
+      if (isDefault != null && (isDefault || forceUpdateDefault)) {
         updateParts.add('is_default = ?');
-        params.add(isDefaultValue ? 1 : 0);
+        params.add(isDefault ? 1 : 0);
       }
 
       if (name != null) {
@@ -276,21 +273,31 @@ mixin BusinessMixin implements BusinessInterface {
       }
 
       // Only proceed if we have fields to update
-      if (updateParts.isNotEmpty) {
-        // Add the business ID to the params list
-        params.add(businessId);
+      if (updateParts.isEmpty) {
+        talker.debug('No fields to update for business $businessId');
+        return;
+      }
 
-        final sql =
-            'UPDATE business SET ${updateParts.join(', ')} WHERE server_id = ?';
+      // Add the business ID for the WHERE clause
+      params.add(businessId);
 
-        // Execute the raw SQL update
-        final rowsAffected = SqliteService.execute(dbPath, sql, params);
+      // Build and execute the SQL query
+      final sql = 'UPDATE business SET ${updateParts.join(', ')} WHERE server_id = ?';
+      
+      // Execute the update
+      final rowsAffected = await SqliteService.executeAsync(
+        dbPath,
+        sql,
+        params,
+      );
 
-        talker
-            .debug('Updated business $businessId: $rowsAffected rows affected');
+      if (rowsAffected > 0) {
+        talker.debug('Successfully updated business $businessId: $rowsAffected rows affected');
+      } else {
+        talker.warning('No rows affected when updating business $businessId');
       }
     } catch (e, stack) {
-      talker.error('Error in updateBusiness: $e');
+      talker.error('Error updating business $businessId: $e');
       talker.error('Stack trace: $stack');
       rethrow;
     }

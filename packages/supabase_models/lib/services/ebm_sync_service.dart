@@ -19,6 +19,25 @@ class EbmSyncService {
   /// Creates an instance of [EbmSyncService] with the provided [repository].
   EbmSyncService(this.repository);
 
+  /// Handles the case when the system is in proforma or training mode.
+  /// Marks the variant and transaction as synced without sending to EBM.
+  /// Returns true if in proforma/training mode, false otherwise.
+  Future<bool> _handleProformaOrTrainingMode(Variant? variant, ITransaction? transaction) async {
+    if (ProxyService.box.isProformaMode() ||
+        ProxyService.box.isTrainingMode()) {
+      if (variant != null) {
+        variant.ebmSynced = true;
+        await repository.upsert(variant);
+      }
+      if (transaction != null) {
+        transaction.ebmSynced = true;
+        await repository.upsert(transaction);
+      }
+      return true;
+    }
+    return false;
+  }
+
   /// Synchronizes a product variant with the EBM system, including its stock information.
   ///
   /// This method handles:
@@ -40,6 +59,10 @@ class EbmSyncService {
     ITransaction? transaction,
     String? sarTyCd,
   }) async {
+    if (await _handleProformaOrTrainingMode(variant, transaction)) {
+      return true;
+    }
+
     /// variant is used to save item and stock master and stock In
     /// transaction is used to save stock io
     /// sarTyCd is used to determine the type of transaction
@@ -52,6 +75,7 @@ class EbmSyncService {
           variant.itemCd! == "3") {
         throw Exception("Service item cannot be saved in stock master");
       }
+
       await ProxyService.tax.saveStockMaster(variant: variant, URI: serverUrl);
     }
 
@@ -151,6 +175,7 @@ class EbmSyncService {
           instance.sarNo == null ||
           instance.receiptType == "TS" ||
           instance.receiptType == "PS" ||
+          instance.receiptType == "TR" ||
           instance.ebmSynced!) {
         return false;
       }

@@ -65,6 +65,8 @@ mixin CapellaVariantMixin implements VariantInterface {
       String? productId,
       String? categoryId,
       String? productName,
+      double? prc,
+      double? dftPrc,
       String? unit,
       String? pkgUnitCd,
       double? dcRt,

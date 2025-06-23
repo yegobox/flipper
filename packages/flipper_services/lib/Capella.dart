@@ -386,8 +386,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<Branch>> branches(
-      {int? serverId, bool? active = false}) {
+  Future<List<Branch>> branches({int? serverId, bool? active = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -1490,6 +1489,8 @@ class Capella extends AiStrategyImpl
       double? newRetailPrice,
       String? categoryId,
       double? retailPrice,
+      double? prc,
+      double? dftPrc,
       Map<String, String>? rates,
       double? supplyPrice,
       DateTime? expirationDate,
