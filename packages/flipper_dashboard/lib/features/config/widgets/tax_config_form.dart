@@ -216,25 +216,37 @@ class _TaxConfigFormState extends State<TaxConfigForm> {
     return null;
   }
 
-  void _saveForm() {
+  void _saveForm() async {
     if (_formKey.currentState!.validate()) {
-      ProxyService.strategy.saveEbm(
+      // Get current MRC value from storage
+      final currentMrc = ProxyService.box.mrc() ?? '';
+      final newMrc = _mrcController.text;
+
+      // Check if MRC has changed
+      if (currentMrc.isNotEmpty && currentMrc == newMrc) {
+        toast("No changes detected in MRC");
+        return;
+      }
+
+      // Save EBM configuration
+      await ProxyService.strategy.saveEbm(
           branchId: ProxyService.box.getBranchId()!,
           severUrl: _serverUrlController.text,
           bhFId: _branchController.text,
           vatEnabled: _vatEnabled);
 
-      ProxyService.box.writeString(
+      // Save to local storage
+      await ProxyService.box.writeString(
         key: "getServerUrl",
         value: _serverUrlController.text,
       );
-      ProxyService.box.writeString(
+      await ProxyService.box.writeString(
         key: "bhfId",
         value: _branchController.text,
       );
-      ProxyService.box.writeString(
+      await ProxyService.box.writeString(
         key: "mrc",
-        value: _mrcController.text,
+        value: newMrc,
       );
 
       toast("Saved successfully");
