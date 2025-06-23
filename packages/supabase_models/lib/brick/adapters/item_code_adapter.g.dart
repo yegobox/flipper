@@ -144,43 +144,39 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ItemCodeFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ItemCodeFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     ItemCode input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ItemCodeToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ItemCodeToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<ItemCode> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ItemCodeFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ItemCodeFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     ItemCode input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ItemCodeToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ItemCodeToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

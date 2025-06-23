@@ -24,10 +24,10 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true)
   String? variantId;
   // quantity
-  double qty;
-  double price;
-  double discount;
-  double? remainingStock;
+  num qty;
+  num price;
+  num discount;
+  num? remainingStock;
   DateTime? createdAt;
   DateTime? updatedAt;
   bool? isRefunded;
@@ -36,16 +36,16 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   bool? doneWithTransaction;
   bool? active;
 
-  // RRA fields
+  // RR`A fields
   // discount rate
-  double? dcRt;
+  num? dcRt;
   // discount amount
-  double? dcAmt;
+  num? dcAmt;
 
-  double? taxblAmt;
-  double? taxAmt;
+  num? taxblAmt;
+  num? taxAmt;
 
-  double? totAmt;
+  num? totAmt;
 
   /// properties from respective variants
   /// these properties will be populated when adding a variant to transactionItem from a variant
@@ -85,12 +85,12 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   String? itemNm;
   // unit price
   // check if prc is saved as same as retailPrice again this property is same as price on this model!
-  double prc;
+  num prc;
   // supply amount
-  double? splyAmt;
+  num? splyAmt;
   int? tin;
   String? bhfId;
-  double? dftPrc;
+  num? dftPrc;
   String? addInfo;
   String? isrcAplcbYn;
   String? useYn;
@@ -114,8 +114,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   String? categoryId;
   String? categoryName;
   String? taxName;
-  double? supplyPrice;
-  double? retailPrice;
+  num? supplyPrice;
+  num? retailPrice;
   String? spplrItemNm;
   int? totWt;
   int? netWt;
@@ -123,7 +123,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   String? agntNm;
   int? invcFcurAmt;
   String? invcFcurCd;
-  double? invcFcurExcrt;
+  num? invcFcurExcrt;
   String? exptNatCd;
   String? dclNo;
   String? taskCd;
@@ -137,7 +137,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   String? branchId;
   bool? ebmSynced;
   bool? partOfComposite;
-  double? compositePrice;
+  num? compositePrice;
 
   @Supabase(foreignKey: 'inventory_request_id')
   InventoryRequest? inventoryRequest;
@@ -273,27 +273,27 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     int? quantityShipped,
     String? transactionId,
     String? variantId,
-    double? qty,
-    double? price,
-    double? discount,
-    double? remainingStock,
+    num? qty,
+    num? price,
+    num? discount,
+    num? remainingStock,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isRefunded,
     bool? doneWithTransaction,
     bool? active,
-    double? dcRt,
-    double? dcAmt,
-    double? taxblAmt,
-    double? taxAmt,
-    double? totAmt,
+    num? dcRt,
+    num? dcAmt,
+    num? taxblAmt,
+    num? taxAmt,
+    num? totAmt,
     int? itemSeq,
     String? isrccCd,
     String? isrccNm,
     int? isrcRt,
     int? isrcAmt,
     String? inventoryRequestId,
-    double? prc,
+    num? prc,
     String? spplrItemClsCd,
     String? spplrItemCd,
     bool? ignoreForReport,
@@ -306,10 +306,10 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? pkgUnitCd,
     String? qtyUnitCd,
     String? itemNm,
-    double? splyAmt,
+    num? splyAmt,
     int? tin,
     String? bhfId,
-    double? dftPrc,
+    num? dftPrc,
     String? addInfo,
     String? isrcAplcbYn,
     String? useYn,
@@ -321,7 +321,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? purchaseId,
     Stock? stock,
     String? stockId,
-    double? taxPercentage,
+    num? taxPercentage,
     String? color,
     String? sku,
     String? productId,
@@ -330,8 +330,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? categoryId,
     String? categoryName,
     String? taxName,
-    double? supplyPrice,
-    double? retailPrice,
+    num? supplyPrice,
+    num? retailPrice,
     String? spplrItemNm,
     int? totWt,
     int? netWt,
@@ -339,7 +339,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? agntNm,
     int? invcFcurAmt,
     String? invcFcurCd,
-    double? invcFcurExcrt,
+    num? invcFcurExcrt,
     String? exptNatCd,
     String? dclNo,
     String? taskCd,
@@ -351,7 +351,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     String? branchId,
     bool? ebmSynced,
     bool? partOfComposite,
-    double? compositePrice,
+    num? compositePrice,
     InventoryRequest? inventoryRequest,
     String? taxTyCd,
   }) {

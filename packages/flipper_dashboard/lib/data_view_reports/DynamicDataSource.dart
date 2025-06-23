@@ -56,7 +56,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'Price',
-          value: transactionItem.price,
+          value: transactionItem.price.toDouble(),
         ),
         DataGridCell<double>(
           columnName: 'TaxRate',
@@ -66,24 +66,24 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'Qty',
-          value: transactionItem.qty,
+          value: transactionItem.qty.toDouble(),
         ),
         DataGridCell<double>(
           columnName: 'Profit Made',
-          value: (transactionItem.price) * (transactionItem.qty) -
-              (transactionItem.splyAmt ?? 0.0),
+          value: (transactionItem.price.toDouble()) * (transactionItem.qty.toDouble()) -
+              (transactionItem.splyAmt?.toDouble() ?? 0.0),
         ),
         DataGridCell<double>(
           columnName: 'CurrentStock',
-          value: transactionItem.remainingStock ?? 0.0,
+          value: transactionItem.remainingStock?.toDouble() ?? 0.0,
         ),
         DataGridCell<double>(
           columnName: 'TaxPayable',
-          value: transactionItem.taxAmt ?? 0.0,
+          value: transactionItem.taxAmt?.toDouble() ?? 0.0,
         ),
         DataGridCell<double>(
           columnName: 'GrossProfit',
-          value: (transactionItem.price) * (transactionItem.qty) -
+          value: (transactionItem.price.toDouble()) * (transactionItem.qty.toDouble()) -
               (transactionItem.splyAmt ?? 0.0),
         ),
       ],

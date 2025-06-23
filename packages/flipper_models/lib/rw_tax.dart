@@ -476,11 +476,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     //NOTE: before I was excluding tax of type D but in recent test it is no longer wokring
     // I removed where((item) => item.taxTyCd != "D") from bellow line
     double totalTaxable = items.fold(0.0, (sum, item) {
-      double discountedPrice = item.dcRt != 0
-          ? item.price *
-              item.qty *
-              (1 - (item.dcRt! / 100)) // Fixed: Discount calculation
-          : item.price * item.qty;
+      double discountedPrice = item.dcRt?.toDouble() != 0
+          ? item.price.toDouble() *
+              item.qty.toDouble() *
+              (1 - (item.dcRt!.toDouble() / 100)) // Fixed: Discount calculation
+          : item.price.toDouble() * item.qty.toDouble();
       return sum + discountedPrice; // Fixed: Add to sum
     });
 

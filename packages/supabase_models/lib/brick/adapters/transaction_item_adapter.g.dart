@@ -9,47 +9,55 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
   return TransactionItem(
     id: data['id'] as String?,
     name: data['name'] as String,
-    quantityRequested: data['quantity_requested'] == null
-        ? null
-        : data['quantity_requested'] as int?,
-    quantityApproved: data['quantity_approved'] == null
-        ? null
-        : data['quantity_approved'] as int?,
-    quantityShipped: data['quantity_shipped'] == null
-        ? null
-        : data['quantity_shipped'] as int?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
+    quantityRequested:
+        data['quantity_requested'] == null
+            ? null
+            : data['quantity_requested'] as int?,
+    quantityApproved:
+        data['quantity_approved'] == null
+            ? null
+            : data['quantity_approved'] as int?,
+    quantityShipped:
+        data['quantity_shipped'] == null
+            ? null
+            : data['quantity_shipped'] as int?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
     variantId:
         data['variant_id'] == null ? null : data['variant_id'] as String?,
-    qty: data['qty'] as double,
-    price: data['price'] as double,
-    discount: data['discount'] as double,
-    remainingStock: data['remaining_stock'] == null
-        ? null
-        : data['remaining_stock'] as double?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    qty: data['qty'] as num,
+    price: data['price'] as num,
+    discount: data['discount'] as num,
+    remainingStock:
+        data['remaining_stock'] == null
+            ? null
+            : data['remaining_stock'] as num?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
-    updatedAt: data['updated_at'] == null
-        ? null
-        : data['updated_at'] == null
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
             ? null
             : DateTime.tryParse(data['updated_at'] as String),
     isRefunded:
         data['is_refunded'] == null ? null : data['is_refunded'] as bool?,
-    doneWithTransaction: data['done_with_transaction'] == null
-        ? null
-        : data['done_with_transaction'] as bool?,
+    doneWithTransaction:
+        data['done_with_transaction'] == null
+            ? null
+            : data['done_with_transaction'] as bool?,
     active: data['active'] == null ? null : data['active'] as bool?,
-    dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
-    dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as double?,
-    taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
-    taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
-    totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
+    dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as num?,
+    dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as num?,
+    taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as num?,
+    taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as num?,
+    totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as num?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
     isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
     isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
@@ -71,11 +79,11 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
     qtyUnitCd:
         data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
     itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-    prc: data['prc'] as double,
-    splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
+    prc: data['prc'] as num,
+    splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as num?,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
+    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as num?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
     isrcAplcbYn:
         data['isrc_aplcb_yn'] == null ? null : data['isrc_aplcb_yn'] as String?,
@@ -84,20 +92,22 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
     modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
     modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     purchaseId:
         data['purchase_id'] == null ? null : data['purchase_id'] as String?,
-    stock: data['stock'] == null
-        ? null
-        : await StockAdapter().fromSupabase(
-            data['stock'],
-            provider: provider,
-            repository: repository,
-          ),
+    stock:
+        data['stock'] == null
+            ? null
+            : await StockAdapter().fromSupabase(
+              data['stock'],
+              provider: provider,
+              repository: repository,
+            ),
     stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
     taxPercentage:
         data['tax_percentage'] == null ? null : data['tax_percentage'] as num?,
@@ -114,9 +124,9 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
         data['category_name'] == null ? null : data['category_name'] as String?,
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     supplyPrice:
-        data['supply_price'] == null ? null : data['supply_price'] as double?,
+        data['supply_price'] == null ? null : data['supply_price'] as num?,
     retailPrice:
-        data['retail_price'] == null ? null : data['retail_price'] as double?,
+        data['retail_price'] == null ? null : data['retail_price'] as num?,
     spplrItemNm:
         data['spplr_item_nm'] == null ? null : data['spplr_item_nm'] as String?,
     totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
@@ -127,43 +137,50 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
         data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
     invcFcurCd:
         data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
-    invcFcurExcrt: data['invc_fcur_excrt'] == null
-        ? null
-        : data['invc_fcur_excrt'] as double?,
+    invcFcurExcrt:
+        data['invc_fcur_excrt'] == null
+            ? null
+            : data['invc_fcur_excrt'] as num?,
     exptNatCd:
         data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
     dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
     taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
     dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
     hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-    imptItemSttsCd: data['impt_item_stts_cd'] == null
-        ? null
-        : data['impt_item_stts_cd'] as String?,
+    imptItemSttsCd:
+        data['impt_item_stts_cd'] == null
+            ? null
+            : data['impt_item_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
     assigned: data['assigned'] == null ? null : data['assigned'] as bool?,
-    spplrItemClsCd: data['spplr_item_cls_cd'] == null
-        ? null
-        : data['spplr_item_cls_cd'] as String?,
+    spplrItemClsCd:
+        data['spplr_item_cls_cd'] == null
+            ? null
+            : data['spplr_item_cls_cd'] as String?,
     spplrItemCd:
         data['spplr_item_cd'] == null ? null : data['spplr_item_cd'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
-    partOfComposite: data['part_of_composite'] == null
-        ? null
-        : data['part_of_composite'] as bool?,
-    compositePrice: data['composite_price'] == null
-        ? null
-        : data['composite_price'] as double?,
-    inventoryRequest: data['inventory_request'] == null
-        ? null
-        : await InventoryRequestAdapter().fromSupabase(
-            data['inventory_request'],
-            provider: provider,
-            repository: repository,
-          ),
-    inventoryRequestId: data['inventory_request_id'] == null
-        ? null
-        : data['inventory_request_id'] as String?,
+    partOfComposite:
+        data['part_of_composite'] == null
+            ? null
+            : data['part_of_composite'] as bool?,
+    compositePrice:
+        data['composite_price'] == null
+            ? null
+            : data['composite_price'] as num?,
+    inventoryRequest:
+        data['inventory_request'] == null
+            ? null
+            : await InventoryRequestAdapter().fromSupabase(
+              data['inventory_request'],
+              provider: provider,
+              repository: repository,
+            ),
+    inventoryRequestId:
+        data['inventory_request_id'] == null
+            ? null
+            : data['inventory_request_id'] as String?,
     ignoreForReport: data['ignore_for_report'] as bool?,
   );
 }
@@ -225,13 +242,14 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'modr_nm': instance.modrNm,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'purchase_id': instance.purchaseId,
-    'stock': instance.stock != null
-        ? await StockAdapter().toSupabase(
-            instance.stock!,
-            provider: provider,
-            repository: repository,
-          )
-        : null,
+    'stock':
+        instance.stock != null
+            ? await StockAdapter().toSupabase(
+              instance.stock!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'color': instance.color,
@@ -266,13 +284,14 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
     'composite_price': instance.compositePrice,
-    'inventory_request': instance.inventoryRequest != null
-        ? await InventoryRequestAdapter().toSupabase(
-            instance.inventoryRequest!,
-            provider: provider,
-            repository: repository,
-          )
-        : null,
+    'inventory_request':
+        instance.inventoryRequest != null
+            ? await InventoryRequestAdapter().toSupabase(
+              instance.inventoryRequest!,
+              provider: provider,
+              repository: repository,
+            )
+            : null,
     'inventory_request_id': instance.inventoryRequestId,
     'ignore_for_report': instance.ignoreForReport,
   };
@@ -286,46 +305,54 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
   return TransactionItem(
     id: data['id'] as String,
     name: data['name'] as String,
-    quantityRequested: data['quantity_requested'] == null
-        ? null
-        : data['quantity_requested'] as int?,
-    quantityApproved: data['quantity_approved'] == null
-        ? null
-        : data['quantity_approved'] as int?,
-    quantityShipped: data['quantity_shipped'] == null
-        ? null
-        : data['quantity_shipped'] as int?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
+    quantityRequested:
+        data['quantity_requested'] == null
+            ? null
+            : data['quantity_requested'] as int?,
+    quantityApproved:
+        data['quantity_approved'] == null
+            ? null
+            : data['quantity_approved'] as int?,
+    quantityShipped:
+        data['quantity_shipped'] == null
+            ? null
+            : data['quantity_shipped'] as int?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
     variantId:
         data['variant_id'] == null ? null : data['variant_id'] as String?,
-    qty: data['qty'] as double,
-    price: data['price'] as double,
-    discount: data['discount'] as double,
-    remainingStock: data['remaining_stock'] == null
-        ? null
-        : data['remaining_stock'] as double?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    qty: data['qty'] as num,
+    price: data['price'] as num,
+    discount: data['discount'] as num,
+    remainingStock:
+        data['remaining_stock'] == null
+            ? null
+            : data['remaining_stock'] as num?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
-    updatedAt: data['updated_at'] == null
-        ? null
-        : data['updated_at'] == null
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
             ? null
             : DateTime.tryParse(data['updated_at'] as String),
     isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
-    doneWithTransaction: data['done_with_transaction'] == null
-        ? null
-        : data['done_with_transaction'] == 1,
+    doneWithTransaction:
+        data['done_with_transaction'] == null
+            ? null
+            : data['done_with_transaction'] == 1,
     active: data['active'] == null ? null : data['active'] == 1,
-    dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as double?,
-    dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as double?,
-    taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as double?,
-    taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as double?,
-    totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
+    dcRt: data['dc_rt'] == null ? null : data['dc_rt'] as num?,
+    dcAmt: data['dc_amt'] == null ? null : data['dc_amt'] as num?,
+    taxblAmt: data['taxbl_amt'] == null ? null : data['taxbl_amt'] as num?,
+    taxAmt: data['tax_amt'] == null ? null : data['tax_amt'] as num?,
+    totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as num?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
     isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
     isrccNm: data['isrcc_nm'] == null ? null : data['isrcc_nm'] as String?,
@@ -347,11 +374,11 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
     qtyUnitCd:
         data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
     itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-    prc: data['prc'] as double,
-    splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
+    prc: data['prc'] as num,
+    splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as num?,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
+    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as num?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
     isrcAplcbYn:
         data['isrc_aplcb_yn'] == null ? null : data['isrc_aplcb_yn'] as String?,
@@ -360,25 +387,26 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
     modrId: data['modr_id'] == null ? null : data['modr_id'] as String?,
     modrNm: data['modr_nm'] == null ? null : data['modr_nm'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     purchaseId:
         data['purchase_id'] == null ? null : data['purchase_id'] as String?,
-    stock: data['stock_Stock_brick_id'] == null
-        ? null
-        : (data['stock_Stock_brick_id'] > -1
-            ? (await repository?.getAssociation<Stock>(
-                Query.where(
-                  'primaryKey',
-                  data['stock_Stock_brick_id'] as int,
-                  limit1: true,
-                ),
-              ))
-                ?.first
-            : null),
+    stock:
+        data['stock_Stock_brick_id'] == null
+            ? null
+            : (data['stock_Stock_brick_id'] > -1
+                ? (await repository?.getAssociation<Stock>(
+                  Query.where(
+                    'primaryKey',
+                    data['stock_Stock_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
     stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
     taxPercentage:
         data['tax_percentage'] == null ? null : data['tax_percentage'] as num?,
@@ -395,9 +423,9 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
         data['category_name'] == null ? null : data['category_name'] as String?,
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     supplyPrice:
-        data['supply_price'] == null ? null : data['supply_price'] as double?,
+        data['supply_price'] == null ? null : data['supply_price'] as num?,
     retailPrice:
-        data['retail_price'] == null ? null : data['retail_price'] as double?,
+        data['retail_price'] == null ? null : data['retail_price'] as num?,
     spplrItemNm:
         data['spplr_item_nm'] == null ? null : data['spplr_item_nm'] as String?,
     totWt: data['tot_wt'] == null ? null : data['tot_wt'] as int?,
@@ -408,49 +436,54 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
         data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
     invcFcurCd:
         data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
-    invcFcurExcrt: data['invc_fcur_excrt'] == null
-        ? null
-        : data['invc_fcur_excrt'] as double?,
+    invcFcurExcrt:
+        data['invc_fcur_excrt'] == null
+            ? null
+            : data['invc_fcur_excrt'] as num?,
     exptNatCd:
         data['expt_nat_cd'] == null ? null : data['expt_nat_cd'] as String?,
     dclNo: data['dcl_no'] == null ? null : data['dcl_no'] as String?,
     taskCd: data['task_cd'] == null ? null : data['task_cd'] as String?,
     dclDe: data['dcl_de'] == null ? null : data['dcl_de'] as String?,
     hsCd: data['hs_cd'] == null ? null : data['hs_cd'] as String?,
-    imptItemSttsCd: data['impt_item_stts_cd'] == null
-        ? null
-        : data['impt_item_stts_cd'] as String?,
+    imptItemSttsCd:
+        data['impt_item_stts_cd'] == null
+            ? null
+            : data['impt_item_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
     assigned: data['assigned'] == null ? null : data['assigned'] == 1,
-    spplrItemClsCd: data['spplr_item_cls_cd'] == null
-        ? null
-        : data['spplr_item_cls_cd'] as String?,
+    spplrItemClsCd:
+        data['spplr_item_cls_cd'] == null
+            ? null
+            : data['spplr_item_cls_cd'] as String?,
     spplrItemCd:
         data['spplr_item_cd'] == null ? null : data['spplr_item_cd'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
-    partOfComposite: data['part_of_composite'] == null
-        ? null
-        : data['part_of_composite'] == 1,
-    compositePrice: data['composite_price'] == null
-        ? null
-        : data['composite_price'] as double?,
-    inventoryRequest: data['inventory_request_InventoryRequest_brick_id'] ==
-            null
-        ? null
-        : (data['inventory_request_InventoryRequest_brick_id'] > -1
-            ? (await repository?.getAssociation<InventoryRequest>(
-                Query.where(
-                  'primaryKey',
-                  data['inventory_request_InventoryRequest_brick_id'] as int,
-                  limit1: true,
-                ),
-              ))
-                ?.first
-            : null),
-    inventoryRequestId: data['inventory_request_id'] == null
-        ? null
-        : data['inventory_request_id'] as String?,
+    partOfComposite:
+        data['part_of_composite'] == null
+            ? null
+            : data['part_of_composite'] == 1,
+    compositePrice:
+        data['composite_price'] == null
+            ? null
+            : data['composite_price'] as num?,
+    inventoryRequest:
+        data['inventory_request_InventoryRequest_brick_id'] == null
+            ? null
+            : (data['inventory_request_InventoryRequest_brick_id'] > -1
+                ? (await repository?.getAssociation<InventoryRequest>(
+                  Query.where(
+                    'primaryKey',
+                    data['inventory_request_InventoryRequest_brick_id'] as int,
+                    limit1: true,
+                  ),
+                ))?.first
+                : null),
+    inventoryRequestId:
+        data['inventory_request_id'] == null
+            ? null
+            : data['inventory_request_id'] as String?,
     ignoreForReport: data['ignore_for_report'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -476,9 +509,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'updated_at': instance.updatedAt?.toIso8601String(),
     'is_refunded':
         instance.isRefunded == null ? null : (instance.isRefunded! ? 1 : 0),
-    'done_with_transaction': instance.doneWithTransaction == null
-        ? null
-        : (instance.doneWithTransaction! ? 1 : 0),
+    'done_with_transaction':
+        instance.doneWithTransaction == null
+            ? null
+            : (instance.doneWithTransaction! ? 1 : 0),
     'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'dc_rt': instance.dcRt,
     'dc_amt': instance.dcAmt,
@@ -515,13 +549,14 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'modr_nm': instance.modrNm,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'purchase_id': instance.purchaseId,
-    'stock_Stock_brick_id': instance.stock != null
-        ? instance.stock!.primaryKey ??
-            await provider.upsert<Stock>(
-              instance.stock!,
-              repository: repository,
-            )
-        : null,
+    'stock_Stock_brick_id':
+        instance.stock != null
+            ? instance.stock!.primaryKey ??
+                await provider.upsert<Stock>(
+                  instance.stock!,
+                  repository: repository,
+                )
+            : null,
     'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'color': instance.color,
@@ -556,9 +591,10 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'branch_id': instance.branchId,
     'ebm_synced':
         instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
-    'part_of_composite': instance.partOfComposite == null
-        ? null
-        : (instance.partOfComposite! ? 1 : 0),
+    'part_of_composite':
+        instance.partOfComposite == null
+            ? null
+            : (instance.partOfComposite! ? 1 : 0),
     'composite_price': instance.compositePrice,
     'inventory_request_InventoryRequest_brick_id':
         instance.inventoryRequest != null
@@ -1004,25 +1040,25 @@ class TransactionItemAdapter
       association: false,
       columnName: 'qty',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'price': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'price',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'discount': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'discount',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'remainingStock': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'remaining_stock',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1058,31 +1094,31 @@ class TransactionItemAdapter
       association: false,
       columnName: 'dc_rt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'dcAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'dc_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxblAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'taxbl_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'taxAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'totAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tot_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'itemSeq': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1184,13 +1220,13 @@ class TransactionItemAdapter
       association: false,
       columnName: 'prc',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'splyAmt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'sply_amt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'tin': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1208,7 +1244,7 @@ class TransactionItemAdapter
       association: false,
       columnName: 'dft_prc',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'addInfo': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1334,13 +1370,13 @@ class TransactionItemAdapter
       association: false,
       columnName: 'supply_price',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'retailPrice': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'retail_price',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'spplrItemNm': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1388,7 +1424,7 @@ class TransactionItemAdapter
       association: false,
       columnName: 'invc_fcur_excrt',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'exptNatCd': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1472,7 +1508,7 @@ class TransactionItemAdapter
       association: false,
       columnName: 'composite_price',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'inventoryRequest': const RuntimeSqliteColumnDefinition(
       association: true,
@@ -1520,43 +1556,39 @@ class TransactionItemAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     TransactionItem input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<TransactionItem> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     TransactionItem input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionItemToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionItemToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

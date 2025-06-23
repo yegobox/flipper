@@ -18,7 +18,6 @@ import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
-import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/services/ebm_sync_service.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
@@ -63,8 +62,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
   static const _queueFileBaseName = 'brick_offline_queue';
-  static const _standardVersion = 19;
-  static const _mobileTargetVersion = 19;
+  static const _standardVersion = 21;
+  static const _mobileTargetVersion = 21;
 
   // Flag to override version increment behavior (null = use platform default)
   static bool? _overrideVersionIncrement;

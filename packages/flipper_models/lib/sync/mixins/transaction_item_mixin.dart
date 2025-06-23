@@ -431,7 +431,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           : qty?.toInt() ?? item.qty.toInt();
       Variant? variant =
           await ProxyService.strategy.getVariant(id: item.variantId);
-      double currentQty = qty ?? item.qty;
+      double currentQty = qty ?? item.qty.toDouble();
       item.splyAmt = (variant?.supplyPrice ?? 1) * currentQty;
       talker.info('qty: $currentQty');
       talker.info('supplyPrice: ${variant?.supplyPrice}');
