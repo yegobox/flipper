@@ -423,4 +423,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement customerTin
     throw UnimplementedError();
   }
+
+  @override
+  bool vatEnabled() {
+    // TODO: implement vatEnabled
+    throw UnimplementedError();
+  }
 }

@@ -107,4 +107,5 @@ abstract class LocalStorage {
   Future<void> setForceLogout(bool value);
   bool getForceLogout();
   String? customerTin();
+  bool vatEnabled();
 }

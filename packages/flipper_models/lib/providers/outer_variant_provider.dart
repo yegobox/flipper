@@ -68,6 +68,10 @@ class OuterVariants extends _$OuterVariants {
       final searchString = ref.watch(searchStringProvider);
       print('Search string: $searchString');
 
+      // Get VAT enabled status
+      final bool isVatEnabled = ProxyService.box.vatEnabled();
+      print('VAT status - Enabled: $isVatEnabled');
+
       // First try to fetch variants locally
       List<Variant> variants = await ProxyService.strategy
           .variants(
@@ -79,6 +83,19 @@ class OuterVariants extends _$OuterVariants {
           )
           .timeout(
               const Duration(seconds: 10)); // Add a timeout to prevent hanging
+
+      // Filter variants based on VAT status
+      variants = variants.where((variant) {
+        if (isVatEnabled) {
+          // When VAT is enabled, exclude items with taxTyCd == 'D'
+          return variant.taxTyCd != 'D';
+        } else {
+          // When VAT is disabled, only include items with taxTyCd == 'D'
+          return (variant.taxTyCd ?? '') == 'D';
+        }
+      }).toList();
+
+      print('Filtered ${variants.length} variants based on VAT status');
 
       // If no variants found locally or very few, try to fetch from remote
       if (variants.isEmpty ||

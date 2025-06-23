@@ -92,7 +92,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'queueFilename',
     'forceLogout',
     'branchIdString',
-    'customerTin'
+    'customerTin',
+    'vatEnabled'
   };
 
   SharedPreferences? _webPrefs;
@@ -789,5 +790,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? customerTin() {
     return _cache['customerTin'] as String?;
+  }
+
+  @override
+  bool vatEnabled() {
+    return _cache['vatEnabled'] as bool? ?? false;
   }
 }
