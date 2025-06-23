@@ -1,12 +1,11 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250621191848.migration.dart';
+part '20250623051521.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250621191848(),
-};
+  const Migration20250623051521(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -576,20 +575,20 @@ final schema = Schema(
         SchemaColumn('quantity_shipped', Column.integer),
         SchemaColumn('transaction_id', Column.varchar),
         SchemaColumn('variant_id', Column.varchar),
-        SchemaColumn('qty', Column.Double),
-        SchemaColumn('price', Column.Double),
-        SchemaColumn('discount', Column.Double),
-        SchemaColumn('remaining_stock', Column.Double),
+        SchemaColumn('qty', Column.num),
+        SchemaColumn('price', Column.num),
+        SchemaColumn('discount', Column.num),
+        SchemaColumn('remaining_stock', Column.num),
         SchemaColumn('created_at', Column.datetime),
         SchemaColumn('updated_at', Column.datetime),
         SchemaColumn('is_refunded', Column.boolean),
         SchemaColumn('done_with_transaction', Column.boolean),
         SchemaColumn('active', Column.boolean),
-        SchemaColumn('dc_rt', Column.Double),
-        SchemaColumn('dc_amt', Column.Double),
-        SchemaColumn('taxbl_amt', Column.Double),
-        SchemaColumn('tax_amt', Column.Double),
-        SchemaColumn('tot_amt', Column.Double),
+        SchemaColumn('dc_rt', Column.num),
+        SchemaColumn('dc_amt', Column.num),
+        SchemaColumn('taxbl_amt', Column.num),
+        SchemaColumn('tax_amt', Column.num),
+        SchemaColumn('tot_amt', Column.num),
         SchemaColumn('item_seq', Column.integer),
         SchemaColumn('isrcc_cd', Column.varchar),
         SchemaColumn('isrcc_nm', Column.varchar),
@@ -606,11 +605,11 @@ final schema = Schema(
         SchemaColumn('pkg_unit_cd', Column.varchar),
         SchemaColumn('qty_unit_cd', Column.varchar),
         SchemaColumn('item_nm', Column.varchar),
-        SchemaColumn('prc', Column.Double),
-        SchemaColumn('sply_amt', Column.Double),
+        SchemaColumn('prc', Column.num),
+        SchemaColumn('sply_amt', Column.num),
         SchemaColumn('tin', Column.integer),
         SchemaColumn('bhf_id', Column.varchar),
-        SchemaColumn('dft_prc', Column.Double),
+        SchemaColumn('dft_prc', Column.num),
         SchemaColumn('add_info', Column.varchar),
         SchemaColumn('isrc_aplcb_yn', Column.varchar),
         SchemaColumn('use_yn', Column.varchar),
@@ -638,8 +637,8 @@ final schema = Schema(
         SchemaColumn('category_id', Column.varchar),
         SchemaColumn('category_name', Column.varchar),
         SchemaColumn('tax_name', Column.varchar),
-        SchemaColumn('supply_price', Column.Double),
-        SchemaColumn('retail_price', Column.Double),
+        SchemaColumn('supply_price', Column.num),
+        SchemaColumn('retail_price', Column.num),
         SchemaColumn('spplr_item_nm', Column.varchar),
         SchemaColumn('tot_wt', Column.integer),
         SchemaColumn('net_wt', Column.integer),
@@ -647,7 +646,7 @@ final schema = Schema(
         SchemaColumn('agnt_nm', Column.varchar),
         SchemaColumn('invc_fcur_amt', Column.integer),
         SchemaColumn('invc_fcur_cd', Column.varchar),
-        SchemaColumn('invc_fcur_excrt', Column.Double),
+        SchemaColumn('invc_fcur_excrt', Column.num),
         SchemaColumn('expt_nat_cd', Column.varchar),
         SchemaColumn('dcl_no', Column.varchar),
         SchemaColumn('task_cd', Column.varchar),
@@ -661,7 +660,7 @@ final schema = Schema(
         SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('ebm_synced', Column.boolean),
         SchemaColumn('part_of_composite', Column.boolean),
-        SchemaColumn('composite_price', Column.Double),
+        SchemaColumn('composite_price', Column.num),
         SchemaColumn(
           'inventory_request_InventoryRequest_brick_id',
           Column.integer,

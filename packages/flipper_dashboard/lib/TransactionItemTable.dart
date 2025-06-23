@@ -12,7 +12,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   List<TransactionItem> internalTransactionItems = [];
   // Add a map to track local quantities
-  final Map<String, double> _localQuantities = {};
+  final Map<String, num> _localQuantities = {};
   // Add a map to track controllers for quantity fields
   final Map<String, TextEditingController> _quantityControllers = {};
   // Add a map to track focus nodes for quantity fields
@@ -119,9 +119,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   // Calculation methods
-  double get grandTotal {
-    double total = 0.0;
-    double compositeTotal = 0.0;
+  num get grandTotal {
+    num total = 0.0;
+    num compositeTotal = 0.0;
     int compositeCount = 0;
 
     for (final item in internalTransactionItems) {
@@ -329,7 +329,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   // Helper method to get the current quantity
-  double _getCurrentQuantity(TransactionItem item) {
+  num _getCurrentQuantity(TransactionItem item) {
     // Always get the latest quantity from the item itself
     _localQuantities[item.id] = item.qty;
     return _localQuantities[item.id] ?? item.qty;
@@ -337,7 +337,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // Update both local and remote quantity
   Future<void> _updateQuantityBoth(
-      TransactionItem item, double newQty, bool isOrdering) async {
+      TransactionItem item, num newQty, bool isOrdering) async {
     if (item.partOfComposite!) return;
 
     // Update local state immediately
@@ -349,7 +349,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     try {
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
-        qty: newQty,
+        qty: newQty.toDouble(),
         ignoreForReport: false,
         incrementQty: false,
         quantityRequested: newQty.toInt(),
@@ -405,7 +405,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             transactionItemId: item.id,
             price: doubleValue,
             ignoreForReport: false,
-            qty: item.qty,
+            qty: item.qty.toDouble(),
           );
           _refreshTransactionItems(isOrdering,
               transactionId: item.transactionId!);

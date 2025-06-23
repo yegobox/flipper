@@ -415,12 +415,12 @@ class TaxController<OBJ> {
               variation: variant,
               partOfComposite: item.partOfComposite ?? false,
               lastTouched: item.lastTouched ?? DateTime.now().toUtc(),
-              discount: item.discount,
-              compositePrice: item.compositePrice ?? 0.0,
-              quantity: item.qty,
-              currentStock: item.remainingStock ?? 0,
+              discount: item.discount.toDouble(),
+              compositePrice: item.compositePrice?.toDouble() ?? 0.0,
+              quantity: item.qty.toDouble(),
+              currentStock: item.remainingStock?.toDouble() ?? 0,
               name: item.name,
-              amountTotal: item.totAmt ?? 0.0,
+              amountTotal: item.totAmt?.toDouble() ?? 0.0,
             );
           }
         } else if (receiptType == "NS" ||

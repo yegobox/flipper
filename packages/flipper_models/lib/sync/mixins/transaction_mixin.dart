@@ -636,10 +636,10 @@ mixin TransactionMixin implements TransactionInterface {
         discount: 0.0,
         compositePrice: partOfComposite ? compositePrice ?? 0.0 : 0.0,
         quantity: updatableQty != null
-            ? updatableQty
+            ? updatableQty.toDouble()
             : sarTyCd == null
-                ? quantity
-                : sarQty,
+                ? quantity.toDouble()
+                : sarQty.toDouble(),
         currentStock: currentStock,
         partOfComposite: partOfComposite,
         variation: variation,

@@ -134,7 +134,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     // Calculate total amount before discount
     for (var item in items) {
-      itemsTotal += (item.price * item.qty);
+      itemsTotal += (item.price.toDouble() * item.qty.toDouble());
     }
 
     if (itemsTotal <= 0) return;
@@ -147,7 +147,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // Update items
       for (var i = 0; i < items.length; i++) {
         var item = items[i];
-        double itemTotal = item.price * item.qty;
+        double itemTotal = item.price.toDouble() * item.qty.toDouble();
         double itemDiscountAmount;
 
         if (i == items.length - 1) {
