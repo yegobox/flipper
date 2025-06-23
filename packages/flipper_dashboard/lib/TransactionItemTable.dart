@@ -401,20 +401,36 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           item.price = doubleValue;
         });
         try {
+          // Update the transaction item
           await ProxyService.strategy.updateTransactionItem(
             transactionItemId: item.id,
             price: doubleValue,
             ignoreForReport: false,
             qty: item.qty.toDouble(),
           );
+
+          // Update the variant's retail price
+          if (item.variantId != null) {
+            final variant =
+                await ProxyService.strategy.getVariant(id: item.variantId!);
+            if (variant != null) {
+              await ProxyService.strategy.updateVariant(
+                updatables: [variant],
+                retailPrice: doubleValue,
+                prc: doubleValue,
+                dftPrc: doubleValue,
+              );
+            }
+          }
+
           _refreshTransactionItems(isOrdering,
               transactionId: item.transactionId!);
         } catch (e) {
           setState(() {
-            // Optionally revert to old price if error
+            // Revert to old price if error
             _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
           });
-          talker.error(e);
+          talker.error('Failed to update price: $e');
         }
       }
     }

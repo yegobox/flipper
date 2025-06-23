@@ -1,4 +1,10 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:sqlite3/sqlite3.dart';
+
+// Initialize SQLite library
+final _sqlite = sqlite3;
 
 class SqliteService {
   /// Safely adds a column to a table only if it doesn't already exist.
@@ -38,7 +44,7 @@ class SqliteService {
       [List<Object?> params = const []]) {
     Database? db;
     try {
-      db = sqlite3.open(dbPath);
+      db = _sqlite.open(dbPath);
       final stmt = db.prepare(sql);
       try {
         stmt.execute(params);
@@ -54,6 +60,64 @@ class SqliteService {
       rethrow; // Important: rethrow the exception
     } finally {
       db?.dispose(); // Ensure disposal even on error.
+    }
+  }
+
+  /// Executes a raw SQL statement asynchronously in a background isolate.
+  /// [dbPath]: Path to the SQLite database file.
+  /// [sql]: The SQL statement to execute.
+  /// [params]: Optional parameters for the SQL statement.
+  /// Returns a Future that completes with the number of affected rows.
+  /// Throws an exception if the execution fails.
+  static Future<int> executeAsync(String dbPath, String sql,
+      [List<Object?> params = const []]) async {
+    // Validate inputs
+    if (dbPath.isEmpty) {
+      throw ArgumentError('Database path cannot be empty');
+    }
+    if (sql.trim().isEmpty) {
+      throw ArgumentError('SQL statement cannot be empty');
+    }
+
+    // Process the operation in a background isolate to prevent UI jank
+    return await compute(
+      _executeInIsolate,
+      _IsolateQuery(
+        dbPath: dbPath,
+        sql: sql,
+        params: params,
+      ),
+    );
+  }
+
+  /// Helper method that runs in a background isolate
+  static int _executeInIsolate(_IsolateQuery query) {
+    final db = _sqlite.open(query.dbPath);
+
+    try {
+      // Start a transaction
+      db.execute('BEGIN TRANSACTION');
+
+      try {
+        // For the sqlite3 package, we can execute with parameters directly
+        // without needing to prepare and bind separately
+        db.execute(query.sql, query.params);
+
+        // Commit the transaction
+        db.execute('COMMIT TRANSACTION');
+
+        // Return number of rows affected
+        return db.updatedRows;
+      } catch (e) {
+        // Rollback on error
+        db.execute('ROLLBACK TRANSACTION');
+        rethrow;
+      }
+    } catch (e) {
+      rethrow;
+    } finally {
+      // Always close the database connection
+      db.dispose();
     }
   }
 
@@ -122,4 +186,17 @@ class SqliteService {
       db?.dispose();
     }
   }
+}
+
+/// Data class for passing query information to the isolate
+class _IsolateQuery {
+  final String dbPath;
+  final String sql;
+  final List<Object?> params;
+
+  _IsolateQuery({
+    required this.dbPath,
+    required this.sql,
+    required this.params,
+  });
 }

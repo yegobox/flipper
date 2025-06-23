@@ -258,6 +258,8 @@ mixin VariantMixin implements VariantInterface {
       String? pkgUnitCd,
       double? dcRt,
       DateTime? expirationDate,
+      double? prc,
+      double? dftPrc,
       bool? ebmSynced}) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
@@ -266,6 +268,10 @@ mixin VariantMixin implements VariantInterface {
         variant.productId = productId ?? variant.productId;
         variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
         variant.unit = unit ?? variant.unit;
+        variant.prc = prc ?? variant.prc;
+        variant.dftPrc = dftPrc ?? variant.dftPrc;
+        variant.retailPrice = retailPrice ?? variant.retailPrice;
+        variant.supplyPrice = supplyPrice ?? variant.supplyPrice;
         repository.upsert(variant);
       }
       return;
@@ -289,6 +295,8 @@ mixin VariantMixin implements VariantInterface {
       updatables[i].categoryName = category?.name ?? updatables[i].categoryName;
       updatables[i].itemStdNm = name;
       updatables[i].spplrItemNm = name;
+      updatables[i].prc = prc ?? updatables[i].prc;
+      updatables[i].dftPrc = dftPrc ?? updatables[i].dftPrc;
       if (color != null) {
         updatables[i].color = color;
       }
@@ -309,7 +317,7 @@ mixin VariantMixin implements VariantInterface {
           ? null
           : DateTime.tryParse(dates![updatables[i].id]!);
 
-      if (retailPrice != 0 && retailPrice != null) {
+      if (retailPrice != null) {
         updatables[i].retailPrice = retailPrice;
       }
       if (supplyPrice != 0 && supplyPrice != null) {

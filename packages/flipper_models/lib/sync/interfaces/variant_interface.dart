@@ -49,7 +49,7 @@ abstract class VariantInterface {
       DateTime? expirationDate,
       bool? ebmSynced,
       String? categoryId,
-      double? dcRt});
+      double? dcRt,  double? prc,  double? dftPrc});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 
