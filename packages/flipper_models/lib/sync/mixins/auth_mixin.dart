@@ -254,8 +254,7 @@ mixin AuthMixin implements AuthInterface {
       bool freshUser = false,
       required bool isInSignUpProgress}) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE =
-        await branches(serverId: pin.businessId!, fetchOnline: false);
+    List<Branch> branchesE = await branches(serverId: pin.businessId!);
 
     final bool shouldEnableOfflineLogin = forceOffline ||
         (businessesE.isNotEmpty &&
@@ -436,8 +435,8 @@ mixin AuthMixin implements AuthInterface {
             throw LoginChoicesException(term: 'business');
           } else if (businesses.length == 1) {
             // If there's only one business, check if there are multiple branches
-            final branches = await this.branches(
-                serverId: selectedBusiness!.serverId, fetchOnline: false);
+            final branches =
+                await this.branches(serverId: selectedBusiness!.serverId);
 
             // Only go to login_choices if there are multiple branches
             if (branches.length > 1) {
@@ -481,8 +480,7 @@ mixin AuthMixin implements AuthInterface {
 
         try {
           // Get the branch ID string if available
-          final branches = await this
-              .branches(serverId: pin.businessId!, fetchOnline: false);
+          final branches = await this.branches(serverId: pin.businessId!);
           Branch? selectedBranch;
 
           // Find the matching branch or use the first one if none matches
@@ -556,7 +554,7 @@ mixin AuthMixin implements AuthInterface {
           .businesses(userId: savedLocalPinForThis.userId!);
 
       final branches = await ProxyService.strategy
-          .branches(serverId: tenants.businessId ?? 0, fetchOnline: true);
+          .branches(serverId: tenants.businessId ?? 0);
 
       // Build a proper response structure with the fetched data
       Map<String, dynamic> responseData = {

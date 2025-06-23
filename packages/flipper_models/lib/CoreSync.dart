@@ -1912,8 +1912,7 @@ class CoreSync extends AiStrategyImpl
         isDefault: false,
       );
     }
-    final branches =
-        await ProxyService.strategy.branches(fetchOnline: false, active: false);
+    final branches = await ProxyService.strategy.branches(active: false);
     for (final branch in branches) {
       await ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);

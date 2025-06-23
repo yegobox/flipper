@@ -387,7 +387,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<List<Branch>> branches(
-      {int? serverId, bool? active = false, required bool fetchOnline}) {
+      {int? serverId, bool? active = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }

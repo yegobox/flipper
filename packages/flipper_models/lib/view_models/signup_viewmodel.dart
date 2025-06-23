@@ -173,8 +173,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<List<Branch>> getBranches(Business business) async {
-    return ProxyService.strategy
-        .branches(serverId: business.serverId, fetchOnline: false);
+    return ProxyService.strategy.branches(serverId: business.serverId);
   }
 
   Future<void> saveBranchId(List<Branch> branches) {
