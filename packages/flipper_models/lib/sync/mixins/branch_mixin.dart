@@ -88,13 +88,11 @@ mixin BranchMixin implements BranchInterface {
   Future<List<Branch>> branches({
     int? serverId,
     bool? active,
-    bool fetchOnline = false,
   }) async {
-    return await _getBranches(serverId, active, fetchOnline);
+    return await _getBranches(serverId, active);
   }
 
-  Future<List<Branch>> _getBranches(
-      int? serverId, bool? active, bool fetchOnline) async {
+  Future<List<Branch>> _getBranches(int? serverId, bool? active) async {
     final filters = <Where>[
       if (serverId != null) Where('businessId').isExactly(serverId),
       if (active != null) Where('active').isExactly(active),
@@ -108,34 +106,34 @@ mixin BranchMixin implements BranchInterface {
         query: query,
       );
 
-      if (fetchOnline) {
-        try {
-          // Create a query to only fetch branches that aren't in our local cache
-          final localBranchIds = localBranches.map((b) => b.serverId).toSet();
-          for (var branchId in localBranchIds) {
-            query = Query(where: [
-              ...filters,
-              Where('serverId').isNot(branchId),
-            ]);
-            // Fetch only the missing branches
-            final onlineBranches = await repository
-                .get<Branch>(
-                  policy: OfflineFirstGetPolicy.alwaysHydrate,
-                  query: query,
-                )
-                .timeout(
-                  const Duration(seconds: 3),
-                  onTimeout: () =>
-                      throw TimeoutException('Remote fetch timed out'),
-                );
-            return [...localBranches, ...onlineBranches];
-          }
-        } on TimeoutException {
-          talker.warning(
-            'Branch remote fetch timed out after 3 seconds, falling back to local data',
-          );
-        }
-      }
+      // if (fetchOnline) {
+      //   try {
+      //     // Create a query to only fetch branches that aren't in our local cache
+      //     final localBranchIds = localBranches.map((b) => b.serverId).toSet();
+      //     for (var branchId in localBranchIds) {
+      //       query = Query(where: [
+      //         ...filters,
+      //         Where('serverId').isNot(branchId),
+      //       ]);
+      //       // Fetch only the missing branches
+      //       final onlineBranches = await repository
+      //           .get<Branch>(
+      //             policy: OfflineFirstGetPolicy.alwaysHydrate,
+      //             query: query,
+      //           )
+      //           .timeout(
+      //             const Duration(seconds: 3),
+      //             onTimeout: () =>
+      //                 throw TimeoutException('Remote fetch timed out'),
+      //           );
+      //       return [...localBranches, ...onlineBranches];
+      //     }
+      //   } on TimeoutException {
+      //     talker.warning(
+      //       'Branch remote fetch timed out after 3 seconds, falling back to local data',
+      //     );
+      //   }
+      // }
 
       return localBranches;
     } catch (e, s) {

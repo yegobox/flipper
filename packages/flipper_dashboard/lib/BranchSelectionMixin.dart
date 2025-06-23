@@ -493,7 +493,6 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
       final branches = await ProxyService.strategy.branches(
         serverId: ProxyService.box.getBusinessId()!,
         active: false,
-        fetchOnline: false,
       );
 
       if (mounted) {

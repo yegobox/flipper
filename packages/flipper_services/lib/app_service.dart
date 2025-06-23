@@ -97,9 +97,9 @@ class AppService with ListenableServiceMixin {
 
   Future<void> updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-        serverId: ProxyService.box.getBusinessId()!,
-        active: true,
-        fetchOnline: false);
+      serverId: ProxyService.box.getBusinessId()!,
+      active: true,
+    );
     for (final branch in branches) {
       await ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
@@ -113,9 +113,9 @@ class AppService with ListenableServiceMixin {
         .businesses(userId: ProxyService.box.getUserId()!);
 
     List<Branch> branches = await ProxyService.strategy.branches(
-        serverId: ProxyService.box.getBusinessId()!,
-        active: true,
-        fetchOnline: false);
+      serverId: ProxyService.box.getBusinessId()!,
+      active: true,
+    );
 
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
@@ -129,7 +129,6 @@ class AppService with ListenableServiceMixin {
       );
     }
     if (branches.length == 1) {
-      await updateAllBranchesInactive();
       // set it as default directly
       await ProxyService.strategy.updateBranch(
           branchId: branches.first.serverId!, active: true, isDefault: true);

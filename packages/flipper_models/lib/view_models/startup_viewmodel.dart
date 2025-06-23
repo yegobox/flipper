@@ -210,7 +210,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       // Check branches for the specific business
       List<Branch> branches = await ProxyService.strategy
-          .branches(serverId: businessId, fetchOnline: false);
+          .branches(serverId: businessId, active: true);
       talker.warning("branches: ${branches.length}");
 
       if (branches.isEmpty) {

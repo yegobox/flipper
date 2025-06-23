@@ -190,11 +190,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       _loadingItemId = business.serverId.toString();
     });
     try {
+      // Save business ID to local storage
+      await ProxyService.box
+          .writeInt(key: 'businessId', value: business.serverId!);
       await _setDefaultBusiness(business);
       final branches = await ProxyService.strategy.branches(
         serverId: business.serverId,
         active: false,
-        fetchOnline: false,
       );
 
       await _updateAllBranchesInactive();
@@ -401,10 +403,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _updateAllBranchesInactive() async {
-    final branches = await ProxyService.strategy.branches(
-        fetchOnline: false,
-        serverId: ProxyService.box.getBusinessId()!,
-        active: false);
+    final branches = await ProxyService.strategy
+        .branches(serverId: ProxyService.box.getBusinessId()!, active: true);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);

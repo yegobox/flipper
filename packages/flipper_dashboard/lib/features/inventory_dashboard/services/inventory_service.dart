@@ -96,9 +96,9 @@ class InventoryService {
 
           // Get all branches for this business
           final allBranches = await ProxyService.strategy.branches(
-              serverId: activeBranch.businessId!,
-              active: true,
-              fetchOnline: false);
+            serverId: activeBranch.businessId!,
+            active: true,
+          );
 
           print('Found ${allBranches.length} branches');
 

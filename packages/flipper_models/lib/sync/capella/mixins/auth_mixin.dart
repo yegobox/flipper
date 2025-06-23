@@ -75,8 +75,7 @@ mixin CapellaAuthMixin implements AuthInterface {
   }
 
   @override
-  Future<List<Branch>> branches(
-      {int? serverId, bool? active = false, required bool fetchOnline}) async {
+  Future<List<Branch>> branches({int? serverId, bool? active = false}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 
