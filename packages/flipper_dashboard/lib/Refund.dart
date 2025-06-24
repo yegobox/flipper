@@ -67,8 +67,15 @@ class _RefundState extends ConsumerState<Refund> {
                       : null,
                   busy: isRefundProcessing,
                   onTap: () async {
+                    setState(() {
+                      isRefundProcessing = true;
+                    });
+
                     try {
                       if (widget.transaction!.isRefunded ?? false) {
+                        setState(() {
+                          isRefundProcessing = false;
+                        });
                         toast("This is already refunded");
                         return;
                       }

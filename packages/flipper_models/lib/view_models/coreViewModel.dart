@@ -945,16 +945,17 @@ class CoreViewModel extends FlipperBaseModel
         /// if itemMapper then means we are entirely approving and creating this item in our app
         /// hence should have _processTransaction to have its double update for incoming purchase.
         if (itemMapper?.isEmpty == true) {
+          // Generate new itemCode for new item
+          variant.itemCd = await ProxyService.strategy.itemCode(
+            countryCode: "RW",
+            productType: "2",
+            packagingUnit: "CT",
+            quantityUnit: "BJ",
+            branchId: ProxyService.box.getBranchId()!,
+          );
           variant.ebmSynced = false;
+          variant.pchsSttsCd = pchsSttsCd;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          await _processStockInTransaction(
-              variant: variant,
-              pendingTransaction: pendingTransaction,
-              business: business,
-              invoiceNumber: purchase.spplrInvcNo,
-              // purchase: purchase,
-              //02 is Incoming purchase
-              sarTyCd: pchsSttsCd);
         }
 
         itemMapper?.forEach(
@@ -977,17 +978,6 @@ class CoreViewModel extends FlipperBaseModel
             //
             await ProxyService.strategy
                 .updateVariant(updatables: [variantFromPurchase]);
-
-            await _processStockInTransaction(
-                updatableQty: variantFromPurchase.stock!.currentStock!,
-                variant: variant,
-                invoiceNumber: purchase.spplrInvcNo,
-                pendingTransaction: pendingTransaction,
-                business: business,
-                // purchase: purchase,
-
-                //02 is Incoming purchase for both direct and assigned purchases
-                sarTyCd: pchsSttsCd);
           } else {
             talker.warning("We should not be in this condition");
           }
@@ -1009,19 +999,13 @@ class CoreViewModel extends FlipperBaseModel
       {required Map<String, Variant> variantMap}) async {
     try {
       setBusy(true);
-      final pendingTransaction = await ProxyService.strategy.manageTransaction(
-        transactionType: TransactionType.adjustment,
-        isExpense: true,
-        branchId: ProxyService.box.getBranchId()!,
-      );
 
       final business = await _getBusiness();
       final URI = await ProxyService.box.getServerUrl() ?? "";
 
       for (final item in importItems) {
         if (item.imptItemSttsCd == "2") {
-          await _processImportItem(
-              item, variantMap, pendingTransaction, business!, URI);
+          await _processImportItem(item, variantMap, business!, URI);
         }
       }
       notifyListeners();
@@ -1041,7 +1025,6 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> _processImportItem(
     Variant item,
     Map<String, Variant> variantMap,
-    ITransaction? pendingTransaction,
     Business business,
     String URI,
   ) async {
@@ -1074,12 +1057,6 @@ class CoreViewModel extends FlipperBaseModel
 
     // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
     // "02" is the code for Incoming purchase/import in the system
-    await _processStockInTransaction(
-        variant: variantToProcess!,
-        pendingTransaction: pendingTransaction!,
-        business: business,
-        invoiceNumber: int.tryParse(variantToProcess.taskCd ?? "") ?? 0,
-        sarTyCd: "02");
 
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
   }
@@ -1087,7 +1064,6 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> _processImportItemSingle(
     Variant incomingNewItem,
     Map<String, Variant> existingItemToUpdate,
-    ITransaction? pendingTransaction,
     Business business,
     String URI,
   ) async {
@@ -1112,20 +1088,16 @@ class CoreViewModel extends FlipperBaseModel
     } else {
       /// we are not mapping save incoming item as new
       variantToProcess = incomingNewItem;
+      // Generate new itemCode for new import item
+      variantToProcess.itemCd = await ProxyService.strategy.itemCode(
+        countryCode: "RW",
+        productType: "2",
+        packagingUnit: "CT",
+        quantityUnit: "BJ",
+        branchId: ProxyService.box.getBranchId()!,
+      );
       await _updateVariant(variantToProcess);
     }
-
-    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
-    // "02" is the code for Incoming purchase/import in the system
-    await _processStockInTransaction(
-        variant: variantToProcess,
-        // variant: incomingNewItem,
-        pendingTransaction: pendingTransaction!,
-        business: business,
-        updatableQty: incomingNewItem.stock!.currentStock,
-        invoiceNumber: int.tryParse(incomingNewItem.taskCd ?? "") ?? 0,
-        // 01 is incoming imports
-        sarTyCd: "01");
 
     await ProxyService.tax.updateImportItems(item: incomingNewItem, URI: URI);
   }
@@ -1141,32 +1113,6 @@ class CoreViewModel extends FlipperBaseModel
         value: item.stock!.currentStock! * item.retailPrice!);
   }
 
-  Future<void> _processStockInTransaction(
-      {required Variant variant,
-      required ITransaction pendingTransaction,
-      required Business business,
-      required String sarTyCd,
-      Purchase? purchase,
-      int? invoiceNumber,
-      double? updatableQty}) async {
-    await ProxyService.strategy.assignTransaction(
-      variant: variant,
-      updatableQty: updatableQty,
-
-      /// we set it done with transaction becase this transaction item will never be marked
-      /// as done with transaction later.
-      doneWithTransaction: true,
-      purchase: purchase,
-      invoiceNumber: invoiceNumber,
-      pendingTransaction: pendingTransaction,
-      business: business,
-      randomNumber: randomNumber(),
-      sarTyCd: sarTyCd,
-    );
-    await completeTransaction(
-        pendingTransaction: pendingTransaction, sarTyCd: sarTyCd);
-  }
-
   Future<void> _updateVariant(Variant variant) async {
     await ProxyService.strategy.updateVariant(updatables: [variant]);
   }
@@ -1176,11 +1122,6 @@ class CoreViewModel extends FlipperBaseModel
     try {
       final business = await _getBusiness();
       final URI = await ProxyService.box.getServerUrl() ?? "";
-      final pendingTransaction = await ProxyService.strategy.manageTransaction(
-        transactionType: TransactionType.adjustment,
-        isExpense: true,
-        branchId: ProxyService.box.getBranchId()!,
-      );
 
       // Always set to approved (3) regardless of whether there's a selected item to assign
       item.imptItemSttsCd = "3";
@@ -1188,8 +1129,7 @@ class CoreViewModel extends FlipperBaseModel
       item.taxTyCd = "B";
       item.ebmSynced = false;
 
-      await _processImportItemSingle(
-          item, variantMap, pendingTransaction, business!, URI);
+      await _processImportItemSingle(item, variantMap, business!, URI);
     } catch (e, s) {
       talker.error(s);
       rethrow;

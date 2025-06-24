@@ -9,6 +9,12 @@ part 'outer_variant_provider.g.dart';
 
 @riverpod
 class OuterVariants extends _$OuterVariants {
+  /// Remove a variant from the current state by its ID
+  void removeVariantById(String variantId) {
+    final currentList = state.value ?? [];
+    final updatedList = currentList.where((v) => v.id != variantId).toList();
+    state = AsyncValue.data(updatedList);
+  }
   int _currentPage = 0;
   final int _itemsPerPage = ProxyService.box.itemPerPage() ?? 1000;
   bool _hasMore = true;
