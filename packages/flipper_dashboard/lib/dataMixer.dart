@@ -62,8 +62,11 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (product == null) {
           ProxyService.strategy
               .flipperDelete(id: variant.id, endPoint: 'variant');
-          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-
+          // Remove the variant from the provider state directly
+          ref
+              .read(outerVariantsProvider(ProxyService.box.getBranchId()!)
+                  .notifier)
+              .removeVariantById(variant.id);
           return;
         }
         // If the product is  composite, search and delete related composites
@@ -85,7 +88,11 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         if (imageDeleted) {
           await model.deleteProduct(productId: productId);
-          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+          // Remove the variant from the provider state directly
+          ref
+              .read(outerVariantsProvider(ProxyService.box.getBranchId()!)
+                  .notifier)
+              .removeVariantById(variant.id);
 
           // Delete associated assets
           if (product.imageUrl != null) {
@@ -103,9 +110,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         toast("Can't delete shared product");
       }
     } catch (e) {
-      ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-    } finally {
-      ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+      // Optionally log error
+      talker.error('Error deleting variant: $e');
     }
   }
 

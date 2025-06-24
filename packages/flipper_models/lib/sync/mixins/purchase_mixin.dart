@@ -258,6 +258,17 @@ mixin PurchaseMixin
             // Check if variants is null. Protect from null exception
             for (final variant in purchase.variants!) {
               purchase.branchId = ProxyService.box.getBranchId()!;
+              // check if a purcahse's invoice Id exist skip re-adding
+              // purchase.spplrInvcNo;
+              Purchase? existing = (await repository.get<Purchase>(
+                query: brick.Query(
+                  where: [
+                    brick.Where('spplrInvcNo').isExactly(purchase.spplrInvcNo),
+                  ],
+                ),
+              ))
+                  .firstOrNull;
+              if (existing != null) continue;
               // Using non-null assertion operator safely because of previous null check
               futures.add(() async {
                 // Wrap in an explicit `async` function for safety.

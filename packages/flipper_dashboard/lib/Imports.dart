@@ -400,6 +400,17 @@ class ImportsState extends ConsumerState<Imports> {
             ),
           ),
           GridColumn(
+            columnName: 'Date',
+            label: Container(
+              padding: const EdgeInsets.all(8),
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Date',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          GridColumn(
             columnName: 'actions',
             label: Container(
               padding: const EdgeInsets.all(8),
@@ -512,6 +523,12 @@ class VariantDataSource extends DataGridSource {
         DataGridCell<Widget>(
           columnName: 'Supplier',
           value: Text(variant.spplrNm ?? ""),
+        ),
+        DataGridCell<String>(
+          columnName: 'date',
+          value: variant.lastTouched != null
+              ? '${variant.lastTouched!.year}-${variant.lastTouched!.month.toString().padLeft(2, '0')}-${variant.lastTouched!.day.toString().padLeft(2, '0')}'
+              : 'N/A',
         ),
         DataGridCell<Widget>(
           columnName: 'actions',
