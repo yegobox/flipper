@@ -129,7 +129,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           talker.info('    totAmt = taxblAmt + taxAmt = $totAmt');
         }
 
-        final qtyUnitCd = variation.qtyUnitCd!;
+        final qtyUnitCd = variation.qtyUnitCd;
 
         transactionItem = TransactionItem(
           itemNm: variation.itemNm ?? variation.name, // Required
@@ -144,12 +144,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           taxTyCd: variation.taxTyCd,
           bcd: variation.bcd,
           itemClsCd: variation.itemClsCd,
-          itemTyCd: variation.itemTyCd!,
+          itemTyCd: variation.itemTyCd,
           itemStdNm: variation.itemStdNm,
           orgnNatCd: variation.orgnNatCd,
-          pkg: variation.pkg!,
-          itemCd: variation.itemCd!,
-          pkgUnitCd: variation.pkgUnitCd!,
+          pkg: variation.pkg,
+          itemCd: variation.itemCd,
+          pkgUnitCd: variation.pkgUnitCd,
           qtyUnitCd: qtyUnitCd,
           tin: variation.tin,
           bhfId: variation.bhfId,
