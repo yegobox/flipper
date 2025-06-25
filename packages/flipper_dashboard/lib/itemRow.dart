@@ -10,6 +10,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -894,6 +895,16 @@ class _RowItemState extends ConsumerState<RowItem>
       talker.warning("Error while clicking: $e");
       talker.error(s);
       toast("Failed to add item to cart");
+
+      GlobalErrorHandler.logError(
+        s,
+        type: "ITEM-ADD-EXCEPTION",
+        context: {
+          'resultCode': e,
+          'businessId': ProxyService.box.getBusinessId(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
       rethrow;
     }
   }
