@@ -1747,6 +1747,7 @@ class Capella extends AiStrategyImpl
     required int branchId,
     String? productId,
     int? page,
+    bool? stockSynchronized,
     String? variantId,
     bool forImportScreen = false,
     String? name,
