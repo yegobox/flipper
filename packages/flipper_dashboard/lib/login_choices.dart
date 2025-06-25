@@ -199,7 +199,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         active: false,
       );
 
-      await _updateAllBranchesInactive();
       if (branches.length == 1) {
         // If there's only one branch, set it as default and complete login
         await _setDefaultBranch(branches.first);
