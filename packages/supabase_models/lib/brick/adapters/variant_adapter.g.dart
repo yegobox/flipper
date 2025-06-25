@@ -8,8 +8,6 @@ Future<Variant> _$VariantFromSupabase(
 }) async {
   return Variant(
     id: data['id'] as String?,
-    purchaseId:
-        data['purchase_id'] == null ? null : data['purchase_id'] as String?,
     stock:
         data['stock'] == null
             ? null
@@ -142,7 +140,6 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
 }) async {
   return {
     'id': instance.id,
-    'purchase_id': instance.purchaseId,
     'stock':
         instance.stock != null
             ? await StockAdapter().toSupabase(
@@ -230,8 +227,6 @@ Future<Variant> _$VariantFromSqlite(
 }) async {
   return Variant(
     id: data['id'] as String,
-    purchaseId:
-        data['purchase_id'] == null ? null : data['purchase_id'] as String?,
     stock:
         data['stock_Stock_brick_id'] == null
             ? null
@@ -364,7 +359,6 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
 }) async {
   return {
     'id': instance.id,
-    'purchase_id': instance.purchaseId,
     'stock_Stock_brick_id':
         instance.stock != null
             ? instance.stock!.primaryKey ??
@@ -463,10 +457,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'id',
-    ),
-    'purchaseId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'purchase_id',
     ),
     'stock': const RuntimeSupabaseColumnDefinition(
       association: true,
@@ -766,12 +756,6 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'id': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'id',
-      iterable: false,
-      type: String,
-    ),
-    'purchaseId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'purchase_id',
       iterable: false,
       type: String,
     ),

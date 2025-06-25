@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250623051521_up = [
+const List<MigrationCommand> _migration_20250625131600_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -374,7 +374,6 @@ const List<MigrationCommand> _migration_20250623051521_up = [
   InsertColumn('updated_at', Column.datetime, onTable: 'Credit'),
   InsertColumn('branch_server_id', Column.integer, onTable: 'Credit'),
   InsertColumn('id', Column.varchar, onTable: 'Variant', unique: true),
-  InsertColumn('purchase_id', Column.varchar, onTable: 'Variant'),
   InsertForeignKey('Variant', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
   InsertColumn('stock_id', Column.varchar, onTable: 'Variant'),
   InsertColumn('tax_percentage', Column.num, onTable: 'Variant'),
@@ -444,6 +443,7 @@ const List<MigrationCommand> _migration_20250623051521_up = [
   InsertColumn('pchs_stts_cd', Column.varchar, onTable: 'Variant'),
   InsertColumn('is_shared', Column.boolean, onTable: 'Variant'),
   InsertColumn('assigned', Column.boolean, onTable: 'Variant'),
+  InsertColumn('stock_synchronized', Column.boolean, onTable: 'Variant'),
   InsertForeignKey('_brick_Purchase_variants', 'Purchase', foreignKeyColumn: 'l_Purchase_brick_id', onDeleteCascade: true, onDeleteSetDefault: false),
   InsertForeignKey('_brick_Purchase_variants', 'Variant', foreignKeyColumn: 'f_Variant_brick_id', onDeleteCascade: true, onDeleteSetDefault: false),
   InsertColumn('id', Column.varchar, onTable: 'Purchase', unique: true),
@@ -885,7 +885,7 @@ const List<MigrationCommand> _migration_20250623051521_up = [
   CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250623051521_down = [
+const List<MigrationCommand> _migration_20250625131600_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1250,7 +1250,6 @@ const List<MigrationCommand> _migration_20250623051521_down = [
   DropColumn('updated_at', onTable: 'Credit'),
   DropColumn('branch_server_id', onTable: 'Credit'),
   DropColumn('id', onTable: 'Variant'),
-  DropColumn('purchase_id', onTable: 'Variant'),
   DropColumn('stock_Stock_brick_id', onTable: 'Variant'),
   DropColumn('stock_id', onTable: 'Variant'),
   DropColumn('tax_percentage', onTable: 'Variant'),
@@ -1320,6 +1319,7 @@ const List<MigrationCommand> _migration_20250623051521_down = [
   DropColumn('pchs_stts_cd', onTable: 'Variant'),
   DropColumn('is_shared', onTable: 'Variant'),
   DropColumn('assigned', onTable: 'Variant'),
+  DropColumn('stock_synchronized', onTable: 'Variant'),
   DropColumn('l_Purchase_brick_id', onTable: '_brick_Purchase_variants'),
   DropColumn('f_Variant_brick_id', onTable: '_brick_Purchase_variants'),
   DropColumn('id', onTable: 'Purchase'),
@@ -1766,15 +1766,15 @@ const List<MigrationCommand> _migration_20250623051521_down = [
 //
 
 @Migratable(
-  version: '20250623051521',
-  up: _migration_20250623051521_up,
-  down: _migration_20250623051521_down,
+  version: '20250625131600',
+  up: _migration_20250625131600_up,
+  down: _migration_20250625131600_down,
 )
-class Migration20250623051521 extends Migration {
-  const Migration20250623051521()
+class Migration20250625131600 extends Migration {
+  const Migration20250625131600()
     : super(
-        version: 20250623051521,
-        up: _migration_20250623051521_up,
-        down: _migration_20250623051521_down,
+        version: 20250625131600,
+        up: _migration_20250625131600_up,
+        down: _migration_20250625131600_down,
       );
 }

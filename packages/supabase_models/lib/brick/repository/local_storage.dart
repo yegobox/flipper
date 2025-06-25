@@ -9,6 +9,12 @@ import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+/// Current version of the preferences file format
+/// Increment this when making breaking changes to the preferences structure
+const String _kPreferencesVersion = '24';
+const String _kPreferencesKey = 'flipper_preferences';
+const String _kPreferencesBackupKey = 'flipper_preferences_backup';
+
 /// A robust implementation of LocalStorage that uses JSON files in the document directory
 /// This implementation is designed to be resilient to power outages and corruption
 class SharedPreferenceStorage implements LocalStorage {
@@ -21,6 +27,9 @@ class SharedPreferenceStorage implements LocalStorage {
 
   // Set of allowed keys (same as the original implementation)
   static const Set<String> _allowedKeys = {
+    // System keys
+    '_preferencesVersion',
+
     'branchId',
     'pmtTyCd',
     'businessId',
@@ -93,7 +102,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'forceLogout',
     'branchIdString',
     'customerTin',
-    'vatEnabled'
+    'vatEnabled',
+    // Add new preference keys above this line
   };
 
   SharedPreferences? _webPrefs;
@@ -104,12 +114,17 @@ class SharedPreferenceStorage implements LocalStorage {
       // On web, use shared_preferences
       try {
         _webPrefs = await SharedPreferences.getInstance();
-        final jsonString = _webPrefs!.getString('flipper_preferences');
+        final jsonString = _webPrefs!.getString(_kPreferencesKey);
         if (jsonString != null) {
           _cache = jsonDecode(jsonString);
+
+          // Initialize version if not present
+          _cache['_preferencesVersion'] ??= _kPreferencesVersion;
         } else {
-          _cache = {};
-          await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+          _cache = {
+            '_preferencesVersion': _kPreferencesVersion,
+          };
+          await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
         }
       } catch (e) {
         _cache = {};
@@ -129,9 +144,11 @@ class SharedPreferenceStorage implements LocalStorage {
         await Directory(directory).create(recursive: true);
       }
 
-      // Set the file paths
-      _filePath = path.join(directory, 'flipper_preferences.json');
-      _backupFilePath = path.join(directory, 'flipper_preferences_backup.json');
+      // Set the file paths with version number
+      _filePath = path.join(
+          directory, '${_kPreferencesKey}_v${_kPreferencesVersion}.json');
+      _backupFilePath = path.join(
+          directory, '${_kPreferencesBackupKey}_v${_kPreferencesVersion}.json');
 
       // Load preferences from file
       await _loadPreferences();
@@ -147,13 +164,15 @@ class SharedPreferenceStorage implements LocalStorage {
       if (isTestEnv) {
         try {
           final tempDir = Directory.systemTemp;
-          _filePath = path.join(tempDir.path, 'test_preferences.json');
-          _backupFilePath =
-              path.join(tempDir.path, 'test_preferences_backup.json');
+          _filePath = path.join(tempDir.path,
+              '${_kPreferencesKey}_v${_kPreferencesVersion}_test.json');
+          _backupFilePath = path.join(tempDir.path,
+              '${_kPreferencesBackupKey}_v${_kPreferencesVersion}_test.json');
         } catch (pathError) {
           // Fallback to hardcoded paths if even temp directory fails
-          _filePath = 'test_preferences.json';
-          _backupFilePath = 'test_preferences_backup.json';
+          _filePath = '${_kPreferencesKey}_v${_kPreferencesVersion}_test.json';
+          _backupFilePath =
+              '${_kPreferencesBackupKey}_v${_kPreferencesVersion}_test.json';
         }
       }
 
@@ -266,7 +285,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache[key.toString()] = value;
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -279,7 +298,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache.remove(key);
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -412,7 +431,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache[key] = value;
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -431,7 +450,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache[key] = value;
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -443,7 +462,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache.clear();
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -657,7 +676,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache['databaseFilename'] = filename;
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -675,7 +694,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache['queueFilename'] = filename;
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();
@@ -775,7 +794,7 @@ class SharedPreferenceStorage implements LocalStorage {
     _cache[key.toString()] = value;
     if (kIsWeb) {
       if (_webPrefs != null) {
-        await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
       }
     } else {
       await _savePreferences();

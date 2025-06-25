@@ -14,6 +14,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     required int branchId,
     String? productId,
     int? page,
+    bool? stockSynchronized,
     bool forImportScreen = false,
     String? variantId,
     String? name,

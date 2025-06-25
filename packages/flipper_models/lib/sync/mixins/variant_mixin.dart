@@ -137,8 +137,12 @@ mixin VariantMixin implements VariantInterface {
           final isWaitingImport = v.imptItemSttsCd == "2";
           final isCancelledImport = v.imptItemSttsCd == "4";
           final isCancelledPurchase = v.pchsSttsCd == "04";
+          final isWaitingPurchase = v.pchsSttsCd == "01";
 
-          return !isWaitingImport && !isCancelledImport && !isCancelledPurchase;
+          return !isWaitingImport &&
+              !isCancelledImport &&
+              !isCancelledPurchase &&
+              !isWaitingPurchase;
         }).toList();
       }
 

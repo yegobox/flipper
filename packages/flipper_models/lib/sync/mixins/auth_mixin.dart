@@ -243,8 +243,9 @@ mixin AuthMixin implements AuthInterface {
   }
 
   Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
+    final id = (await ProxyService.strategy.activeBusiness())?.id ?? "";
     await hasActiveSubscription(
-        businessId: (await ProxyService.strategy.activeBusiness())!.id,
+        businessId: id,
         flipperHttpClient: ProxyService.http,
         fetchRemote: fetchRemote);
   }

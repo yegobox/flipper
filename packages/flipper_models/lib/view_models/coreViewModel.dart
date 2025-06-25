@@ -909,7 +909,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> acceptPurchase(
-      {required List<Variant> variants,
+      {required List<Purchase> purchases,
       required ITransaction pendingTransaction,
       required String pchsSttsCd,
       Map<String, Variant>? itemMapper,
@@ -920,42 +920,41 @@ class CoreViewModel extends FlipperBaseModel
 
       talker.warning("salesListLenghts" + salesList.length.toString());
 
-      for (Variant variant in variants) {
-        variant.retailPrice ??= variant.prc;
-        talker.warning(
-            "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
+      for (Purchase purchase in purchases) {
+        for (Variant variant in purchase.variants ?? []) {
+          variant.retailPrice ??= variant.prc;
+          talker.warning(
+              "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
 
-        talker.warning("Variant ${variant.id}");
+          talker.warning("Variant ${variant.id}");
 
-        final business = (await ProxyService.strategy
-            .getBusiness(businessId: ProxyService.box.getBusinessId()));
+          final business = (await ProxyService.strategy
+              .getBusiness(businessId: ProxyService.box.getBusinessId()));
 
-        Purchase? purchase =
-            await ProxyService.strategy.getPurchase(id: variant.purchaseId!);
-        await ProxyService.tax.savePurchases(
-          item: purchase!,
-          business: business!,
-          variants: [variant],
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          rcptTyCd: "P",
-          URI: await ProxyService.box.getServerUrl() ?? "",
-          pchsSttsCd: pchsSttsCd,
-        );
-
-        /// if itemMapper then means we are entirely approving and creating this item in our app
-        /// hence should have _processTransaction to have its double update for incoming purchase.
-        if (itemMapper?.isEmpty == true) {
-          // Generate new itemCode for new item
-          variant.itemCd = await ProxyService.strategy.itemCode(
-            countryCode: "RW",
-            productType: "2",
-            packagingUnit: "CT",
-            quantityUnit: "BJ",
-            branchId: ProxyService.box.getBranchId()!,
+          await ProxyService.tax.savePurchases(
+            item: purchase,
+            business: business!,
+            variants: [variant],
+            bhfId: (await ProxyService.box.bhfId()) ?? "00",
+            rcptTyCd: "P",
+            URI: await ProxyService.box.getServerUrl() ?? "",
+            pchsSttsCd: pchsSttsCd,
           );
-          variant.ebmSynced = false;
-          variant.pchsSttsCd = pchsSttsCd;
-          await ProxyService.strategy.updateVariant(updatables: [variant]);
+
+          /// if itemMapper then means we are entirely approving and creating this item in our app
+          if (itemMapper?.isEmpty == true) {
+            // Generate new itemCode for new item
+            variant.itemCd = await ProxyService.strategy.itemCode(
+              countryCode: "RW",
+              productType: "2",
+              packagingUnit: "CT",
+              quantityUnit: "BJ",
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            variant.ebmSynced = false;
+            variant.pchsSttsCd = pchsSttsCd;
+            await ProxyService.strategy.updateVariant(updatables: [variant]);
+          }
         }
 
         itemMapper?.forEach(

@@ -191,7 +191,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           assigned: variation.assigned,
           spplrItemClsCd: variation.spplrItemClsCd,
           spplrItemCd: variation.spplrItemCd,
-          purchaseId: variation.purchaseId,
+
           modrId: variation.modrId,
           modrNm: variation.modrNm,
           branchId: (await ProxyService.strategy.activeBranch()).id,

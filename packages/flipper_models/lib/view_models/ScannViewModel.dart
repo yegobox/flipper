@@ -51,7 +51,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final existingVariant = scannedVariants[index]; //Get existing variant
         scannedVariants[index] = Variant(
             id: existingVariant.id,
-            purchaseId: existingVariant.purchaseId,
             stockId: existingVariant.stockId,
             stock: existingVariant.stock != null
                 ? Stock(
@@ -367,7 +366,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
         final updatedVariant = Variant(
           id: scannedVariant.id,
-          purchaseId: scannedVariant.purchaseId,
           stockId: scannedVariant.stockId,
           stock: scannedVariant.stock != null
               ? Stock(
