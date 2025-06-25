@@ -1,15 +1,16 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20250625064551.migration.dart';
 part '20250623051521.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250623051521(),};
+  const Migration20250625064551(),const Migration20250623051521()};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  0,
+  20250623051521,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -806,6 +807,7 @@ final schema = Schema(
         SchemaColumn('pchs_stts_cd', Column.varchar),
         SchemaColumn('is_shared', Column.boolean),
         SchemaColumn('assigned', Column.boolean),
+        SchemaColumn('stock_synchronized', Column.boolean),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
