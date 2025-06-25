@@ -124,9 +124,14 @@ Future<Variant> _$VariantFromSupabase(
     totAmt: data['tot_amt'] == null ? null : data['tot_amt'] as double?,
     pchsSttsCd:
         data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
-    isShared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
+    isShared:
+        data['is_shared'] == null ? null : data['is_shared'] as bool? ?? false,
     assigned:
         data['assigned'] == null ? null : data['assigned'] as bool? ?? false,
+    stockSynchronized:
+        data['stock_synchronized'] == null
+            ? null
+            : data['stock_synchronized'] as bool? ?? true,
   );
 }
 
@@ -214,6 +219,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'pchs_stts_cd': instance.pchsSttsCd,
     'is_shared': instance.isShared,
     'assigned': instance.assigned,
+    'stock_synchronized': instance.stockSynchronized,
   };
 }
 
@@ -344,6 +350,10 @@ Future<Variant> _$VariantFromSqlite(
         data['pchs_stts_cd'] == null ? null : data['pchs_stts_cd'] as String?,
     isShared: data['is_shared'] == null ? null : data['is_shared'] == 1,
     assigned: data['assigned'] == null ? null : data['assigned'] == 1,
+    stockSynchronized:
+        data['stock_synchronized'] == null
+            ? null
+            : data['stock_synchronized'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -433,6 +443,10 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'is_shared':
         instance.isShared == null ? null : (instance.isShared! ? 1 : 0),
     'assigned': instance.assigned == null ? null : (instance.assigned! ? 1 : 0),
+    'stock_synchronized':
+        instance.stockSynchronized == null
+            ? null
+            : (instance.stockSynchronized! ? 1 : 0),
   };
 }
 
@@ -731,6 +745,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'assigned': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'assigned',
+    ),
+    'stockSynchronized': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'stock_synchronized',
     ),
   };
   @override
@@ -1168,6 +1186,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'assigned': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'assigned',
+      iterable: false,
+      type: bool,
+    ),
+    'stockSynchronized': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'stock_synchronized',
       iterable: false,
       type: bool,
     ),

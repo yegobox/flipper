@@ -132,12 +132,17 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
   String? pchsSttsCd;
   // end of fields to ignore
-
+  @Sqlite(defaultValue: "false")
+  @Supabase(defaultValue: "false")
   bool? isShared;
 
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
   bool? assigned;
+
+  @Sqlite(defaultValue: "true")
+  @Supabase(defaultValue: "true")
+  bool? stockSynchronized;
 
   Variant({
     String? id,
@@ -216,6 +221,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.taxblAmt,
     this.taxAmt,
     bool? assigned,
+    bool? stockSynchronized,
     this.dcAmt = 0.0,
   })  : id = id ?? const Uuid().v4(),
         assigned = assigned ?? false,
