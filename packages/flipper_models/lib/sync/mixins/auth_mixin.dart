@@ -147,7 +147,8 @@ mixin AuthMixin implements AuthInterface {
 
   // Required methods that should be provided by other mixins
   @override
-  Future<List<Business>> businesses({int? userId, bool fetchOnline = false});
+  Future<List<Business>> businesses(
+      {int? userId, bool fetchOnline = false, bool active = false});
 
   @override
   Future<bool> firebaseLogin({String? token}) async {

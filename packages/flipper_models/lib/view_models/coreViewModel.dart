@@ -971,7 +971,10 @@ class CoreViewModel extends FlipperBaseModel
             /// we are setting to 1 just to not have it on dashboard
             /// this is not part 4.11. Transaction Progress rather my own way knowing
             /// something has been assigned to another item while approving.
+            /// delete this??
             variantFromPurchase.pchsSttsCd = "1";
+            await ProxyService.strategy
+                .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
             variant.ebmSynced = false;
 
             await ProxyService.strategy.updateVariant(updatables: [variant]);

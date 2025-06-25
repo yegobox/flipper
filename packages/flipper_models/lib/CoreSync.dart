@@ -9,7 +9,6 @@ import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
@@ -1903,8 +1902,8 @@ class CoreSync extends AiStrategyImpl
   }
 
   Future<void> resetForNewDevice() async {
-    final businesses =
-        await ProxyService.strategy.businesses(fetchOnline: false);
+    final businesses = await ProxyService.strategy
+        .businesses(fetchOnline: false, active: false);
     for (final business in businesses) {
       await ProxyService.strategy.updateBusiness(
         businessId: business.serverId,
@@ -2184,17 +2183,18 @@ class CoreSync extends AiStrategyImpl
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
           /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
-          final adjustmentTransaction = await _createAdjustmentTransaction();
-          adjustmentTransaction?.items = items;
-          adjustmentTransaction?.orgSarNo = transaction.sarNo;
-          adjustmentTransaction?.sarNo = transaction.sarNo;
-          adjustmentTransaction?.receiptType = transaction.receiptType;
-          adjustmentTransaction?.customerName = transaction.customerName;
-          adjustmentTransaction?.customerTin = transaction.customerTin;
-          adjustmentTransaction?.remark = transaction.remark;
-          adjustmentTransaction?.status = COMPLETE;
-          adjustmentTransaction?.customerBhfId = transaction.customerBhfId;
-          await repository.upsert<ITransaction>(adjustmentTransaction!);
+          final adjustmentTransaction = await _createAdjustmentTransaction(
+            items: items,
+            orgSarNo: transaction.sarNo,
+            sarNo: transaction.sarNo,
+            receiptType: transaction.receiptType,
+            customerName: transaction.customerName,
+            customerTin: transaction.customerTin,
+            remark: transaction.remark,
+            status: COMPLETE,
+            customerBhfId: transaction.customerBhfId,
+          );
+
           await _updateStockAndItems(
               items: items,
               branchId: branchId,
@@ -2325,7 +2325,17 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  Future<ITransaction?> _createAdjustmentTransaction() async {
+  Future<ITransaction> _createAdjustmentTransaction({
+    required List<TransactionItem> items,
+    required String? orgSarNo,
+    required String? sarNo,
+    required String? receiptType,
+    required String? customerName,
+    required String? customerTin,
+    required String? remark,
+    required String status,
+    required String? customerBhfId,
+  }) async {
     try {
       talker.info('Creating new adjustment transaction', {
         'branchId': ProxyService.box.getBranchId(),
@@ -2335,25 +2345,34 @@ class CoreSync extends AiStrategyImpl
       final transaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
-        status: PENDING,
+        status: status,
         branchId: ProxyService.box.getBranchId()!,
       );
 
-      if (transaction != null) {
-        talker.info('Successfully created adjustment transaction', {
-          'transactionId': transaction.id,
-          'branchId': transaction.branchId,
-          'createdAt': transaction.createdAt?.toIso8601String()
-        });
-      } else {
-        talker.warning(
-            'Failed to create adjustment transaction - received null transaction');
+      if (transaction == null) {
+        throw Exception('Failed to create adjustment transaction');
       }
+
+      transaction.items = items;
+      transaction.orgSarNo = orgSarNo;
+      transaction.sarNo = sarNo;
+      transaction.receiptType = receiptType;
+      transaction.customerName = customerName;
+      transaction.customerTin = customerTin;
+      transaction.remark = remark;
+      transaction.status = status;
+      transaction.customerBhfId = customerBhfId;
+      await repository.upsert<ITransaction>(transaction);
+      talker.info('Successfully created adjustment transaction', {
+        'transactionId': transaction.id,
+        'branchId': transaction.branchId,
+        'createdAt': transaction.createdAt?.toIso8601String()
+      });
 
       return transaction;
     } catch (e, s) {
       talker.error('Error creating adjustment transaction', e, s);
-      return null; // Handle transaction creation failure gracefully
+      rethrow;
     }
   }
 

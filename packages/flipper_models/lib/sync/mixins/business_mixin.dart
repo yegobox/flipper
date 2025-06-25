@@ -10,10 +10,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/services/sqlite_service.dart';
-import 'package:supabase_models/brick/databasePath.dart';
-import 'package:path/path.dart' as path;
-import 'package:flipper_models/helperModels/talker.dart';
 
 mixin BusinessMixin implements BusinessInterface {
   Repository get repository;
@@ -33,13 +29,15 @@ mixin BusinessMixin implements BusinessInterface {
 
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false}) async {
+      {int? userId, bool fetchOnline = false, bool active = false}) async {
     return await repository.get<Business>(
         policy: fetchOnline
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,
-        query: Query(
-            where: [if (userId != null) Where('userId').isExactly(userId)]));
+        query: Query(where: [
+          if (userId != null) Where('userId').isExactly(userId),
+          if (active) Where('active').isExactly(active)
+        ]));
   }
 
   @override
@@ -73,7 +71,7 @@ mixin BusinessMixin implements BusinessInterface {
     final repository = Repository();
     final query = Query(where: [Where('serverId').isExactly(businessId)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+        query: query, policy: OfflineFirstGetPolicy.localOnly);
     return result.firstOrNull;
   }
 
@@ -85,7 +83,7 @@ mixin BusinessMixin implements BusinessInterface {
             ? [Where('serverId').isExactly(businessId)]
             : [Where('isDefault').isExactly(true)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.alwaysHydrate);
+        query: query, policy: OfflineFirstGetPolicy.localOnly);
     return result.firstOrNull;
   }
 
@@ -239,68 +237,16 @@ mixin BusinessMixin implements BusinessInterface {
     if (businessId <= 0) {
       throw ArgumentError('businessId must be a positive integer');
     }
-
-    // Prepare the database path once
-    final dbPath = path.join(
-      await DatabasePath.getDatabaseDirectory(),
-      Repository.dbFileName,
-    );
-
-    try {
-      final List<String> updateParts = [];
-      final List<Object?> params = [];
-
-      // Add fields to update if they are provided
-      if (active != null) {
-        updateParts.add('active = ?');
-        params.add(active ? 1 : 0);
-      }
-
-      // Handle isDefault separately to avoid stack trace analysis
-      if (isDefault != null && (isDefault || forceUpdateDefault)) {
-        updateParts.add('is_default = ?');
-        params.add(isDefault ? 1 : 0);
-      }
-
-      if (name != null) {
-        updateParts.add('name = ?');
-        params.add(name);
-      }
-
-      if (backupFileId != null) {
-        updateParts.add('backup_file_id = ?');
-        params.add(backupFileId);
-      }
-
-      // Only proceed if we have fields to update
-      if (updateParts.isEmpty) {
-        talker.debug('No fields to update for business $businessId');
-        return;
-      }
-
-      // Add the business ID for the WHERE clause
-      params.add(businessId);
-
-      // Build and execute the SQL query
-      final sql = 'UPDATE business SET ${updateParts.join(', ')} WHERE server_id = ?';
-      
-      // Execute the update
-      final rowsAffected = await SqliteService.executeAsync(
-        dbPath,
-        sql,
-        params,
-      );
-
-      if (rowsAffected > 0) {
-        talker.debug('Successfully updated business $businessId: $rowsAffected rows affected');
-      } else {
-        talker.warning('No rows affected when updating business $businessId');
-      }
-    } catch (e, stack) {
-      talker.error('Error updating business $businessId: $e');
-      talker.error('Stack trace: $stack');
-      rethrow;
+    Business? business = await getBusinessById(businessId: businessId);
+    if (business == null) {
+      throw ArgumentError('businessId $businessId not found');
     }
+    business.name = name ?? business.name;
+    business.active = active ?? business.active;
+    business.isDefault = isDefault ?? business.isDefault;
+    business.backupFileId = backupFileId ?? business.backupFileId;
+    await repository.upsert(business,
+        policy: OfflineFirstUpsertPolicy.optimisticLocal);
   }
 
   @override

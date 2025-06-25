@@ -1419,7 +1419,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<List<brick.Business>> businesses(
-      {int? userId, bool fetchOnline = false}) {
+      {int? userId, bool fetchOnline = false, bool active = false}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }
