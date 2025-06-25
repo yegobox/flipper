@@ -22,7 +22,8 @@ class EbmSyncService {
   /// Handles the case when the system is in proforma or training mode.
   /// Marks the variant and transaction as synced without sending to EBM.
   /// Returns true if in proforma/training mode, false otherwise.
-  Future<bool> _handleProformaOrTrainingMode(Variant? variant, ITransaction? transaction) async {
+  Future<bool> _handleProformaOrTrainingMode(
+      Variant? variant, ITransaction? transaction) async {
     if (ProxyService.box.isProformaMode() ||
         ProxyService.box.isTrainingMode()) {
       if (variant != null) {
@@ -141,6 +142,7 @@ class EbmSyncService {
       if (responseSaveStockInput.resultCd == "000") {
         if (variant != null) {
           variant.ebmSynced = true;
+          variant.stockSynchronized = false;
           pendingTransaction.status = COMPLETE;
           pendingTransaction.ebmSynced = true;
           await repository.upsert(pendingTransaction);

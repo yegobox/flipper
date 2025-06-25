@@ -8,6 +8,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/customer_payments.model.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
 
 abstract class HttpApiInterface {
   Future<bool> isCouponValid(
@@ -48,9 +49,70 @@ abstract class HttpApiInterface {
     required String filePath,
     String? fileName,
   });
+  Future<bool> fetchRemoteStockQuantity({
+    required Variant variant,
+    required HttpClientInterface client,
+  });
 }
 
 class HttpApi implements HttpApiInterface {
+  @override
+  Future<bool> fetchRemoteStockQuantity({
+    required Variant variant,
+    required HttpClientInterface client,
+  }) async {
+    try {
+      // Construct the Supabase REST endpoint for variants
+      final String baseUrl = AppSecrets.superbaseurl;
+      final String anonKey = AppSecrets.supabaseAnonKey;
+      final Uri uri = Uri.parse(
+          '$baseUrl/rest/v1/variants?id=eq.${variant.id}&select=stock_id');
+
+      // Fetch the variant to get the stock_id
+      final variantResp = await client.get(uri, headers: {
+        'apikey': anonKey,
+        'Authorization': 'Bearer $anonKey',
+        'Accept': 'application/json',
+      });
+      if (variantResp.statusCode != 200) {
+        talker.error('Failed to fetch variant: \\${variantResp.body}');
+        return false;
+      }
+      final variantList = json.decode(variantResp.body);
+      if (variantList is! List ||
+          variantList.isEmpty ||
+          variantList[0]['stock_id'] == null) {
+        talker.error('No stock_id found for variant ${variant.id}');
+        return false;
+      }
+      final String stockId = variantList[0]['stock_id'];
+
+      // Now fetch the stock
+      final Uri stockUri = Uri.parse(
+          '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=currentStock');
+      final stockResp = await client.get(stockUri, headers: {
+        'apikey': anonKey,
+        'Authorization': 'Bearer $anonKey',
+        'Accept': 'application/json',
+      });
+      if (stockResp.statusCode != 200) {
+        talker.error('Failed to fetch stock: \\${stockResp.body}');
+        return false;
+      }
+      final stockList = json.decode(stockResp.body);
+      if (stockList is! List ||
+          stockList.isEmpty ||
+          stockList[0]['currentStock'] == null) {
+        talker.error('No currentStock found for stock $stockId');
+        return false;
+      }
+      return variant.stock?.currentStock == stockList[0]['currentStock'];
+    } catch (e, stack) {
+      talker.error('Error in fetchRemoteStockQuantity', e, stack);
+      return false;
+    }
+  }
+
   @override
   Future<Map<String, dynamic>> payNow(
       {required Map<String, dynamic> paymentData,
@@ -433,6 +495,15 @@ class HttpApi implements HttpApiInterface {
 }
 
 class RealmViaHttpServiceMock implements HttpApiInterface {
+  @override
+  Future<bool> fetchRemoteStockQuantity({
+    required Variant variant,
+    required HttpClientInterface client,
+  }) async {
+    // Mock: always return 42.0 for testing
+    return true;
+  }
+
   @override
   Future<bool> isCouponValid(
       {required HttpClientInterface flipperHttpClient,

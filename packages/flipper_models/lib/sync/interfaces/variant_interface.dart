@@ -19,6 +19,7 @@ abstract class VariantInterface {
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
     bool forImportScreen = false,
+    bool? stockSynchronized,
   });
   Future<Variant?> getVariant({required String id});
 

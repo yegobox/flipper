@@ -113,7 +113,7 @@ class OuterVariants extends _$OuterVariants {
           final remoteVariants = await ProxyService.strategy
               .variants(
                 name: searchString,
-                fetchRemote: true, // Fetch from remote
+                fetchRemote: true, 
                 branchId: branchId,
                 page: _currentPage,
                 itemsPerPage: _itemsPerPage,

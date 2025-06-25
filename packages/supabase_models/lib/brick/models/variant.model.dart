@@ -221,7 +221,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.taxblAmt,
     this.taxAmt,
     bool? assigned,
-    bool? stockSynchronized,
+    this.stockSynchronized,
     this.dcAmt = 0.0,
   })  : id = id ?? const Uuid().v4(),
         assigned = assigned ?? false,

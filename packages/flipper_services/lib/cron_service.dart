@@ -187,6 +187,58 @@ class CronService {
     }
   }
 
+  /// Fetches and updates stock quantities for unsynchronized variants
+  Future<void> _syncStockQuantities() async {
+    try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        talker.warning('Skipping stock quantity sync: Branch ID is null');
+        return;
+      }
+
+      // Get all variants that haven't been synchronized yet
+      final variants = await ProxyService.strategy.variants(
+        branchId: branchId,
+        stockSynchronized: false,
+      );
+
+      if (variants.isEmpty) {
+        talker.info('No unsynchronized variants found');
+        return;
+      }
+
+      talker.info(
+          'Found ${variants.length} unsynchronized variants, syncing stock quantities...');
+
+      // Process each variant
+      for (final variant in variants) {
+        try {
+          bool remoteQuantity =
+              await ProxyService.httpApi.fetchRemoteStockQuantity(
+            variant: variant,
+            client: ProxyService.http,
+          );
+
+          if (remoteQuantity) {
+            // the mote match then uplodate
+            variant.stockSynchronized = true;
+            ProxyService.strategy.updateVariant(updatables: [variant]);
+          }
+        } catch (e, stackTrace) {
+          talker.error(
+              'Failed to sync stock quantity for variant ${variant.id}: $e',
+              stackTrace);
+          // Continue with next variant even if one fails
+        }
+      }
+
+      talker.info(
+          'Completed stock quantity sync for ${variants.length} variants');
+    } catch (e, stackTrace) {
+      talker.error('Stock quantity synchronization failed: $e', stackTrace);
+    }
+  }
+
   /// Sets up all periodic tasks with appropriate error handling
   void _setupPeriodicTasks() {
     // Setup transaction refresh timer (every 10 minutes)
@@ -238,6 +290,12 @@ class CronService {
     _activeTimers.add(Timer.periodic(Duration(minutes: _analyticsSyncMinutes),
         (Timer t) async {
       await _syncAnalyticsAndPatching();
+    }));
+
+    // Setup stock quantity sync timer (every 10 minutes)
+    _activeTimers
+        .add(Timer.periodic(const Duration(minutes: 10), (Timer t) async {
+      await _syncStockQuantities();
     }));
 
     // Setup asset download timer
