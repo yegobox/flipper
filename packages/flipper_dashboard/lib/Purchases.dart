@@ -10,7 +10,7 @@ class Purchases extends StatefulHookConsumerWidget {
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
   final Future<void> Function(
-      {required List<Variant> variants,
+      {required List<Purchase> purchases,
       required String pchsSttsCd,
       required Purchase purchase}) acceptPurchases;
   final void Function(

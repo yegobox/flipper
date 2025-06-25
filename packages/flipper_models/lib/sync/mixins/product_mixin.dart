@@ -206,7 +206,8 @@ mixin ProductMixin implements ProductInterface {
         /// purchase can have a list of variants associated with it.
         if (purchase != null) {
           Purchase purch = await repository.upsert<Purchase>(purchase);
-          newVariant.purchaseId = purch.id;
+          talker
+              .info('Purchase updated with variant: ${purch.variants?.length}');
           newVariant.spplrNm = purch.spplrNm;
           await repository.upsert<Variant>(newVariant);
         } else {

@@ -14,8 +14,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   String id;
 
-  String? purchaseId;
-
   Stock? stock;
   String? stockId;
 
@@ -216,7 +214,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.bcdU,
     this.quantity,
     this.category,
-    this.purchaseId,
     this.totAmt,
     this.taxblAmt,
     this.taxAmt,
@@ -318,7 +315,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
         taxblAmt: (json['taxblAmt'] as num?)?.toDouble() ?? 0.0,
         taxAmt: (json['taxAmt'] as num?)?.toDouble() ?? 0.0,
         dcAmt: (json['dcAmt'] as num?)?.toDouble() ?? 0.0,
-        purchaseId: parseOrDefault<String>(json['purchaseId'], ''),
       );
     } catch (e, s) {
       print('Error parsing Variant JSON: $e');
@@ -395,7 +391,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'taxblAmt': taxblAmt,
       'taxAmt': taxAmt,
       'dcAmt': dcAmt,
-      'purchaseId': purchaseId,
       "lastTouched": lastTouched?.toIso8601String(),
       'qty': qty
     };
@@ -555,7 +550,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
       totAmt: totAmt ?? this.totAmt,
       taxblAmt: taxblAmt ?? this.taxblAmt,
       taxAmt: taxAmt ?? this.taxAmt,
-      purchaseId: purchaseId ?? this.purchaseId,
     );
   }
 
@@ -628,7 +622,6 @@ class Variant extends OfflineFirstWithSupabaseModel {
       taxblAmt: item.taxblAmt?.toDouble(),
       taxAmt: item.taxAmt?.toDouble(),
       dcAmt: item.dcAmt?.toDouble(),
-      purchaseId: item.purchaseId,
     );
   }
 }

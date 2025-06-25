@@ -67,16 +67,22 @@ class EbmSyncService {
     /// variant is used to save item and stock master and stock In
     /// transaction is used to save stock io
     /// sarTyCd is used to determine the type of transaction
+
     if (variant != null) {
-      await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
+      repository.upsert<Variant>(variant);
 
       /// skip saving a service in stock master
       if (variant.itemCd != null &&
           variant.itemCd!.isNotEmpty &&
+          variant.pchsSttsCd == "01" &&
+          variant.imptItemSttsCd == "4" &&
+          variant.imptItemSttsCd == "2" &&
           variant.itemCd! == "3") {
+        /// save it anyway so we do not miss things
+
         throw Exception("Service item cannot be saved in stock master");
       }
-
+      await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
       await ProxyService.tax.saveStockMaster(variant: variant, URI: serverUrl);
     }
 

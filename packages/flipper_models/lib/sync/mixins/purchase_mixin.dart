@@ -157,6 +157,10 @@ mixin PurchaseMixin
           print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
 
           if (item.imptItemSttsCd!.isNotEmpty) {
+            /// when we receive the item from import we set its status to 2 meaning waiting
+            /// the reason why we did not take imptItemSttsCd from incoming item it is because it might be null
+            /// or change without us knowing.
+            item.imptItemSttsCd = "2";
             print("Saving variant with taskCd: ${item.taskCd}");
             await saveVariant(item, business, activeBranch.serverId!);
           } else {
@@ -248,7 +252,7 @@ mixin PurchaseMixin
       // Process purchases
       if (response.data?.saleList?.isNotEmpty ?? false) {
         // Only process if there's data
-        List<Future<void>> futures = []; // Explicitly typed for clarity
+
         for (final Purchase purchase in response.data?.saleList ?? []) {
           // Ensure createdAt is set from API or fallback to now
 
@@ -260,70 +264,59 @@ mixin PurchaseMixin
               purchase.branchId = ProxyService.box.getBranchId()!;
               // check if a purcahse's invoice Id exist skip re-adding
               // purchase.spplrInvcNo;
-              Purchase? existing = (await repository.get<Purchase>(
-                query: brick.Query(
-                  where: [
-                    brick.Where('spplrInvcNo').isExactly(purchase.spplrInvcNo),
-                  ],
-                ),
-              ))
-                  .firstOrNull;
-              if (existing != null) continue;
+              /// in test we realize they can keep sending same invoice id
+              /// maybe in future we might re-enable this
+              // Purchase? existing = (await repository.get<Purchase>(
+              //   query: brick.Query(
+              //     where: [
+              //       brick.Where('spplrInvcNo').isExactly(purchase.spplrInvcNo),
+              //     ],
+              //   ),
+              // ))
+              //     .firstOrNull;
+              // if (existing != null) continue;
+              /// end of comment to be aware of.
               // Using non-null assertion operator safely because of previous null check
-              futures.add(() async {
-                // Wrap in an explicit `async` function for safety.
-                try {
-                  final barCode = variant.bcd?.isNotEmpty == true
-                      ? variant.bcd!
-                      : randomNumber().toString();
+              final barCode = variant.bcd?.isNotEmpty == true
+                  ? variant.bcd!
+                  : randomNumber().toString();
 
-                  talker.warning("How ofthen we are in this branch");
-                  await createProduct(
-                    saleListId: purchase.id,
-                    businessId: businessId,
-                    branchId: branchId,
-                    pkgUnitCd: variant.pkgUnitCd,
-                    qty: variant.qty ?? 1,
-                    tinNumber: tinNumber,
-                    taxblAmt: variant.taxblAmt,
-                    bhFId: (await ProxyService.box.bhfId()) ?? "00",
-                    itemCd: variant.itemCd,
-                    spplrItemCd: variant.itemCd,
-                    itemClasses: {barCode: variant.itemClsCd ?? ""},
-                    supplyPrice: variant.splyAmt!,
-                    retailPrice: variant.prc!,
-                    purchase: purchase,
-                    ebmSynced: false,
-                    createItemCode: variant.itemCd?.isEmpty == true,
-                    taxTypes: {barCode: variant.taxTyCd!},
-                    totAmt: variant.totAmt,
-                    taxAmt: variant.taxAmt,
-                    pchsSttsCd: "01",
-                    product: Product(
-                      color: randomizeColor(),
-                      name: variant.itemNm ?? variant.name,
-                      lastTouched: DateTime.now().toUtc(),
-                      branchId: branchId,
-                      businessId: businessId,
-                      createdAt: DateTime.now().toUtc(),
-                      spplrNm: purchase.spplrNm,
-                      barCode: barCode,
-                    ),
-                  );
-                } catch (variantError, variantStackTrace) {
-                  print(
-                      "Error processing variant: $variantError\n$variantStackTrace");
-                  talker.error("Error processing variant", variantError,
-                      variantStackTrace);
-                  // Handle the error.  Perhaps log it or increment an error counter.
-                  //Critically:  Do NOT rethrow here. You want to continue processing other variants.
-                }
-              }());
+              talker.warning("How ofthen we are in this branch");
+              await createProduct(
+                saleListId: purchase.id,
+                businessId: businessId,
+                branchId: branchId,
+                pkgUnitCd: variant.pkgUnitCd,
+                qty: variant.qty ?? 1,
+                tinNumber: tinNumber,
+                taxblAmt: variant.taxblAmt,
+                bhFId: (await ProxyService.box.bhfId()) ?? "00",
+                itemCd: variant.itemCd,
+                spplrItemCd: variant.itemCd,
+                itemClasses: {barCode: variant.itemClsCd ?? ""},
+                supplyPrice: variant.splyAmt!,
+                retailPrice: variant.prc!,
+                purchase: purchase,
+                ebmSynced: false,
+                createItemCode: variant.itemCd?.isEmpty == true,
+                taxTypes: {barCode: variant.taxTyCd!},
+                totAmt: variant.totAmt,
+                taxAmt: variant.taxAmt,
+                pchsSttsCd: "01",
+                product: Product(
+                  color: randomizeColor(),
+                  name: variant.itemNm ?? variant.name,
+                  lastTouched: DateTime.now().toUtc(),
+                  branchId: branchId,
+                  businessId: businessId,
+                  createdAt: DateTime.now().toUtc(),
+                  spplrNm: purchase.spplrNm,
+                  barCode: barCode,
+                ),
+              );
             }
           }
         }
-        // Await all variant processing, even if some failed.
-        await Future.wait(futures);
 
         // Save the actual request time *after* successful processing
         try {
@@ -465,50 +458,49 @@ mixin PurchaseMixin
   @override
   Future<List<PurchaseReportItem>> allPurchasesToDate() async {
     final branchId = ProxyService.box.getBranchId()!;
+
+    // First, get all purchases for the branch
+    final purchases = await repository.get<Purchase>(
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(branchId)],
+        orderBy: [brick.OrderBy('createdAt', ascending: false)],
+      ),
+    );
+
+    if (purchases.isEmpty) return [];
+
+    // Get all variants that might be associated with these purchases
     final variants = await repository.get<Variant>(
       query: brick.Query(
         where: [
-          Where('branchId').isExactly(branchId),
-          Where('pchsSttsCd').isExactly("01"),
-          Or('branchId').isExactly(branchId),
-          Where('pchsSttsCd').isExactly("02"),
-          Or('branchId').isExactly(branchId),
-          Where('pchsSttsCd').isExactly("04"),
+          brick.Where('branchId').isExactly(branchId),
+          brick.Where('pchsSttsCd').isExactly("01"),
+          brick.Or('branchId').isExactly(branchId),
+          brick.Where('pchsSttsCd').isExactly("02"),
+          brick.Or('branchId').isExactly(branchId),
+          brick.Where('pchsSttsCd').isExactly("04"),
         ],
       ),
     );
 
-    if (variants.isEmpty) return [];
-
-    // Collect all unique purchase IDs to fetch them in a single query.
-    final purchaseIds =
-        variants.map((v) => v.purchaseId).nonNulls.toSet().toList();
-
-    // If there are no associated purchases, it means no variants are valid purchases.
-    if (purchaseIds.isEmpty) {
-      return [];
+    // Create a map of purchase ID to its variants
+    final purchaseVariants = <String, List<Variant>>{};
+    for (final variant in variants) {
+      // Assuming purchase.variants is a list of variants
+      for (final purchase in purchases) {
+        if (purchase.variants?.any((v) => v.id == variant.id) ?? false) {
+          purchaseVariants.putIfAbsent(purchase.id, () => []).add(variant);
+        }
+      }
     }
 
-    // Build a query with multiple 'OR' conditions to simulate an 'IN' clause.
-    List<brick.Where> purchaseWheres = [];
-    purchaseWheres.add(brick.Where('id').isExactly(purchaseIds.first));
-    for (int i = 1; i < purchaseIds.length; i++) {
-      purchaseWheres.add(brick.Or('id').isExactly(purchaseIds[i]));
-    }
-
-    final purchases = await repository.get<Purchase>(
-      query: brick.Query(where: purchaseWheres),
-    );
-
-    // Create a lookup map for efficient access to purchases.
-    final purchaseMap = {for (var p in purchases) p.id: p};
-
-    // Combine variants with their corresponding purchases.
-    return variants
-        .where((v) => v.purchaseId != null)
-        .map((variant) => PurchaseReportItem(
-              variant: variant,
-              purchase: purchaseMap[variant.purchaseId],
+    // Create report items
+    return purchases
+        .where((purchase) => purchaseVariants.containsKey(purchase.id))
+        .map((purchase) => PurchaseReportItem(
+              variant: purchaseVariants[purchase.id]!
+                  .first, // or handle multiple variants as needed
+              purchase: purchase,
             ))
         .toList();
   }

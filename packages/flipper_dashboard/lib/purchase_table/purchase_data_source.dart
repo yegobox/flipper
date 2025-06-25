@@ -16,7 +16,7 @@ class PurchaseDataSource extends DataGridSource {
   final Talker talker;
   final VoidCallback updateCallback;
   final Future<void> Function({
-    required List<Variant> variants,
+    required List<Purchase> purchases,
     required String pchsSttsCd,
     required Purchase purchase,
   }) acceptPurchases;
@@ -99,7 +99,7 @@ class PurchaseDataSource extends DataGridSource {
 
       // Update the variant's status
       await acceptPurchases(
-        variants: [variant],
+        purchases: [purchase],
         pchsSttsCd: status,
         purchase: purchase,
       );

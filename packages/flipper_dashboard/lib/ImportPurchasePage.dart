@@ -458,7 +458,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               retailPriceController: _retailPriceController,
               saveItemName: _saveChangeMadeOnItem,
               acceptPurchases: (
-                  {required List<model.Variant> variants,
+                  {required List<model.Purchase> purchases,
                   required String pchsSttsCd,
                   required model.Purchase purchase}) async {
                 try {
@@ -469,7 +469,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                     branchId: ProxyService.box.getBranchId()!,
                   );
                   await coreViewModel.acceptPurchase(
-                    variants: variants,
+                    purchases: purchases,
                     itemMapper: itemMapper,
                     pendingTransaction: pendingTransaction!,
                     pchsSttsCd: pchsSttsCd,
