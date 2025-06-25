@@ -48,6 +48,7 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Branch>> branches({
+    ///rename this to businessId
     int? serverId,
     bool? active,
   }) async {
