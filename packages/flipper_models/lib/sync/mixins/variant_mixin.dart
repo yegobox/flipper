@@ -37,6 +37,7 @@ mixin VariantMixin implements VariantInterface {
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
     bool forImportScreen = false,
+    bool? stockSynchronized,
   }) async {
     try {
       final List<WhereCondition> conditions = [];
@@ -77,6 +78,11 @@ mixin VariantMixin implements VariantInterface {
           Where('bcd').isExactly(bcd),
           Where('branchId').isExactly(branchId),
         ]);
+      } else if (stockSynchronized != null) {
+        conditions.addAll([
+          Where('stockSynchronized').isExactly(stockSynchronized),
+          Where('branchId').isExactly(branchId),
+        ]);
       } else if (purchaseId != null) {
         conditions.addAll([
           Where('purchaseId').isExactly(purchaseId),
@@ -107,6 +113,11 @@ mixin VariantMixin implements VariantInterface {
             conditions.add(Where('purchaseId').isExactly(purchaseId));
           }
         }
+      }
+
+      // When fetching remotely, exclude variants with stockSynchronized = false
+      if (fetchRemote) {
+        conditions.add(Where('stockSynchronized').isNot(false));
       }
 
       final query = Query(
