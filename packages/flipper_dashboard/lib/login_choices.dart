@@ -192,7 +192,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     try {
       // Save business ID to local storage
       await ProxyService.box
-          .writeInt(key: 'businessId', value: business.serverId!);
+          .writeInt(key: 'businessId', value: business.serverId);
       await _setDefaultBusiness(business);
       final branches = await ProxyService.strategy.branches(
         serverId: business.serverId,
