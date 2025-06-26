@@ -68,6 +68,7 @@ class PurchaseDataSource extends DataGridSource {
             columnName: 'Actions',
             value: _ActionButtons(
               variantId: variant.id,
+              status: variant.pchsSttsCd,
               isLoadingApprove: isLoadingApprove,
               isLoadingDecline: isLoadingDecline,
               onApprove: () =>
@@ -181,6 +182,7 @@ class PurchaseDataSource extends DataGridSource {
 
 class _ActionButtons extends StatelessWidget {
   final String variantId;
+  final String? status;
   final bool isLoadingApprove;
   final bool isLoadingDecline;
   final VoidCallback onApprove;
@@ -188,6 +190,7 @@ class _ActionButtons extends StatelessWidget {
 
   const _ActionButtons({
     required this.variantId,
+    required this.status,
     required this.isLoadingApprove,
     required this.isLoadingDecline,
     required this.onApprove,
@@ -196,6 +199,9 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (status != '01') {
+      return const SizedBox.shrink(); // Hide buttons if status is not 'Waiting'
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,

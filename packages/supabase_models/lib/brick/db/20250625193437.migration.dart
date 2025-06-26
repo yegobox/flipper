@@ -13,9 +13,7 @@ const List<MigrationCommand> _migration_20250625193437_up = [
   DropColumn('purchase_id', onTable: 'ImportPurchaseDates')
 ];
 
-const List<MigrationCommand> _migration_20250625193437_down = [
-  
-];
+const List<MigrationCommand> _migration_20250625193437_down = [];
 
 //
 // DO NOT EDIT BELOW THIS LINE
@@ -28,9 +26,9 @@ const List<MigrationCommand> _migration_20250625193437_down = [
 )
 class Migration20250625193437 extends Migration {
   const Migration20250625193437()
-    : super(
-        version: 20250625193437,
-        up: _migration_20250625193437_up,
-        down: _migration_20250625193437_down,
-      );
+      : super(
+          version: 20250625193437,
+          up: _migration_20250625193437_up,
+          down: _migration_20250625193437_down,
+        );
 }

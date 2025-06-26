@@ -266,7 +266,7 @@ mixin PurchaseMixin
                 variant.pchsSttsCd = "01";
                 variant.stockSynchronized = true;
                 variant.imptItemSttsCd = null;
-                
+
                 variant.name = variant.itemNm!;
                 variant.productName = variant.itemNm!;
                 variant.lastTouched = DateTime.now().toUtc();
