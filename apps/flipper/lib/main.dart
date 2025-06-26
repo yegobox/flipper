@@ -218,11 +218,7 @@ Future<void> main() async {
   });
 
   // Add isolate error listener
-  RawReceivePort? _errorListenerPort;
-  if (_errorListenerPort != null) {
-    _errorListenerPort!.close();
-  }
-  _errorListenerPort = RawReceivePort((pair) async {
+  RawReceivePort? errorListenerPort = RawReceivePort((pair) async {
     final List<dynamic> errorAndStacktrace = pair;
     final error = errorAndStacktrace.first;
     final stackTrace = errorAndStacktrace.last;
@@ -236,5 +232,5 @@ Future<void> main() async {
       type: 'isolate_error',
     );
   });
-  Isolate.current.addErrorListener(_errorListenerPort!.sendPort);
+  Isolate.current.addErrorListener(errorListenerPort!.sendPort);
 }

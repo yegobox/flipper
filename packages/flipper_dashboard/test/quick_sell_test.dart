@@ -7,17 +7,15 @@ import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
-
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:get_it/get_it.dart';
-
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
-import 'package:supabase_models/brick/repository/storage.dart';
+import 'package:flipper_services/keypad_service.dart';
 
 import 'TestApp.dart';
 
-
+// Mock classes for dependencies
 class MockLocalStorage implements LocalStorage {
   @override
   String? customerTin() => '123456789';
@@ -43,8 +41,245 @@ class MockLocalStorage implements LocalStorage {
   @override
   Future<void> writeDouble({required String key, required double value}) async {}
 
-  // Implement all other abstract methods from LocalStorage if they are called in the tested code
-  // For now, I'll add dummy implementations for the ones that were causing issues.
+  @override
+  Future<bool> clear() async => true;
+
+  @override
+  bool? enableDebug() => false;
+
+  @override
+  bool pinLogin() => false;
+
+  @override
+  int? dbVersion() => 3;
+
+  @override
+  bool doneMigrateToLocal() => true;
+
+  @override
+  String encryptionKey() => "";
+
+  @override
+  bool forceUPSERT() => false;
+
+  @override
+  int? currentOrderId() => 12345;
+
+  @override
+  String? gdID() => "";
+
+  @override
+  String? getBearerToken() => "";
+
+  @override
+  int? getBusinessId() => 100;
+
+  @override
+  String getDefaultApp() => "";
+
+  @override
+  bool? getIsTokenRegistered() => true;
+
+  @override
+  bool getNeedAccountLinkWithPhone() => true;
+
+  @override
+  Future<String?> getServerUrl() async => "";
+
+  @override
+  int? getUserId() => 24300;
+
+  @override
+  String? getUserPhone() => "";
+
+  @override
+  bool hasSignedInForAutoBackup() => true;
+
+  @override
+  bool isAnonymous() => false;
+
+  @override
+  bool isAutoBackupEnabled() => true;
+
+  @override
+  bool isAutoPrintEnabled() => false;
+
+  @override
+  bool isProformaMode() => false;
+
+  @override
+  bool isTrainingMode() => true;
+
+  @override
+  String? paginationCreatedAt() => "";
+
+  @override
+  int? paginationId() => 67890;
+
+  @override
+  int? readInt({required String key}) => 42;
+
+  @override
+  String? readString({required String key}) => "";
+
+  @override
+  Future<bool> remove({required String key}) async => true;
+
+  @override
+  String? whatsAppToken() => "";
+
+  @override
+  Future<LocalStorage> initializePreferences() async => this;
+
+  @override
+  Future<bool> authComplete() async => true;
+
+  @override
+  String uid() => "";
+
+  @override
+  Future<String> bhfId() async => "";
+
+  @override
+  int tin() => 1234567890;
+
+  @override
+  String? currentSaleCustomerPhoneNumber() => "";
+
+  @override
+  String? getRefundReason() => "";
+
+  @override
+  String? mrc() => "";
+
+  @override
+  bool? isPosDefault() => true;
+
+  @override
+  bool? isOrdersDefault() => false;
+
+  @override
+  int? itemPerPage() => 20;
+
+  @override
+  String? couponCode() => "";
+
+  @override
+  double? discountRate() => 1.0;
+
+  @override
+  String? paymentType() => "";
+
+  @override
+  String? yegoboxLoggedInUserPermission() => "";
+
+  @override
+  bool doneDownloadingAsset() => false;
+
+  @override
+  String? customerName() => "";
+
+  @override
+  bool? stopTaxService() => false;
+
+  @override
+  bool? switchToCloudSync() => true;
+
+  @override
+  bool? useInHouseSyncGateway() => true;
+
+  @override
+  String customPhoneNumberForPayment() => "";
+
+  @override
+  String? purchaseCode() => "";
+
+  @override
+  bool A4() => false;
+
+  @override
+  int? numberOfPayments() => 1;
+
+  @override
+  bool exportAsPdf() => false;
+
+  @override
+  String transactionId() => "";
+
+  @override
+  int? getBranchServerId() => 1;
+
+  @override
+  int? getBusinessServerId() => 1;
+
+  @override
+  bool transactionInProgress() => false;
+
+  @override
+  String stockInOutType() => "";
+
+  @override
+  String getDatabaseFilename() => "";
+
+  @override
+  Future<void> setDatabaseFilename(String filename) async {}
+
+  @override
+  String getQueueFilename() => "";
+
+  @override
+  Future<void> setQueueFilename(String filename) async {}
+
+  @override
+  bool getForceLogout() => false;
+
+  @override
+  Future<void> setForceLogout(bool value) async {}
+
+  @override
+  String? branchIdString() => "";
+
+  @override
+  String paymentMethodCode(String paymentMethod) => "";
+
+  @override
+  String pmtTyCd() => "";
+
+  @override
+  double? getCashReceived() => 0.0;
+
+  @override
+  String? getReceiptFileName() => "";
+
+  @override
+  bool vatEnabled() => false;
+
+  @override
+  Future<void> writeInt({required String key, required int value}) async {}
+
+  @override
+  bool lockPatching() => false;
+}
+
+class MockKeyPadService implements KeyPadService {
+  @override
+  String get keypad => '0.00';
+
+  @override
+  void addKey(String key) {}
+
+  @override
+  void pop() {}
+
+  @override
+  void reset() {}
+
+  @override
+  void addListener(listener) {}
+
+  @override
+  void removeListener(listener) {}
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -102,11 +337,21 @@ void main() {
 
     late MockLocalStorage mockLocalStorage;
     late MockDatabaseSyncInterface mockDatabaseSyncInterface;
+    late MockKeyPadService mockKeyPadService;
 
-    
+    setUpAll(() async {
+      mockLocalStorage = MockLocalStorage();
+      mockDatabaseSyncInterface = MockDatabaseSyncInterface();
+      mockKeyPadService = MockKeyPadService();
+      await initializeDependenciesForTest(
+        localStorage: mockLocalStorage,
+        databaseSyncInterface: mockDatabaseSyncInterface,
+      );
+    });
 
     setUp(() {
-      GetIt.I.reset(); // Ensure GetIt is reset before each test
+      // Reset GetIt registrations before each test
+      GetIt.I.reset();
 
       formKey = GlobalKey<FormState>();
       discountController = TextEditingController();
@@ -116,14 +361,10 @@ void main() {
       paymentTypeController = TextEditingController();
       deliveryNoteCotroller = TextEditingController();
 
-      mockLocalStorage = MockLocalStorage();
-      mockDatabaseSyncInterface = MockDatabaseSyncInterface();
-
       // Register mocks with GetIt
       GetIt.I.registerSingleton<LocalStorage>(mockLocalStorage);
       GetIt.I.registerSingleton<DatabaseSyncInterface>(mockDatabaseSyncInterface);
-
-      
+      GetIt.I.registerSingleton<KeyPadService>(mockKeyPadService);
     });
 
     tearDown(() {
