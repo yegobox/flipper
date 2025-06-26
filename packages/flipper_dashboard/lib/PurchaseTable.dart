@@ -55,6 +55,19 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   final Talker talker = TalkerFlutter.init();
   final Map<String, bool> _expandedPurchases = {};
 
+  late PurchaseDataSource _dataSource;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _dataSource.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final variantsAsync =
@@ -317,7 +330,15 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                         ),
                                       );
                                     }
-
+                                    _dataSource = PurchaseDataSource(
+                                      filteredPurchaseVariants,
+                                      _editedRetailPrices,
+                                      _editedSupplyPrices,
+                                      talker,
+                                      () => setState(() {}),
+                                      widget.acceptPurchases,
+                                      purchase,
+                                    );
                                     return Padding(
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 8),
@@ -340,15 +361,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                 child: SfDataGrid(
                                                   key:
                                                       UniqueKey(), // Add a key to force a rebuild when data changes
-                                                  source: PurchaseDataSource(
-                                                    filteredPurchaseVariants,
-                                                    _editedRetailPrices,
-                                                    _editedSupplyPrices,
-                                                    talker,
-                                                    () => setState(() {}),
-                                                    widget.acceptPurchases,
-                                                    purchase,
-                                                  ),
+                                                  source: _dataSource,
                                                   columns:
                                                       buildPurchaseColumns(),
                                                   columnWidthMode:
