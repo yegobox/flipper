@@ -425,7 +425,6 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   bool vatEnabled() {
-    // TODO: implement vatEnabled
-    throw UnimplementedError();
+    return true;
   }
 }
