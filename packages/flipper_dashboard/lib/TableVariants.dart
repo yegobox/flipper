@@ -342,10 +342,10 @@ class TableVariants extends StatelessWidget {
           return vatEnabledAsync.when(
             data: (vatEnabled) {
               // If VAT is disabled, only allow tax type D
-              final options = vatEnabled ? ["A", "B", "C", "D"] : ["D"];
+              final options = vatEnabled ? ["A", "B", "C", "D"] : ["B"];
               // If current value is not in options, default to D
               final currentValue =
-                  options.contains(variant.taxTyCd) ? variant.taxTyCd : "D";
+                  options.contains(variant.taxTyCd) ? variant.taxTyCd : "B";
               return TaxDropdown(
                 selectedValue: currentValue,
                 options: options,
