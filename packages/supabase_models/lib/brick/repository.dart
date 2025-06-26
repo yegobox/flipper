@@ -601,52 +601,123 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
     Query? query,
   }) async {
+    // First handle special cases that only need local persistence
     if (instance is Counter) {
-      // Only upsert locally for Counter
       return await super.upsert(instance,
           policy: OfflineFirstUpsertPolicy.optimisticLocal, query: query);
     }
+
     if (instance is Stock) {
-      // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
+      await super.upsert(instance, policy: policy, query: query);
+      return instance as TModel;
     }
-    if (instance is ITransaction) {
-      if (instance.ebmSynced == false &&
-          instance.transactionType == TransactionType.adjustment &&
-          instance.status == COMPLETE &&
-          instance.items?.isNotEmpty == true) {
-        final serverUrl = await ProxyService.box.getServerUrl();
-        final ebmSyncService = EbmSyncService(this);
-        await ebmSyncService.syncTransactionWithEbm(
-          instance: instance,
-          serverUrl: serverUrl!,
-        );
-      }
-    }
-    if (instance is Customer) {
-      if (instance.ebmSynced == false) {
-        final serverUrl = await ProxyService.box.getServerUrl();
-        final ebmSyncService = EbmSyncService(this);
-        await ebmSyncService.syncCustomerWithEbm(
-          instance: instance,
-          serverUrl: serverUrl!,
-        );
-      }
-    }
+    TModel savedInstance;
+    // Save the instance first to ensure we have an ID
     if (instance is Variant) {
-      if (instance.ebmSynced == false) {
+      // Log the variant details before saving
+      _logger.warning(
+          'Processing variant ${instance.id} with stockId: ${instance.stockId}');
+
+      // Check for empty or null stockId
+      if (instance.stockId == null ||
+          instance.stockId!.isEmpty ||
+          instance.stockId == "null") {
+        _logger.warning(
+            'Variant ${instance.id} has no stockId, saving without EBM sync');
+        // Still save the variant but don't attempt EBM sync
+        savedInstance =
+            await super.upsert(instance, policy: policy, query: query);
+        // Verify the saved instance
+        if (savedInstance is Variant &&
+            (savedInstance.stockId == null || savedInstance.stockId!.isEmpty)) {
+          _logger.warning(
+              'Variant ${savedInstance.id} was saved without a stockId!');
+        } else if (savedInstance is Variant) {
+          _logger.warning(
+              'Variant ${savedInstance.id} was saved with stockId: ${savedInstance.stockId}');
+        }
+        return savedInstance;
+      }
+
+      // If we have a stockId, proceed with normal save
+      _logger.warning(
+          'Saving variant ${instance.id} with stockId: ${instance.stockId}');
+      savedInstance =
+          await super.upsert(instance, policy: policy, query: query);
+
+      // Verify the stockId after save
+      if (savedInstance is Variant) {
+        if (savedInstance.stockId == null || savedInstance.stockId!.isEmpty) {
+          _logger.warning(
+              'Variant ${savedInstance.id} lost its stockId after save!');
+        } else {
+          _logger.warning(
+              'Variant ${savedInstance.id} saved successfully with stockId: ${savedInstance.stockId}');
+        }
+      }
+    } else {
+      savedInstance =
+          await super.upsert(instance, policy: policy, query: query);
+    }
+
+    // Then handle any sync operations
+    if (savedInstance is ITransaction) {
+      if (savedInstance.ebmSynced == false &&
+          savedInstance.transactionType == TransactionType.adjustment &&
+          savedInstance.status == COMPLETE &&
+          savedInstance.items?.isNotEmpty == true) {
+        try {
+          final serverUrl = await ProxyService.box.getServerUrl();
+          if (serverUrl != null) {
+            final ebmSyncService = EbmSyncService(this);
+            await ebmSyncService.syncTransactionWithEbm(
+              instance: savedInstance,
+              serverUrl: serverUrl,
+            );
+          }
+        } catch (e) {
+          _logger.warning('Error syncing transaction with EBM: $e');
+        }
+      }
+    } else if (savedInstance is Customer && savedInstance.ebmSynced == false) {
+      try {
         final serverUrl = await ProxyService.box.getServerUrl();
-        final ebmSyncService = EbmSyncService(this);
-        final synced = await ebmSyncService.syncVariantWithEbm(
-          variant: instance,
-          serverUrl: serverUrl!,
-        );
-        if (synced) {
-          return instance;
+        if (serverUrl != null) {
+          final ebmSyncService = EbmSyncService(this);
+          await ebmSyncService.syncCustomerWithEbm(
+            instance: savedInstance,
+            serverUrl: serverUrl,
+          );
+        }
+      } catch (e) {
+        _logger.warning('Error syncing customer with EBM: $e');
+      }
+    } else if (savedInstance is Variant) {
+      // For variants, ensure we have a stock ID before syncing
+      if (savedInstance.stockId == null || savedInstance.stockId!.isEmpty) {
+        _logger.warning(
+            'Variant ${savedInstance.id} has no stockId, skipping EBM sync');
+        return savedInstance;
+      }
+
+      if (savedInstance.ebmSynced == false && savedInstance.stockId != null) {
+        try {
+          final serverUrl = await ProxyService.box.getServerUrl();
+          if (serverUrl != null) {
+            final ebmSyncService = EbmSyncService(this);
+            await ebmSyncService.syncVariantWithEbm(
+              variant: savedInstance,
+              serverUrl: serverUrl,
+            );
+          }
+        } catch (e) {
+          _logger.warning('Error syncing variant with EBM: $e');
         }
       }
     }
-    return await super.upsert(instance, policy: policy, query: query);
+
+    return savedInstance;
   }
 
   @override

@@ -54,6 +54,8 @@ class EbmSyncService {
   /// - [sarTyCd]: Transaction type code (e.g., '06' for stock adjustment, '11' for sale)
   ///
   /// Returns: `true` if synchronization was successful, `false` otherwise
+  /// either of these functions can't throw exceptions because they might be called in the loop and will break the loop
+  /// which can cause the half saving data in our db.
   Future<bool> syncVariantWithEbm({
     Variant? variant,
     required String serverUrl,
@@ -69,18 +71,19 @@ class EbmSyncService {
     /// sarTyCd is used to determine the type of transaction
 
     if (variant != null) {
-      repository.upsert<Variant>(variant);
-
       /// skip saving a service in stock master
-      if (variant.itemCd != null &&
-          variant.itemCd!.isNotEmpty &&
-          variant.pchsSttsCd == "01" &&
-          variant.imptItemSttsCd == "4" &&
-          variant.imptItemSttsCd == "2" &&
-          variant.itemCd! == "3") {
+      if (variant.itemCd == null ||
+          variant.itemCd?.isEmpty == true ||
+          variant.pchsSttsCd == "01" ||
+          variant.pchsSttsCd == "1" ||
+          variant.imptItemSttsCd == "4" ||
+          variant.imptItemSttsCd == "2" ||
+          variant.itemCd == "3") {
         /// save it anyway so we do not miss things
-
-        throw Exception("Service item cannot be saved in stock master");
+        talker.info("Syncing service called but skipped ${variant.itemCd}");
+        variant.ebmSynced = true;
+        await repository.upsert<Variant>(variant);
+        return true;
       }
       await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
       await ProxyService.tax.saveStockMaster(variant: variant, URI: serverUrl);

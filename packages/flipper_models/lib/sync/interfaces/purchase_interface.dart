@@ -7,7 +7,6 @@ abstract class PurchaseInterface {
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastRequestdate,
   });
 
   Future<List<Purchase>> purchases();
@@ -16,7 +15,6 @@ abstract class PurchaseInterface {
     required String bhfId,
     required int tin,
     required String url,
-    required String lastRequestdate,
   });
 
   Future<List<Variant>> allImportsToDate();

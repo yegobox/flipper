@@ -80,7 +80,7 @@ Future<void> initializeDatabaseConfig() async {
   final localStorage = await SharedPreferenceStorage().initializePreferences();
 
   // Create an adapter that connects LocalStorage to Repository
-  final storageAdapter = StorageAdapter(
+  StorageAdapter(
     getDatabaseFilename: () => localStorage.getDatabaseFilename(),
     getQueueFilename: () => localStorage.getQueueFilename(),
   );

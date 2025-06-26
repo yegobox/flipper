@@ -1,6 +1,7 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
@@ -13,6 +14,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   String id;
+
+  @Supabase(foreignKey: 'purchase_id') // This links to Purchase.id
+  String? purchaseId;
 
   Stock? stock;
   String? stockId;
@@ -145,6 +149,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   Variant({
     String? id,
     this.pchsSttsCd,
+    this.purchaseId,
     bool? isShared,
     this.qty,
     this.stock,
@@ -235,7 +240,23 @@ class Variant extends OfflineFirstWithSupabaseModel {
         return defaultValue;
       }
 
+      // Extract stock information if present
+      Stock? stock;
+      String? stockId = const Uuid().v4();
+
+      stock = Stock(
+        id: stockId,
+        lastTouched: DateTime.now().toUtc(),
+        rsdQty: (json['qty'] as num?)?.toDouble() ?? 1.0,
+        initialStock: (json['qty'] as num?)?.toDouble() ?? 1.0,
+        branchId: ProxyService.box.getBranchId(),
+        currentStock: (json['qty'] as num?)?.toDouble() ?? 1.0,
+      );
+
       return Variant(
+        stock: stock,
+        branchId: ProxyService.box.getBranchId()!,
+        stockId: stockId,
         id: parseOrDefault<String>(json['id'], const Uuid().v4()),
         name: parseOrDefault<String>(json['name'], ''),
         color: parseOrDefault<String>(json['color'], ''),
@@ -246,7 +267,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
         productName: parseOrDefault<String>(json['productName'], ''),
         categoryId: parseOrDefault<String>(json['categoryId'], ''),
         categoryName: parseOrDefault<String>(json['categoryName'], ''),
-        branchId: parseOrDefault<int>(json['branchId'], 0),
+
         taxName: parseOrDefault<String>(json['taxName'], ''),
         taxPercentage:
             (json['taxPercentage'] as num?)?.toDouble() ?? 1.0, // Default to 1
@@ -392,7 +413,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'taxAmt': taxAmt,
       'dcAmt': dcAmt,
       "lastTouched": lastTouched?.toIso8601String(),
-      'qty': qty
+      'qty': qty,
+      'purchaseId': purchaseId,
     };
   }
 
@@ -550,6 +572,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       totAmt: totAmt ?? this.totAmt,
       taxblAmt: taxblAmt ?? this.taxblAmt,
       taxAmt: taxAmt ?? this.taxAmt,
+      purchaseId: purchaseId ?? this.purchaseId,
     );
   }
 

@@ -67,6 +67,8 @@ mixin CapellaProductMixin implements ProductInterface {
     Map<String, String>? taxTypes,
     Map<String, String>? itemClasses,
     Map<String, String>? itemTypes,
+    double? splyAmt,
+    String? taxTyCd,
     String? modrId,
     String? orgnNatCd,
     String? exptNatCd,

@@ -63,8 +63,8 @@ mixin PurchaseMixin
         createdAt: DateTime.now().toUtc(),
         spplrNm: item.spplrNm,
       ),
-      supplyPrice: item.supplyPrice ?? 0,
-      retailPrice: item.retailPrice ?? 0,
+      supplyPrice: item.splyAmt ?? 0,
+      retailPrice: item.splyAmt ?? 0,
       itemSeq: item.itemSeq!,
       ebmSynced: true,
       spplrItemCd: item.hsCd,
@@ -76,7 +76,6 @@ mixin PurchaseMixin
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastRequestdate,
   }) async {
     try {
       int branchId;
@@ -104,14 +103,6 @@ mixin PurchaseMixin
         ),
       );
 
-      // Determine lastReqDt
-      if (lastRequestRecords.isNotEmpty) {
-        lastRequestdate = lastRequestRecords.first.lastRequestDate!;
-      } else {
-        // Default to today's date if no saved date found
-        lastRequestdate = DateTime.now().toYYYYMMddHHmmss();
-      }
-
       List<Variant> variantsList;
       RwApiResponse response;
 
@@ -120,7 +111,8 @@ mixin PurchaseMixin
         response = await ProxyService.tax.selectImportItems(
           tin: tin,
           bhfId: bhfId,
-          lastReqDt: lastRequestdate,
+          lastReqDt: lastRequestRecords.first.lastRequestDate ??
+              DateTime.now().toYYYYMMddHHmmss(),
           URI: (await ProxyService.box.getServerUrl() ?? ""),
         );
 
@@ -186,7 +178,6 @@ mixin PurchaseMixin
     required String bhfId,
     required int tin,
     required String url,
-    required String lastRequestdate,
     String? pchsSttsCd,
   }) async {
     try {
@@ -209,6 +200,7 @@ mixin PurchaseMixin
       final lastRequestRecords = await repository.get<ImportPurchaseDates>(
         policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(
+          limit: 1,
           orderBy: [const OrderBy('lastRequestDate', ascending: false)],
           where: [
             brick.Where('branchId').isExactly(activeBranch.id),
@@ -216,14 +208,6 @@ mixin PurchaseMixin
           ],
         ),
       );
-
-      // Determine lastReqDt
-      if (lastRequestRecords.isNotEmpty) {
-        lastRequestdate = lastRequestRecords.first.lastRequestDate!;
-      } else {
-        // Default to today's date if no saved date found
-        lastRequestdate = DateTime.now().toYYYYMMddHHmmss();
-      }
 
       List<Variant> variantsList;
 
@@ -234,7 +218,8 @@ mixin PurchaseMixin
           URI: url,
           tin: tin,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          lastReqDt: lastRequestdate,
+          lastReqDt: lastRequestRecords.first.lastRequestDate ??
+              DateTime.now().toYYYYMMddHHmmss(),
         );
 
         if (response.data?.saleList?.isEmpty ?? false) {
@@ -252,95 +237,160 @@ mixin PurchaseMixin
       // Process purchases
       if (response.data?.saleList?.isNotEmpty ?? false) {
         // Only process if there's data
+        // Original Code
+        // Save purchases count for logging
+        final purchaseCount = response.data?.saleList?.length ?? 0;
+        talker.info('Processing $purchaseCount purchases...');
 
         for (final Purchase purchase in response.data?.saleList ?? []) {
-          // Ensure createdAt is set from API or fallback to now
+          try {
+            purchase.createdAt = DateTime.now().toUtc();
+            purchase.branchId = ProxyService.box.getBranchId()!;
 
-          purchase.createdAt = DateTime.now();
+            // Save the purchase first to get an ID
+            final savedPurchase = await repository.upsert<Purchase>(purchase);
+            talker.info(
+                'Saved purchase ${savedPurchase.id} with ${purchase.variants?.length ?? 0} variants');
 
-          if (purchase.variants != null) {
-            // Check if variants is null. Protect from null exception
-            for (final variant in purchase.variants!) {
-              purchase.branchId = ProxyService.box.getBranchId()!;
-              // check if a purcahse's invoice Id exist skip re-adding
-              // purchase.spplrInvcNo;
-              /// in test we realize they can keep sending same invoice id
-              /// maybe in future we might re-enable this
-              // Purchase? existing = (await repository.get<Purchase>(
-              //   query: brick.Query(
-              //     where: [
-              //       brick.Where('spplrInvcNo').isExactly(purchase.spplrInvcNo),
-              //     ],
-              //   ),
-              // ))
-              //     .firstOrNull;
-              // if (existing != null) continue;
-              /// end of comment to be aware of.
-              // Using non-null assertion operator safely because of previous null check
-              final barCode = variant.bcd?.isNotEmpty == true
-                  ? variant.bcd!
-                  : randomNumber().toString();
+            if (purchase.variants?.isNotEmpty == true) {
+              final List<Variant> updatedVariants = [];
+              int variantIndex = 0;
+              final Set<String> processedBarcodes = {};
 
-              talker.warning("How ofthen we are in this branch");
-              await createProduct(
-                saleListId: purchase.id,
-                businessId: businessId,
-                branchId: branchId,
-                pkgUnitCd: variant.pkgUnitCd,
-                qty: variant.qty ?? 1,
-                tinNumber: tinNumber,
-                taxblAmt: variant.taxblAmt,
-                bhFId: (await ProxyService.box.bhfId()) ?? "00",
-                itemCd: variant.itemCd,
-                spplrItemCd: variant.itemCd,
-                itemClasses: {barCode: variant.itemClsCd ?? ""},
-                supplyPrice: variant.splyAmt!,
-                retailPrice: variant.prc!,
-                purchase: purchase,
-                ebmSynced: false,
-                createItemCode: variant.itemCd?.isEmpty == true,
-                taxTypes: {barCode: variant.taxTyCd!},
-                totAmt: variant.totAmt,
-                taxAmt: variant.taxAmt,
-                pchsSttsCd: "01",
-                product: Product(
-                  color: randomizeColor(),
-                  name: variant.itemNm ?? variant.name,
-                  lastTouched: DateTime.now().toUtc(),
-                  branchId: branchId,
-                  businessId: businessId,
-                  createdAt: DateTime.now().toUtc(),
-                  spplrNm: purchase.spplrNm,
-                  barCode: barCode,
-                ),
-              );
+              // Create a copy of the variants list to safely iterate
+              final variantsToProcess = List<Variant>.from(purchase.variants!);
+
+              // Process each variant in the purchase
+              for (final variant in variantsToProcess) {
+                variant.purchaseId = savedPurchase.id;
+                variant.pchsSttsCd = "01";
+                variant.stockSynchronized = true;
+                variant.imptItemSttsCd = null;
+                
+                variant.name = variant.itemNm!;
+                variant.productName = variant.itemNm!;
+                variant.lastTouched = DateTime.now().toUtc();
+                variant.retailPrice = variant.splyAmt;
+                variant.supplyPrice = variant.splyAmt;
+                await repository.upsert<Variant>(variant);
+                variantIndex++;
+                try {
+                  // Skip if variant has no name
+                  if (variant.itemNm?.isEmpty != false) {
+                    talker.warning(
+                        'Skipping variant with no name at index $variantIndex');
+                    continue;
+                  }
+
+                  // Generate or use existing barcode
+                  final barCode = variant.bcd?.isNotEmpty == true
+                      ? variant.bcd!
+                      : randomString();
+
+                  // Skip if we've already processed this barcode
+                  if (processedBarcodes.contains(barCode)) {
+                    talker.info(
+                        'Skipping duplicate variant with barcode: $barCode');
+                    continue;
+                  }
+                  processedBarcodes.add(barCode);
+
+                  talker.info(
+                      'Processing variant $variantIndex: ${variant.itemNm}');
+
+                  // Create or update product and variant
+                  try {
+                    await createProduct(
+                      saleListId: savedPurchase.id,
+                      businessId: businessId,
+                      branchId: branchId,
+                      pkgUnitCd: variant.pkgUnitCd,
+                      qty: variant.qty ?? 1,
+                      tinNumber: tinNumber,
+                      itemCd: variant.itemCd,
+                      taxAmt: variant.taxAmt,
+                      taxblAmt: variant.taxblAmt,
+                      taxTyCd: variant.taxTyCd,
+                      itemClasses: {barCode: variant.itemClsCd ?? ""},
+                      pchsSttsCd: "01",
+                      splyAmt: variant.splyAmt,
+                      pkg: variant.pkg,
+                      qtyUnitCd: variant.qtyUnitCd,
+                      bhFId: bhfId,
+                      createItemCode: variant.itemCd?.isEmpty == true,
+                      product: Product(
+                        color: randomizeColor(),
+                        name: variant.itemNm!,
+                        barCode: barCode,
+                        lastTouched: DateTime.now().toUtc(),
+                        createdAt: DateTime.now().toUtc(),
+                        branchId: branchId,
+                        businessId: businessId,
+                        spplrNm: purchase.spplrNm,
+                      ),
+                      purchase: savedPurchase,
+                      supplyPrice: variant.splyAmt ?? 0,
+                      retailPrice: variant.splyAmt ?? 0,
+                      skipRegularVariant: true,
+                    );
+
+                    // Add to updated variants if successful
+                    updatedVariants.add(variant);
+                    talker.info(
+                        'Successfully processed variant $variantIndex: ${variant.itemNm}');
+                  } catch (e, s) {
+                    talker.error(
+                        'Error in createProduct for variant ${variant.itemNm}: $e',
+                        s);
+                    continue; // Continue with next variant on error
+                  }
+                } catch (e, s) {
+                  talker.error(
+                      'Unexpected error processing variant $variantIndex', s);
+                  continue;
+                }
+              }
+
+              // Update purchase with successfully processed variants
+              if (updatedVariants.isNotEmpty) {
+                try {
+                  // Only update variants if we have some
+                  savedPurchase.variants = updatedVariants;
+                  final updatedPurchase =
+                      await repository.upsert<Purchase>(savedPurchase);
+                  talker.info(
+                      'Successfully updated purchase ${updatedPurchase.id} with ${updatedVariants.length} variants');
+                } catch (e, s) {
+                  talker.error('Error updating purchase with variants: $e', s);
+                  throw Exception('Failed to update purchase with variants');
+                }
+              } else {
+                talker.warning(
+                    'No variants were successfully processed for purchase ${savedPurchase.id}');
+              }
             }
+            //here
+            final newImportDate = ImportPurchaseDates(
+              branchId: activeBranch.id,
+              requestType: "PURCHASE",
+              // lastRequestDate: response.resultDt,
+              lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+            );
+
+            await repository.upsert<ImportPurchaseDates>(
+              newImportDate,
+              query: brick.Query(
+                where: [
+                  brick.Where('branchId').isExactly(activeBranch.id),
+                  brick.Where('requestType').isExactly("PURCHASE"),
+                ],
+              ),
+            );
+          } catch (e, s) {
+            talker.error('Error processing purchase: $e', s);
+            // Continue with next purchase even if one fails
+            continue;
           }
-        }
-
-        // Save the actual request time *after* successful processing
-        try {
-          final newImportDate = ImportPurchaseDates(
-            branchId: activeBranch.id,
-            requestType: "PURCHASE",
-            // lastRequestDate: response.resultDt,
-            lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
-          );
-
-          await repository.upsert<ImportPurchaseDates>(
-            newImportDate,
-            query: brick.Query(
-              where: [
-                brick.Where('branchId').isExactly(activeBranch.id),
-                brick.Where('requestType').isExactly("PURCHASE"),
-              ],
-            ),
-          ); // Upsert ensures either creates or updates
-        } catch (saveError, saveStackTrace) {
-          print(
-              "Error saving ImportPurchaseDates: $saveError\n$saveStackTrace");
-          talker.error(
-              "Error saving ImportPurchaseDates", saveError, saveStackTrace);
         }
       }
 

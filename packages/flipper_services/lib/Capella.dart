@@ -1627,7 +1627,6 @@ class Capella extends AiStrategyImpl
   Future<List<brick.Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastRequestdate,
   }) {
     // TODO: implement selectImportItems
     throw UnimplementedError();
@@ -1770,7 +1769,6 @@ class Capella extends AiStrategyImpl
     required int tin,
     required String url,
     String? pchsSttsCd,
-    required String lastRequestdate,
   }) {
     // TODO: implement selectPurchases
     throw UnimplementedError();
@@ -1911,6 +1909,8 @@ class Capella extends AiStrategyImpl
       {required brick.Product product,
       required int businessId,
       required int branchId,
+      double? splyAmt,
+      String? taxTyCd,
       required int tinNumber,
       required String bhFId,
       Map<String, String>? taxTypes,
