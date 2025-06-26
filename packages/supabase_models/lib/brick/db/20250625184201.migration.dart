@@ -28,9 +28,9 @@ const List<MigrationCommand> _migration_20250625184201_down = [
 )
 class Migration20250625184201 extends Migration {
   const Migration20250625184201()
-    : super(
-        version: 20250625184201,
-        up: _migration_20250625184201_up,
-        down: _migration_20250625184201_down,
-      );
+      : super(
+          version: 20250625184201,
+          up: _migration_20250625184201_up,
+          down: _migration_20250625184201_down,
+        );
 }

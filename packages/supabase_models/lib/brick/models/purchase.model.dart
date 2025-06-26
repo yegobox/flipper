@@ -126,7 +126,6 @@ class Purchase extends OfflineFirstWithSupabaseModel {
       variants: (json['itemList'] as List<dynamic>)
           .map((e) => Variant.fromJson(e as Map<String, dynamic>))
           .toList(),
-    
     );
   }
   // toJson() method

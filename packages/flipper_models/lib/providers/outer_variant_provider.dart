@@ -15,6 +15,7 @@ class OuterVariants extends _$OuterVariants {
     final updatedList = currentList.where((v) => v.id != variantId).toList();
     state = AsyncValue.data(updatedList);
   }
+
   int _currentPage = 0;
   final int _itemsPerPage = ProxyService.box.itemPerPage() ?? 1000;
   bool _hasMore = true;
@@ -113,7 +114,7 @@ class OuterVariants extends _$OuterVariants {
           final remoteVariants = await ProxyService.strategy
               .variants(
                 name: searchString,
-                fetchRemote: true, 
+                fetchRemote: true,
                 branchId: branchId,
                 page: _currentPage,
                 itemsPerPage: _itemsPerPage,
