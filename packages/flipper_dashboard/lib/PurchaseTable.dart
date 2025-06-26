@@ -41,6 +41,7 @@ class PurchaseTable extends StatefulHookConsumerWidget {
     required List<Purchase> purchases,
     required String pchsSttsCd,
     required Purchase purchase,
+    Variant? clickedVariant,
   }) acceptPurchases;
 
   @override

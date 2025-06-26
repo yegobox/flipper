@@ -218,20 +218,23 @@ Future<void> main() async {
   });
 
   // Add isolate error listener
-  Isolate.current.addErrorListener(
-    RawReceivePort((pair) async {
-      final List<dynamic> errorAndStacktrace = pair;
-      final error = errorAndStacktrace.first;
-      final stackTrace = errorAndStacktrace.last;
+  RawReceivePort? _errorListenerPort;
+  if (_errorListenerPort != null) {
+    _errorListenerPort!.close();
+  }
+  _errorListenerPort = RawReceivePort((pair) async {
+    final List<dynamic> errorAndStacktrace = pair;
+    final error = errorAndStacktrace.first;
+    final stackTrace = errorAndStacktrace.last;
 
-      // Send to both Sentry and LogService
-      Sentry.captureException(error,
-          stackTrace: StackTrace.fromString(stackTrace.toString()));
-      await LogService().logException(
-        error,
-        stackTrace: StackTrace.fromString(stackTrace.toString()),
-        type: 'isolate_error',
-      );
-    }).sendPort,
-  );
+    // Send to both Sentry and LogService
+    Sentry.captureException(error,
+        stackTrace: StackTrace.fromString(stackTrace.toString()));
+    await LogService().logException(
+      error,
+      stackTrace: StackTrace.fromString(stackTrace.toString()),
+      type: 'isolate_error',
+    );
+  });
+  Isolate.current.addErrorListener(_errorListenerPort!.sendPort);
 }

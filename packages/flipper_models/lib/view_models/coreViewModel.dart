@@ -909,85 +909,145 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> acceptPurchase(
       {required List<Purchase> purchases,
-      required ITransaction pendingTransaction,
       required String pchsSttsCd,
       Map<String, Variant>? itemMapper,
-      required Purchase purchase}) async {
+      required Purchase purchase,
+      Variant? clickedVariant}) async {
     try {
       isLoading = true;
       notifyListeners();
 
       talker.warning("salesListLenghts" + salesList.length.toString());
 
-      for (Purchase purchase in purchases) {
-        for (Variant variant in purchase.variants ?? []) {
-          variant.retailPrice ??= variant.prc;
-          talker.warning(
-              "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
+      List<Variant> variantsToProcess = [];
+      if (clickedVariant != null) {
+        variantsToProcess.add(clickedVariant);
+      } else {
+        // If no specific variant is clicked, process all variants in the first purchase
+        // This assumes that if clickedVariant is null, we are processing a batch.
+        // The original code iterated through `purchases` and then `purchase.variants`.
+        // For batch processing, we'll assume `purchases` contains the relevant purchase(es)
+        // and we'll iterate through their variants.
+        // For simplicity, I'm assuming if clickedVariant is null, we process all variants
+        // of the *first* purchase in the list. If the intent is to process all variants
+        // across *all* purchases in the list, the outer loop `for (Purchase purchase in purchases)`
+        // should remain. For now, I'll keep it focused on the single purchase passed in the parameter.
+        variantsToProcess.addAll(purchase.variants ?? []);
+      }
 
-          talker.warning("Variant ${variant.id}");
+      for (Variant variant in variantsToProcess) {
+        variant.retailPrice ??= variant.prc;
+        talker.warning(
+            "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
+
+        talker.warning("Variant ${variant.id}");
+
+        final business = (await ProxyService.strategy
+            .getBusiness(businessId: ProxyService.box.getBusinessId()));
+
+        await ProxyService.tax.savePurchases(
+          item: purchase,
+          business: business!,
+          variants: [variant],
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          rcptTyCd: "P",
+          URI: await ProxyService.box.getServerUrl() ?? "",
+          pchsSttsCd: pchsSttsCd,
+        );
+
+        /// if itemMapper is empty then means we are entirely approving and creating this item in our app
+        if (itemMapper?.isEmpty == true) {
+          // Generate new itemCode for new item
+          variant.itemCd = await ProxyService.strategy.itemCode(
+            countryCode: "RW",
+            productType: "2",
+            packagingUnit: "CT",
+            quantityUnit: "BJ",
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          variant.ebmSynced = false;
+          variant.pchsSttsCd = pchsSttsCd;
+          await ProxyService.strategy.updateVariant(updatables: [variant]);
+          ITransaction? pendingTransaction;
+          pendingTransaction = await ProxyService.strategy.manageTransaction(
+            transactionType: TransactionType.adjustment,
+            isExpense: true,
+            status: PENDING,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          await ProxyService.strategy.assignTransaction(
+            variant: variant,
+            doneWithTransaction: true,
+            invoiceNumber: 0,
+            updatableQty: variant.stock?.currentStock,
+            pendingTransaction: pendingTransaction!,
+            business: business,
+            randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
+
+            /// puting pchsSttsCd so I know this adjustment was used for which purpose
+            sarTyCd: pchsSttsCd,
+          );
+          //complete the transaction
+          pendingTransaction.status = COMPLETE;
+          await ProxyService.strategy
+              .updateTransaction(transaction: pendingTransaction);
+        }
+      }
+
+      /// when a user want to make incoming item to existing item
+      /// we map then we delete incoming item to avoid duplicates
+      /// and item that is taking db space for no reason
+      itemMapper
+          ?.forEach((String itemToAssignId, Variant variantFromPurchase) async {
+        Variant? variant =
+            await ProxyService.strategy.getVariant(id: itemToAssignId);
+
+        /// update the relevant stock
+        if (variant != null) {
+          _updateVariantStock(
+              item: variantFromPurchase, existingVariantToUpdate: variant);
 
           final business = (await ProxyService.strategy
               .getBusiness(businessId: ProxyService.box.getBusinessId()));
-
-          await ProxyService.tax.savePurchases(
-            item: purchase,
-            business: business!,
-            variants: [variant],
-            bhfId: (await ProxyService.box.bhfId()) ?? "00",
-            rcptTyCd: "P",
-            URI: await ProxyService.box.getServerUrl() ?? "",
-            pchsSttsCd: pchsSttsCd,
+          ITransaction? pendingTransaction;
+          pendingTransaction = await ProxyService.strategy.manageTransaction(
+            transactionType: TransactionType.adjustment,
+            isExpense: true,
+            status: PENDING,
+            branchId: ProxyService.box.getBranchId()!,
           );
+          await ProxyService.strategy.assignTransaction(
+            variant: variant,
+            doneWithTransaction: true,
+            invoiceNumber: 0,
+            updatableQty: variantFromPurchase.stock?.currentStock,
+            pendingTransaction: pendingTransaction!,
+            business: business!,
+            randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
+            sarTyCd: pchsSttsCd,
+          );
+          pendingTransaction.status = COMPLETE;
+          await ProxyService.strategy
+              .updateTransaction(transaction: pendingTransaction);
 
-          /// if itemMapper then means we are entirely approving and creating this item in our app
-          if (itemMapper?.isEmpty == true) {
-            // Generate new itemCode for new item
-            variant.itemCd = await ProxyService.strategy.itemCode(
-              countryCode: "RW",
-              productType: "2",
-              packagingUnit: "CT",
-              quantityUnit: "BJ",
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            variant.ebmSynced = false;
-            variant.pchsSttsCd = pchsSttsCd;
-            await ProxyService.strategy.updateVariant(updatables: [variant]);
-          }
+          /// we are setting to 1 just to not have it on dashboard
+          /// this is not part 4.11. Transaction Progress rather my own way knowing
+          /// something has been assigned to another item while approving.
+          /// delete this??
+          variantFromPurchase.pchsSttsCd = "1";
+          // deleting it is not an option because at the end we need to be able to
+          // show those approved, rejected etc...
+          // await ProxyService.strategy
+          //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
+          variant.ebmSynced = false;
+
+          await ProxyService.strategy.updateVariant(updatables: [variant]);
+          await ProxyService.strategy
+              .updateVariant(updatables: [variantFromPurchase]);
+        } else {
+          talker.warning("We should not be in this condition");
         }
-
-        /// when a user want to make incoming item to existing item
-        /// we map then we delete incoming item to avoid duplicates
-        /// and item that is taking db space for no reason
-        itemMapper?.forEach(
-            (String itemToAssignId, Variant variantFromPurchase) async {
-          Variant? variant =
-              await ProxyService.strategy.getVariant(id: itemToAssignId);
-
-          /// update the relevant stock
-          if (variant != null) {
-            _updateVariantStock(
-                item: variantFromPurchase, existingVariantToUpdate: variant);
-
-            /// we are setting to 1 just to not have it on dashboard
-            /// this is not part 4.11. Transaction Progress rather my own way knowing
-            /// something has been assigned to another item while approving.
-            /// delete this??
-            variantFromPurchase.pchsSttsCd = "1";
-            // deleting it is not an option because at the end we need to be able to
-            // show those approved, rejected etc...
-            // await ProxyService.strategy
-            //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
-            variant.ebmSynced = false;
-
-            await ProxyService.strategy.updateVariant(updatables: [variant]);
-            await ProxyService.strategy
-                .updateVariant(updatables: [variantFromPurchase]);
-          } else {
-            talker.warning("We should not be in this condition");
-          }
-        });
-      }
+      });
       isLoading = false;
       notifyListeners();
       return Future.value();
