@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helper_models.dart';
@@ -128,6 +129,8 @@ mixin ProductMixin implements ProductInterface {
       double? totAmt,
       double? taxAmt,
       double? taxblAmt,
+      String? taxTyCd,
+      double? splyAmt,
       String? itemCd}) async {
     try {
       final String productName = product.name;
@@ -146,6 +149,26 @@ mixin ProductMixin implements ProductInterface {
       final createdProduct = await repository.upsert<Product>(product);
 
       if (!skipRegularVariant) {
+        // Check if a variant with the same product and barcode already exists
+        final queryConditions = [
+          brick.Where('productId').isExactly(createdProduct.id),
+        ];
+
+        if (product.barCode?.isNotEmpty == true) {
+          queryConditions.add(brick.Where('bcd').isExactly(product.barCode!));
+        }
+
+        final existingVariants = await repository.get<Variant>(
+          query: brick.Query(where: queryConditions),
+        );
+
+        // If a variant with the same product and barcode exists, return the product
+        if (existingVariants.isNotEmpty) {
+          talker.info(
+              'Variant already exists with ID: ${existingVariants.first.id}');
+          return createdProduct;
+        }
+
         Variant newVariant = await _createRegularVariant(
           branchId,
           tinNumber,
@@ -188,31 +211,98 @@ mixin ProductMixin implements ProductInterface {
           bcd: product.barCode,
           ebmSynced: ebmSynced,
           spplrItemCd: spplrItemCd,
+          taxTyCd: taxTyCd,
+          splyAmt: splyAmt,
           spplrItemClsCd: spplrItemClsCd,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
-        final Stock stock = Stock(
-            lastTouched: DateTime.now().toUtc(),
-            rsdQty: qty,
-            initialStock: qty,
-            value: (qty * newVariant.retailPrice!).toDouble(),
-            branchId: branchId,
-            currentStock: qty);
+        // Create and save the stock first
+        final stock = Stock(
+          id: const Uuid().v4(),
+          lastTouched: DateTime.now().toUtc(),
+          rsdQty: qty,
+          initialStock: qty,
+          value:
+              (qty * (retailPrice > 0 ? retailPrice : supplyPrice)).toDouble(),
+          branchId: branchId,
+          currentStock: qty,
+        );
+
+        // Save stock first and get the created instance
         final createdStock = await repository.upsert<Stock>(stock);
+        talker.info('Created stock: ${createdStock.id} for variant');
+
+        // Set stock reference on variant
         newVariant.stock = createdStock;
         newVariant.stockId = createdStock.id;
+        newVariant.ebmSynced =
+            false; // Ensure this is set to false to trigger EBM sync
 
-        /// if this was associated with purchase, look for the variant created then associate it with the purchase
-        /// purchase can have a list of variants associated with it.
-        if (purchase != null) {
-          Purchase purch = await repository.upsert<Purchase>(purchase);
-          talker
-              .info('Purchase updated with variant: ${purch.variants?.length}');
-          newVariant.spplrNm = purch.spplrNm;
-          await repository.upsert<Variant>(newVariant);
-        } else {
-          await repository.upsert<Variant>(newVariant);
+        // Save the variant with the stock reference
+        final savedVariant = await repository.upsert<Variant>(newVariant);
+
+        // Verify the stock was saved correctly
+        if (savedVariant.stockId == null || savedVariant.stockId!.isEmpty) {
+          throw Exception('Failed to assign stock to variant');
         }
+
+        talker.info(
+            'Variant ${savedVariant.id} created with stock ${savedVariant.stockId}');
+
+        // Refresh the variant to ensure we have the latest data
+        final refreshedVariants = await repository.get<Variant>(
+          query: brick.Query(
+              where: [brick.Where('id').isExactly(savedVariant.id)]),
+        );
+
+        if (refreshedVariants.isEmpty) {
+          throw Exception('Failed to retrieve saved variant');
+        }
+
+        final refreshedVariant = refreshedVariants.first;
+        if (refreshedVariant.stockId == null) {
+          talker.error(
+              'Variant ${refreshedVariant.id} has no stockId after save!');
+        }
+
+        // If associated with a purchase, update the purchase-variant relationship
+        if (purchase != null) {
+          // Ensure purchase has a variants list
+          if (purchase.variants == null) {
+            purchase.variants = [];
+          }
+
+          // Check if variant is already associated with this purchase
+          final variantExists =
+              purchase.variants?.any((v) => v.id == savedVariant.id) ?? false;
+
+          if (!variantExists) {
+            // Add the variant to the purchase
+            purchase.variants = [...purchase.variants ?? [], savedVariant];
+
+            // Update supplier name on the variant
+            savedVariant.spplrNm = purchase.spplrNm;
+            savedVariant.purchaseId = purchase.id;
+
+            try {
+              // Save both the variant and purchase
+              await repository.upsert<Variant>(savedVariant);
+              await repository.upsert<Purchase>(purchase);
+
+              talker.info(
+                  'Added variant ${savedVariant.id} to purchase ${purchase.id}');
+            } catch (e) {
+              talker.error('Error saving variant/purchase association: $e');
+              rethrow;
+            }
+          } else {
+            talker.info(
+                'Variant ${savedVariant.id} already exists in purchase ${purchase.id}');
+          }
+        }
+      }
+      if (purchase != null) {
+        await repository.upsert<Purchase>(purchase);
       }
 
       return createdProduct;
@@ -263,7 +353,9 @@ mixin ProductMixin implements ProductInterface {
       double? totAmt,
       double? taxAmt,
       double? taxblAmt,
-      String? itemCd}) async {
+      String? itemCd,
+      String? taxTyCd,
+      double? splyAmt}) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
     Category? category = (await repository.get<Category>(
@@ -344,7 +436,8 @@ mixin ProductMixin implements ProductInterface {
       regrNm: product?.name ?? name,
 
       /// taxation type code
-      taxTyCd: taxTypes?[product?.barCode] ?? "B",
+      taxTyCd: taxTypes?[product?.barCode] ?? taxTyCd ?? "B",
+
       // default unit price
       dftPrc: retailPrice,
       prc: retailPrice,

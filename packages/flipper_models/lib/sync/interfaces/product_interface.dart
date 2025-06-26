@@ -75,7 +75,7 @@ abstract class ProductInterface {
     double? totAmt,
     double? taxAmt,
     double? taxblAmt,
-    String? itemCd,
+    String? itemCd, String? taxTyCd, double? splyAmt,
   });
 
   Future<void> hydrateDate({required String branchId});

@@ -877,7 +877,6 @@ class CoreViewModel extends FlipperBaseModel
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     final data = await ProxyService.strategy.selectImportItems(
       tin: business?.tinNumber ?? ProxyService.box.tin(),
-      lastRequestdate: selectedDate.toYYYYMMddHHmmss(),
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
 
@@ -957,12 +956,15 @@ class CoreViewModel extends FlipperBaseModel
           }
         }
 
+        /// when a user want to make incoming item to existing item
+        /// we map then we delete incoming item to avoid duplicates
+        /// and item that is taking db space for no reason
         itemMapper?.forEach(
             (String itemToAssignId, Variant variantFromPurchase) async {
           Variant? variant =
               await ProxyService.strategy.getVariant(id: itemToAssignId);
 
-          /// update the rerevant stock
+          /// update the relevant stock
           if (variant != null) {
             _updateVariantStock(
                 item: variantFromPurchase, existingVariantToUpdate: variant);
@@ -972,12 +974,13 @@ class CoreViewModel extends FlipperBaseModel
             /// something has been assigned to another item while approving.
             /// delete this??
             variantFromPurchase.pchsSttsCd = "1";
-            await ProxyService.strategy
-                .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
+            // deleting it is not an option because at the end we need to be able to
+            // show those approved, rejected etc...
+            // await ProxyService.strategy
+            //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
             variant.ebmSynced = false;
 
             await ProxyService.strategy.updateVariant(updatables: [variant]);
-            //
             await ProxyService.strategy
                 .updateVariant(updatables: [variantFromPurchase]);
           } else {

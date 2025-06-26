@@ -190,9 +190,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "custBhfId": custBhfId,
         "sarTyCd": sarTyCd,
         "ocrnDt": ocrnDt.toYYYMMdd(),
-        "totTaxblAmt": totalSupplyPrice,
+        "totTaxblAmt": totalSupplyPrice.roundToTwoDecimalPlaces(),
         "totTaxAmt": totalvat.roundToTwoDecimalPlaces(),
-        "totAmt": totalAmount,
+        "totAmt": totalAmount.roundToTwoDecimalPlaces(),
         "remark": remark,
         "regrId": mod,
         "regrNm": mod,
@@ -825,10 +825,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxRtC": taxConfigTaxC.taxPercentage,
       "taxRtD": taxConfigTaxD.taxPercentage,
 
-      "totTaxblAmt": totalTaxable,
+      "totTaxblAmt": totalTaxable.roundToTwoDecimalPlaces(),
 
       "totTaxAmt": (totalTax).roundToTwoDecimalPlaces(),
-      "totAmt": totalTaxable,
+      "totAmt": totalTaxable.roundToTwoDecimalPlaces(),
 
       "regrId": transaction.id.substring(0, 5),
       "regrNm": transaction.id.substring(0, 5),

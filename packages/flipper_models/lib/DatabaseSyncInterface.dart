@@ -231,7 +231,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required String bhfId,
       required int tin,
       required String url,
-      required String lastRequestdate,
       String? pchsSttsCd});
 
   Future<Variant?> getVariant(
@@ -303,7 +302,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<List<Variant>> selectImportItems({
     required int tin,
     required String bhfId,
-    required String lastRequestdate,
   });
 
   Future<void> syncUserWithAwsIncognito({required String identifier});

@@ -198,7 +198,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                   contentPadding: EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 8),
                                   title: Text(
-                                    'Supplier: ${purchase.spplrNm}',
+                                    'Supplier: ${purchase.spplrNm} (${purchase.variants?.length ?? 0})',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -274,165 +274,125 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                   ),
                                 ),
                                 if (isExpanded)
-                                  Consumer(
-                                    builder: (context, ref, child) {
-                                      final variantsAsync = ref.watch(
-                                          purchaseVariantProvider(
-                                              purchaseId: purchase.id,
-                                              branchId: ProxyService.box
-                                                  .getBranchId()!));
+                                  Builder(builder: (context) {
+                                    // Get variants directly from purchase object
+                                    final purchaseVariants =
+                                        purchase.variants ?? [];
 
-                                      return variantsAsync.when(
-                                        loading: () => Container(
-                                          height: 100,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                      Colors.indigo),
+                                    // Apply the selected status filter
+                                    final List<Variant>
+                                        filteredPurchaseVariants;
+                                    if (_selectedStatusFilter == null) {
+                                      filteredPurchaseVariants =
+                                          purchaseVariants;
+                                    } else {
+                                      filteredPurchaseVariants =
+                                          purchaseVariants
+                                              .where((v) =>
+                                                  v.pchsSttsCd ==
+                                                  _selectedStatusFilter)
+                                              .toList();
+                                    }
+
+                                    if (filteredPurchaseVariants.isEmpty) {
+                                      return Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.check_circle_outline,
+                                              color: Colors.green[400],
+                                            ),
+                                            SizedBox(width: 8),
+                                            Text(
+                                              'No variants matching selected filter',
+                                              style: TextStyle(
+                                                color: Colors.grey[700],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+
+                                    return Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      child: Theme(
+                                        data: Theme.of(context).copyWith(
+                                          dataTableTheme: DataTableThemeData(
+                                            headingTextStyle: TextStyle(
+                                              color: Colors.indigo[700],
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
                                         ),
-                                        error: (err, stack) => Container(
-                                          padding: EdgeInsets.all(16),
-                                          child: Text(
-                                            'Error: $err',
-                                            style: TextStyle(
-                                                color: Colors.red[400]),
-                                          ),
-                                        ),
-                                        data: (purchaseVariants) {
-                                          // Apply the selected status filter
-                                          final List<Variant>
-                                              filteredPurchaseVariants;
-                                          if (_selectedStatusFilter == null) {
-                                            filteredPurchaseVariants =
-                                                purchaseVariants;
-                                          } else {
-                                            filteredPurchaseVariants =
-                                                purchaseVariants
-                                                    .where((v) =>
-                                                        v.pchsSttsCd ==
-                                                        _selectedStatusFilter)
-                                                    .toList();
-                                          }
-
-                                          // The filteredPurchaseVariants already only contain items matching the _selectedStatusFilter (or all '01','02','04' if filter is null)
-                                          // because purchaseVariantProvider uses forPurchaseScreen:true, which pre-filters to '01', '02', '04'.
-                                          // Thus, the additional 'relevantVariants' check is redundant here.
-                                          if (filteredPurchaseVariants
-                                              .isEmpty) {
-                                            return Container(
-                                              padding: EdgeInsets.all(16),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(
-                                                    Icons.check_circle_outline,
-                                                    color: Colors.green[400],
+                                        child: Column(
+                                          children: [
+                                            if (filteredPurchaseVariants
+                                                .isNotEmpty)
+                                              SizedBox(
+                                                height:
+                                                    300, // Adjust this value as needed
+                                                child: SfDataGrid(
+                                                  key:
+                                                      UniqueKey(), // Add a key to force a rebuild when data changes
+                                                  source: PurchaseDataSource(
+                                                    filteredPurchaseVariants,
+                                                    _editedRetailPrices,
+                                                    _editedSupplyPrices,
+                                                    talker,
+                                                    () => setState(() {}),
+                                                    widget.acceptPurchases,
+                                                    purchase,
                                                   ),
-                                                  SizedBox(width: 8),
-                                                  Text(
-                                                    'No unapproved variants found',
-                                                    style: TextStyle(
-                                                      color: Colors.grey[700],
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }
-
-                                          return Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: 16, vertical: 8),
-                                            child: Theme(
-                                              data: Theme.of(context).copyWith(
-                                                dataTableTheme:
-                                                    DataTableThemeData(
-                                                  headingTextStyle: TextStyle(
-                                                    color: Colors.indigo[700],
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                                  columns:
+                                                      buildPurchaseColumns(),
+                                                  columnWidthMode:
+                                                      ColumnWidthMode.fill,
+                                                  headerRowHeight: 56.0,
+                                                  rowHeight: 50.0,
+                                                  gridLinesVisibility:
+                                                      GridLinesVisibility
+                                                          .horizontal,
+                                                  headerGridLinesVisibility:
+                                                      GridLinesVisibility.both,
+                                                  selectionMode:
+                                                      SelectionMode.single,
+                                                  onCellTap: (details) async {
+                                                    if (details.rowColumnIndex
+                                                            .rowIndex >
+                                                        0) {
+                                                      final item =
+                                                          filteredPurchaseVariants[
+                                                              details.rowColumnIndex
+                                                                      .rowIndex -
+                                                                  1];
+                                                      final variants =
+                                                          await ProxyService
+                                                              .strategy
+                                                              .variants(
+                                                                  fetchRemote:
+                                                                      false,
+                                                                  branchId:
+                                                                      ProxyService
+                                                                          .box
+                                                                          .getBranchId()!);
+                                                      _showEditDialog(
+                                                          context, item,
+                                                          variants: variants);
+                                                    }
+                                                  },
                                                 ),
                                               ),
-                                              child: Column(
-                                                children: [
-                                                  if (filteredPurchaseVariants
-                                                      .isNotEmpty)
-                                                    SizedBox(
-                                                      // Or Container with a height
-                                                      height:
-                                                          300, // Adjust this value as needed
-                                                      child: SfDataGrid(
-                                                        key:
-                                                            UniqueKey(), // Add a key to force a rebuild when data changes
-                                                        source:
-                                                            PurchaseDataSource(
-                                                          filteredPurchaseVariants, // Use filteredPurchaseVariants directly
-                                                          _editedRetailPrices,
-                                                          _editedSupplyPrices,
-                                                          talker,
-                                                          () => setState(() {}),
-                                                          widget
-                                                              .acceptPurchases,
-                                                          purchase,
-                                                        ),
-                                                        columns:
-                                                            buildPurchaseColumns(),
-                                                        columnWidthMode:
-                                                            ColumnWidthMode
-                                                                .fill,
-                                                        headerRowHeight: 56.0,
-                                                        rowHeight: 50.0,
-                                                        gridLinesVisibility:
-                                                            GridLinesVisibility
-                                                                .horizontal,
-                                                        headerGridLinesVisibility:
-                                                            GridLinesVisibility
-                                                                .both,
-                                                        selectionMode:
-                                                            SelectionMode
-                                                                .single,
-                                                        onCellTap:
-                                                            (details) async {
-                                                          if (details
-                                                                  .rowColumnIndex
-                                                                  .rowIndex >
-                                                              0) {
-                                                            final item =
-                                                                filteredPurchaseVariants[details
-                                                                        .rowColumnIndex
-                                                                        .rowIndex -
-                                                                    1];
-                                                            final variants = await ProxyService
-                                                                .strategy
-                                                                .variants(
-                                                                    fetchRemote:
-                                                                        false,
-                                                                    branchId:
-                                                                        ProxyService
-                                                                            .box
-                                                                            .getBranchId()!);
-                                                            _showEditDialog(
-                                                                context, item,
-                                                                variants:
-                                                                    variants);
-                                                          }
-                                                        },
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
                               ],
                             ),
                           );

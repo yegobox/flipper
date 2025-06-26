@@ -46,6 +46,7 @@ mixin VariantMixin implements VariantInterface {
         conditions.addAll([
           Where('imptItemSttsCd').isExactly("2"),
           Where('branchId').isExactly(branchId),
+          Where('imptItemSttsCd').isNot(null),
           Or('imptItemSttsCd').isExactly("3"),
           Where('branchId').isExactly(branchId),
           Or('dclDe').isNot(null),
@@ -143,6 +144,14 @@ mixin VariantMixin implements VariantInterface {
               !isCancelledImport &&
               !isCancelledPurchase &&
               !isWaitingPurchase;
+        }).toList();
+      }
+      if (forImportScreen) {
+        fetchedVariants = fetchedVariants.where((v) {
+          final isImportItemSttsCdNull =
+              v.imptItemSttsCd == null || v.imptItemSttsCd!.isEmpty;
+
+          return !isImportItemSttsCdNull;
         }).toList();
       }
 
