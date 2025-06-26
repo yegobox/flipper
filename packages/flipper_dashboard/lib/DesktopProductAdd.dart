@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
 import 'package:flipper_dashboard/DropdownButtonWithLabel.dart';
@@ -242,7 +243,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       } else if (_fieldComposite.currentState?.validate() ?? false) {
         await _handleCompositeProductSave(model);
       }
-    } catch (e) {
+    } catch (e, s) {
+      GlobalErrorHandler.logError(
+        s,
+        type: "PRODUCT-CREATION",
+        context: {
+          'resultCode': e,
+          'businessId': ProxyService.box.getBusinessId(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
       if (!_isDisposed) {
         ref.read(loadingProvider.notifier).stopLoading();
         toast("We did not close normally, check if your product is saved");
