@@ -420,8 +420,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   String? customerTin() {
-    // TODO: implement customerTin
-    throw UnimplementedError();
+    return "119642833";
   }
 
   @override

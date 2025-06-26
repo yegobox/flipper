@@ -12,7 +12,8 @@ class Purchases extends StatefulHookConsumerWidget {
   final Future<void> Function(
       {required List<Purchase> purchases,
       required String pchsSttsCd,
-      required Purchase purchase}) acceptPurchases;
+      required Purchase purchase,
+      Variant? clickedVariant}) acceptPurchases;
   final void Function(
     Variant? itemToAssign,
     Variant? itemFromPurchase,

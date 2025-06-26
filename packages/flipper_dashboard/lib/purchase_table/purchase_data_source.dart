@@ -19,6 +19,7 @@ class PurchaseDataSource extends DataGridSource {
     required List<Purchase> purchases,
     required String pchsSttsCd,
     required Purchase purchase,
+    Variant? clickedVariant,
   }) acceptPurchases;
   final Purchase purchase;
 
@@ -103,6 +104,7 @@ class PurchaseDataSource extends DataGridSource {
         purchases: [purchase],
         pchsSttsCd: status,
         purchase: purchase,
+        clickedVariant: variant,
       );
 
       // Remove the variant from the list and rebuild rows

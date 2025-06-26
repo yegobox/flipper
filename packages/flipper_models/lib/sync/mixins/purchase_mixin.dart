@@ -262,17 +262,6 @@ mixin PurchaseMixin
 
               // Process each variant in the purchase
               for (final variant in variantsToProcess) {
-                variant.purchaseId = savedPurchase.id;
-                variant.pchsSttsCd = "01";
-                variant.stockSynchronized = true;
-                variant.imptItemSttsCd = null;
-
-                variant.name = variant.itemNm!;
-                variant.productName = variant.itemNm!;
-                variant.lastTouched = DateTime.now().toUtc();
-                variant.retailPrice = variant.splyAmt;
-                variant.supplyPrice = variant.splyAmt;
-                await repository.upsert<Variant>(variant);
                 variantIndex++;
                 try {
                   // Skip if variant has no name
@@ -300,7 +289,7 @@ mixin PurchaseMixin
 
                   // Create or update product and variant
                   try {
-                    await createProduct(
+                    final createdProduct = await createProduct(
                       saleListId: savedPurchase.id,
                       businessId: businessId,
                       branchId: branchId,
@@ -334,13 +323,37 @@ mixin PurchaseMixin
                       skipRegularVariant: true,
                     );
 
+                    if (createdProduct == null) {
+                      talker.error(
+                          'Failed to create product for variant: \\${variant.itemNm}');
+                      continue;
+                    }
+
+                    // Assign the created product's id to the variant
+                    variant.productId = createdProduct.id;
+                    variant.purchaseId = savedPurchase.id;
+                    variant.pchsSttsCd = "01";
+                    variant.stockSynchronized = true;
+                    variant.imptItemSttsCd = null;
+                    variant.bhfId = (await ProxyService.box.bhfId()) ?? "00";
+                    variant.tin = business.tinNumber ?? ProxyService.box.tin();
+                    variant.modrNm = variant.itemNm;
+                    variant.regrNm = variant.itemNm;
+                    variant.modrId = randomNumber().toString().substring(0, 5);
+                    variant.regrId = randomNumber().toString().substring(0, 5);
+                    variant.name = variant.itemNm!;
+                    variant.productName = variant.itemNm!;
+                    variant.lastTouched = DateTime.now().toUtc();
+                    variant.retailPrice = variant.splyAmt;
+                    variant.supplyPrice = variant.splyAmt;
+                    await repository.upsert<Variant>(variant);
                     // Add to updated variants if successful
                     updatedVariants.add(variant);
                     talker.info(
-                        'Successfully processed variant $variantIndex: ${variant.itemNm}');
+                        'Successfully processed variant $variantIndex: \\${variant.itemNm}');
                   } catch (e, s) {
                     talker.error(
-                        'Error in createProduct for variant ${variant.itemNm}: $e',
+                        'Error in createProduct for variant \\${variant.itemNm}: $e',
                         s);
                     continue; // Continue with next variant on error
                   }

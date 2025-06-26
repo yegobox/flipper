@@ -456,20 +456,15 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               acceptPurchases: (
                   {required List<model.Purchase> purchases,
                   required String pchsSttsCd,
-                  required model.Purchase purchase}) async {
+                  required model.Purchase purchase,
+                  model.Variant? clickedVariant}) async {
                 try {
-                  final pendingTransaction =
-                      await ProxyService.strategy.manageTransaction(
-                    transactionType: TransactionType.adjustment,
-                    isExpense: true,
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
                   await coreViewModel.acceptPurchase(
                     purchases: purchases,
                     itemMapper: itemMapper,
-                    pendingTransaction: pendingTransaction!,
                     pchsSttsCd: pchsSttsCd,
                     purchase: purchase,
+                    clickedVariant: clickedVariant,
                   );
                 } catch (e) {
                   talker.error('Error accepting purchase: $e');
