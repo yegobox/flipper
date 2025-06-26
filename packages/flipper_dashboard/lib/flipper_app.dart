@@ -93,6 +93,9 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     WidgetsBinding.instance.removeObserver(this);
     AppService.cleanedDataController.close();
     notificationStream.dispose();
+    page.dispose();
+    controller.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
