@@ -34,6 +34,9 @@ import 'amplifyconfiguration.dart';
 import 'package:supabase_models/brick/repository/storage_adapter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/local_storage.dart';
+import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
+import 'package:get_it/get_it.dart';
 
 Future<void> _configureAmplify() async {
   // Add any Amplify plugins you want to use
@@ -331,8 +334,14 @@ Future<void> initializeDependencies() async {
   }
 }
 
-Future<void> initializeDependenciesForTest() async {
+Future<void> initializeDependenciesForTest({
+  LocalStorage? localStorage,
+  DatabaseSyncInterface? databaseSyncInterface,
+}) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Allow GetIt to reassign registrations for testing purposes
+  GetIt.I.allowReassignment = true;
 
   // Initialize only the necessary dependencies for tests
   await loadSupabase();
@@ -341,5 +350,14 @@ Future<void> initializeDependenciesForTest() async {
   setupDialogUi();
   setupBottomSheetUi();
 
-  await initDependencies();
+  await initDependencies(); // This will register the default implementations
+
+  // Register provided mocks, overriding default implementations
+  if (localStorage != null) {
+    GetIt.I.registerSingleton<LocalStorage>(localStorage);
+  }
+
+  if (databaseSyncInterface != null) {
+    GetIt.I.registerSingleton<DatabaseSyncInterface>(databaseSyncInterface);
+  }
 }
