@@ -12,6 +12,7 @@ import 'package:get_it/get_it.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
 import 'package:flipper_services/keypad_service.dart';
+import 'package:flipper_services/settings_service.dart';
 
 import 'TestApp.dart';
 
@@ -398,7 +399,9 @@ void main() {
       expect(find.byWidgetPredicate(
         (widget) => widget is TextField && widget.decoration?.labelText == 'Received Amount',
       ), findsOneWidget);
-      expect(find.text('Customer Phone number'), findsOneWidget);
+      expect(find.byWidgetPredicate(
+        (widget) => widget is TextField && widget.decoration?.labelText == 'Customer Phone number',
+      ), findsOneWidget);
     });
 
     testWidgets('QuickSellingView validates form fields',
@@ -431,9 +434,10 @@ void main() {
           find.text(
               'Please enter a valid 9-digit phone number without a leading zero'),
           findsOneWidget);
-      expect(find.text('Please enter an amount'), findsOneWidget);
+      expect(find.text('Please enter received amount'), findsOneWidget);
     });
 
     // Additional tests for user interactions and state updates can be added here
   });
 }
+
