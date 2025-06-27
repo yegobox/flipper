@@ -148,17 +148,18 @@ mixin PurchaseMixin
         for (final item in response.data!.itemList!) {
           print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
 
-          if (item.imptItemSttsCd!.isNotEmpty) {
-            /// when we receive the item from import we set its status to 2 meaning waiting
-            /// the reason why we did not take imptItemSttsCd from incoming item it is because it might be null
-            /// or change without us knowing.
-            item.imptItemSttsCd = "2";
-            print("Saving variant with taskCd: ${item.taskCd}");
-            await saveVariant(item, business, activeBranch.serverId!);
-          } else {
-            print(
-                "Item with taskCd ${item.taskCd} has empty imptItemSttsCd. Skipping.");
-          }
+          /// when we receive the item from import we set its status to 2 meaning waiting
+          /// the reason why we did not take imptItemSttsCd from incoming item it is because it might be null
+          /// or change without us knowing. the imptItemSttsCd it comes as  "2" but we override it to be on safe side.
+          item.imptItemSttsCd = "2";
+
+          /// since we do not receive current_stock from incoming data safe to assume it is finished product
+          /// hence we set it to 2.
+          item.itemCd = "2";
+          print("Saving variant with taskCd: ${item.taskCd}");
+
+          /// saving the variant
+          await saveVariant(item, business, activeBranch.serverId!);
         }
       }
 
