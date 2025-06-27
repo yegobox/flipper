@@ -256,6 +256,21 @@ mixin PurchaseMixin
               final List<Variant> updatedVariants = [];
               int variantIndex = 0;
               final Set<String> processedBarcodes = {};
+              final spplrInvcNo = purchase.spplrInvcNo;
+              // check if it already exists in the database
+              final existingPurchase = await repository.get<Purchase>(
+                query: brick.Query(
+                  where: [
+                    brick.Where('branchId').isExactly(purchase.branchId),
+                    brick.Where('spplrInvcNo').isExactly(spplrInvcNo),
+                  ],
+                ),
+              );
+              if (existingPurchase.isNotEmpty) {
+                talker.info(
+                    'Purchase ${existingPurchase.first.id} already exists with ${existingPurchase.first.variants?.length ?? 0} variants');
+                continue;
+              }
 
               // Create a copy of the variants list to safely iterate
               final variantsToProcess = List<Variant>.from(purchase.variants!);
@@ -333,7 +348,20 @@ mixin PurchaseMixin
                     variant.productId = createdProduct.id;
                     variant.purchaseId = savedPurchase.id;
                     variant.pchsSttsCd = "01";
+                    variant.unit = "Per Item";
+                    variant.taxName = variant.taxTyCd ?? "B";
+                    variant.isrcAmt = null;
+                    variant.useYn = "N";
+                    variant.spplrItemCd = variant.itemCd;
+                    variant.spplrNm = purchase.spplrNm;
+                    variant.color = randomizeColor();
+                    variant.itemTyCd = "2";
+                    variant.itemStdNm = variant.itemStdNm;
+                    variant.spplrItemClsCd = variant.itemClsCd;
+                    variant.orgnNatCd =
+                        "RW"; // this is not coming from api response
                     variant.stockSynchronized = true;
+                    variant.isrcAplcbYn = "N";
                     variant.imptItemSttsCd = null;
                     variant.bhfId = (await ProxyService.box.bhfId()) ?? "00";
                     variant.tin = business.tinNumber ?? ProxyService.box.tin();

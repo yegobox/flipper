@@ -247,23 +247,68 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           visualDensity: VisualDensity.compact,
                                         ),
                                       ),
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 6,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.indigo.withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        child: Text(
-                                          'Total: ${purchase.totAmt}',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.indigo[700],
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.indigo
+                                                  .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: Text(
+                                              'Total: ${purchase.totAmt}',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.indigo[700],
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          SizedBox(width: 8),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.green.withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: TextButton.icon(
+                                              icon: Icon(
+                                                  Icons.check_circle_outline,
+                                                  size: 16,
+                                                  color: Colors.green),
+                                              label: Text(
+                                                'Accept All',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.green[700],
+                                                ),
+                                              ),
+                                              onPressed: () async {
+                                                await widget.acceptPurchases(
+                                                  purchases: [purchase],
+                                                  pchsSttsCd:
+                                                      '02', // Assuming '02' is the status code for accepted
+                                                  purchase: purchase,
+                                                  clickedVariant: null,
+                                                );
+                                              },
+                                              style: TextButton.styleFrom(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
+                                                tapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                minimumSize: Size.zero,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                       IconButton(
                                         icon: AnimatedSwitcher(

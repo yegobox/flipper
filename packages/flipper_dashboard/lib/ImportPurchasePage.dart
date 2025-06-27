@@ -328,22 +328,25 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     return ViewModelBuilder<brick.CoreViewModel>.reactive(
       viewModelBuilder: () => brick.CoreViewModel(),
       builder: (context, coreViewModel, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: isLoading
-                  ? _buildLoadingIndicator()
-                  : (ref
-                              .watch(importPurchaseViewModelProvider)
-                              .value
-                              ?.isImport ??
-                          true)
-                      ? _buildImportView(coreViewModel)
-                      : _buildPurchaseView(coreViewModel),
-            ),
-          ],
+        return Form(
+          key: _importFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: isLoading
+                    ? _buildLoadingIndicator()
+                    : (ref
+                                .watch(importPurchaseViewModelProvider)
+                                .value
+                                ?.isImport ??
+                            true)
+                        ? _buildImportView(coreViewModel)
+                        : _buildPurchaseView(coreViewModel),
+              ),
+            ],
+          ),
         );
       },
     );

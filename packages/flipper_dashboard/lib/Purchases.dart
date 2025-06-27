@@ -44,24 +44,6 @@ class _PurchasesState extends ConsumerState<Purchases> {
       key: widget.formKey,
       child: Column(
         children: [
-          // Action button row
-          // if (widget.variants.isNotEmpty)
-          //   Padding(
-          //     padding: const EdgeInsets.only(top: 16, bottom: 16),
-          //     child: FlipperButton(
-          //       onPressed: () async {
-          //         await widget.acceptPurchases(
-          //           variants: widget.variants,
-          //           pchsSttsCd: '02',
-          //           purchase: widget.purchases.first,
-          //         );
-          //         showToast(context, "You Accepted all purchases");
-          //       },
-          //       text: 'Accept All Purchases',
-          //       textColor: Colors.black,
-          //     ),
-          //   ),
-
           // Purchase table - takes remaining space
           Flexible(
             fit: FlexFit.loose,
