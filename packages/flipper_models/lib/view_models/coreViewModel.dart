@@ -955,6 +955,17 @@ class CoreViewModel extends FlipperBaseModel
           pchsSttsCd: pchsSttsCd,
         );
 
+        // When accepting a variant (status code "02"), save the item
+        // if (pchsSttsCd == "02") {
+        //   await ProxyService.tax.saveItem(
+        //     variation: variant,
+        //     URI: await ProxyService.box.getServerUrl() ?? "",
+        //   );
+        //   await ProxyService.tax.saveStockMaster(
+        //       variant: variant,
+        //       URI: await ProxyService.box.getServerUrl() ?? "");
+        // }
+
         /// if itemMapper is empty then means we are entirely approving and creating this item in our app
         if (itemMapper?.isEmpty == true) {
           // Generate new itemCode for new item
@@ -1016,6 +1027,17 @@ class CoreViewModel extends FlipperBaseModel
             status: PENDING,
             branchId: ProxyService.box.getBranchId()!,
           );
+          await ProxyService.strategy
+              .updateVariant(updatables: [variantFromPurchase]);
+          // if (pchsSttsCd == "02") {
+          //   await ProxyService.tax.saveItem(
+          //     variation: variant,
+          //     URI: await ProxyService.box.getServerUrl() ?? "",
+          //   );
+          //   await ProxyService.tax.saveStockMaster(
+          //       variant: variant,
+          //       URI: await ProxyService.box.getServerUrl() ?? "");
+          // }
           await ProxyService.strategy.assignTransaction(
             variant: variant,
             doneWithTransaction: true,
@@ -1042,8 +1064,6 @@ class CoreViewModel extends FlipperBaseModel
           variant.ebmSynced = false;
 
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          await ProxyService.strategy
-              .updateVariant(updatables: [variantFromPurchase]);
         } else {
           talker.warning("We should not be in this condition");
         }

@@ -197,90 +197,86 @@ class ImportsState extends ConsumerState<Imports> {
       builder: (context, constraints) {
         return Container(
           padding: const EdgeInsets.all(16),
-          child: Form(
-            key: widget.formKey,
-            child: FutureBuilder<List<Variant>>(
-              future: widget.futureResponse,
-              builder: (context, snapshot) {
-                if (snapshot.hasError ||
-                    !snapshot.hasData ||
-                    snapshot.data == null ||
-                    snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.hourglass_empty,
-                            size: 48, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'No Data Found or Network error please try again.',
-                          style: TextStyle(color: Colors.grey, fontSize: 18),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                final itemList = snapshot.data ?? [];
-                widget.finalItemList
-                  ..clear()
-                  ..addAll(itemList);
-                List<Variant> filteredItemList = itemList;
-                if (_selectedFilterStatus != null) {
-                  filteredItemList = itemList.where((variant) {
-                    // Assuming '4' is the status code for Rejected items.
-                    // If not '2' (Wait) and not '3' (Approved), it's considered Rejected for display.
-                    // For filtering, we need a concrete status or a more complex condition.
-                    // Let's assume imptItemSttsCd can be '4' for rejected.
-                    if (_selectedFilterStatus == '4') {
-                      return variant.imptItemSttsCd != '2' &&
-                          variant.imptItemSttsCd != '3';
-                    }
-                    return variant.imptItemSttsCd == _selectedFilterStatus;
-                  }).toList();
-                }
-                widget.finalItemList
-                  ..clear()
-                  ..addAll(
-                      filteredItemList); // Use filtered list for finalItemList as well
-                _variantDataSource = VariantDataSource(filteredItemList, this,
-                    buildStatusWidget: _buildStatusWidget,
-                    buildActionsWidget: _buildActionsWidget);
-                return SizedBox(
-                  width: constraints.maxWidth,
+          child: FutureBuilder<List<Variant>>(
+            future: widget.futureResponse,
+            builder: (context, snapshot) {
+              if (snapshot.hasError ||
+                  !snapshot.hasData ||
+                  snapshot.data == null ||
+                  snapshot.data!.isEmpty) {
+                return const Center(
                   child: Column(
-                    mainAxisSize:
-                        MainAxisSize.min, // Ensure column takes minimum space
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ImportInputRow(
-                        nameController: widget.nameController,
-                        supplyPriceController: widget.supplyPriceController,
-                        retailPriceController: widget.retailPriceController,
-                        selectedItemForDropdown: widget.selectedItem,
-                        variantMap: widget.variantMap,
-                        variantSelectedWhenClickingOnRow:
-                            variantSelectedWhenClickingOnRow,
-                        finalItemList: widget.finalItemList,
-                        selectItemCallback: widget.selectItem,
-                        saveChangeMadeOnItemCallback:
-                            widget.saveChangeMadeOnItem,
-                        acceptAllImportCallback: widget.acceptAllImport,
-                        anyLoading: _variantDataSource.anyLoading,
-                        selectedFilterStatus: _selectedFilterStatus,
-                        onFilterStatusChanged: (String? newValue) {
-                          setState(() {
-                            _selectedFilterStatus = newValue;
-                          });
-                        },
+                      Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        'No Data Found or Network error please try again.',
+                        style: TextStyle(color: Colors.grey, fontSize: 18),
                       ),
-                      const SizedBox(height: 16),
-                      _buildDataGrid(), // Removed Expanded
                     ],
                   ),
                 );
-              },
-            ),
+              }
+
+              final itemList = snapshot.data ?? [];
+              widget.finalItemList
+                ..clear()
+                ..addAll(itemList);
+              List<Variant> filteredItemList = itemList;
+              if (_selectedFilterStatus != null) {
+                filteredItemList = itemList.where((variant) {
+                  // Assuming '4' is the status code for Rejected items.
+                  // If not '2' (Wait) and not '3' (Approved), it's considered Rejected for display.
+                  // For filtering, we need a concrete status or a more complex condition.
+                  // Let's assume imptItemSttsCd can be '4' for rejected.
+                  if (_selectedFilterStatus == '4') {
+                    return variant.imptItemSttsCd != '2' &&
+                        variant.imptItemSttsCd != '3';
+                  }
+                  return variant.imptItemSttsCd == _selectedFilterStatus;
+                }).toList();
+              }
+              widget.finalItemList
+                ..clear()
+                ..addAll(
+                    filteredItemList); // Use filtered list for finalItemList as well
+              _variantDataSource = VariantDataSource(filteredItemList, this,
+                  buildStatusWidget: _buildStatusWidget,
+                  buildActionsWidget: _buildActionsWidget);
+              return SizedBox(
+                width: constraints.maxWidth,
+                child: Column(
+                  mainAxisSize:
+                      MainAxisSize.min, // Ensure column takes minimum space
+                  children: [
+                    ImportInputRow(
+                      nameController: widget.nameController,
+                      supplyPriceController: widget.supplyPriceController,
+                      retailPriceController: widget.retailPriceController,
+                      selectedItemForDropdown: widget.selectedItem,
+                      variantMap: widget.variantMap,
+                      variantSelectedWhenClickingOnRow:
+                          variantSelectedWhenClickingOnRow,
+                      finalItemList: widget.finalItemList,
+                      selectItemCallback: widget.selectItem,
+                      saveChangeMadeOnItemCallback:
+                          widget.saveChangeMadeOnItem,
+                      acceptAllImportCallback: widget.acceptAllImport,
+                      anyLoading: _variantDataSource.anyLoading,
+                      selectedFilterStatus: _selectedFilterStatus,
+                      onFilterStatusChanged: (String? newValue) {
+                        setState(() {
+                          _selectedFilterStatus = newValue;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDataGrid(), // Removed Expanded
+                  ],
+                ),
+              );
+            },
           ),
         );
       },
