@@ -955,17 +955,6 @@ class CoreViewModel extends FlipperBaseModel
           pchsSttsCd: pchsSttsCd,
         );
 
-        // When accepting a variant (status code "02"), save the item
-        // if (pchsSttsCd == "02") {
-        //   await ProxyService.tax.saveItem(
-        //     variation: variant,
-        //     URI: await ProxyService.box.getServerUrl() ?? "",
-        //   );
-        //   await ProxyService.tax.saveStockMaster(
-        //       variant: variant,
-        //       URI: await ProxyService.box.getServerUrl() ?? "");
-        // }
-
         /// if itemMapper is empty then means we are entirely approving and creating this item in our app
         if (itemMapper?.isEmpty == true) {
           // Generate new itemCode for new item
@@ -1088,9 +1077,9 @@ class CoreViewModel extends FlipperBaseModel
       final business = await _getBusiness();
       final URI = await ProxyService.box.getServerUrl() ?? "";
 
-      for (final item in importItems) {
-        if (item.imptItemSttsCd == "2") {
-          await _processImportItem(item, variantMap, business!, URI);
+      for (final variant in importItems) {
+        if (variant.imptItemSttsCd == "2") {
+          await _processImportItem(variant, variantMap, business!, URI);
         }
       }
       notifyListeners();
