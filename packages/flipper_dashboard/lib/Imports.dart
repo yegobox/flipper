@@ -260,9 +260,14 @@ class ImportsState extends ConsumerState<Imports> {
                           variantSelectedWhenClickingOnRow,
                       finalItemList: widget.finalItemList,
                       selectItemCallback: widget.selectItem,
-                      saveChangeMadeOnItemCallback:
-                          widget.saveChangeMadeOnItem,
-                      acceptAllImportCallback: widget.acceptAllImport,
+                      saveChangeMadeOnItemCallback: widget.saveChangeMadeOnItem,
+                      acceptAllImportCallback: (List<Variant> variants) {
+                        final allItems = snapshot.data ?? [];
+                        final waitingItems = allItems
+                            .where((v) => v.imptItemSttsCd == "2")
+                            .toList();
+                        widget.acceptAllImport(waitingItems);
+                      },
                       anyLoading: _variantDataSource.anyLoading,
                       selectedFilterStatus: _selectedFilterStatus,
                       onFilterStatusChanged: (String? newValue) {
