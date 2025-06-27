@@ -151,3 +151,8 @@ dev_dependencies:
   test:
   integration_test:
     sdk: flutter
+  path_provider_platform_interface: ^2.0.0
+  sqflite_common_ffi: ^2.3.0
+  firebase_core_platform_interface: ^5.0.0
+  firebase_crashlytics_platform_interface: ^3.0.0
+  firebase_crashlytics: ^4.0.0

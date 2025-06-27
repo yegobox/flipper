@@ -408,7 +408,7 @@ mixin ProductMixin implements ProductInterface {
               quantityUnit: "BJ",
               branchId: branchId,
             )
-          : itemCd!,
+          : itemCd ?? "",
       modrNm: name,
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",

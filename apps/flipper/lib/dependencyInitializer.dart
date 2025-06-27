@@ -38,6 +38,8 @@ import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:get_it/get_it.dart';
 
+const bool kTestMode = true;
+
 Future<void> _configureAmplify() async {
   // Add any Amplify plugins you want to use
   final authPlugin = cognito.AmplifyAuthCognito();
@@ -344,7 +346,10 @@ Future<void> initializeDependenciesForTest({
   GetIt.I.allowReassignment = true;
 
   // Initialize only the necessary dependencies for tests
-  await loadSupabase();
+  // Skip Firebase initialization in test mode
+  if (!kTestMode) {
+    await loadSupabase();
+  }
 
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
