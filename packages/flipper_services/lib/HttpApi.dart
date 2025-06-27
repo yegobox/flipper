@@ -89,7 +89,7 @@ class HttpApi implements HttpApiInterface {
 
       // Now fetch the stock
       final Uri stockUri = Uri.parse(
-          '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=currentStock');
+          '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=current_stock');
       final stockResp = await client.get(stockUri, headers: {
         'apikey': anonKey,
         'Authorization': 'Bearer $anonKey',
@@ -102,11 +102,11 @@ class HttpApi implements HttpApiInterface {
       final stockList = json.decode(stockResp.body);
       if (stockList is! List ||
           stockList.isEmpty ||
-          stockList[0]['currentStock'] == null) {
+          stockList[0]['current_stock'] == null) {
         talker.error('No currentStock found for stock $stockId');
         return false;
       }
-      return variant.stock?.currentStock == stockList[0]['currentStock'];
+      return variant.stock?.currentStock == stockList[0]['current_stock'];
     } catch (e, stack) {
       talker.error('Error in fetchRemoteStockQuantity', e, stack);
       return false;

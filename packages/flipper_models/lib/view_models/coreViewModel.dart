@@ -1077,11 +1077,13 @@ class CoreViewModel extends FlipperBaseModel
       final business = await _getBusiness();
       final URI = await ProxyService.box.getServerUrl() ?? "";
 
+      final tasks = <Future>[];
       for (final variant in importItems) {
         if (variant.imptItemSttsCd == "2") {
-          await _processImportItem(variant, variantMap, business!, URI);
+          tasks.add(_processImportItem(variant, variantMap, business!, URI));
         }
       }
+      await Future.wait(tasks);
       notifyListeners();
     } catch (e, s) {
       talker.error(s);
