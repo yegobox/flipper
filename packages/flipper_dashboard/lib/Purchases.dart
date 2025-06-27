@@ -40,26 +40,23 @@ class Purchases extends StatefulHookConsumerWidget {
 class _PurchasesState extends ConsumerState<Purchases> {
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: widget.formKey,
-      child: Column(
-        children: [
-          // Purchase table - takes remaining space
-          Flexible(
-            fit: FlexFit.loose,
-            child: PurchaseTable(
-              purchases: widget.purchases,
-              nameController: widget.nameController,
-              supplyPriceController: widget.supplyPriceController,
-              retailPriceController: widget.retailPriceController,
-              saveItemName: widget.saveItemName,
-              acceptPurchases: widget.acceptPurchases,
-              selectSale: widget.selectSale,
-              variants: widget.variants,
-            ),
+    return Column(
+      children: [
+        // Purchase table - takes remaining space
+        Flexible(
+          fit: FlexFit.loose,
+          child: PurchaseTable(
+            purchases: widget.purchases,
+            nameController: widget.nameController,
+            supplyPriceController: widget.supplyPriceController,
+            retailPriceController: widget.retailPriceController,
+            saveItemName: widget.saveItemName,
+            acceptPurchases: widget.acceptPurchases,
+            selectSale: widget.selectSale,
+            variants: widget.variants,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
