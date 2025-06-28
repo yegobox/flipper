@@ -75,7 +75,8 @@ class EbmSyncService {
       if (variant.itemCd == null ||
           variant.itemCd?.isEmpty == true ||
           variant.pchsSttsCd == "01" ||
-          variant.pchsSttsCd == "1" ||
+          variant.pchsSttsCd ==
+              "1" || // unsent, item that has been mapped to another item after import of purchase.
           variant.imptItemSttsCd == "4" ||
           variant.imptItemSttsCd == "2" ||
           variant.itemCd == "3") {

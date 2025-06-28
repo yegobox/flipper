@@ -130,20 +130,22 @@ mixin PurchaseMixin
       // Save the last request date AND Process Items only if the API request was successful
       if (response.data!.itemList!.isNotEmpty) {
         // Save the last request date
-        try {
-          await repository.upsert<ImportPurchaseDates>(
-              ImportPurchaseDates(
-                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
-                // lastRequestDate: response.resultDt,
-                branchId: activeBranch.id,
-                requestType: "IMPORT",
-              ),
-              query: brick.Query(
-                where: [
-                  brick.Where('branchId').isExactly(branchId),
-                ],
-              ));
-        } catch (saveError) {}
+        if (!(ProxyService.box.enableDebug() ?? false)) {
+          try {
+            await repository.upsert<ImportPurchaseDates>(
+                ImportPurchaseDates(
+                  lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+                  // lastRequestDate: response.resultDt,
+                  branchId: activeBranch.id,
+                  requestType: "IMPORT",
+                ),
+                query: brick.Query(
+                  where: [
+                    brick.Where('branchId').isExactly(branchId),
+                  ],
+                ));
+          } catch (saveError) {}
+        }
 
         for (final item in response.data!.itemList!) {
           print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
@@ -152,6 +154,7 @@ mixin PurchaseMixin
           /// the reason why we did not take imptItemSttsCd from incoming item it is because it might be null
           /// or change without us knowing. the imptItemSttsCd it comes as  "2" but we override it to be on safe side.
           item.imptItemSttsCd = "2";
+          item.itemClsCd = "2";
 
           /// since we do not receive current_stock from incoming data safe to assume it is finished product
           /// hence we set it to 2.
@@ -257,21 +260,21 @@ mixin PurchaseMixin
               final List<Variant> updatedVariants = [];
               int variantIndex = 0;
               final Set<String> processedBarcodes = {};
-              final spplrInvcNo = purchase.spplrInvcNo;
+              // final spplrInvcNo = purchase.spplrInvcNo;
               // check if it already exists in the database
-              final existingPurchase = await repository.get<Purchase>(
-                query: brick.Query(
-                  where: [
-                    brick.Where('branchId').isExactly(purchase.branchId),
-                    brick.Where('spplrInvcNo').isExactly(spplrInvcNo),
-                  ],
-                ),
-              );
-              if (existingPurchase.isNotEmpty) {
-                talker.info(
-                    'Purchase ${existingPurchase.first.id} already exists with ${existingPurchase.first.variants?.length ?? 0} variants');
-                continue;
-              }
+              // final existingPurchase = await repository.get<Purchase>(
+              //   query: brick.Query(
+              //     where: [
+              //       brick.Where('branchId').isExactly(purchase.branchId),
+              //       brick.Where('spplrInvcNo').isExactly(spplrInvcNo),
+              //     ],
+              //   ),
+              // );
+              // if (existingPurchase.isNotEmpty) {
+              //   talker.info(
+              //       'Purchase ${existingPurchase.first.id} already exists with ${existingPurchase.first.variants?.length ?? 0} variants');
+              //   continue;
+              // }
 
               // Create a copy of the variants list to safely iterate
               final variantsToProcess = List<Variant>.from(purchase.variants!);
@@ -412,22 +415,24 @@ mixin PurchaseMixin
               }
             }
             //here
-            final newImportDate = ImportPurchaseDates(
-              branchId: activeBranch.id,
-              requestType: "PURCHASE",
-              // lastRequestDate: response.resultDt,
-              lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
-            );
+            if (!(ProxyService.box.enableDebug() ?? false)) {
+              final newImportDate = ImportPurchaseDates(
+                branchId: activeBranch.id,
+                requestType: "PURCHASE",
+                // lastRequestDate: response.resultDt,
+                lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+              );
 
-            await repository.upsert<ImportPurchaseDates>(
-              newImportDate,
-              query: brick.Query(
-                where: [
-                  brick.Where('branchId').isExactly(activeBranch.id),
-                  brick.Where('requestType').isExactly("PURCHASE"),
-                ],
-              ),
-            );
+              await repository.upsert<ImportPurchaseDates>(
+                newImportDate,
+                query: brick.Query(
+                  where: [
+                    brick.Where('branchId').isExactly(activeBranch.id),
+                    brick.Where('requestType').isExactly("PURCHASE"),
+                  ],
+                ),
+              );
+            }
           } catch (e, s) {
             talker.error('Error processing purchase: $e', s);
             // Continue with next purchase even if one fails
