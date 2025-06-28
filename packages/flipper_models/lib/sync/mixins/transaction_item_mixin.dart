@@ -6,6 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
 
 mixin TransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
@@ -329,6 +331,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     }
 
     Stream<List<TransactionItem>> _branchStream(dynamic branchIdValue) {
+      if (kDebugMode) {
+        return Stream.value(DummyTransactionGenerator.generateDummyTransactionItems(
+          transactionId: transactionId ?? "",
+          branchId: int.tryParse(branchIdValue.toString()) ?? 0,
+        ));
+      }
       final query = Query(
         where: _buildConditions(branchIdValue),
         orderBy: [OrderBy('createdAt', ascending: false)],
@@ -369,6 +377,13 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     bool fetchRemote = false,
     String? requestId,
   }) async {
+    if (ProxyService.box.enableDebug() ?? false) {
+      return DummyTransactionGenerator.generateDummyTransactionItems(
+        transactionId: transactionId ?? "",
+        branchId: int.parse(branchId ?? "0"),
+        count: 10,
+      );
+    }
     final items = await repository.get<TransactionItem>(
         policy: fetchRemote
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
