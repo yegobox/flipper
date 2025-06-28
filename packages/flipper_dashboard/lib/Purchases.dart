@@ -22,6 +22,7 @@ class Purchases extends StatefulHookConsumerWidget {
   final List<Purchase> purchases;
 
   Purchases({
+    Key? key,
     required this.formKey,
     required this.nameController,
     required this.supplyPriceController,

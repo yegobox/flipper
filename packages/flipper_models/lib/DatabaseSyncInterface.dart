@@ -227,7 +227,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   FutureOr<List<Stock>> stocks({required int branchId});
   Future<Stock> getStockById({required String id});
 
-  Future<List<Variant>> selectPurchases(
+  Future<List<Purchase>> selectPurchases(
       {required String bhfId,
       required int tin,
       required String url,

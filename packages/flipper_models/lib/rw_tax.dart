@@ -1043,8 +1043,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required String lastReqDt,
       required String URI}) async {
     if (ProxyService.box.enableDebug() ?? false) {
-      final String jsonString =
-          await rootBundle.loadString('jsons/import.json');
+      final String jsonString = await rootBundle
+          .loadString('packages/flipper_models/jsons/import.json');
       final Map<String, dynamic> jsonMap = json.decode(jsonString);
       return RwApiResponse.fromJson(jsonMap);
     }
@@ -1085,7 +1085,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required String URI,
       required String lastReqDt}) async {
     if (ProxyService.box.enableDebug() ?? false) {
-      final String jsonString = await rootBundle.loadString('jsons/SALE.json');
+      final String jsonString = await rootBundle
+          .loadString('packages/flipper_models/jsons/purchase.json');
       final Map<String, dynamic> jsonMap = json.decode(jsonString);
       return RwApiResponse.fromJson(jsonMap);
     }

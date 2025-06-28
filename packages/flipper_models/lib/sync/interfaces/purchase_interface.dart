@@ -11,7 +11,7 @@ abstract class PurchaseInterface {
 
   Future<List<Purchase>> purchases();
 
-  Future<List<Variant>> selectPurchases({
+  Future<List<Purchase>> selectPurchases({
     required String bhfId,
     required int tin,
     required String url,

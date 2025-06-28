@@ -22,7 +22,7 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
   }
 
   @override
-  Future<List<Variant>> selectPurchases({
+  Future<List<Purchase>> selectPurchases({
     required String bhfId,
     required int tin,
     required String url,
