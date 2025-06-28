@@ -3,7 +3,6 @@ import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -104,10 +103,11 @@ mixin TransactionMixin implements TransactionInterface {
 
     // When fetchRemote is true, we need to ensure we're using alwaysHydrate policy
     // to force fetching fresh data from the remote source
-    if (kDebugMode) {
+    if (ProxyService.box.enableDebug() ?? false) {
       return DummyTransactionGenerator.generateDummyTransactions(
         count: 10,
-        branchId: branchId ?? 0, // Provide a default or handle null appropriately
+        branchId:
+            branchId ?? 0, // Provide a default or handle null appropriately
         status: status,
         transactionType: transactionType,
       );
@@ -945,10 +945,11 @@ mixin TransactionMixin implements TransactionInterface {
         // limit: 5000,
         where: conditions,
         orderBy: [OrderBy('lastTouched', ascending: false)]);
-    if (kDebugMode) {
+    if (ProxyService.box.enableDebug() ?? false) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 10,
-        branchId: branchId ?? 0, // Provide a default or handle null appropriately
+        branchId:
+            branchId ?? 0, // Provide a default or handle null appropriately
         status: status,
         transactionType: transactionType,
       ));

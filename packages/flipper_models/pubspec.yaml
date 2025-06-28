@@ -65,7 +65,6 @@ dependencies:
   synchronized: ^3.3.0+3
   email_validator: ^2.1.17
   faker: ^2.2.0
-  faker: ^2.2.0
   
 
 dependency_overrides:

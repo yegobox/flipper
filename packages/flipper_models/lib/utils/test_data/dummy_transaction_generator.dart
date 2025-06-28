@@ -118,10 +118,8 @@ class DummyTransactionGenerator {
       final taxRate = 18.0; // Assuming 18% tax rate
       final taxAmount = (taxableAmount * taxRate) / 100;
       final totalAmount = taxableAmount + taxAmount;
-      final variantId =
-          'var_${DateTime.now().millisecondsSinceEpoch}_${_faker.randomGenerator.integer(9999)}';
-      final itemId =
-          'item_${DateTime.now().millisecondsSinceEpoch}_${_faker.randomGenerator.integer(9999)}';
+      final variantId = const Uuid().v4();
+      final itemId = const Uuid().v4();
 
       items.add(
         TransactionItem(
