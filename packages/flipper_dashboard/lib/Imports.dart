@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 
 class Imports extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;
@@ -49,6 +50,8 @@ class ImportsState extends ConsumerState<Imports> {
       '2'; // null for 'All', '2' for Wait, '3' for Approved, '4' for Rejected
   late VariantDataSource _variantDataSource;
   Variant? variantSelectedWhenClickingOnRow;
+  final DataGridController _dataGridController = DataGridController();
+  int _rowsPerPage = 10;
 
   Widget _buildStatusWidget(Variant variant) {
     final isWaitingApproval = variant.imptItemSttsCd == "2";
@@ -148,8 +151,8 @@ class ImportsState extends ConsumerState<Imports> {
   void initState() {
     super.initState();
     _variantDataSource = VariantDataSource(
-      [],
-      this,
+      variants: [],
+      state: this,
       buildStatusWidget: _buildStatusWidget,
       buildActionsWidget: _buildActionsWidget,
     );
@@ -243,9 +246,7 @@ class ImportsState extends ConsumerState<Imports> {
                 ..clear()
                 ..addAll(
                     filteredItemList); // Use filtered list for finalItemList as well
-              _variantDataSource = VariantDataSource(filteredItemList, this,
-                  buildStatusWidget: _buildStatusWidget,
-                  buildActionsWidget: _buildActionsWidget);
+              _variantDataSource.updateVariants(filteredItemList);
               return SizedBox(
                 width: constraints.maxWidth,
                 child: Column(
@@ -291,142 +292,161 @@ class ImportsState extends ConsumerState<Imports> {
   }
 
   Widget _buildDataGrid() {
-    return Card(
-      elevation: 2,
-      child: SfDataGrid(
-        source: _variantDataSource,
-        selectionMode: SelectionMode.single,
-        columnWidthMode: ColumnWidthMode.fill,
-        onSelectionChanged: (addedRows, removedRows) {
-          if (addedRows.isNotEmpty) {
-            final selectedVariant = _variantDataSource
-                .getVariantAt(_variantDataSource.rows.indexOf(addedRows.first));
-            widget.selectItem(selectedVariant);
-            setState(() {
-              variantSelectedWhenClickingOnRow = selectedVariant;
-            });
-            widget.variantMap.clear();
-            if (selectedVariant != null) {
-              _updateTextFields(selectedVariant);
-            }
-          } else {
-            widget.selectItem(null);
-          }
-        },
-        columns: [
-          GridColumn(
-            columnName: 'rowNumber',
-            width: 70,
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'No.',
-                style: TextStyle(fontWeight: FontWeight.bold),
+    final double pageCount =
+        (_variantDataSource.getVariants().length / _rowsPerPage).ceilToDouble();
+    return Column(
+      children: [
+        Card(
+          elevation: 2,
+          child: SfDataGrid(
+            controller: _dataGridController,
+            source: _variantDataSource,
+            selectionMode: SelectionMode.single,
+            columnWidthMode: ColumnWidthMode.fill,
+            rowsPerPage: _rowsPerPage,
+            onSelectionChanged: (addedRows, removedRows) {
+              if (addedRows.isNotEmpty) {
+                final selectedVariant = _variantDataSource.getVariantAt(
+                    _variantDataSource.rows.indexOf(addedRows.first));
+                widget.selectItem(selectedVariant);
+                setState(() {
+                  variantSelectedWhenClickingOnRow = selectedVariant;
+                });
+                widget.variantMap.clear();
+                if (selectedVariant != null) {
+                  _updateTextFields(selectedVariant);
+                }
+              } else {
+                widget.selectItem(null);
+              }
+            },
+            columns: [
+              GridColumn(
+                columnName: 'rowNumber',
+                width: 70,
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'No.',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'itemName',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Item Name',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'itemName',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Item Name',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'hsCode',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'HS Code',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'hsCode',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'HS Code',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'quantity',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Quantity',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'quantity',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Quantity',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'retailPrice',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Retail Price',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'retailPrice',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Retail Price',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'supplyPrice',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Supply Price',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'supplyPrice',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Supply Price',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'status',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Status',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'status',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Status',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'Supplier',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Supplier',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'Supplier',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Supplier',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'Date',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Date',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'Date',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Date',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
-          ),
-          GridColumn(
-            columnName: 'actions',
-            label: Container(
-              padding: const EdgeInsets.all(8),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'Actions',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              GridColumn(
+                columnName: 'actions',
+                label: Container(
+                  padding: const EdgeInsets.all(8),
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Actions',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+        if (pageCount > 1)
+          SfDataPager(
+            delegate: _variantDataSource,
+            pageCount: pageCount,
+            onPageNavigationStart: (int pageIndex) {
+              // Handle page navigation start if needed
+            },
+            onPageNavigationEnd: (int pageIndex) {
+              // Handle page navigation end if needed
+            },
+          )
+      ],
     );
   }
 
@@ -438,25 +458,58 @@ class ImportsState extends ConsumerState<Imports> {
 }
 
 class VariantDataSource extends DataGridSource {
-  final List<Variant> _variants;
+  List<Variant> _variants;
   final ImportsState _state;
   final Widget Function(Variant) buildStatusWidget;
   final Widget Function(Variant) buildActionsWidget;
   List<DataGridRow> _dataGridRows = [];
   final Map<String, bool> _approveLoadingState = {};
   final Map<String, bool> _rejectLoadingState = {};
+  List<Variant> _paginatedVariants = [];
 
-  VariantDataSource(
-    this._variants,
-    this._state, {
+  VariantDataSource({
+    required List<Variant> variants,
+    required ImportsState state,
     required this.buildStatusWidget,
     required this.buildActionsWidget,
-  }) {
+  })  : _variants = variants,
+        _state = state {
     for (final variant in _variants) {
       _approveLoadingState[variant.id] = false;
       _rejectLoadingState[variant.id] = false;
     }
+    _paginatedVariants = _variants.take(_state._rowsPerPage).toList();
     updateDataSource();
+  }
+
+  void updateVariants(List<Variant> newVariants) {
+    _variants = newVariants;
+    for (final variant in _variants) {
+      if (!_approveLoadingState.containsKey(variant.id)) {
+        _approveLoadingState[variant.id] = false;
+      }
+      if (!_rejectLoadingState.containsKey(variant.id)) {
+        _rejectLoadingState[variant.id] = false;
+      }
+    }
+    _paginatedVariants = _variants.take(_state._rowsPerPage).toList();
+    updateDataSource();
+    notifyListeners();
+  }
+
+  List<Variant> getVariants() => _variants;
+
+  @override
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    int startIndex = newPageIndex * _state._rowsPerPage;
+    int endIndex = startIndex + _state._rowsPerPage;
+    if (endIndex > _variants.length) {
+      endIndex = _variants.length;
+    }
+    _paginatedVariants = _variants.getRange(startIndex, endIndex).toList();
+    updateDataSource();
+    notifyListeners();
+    return true;
   }
 
   void setApproveLoading(String variantId, bool isLoading) {
@@ -492,7 +545,8 @@ class VariantDataSource extends DataGridSource {
       _rejectLoadingState.values.any((isLoading) => isLoading);
 
   void updateDataSource() {
-    _dataGridRows = _variants.asMap().entries.map<DataGridRow>((entry) {
+    _dataGridRows =
+        _paginatedVariants.asMap().entries.map<DataGridRow>((entry) {
       final index = entry.key;
       final variant = entry.value;
       return DataGridRow(cells: [
@@ -575,8 +629,8 @@ class VariantDataSource extends DataGridSource {
   }
 
   Variant? getVariantAt(int index) {
-    if (index >= 0 && index < _variants.length) {
-      return _variants[index];
+    if (index >= 0 && index < _paginatedVariants.length) {
+      return _paginatedVariants[index];
     }
     return null;
   }
