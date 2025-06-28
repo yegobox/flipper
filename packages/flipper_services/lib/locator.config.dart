@@ -1,3 +1,4 @@
+// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -8,10 +9,9 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-// import 'package:cloud_firestore/cloud_firestore.dart' as _i974;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart' as _i141;
+import 'package:flipper_models/DatabaseSyncInterface.dart' as _i7;
 import 'package:flipper_models/flipper_http_client.dart' as _i843;
-import 'package:flipper_models/DatabaseSyncInterface.dart' as _i654;
 import 'package:flipper_models/Supabase.dart' as _i163;
 import 'package:flipper_models/SyncStrategy.dart' as _i500;
 import 'package:flipper_models/tax_api.dart' as _i97;
@@ -19,15 +19,16 @@ import 'package:flipper_models/view_models/NotificationStream.dart' as _i457;
 import 'package:flipper_models/whatsapp.dart' as _i632;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
+import 'package:supabase_models/brick/repository/storage.dart' as _i164;
 
 import 'abstractions/analytic.dart' as _i271;
 import 'abstractions/location.dart' as _i299;
 import 'abstractions/printer.dart' as _i289;
 import 'abstractions/remote.dart' as _i172;
 import 'abstractions/shareable.dart' as _i23;
-import 'package:supabase_models/brick/repository/storage.dart' as _i740;
 import 'abstractions/system_time.dart' as _i703;
 import 'abstractions/upload.dart' as _i103;
+import 'ai_strategy.dart' as _i106;
 import 'app_service.dart' as _i403;
 import 'billing_service.dart' as _i36;
 import 'country_service.dart' as _i923;
@@ -62,8 +63,8 @@ extension GetItInjectableX on _i174.GetIt {
     );
     final servicesModule = _$ServicesModule();
     gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
+    gh.factory<bool>(() => servicesModule.isTestEnvironment());
     gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
-    // gh.singleton<_i974.FirebaseFirestore>(() => servicesModule.firestore);
     gh.lazySingleton<_i163.SupabaseInterface>(() => servicesModule.supa);
     gh.lazySingleton<_i628.Crash>(() => servicesModule.crash);
     gh.lazySingleton<_i844.Device>(() => servicesModule.device);
@@ -84,7 +85,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i97.TaxApi>(() => servicesModule.taxApiService);
     gh.lazySingleton<_i445.LNotification>(() => servicesModule.notification);
     gh.lazySingleton<_i299.FlipperLocation>(() => servicesModule.location);
-    await gh.lazySingletonAsync<_i740.LocalStorage>(
+    gh.lazySingleton<_i106.AiStrategy>(
+        () => servicesModule.provideAiStrategy());
+    await gh.lazySingletonAsync<_i164.LocalStorage>(
       () => servicesModule.box(),
       preResolve: true,
     );
@@ -102,24 +105,24 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i798.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
     gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
-    await gh.lazySingletonAsync<_i654.DatabaseSyncInterface>(
-      () => servicesModule.provideSyncInterface(gh<_i740.LocalStorage>()),
+    await gh.lazySingletonAsync<_i7.DatabaseSyncInterface>(
+      () => servicesModule.capella(gh<_i164.LocalStorage>()),
+      instanceName: 'capella',
+      preResolve: true,
+    );
+    await gh.lazySingletonAsync<_i7.DatabaseSyncInterface>(
+      () => servicesModule.provideSyncInterface(gh<_i164.LocalStorage>()),
       instanceName: 'coresync',
       preResolve: true,
     );
-    await gh.lazySingletonAsync<_i654.DatabaseSyncInterface>(
-      () => servicesModule.localRealm(gh<_i740.LocalStorage>()),
-      preResolve: true,
-    );
-    await gh.lazySingletonAsync<_i654.DatabaseSyncInterface>(
-      () => servicesModule.capella(gh<_i740.LocalStorage>()),
-      instanceName: 'capella',
+    await gh.lazySingletonAsync<_i7.DatabaseSyncInterface>(
+      () => servicesModule.localRealm(gh<_i164.LocalStorage>()),
       preResolve: true,
     );
     gh.lazySingleton<_i500.SyncStrategy>(
       () => servicesModule.provideStrategy(
-        gh<_i654.DatabaseSyncInterface>(instanceName: 'capella'),
-        gh<_i654.DatabaseSyncInterface>(instanceName: 'coresync'),
+        gh<_i7.DatabaseSyncInterface>(instanceName: 'capella'),
+        gh<_i7.DatabaseSyncInterface>(instanceName: 'coresync'),
       ),
       instanceName: 'strategy',
     );
