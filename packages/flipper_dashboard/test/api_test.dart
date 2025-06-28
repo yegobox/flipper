@@ -1,4 +1,4 @@
-import 'package:flipper_rw/dependencyInitializer.dart';
+import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:test/test.dart';
 
 void main() {

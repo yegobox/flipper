@@ -235,5 +235,5 @@ Future<void> main() async {
       type: 'isolate_error',
     );
   });
-  Isolate.current.addErrorListener(errorListenerPort!.sendPort);
+  Isolate.current.addErrorListener(errorListenerPort.sendPort);
 }

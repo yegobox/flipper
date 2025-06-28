@@ -2,7 +2,7 @@
 // import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 // import 'TestApp.dart';
-import 'package:flipper_rw/dependencyInitializer.dart';
+import 'package:flipper_rw/dependency_initializer.dart';
 
 // flutter test test/check_out_test.dart  --dart-define=FLUTTER_TEST_ENV=true
 void main() {
