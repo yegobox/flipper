@@ -20,6 +20,7 @@ class Imports extends StatefulHookConsumerWidget {
   final Map<String, Variant> variantMap;
   final Future<void> Function(Variant, Map<String, Variant>) onApprove;
   final Future<void> Function(Variant, Map<String, Variant>) onReject;
+  final List<Variant> variants;
 
   const Imports({
     Key? key,
@@ -36,6 +37,7 @@ class Imports extends StatefulHookConsumerWidget {
     required this.variantMap,
     required this.onApprove,
     required this.onReject,
+    required this.variants,
   });
 
   @override
