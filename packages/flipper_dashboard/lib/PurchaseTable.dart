@@ -56,6 +56,10 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   final Talker talker = TalkerFlutter.init();
   final Map<String, bool> _expandedPurchases = {};
 
+  // Pagination state
+  int _currentPage = 0;
+  static const int _itemsPerPage = 10;
+
   late PurchaseDataSource _dataSource;
 
   @override
@@ -139,35 +143,91 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
           return true;
         }).toList();
 
+        // Calculate pagination values
+        final int itemCount = displayablePurchases.length;
+        final int totalPages = (itemCount / _itemsPerPage).ceil();
+        final int startIndex = _currentPage * _itemsPerPage;
+        final int endIndex = startIndex + _itemsPerPage < itemCount
+            ? startIndex + _itemsPerPage
+            : itemCount;
+        final List<Purchase> paginatedPurchases =
+            displayablePurchases.sublist(startIndex, endIndex);
+
         return Container(
           width: double.infinity,
           color: Colors.grey[50],
           child: Column(
-            // Main column that always shows the filter
+            // Main column that always shows the filter and pagination
             children: [
+              // Filter and pagination controls row
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: DropdownButtonFormField<String?>(
-                  value: _selectedStatusFilter,
-                  decoration: InputDecoration(
-                    labelText: 'Filter by Status',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: statusOptions.entries.map((entry) {
-                    return DropdownMenuItem<String?>(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedStatusFilter = newValue;
-                    });
-                  },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        value: _selectedStatusFilter,
+                        decoration: InputDecoration(
+                          labelText: 'Filter by Status',
+                          border: OutlineInputBorder(),
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        isDense: true,
+                        items: statusOptions.entries.map((entry) {
+                          return DropdownMenuItem<String?>(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedStatusFilter = newValue;
+                            _currentPage =
+                                0; // Reset to first page when filter changes
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Row(
+                      children: [
+                        Text(
+                          '${startIndex + 1}-$endIndex of $itemCount',
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: Icon(Icons.chevron_left, size: 24),
+                          onPressed: _currentPage > 0
+                              ? () => setState(() => _currentPage--)
+                              : null,
+                          color: _currentPage > 0 ? Colors.indigo : Colors.grey,
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.chevron_right, size: 24),
+                          onPressed:
+                              _currentPage < totalPages - 1 && totalPages > 1
+                                  ? () => setState(() => _currentPage++)
+                                  : null,
+                          color: _currentPage < totalPages - 1 && totalPages > 1
+                              ? Colors.indigo
+                              : Colors.grey,
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
               Expanded(
-                child: displayablePurchases.isEmpty
+                child: paginatedPurchases.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -194,9 +254,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                       )
                     : ListView.builder(
                         padding: EdgeInsets.all(12),
-                        itemCount: displayablePurchases.length,
+                        itemCount: paginatedPurchases.length,
                         itemBuilder: (context, index) {
-                          final purchase = displayablePurchases[index];
+                          final purchase = paginatedPurchases[index];
                           final isExpanded =
                               _expandedPurchases[purchase.id] ?? false;
 
