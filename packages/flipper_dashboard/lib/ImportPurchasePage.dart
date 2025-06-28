@@ -4,7 +4,6 @@ import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart' as brick;
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -23,9 +22,8 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  Future<List<model.Variant>> _futureImportResponse = Future.value([]);
-  Future<List<model.Variant>> _futurePurchaseResponse = Future.value([]);
-  Future<List<model.Purchase>> _futurePurchases = Future.value([]);
+  late Future<List<model.Variant>> _futureImportResponse;
+  late Future<List<model.Purchase>> _futurePurchases;
   model.Variant? _selectedItem;
   model.Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
@@ -42,28 +40,29 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   @override
   void initState() {
     super.initState();
-    _initializeData();
+    _loadData(); // Call the unified data loading method
   }
 
-  Future<void> _initializeData() async {
+  Future<void> _loadData() async {
     final isImportState =
         ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
     setState(() => isLoading = true);
+
+    final business = await ProxyService.strategy
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
       if (isImportState) {
-        final importResponse = _fetchDataImport(selectedDate: _selectedDate);
-        _futureImportResponse = importResponse;
-        await importResponse;
+        _futureImportResponse =
+            _fetchDataImport(selectedDate: _selectedDate, business: business);
+        await _futureImportResponse;
       } else {
-        final purchaseResponseFuture =
-            _fetchDataPurchase(selectedDate: _selectedDate);
-        final purchasesFuture = ProxyService.strategy.purchases();
+        _futurePurchases = ProxyService.strategy.selectPurchases(
+          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          tin: business?.tinNumber ?? ProxyService.box.tin(),
+          url: await ProxyService.box.getServerUrl() ?? "",
+        );
 
-        _futurePurchaseResponse = purchaseResponseFuture;
-        _futurePurchases = purchasesFuture;
-
-        // Wait for both futures to complete
-        await Future.wait([purchaseResponseFuture, purchasesFuture]);
+        await _futurePurchases;
       }
 
       if (mounted) {
@@ -80,65 +79,14 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     }
   }
 
-  Future<void> _fetchData() async {
-    final isImportState =
-        ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
-    setState(() => isLoading = true);
-    try {
-      if (isImportState) {
-        final importResponse = _fetchDataImport(selectedDate: _selectedDate);
-        _futureImportResponse = importResponse;
-        await importResponse;
-      } else {
-        final purchaseResponseFuture =
-            _fetchDataPurchase(selectedDate: _selectedDate);
-        final purchasesFuture = ProxyService.strategy.purchases();
-
-        _futurePurchaseResponse = purchaseResponseFuture;
-        _futurePurchases = purchasesFuture;
-
-        // Wait for both futures to complete
-        await Future.wait([purchaseResponseFuture, purchasesFuture]);
-      }
-    } catch (e) {
-      talker.warning(e);
-    } finally {
-      if (mounted) {
-        setState(() => isLoading = false);
-      }
-    }
-  }
-
   Future<List<model.Variant>> _fetchDataImport(
-      {required DateTime selectedDate}) async {
-    final business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      {required DateTime selectedDate,
+      required brick.Business? business}) async {
     final data = await ProxyService.strategy.selectImportItems(
       tin: business?.tinNumber ?? ProxyService.box.tin(),
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
     return data; // Return data directly
-  }
-
-  Future<List<model.Variant>> _fetchDataPurchase(
-      {required DateTime selectedDate, String? pchsSttsCd}) async {
-    try {
-      final business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-      final url = await ProxyService.box.getServerUrl();
-      final rwResponse = await ProxyService.strategy.selectPurchases(
-        bhfId: (await ProxyService.box.bhfId()) ?? "00",
-        tin: business?.tinNumber ?? ProxyService.box.tin(),
-        url: url!,
-        pchsSttsCd: pchsSttsCd,
-      );
-      talker.warning(rwResponse);
-      return rwResponse; // Return data directly
-    } catch (e, s) {
-      talker.warning(e);
-      talker.warning(s);
-      rethrow;
-    }
   }
 
   void _selectItem(model.Variant? item) {
@@ -231,7 +179,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _fetchData,
+              onPressed: _loadData,
               child: Text('Retry'),
             ),
           ],
@@ -313,7 +261,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                     salesList = [];
                     _variantMap.clear();
                   });
-                  _fetchData();
+                  _loadData();
                 },
               ),
             ],
@@ -367,6 +315,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
         final items = snapshot.data!;
         return Imports(
+          key: ValueKey(
+              'import_view_${isLoading}_${ref.watch(importPurchaseViewModelProvider).value?.isImport}'),
           futureResponse: Future.value(items),
           formKey: _importFormKey,
           nameController: _nameController,
@@ -429,63 +379,53 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               purchaseSnapshot.error?.toString() ?? 'Error loading purchases');
         } else if (!purchaseSnapshot.hasData ||
             purchaseSnapshot.data!.isEmpty) {
-          // Optionally, you could show an empty state or a specific message
-          // For now, let's assume if there are no purchases, we still proceed to variant check
-          // or return an empty container if that's more appropriate.
-          return _buildEmptyState(); // Or Text('No purchases found');
+          return _buildEmptyState();
         }
 
-        return FutureBuilder<List<model.Variant>>(
-          future: _futurePurchaseResponse,
-          builder: (context, variantSnapshot) {
-            if (variantSnapshot.connectionState == ConnectionState.waiting) {
-              return _buildLoadingIndicator();
-            } else if (variantSnapshot.hasError) {
-              return _buildErrorWidget(variantSnapshot.error?.toString() ??
-                  'Error loading variants for purchase');
-            } else if (!variantSnapshot.hasData ||
-                variantSnapshot.data!.isEmpty) {
-              return _buildEmptyState(); // Or Text('No variants found for this purchase');
-            }
+        final allPurchases = purchaseSnapshot.data!;
+        // Flatten all variants from all purchases into a single list
+        final allVariants = allPurchases
+            .expand((purchase) =>
+                purchase.variants?.cast<model.Variant>() ?? <model.Variant>[])
+            .toList();
 
-            salesList = variantSnapshot.data ?? [];
-            return Purchases(
-              purchases: purchaseSnapshot.data ?? [],
-              formKey: _importFormKey,
-              nameController: _nameController,
-              supplyPriceController: _supplyPriceController,
-              retailPriceController: _retailPriceController,
-              saveItemName: _saveChangeMadeOnItem,
-              acceptPurchases: (
-                  {required List<model.Purchase> purchases,
-                  required String pchsSttsCd,
-                  required model.Purchase purchase,
-                  model.Variant? clickedVariant}) async {
-                try {
-                  await coreViewModel.acceptPurchase(
-                    purchases: purchases,
-                    itemMapper: itemMapper,
-                    pchsSttsCd: pchsSttsCd,
-                    purchase: purchase,
-                    clickedVariant: clickedVariant,
-                  );
-                } catch (e) {
-                  talker.error('Error accepting purchase: $e');
-                  rethrow;
-                }
-              },
-              selectSale: (model.Variant? itemToAssign,
-                  model.Variant? itemFromPurchase) {
-                if (itemToAssign != null && itemFromPurchase != null) {
-                  _asignPurchaseItem(
-                    itemToAssign: itemToAssign,
-                    itemFromPurchase: itemFromPurchase,
-                  );
-                }
-              },
-              variants: salesList,
-            );
+        return Purchases(
+          key: ValueKey(
+              'purchase_view_${isLoading}_${ref.watch(importPurchaseViewModelProvider).value?.isImport}'),
+          purchases: allPurchases,
+          formKey: _importFormKey,
+          nameController: _nameController,
+          supplyPriceController: _supplyPriceController,
+          retailPriceController: _retailPriceController,
+          saveItemName: _saveChangeMadeOnItem,
+          acceptPurchases: (
+              {required List<model.Purchase> purchases,
+              required String pchsSttsCd,
+              required model.Purchase purchase,
+              model.Variant? clickedVariant}) async {
+            try {
+              await coreViewModel.acceptPurchase(
+                purchases: purchases,
+                itemMapper: itemMapper,
+                pchsSttsCd: pchsSttsCd,
+                purchase: purchase,
+                clickedVariant: clickedVariant,
+              );
+            } catch (e) {
+              talker.error('Error accepting purchase: $e');
+              rethrow;
+            }
           },
+          selectSale:
+              (model.Variant? itemToAssign, model.Variant? itemFromPurchase) {
+            if (itemToAssign != null && itemFromPurchase != null) {
+              _asignPurchaseItem(
+                itemToAssign: itemToAssign,
+                itemFromPurchase: itemFromPurchase,
+              );
+            }
+          },
+          variants: allVariants,
         );
       },
     );

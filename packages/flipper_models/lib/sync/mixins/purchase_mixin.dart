@@ -78,23 +78,19 @@ mixin PurchaseMixin
     required String bhfId,
   }) async {
     try {
-      int branchId;
-
-      // Fetch active branch
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
       if (activeBranch == null) throw Exception("Active branch not found");
-      branchId = ProxyService.box.getBranchId()!;
+      final branchId = ProxyService.box.getBranchId()!;
 
-      // Fetch business details
       final business =
           await getBusinessById(businessId: ProxyService.box.getBusinessId()!);
       if (business == null) throw Exception("Business details not found");
 
-      // Fetch last request date for import items
       final lastRequestRecords = await repository.get<ImportPurchaseDates>(
         policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(
+          limit: 1,
           orderBy: [const OrderBy('lastRequestDate', ascending: false)],
           where: [
             brick.Where('branchId').isExactly(activeBranch.id),
@@ -103,82 +99,58 @@ mixin PurchaseMixin
         ),
       );
 
-      List<Variant> variantsList;
-      RwApiResponse response;
+      final lastReqDt = lastRequestRecords.firstOrNull?.lastRequestDate ??
+          DateTime.now().toYYYYMMddHHmmss();
+      final URI = await ProxyService.box.getServerUrl() ?? "";
 
-      try {
-        // Fetch new data from the API
-        response = await ProxyService.tax.selectImportItems(
-          tin: tin,
-          bhfId: bhfId,
-          lastReqDt: lastRequestRecords.first.lastRequestDate ??
-              DateTime.now().toYYYYMMddHHmmss(),
-          URI: (await ProxyService.box.getServerUrl() ?? ""),
+      final response = await ProxyService.tax.selectImportItems(
+        tin: tin,
+        bhfId: bhfId,
+        lastReqDt: lastReqDt,
+        URI: URI,
+      );
+
+      if (response.data == null ||
+          response.data!.itemList == null ||
+          response.data!.itemList!.isEmpty) {
+        return await variants(branchId: branchId, forImportScreen: true);
+      }
+
+      final List<Future<void>> saveVariantTasks = [];
+      for (final item in response.data!.itemList!) {
+        item.imptItemSttsCd = "2";
+        item.itemClsCd = "2";
+        item.color = randomizeColor();
+        item.itemCd = "2"; // Assuming this is a placeholder or default
+        saveVariantTasks
+            .add(saveVariant(item, business, activeBranch.serverId!));
+      }
+      await Future.wait(saveVariantTasks);
+
+      if (!(ProxyService.box.enableDebug() ?? false)) {
+        await repository.upsert<ImportPurchaseDates>(
+          ImportPurchaseDates(
+            lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
+            branchId: activeBranch.id,
+            requestType: "IMPORT",
+          ),
+          query: brick.Query(
+            where: [
+              brick.Where('branchId').isExactly(branchId),
+            ],
+          ),
         );
-
-        if (response.data == null || response.data!.itemList == null) {
-          variantsList = await variants(
-              branchId: ProxyService.box.getBranchId()!, forImportScreen: true);
-          print(
-              "Total variants found: ${variantsList.length}"); // Log total variants
-          return variantsList;
-        }
-      } catch (apiError) {
-        rethrow; // If API call fails for any reason, propagate the exception.
       }
 
-      // Save the last request date AND Process Items only if the API request was successful
-      if (response.data!.itemList!.isNotEmpty) {
-        // Save the last request date
-        if (!(ProxyService.box.enableDebug() ?? false)) {
-          try {
-            await repository.upsert<ImportPurchaseDates>(
-                ImportPurchaseDates(
-                  lastRequestDate: DateTime.now().toYYYYMMddHHmmss(),
-                  // lastRequestDate: response.resultDt,
-                  branchId: activeBranch.id,
-                  requestType: "IMPORT",
-                ),
-                query: brick.Query(
-                  where: [
-                    brick.Where('branchId').isExactly(branchId),
-                  ],
-                ));
-          } catch (saveError) {}
-        }
-
-        for (final item in response.data!.itemList!) {
-          print("Processing item with taskCd: ${item.taskCd}"); // Log taskCd
-
-          /// when we receive the item from import we set its status to 2 meaning waiting
-          /// the reason why we did not take imptItemSttsCd from incoming item it is because it might be null
-          /// or change without us knowing. the imptItemSttsCd it comes as  "2" but we override it to be on safe side.
-          item.imptItemSttsCd = "2";
-          item.itemClsCd = "2";
-
-          /// since we do not receive current_stock from incoming data safe to assume it is finished product
-          /// hence we set it to 2.
-          item.itemCd = "2";
-          print("Saving variant with taskCd: ${item.taskCd}");
-
-          /// saving the variant
-          await saveVariant(item, business, activeBranch.serverId!);
-        }
-      }
-
-      // Return the newly imported variants OR existing variants if no API call was made
-      variantsList = await variants(
-          branchId: ProxyService.box.getBranchId()!, forImportScreen: true);
-
-      return variantsList;
+      return await variants(branchId: branchId, forImportScreen: true);
     } catch (e, stackTrace) {
-      print("Error in selectImportItems: $e\n$stackTrace");
+      talker.error("Error in selectImportItems: $e", stackTrace);
       rethrow;
     }
   }
 
   @override
-  Future<List<Variant>> selectPurchases({
+  Future<List<Purchase>> selectPurchases({
     required String bhfId,
     required int tin,
     required String url,
@@ -213,8 +185,6 @@ mixin PurchaseMixin
         ),
       );
 
-      List<Variant> variantsList;
-
       int branchId = ProxyService.box.getBranchId()!;
 
       try {
@@ -226,13 +196,15 @@ mixin PurchaseMixin
               DateTime.now().toYYYYMMddHHmmss(),
         );
 
-        if (response.data?.saleList?.isEmpty ?? false) {
-          variantsList = await variants(
-            branchId: branchId,
-            forPurchaseScreen: true,
-            pchsSttsCd: pchsSttsCd,
+        if (response.data?.saleList?.isEmpty ?? true) {
+          // If no new purchases from API, return existing purchases from local DB
+          return await repository.get<Purchase>(
+            query: brick.Query(
+              where: [
+                brick.Where('branchId').isExactly(activeBranch.id),
+              ],
+            ),
           );
-          return variantsList;
         }
       } catch (apiError) {
         rethrow;
@@ -256,164 +228,99 @@ mixin PurchaseMixin
             talker.info(
                 'Saved purchase ${savedPurchase.id} with ${purchase.variants?.length ?? 0} variants');
 
-            if (purchase.variants?.isNotEmpty == true) {
-              final List<Variant> updatedVariants = [];
-              int variantIndex = 0;
-              final Set<String> processedBarcodes = {};
-              // final spplrInvcNo = purchase.spplrInvcNo;
-              // check if it already exists in the database
-              // final existingPurchase = await repository.get<Purchase>(
-              //   query: brick.Query(
-              //     where: [
-              //       brick.Where('branchId').isExactly(purchase.branchId),
-              //       brick.Where('spplrInvcNo').isExactly(spplrInvcNo),
-              //     ],
-              //   ),
-              // );
-              // if (existingPurchase.isNotEmpty) {
-              //   talker.info(
-              //       'Purchase ${existingPurchase.first.id} already exists with ${existingPurchase.first.variants?.length ?? 0} variants');
-              //   continue;
-              // }
+            final saveVariantTasks = <Future<void>>[];
+            final Set<String> processedBarcodes = {};
 
-              // Create a copy of the variants list to safely iterate
-              final variantsToProcess = List<Variant>.from(purchase.variants!);
+            for (final variant in purchase.variants!) {
+              if (variant.itemNm?.isEmpty != false) {
+                talker.warning('Skipping variant with no name: ${variant.id}');
+                continue;
+              }
 
-              // Process each variant in the purchase
-              for (final variant in variantsToProcess) {
-                variantIndex++;
-                try {
-                  // Skip if variant has no name
-                  if (variant.itemNm?.isEmpty != false) {
-                    talker.warning(
-                        'Skipping variant with no name at index $variantIndex');
-                    continue;
-                  }
+              final barCode = variant.bcd?.isNotEmpty == true
+                  ? variant.bcd!
+                  : randomString();
+              if (processedBarcodes.contains(barCode)) {
+                talker
+                    .info('Skipping duplicate variant with barcode: $barCode');
+                continue;
+              }
+              processedBarcodes.add(barCode);
 
-                  // Generate or use existing barcode
-                  final barCode = variant.bcd?.isNotEmpty == true
-                      ? variant.bcd!
-                      : randomString();
+              Future<void> saveVariant() async {
+                final createdProduct = await createProduct(
+                  saleListId: savedPurchase.id,
+                  businessId: businessId,
+                  branchId: branchId,
+                  pkgUnitCd: variant.pkgUnitCd,
+                  qty: variant.qty ?? 1,
+                  tinNumber: tinNumber,
+                  itemCd: variant.itemCd,
+                  taxAmt: variant.taxAmt,
+                  taxblAmt: variant.taxblAmt,
+                  taxTyCd: variant.taxTyCd,
+                  itemClasses: {barCode: variant.itemClsCd ?? ""},
+                  pchsSttsCd: "01",
+                  splyAmt: variant.splyAmt,
+                  pkg: variant.pkg,
+                  qtyUnitCd: variant.qtyUnitCd,
+                  bhFId: bhfId,
+                  createItemCode: variant.itemCd?.isEmpty == true,
+                  product: Product(
+                    color: randomizeColor(),
+                    name: variant.itemNm!,
+                    barCode: barCode,
+                    lastTouched: DateTime.now().toUtc(),
+                    createdAt: DateTime.now().toUtc(),
+                    branchId: branchId,
+                    businessId: businessId,
+                    spplrNm: purchase.spplrNm,
+                  ),
+                  purchase: savedPurchase,
+                  supplyPrice: variant.splyAmt ?? 0,
+                  retailPrice: variant.splyAmt ?? 0,
+                  skipRegularVariant: true,
+                );
 
-                  // Skip if we've already processed this barcode
-                  if (processedBarcodes.contains(barCode)) {
-                    talker.info(
-                        'Skipping duplicate variant with barcode: $barCode');
-                    continue;
-                  }
-                  processedBarcodes.add(barCode);
-
-                  talker.info(
-                      'Processing variant $variantIndex: ${variant.itemNm}');
-
-                  // Create or update product and variant
-                  try {
-                    final createdProduct = await createProduct(
-                      saleListId: savedPurchase.id,
-                      businessId: businessId,
-                      branchId: branchId,
-                      pkgUnitCd: variant.pkgUnitCd,
-                      qty: variant.qty ?? 1,
-                      tinNumber: tinNumber,
-                      itemCd: variant.itemCd,
-                      taxAmt: variant.taxAmt,
-                      taxblAmt: variant.taxblAmt,
-                      taxTyCd: variant.taxTyCd,
-                      itemClasses: {barCode: variant.itemClsCd ?? ""},
-                      pchsSttsCd: "01",
-                      splyAmt: variant.splyAmt,
-                      pkg: variant.pkg,
-                      qtyUnitCd: variant.qtyUnitCd,
-                      bhFId: bhfId,
-                      createItemCode: variant.itemCd?.isEmpty == true,
-                      product: Product(
-                        color: randomizeColor(),
-                        name: variant.itemNm!,
-                        barCode: barCode,
-                        lastTouched: DateTime.now().toUtc(),
-                        createdAt: DateTime.now().toUtc(),
-                        branchId: branchId,
-                        businessId: businessId,
-                        spplrNm: purchase.spplrNm,
-                      ),
-                      purchase: savedPurchase,
-                      supplyPrice: variant.splyAmt ?? 0,
-                      retailPrice: variant.splyAmt ?? 0,
-                      skipRegularVariant: true,
-                    );
-
-                    if (createdProduct == null) {
-                      talker.error(
-                          'Failed to create product for variant: \\${variant.itemNm}');
-                      continue;
-                    }
-
-                    // Assign the created product's id to the variant
-                    variant.productId = createdProduct.id;
-                    variant.purchaseId = savedPurchase.id;
-                    variant.pchsSttsCd = "01";
-                    variant.unit = "Per Item";
-                    variant.taxName = variant.taxTyCd ?? "B";
-                    variant.isrcAmt = null;
-                    variant.useYn = "N";
-                    variant.spplrItemCd = variant.itemCd;
-                    variant.spplrNm = purchase.spplrNm;
-                    variant.color = randomizeColor();
-                    variant.itemTyCd = "2";
-                    variant.itemStdNm = variant.itemStdNm;
-                    variant.spplrItemClsCd = variant.itemClsCd;
-                    variant.orgnNatCd =
-                        "RW"; // this is not coming from api response
-                    variant.stockSynchronized = true;
-                    variant.isrcAplcbYn = "N";
-                    variant.imptItemSttsCd = null;
-                    variant.bhfId = (await ProxyService.box.bhfId()) ?? "00";
-                    variant.tin = business.tinNumber ?? ProxyService.box.tin();
-                    variant.modrNm = variant.itemNm;
-                    variant.regrNm = variant.itemNm;
-                    variant.modrId = randomNumber().toString().substring(0, 5);
-                    variant.regrId = randomNumber().toString().substring(0, 5);
-                    variant.name = variant.itemNm!;
-                    variant.productName = variant.itemNm!;
-                    variant.lastTouched = DateTime.now().toUtc();
-                    variant.retailPrice = variant.splyAmt;
-                    variant.supplyPrice = variant.splyAmt;
-                    await repository.upsert<Variant>(variant);
-                    // Add to updated variants if successful
-                    updatedVariants.add(variant);
-                    talker.info(
-                        'Successfully processed variant $variantIndex: \\${variant.itemNm}');
-                  } catch (e, s) {
-                    talker.error(
-                        'Error in createProduct for variant \\${variant.itemNm}: $e',
-                        s);
-                    continue; // Continue with next variant on error
-                  }
-                } catch (e, s) {
+                if (createdProduct != null) {
+                  variant.productId = createdProduct.id;
+                  variant.purchaseId = savedPurchase.id;
+                  variant.pchsSttsCd = "01";
+                  variant.unit = "Per Item";
+                  variant.taxName = variant.taxTyCd ?? "B";
+                  variant.isrcAmt = null;
+                  variant.useYn = "N";
+                  variant.spplrItemCd = variant.itemCd;
+                  variant.spplrNm = purchase.spplrNm;
+                  variant.color = randomizeColor();
+                  variant.itemTyCd = "2";
+                  variant.itemStdNm = variant.itemStdNm;
+                  variant.spplrItemClsCd = variant.itemClsCd;
+                  variant.orgnNatCd = "RW";
+                  variant.stockSynchronized = true;
+                  variant.isrcAplcbYn = "N";
+                  variant.imptItemSttsCd = null;
+                  variant.bhfId = (await ProxyService.box.bhfId()) ?? "00";
+                  variant.tin = business.tinNumber ?? ProxyService.box.tin();
+                  variant.modrNm = variant.itemNm;
+                  variant.regrNm = variant.itemNm;
+                  variant.modrId = randomNumber().toString().substring(0, 5);
+                  variant.regrId = randomNumber().toString().substring(0, 5);
+                  variant.name = variant.itemNm!;
+                  variant.productName = variant.itemNm!;
+                  variant.lastTouched = DateTime.now().toUtc();
+                  variant.retailPrice = variant.splyAmt;
+                  variant.supplyPrice = variant.splyAmt;
+                  await repository.upsert<Variant>(variant);
+                } else {
                   talker.error(
-                      'Unexpected error processing variant $variantIndex', s);
-                  continue;
+                      'Failed to create product for variant: ${variant.itemNm}');
                 }
               }
 
-              // Update purchase with successfully processed variants
-              if (updatedVariants.isNotEmpty) {
-                try {
-                  // Only update variants if we have some
-                  savedPurchase.variants = updatedVariants;
-                  final updatedPurchase =
-                      await repository.upsert<Purchase>(savedPurchase);
-                  talker.info(
-                      'Successfully updated purchase ${updatedPurchase.id} with ${updatedVariants.length} variants');
-                } catch (e, s) {
-                  talker.error('Error updating purchase with variants: $e', s);
-                  throw Exception('Failed to update purchase with variants');
-                }
-              } else {
-                talker.warning(
-                    'No variants were successfully processed for purchase ${savedPurchase.id}');
-              }
+              saveVariantTasks.add(saveVariant());
             }
+            await Future.wait(saveVariantTasks);
             //here
             if (!(ProxyService.box.enableDebug() ?? false)) {
               final newImportDate = ImportPurchaseDates(
@@ -441,12 +348,14 @@ mixin PurchaseMixin
         }
       }
 
-      variantsList = await variants(
-        branchId: branchId,
-        forPurchaseScreen: true,
+      // After processing all new purchases, return all relevant purchases from local DB
+      return await repository.get<Purchase>(
+        query: brick.Query(
+          where: [
+            brick.Where('branchId').isExactly(branchId),
+          ],
+        ),
       );
-
-      return variantsList;
     } catch (e, stackTrace) {
       print("Error in selectPurchases: $e\n$stackTrace");
       rethrow;

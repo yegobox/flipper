@@ -1764,7 +1764,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<brick.Variant>> selectPurchases({
+  Future<List<brick.Purchase>> selectPurchases({
     required String bhfId,
     required int tin,
     required String url,

@@ -22,7 +22,7 @@ class Imports extends StatefulHookConsumerWidget {
   final Future<void> Function(Variant, Map<String, Variant>) onReject;
 
   const Imports({
-    super.key,
+    Key? key,
     required this.futureResponse,
     required this.formKey,
     required this.nameController,
