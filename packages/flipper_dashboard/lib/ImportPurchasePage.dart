@@ -13,7 +13,6 @@ import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
@@ -365,6 +364,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               Map<String, model.Variant> variantMap) async {
             await coreViewModel.rejectImportItem(item);
           },
+          variants: ref.read(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0)).value ?? [],
         );
       },
     );
