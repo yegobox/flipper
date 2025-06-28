@@ -875,6 +875,7 @@ class CoreViewModel extends FlipperBaseModel
 
     brick.Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
     final data = await ProxyService.strategy.selectImportItems(
       tin: business?.tinNumber ?? ProxyService.box.tin(),
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
@@ -1100,7 +1101,7 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _processImportItem(
     Variant item,
-    Map<String, Variant> variantMap,
+    Map<String, Variant> variantToMapTo,
     Business business,
     String URI,
   ) async {
@@ -1111,8 +1112,8 @@ class CoreViewModel extends FlipperBaseModel
 
     Variant? variantToProcess;
 
-    if (variantMap.isNotEmpty) {
-      variantToProcess = variantMap[item.id];
+    if (variantToMapTo.isNotEmpty) {
+      variantToProcess = variantToMapTo[item.id];
       if (variantToProcess != null) {
         variantToProcess.ebmSynced = false;
         await _updateVariantStock(
@@ -1128,6 +1129,13 @@ class CoreViewModel extends FlipperBaseModel
       }
     } else {
       variantToProcess = item;
+      variantToProcess.itemCd = await ProxyService.strategy.itemCode(
+        countryCode: variantToProcess.orgnNatCd ?? "RW",
+        productType: "2",
+        packagingUnit: variantToProcess.pkgUnitCd ?? "CT",
+        quantityUnit: variantToProcess.qtyUnitCd ?? "BJ",
+        branchId: ProxyService.box.getBranchId()!,
+      );
       await _updateVariant(variantToProcess);
     }
 
@@ -1164,12 +1172,11 @@ class CoreViewModel extends FlipperBaseModel
     } else {
       /// we are not mapping save incoming item as new
       variantToProcess = incomingNewItem;
-      // Generate new itemCode for new import item
       variantToProcess.itemCd = await ProxyService.strategy.itemCode(
-        countryCode: "RW",
+        countryCode: variantToProcess.orgnNatCd ?? "RW",
         productType: "2",
-        packagingUnit: "CT",
-        quantityUnit: "BJ",
+        packagingUnit: variantToProcess.pkgUnitCd ?? "CT",
+        quantityUnit: variantToProcess.qtyUnitCd ?? "BJ",
         branchId: ProxyService.box.getBranchId()!,
       );
       await _updateVariant(variantToProcess);

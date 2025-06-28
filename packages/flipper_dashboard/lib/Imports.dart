@@ -43,8 +43,8 @@ class Imports extends StatefulHookConsumerWidget {
 }
 
 class ImportsState extends ConsumerState<Imports> {
-  String?
-      _selectedFilterStatus; // null for 'All', '2' for Wait, '3' for Approved, '4' for Rejected
+  String? _selectedFilterStatus =
+      '2'; // null for 'All', '2' for Wait, '3' for Approved, '4' for Rejected
   late VariantDataSource _variantDataSource;
   Variant? variantSelectedWhenClickingOnRow;
 
@@ -304,9 +304,9 @@ class ImportsState extends ConsumerState<Imports> {
               variantSelectedWhenClickingOnRow = selectedVariant;
             });
             widget.variantMap.clear();
-            widget.variantMap
-                .putIfAbsent(selectedVariant!.id, () => selectedVariant);
-            _updateTextFields(selectedVariant);
+            if (selectedVariant != null) {
+              _updateTextFields(selectedVariant);
+            }
           } else {
             widget.selectItem(null);
           }

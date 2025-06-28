@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flutter/services.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
@@ -1041,6 +1042,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required String bhfId,
       required String lastReqDt,
       required String URI}) async {
+    if (ProxyService.box.enableDebug() ?? false) {
+      final String jsonString =
+          await rootBundle.loadString('jsons/import.json');
+      final Map<String, dynamic> jsonMap = json.decode(jsonString);
+      return RwApiResponse.fromJson(jsonMap);
+    }
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'imports/selectImportItems')
         .toString();
@@ -1077,6 +1084,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required String bhfId,
       required String URI,
       required String lastReqDt}) async {
+    if (ProxyService.box.enableDebug() ?? false) {
+      final String jsonString = await rootBundle.loadString('jsons/SALE.json');
+      final Map<String, dynamic> jsonMap = json.decode(jsonString);
+      return RwApiResponse.fromJson(jsonMap);
+    }
     final url = Uri.parse(URI)
         .replace(
             path: Uri.parse(URI).path + 'trnsPurchase/selectTrnsPurchaseSales')

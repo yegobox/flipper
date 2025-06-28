@@ -74,23 +74,26 @@ void _startMemoryTracking() {
 
 // Function to track memory usage
 void _trackMemoryUsage() {
-  final info = WidgetsBinding.instance.runtimeType.toString();
-  developer.log('Memory tracking: $info', name: 'MemoryTracker');
+  // This function primarily triggers memory events for external profiling tools.
+  // Direct in-app logging of detailed memory usage is complex and typically
+  // handled by tools like Flutter DevTools.
 
-  // Force a GC to get more accurate readings
+  // Force a GC to help external tools get more accurate readings
   if (kDebugMode) {
-    developer.log('Forcing GC for memory tracking', name: 'MemoryTracker');
+    developer.log('Forcing GC for memory tracking (for external tools)',
+        name: 'MemoryTracker');
   }
 
-  // Log memory info from VM
+  // Log memory info from VM (sends event to VM service)
   try {
     developer.Timeline.startSync('getMemoryInfo');
     developer.postEvent('memory', {'command': 'collect'});
     developer.Timeline.finishSync();
 
-    developer.log('Memory tracking completed', name: 'MemoryTracker');
+    developer.log('Memory collection triggered', name: 'MemoryTracker');
   } catch (e) {
-    developer.log('Error tracking memory: $e', name: 'MemoryTracker');
+    developer.log('Error triggering memory collection: $e',
+        name: 'MemoryTracker');
   }
 }
 

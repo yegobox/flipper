@@ -154,13 +154,14 @@ class ImportInputRow extends HookConsumerWidget {
               child: VariantSelectionDropdown(
                 initialSelectedVariantId: selectedItemForDropdown?.id,
                 onVariantSelected: (selectedVariant) {
-                  if (variantSelectedWhenClickingOnRow != null &&
-                      selectedVariant != null) {
-                    variantMap[variantSelectedWhenClickingOnRow!.id] =
-                        selectedVariant;
-                  } else if (variantSelectedWhenClickingOnRow != null &&
-                      selectedVariant == null) {
-                    variantMap.remove(variantSelectedWhenClickingOnRow!.id);
+                  if (variantSelectedWhenClickingOnRow != null) {
+                    if (selectedVariant != null && selectedVariant.id != variantSelectedWhenClickingOnRow!.id) {
+                      // User explicitly selected a DIFFERENT variant to map to
+                      variantMap[variantSelectedWhenClickingOnRow!.id] = selectedVariant;
+                    } else if (selectedVariant == null || selectedVariant.id == variantSelectedWhenClickingOnRow!.id) {
+                      // User unselected or selected the same item, so remove any existing mapping for this imported item
+                      variantMap.remove(variantSelectedWhenClickingOnRow!.id);
+                    }
                   }
                   selectItemCallback(selectedVariant);
                 },

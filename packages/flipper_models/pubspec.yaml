@@ -92,3 +92,5 @@ dev_dependencies:
   riverpod_generator: ^2.6.5
   riverpod_lint: ^2.6.3
   # cloud_firestore_odm_generator: ^1.0.0-dev.88
+assets:
+    - jsons/
