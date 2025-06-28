@@ -3,6 +3,14 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:faker/faker.dart';
 
+// Helper function to format date as YYYYMMDD
+String _formatDate(DateTime date) {
+  final year = date.year.toString();
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
+  return '$year$month$day';
+}
+
 /// A utility class for generating dummy transaction data for testing and development.
 class DummyTransactionGenerator {
   static final _faker = Faker();
@@ -69,35 +77,48 @@ class DummyTransactionGenerator {
     final randomDays = _faker.randomGenerator.integer(30, min: 1);
     final transactionDate = now.subtract(Duration(days: randomDays));
     final transactionId =
-        'trx_${DateTime.now().millisecondsSinceEpoch}_${_faker.randomGenerator.integer(9999)}';
+        'trx_${now.millisecondsSinceEpoch}_${_faker.randomGenerator.integer(9999)}';
+
+    // Generate a receipt number between 1000 and 9999
+    final receiptNumber = 1000 + _faker.randomGenerator.integer(9000);
+
+    // Generate a transaction number in format TRX-YYYYMMDD-XXXXX
+    final transactionNum =
+        'TRX-${_formatDate(now)}-${_faker.randomGenerator.integer(99999).toString().padLeft(5, '0')}';
 
     return ITransaction(
       id: transactionId,
       branchId: branchId,
-      status: status ??
-          _faker.randomGenerator.element(
-              ['01', '02', '04']), // Assuming these are valid status codes
-      transactionType: transactionType ??
-          _faker.randomGenerator.element(['SALE', 'PURCHASE', 'RETURN']),
+      status: status ?? '01', // Default to '01' for completed status
+      transactionType: transactionType ?? 'SALE',
       subTotal: 0.0, // Will be updated if items are added
       taxAmount: 0.0, // Will be updated if items are added
       cashReceived: 0.0, // Will be updated if items are added
-
       customerChangeDue: 0.0,
       isExpense: false,
       isIncome: true,
       isOriginalTransaction: true,
-      receiptType:
-          _faker.randomGenerator.element(['NS', 'TR', 'NR', 'CS', 'CR']),
-      paymentType: _faker.randomGenerator.element(['CASH', 'CARD', 'TRANSFER']),
+      receiptType: 'NS', // Normal sale receipt type
+      paymentType: 'CASH',
       customerId: _faker.randomGenerator.boolean() ? _uuid.v4() : null,
-      customerName:
-          _faker.randomGenerator.boolean() ? _faker.person.name() : null,
+      customerName: _faker.randomGenerator.boolean()
+          ? _faker.person.name()
+          : 'Walk-in Customer',
       note: _faker.randomGenerator.boolean() ? _faker.lorem.sentence() : null,
       createdAt: transactionDate,
-      updatedAt: transactionDate,
+      updatedAt: now,
       lastTouched: now,
-      // Add other required fields from ITransaction
+      transactionNumber: transactionNum,
+      receiptNumber: receiptNumber,
+      totalReceiptNumber: 1,
+      invoiceNumber: receiptNumber,
+      isDigitalReceiptGenerated: true,
+      ebmSynced: true,
+      isRefunded: false,
+      isLoan: false,
+      isAutoBilled: false,
+      numberOfItems: 0, // Will be updated if items are added
+      discountAmount: 0.0,
     );
   }
 
@@ -108,31 +129,44 @@ class DummyTransactionGenerator {
     int count = 1,
   }) {
     final items = <TransactionItem>[];
+    final now = DateTime.now();
+    final branchIdStr = branchId.toString();
 
     for (var i = 0; i < count; i++) {
-      final quantity = _faker.randomGenerator.decimal(min: 1, scale: 10);
-      final price = _faker.randomGenerator.decimal(min: 10, scale: 1000);
-      final discountRate = _faker.randomGenerator.decimal(min: 0, scale: 30);
+      // Generate random values within ranges
+      final quantity =
+          _faker.randomGenerator.decimal(scale: 2) * 9 + 1; // 1.0 - 10.0
+      final price =
+          _faker.randomGenerator.decimal(scale: 2) * 990 + 10; // 10.0 - 1000.0
+      final discountRate =
+          _faker.randomGenerator.decimal(scale: 2) * 30; // 0.0 - 30.0
       final discountAmount = (price * quantity * discountRate) / 100;
       final taxableAmount = (price * quantity) - discountAmount;
-      final taxRate = 18.0; // Assuming 18% tax rate
+      final taxRate = 18.0; // 18% tax rate
       final taxAmount = (taxableAmount * taxRate) / 100;
       final totalAmount = taxableAmount + taxAmount;
-      final variantId = const Uuid().v4();
-      final itemId = const Uuid().v4();
+      final variantId =
+          'var_${now.millisecondsSinceEpoch}_${_faker.randomGenerator.integer(9999)}';
+      final itemId =
+          'item_${now.millisecondsSinceEpoch}_${_faker.randomGenerator.integer(9999)}';
+      final itemName = '${_faker.food.cuisine()} ${_faker.food.dish()}';
+      final itemCode =
+          'ITM-${_faker.randomGenerator.string(6, min: 6).toUpperCase()}';
+      final tin = _faker.randomGenerator.integer(999999);
 
       items.add(
         TransactionItem(
           id: itemId,
-          name: '${_faker.food.cuisine()} ${_faker.food.dish()}',
+          name: itemName,
           transactionId: transactionId,
           variantId: variantId,
           qty: quantity,
           price: price,
-          branchId: branchId.toString(),
-          remainingStock: _faker.randomGenerator.decimal(min: 0, scale: 1000),
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          branchId: branchIdStr,
+          remainingStock:
+              _faker.randomGenerator.decimal(scale: 2) * 1000, // 0.0 - 1000.0
+          createdAt: now,
+          updatedAt: now,
           prc: price,
           discount: discountAmount,
           dcRt: discountRate,
@@ -140,34 +174,38 @@ class DummyTransactionGenerator {
           taxblAmt: taxableAmount,
           taxAmt: taxAmount,
           totAmt: totalAmount,
-          itemSeq: _faker.randomGenerator.integer(999999),
-          isrccCd: _faker.randomGenerator.string(5),
-          isrccNm: _faker.randomGenerator.string(5),
-          isrcRt: _faker.randomGenerator.integer(100),
-          isrcAmt: _faker.randomGenerator.integer(100),
-          taxTyCd: _faker.randomGenerator.string(5),
-          bcd: _faker.randomGenerator.string(5),
-          itemClsCd: _faker.randomGenerator.string(5),
-          itemTyCd: _faker.randomGenerator.string(5),
-          itemStdNm: _faker.randomGenerator.string(5),
-          orgnNatCd: _faker.randomGenerator.string(5),
-          pkg: _faker.randomGenerator.integer(100),
-          itemCd: _faker.randomGenerator.string(5),
-          pkgUnitCd: _faker.randomGenerator.string(5),
-          qtyUnitCd: _faker.randomGenerator.string(5),
-          itemNm: '${_faker.food.cuisine()} ${_faker.food.dish()}',
-          splyAmt: _faker.randomGenerator.decimal(min: 1, scale: 1000),
-          tin: _faker.randomGenerator.integer(999999),
-          bhfId: _faker.randomGenerator.string(5),
-          dftPrc: _faker.randomGenerator.decimal(min: 1, scale: 1000),
-          addInfo: _faker.randomGenerator.string(5),
-          isrcAplcbYn: _faker.randomGenerator.string(5),
-          useYn: _faker.randomGenerator.string(5),
-          regrId: _faker.randomGenerator.string(5),
-          regrNm: _faker.randomGenerator.string(5),
-          modrId: _faker.randomGenerator.string(5),
-          modrNm: _faker.randomGenerator.string(5),
-          lastTouched: DateTime.now(),
+          itemSeq: i + 1,
+          isrccCd: '0',
+          isrccNm: 'Standard',
+          isrcRt: 0,
+          isrcAmt: 0,
+          taxTyCd: 'VAT',
+          bcd: '0',
+          itemClsCd: 'GENERAL',
+          itemTyCd: 'PRODUCT',
+          itemStdNm: itemName,
+          orgnNatCd: 'TZ',
+          pkg: 1,
+          itemCd: itemCode,
+          pkgUnitCd: 'PCS',
+          qtyUnitCd: 'PCS',
+          itemNm: itemName,
+          splyAmt: taxableAmount,
+          tin: tin,
+          bhfId: '01',
+          dftPrc: price,
+          addInfo: '',
+          isrcAplcbYn: 'N',
+          useYn: 'Y',
+          regrId: 'system',
+          regrNm: 'System',
+          modrId: 'system',
+          modrNm: 'System',
+          lastTouched: now,
+          isRefunded: false,
+          ebmSynced: true,
+          partOfComposite: false,
+          compositePrice: 0.0,
         ),
       );
     }
