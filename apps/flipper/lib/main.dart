@@ -1,3 +1,4 @@
+// import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:async';
 import 'dart:isolate';
 import 'package:country_code_picker/country_code_picker.dart';
@@ -41,9 +42,9 @@ Future<void> _initializeFirebase() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Firebase initialized successfully');
+    // talker.info('Firebase initialized successfully');
   } catch (e) {
-    print('Firebase initialization error: $e');
+    // talker.info('Firebase initialization error: $e');
   }
 }
 
@@ -53,10 +54,10 @@ Future<void> _initializeSupabase() async {
     // Wrap in a microtask to allow UI thread to continue
     await Future<void>.microtask(() async {
       await loadSupabase();
-      print('Supabase initialized successfully');
+      // talker.info('Supabase initialized successfully');
     });
   } catch (e) {
-    print('Supabase initialization error: $e');
+    // talker.info('Supabase initialization error: $e');
   }
 }
 
@@ -132,7 +133,7 @@ Future<void> main() async {
       setupBottomSheetUi();
       await initDependencies();
       initializeDependencies().then((_) {
-        print('All dependencies initialized');
+        // talker.info('All dependencies initialized');
       });
     }
 
