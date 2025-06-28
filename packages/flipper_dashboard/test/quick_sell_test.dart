@@ -144,9 +144,6 @@ class MockLocalStorage implements LocalStorage {
   String? whatsAppToken() => "";
 
   @override
-  Future<LocalStorage> initializePreferences() async => this;
-
-  @override
   Future<bool> authComplete() async => true;
 
   @override
@@ -278,18 +275,6 @@ class MockLocalStorage implements LocalStorage {
 
 class MockKeyPadService implements KeyPadService {
   @override
-  String get keypad => '0.00';
-
-  @override
-  void addKey(String key) {}
-
-  @override
-  void pop() {}
-
-  @override
-  void reset() {}
-
-  @override
   void addListener(listener) {}
 
   @override
@@ -305,6 +290,7 @@ class MockDatabaseSyncInterface implements DatabaseSyncInterface {
     int? branchId,
     required String transactionType,
     required bool isExpense,
+    bool forceRealData = true,
   }) =>
       Stream.value(ITransaction(
         id: 'testTransactionId',
@@ -332,6 +318,7 @@ class MockDatabaseSyncInterface implements DatabaseSyncInterface {
     DateTime? startDate,
     DateTime? endDate,
     required bool removeAdjustmentTransactions,
+    bool forceRealData = true,
   }) =>
       Stream.value([]);
 

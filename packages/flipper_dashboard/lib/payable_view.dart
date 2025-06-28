@@ -32,7 +32,8 @@ class PayableView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsAsync = ref.watch(transactionsProvider);
+    final transactionsAsync =
+        ref.watch(transactionsProvider(forceRealData: true));
     // Get the current screen width to determine layout
     final screenWidth = MediaQuery.of(context).size.width;
     // Threshold for switching to vertical layout

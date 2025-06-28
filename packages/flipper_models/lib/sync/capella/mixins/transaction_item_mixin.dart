@@ -37,6 +37,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     bool? active,
     bool fetchRemote = false,
     String? requestId,
+    bool forceRealData = true,
   }) {
     throw UnimplementedError();
   }
@@ -52,6 +53,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     bool? active,
     String? requestId,
     bool fetchRemote = false,
+    bool forceRealData = true,
   }) {
     throw UnimplementedError();
   }

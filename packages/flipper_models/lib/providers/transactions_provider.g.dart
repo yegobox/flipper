@@ -6,45 +6,7 @@ part of 'transactions_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionsHash() => r'36a7d8bc2b048b7d15bf0bec0cdf5b30ad944214';
-
-/// See also [transactions].
-@ProviderFor(transactions)
-final transactionsProvider =
-    AutoDisposeStreamProvider<List<ITransaction>>.internal(
-  transactions,
-  name: r'transactionsProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$transactionsHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TransactionsRef = AutoDisposeStreamProviderRef<List<ITransaction>>;
-String _$transactionItemListHash() =>
-    r'ec1b3cabdc58cf23b937071ddcfb60abb93df1d3';
-
-/// See also [transactionItemList].
-@ProviderFor(transactionItemList)
-final transactionItemListProvider =
-    AutoDisposeStreamProvider<List<TransactionItem>>.internal(
-  transactionItemList,
-  name: r'transactionItemListProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$transactionItemListHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TransactionItemListRef
-    = AutoDisposeStreamProviderRef<List<TransactionItem>>;
-String _$pendingTransactionStreamHash() =>
-    r'66c1029d77ce311e4972e6835f2c6c6650c74640';
+String _$transactionListHash() => r'c51c783107e59416dffe9026fbcb734138294c22';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -67,6 +29,293 @@ class _SystemHash {
   }
 }
 
+/// See also [transactionList].
+@ProviderFor(transactionList)
+const transactionListProvider = TransactionListFamily();
+
+/// See also [transactionList].
+class TransactionListFamily extends Family<AsyncValue<List<ITransaction>>> {
+  /// See also [transactionList].
+  const TransactionListFamily();
+
+  /// See also [transactionList].
+  TransactionListProvider call({
+    required bool forceRealData,
+  }) {
+    return TransactionListProvider(
+      forceRealData: forceRealData,
+    );
+  }
+
+  @override
+  TransactionListProvider getProviderOverride(
+    covariant TransactionListProvider provider,
+  ) {
+    return call(
+      forceRealData: provider.forceRealData,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'transactionListProvider';
+}
+
+/// See also [transactionList].
+class TransactionListProvider
+    extends AutoDisposeStreamProvider<List<ITransaction>> {
+  /// See also [transactionList].
+  TransactionListProvider({
+    required bool forceRealData,
+  }) : this._internal(
+          (ref) => transactionList(
+            ref as TransactionListRef,
+            forceRealData: forceRealData,
+          ),
+          from: transactionListProvider,
+          name: r'transactionListProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$transactionListHash,
+          dependencies: TransactionListFamily._dependencies,
+          allTransitiveDependencies:
+              TransactionListFamily._allTransitiveDependencies,
+          forceRealData: forceRealData,
+        );
+
+  TransactionListProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.forceRealData,
+  }) : super.internal();
+
+  final bool forceRealData;
+
+  @override
+  Override overrideWith(
+    Stream<List<ITransaction>> Function(TransactionListRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TransactionListProvider._internal(
+        (ref) => create(ref as TransactionListRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        forceRealData: forceRealData,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<ITransaction>> createElement() {
+    return _TransactionListProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionListProvider &&
+        other.forceRealData == forceRealData;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TransactionListRef on AutoDisposeStreamProviderRef<List<ITransaction>> {
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
+}
+
+class _TransactionListProviderElement
+    extends AutoDisposeStreamProviderElement<List<ITransaction>>
+    with TransactionListRef {
+  _TransactionListProviderElement(super.provider);
+
+  @override
+  bool get forceRealData => (origin as TransactionListProvider).forceRealData;
+}
+
+String _$transactionsHash() => r'9b8885fcae2217e3df1090a23d2db3c84777e4fd';
+
+/// See also [transactions].
+@ProviderFor(transactions)
+const transactionsProvider = TransactionsFamily();
+
+/// See also [transactions].
+class TransactionsFamily extends Family<AsyncValue<List<ITransaction>>> {
+  /// See also [transactions].
+  const TransactionsFamily();
+
+  /// See also [transactions].
+  TransactionsProvider call({
+    bool forceRealData = true,
+  }) {
+    return TransactionsProvider(
+      forceRealData: forceRealData,
+    );
+  }
+
+  @override
+  TransactionsProvider getProviderOverride(
+    covariant TransactionsProvider provider,
+  ) {
+    return call(
+      forceRealData: provider.forceRealData,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'transactionsProvider';
+}
+
+/// See also [transactions].
+class TransactionsProvider
+    extends AutoDisposeStreamProvider<List<ITransaction>> {
+  /// See also [transactions].
+  TransactionsProvider({
+    bool forceRealData = true,
+  }) : this._internal(
+          (ref) => transactions(
+            ref as TransactionsRef,
+            forceRealData: forceRealData,
+          ),
+          from: transactionsProvider,
+          name: r'transactionsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$transactionsHash,
+          dependencies: TransactionsFamily._dependencies,
+          allTransitiveDependencies:
+              TransactionsFamily._allTransitiveDependencies,
+          forceRealData: forceRealData,
+        );
+
+  TransactionsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.forceRealData,
+  }) : super.internal();
+
+  final bool forceRealData;
+
+  @override
+  Override overrideWith(
+    Stream<List<ITransaction>> Function(TransactionsRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: TransactionsProvider._internal(
+        (ref) => create(ref as TransactionsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        forceRealData: forceRealData,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<ITransaction>> createElement() {
+    return _TransactionsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionsProvider &&
+        other.forceRealData == forceRealData;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin TransactionsRef on AutoDisposeStreamProviderRef<List<ITransaction>> {
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
+}
+
+class _TransactionsProviderElement
+    extends AutoDisposeStreamProviderElement<List<ITransaction>>
+    with TransactionsRef {
+  _TransactionsProviderElement(super.provider);
+
+  @override
+  bool get forceRealData => (origin as TransactionsProvider).forceRealData;
+}
+
+String _$transactionItemListHash() =>
+    r'ec1b3cabdc58cf23b937071ddcfb60abb93df1d3';
+
+/// See also [transactionItemList].
+@ProviderFor(transactionItemList)
+final transactionItemListProvider =
+    AutoDisposeStreamProvider<List<TransactionItem>>.internal(
+  transactionItemList,
+  name: r'transactionItemListProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$transactionItemListHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef TransactionItemListRef
+    = AutoDisposeStreamProviderRef<List<TransactionItem>>;
+String _$pendingTransactionStreamHash() =>
+    r'b7b8f05b96623dd1a97f059f982d27c001389177';
+
 /// See also [pendingTransactionStream].
 @ProviderFor(pendingTransactionStream)
 const pendingTransactionStreamProvider = PendingTransactionStreamFamily();
@@ -79,9 +328,11 @@ class PendingTransactionStreamFamily extends Family<AsyncValue<ITransaction>> {
   /// See also [pendingTransactionStream].
   PendingTransactionStreamProvider call({
     required bool isExpense,
+    bool forceRealData = true,
   }) {
     return PendingTransactionStreamProvider(
       isExpense: isExpense,
+      forceRealData: forceRealData,
     );
   }
 
@@ -91,6 +342,7 @@ class PendingTransactionStreamFamily extends Family<AsyncValue<ITransaction>> {
   ) {
     return call(
       isExpense: provider.isExpense,
+      forceRealData: provider.forceRealData,
     );
   }
 
@@ -115,10 +367,12 @@ class PendingTransactionStreamProvider
   /// See also [pendingTransactionStream].
   PendingTransactionStreamProvider({
     required bool isExpense,
+    bool forceRealData = true,
   }) : this._internal(
           (ref) => pendingTransactionStream(
             ref as PendingTransactionStreamRef,
             isExpense: isExpense,
+            forceRealData: forceRealData,
           ),
           from: pendingTransactionStreamProvider,
           name: r'pendingTransactionStreamProvider',
@@ -130,6 +384,7 @@ class PendingTransactionStreamProvider
           allTransitiveDependencies:
               PendingTransactionStreamFamily._allTransitiveDependencies,
           isExpense: isExpense,
+          forceRealData: forceRealData,
         );
 
   PendingTransactionStreamProvider._internal(
@@ -140,9 +395,11 @@ class PendingTransactionStreamProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.isExpense,
+    required this.forceRealData,
   }) : super.internal();
 
   final bool isExpense;
+  final bool forceRealData;
 
   @override
   Override overrideWith(
@@ -158,6 +415,7 @@ class PendingTransactionStreamProvider
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         isExpense: isExpense,
+        forceRealData: forceRealData,
       ),
     );
   }
@@ -170,13 +428,15 @@ class PendingTransactionStreamProvider
   @override
   bool operator ==(Object other) {
     return other is PendingTransactionStreamProvider &&
-        other.isExpense == isExpense;
+        other.isExpense == isExpense &&
+        other.forceRealData == forceRealData;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, isExpense.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -188,6 +448,9 @@ mixin PendingTransactionStreamRef
     on AutoDisposeStreamProviderRef<ITransaction> {
   /// The parameter `isExpense` of this provider.
   bool get isExpense;
+
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
 }
 
 class _PendingTransactionStreamProviderElement
@@ -197,9 +460,12 @@ class _PendingTransactionStreamProviderElement
 
   @override
   bool get isExpense => (origin as PendingTransactionStreamProvider).isExpense;
+  @override
+  bool get forceRealData =>
+      (origin as PendingTransactionStreamProvider).forceRealData;
 }
 
-String _$expensesStreamHash() => r'4854314e44df0c38869e5ac7649c9fc59c2496a6';
+String _$expensesStreamHash() => r'ffdf5e52919c19ffcc41bf1c3ab7c7062bc610dc';
 
 /// See also [expensesStream].
 @ProviderFor(expensesStream)
@@ -215,11 +481,13 @@ class ExpensesStreamFamily extends Family<AsyncValue<List<ITransaction>>> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) {
     return ExpensesStreamProvider(
       startDate: startDate,
       endDate: endDate,
       branchId: branchId,
+      forceRealData: forceRealData,
     );
   }
 
@@ -231,6 +499,7 @@ class ExpensesStreamFamily extends Family<AsyncValue<List<ITransaction>>> {
       startDate: provider.startDate,
       endDate: provider.endDate,
       branchId: provider.branchId,
+      forceRealData: provider.forceRealData,
     );
   }
 
@@ -257,12 +526,14 @@ class ExpensesStreamProvider
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) : this._internal(
           (ref) => expensesStream(
             ref as ExpensesStreamRef,
             startDate: startDate,
             endDate: endDate,
             branchId: branchId,
+            forceRealData: forceRealData,
           ),
           from: expensesStreamProvider,
           name: r'expensesStreamProvider',
@@ -276,6 +547,7 @@ class ExpensesStreamProvider
           startDate: startDate,
           endDate: endDate,
           branchId: branchId,
+          forceRealData: forceRealData,
         );
 
   ExpensesStreamProvider._internal(
@@ -288,11 +560,13 @@ class ExpensesStreamProvider
     required this.startDate,
     required this.endDate,
     required this.branchId,
+    required this.forceRealData,
   }) : super.internal();
 
   final DateTime startDate;
   final DateTime endDate;
   final int? branchId;
+  final bool forceRealData;
 
   @override
   Override overrideWith(
@@ -310,6 +584,7 @@ class ExpensesStreamProvider
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
+        forceRealData: forceRealData,
       ),
     );
   }
@@ -324,7 +599,8 @@ class ExpensesStreamProvider
     return other is ExpensesStreamProvider &&
         other.startDate == startDate &&
         other.endDate == endDate &&
-        other.branchId == branchId;
+        other.branchId == branchId &&
+        other.forceRealData == forceRealData;
   }
 
   @override
@@ -333,6 +609,7 @@ class ExpensesStreamProvider
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -349,6 +626,9 @@ mixin ExpensesStreamRef on AutoDisposeStreamProviderRef<List<ITransaction>> {
 
   /// The parameter `branchId` of this provider.
   int? get branchId;
+
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
 }
 
 class _ExpensesStreamProviderElement
@@ -362,9 +642,11 @@ class _ExpensesStreamProviderElement
   DateTime get endDate => (origin as ExpensesStreamProvider).endDate;
   @override
   int? get branchId => (origin as ExpensesStreamProvider).branchId;
+  @override
+  bool get forceRealData => (origin as ExpensesStreamProvider).forceRealData;
 }
 
-String _$netProfitStreamHash() => r'29fe4187d6582bd4dad8c68e0140184d383ffad4';
+String _$netProfitStreamHash() => r'95aa5045a5ab14ceb7c0f18c22e521faf2fd9741';
 
 /// See also [netProfitStream].
 @ProviderFor(netProfitStream)
@@ -380,11 +662,13 @@ class NetProfitStreamFamily extends Family<AsyncValue<double>> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) {
     return NetProfitStreamProvider(
       startDate: startDate,
       endDate: endDate,
       branchId: branchId,
+      forceRealData: forceRealData,
     );
   }
 
@@ -396,6 +680,7 @@ class NetProfitStreamFamily extends Family<AsyncValue<double>> {
       startDate: provider.startDate,
       endDate: provider.endDate,
       branchId: provider.branchId,
+      forceRealData: provider.forceRealData,
     );
   }
 
@@ -421,12 +706,14 @@ class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) : this._internal(
           (ref) => netProfitStream(
             ref as NetProfitStreamRef,
             startDate: startDate,
             endDate: endDate,
             branchId: branchId,
+            forceRealData: forceRealData,
           ),
           from: netProfitStreamProvider,
           name: r'netProfitStreamProvider',
@@ -440,6 +727,7 @@ class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
           startDate: startDate,
           endDate: endDate,
           branchId: branchId,
+          forceRealData: forceRealData,
         );
 
   NetProfitStreamProvider._internal(
@@ -452,11 +740,13 @@ class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     required this.startDate,
     required this.endDate,
     required this.branchId,
+    required this.forceRealData,
   }) : super.internal();
 
   final DateTime startDate;
   final DateTime endDate;
   final int? branchId;
+  final bool forceRealData;
 
   @override
   Override overrideWith(
@@ -474,6 +764,7 @@ class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
+        forceRealData: forceRealData,
       ),
     );
   }
@@ -488,7 +779,8 @@ class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     return other is NetProfitStreamProvider &&
         other.startDate == startDate &&
         other.endDate == endDate &&
-        other.branchId == branchId;
+        other.branchId == branchId &&
+        other.forceRealData == forceRealData;
   }
 
   @override
@@ -497,6 +789,7 @@ class NetProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -513,6 +806,9 @@ mixin NetProfitStreamRef on AutoDisposeStreamProviderRef<double> {
 
   /// The parameter `branchId` of this provider.
   int? get branchId;
+
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
 }
 
 class _NetProfitStreamProviderElement
@@ -525,9 +821,11 @@ class _NetProfitStreamProviderElement
   DateTime get endDate => (origin as NetProfitStreamProvider).endDate;
   @override
   int? get branchId => (origin as NetProfitStreamProvider).branchId;
+  @override
+  bool get forceRealData => (origin as NetProfitStreamProvider).forceRealData;
 }
 
-String _$grossProfitStreamHash() => r'4b4fee2d6d7e8721fd9d94316ea5b23b4e5a3a5f';
+String _$grossProfitStreamHash() => r'9b5e0d6fcf95c515d27c05e6e27d13aadb946eb9';
 
 /// See also [grossProfitStream].
 @ProviderFor(grossProfitStream)
@@ -543,11 +841,13 @@ class GrossProfitStreamFamily extends Family<AsyncValue<double>> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) {
     return GrossProfitStreamProvider(
       startDate: startDate,
       endDate: endDate,
       branchId: branchId,
+      forceRealData: forceRealData,
     );
   }
 
@@ -559,6 +859,7 @@ class GrossProfitStreamFamily extends Family<AsyncValue<double>> {
       startDate: provider.startDate,
       endDate: provider.endDate,
       branchId: provider.branchId,
+      forceRealData: provider.forceRealData,
     );
   }
 
@@ -584,12 +885,14 @@ class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) : this._internal(
           (ref) => grossProfitStream(
             ref as GrossProfitStreamRef,
             startDate: startDate,
             endDate: endDate,
             branchId: branchId,
+            forceRealData: forceRealData,
           ),
           from: grossProfitStreamProvider,
           name: r'grossProfitStreamProvider',
@@ -603,6 +906,7 @@ class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
           startDate: startDate,
           endDate: endDate,
           branchId: branchId,
+          forceRealData: forceRealData,
         );
 
   GrossProfitStreamProvider._internal(
@@ -615,11 +919,13 @@ class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     required this.startDate,
     required this.endDate,
     required this.branchId,
+    required this.forceRealData,
   }) : super.internal();
 
   final DateTime startDate;
   final DateTime endDate;
   final int? branchId;
+  final bool forceRealData;
 
   @override
   Override overrideWith(
@@ -637,6 +943,7 @@ class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
+        forceRealData: forceRealData,
       ),
     );
   }
@@ -651,7 +958,8 @@ class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     return other is GrossProfitStreamProvider &&
         other.startDate == startDate &&
         other.endDate == endDate &&
-        other.branchId == branchId;
+        other.branchId == branchId &&
+        other.forceRealData == forceRealData;
   }
 
   @override
@@ -660,6 +968,7 @@ class GrossProfitStreamProvider extends AutoDisposeStreamProvider<double> {
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -676,6 +985,9 @@ mixin GrossProfitStreamRef on AutoDisposeStreamProviderRef<double> {
 
   /// The parameter `branchId` of this provider.
   int? get branchId;
+
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
 }
 
 class _GrossProfitStreamProviderElement
@@ -688,9 +1000,11 @@ class _GrossProfitStreamProviderElement
   DateTime get endDate => (origin as GrossProfitStreamProvider).endDate;
   @override
   int? get branchId => (origin as GrossProfitStreamProvider).branchId;
+  @override
+  bool get forceRealData => (origin as GrossProfitStreamProvider).forceRealData;
 }
 
-String _$totalIncomeStreamHash() => r'9a991821d8aa3d9db713a855407c6f30607af810';
+String _$totalIncomeStreamHash() => r'e91d2c42a9af82d3e2e551211ba3863d29fe925f';
 
 /// See also [totalIncomeStream].
 @ProviderFor(totalIncomeStream)
@@ -706,11 +1020,13 @@ class TotalIncomeStreamFamily extends Family<AsyncValue<double>> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) {
     return TotalIncomeStreamProvider(
       startDate: startDate,
       endDate: endDate,
       branchId: branchId,
+      forceRealData: forceRealData,
     );
   }
 
@@ -722,6 +1038,7 @@ class TotalIncomeStreamFamily extends Family<AsyncValue<double>> {
       startDate: provider.startDate,
       endDate: provider.endDate,
       branchId: provider.branchId,
+      forceRealData: provider.forceRealData,
     );
   }
 
@@ -747,12 +1064,14 @@ class TotalIncomeStreamProvider extends AutoDisposeStreamProvider<double> {
     required DateTime startDate,
     required DateTime endDate,
     int? branchId,
+    bool forceRealData = true,
   }) : this._internal(
           (ref) => totalIncomeStream(
             ref as TotalIncomeStreamRef,
             startDate: startDate,
             endDate: endDate,
             branchId: branchId,
+            forceRealData: forceRealData,
           ),
           from: totalIncomeStreamProvider,
           name: r'totalIncomeStreamProvider',
@@ -766,6 +1085,7 @@ class TotalIncomeStreamProvider extends AutoDisposeStreamProvider<double> {
           startDate: startDate,
           endDate: endDate,
           branchId: branchId,
+          forceRealData: forceRealData,
         );
 
   TotalIncomeStreamProvider._internal(
@@ -778,11 +1098,13 @@ class TotalIncomeStreamProvider extends AutoDisposeStreamProvider<double> {
     required this.startDate,
     required this.endDate,
     required this.branchId,
+    required this.forceRealData,
   }) : super.internal();
 
   final DateTime startDate;
   final DateTime endDate;
   final int? branchId;
+  final bool forceRealData;
 
   @override
   Override overrideWith(
@@ -800,6 +1122,7 @@ class TotalIncomeStreamProvider extends AutoDisposeStreamProvider<double> {
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
+        forceRealData: forceRealData,
       ),
     );
   }
@@ -814,7 +1137,8 @@ class TotalIncomeStreamProvider extends AutoDisposeStreamProvider<double> {
     return other is TotalIncomeStreamProvider &&
         other.startDate == startDate &&
         other.endDate == endDate &&
-        other.branchId == branchId;
+        other.branchId == branchId &&
+        other.forceRealData == forceRealData;
   }
 
   @override
@@ -823,6 +1147,7 @@ class TotalIncomeStreamProvider extends AutoDisposeStreamProvider<double> {
     hash = _SystemHash.combine(hash, startDate.hashCode);
     hash = _SystemHash.combine(hash, endDate.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -839,6 +1164,9 @@ mixin TotalIncomeStreamRef on AutoDisposeStreamProviderRef<double> {
 
   /// The parameter `branchId` of this provider.
   int? get branchId;
+
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
 }
 
 class _TotalIncomeStreamProviderElement
@@ -851,6 +1179,8 @@ class _TotalIncomeStreamProviderElement
   DateTime get endDate => (origin as TotalIncomeStreamProvider).endDate;
   @override
   int? get branchId => (origin as TotalIncomeStreamProvider).branchId;
+  @override
+  bool get forceRealData => (origin as TotalIncomeStreamProvider).forceRealData;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

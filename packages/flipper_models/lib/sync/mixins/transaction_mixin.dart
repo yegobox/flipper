@@ -23,7 +23,17 @@ mixin TransactionMixin implements TransactionInterface {
     int? branchId,
     required bool isExpense,
     required String transactionType,
+    bool forceRealData = true,
   }) {
+    if (!forceRealData) {
+      return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
+        count: 1,
+        branchId: branchId ?? 1,
+        status: PENDING,
+        transactionType: transactionType,
+        withItems: false,
+      ).first);
+    }
     return repository
         .subscribe<ITransaction>(
           query: Query(where: [
@@ -51,7 +61,16 @@ mixin TransactionMixin implements TransactionInterface {
     bool includeZeroSubTotal = false,
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
+    bool forceRealData = true,
   }) async {
+    if (!forceRealData) {
+      return DummyTransactionGenerator.generateDummyTransactions(
+        count: 10,
+        branchId: branchId ?? 1,
+        status: status,
+        transactionType: transactionType,
+      );
+    }
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE), // Ensure default value
       if (skipOriginalTransactionCheck == false)
@@ -141,6 +160,7 @@ mixin TransactionMixin implements TransactionInterface {
     // Step 1: Fetch transactions using the same logic as the transactions() method
     final transactionss = await transactions(
       startDate: startDate,
+      forceRealData: false,
       endDate: endDate,
       status: status,
       transactionType: transactionType,
@@ -885,7 +905,16 @@ mixin TransactionMixin implements TransactionInterface {
     bool includePending = false,
     DateTime? startDate,
     DateTime? endDate,
+    bool forceRealData = true,
   }) {
+    if (!forceRealData) {
+      return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
+        count: 10,
+        branchId: branchId ?? 1,
+        status: status,
+        transactionType: transactionType,
+      ));
+    }
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
@@ -971,17 +1000,6 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<bool> migrateToNewDateTime({required int branchId}) async {
-    // get all transactions for the branch
-    // final transactions = await repository.get<ITransaction>(
-    //   query: Query(where: [Where('branchId').isExactly(branchId)]),
-    // );
-    // update lastTouched for each transaction
-    // for (final transaction in transactions) {
-    //   if (transaction.lastTouched == null) continue;
-    //   transaction.lastTouched = transaction.lastTouched!.toDateOnly;
-    //   transaction.createdAt = transaction.updatedAt!.toDateOnly;
-    //   await repository.upsert<ITransaction>(transaction);
-    // }
     return true;
   }
 
@@ -989,7 +1007,16 @@ mixin TransactionMixin implements TransactionInterface {
   Future<ITransaction?> pendingTransactionFuture(
       {int? branchId,
       required String transactionType,
+      bool forceRealData = true,
       required bool isExpense}) async {
+    if (!forceRealData) {
+      return DummyTransactionGenerator.generateDummyTransactions(
+        count: 1,
+        branchId: branchId ?? 1,
+        status: PENDING,
+        transactionType: transactionType,
+      ).firstOrNull;
+    }
     return (await repository.get<ITransaction>(
       query: Query(where: [
         Where('isExpense').isExactly(isExpense),

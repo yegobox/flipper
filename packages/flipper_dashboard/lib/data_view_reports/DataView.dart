@@ -82,27 +82,6 @@ class DataViewState extends ConsumerState<DataView>
   @override
   void initState() {
     super.initState();
-    _initializeDataSource();
-    _fetchExportAccurateTotal();
-  }
-
-  @override
-  void didUpdateWidget(DataView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (_shouldUpdateDataSource(oldWidget)) {
-      _initializeDataSource();
-      _fetchExportAccurateTotal();
-    }
-  }
-
-  bool _shouldUpdateDataSource(DataView oldWidget) {
-    return widget.transactionItems != oldWidget.transactionItems ||
-        widget.transactions != oldWidget.transactions ||
-        widget.rowsPerPage != oldWidget.rowsPerPage;
-  }
-
-  void _initializeDataSource() {
-    // Create the data source based on current view mode
     _dataGridSource = _buildDataGridSource(
       showDetailed: widget.showDetailedReport,
       transactionItems: widget.transactionItems,
@@ -110,13 +89,42 @@ class DataViewState extends ConsumerState<DataView>
       variants: widget.variants,
       rowsPerPage: widget.rowsPerPage,
     );
+    _fetchExportAccurateTotal();
+  }
 
-    // Force a rebuild after data source changes to ensure the DataGrid is properly initialized
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() {});
+  @override
+  void didUpdateWidget(DataView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_shouldUpdateDataSource(oldWidget)) {
+      setState(() {
+        _dataGridSource = _buildDataGridSource(
+          showDetailed: widget.showDetailedReport,
+          transactionItems: widget.transactionItems,
+          transactions: widget.transactions,
+          variants: widget.variants,
+          rowsPerPage: widget.rowsPerPage,
+        );
       });
+      _fetchExportAccurateTotal();
     }
+  }
+
+  bool _shouldUpdateDataSource(DataView oldWidget) {
+    return widget.transactionItems != oldWidget.transactionItems ||
+        widget.transactions != oldWidget.transactions ||
+        widget.variants != oldWidget.variants ||
+        widget.rowsPerPage != oldWidget.rowsPerPage;
+  }
+
+  DataGridSource _initializeDataSource() {
+    // Create the data source based on current view mode
+    return _buildDataGridSource(
+      showDetailed: widget.showDetailedReport,
+      transactionItems: widget.transactionItems,
+      transactions: widget.transactions,
+      variants: widget.variants,
+      rowsPerPage: widget.rowsPerPage,
+    );
   }
 
   void _handleCellTap(DataGridCellTapDetails details) {
@@ -130,8 +138,7 @@ class DataViewState extends ConsumerState<DataView>
       if (rowIndex < 1) return;
 
       final dataSource = _dataGridSource as DynamicDataSource;
-      final data =
-          dataSource.data[pageIndex * widget.rowsPerPage + rowIndex - 1];
+      final data = dataSource.getItemAt(pageIndex * widget.rowsPerPage + rowIndex - 1);
 
       if (widget.onTapRowShowRefundModal) {
         _showRefundModal(data);
@@ -344,9 +351,6 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildDataGrid(BoxConstraints constraints) {
-    // Ensure the data source is properly initialized with the current view mode
-    _initializeDataSource();
-
     return SfDataGridTheme(
       data: SfDataGridThemeData(
         headerHoverColor: Colors.yellow,
@@ -433,7 +437,7 @@ class DataViewState extends ConsumerState<DataView>
 
   Widget _buildDataPager(BoxConstraints constraints) {
     // Safely calculate page count to avoid null errors
-    final rowCount = _dataGridSource.rows.length;
+    final rowCount = (_dataGridSource as DynamicDataSource).data.length;
     final pageCount = rowCount > 0
         ? (rowCount / widget.rowsPerPage).ceilToDouble()
         : 1.0; // Default to at least 1 page

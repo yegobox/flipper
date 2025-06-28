@@ -1,5 +1,4 @@
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'dart:io';
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';

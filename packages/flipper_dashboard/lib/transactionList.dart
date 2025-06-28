@@ -4,6 +4,7 @@ import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -52,7 +53,8 @@ class TransactionListState extends ConsumerState<TransactionList>
       dataProvider = ref.watch(transactionItemListProvider);
     } else {
       // For summary view, use transactionListProvider
-      dataProvider = ref.watch(transactionListProvider);
+      dataProvider = ref.watch(transactionListProvider(
+          forceRealData: ProxyService.box.enableDebug() ?? true));
     }
 
     // Listen for toggle changes to ensure data is refreshed
@@ -60,7 +62,8 @@ class TransactionListState extends ConsumerState<TransactionList>
       if (current != previous) {
         // Always refresh both providers to ensure data is up-to-date
         ref.invalidate(transactionItemListProvider);
-        ref.invalidate(transactionListProvider);
+        ref.invalidate(transactionListProvider(
+            forceRealData: ProxyService.box.enableDebug() ?? true));
       }
     });
 

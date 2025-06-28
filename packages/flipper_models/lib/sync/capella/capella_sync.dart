@@ -129,6 +129,7 @@ class CapellaSync extends CapellaSyncBase
       bool includePending = false,
       DateTime? startDate,
       bool removeAdjustmentTransactions = false,
+      bool forceRealData = true,
       DateTime? endDate}) {
     // TODO: implement transactionsStream
     throw UnimplementedError();
@@ -165,6 +166,7 @@ class CapellaSync extends CapellaSyncBase
   Stream<ITransaction> pendingTransaction(
       {int? branchId,
       required String transactionType,
+      bool forceRealData = true,
       required bool isExpense}) {
     // TODO: implement pendingTransaction
     throw UnimplementedError();

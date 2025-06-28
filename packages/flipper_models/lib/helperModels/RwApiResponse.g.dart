@@ -33,7 +33,8 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
       sdcId: json['sdcId'] as String?,
       mrcNo: json['mrcNo'] as String?,
       itemList: (json['itemList'] as List<dynamic>?)
-          ?.map((e) => Variant.fromJson(e as Map<String, dynamic>))
+          ?.map((e) =>
+              const VariantConverter().fromJson(e as Map<String, dynamic>))
           .toList(),
       saleList: (json['saleList'] as List<dynamic>?)
           ?.map((e) => Purchase.fromJson(e as Map<String, dynamic>))
@@ -48,6 +49,7 @@ Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
       'vsdcRcptPbctDate': instance.vsdcRcptPbctDate,
       'sdcId': instance.sdcId,
       'mrcNo': instance.mrcNo,
-      'itemList': instance.itemList,
+      'itemList':
+          instance.itemList?.map(const VariantConverter().toJson).toList(),
       'saleList': instance.saleList,
     };

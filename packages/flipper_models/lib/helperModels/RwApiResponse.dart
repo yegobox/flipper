@@ -1,5 +1,9 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:supabase_models/brick/models/purchase.model.dart';
+import 'variant_converter.dart';
+
+// Import the generated file for JSON serialization
 
 part 'RwApiResponse.g.dart';
 
@@ -32,8 +36,12 @@ class Data {
   final String? vsdcRcptPbctDate;
   final String? sdcId;
   final String? mrcNo;
-  final List<Variant>? itemList;
-  final List<Purchase>? saleList; // Added saleList here
+  @VariantConverter()
+  @JsonKey(name: 'itemList')
+  List<models.Variant>? itemList;
+
+  @JsonKey(name: 'saleList')
+  List<models.Purchase>? saleList;
 
   Data({
     this.rcptNo,
@@ -44,7 +52,7 @@ class Data {
     this.sdcId,
     this.mrcNo,
     this.itemList,
-    this.saleList, // Added saleList here
+    this.saleList,
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
