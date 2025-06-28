@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart' as brick;
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -12,6 +13,7 @@ import 'package:stacked/stacked.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
 
 class ImportPurchasePage extends StatefulHookConsumerWidget {
@@ -383,11 +385,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         }
 
         final allPurchases = purchaseSnapshot.data!;
-        // Flatten all variants from all purchases into a single list
-        final allVariants = allPurchases
-            .expand((purchase) =>
-                purchase.variants?.cast<model.Variant>() ?? <model.Variant>[])
-            .toList();
+        // Get variants from outerVariantsProvider
+        final allVariants = ref
+            .read(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0));
 
         return Purchases(
           key: ValueKey(
@@ -425,7 +425,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               );
             }
           },
-          variants: allVariants,
+          variants: allVariants.value ?? [],
         );
       },
     );
