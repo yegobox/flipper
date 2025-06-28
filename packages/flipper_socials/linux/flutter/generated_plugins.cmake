@@ -4,11 +4,13 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   amplify_db_common
+  desktop_drop
   desktop_webview_auth
   file_selector_linux
   flutter_localization
   gtk
   printing
+  realm
   screen_retriever_linux
   sentry_flutter
   smart_auth
@@ -19,6 +21,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  jni
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)
