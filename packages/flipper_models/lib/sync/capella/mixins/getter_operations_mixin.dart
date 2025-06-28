@@ -155,6 +155,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     int? branchId,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool forceRealData = true,
   }) async {
     throw UnimplementedError(
         'transactions needs to be implemented for Capella');

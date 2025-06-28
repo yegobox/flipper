@@ -277,6 +277,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     bool? active,
     String? requestId,
     bool fetchRemote = false,
+    bool forceRealData = true,
   }) {
     List<Where> _buildConditions(dynamic branchIdValue) {
       final List<Where> conditions = [];
@@ -330,9 +331,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       return conditions;
     }
 
-    Stream<List<TransactionItem>> _branchStream(dynamic branchIdValue) {
-      if (kDebugMode) {
-        return Stream.value(DummyTransactionGenerator.generateDummyTransactionItems(
+    Stream<List<TransactionItem>> _branchStream(dynamic branchIdValue,
+        {bool forceRealData = true}) {
+      if ((ProxyService.box.enableDebug() ?? false) && !forceRealData) {
+        return Stream.value(
+            DummyTransactionGenerator.generateDummyTransactionItems(
           transactionId: transactionId ?? "",
           branchId: int.tryParse(branchIdValue.toString()) ?? 0,
         ));
@@ -376,8 +379,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     bool? active,
     bool fetchRemote = false,
     String? requestId,
+    bool forceRealData = true,
   }) async {
-    if (ProxyService.box.enableDebug() ?? false) {
+    if ((ProxyService.box.enableDebug() ?? false) && !forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactionItems(
         transactionId: transactionId ?? "",
         branchId: int.parse(branchId ?? "0"),

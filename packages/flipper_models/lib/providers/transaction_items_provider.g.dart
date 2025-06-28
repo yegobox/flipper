@@ -229,7 +229,7 @@ class _TransactionItemsProviderElement
 }
 
 String _$transactionItemsStreamHash() =>
-    r'cc58bf1524263409a3dad5e5cf46279321b58e2c';
+    r'9a317f53bb4bec2f945091d0e7cec79af1f85907';
 
 /// See also [transactionItemsStream].
 @ProviderFor(transactionItemsStream)
@@ -248,6 +248,7 @@ class TransactionItemsStreamFamily
     String? requestId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
+    bool forceRealData = true,
   }) {
     return TransactionItemsStreamProvider(
       transactionId: transactionId,
@@ -255,6 +256,7 @@ class TransactionItemsStreamFamily
       requestId: requestId,
       fetchRemote: fetchRemote,
       doneWithTransaction: doneWithTransaction,
+      forceRealData: forceRealData,
     );
   }
 
@@ -268,6 +270,7 @@ class TransactionItemsStreamFamily
       requestId: provider.requestId,
       fetchRemote: provider.fetchRemote,
       doneWithTransaction: provider.doneWithTransaction,
+      forceRealData: provider.forceRealData,
     );
   }
 
@@ -296,6 +299,7 @@ class TransactionItemsStreamProvider
     String? requestId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
+    bool forceRealData = true,
   }) : this._internal(
           (ref) => transactionItemsStream(
             ref as TransactionItemsStreamRef,
@@ -304,6 +308,7 @@ class TransactionItemsStreamProvider
             requestId: requestId,
             fetchRemote: fetchRemote,
             doneWithTransaction: doneWithTransaction,
+            forceRealData: forceRealData,
           ),
           from: transactionItemsStreamProvider,
           name: r'transactionItemsStreamProvider',
@@ -319,6 +324,7 @@ class TransactionItemsStreamProvider
           requestId: requestId,
           fetchRemote: fetchRemote,
           doneWithTransaction: doneWithTransaction,
+          forceRealData: forceRealData,
         );
 
   TransactionItemsStreamProvider._internal(
@@ -333,6 +339,7 @@ class TransactionItemsStreamProvider
     required this.requestId,
     required this.fetchRemote,
     required this.doneWithTransaction,
+    required this.forceRealData,
   }) : super.internal();
 
   final String? transactionId;
@@ -340,6 +347,7 @@ class TransactionItemsStreamProvider
   final String? requestId;
   final bool fetchRemote;
   final bool doneWithTransaction;
+  final bool forceRealData;
 
   @override
   Override overrideWith(
@@ -360,6 +368,7 @@ class TransactionItemsStreamProvider
         requestId: requestId,
         fetchRemote: fetchRemote,
         doneWithTransaction: doneWithTransaction,
+        forceRealData: forceRealData,
       ),
     );
   }
@@ -376,7 +385,8 @@ class TransactionItemsStreamProvider
         other.branchId == branchId &&
         other.requestId == requestId &&
         other.fetchRemote == fetchRemote &&
-        other.doneWithTransaction == doneWithTransaction;
+        other.doneWithTransaction == doneWithTransaction &&
+        other.forceRealData == forceRealData;
   }
 
   @override
@@ -387,6 +397,7 @@ class TransactionItemsStreamProvider
     hash = _SystemHash.combine(hash, requestId.hashCode);
     hash = _SystemHash.combine(hash, fetchRemote.hashCode);
     hash = _SystemHash.combine(hash, doneWithTransaction.hashCode);
+    hash = _SystemHash.combine(hash, forceRealData.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -410,6 +421,9 @@ mixin TransactionItemsStreamRef
 
   /// The parameter `doneWithTransaction` of this provider.
   bool get doneWithTransaction;
+
+  /// The parameter `forceRealData` of this provider.
+  bool get forceRealData;
 }
 
 class _TransactionItemsStreamProviderElement
@@ -430,6 +444,9 @@ class _TransactionItemsStreamProviderElement
   @override
   bool get doneWithTransaction =>
       (origin as TransactionItemsStreamProvider).doneWithTransaction;
+  @override
+  bool get forceRealData =>
+      (origin as TransactionItemsStreamProvider).forceRealData;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

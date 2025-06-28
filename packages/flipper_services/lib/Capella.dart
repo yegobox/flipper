@@ -1311,6 +1311,7 @@ class Capella extends AiStrategyImpl
     bool? active,
     bool fetchRemote = false,
     String? requestId,
+    bool forceRealData = true,
   }) {
     // TODO: implement transactionItems
     throw UnimplementedError();
@@ -1440,6 +1441,7 @@ class Capella extends AiStrategyImpl
       {String? status,
       String? transactionType,
       int? branchId,
+      bool forceRealData = true,
       bool isCashOut = false,
       bool includePending = false,
       String? id,
@@ -1473,6 +1475,7 @@ class Capella extends AiStrategyImpl
       DateTime? endDate,
       String? requestId,
       bool fetchRemote = false,
+      bool forceRealData = true,
       bool? doneWithTransaction,
       bool? active}) {
     // TODO: implement transactionItemsStreams
@@ -1524,6 +1527,7 @@ class Capella extends AiStrategyImpl
       {DateTime? startDate,
       DateTime? endDate,
       String? status,
+      bool forceRealData = true,
       String? transactionType,
       bool isCashOut = false,
       String? id,
@@ -2261,6 +2265,7 @@ class Capella extends AiStrategyImpl
   Stream<brick.ITransaction> pendingTransaction(
       {int? branchId,
       required String transactionType,
+      bool forceRealData = true,
       required bool isExpense}) {
     // TODO: implement pendingTransaction
     throw UnimplementedError();
@@ -2270,6 +2275,7 @@ class Capella extends AiStrategyImpl
   Future<brick.ITransaction?> pendingTransactionFuture(
       {int? branchId,
       required String transactionType,
+      bool forceRealData = true,
       required bool isExpense}) {
     // TODO: implement pendingTransactionFuture
     throw UnimplementedError();

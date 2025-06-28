@@ -22,6 +22,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     FilterType? filterType,
     int? branchId,
     bool isExpense = false,
+    bool forceRealData = true,
     bool includeZeroSubTotal = false,
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
@@ -203,6 +204,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<ITransaction?> pendingTransactionFuture(
       {int? branchId,
       required String transactionType,
+      bool forceRealData = true,
       required bool isExpense}) {
     throw UnimplementedError(
         'pendingTransactionFuture needs to be implemented for Capella');

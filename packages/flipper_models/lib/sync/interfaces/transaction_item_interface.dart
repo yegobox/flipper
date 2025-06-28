@@ -27,6 +27,7 @@ abstract class TransactionItemInterface {
     bool? active,
     bool fetchRemote = false,
     String? requestId,
+    bool forceRealData = true,
   });
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,
@@ -38,6 +39,7 @@ abstract class TransactionItemInterface {
     bool? active,
     String? requestId,
     bool fetchRemote = false,
+    bool forceRealData = true,
   });
 
   FutureOr<void> updateTransactionItem({

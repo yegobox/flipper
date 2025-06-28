@@ -310,41 +310,42 @@ class ButtonIndexNotifier extends StateNotifier<int> {
 
 //DateTime range provider
 
-final transactionListProvider =
-    StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  final dateRange = ref.watch(dateRangeProvider);
-  final startDate = dateRange.startDate;
-  final endDate = dateRange.endDate;
+// final transactionListProvider =
+//     StreamProvider.autoDispose.family<List<ITransaction>, bool>((ref, forceRealData) {
+//   final dateRange = ref.watch(dateRangeProvider);
+//   final startDate = dateRange.startDate;
+//   final endDate = dateRange.endDate;
 
-  // Check if startDate or endDate is null, and return an empty list stream if either is null
-  if (startDate == null || endDate == null) {
-    return Stream.value([]);
-  }
+//   // Check if startDate or endDate is null, and return an empty list stream if either is null
+//   if (startDate == null || endDate == null) {
+//     return Stream.value([]);
+//   }
 
-  try {
-    final stream = ProxyService.strategy.transactionsStream(
-      startDate: startDate,
-      endDate: endDate,
-      removeAdjustmentTransactions: true,
-      branchId: ProxyService.box.getBranchId(),
-      isCashOut: false,
-      status: COMPLETE,
-    );
+//   try {
+//     final stream = ProxyService.strategy.transactionsStream(
+//       startDate: startDate,
+//       endDate: endDate,
+//       removeAdjustmentTransactions: true,
+//       branchId: ProxyService.box.getBranchId(),
+//       isCashOut: false,
+//       status: COMPLETE,
+//       forceRealData: forceRealData,
+//     );
 
-    // Use `switchMap` to handle potential changes in dateRangeProvider
-    return stream.switchMap((transactions) {
-      // Log the received data to the console
-      // talker.info("Transaction Data: $transactions");
+//     // Use `switchMap` to handle potential changes in dateRangeProvider
+//     return stream.switchMap((transactions) {
+//       // Log the received data to the console
+//       // talker.info("Transaction Data: $transactions");
 
-      // Handle null or empty transactions if needed
-      return Stream.value(transactions);
-    });
-  } catch (e, stackTrace) {
-    // Return an error stream if something goes wrong
-    talker.info("Error loading transactions: $e");
-    return Stream.error(e, stackTrace);
-  }
-});
+//       // Handle null or empty transactions if needed
+//       return Stream.value(transactions);
+//     });
+//   } catch (e, stackTrace) {
+//     // Return an error stream if something goes wrong
+//     talker.info("Error loading transactions: $e");
+//     return Stream.error(e, stackTrace);
+//   }
+// });
 
 final currentTransactionsByIdStream =
     StreamProvider.autoDispose.family<List<ITransaction>, String>((ref, id) {
@@ -773,5 +774,4 @@ List<ProviderBase> allProviders = [
   unitsProvider,
   buttonIndexProvider,
   dateRangeProvider,
-  transactionListProvider,
 ];

@@ -18,6 +18,7 @@ abstract class TransactionInterface {
     bool fetchRemote = false,
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
+    bool forceRealData = true,
   });
 
   FutureOr<void> addTransaction({required ITransaction transaction});
@@ -26,12 +27,14 @@ abstract class TransactionInterface {
     int? branchId,
     required String transactionType,
     required bool isExpense,
+    bool forceRealData = true,
   });
 
   Future<ITransaction?> pendingTransactionFuture({
     int? branchId,
     required String transactionType,
     required bool isExpense,
+    bool forceRealData = true,
   });
 
   Stream<List<ITransaction>> transactionsStream({
@@ -45,6 +48,7 @@ abstract class TransactionInterface {
     DateTime? startDate,
     DateTime? endDate,
     required bool removeAdjustmentTransactions,
+    bool forceRealData = true,
   });
 
   Future<List<Configurations>> taxes({required int branchId});

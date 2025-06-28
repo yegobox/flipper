@@ -2,7 +2,7 @@
 
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -33,7 +33,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ref.read(dateRangeProvider.notifier).setEndDate(
               date.endDate ?? date.startDate!,
             );
-        ref.refresh(transactionListProvider);
+        ref.refresh(transactionListProvider(forceRealData: true));
         toast(
           'Date selected',
         );

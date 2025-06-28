@@ -5,6 +5,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'transactions_provider.g.dart';
 
@@ -27,12 +28,55 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
     startDate: startDate,
     endDate: endDate,
     removeAdjustmentTransactions: true,
+    forceRealData: true,
   );
 });
+@riverpod
+Stream<List<ITransaction>> transactionList(
+  Ref ref, {
+  required bool forceRealData,
+}) async* {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange.startDate;
+  final endDate = dateRange.endDate;
+
+  // Check if startDate or endDate is null, and return an empty list stream if either is null
+  if (startDate == null || endDate == null) {
+    yield [];
+    return;
+  }
+
+  try {
+    final stream = ProxyService.strategy.transactionsStream(
+      startDate: startDate,
+      endDate: endDate,
+      removeAdjustmentTransactions: true,
+      branchId: ProxyService.box.getBranchId(),
+      isCashOut: false,
+      status: COMPLETE,
+      forceRealData: forceRealData,
+    );
+
+    // Use `switchMap` to handle potential changes in dateRangeProvider
+    await for (final transactions in stream.switchMap((transactions) {
+      // Log the received data to the console
+      // talker.info("Transaction Data: $transactions");
+
+      // Handle null or empty transactions if needed
+      return Stream.value(transactions);
+    })) {
+      yield transactions;
+    }
+  } catch (e) {
+    // Log error and rethrow to let Riverpod handle it
+    talker.info("Error loading transactions: $e");
+    throw e;
+  }
+}
 
 // Transactions provider with optional date parameters
 @riverpod
-Stream<List<ITransaction>> transactions(Ref ref) {
+Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
   final dateRange = ref.watch(dateRangeProvider);
   DateTime startDate = dateRange.startDate ?? DateTime.now();
   DateTime endDate = dateRange.endDate ?? DateTime.now();
@@ -58,6 +102,7 @@ Stream<List<ITransaction>> transactions(Ref ref) {
     startDate: startDate,
     endDate: endDate,
     removeAdjustmentTransactions: true,
+    forceRealData: forceRealData,
   );
 }
 
@@ -108,7 +153,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
 
 @riverpod
 Stream<ITransaction> pendingTransactionStream(Ref ref,
-    {required bool isExpense}) {
+    {required bool isExpense, bool forceRealData = true}) {
   int? branchId = ProxyService.box.getBranchId();
   return ProxyService.strategy.manageTransactionStream(
     transactionType:
@@ -124,6 +169,7 @@ Stream<List<ITransaction>> expensesStream(
   required DateTime startDate,
   required DateTime endDate,
   int? branchId,
+  bool forceRealData = true,
 }) {
   branchId ??= ProxyService.box.getBranchId();
   if (branchId == null) {
@@ -141,6 +187,7 @@ Stream<List<ITransaction>> expensesStream(
         branchId: branchId,
         isCashOut: true, // <-- This filters for expenses
         removeAdjustmentTransactions: true,
+        forceRealData: true,
       )
       .map((transactions) => transactions.cast<ITransaction>())
       .handleError((error, stackTrace) {
@@ -156,6 +203,7 @@ Stream<double> netProfitStream(
   required DateTime startDate,
   required DateTime endDate,
   int? branchId,
+  bool forceRealData = true,
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
   if (branchId == null) {
@@ -169,6 +217,7 @@ Stream<double> netProfitStream(
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
+        forceRealData: forceRealData,
         isCashOut: false, // Only get income transactions
         removeAdjustmentTransactions: true,
       )
@@ -181,6 +230,7 @@ Stream<double> netProfitStream(
         branchId: branchId,
         isCashOut: true, // Only get expense transactions
         removeAdjustmentTransactions: true,
+        forceRealData: true,
       )
       .asBroadcastStream();
 
@@ -262,6 +312,7 @@ Stream<double> grossProfitStream(
   required DateTime startDate,
   required DateTime endDate,
   int? branchId,
+  bool forceRealData = true,
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
   if (branchId == null) {
@@ -272,6 +323,7 @@ Stream<double> grossProfitStream(
   final incomeStream = ProxyService.strategy.transactionsStream(
     startDate: startDate,
     endDate: endDate,
+    forceRealData: forceRealData,
     branchId: branchId,
     isCashOut: false, // Only get income transactions
     removeAdjustmentTransactions: true,
@@ -299,6 +351,7 @@ Stream<double> totalIncomeStream(
   required DateTime startDate,
   required DateTime endDate,
   int? branchId,
+  bool forceRealData = true,
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
   if (branchId == null) {
@@ -309,6 +362,7 @@ Stream<double> totalIncomeStream(
   final transactionsStream = ProxyService.strategy.transactionsStream(
     startDate: startDate,
     endDate: endDate,
+    forceRealData: forceRealData,
     branchId: branchId,
     removeAdjustmentTransactions: true,
   );

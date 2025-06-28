@@ -29,6 +29,7 @@ Stream<List<TransactionItem>> transactionItemsStream(
   String? requestId,
   bool fetchRemote = false,
   bool doneWithTransaction = false,
+  bool forceRealData = true,
 }) {
   return ProxyService.strategy.transactionItemsStreams(
     branchId: branchId,
@@ -37,5 +38,6 @@ Stream<List<TransactionItem>> transactionItemsStream(
     active: true,
     requestId: requestId,
     fetchRemote: fetchRemote,
+    forceRealData: forceRealData,
   );
 }

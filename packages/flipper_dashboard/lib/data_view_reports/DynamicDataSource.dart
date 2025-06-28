@@ -5,10 +5,36 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 abstract class DynamicDataSource<T> extends DataGridSource {
   List<T> data = [];
   bool showPluReport = false;
+  List<T> _paginatedData = [];
+  int _rowsPerPage = 10;
+
+  DynamicDataSource(List<T> initialData, int rowsPerPage) {
+    data = initialData;
+    _rowsPerPage = rowsPerPage;
+    _paginatedData = data.take(_rowsPerPage).toList();
+  }
+
+  void updateData(List<T> newData) {
+    data = newData;
+    _paginatedData = data.take(_rowsPerPage).toList();
+    notifyListeners();
+  }
+
+  @override
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    int startIndex = newPageIndex * _rowsPerPage;
+    int endIndex = startIndex + _rowsPerPage;
+    if (endIndex > data.length) {
+      endIndex = data.length;
+    }
+    _paginatedData = data.getRange(startIndex, endIndex).toList();
+    notifyListeners();
+    return true;
+  }
 
   @override
   List<DataGridRow> get rows {
-    return data.map((item) {
+    return _paginatedData.map((item) {
       if (item is TransactionItem && showPluReport) {
         return _buildTransactionItemRow(item);
       } else if (item is ITransaction && !showPluReport) {
@@ -113,6 +139,13 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       DataGridCell<double>(
           columnName: 'Cash', value: trans.cashReceived ?? 0.0),
     ]);
+  }
+
+  T? getItemAt(int index) {
+    if (index >= 0 && index < _paginatedData.length) {
+      return _paginatedData[index];
+    }
+    return null;
   }
 
   @override
