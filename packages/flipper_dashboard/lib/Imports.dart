@@ -198,93 +198,83 @@ class ImportsState extends ConsumerState<Imports> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: FutureBuilder<List<Variant>>(
-            future: widget.futureResponse,
-            builder: (context, snapshot) {
-              if (snapshot.hasError ||
-                  !snapshot.hasData ||
-                  snapshot.data == null ||
-                  snapshot.data!.isEmpty) {
-                return const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        'No Data Found or Network error please try again.',
-                        style: TextStyle(color: Colors.grey, fontSize: 18),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              final itemList = snapshot.data ?? [];
-              widget.finalItemList
-                ..clear()
-                ..addAll(itemList);
-              List<Variant> filteredItemList = itemList;
-              if (_selectedFilterStatus != null) {
-                filteredItemList = itemList.where((variant) {
-                  // Assuming '4' is the status code for Rejected items.
-                  // If not '2' (Wait) and not '3' (Approved), it's considered Rejected for display.
-                  // For filtering, we need a concrete status or a more complex condition.
-                  // Let's assume imptItemSttsCd can be '4' for rejected.
-                  if (_selectedFilterStatus == '4') {
-                    return variant.imptItemSttsCd != '2' &&
-                        variant.imptItemSttsCd != '3';
-                  }
-                  return variant.imptItemSttsCd == _selectedFilterStatus;
-                }).toList();
-              }
-              widget.finalItemList
-                ..clear()
-                ..addAll(
-                    filteredItemList); // Use filtered list for finalItemList as well
-              _variantDataSource.updateVariants(filteredItemList);
-              return SizedBox(
-                width: constraints.maxWidth,
-                child: Column(
-                  mainAxisSize:
-                      MainAxisSize.min, // Ensure column takes minimum space
-                  children: [
-                    ImportInputRow(
-                      nameController: widget.nameController,
-                      supplyPriceController: widget.supplyPriceController,
-                      retailPriceController: widget.retailPriceController,
-                      selectedItemForDropdown: widget.selectedItem,
-                      variantMap: widget.variantMap,
-                      variantSelectedWhenClickingOnRow:
-                          variantSelectedWhenClickingOnRow,
-                      finalItemList: widget.finalItemList,
-                      selectItemCallback: widget.selectItem,
-                      saveChangeMadeOnItemCallback: widget.saveChangeMadeOnItem,
-                      acceptAllImportCallback: (List<Variant> variants) {
-                        final allItems = snapshot.data ?? [];
-                        final waitingItems = allItems
-                            .where((v) => v.imptItemSttsCd == "2")
-                            .toList();
-                        widget.acceptAllImport(waitingItems);
-                      },
-                      anyLoading: _variantDataSource.anyLoading,
-                      selectedFilterStatus: _selectedFilterStatus,
-                      onFilterStatusChanged: (String? newValue) {
-                        setState(() {
-                          _selectedFilterStatus = newValue;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDataGrid(), // Removed Expanded
-                  ],
+    return FutureBuilder<List<Variant>>(
+      future: widget.futureResponse,
+      builder: (context, snapshot) {
+        if (snapshot.hasError ||
+            !snapshot.hasData ||
+            snapshot.data == null ||
+            snapshot.data!.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.hourglass_empty, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'No Data Found or Network error please try again.',
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
                 ),
-              );
-            },
+              ],
+            ),
+          );
+        }
+
+        final itemList = snapshot.data ?? [];
+        widget.finalItemList
+          ..clear()
+          ..addAll(itemList);
+        List<Variant> filteredItemList = itemList;
+        if (_selectedFilterStatus != null) {
+          filteredItemList = itemList.where((variant) {
+            if (_selectedFilterStatus == '4') {
+              return variant.imptItemSttsCd != '2' &&
+                  variant.imptItemSttsCd != '3';
+            }
+            return variant.imptItemSttsCd == _selectedFilterStatus;
+          }).toList();
+        }
+
+        widget.finalItemList
+          ..clear()
+          ..addAll(filteredItemList);
+        _variantDataSource.updateVariants(filteredItemList);
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ImportInputRow(
+                nameController: widget.nameController,
+                supplyPriceController: widget.supplyPriceController,
+                retailPriceController: widget.retailPriceController,
+                selectedItemForDropdown: widget.selectedItem,
+                variantMap: widget.variantMap,
+                variantSelectedWhenClickingOnRow:
+                    variantSelectedWhenClickingOnRow,
+                finalItemList: widget.finalItemList,
+                selectItemCallback: widget.selectItem,
+                saveChangeMadeOnItemCallback: widget.saveChangeMadeOnItem,
+                acceptAllImportCallback: (List<Variant> variants) {
+                  final allItems = snapshot.data ?? [];
+                  final waitingItems =
+                      allItems.where((v) => v.imptItemSttsCd == "2").toList();
+                  widget.acceptAllImport(waitingItems);
+                },
+                anyLoading: _variantDataSource.anyLoading,
+                selectedFilterStatus: _selectedFilterStatus,
+                onFilterStatusChanged: (String? newValue) {
+                  setState(() {
+                    _selectedFilterStatus = newValue;
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: _buildDataGrid(),
+              ),
+            ],
           ),
         );
       },
@@ -295,156 +285,161 @@ class ImportsState extends ConsumerState<Imports> {
     final double pageCount =
         (_variantDataSource.getVariants().length / _rowsPerPage).ceilToDouble();
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Card(
-          elevation: 2,
-          child: SfDataGrid(
-            controller: _dataGridController,
-            source: _variantDataSource,
-            selectionMode: SelectionMode.single,
-            columnWidthMode: ColumnWidthMode.fill,
-            rowsPerPage: _rowsPerPage,
-            onSelectionChanged: (addedRows, removedRows) {
-              if (addedRows.isNotEmpty) {
-                final selectedVariant = _variantDataSource.getVariantAt(
-                    _variantDataSource.rows.indexOf(addedRows.first));
-                widget.selectItem(selectedVariant);
-                setState(() {
-                  variantSelectedWhenClickingOnRow = selectedVariant;
-                });
-                widget.variantMap.clear();
-                if (selectedVariant != null) {
-                  _updateTextFields(selectedVariant);
+        Expanded(
+          child: Card(
+            elevation: 2,
+            child: SfDataGrid(
+              controller: _dataGridController,
+              source: _variantDataSource,
+              selectionMode: SelectionMode.single,
+              columnWidthMode: ColumnWidthMode.fill,
+              rowsPerPage: _rowsPerPage,
+              onSelectionChanged: (addedRows, removedRows) {
+                if (addedRows.isNotEmpty) {
+                  final selectedVariant = _variantDataSource.getVariantAt(
+                      _variantDataSource.rows.indexOf(addedRows.first));
+                  widget.selectItem(selectedVariant);
+                  setState(() {
+                    variantSelectedWhenClickingOnRow = selectedVariant;
+                  });
+                  widget.variantMap.clear();
+                  if (selectedVariant != null) {
+                    _updateTextFields(selectedVariant);
+                  }
+                } else {
+                  widget.selectItem(null);
                 }
-              } else {
-                widget.selectItem(null);
-              }
-            },
-            columns: [
-              GridColumn(
-                columnName: 'rowNumber',
-                width: 70,
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'No.',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+              },
+              columns: [
+                GridColumn(
+                  columnName: 'rowNumber',
+                  width: 70,
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'No.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'itemName',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Item Name',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'itemName',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Item Name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'hsCode',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'HS Code',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'hsCode',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'HS Code',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'quantity',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Quantity',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'quantity',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Quantity',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'retailPrice',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Retail Price',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'retailPrice',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Retail Price',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'supplyPrice',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Supply Price',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'supplyPrice',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Supply Price',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'status',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Status',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'status',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Status',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'Supplier',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Supplier',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'Supplier',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Supplier',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'Date',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Date',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'Date',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Date',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-              GridColumn(
-                columnName: 'actions',
-                label: Container(
-                  padding: const EdgeInsets.all(8),
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Actions',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'actions',
+                  label: Container(
+                    padding: const EdgeInsets.all(8),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Actions',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         if (pageCount > 1)
-          SfDataPager(
-            delegate: _variantDataSource,
-            pageCount: pageCount,
-            onPageNavigationStart: (int pageIndex) {
-              // Handle page navigation start if needed
-            },
-            onPageNavigationEnd: (int pageIndex) {
-              // Handle page navigation end if needed
-            },
+          Card(
+            child: SfDataPager(
+              delegate: _variantDataSource,
+              pageCount: pageCount,
+              onPageNavigationStart: (int pageIndex) {
+                // Handle page navigation start if needed
+              },
+              onPageNavigationEnd: (int pageIndex) {
+                // Handle page navigation end if needed
+              },
+            ),
           )
       ],
     );
