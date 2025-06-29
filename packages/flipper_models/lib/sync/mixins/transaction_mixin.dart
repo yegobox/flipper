@@ -124,7 +124,7 @@ mixin TransactionMixin implements TransactionInterface {
     // to force fetching fresh data from the remote source
     if (ProxyService.box.enableDebug() ?? false) {
       return DummyTransactionGenerator.generateDummyTransactions(
-        count: 10,
+        count: 100,
         branchId:
             branchId ?? 0, // Provide a default or handle null appropriately
         status: status,
@@ -909,7 +909,7 @@ mixin TransactionMixin implements TransactionInterface {
   }) {
     if (!forceRealData) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
-        count: 10,
+        count: 100,
         branchId: branchId ?? 1,
         status: status,
         transactionType: transactionType,
@@ -976,7 +976,7 @@ mixin TransactionMixin implements TransactionInterface {
         orderBy: [OrderBy('lastTouched', ascending: false)]);
     if (ProxyService.box.enableDebug() ?? false) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
-        count: 10,
+        count: 100,
         branchId:
             branchId ?? 0, // Provide a default or handle null appropriately
         status: status,

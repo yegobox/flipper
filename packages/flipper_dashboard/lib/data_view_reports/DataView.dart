@@ -68,9 +68,9 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   static const double dataPagerHeight = 60;
-  late DataGridSource _dataGridSource;
+  late DynamicDataSource _dataGridSource;
 
-  int pageIndex = 0;
+  int pageIndex = 0; // Keep pageIndex here
   final talker = TalkerFlutter.init();
   // Track loading states for different export operations
   bool _isExportingExcel = false;
@@ -82,12 +82,14 @@ class DataViewState extends ConsumerState<DataView>
   @override
   void initState() {
     super.initState();
+    talker.info('DataView: initState called.');
     _dataGridSource = _buildDataGridSource(
       showDetailed: widget.showDetailedReport,
       transactionItems: widget.transactionItems,
       transactions: widget.transactions,
       variants: widget.variants,
       rowsPerPage: widget.rowsPerPage,
+      currentPageIndex: pageIndex, // Pass initial page index
     );
     _fetchExportAccurateTotal();
   }
@@ -95,36 +97,37 @@ class DataViewState extends ConsumerState<DataView>
   @override
   void didUpdateWidget(DataView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    talker.info('DataView: didUpdateWidget called.');
     if (_shouldUpdateDataSource(oldWidget)) {
-      setState(() {
-        _dataGridSource = _buildDataGridSource(
-          showDetailed: widget.showDetailedReport,
-          transactionItems: widget.transactionItems,
-          transactions: widget.transactions,
-          variants: widget.variants,
-          rowsPerPage: widget.rowsPerPage,
-        );
-      });
+      talker.info('DataView: Data source needs update.');
+      _updateDataGridSource();
       _fetchExportAccurateTotal();
+    } else {
+      talker.info('DataView: Data source does not need update.');
     }
   }
 
   bool _shouldUpdateDataSource(DataView oldWidget) {
-    return widget.transactionItems != oldWidget.transactionItems ||
-        widget.transactions != oldWidget.transactions ||
-        widget.variants != oldWidget.variants ||
-        widget.rowsPerPage != oldWidget.rowsPerPage;
+    final bool changed =
+        widget.transactionItems != oldWidget.transactionItems ||
+            widget.transactions != oldWidget.transactions ||
+            widget.variants != oldWidget.variants ||
+            widget.rowsPerPage != oldWidget.rowsPerPage;
+    talker.info('DataView: _shouldUpdateDataSource - changed: $changed');
+    return changed;
   }
 
-  DataGridSource _initializeDataSource() {
-    // Create the data source based on current view mode
-    return _buildDataGridSource(
+  void _updateDataGridSource() {
+    // Reassign _dataGridSource to a new instance to force SfDataPager to re-evaluate its delegate
+    _dataGridSource = _buildDataGridSource(
       showDetailed: widget.showDetailedReport,
       transactionItems: widget.transactionItems,
       transactions: widget.transactions,
       variants: widget.variants,
       rowsPerPage: widget.rowsPerPage,
+      currentPageIndex: pageIndex, // Pass the current page index
     );
+    setState(() {}); // Trigger rebuild to reflect data changes
   }
 
   void _handleCellTap(DataGridCellTapDetails details) {
@@ -137,8 +140,10 @@ class DataViewState extends ConsumerState<DataView>
       final rowIndex = details.rowColumnIndex.rowIndex;
       if (rowIndex < 1) return;
 
-      final dataSource = _dataGridSource as DynamicDataSource;
-      final data = dataSource.getItemAt(pageIndex * widget.rowsPerPage + rowIndex - 1);
+      final dataSource = _dataGridSource;
+      // Calculate the actual index in the full data list based on current page and row index
+      final actualIndex = pageIndex * widget.rowsPerPage + rowIndex - 1;
+      final data = dataSource.getItemAt(actualIndex);
 
       if (widget.onTapRowShowRefundModal) {
         _showRefundModal(data);
@@ -437,7 +442,7 @@ class DataViewState extends ConsumerState<DataView>
 
   Widget _buildDataPager(BoxConstraints constraints) {
     // Safely calculate page count to avoid null errors
-    final rowCount = (_dataGridSource as DynamicDataSource).data.length;
+    final rowCount = (_dataGridSource).data.length;
     final pageCount = rowCount > 0
         ? (rowCount / widget.rowsPerPage).ceilToDouble()
         : 1.0; // Default to at least 1 page
@@ -466,12 +471,13 @@ class DataViewState extends ConsumerState<DataView>
 
   /// build an adapter of different view of the data, e.g transactions vs transactionItems and more to be
   /// supported
-  DataGridSource _buildDataGridSource({
+  DynamicDataSource _buildDataGridSource({
     required bool showDetailed,
     List<TransactionItem>? transactionItems,
     List<ITransaction>? transactions,
     List<Variant>? variants,
     required int rowsPerPage,
+    int currentPageIndex = 0, // Add currentPageIndex parameter
   }) {
     if (transactionItems != null && transactionItems.isNotEmpty) {
       return TransactionItemDataSource(
@@ -525,7 +531,7 @@ class DataViewState extends ConsumerState<DataView>
       // Force a rebuild of the UI and wait for it to complete
       if (mounted) {
         // Re-initialize the data source with current view mode
-        _initializeDataSource();
+        _updateDataGridSource();
         setState(() {});
 
         // Give the UI time to rebuild
