@@ -7,6 +7,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/services/ebm_sync_service.dart';
 import 'package:uuid/uuid.dart';
 
 mixin VariantMixin implements VariantInterface {
@@ -351,6 +352,11 @@ mixin VariantMixin implements VariantInterface {
       updatables[i].lastTouched = DateTime.now().toUtc();
 
       await repository.upsert<Variant>(updatables[i]);
+      // final ebmSyncService = EbmSyncService(repository);
+      // ebmSyncService.syncVariantWithEbm(
+      //   variant: updatables[i],
+      //   serverUrl: (await ProxyService.box.getServerUrl())!,
+      // );
     }
   }
 

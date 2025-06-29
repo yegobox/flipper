@@ -314,11 +314,11 @@ class _AuthState extends State<Auth> {
         await _loginViewModel.completeLoginProcess(userPin, user: userData);
 
         // Track login event with PosthogService
-        PosthogService.instance.capture('login_success', properties: {
-          'source': 'auth_screen',
-          'user_id': user.uid,
-          'email': user.email ?? user.phoneNumber!,
-        });
+        // PosthogService.instance.capture('login_success', properties: {
+        //   'source': 'auth_screen',
+        //   'user_id': user.uid,
+        //   'email': user.email ?? user.phoneNumber!,
+        // });
 
         // Update UI state to idle (will automatically dismiss loading UI)
         _authenticationStateController.add(AuthenticationState.idle());

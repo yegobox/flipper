@@ -107,7 +107,7 @@ Future<void> showOutOfStockDialog(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'Available quantity:',
+                      'Requested Quantity:',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.black87,

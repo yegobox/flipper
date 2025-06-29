@@ -189,13 +189,13 @@ class PhoneVerificationService {
         print('🚀 handleAuthStateChanges completed, about to show dialog');
         showAuthenticationDialog();
 
-        final props = <String, Object>{
-          'source': 'phone_input_screen',
-          if (user.user?.uid != null) 'user_id': user.user!.uid,
-          if (user.user?.phoneNumber != null)
-            'phone': user.user!.phoneNumber ?? user.user!.email!,
-        };
-        PosthogService.instance.capture('login_success', properties: props);
+        // final props = <String, Object>{
+        //   'source': 'phone_input_screen',
+        //   if (user.user?.uid != null) 'user_id': user.user!.uid,
+        //   if (user.user?.phoneNumber != null)
+        //     'phone': user.user!.phoneNumber ?? user.user!.email!,
+        // };
+        // PosthogService.instance.capture('login_success', properties: props);
       }
 
       state.isLoading = false;
