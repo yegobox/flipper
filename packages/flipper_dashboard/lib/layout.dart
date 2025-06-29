@@ -74,8 +74,6 @@ class DashboardLayout extends HookConsumerWidget {
         return const InventoryDashboardApp();
       case DashboardPage.kitchen:
         return const KitchenDisplay();
-      default:
-        return InventoryApp(searchController: searchController);
     }
   }
 }
