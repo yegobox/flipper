@@ -1167,7 +1167,8 @@ class CoreViewModel extends FlipperBaseModel
       incomingNewItem.ebmSynced = true;
       await ProxyService.strategy.updateVariant(updatables: [incomingNewItem]);
 
-      variantToProcess.ebmSynced = false;
+      variantToProcess.
+      ebmSynced = false;
       await ProxyService.strategy.updateVariant(updatables: [variantToProcess]);
     } else {
       /// we are not mapping save incoming item as new

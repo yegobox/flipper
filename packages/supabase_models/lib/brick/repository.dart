@@ -615,10 +615,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     TModel savedInstance;
     // Save the instance first to ensure we have an ID
     if (instance is Variant) {
-      // Log the variant details before saving
-      _logger.warning(
-          'Processing variant ${instance.id} with stockId: ${instance.stockId}');
-
       // Check for empty or null stockId
       if (instance.stockId == null ||
           instance.stockId!.isEmpty ||
@@ -671,7 +667,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           final serverUrl = await ProxyService.box.getServerUrl();
           if (serverUrl != null) {
             final ebmSyncService = EbmSyncService(this);
-            await ebmSyncService.syncTransactionWithEbm(
+            ebmSyncService.syncTransactionWithEbm(
               instance: savedInstance,
               serverUrl: serverUrl,
             );

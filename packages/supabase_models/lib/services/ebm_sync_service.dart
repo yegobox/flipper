@@ -63,6 +63,12 @@ class EbmSyncService {
     String? sarTyCd,
   }) async {
     if (await _handleProformaOrTrainingMode(variant, transaction)) {
+      if (variant != null) {
+        repository.upsert<Variant>(variant);
+      }
+      if (transaction != null) {
+        repository.upsert<ITransaction>(transaction);
+      }
       return true;
     }
 
