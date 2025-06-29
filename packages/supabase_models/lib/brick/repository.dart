@@ -639,7 +639,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Note: EBM sync service is called but not awaited to prevent blocking
       // the database write operation. The sync will happen in the background.
       final ebmSyncService = EbmSyncService(this);
-      ebmSyncService.syncVariantWithEbm(
+      ebmSyncService.stockIo(
         variant: instance,
         serverUrl: serverUrl!,
       );
