@@ -4,112 +4,78 @@ import 'package:flipper_dashboard/inventory_app.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/inventory_dashboard_app.dart';
 import 'package:flipper_dashboard/kitchen_display.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
-import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
-class AppLayoutDrawer extends StatefulHookConsumerWidget {
-  const AppLayoutDrawer({
-    Key? key,
-    required this.controller,
-    required this.tabSelected,
-    required this.focusNode,
-  }) : super(key: key);
-
-  final TextEditingController controller;
-  final int tabSelected;
-  final FocusNode focusNode;
-
-  @override
-  AppLayoutDrawerState createState() => AppLayoutDrawerState();
+enum DashboardPage {
+  inventory,
+  ai,
+  reports,
+  kitchen,
 }
 
-class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
-  final TextEditingController searchController = TextEditingController();
+final selectedPageProvider =
+    StateProvider<DashboardPage>((ref) => DashboardPage.inventory);
+
+class DashboardLayout extends HookConsumerWidget {
+  const DashboardLayout({Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
-    // Set default selected menu item
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(selectedMenuItemProvider.notifier).state = 0;
-    });
-  }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final searchController = useTextEditingController();
 
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-
-  Widget buildApps(CoreViewModel model) {
-    return MobileView(
-      isBigScreen: false,
-      controller: widget.controller,
-      model: model,
-    );
-  }
-
-  Widget buildSideMenu() {
-    if (!ProxyService.remoteConfig.isMultiUserEnabled()) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      child: EnhancedSideMenu(),
-    );
-  }
-
-  Widget _buildSelectedApp() {
-    final selectedIndex = ref.watch(selectedMenuItemProvider);
-    switch (selectedIndex) {
-      case 0:
-        return InventoryApp(
-          searchController: searchController,
-        );
-      case 1:
-        return const Ai();
-      case 2:
-        return const InventoryDashboardApp();
-      case 3:
-        return const KitchenDisplay();
-      default:
-        return InventoryApp(
-          searchController: searchController,
-        );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         ref.read(previewingCart.notifier).state = false;
       },
       builder: (context, model, child) {
+        final selectedPageWidget = _buildSelectedApp(ref, searchController);
+
         return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
+          builder: (context, constraints) {
             if (constraints.maxWidth < 600) {
-              return buildApps(model);
-            } else {
-              return Scaffold(
-                body: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    buildSideMenu(),
-                    Expanded(child: _buildSelectedApp()),
-                  ],
-                ),
+              return MobileView(
+                isBigScreen: false,
+                controller: searchController,
+                model: model,
               );
             }
+            return Scaffold(
+              body: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (ProxyService.remoteConfig.isMultiUserEnabled())
+                    const EnhancedSideMenu(),
+                  Expanded(child: selectedPageWidget),
+                ],
+              ),
+            );
           },
         );
       },
     );
+  }
+
+  Widget _buildSelectedApp(
+      WidgetRef ref, TextEditingController searchController) {
+    final selectedPage = ref.watch(selectedPageProvider);
+    switch (selectedPage) {
+      case DashboardPage.inventory:
+        return InventoryApp(searchController: searchController);
+      case DashboardPage.ai:
+        return const Ai();
+      case DashboardPage.reports:
+        return const InventoryDashboardApp();
+      case DashboardPage.kitchen:
+        return const KitchenDisplay();
+      default:
+        return InventoryApp(searchController: searchController);
+    }
   }
 }

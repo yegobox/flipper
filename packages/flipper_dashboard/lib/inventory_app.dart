@@ -50,9 +50,12 @@ class InventoryApp extends HookConsumerWidget {
       case 2: // Tickets
         return const TransactionWidget();
       default:
-        return Center(
-          child: Text('Default Content'),
-        );
+        return isScanningMode
+            ? buildReceiptUI()
+                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+            : CheckOut(isBigScreen: true)
+                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+                .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
     }
   }
 
