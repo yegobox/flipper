@@ -54,7 +54,7 @@ class TransactionListState extends ConsumerState<TransactionList>
     } else {
       // For summary view, use transactionListProvider
       dataProvider = ref.watch(transactionListProvider(
-          forceRealData: ProxyService.box.enableDebug() ?? true));
+          forceRealData: !(ProxyService.box.enableDebug() ?? false)));
     }
 
     // Listen for toggle changes to ensure data is refreshed
@@ -63,7 +63,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         // Always refresh both providers to ensure data is up-to-date
         ref.invalidate(transactionItemListProvider);
         ref.invalidate(transactionListProvider(
-            forceRealData: ProxyService.box.enableDebug() ?? true));
+            forceRealData: !(ProxyService.box.enableDebug() ?? false)));
       }
     });
 

@@ -22,14 +22,14 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       StreamProvider<List<ITransaction>>((ref) {
     // Create a single broadcast stream for each status (shared across all consumers)
     final parkedStream = ProxyService.strategy
-        .transactionsStream(status: PARKED, removeAdjustmentTransactions: true)
+        .transactionsStream(status: PARKED, removeAdjustmentTransactions: true,forceRealData: true)
         .asBroadcastStream();
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
-            status: IN_PROGRESS, removeAdjustmentTransactions: true)
+            status: IN_PROGRESS, removeAdjustmentTransactions: true,forceRealData: true)
         .asBroadcastStream();
     final waitingStream = ProxyService.strategy
-        .transactionsStream(status: WAITING, removeAdjustmentTransactions: true)
+        .transactionsStream(status: WAITING, removeAdjustmentTransactions: true,forceRealData: true)
         .asBroadcastStream();
 
     // Instead of polling with Stream.periodic and .first, merge the streams and yield on any update
