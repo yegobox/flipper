@@ -355,6 +355,7 @@ final currentTransactionsByIdStream =
   final transactionsStream = ProxyService.strategy.transactionsStream(
       id: id,
       filterType: FilterType.TRANSACTION,
+      forceRealData: true,
       removeAdjustmentTransactions: true);
 
   // Return the stream
@@ -374,7 +375,7 @@ final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.strategy.transactionsStream(
-      branchId: branchId, removeAdjustmentTransactions: true);
+      branchId: branchId, removeAdjustmentTransactions: true,forceRealData: true);
 });
 
 final universalProductsNames =

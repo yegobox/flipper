@@ -365,16 +365,22 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         .transactionsStream(
           status: PARKED,
           removeAdjustmentTransactions: true,
+          forceRealData: true,
         )
         .asBroadcastStream();
 
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
-            status: IN_PROGRESS, removeAdjustmentTransactions: true)
+            status: IN_PROGRESS,
+            removeAdjustmentTransactions: true,
+            forceRealData: true)
         .asBroadcastStream();
 
     final waitingStream = ProxyService.strategy
-        .transactionsStream(status: WAITING, removeAdjustmentTransactions: true)
+        .transactionsStream(
+            status: WAITING,
+            removeAdjustmentTransactions: true,
+            forceRealData: true)
         .asBroadcastStream();
 
     // Merge streams with periodic polling (excluding COMPLETE status)

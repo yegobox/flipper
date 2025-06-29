@@ -6,7 +6,6 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
