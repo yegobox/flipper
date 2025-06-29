@@ -315,9 +315,9 @@ Future<void> initializeDependencies() async {
     // Note: initDependencies(), setupLocator(), setupDialogUi(), and setupBottomSheetUi()
     // are now called directly in main.dart before this function to avoid
     // 'AppService not registered' errors
-    loc.setupLocator(stackedRouter: stackedRouter);
-    setupDialogUi();
-    setupBottomSheetUi();
+    // loc.setupLocator(stackedRouter: stackedRouter);
+    // setupDialogUi();
+    // setupBottomSheetUi();
     // Step 3: Schedule remaining non-critical dependencies to run after UI is shown
     // This improves perceived performance by showing the UI faster
     Future.delayed(const Duration(milliseconds: 50), () async {

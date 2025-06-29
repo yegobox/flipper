@@ -1,40 +1,59 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:talker_flutter/talker_flutter.dart';
+
+final talker = TalkerFlutter.init();
 
 abstract class DynamicDataSource<T> extends DataGridSource {
   List<T> data = [];
   bool showPluReport = false;
-  List<T> _paginatedData = [];
+  List<DataGridRow> _dataGridRows = [];
   int _rowsPerPage = 10;
 
   DynamicDataSource(List<T> initialData, int rowsPerPage) {
     data = initialData;
     _rowsPerPage = rowsPerPage;
-    _paginatedData = data.take(_rowsPerPage).toList();
+    _dataGridRows = buildPaginatedDataGridRows();
+    talker.info('DynamicDataSource: Constructor - initialData.length: ${initialData.length}, _rowsPerPage: $_rowsPerPage, _dataGridRows.length: ${_dataGridRows.length}');
   }
 
   void updateData(List<T> newData) {
     data = newData;
-    _paginatedData = data.take(_rowsPerPage).toList();
+    _dataGridRows = buildPaginatedDataGridRows();
+    talker.info('DynamicDataSource: updateData - newData.length: ${newData.length}, _dataGridRows.length: ${_dataGridRows.length}');
     notifyListeners();
   }
 
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    talker.info('DynamicDataSource: handlePageChange - oldPageIndex: $oldPageIndex, newPageIndex: $newPageIndex');
     int startIndex = newPageIndex * _rowsPerPage;
     int endIndex = startIndex + _rowsPerPage;
     if (endIndex > data.length) {
       endIndex = data.length;
     }
-    _paginatedData = data.getRange(startIndex, endIndex).toList();
+    _dataGridRows = data.getRange(startIndex, endIndex).map((item) {
+      if (item is TransactionItem && showPluReport) {
+        return _buildTransactionItemRow(item);
+      } else if (item is ITransaction && !showPluReport) {
+        return _buildITransactionRow(item);
+      } else if (item is Variant) {
+        return _buildStockRow(item);
+      } else {
+        return DataGridRow(cells: []);
+      }
+    }).toList();
+    talker.info('DynamicDataSource: handlePageChange - _dataGridRows.length: ${_dataGridRows.length}');
     notifyListeners();
     return true;
   }
 
   @override
-  List<DataGridRow> get rows {
-    return _paginatedData.map((item) {
+  List<DataGridRow> get rows => _dataGridRows;
+
+  List<DataGridRow> buildPaginatedDataGridRows() {
+    return data.take(_rowsPerPage).map((item) {
       if (item is TransactionItem && showPluReport) {
         return _buildTransactionItemRow(item);
       } else if (item is ITransaction && !showPluReport) {
@@ -142,8 +161,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   }
 
   T? getItemAt(int index) {
-    if (index >= 0 && index < _paginatedData.length) {
-      return _paginatedData[index];
+    if (index >= 0 && index < data.length) {
+      return data[index];
     }
     return null;
   }

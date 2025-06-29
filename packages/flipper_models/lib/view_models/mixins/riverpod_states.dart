@@ -520,7 +520,7 @@ final reportsProvider =
   });
 });
 // TODO: hardcoding 2000 items is not ideal, I need to find permanent solution.
-final rowsPerPageProvider = StateProvider<int>((ref) => 2000);
+final rowsPerPageProvider = StateProvider<int>((ref) => 20);
 
 class PluReportToggleNotifier extends StateNotifier<bool> {
   PluReportToggleNotifier() : super(false); // Default to ZReport
