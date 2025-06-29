@@ -56,7 +56,7 @@ class EbmSyncService {
   /// Returns: `true` if synchronization was successful, `false` otherwise
   /// either of these functions can't throw exceptions because they might be called in the loop and will break the loop
   /// which can cause the half saving data in our db.
-  Future<bool> syncVariantWithEbm({
+  Future<bool> stockIo({
     Variant? variant,
     required String serverUrl,
     ITransaction? transaction,
@@ -96,9 +96,40 @@ class EbmSyncService {
       await ProxyService.tax.saveStockMaster(variant: variant, URI: serverUrl);
     }
 
-    Business? business = await ProxyService.strategy
+    // Sync stock items with the EBM system
+    return await _syncStockItems(
+      transaction: transaction,
+      serverUrl: serverUrl,
+      variant: variant,
+      sarTyCd: sarTyCd,
+    );
+  }
+
+  /// Synchronizes stock items for a transaction with the EBM system.
+  ///
+  /// This method handles the process of syncing stock items for a given transaction
+  /// with the tax authority's system. It calculates taxes, saves stock items, and
+  /// updates the transaction and variant status upon successful sync.
+  ///
+  /// Parameters:
+  /// - [pendingTransaction]: The transaction containing the items to sync
+  /// - [variant]: The variant being synced (optional)
+  /// - [sarTyCd]: The stock adjustment reason code (defaults to transaction's sarTyCd)
+  /// - [serverUrl]: The server URL for the API endpoint
+  ///
+  /// Returns:
+  /// - `true` if the sync was successful, `false` otherwise
+  Future<bool> _syncStockItems({
+    required ITransaction? transaction,
+    required String serverUrl,
+    Variant? variant,
+    String? sarTyCd,
+  }) async {
+    // Get business and transaction
+    final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    ITransaction? pendingTransaction;
+    ITransaction? pendingTransaction = transaction;
+    // Create new transaction if needed
     if (transaction == null && variant != null) {
       pendingTransaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
@@ -114,24 +145,36 @@ class EbmSyncService {
         pendingTransaction: pendingTransaction!,
         business: business!,
         randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
-        sarTyCd: "06",
+
+        ///06 stock adjustment is needed for stock io to take effect
+        sarTyCd: sarTyCd ?? "06",
       );
-    } else {
-      pendingTransaction = transaction;
+    }
+
+    if (pendingTransaction == null) {
+      talker.error('No transaction available for stock sync');
+      return false;
     }
     double totalvat = 0;
     double taxB = 0;
+
+    // Get transaction items
     List<TransactionItem> items = await repository.get<TransactionItem>(
         query: Query(
-            where: [Where('transactionId').isExactly(pendingTransaction!.id)]));
+            where: [Where('transactionId').isExactly(pendingTransaction.id)]));
+
+    // Get tax configuration for tax type B
     Configurations taxConfigTaxB = (await repository.get<Configurations>(
             query: Query(where: [Where('taxType').isExactly("B")])))
         .first;
+
+    // Calculate total tax B
     for (var item in items) {
       if (item.taxTyCd == "B") {
         taxB += (item.price * item.qty);
       }
     }
+
     final totalTaxB = Repository.calculateTotalTax(taxB, taxConfigTaxB);
     totalvat = totalTaxB;
 
@@ -155,6 +198,7 @@ class EbmSyncService {
         ocrnDt: pendingTransaction.updatedAt ?? DateTime.now().toUtc(),
         URI: serverUrl,
       );
+
       if (responseSaveStockInput.resultCd == "000") {
         if (variant != null) {
           variant.ebmSynced = true;
@@ -171,6 +215,7 @@ class EbmSyncService {
     } catch (e, s) {
       talker.error(e, s);
     }
+
     return false;
   }
 
@@ -201,8 +246,7 @@ class EbmSyncService {
 
       // Variant variant = Variant.copyFromTransactionItem(item);
       // get transaction items
-      await syncVariantWithEbm(
-          serverUrl: serverUrl, transaction: instance, sarTyCd: "11");
+      await stockIo(serverUrl: serverUrl, transaction: instance, sarTyCd: "11");
 
       // If all items synced successfully, mark transaction as synced
       instance.ebmSynced = true;
