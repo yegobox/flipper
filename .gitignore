@@ -87,3 +87,5 @@ coverage/
 
 *.sql
 .qodo
+
+GEMINI.md
