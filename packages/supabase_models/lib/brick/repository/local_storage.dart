@@ -813,6 +813,6 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   bool vatEnabled() {
-    return _cache['vatEnabled'] as bool? ?? false;
+    return _cache['vatEnabled'] as bool? ?? true;
   }
 }
