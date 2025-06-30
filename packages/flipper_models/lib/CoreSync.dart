@@ -265,6 +265,15 @@ class CoreSync extends AiStrategyImpl
     } catch (e, s) {
       talker.warning('Error in updateStock: $e $s');
       talker.error(s);
+      GlobalErrorHandler.logError(
+        s,
+        type: "PRODUCT-CREATION",
+        context: {
+          'resultCode': e,
+          'businessId': ProxyService.box.getBusinessId(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
       rethrow;
     }
   }
