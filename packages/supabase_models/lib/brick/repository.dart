@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'dart:io';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_supabase/testing.dart';
@@ -16,6 +18,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
+import 'package:supabase_models/brick/models/retryable.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/services/ebm_sync_service.dart';
@@ -643,6 +646,34 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       );
       instance.ebmSynced = true;
       super.upsert(instance);
+    } else if (instance is Retryable) {
+      final serverUrl = await ProxyService.box.getServerUrl();
+      if (instance.retryCount > 3) {
+        return instance;
+      }
+      if (instance.entityTable == "transactions") {
+        // get this failed transaction and try to sync it again
+        final transaction = await get<ITransaction>(
+            query: Query(where: [Where('id').isExactly(instance.entityId)]));
+        if (transaction.isNotEmpty) {
+          final ebmSyncService = EbmSyncService(this);
+          ebmSyncService.syncTransactionWithEbm(
+            instance: transaction.first,
+            serverUrl: serverUrl!,
+          );
+        }
+      } else if (instance.entityTable == "variants") {
+        // get this failed variant and try to sync it again
+        final variant = await get<Variant>(
+            query: Query(where: [Where('id').isExactly(instance.entityId)]));
+        if (variant.isNotEmpty) {
+          final ebmSyncService = EbmSyncService(this);
+          ebmSyncService.stockIo(
+            variant: variant.first,
+            serverUrl: serverUrl!,
+          );
+        }
+      }
     }
     return instance;
   }

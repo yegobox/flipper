@@ -5,6 +5,7 @@ import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/retryable.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 /// Service responsible for synchronizing data with the EBM (Electronic Billing Machine) system.
@@ -77,8 +78,48 @@ class EbmSyncService {
         variant.ebmSynced = true;
         return true;
       }
-      await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
-      await ProxyService.tax.saveStockMaster(variant: variant, URI: serverUrl);
+      final saveItemResponse =
+          await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
+      if (saveItemResponse.resultCd != "000") {
+        await _handleFailedSync(
+          entityId: variant.id,
+          entityTable: "variants",
+          failureReason: saveItemResponse.resultMsg,
+        );
+      } else if (saveItemResponse.resultCd == "000") {
+        // delete retryable if exist with same entity id and entity table
+        // get retryable
+        final retryable = await repository.get(
+            query: Query(where: [
+          Where('entityId').isExactly(variant.id),
+          Where('entityTable').isExactly("variants")
+        ]));
+        if (retryable.isNotEmpty) {
+          await repository.delete(retryable.first);
+        }
+      }
+
+      final saveStockMasterResponse = await ProxyService.tax
+          .saveStockMaster(variant: variant, URI: serverUrl);
+
+      if (saveStockMasterResponse.resultCd != "000") {
+        await _handleFailedSync(
+          entityId: variant.id,
+          entityTable: "variants",
+          failureReason: saveStockMasterResponse.resultMsg,
+        );
+      } else if (saveStockMasterResponse.resultCd == "000") {
+        // delete retryable if exist with same entity id and entity table
+        // get retryable
+        final retryable = await repository.get(
+            query: Query(where: [
+          Where('entityId').isExactly(variant.id),
+          Where('entityTable').isExactly("variants")
+        ]));
+        if (retryable.isNotEmpty) {
+          await repository.delete(retryable.first);
+        }
+      }
     }
 
     // Sync stock items with the EBM system
@@ -88,6 +129,38 @@ class EbmSyncService {
       variant: variant,
       sarTyCd: sarTyCd,
     );
+  }
+
+  /// Handles failed synchronization by creating and upserting a Retryable entity.
+  ///
+  /// Parameters:
+  /// - [entityId]: The ID of the entity that failed to sync
+  /// - [entityTable]: The name of the table for the entity
+  /// - [failureReason]: The reason for the sync failure
+  Future<void> _handleFailedSync({
+    required String entityId,
+    required String entityTable,
+    required String failureReason,
+  }) async {
+    // check if this has been retried before
+    final retryable = await repository.get<Retryable>(
+        query: Query(where: [
+      Where('entityId').isExactly(entityId),
+      Where('entityTable').isExactly(entityTable)
+    ]));
+    if (retryable.isNotEmpty) {
+      // increment retry count
+      retryable.first.retryCount++;
+      await repository.upsert(retryable.first);
+    } else {
+      await repository.upsert(Retryable(
+        entityId: entityId,
+        entityTable: entityTable,
+        lastFailureReason: failureReason,
+        retryCount: 0,
+        createdAt: DateTime.now(),
+      ));
+    }
   }
 
   /// Synchronizes stock items for a transaction with the EBM system.
@@ -185,11 +258,26 @@ class EbmSyncService {
       );
 
       if (responseSaveStockInput.resultCd == "000") {
+        // delete retryable if exist with same entity id and entity table
+        final retryable = await repository.get(
+            query: Query(where: [
+          Where('entityId').isExactly(pendingTransaction.id),
+          Where('entityTable').isExactly("transactions")
+        ]));
+        if (retryable.isNotEmpty) {
+          await repository.delete(retryable.first);
+        }
         if (variant != null) {
           ProxyService.notification
               .sendLocalNotification(body: "Synced ${variant.itemCd}");
           return true;
         }
+      } else if (responseSaveStockInput.resultCd != "000") {
+        await _handleFailedSync(
+          entityId: pendingTransaction.id,
+          entityTable: "transactions",
+          failureReason: responseSaveStockInput.resultMsg,
+        );
       }
     } catch (e, s) {
       talker.error(e, s);

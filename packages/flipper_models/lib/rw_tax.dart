@@ -991,7 +991,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
 
-    Map<String, dynamic> data = item.toJson();
+    Map<String, dynamic> data = item.toFlipperJson();
     data['tin'] = business.tinNumber ?? 999909695;
     data['bhfId'] = bhfId;
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);

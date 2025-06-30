@@ -129,7 +129,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
     );
   }
   // toJson() method
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toFlipperJson() {
     return {
       'id': id,
       'spplrTin': spplrTin,

@@ -255,7 +255,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       );
       if (!_isDisposed) {
         ref.read(loadingProvider.notifier).stopLoading();
-        toast("We did not close normally, check if your product is saved");
+        toast("We did not close normally, check if your product is saved",
+            duration: Toast.LENGTH_LONG);
       }
       rethrow;
     }
