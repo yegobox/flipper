@@ -1824,6 +1824,7 @@ class CoreSync extends AiStrategyImpl
         bus = Business.fromMap(jsonData);
         talker
             .info('Signup: Business parsed successfully, ID: ${bus.serverId}');
+        await repository.upsert<Business>(bus); // Save the business object locally
       } catch (e, s) {
         talker.error('Signup: Error parsing business data: $e', s);
         throw e;
