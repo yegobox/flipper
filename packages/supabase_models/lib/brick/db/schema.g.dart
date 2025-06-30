@@ -1,24 +1,26 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250630052951.migration.dart';
+part '20250630092246.migration.dart';
 part '20250625184201.migration.dart';
 part '20250625131600.migration.dart';
 part '20250625193437.migration.dart';
 part '20250629194320.migration.dart';
+part '20250630052951.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250630052951(),
+  const Migration20250630092246(),
   const Migration20250625184201(),
   const Migration20250625131600(),
   const Migration20250625193437(),
   const Migration20250629194320(),
+  const Migration20250630052951(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250629194320,
+  20250630052951,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1259,6 +1261,8 @@ final schema = Schema(
         SchemaColumn('type', Column.varchar),
         SchemaColumn('business_id', Column.integer),
         SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('tags', Column.varchar),
+        SchemaColumn('extra', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

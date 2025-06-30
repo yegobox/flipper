@@ -79,11 +79,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 
   // Helper function to check if a string is a valid hexadecimal color code
-  bool _isDisposed = false; // Add a flag to track disposal.
 
   @override
   void dispose() {
-    _isDisposed = true; // Set the flag when disposing.
     _inputTimer?.cancel();
     productNameController.dispose();
     retailPriceController.dispose();
@@ -108,7 +106,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef,
       {required String selectedProductType}) async {
-    if (_isDisposed) return; // Moved to the top
+    if (!mounted) return; // Moved to the top
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -127,6 +125,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (_formKey.currentState!.validate() &&
           !ref.watch(isCompositeProvider)) {
         if (widget.productId != null) {
+          if (!mounted) return;
           await model.bulkUpdateVariants(true,
               color: pickerColor.toHex(),
               categoryId: selectedCategoryId,
@@ -136,9 +135,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               rates: _rates,
               dates: _dates,
               onCompleteCallback: (List<Variant> variants) async {
+            if (!mounted) return;
             final invoiceNumber = await showInvoiceNumberModal(context);
             if (invoiceNumber == null) return;
 
+            if (!mounted) return;
             final pendingTransaction =
                 await ProxyService.strategy.manageTransaction(
               transactionType: TransactionType.adjustment,
@@ -147,6 +148,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             );
             Business? business = await ProxyService.strategy
                 .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            if (!mounted) return;
 
             for (Variant variant in variants) {
               // Handle the transaction for stock adjustment
@@ -163,10 +165,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             }
 
             if (pendingTransaction != null) {
+              if (!mounted) return;
               await completeTransaction(pendingTransaction: pendingTransaction);
             }
           });
         } else {
+          if (!mounted) return;
           await model.addVariant(
             model: model,
             productName: model.kProductName!,
@@ -184,9 +188,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             packagingUnit: selectedPackageUnitValue.split(":")[0],
             categoryId: selectedCategoryId,
             onCompleteCallback: (List<Variant> variants) async {
+              if (!mounted) return;
               final invoiceNumber = await showInvoiceNumberModal(context);
               if (invoiceNumber == null) return;
 
+              if (!mounted) return;
               final pendingTransaction =
                   await ProxyService.strategy.manageTransaction(
                 transactionType: TransactionType.adjustment,
@@ -195,6 +201,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               );
               Business? business = await ProxyService.strategy
                   .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+              if (!mounted) return;
 
               for (Variant variant in variants) {
                 // Handle the transaction for stock adjustment
@@ -211,6 +218,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               }
 
               if (pendingTransaction != null) {
+                if (!mounted) return;
                 await completeTransaction(
                     pendingTransaction: pendingTransaction);
               }
@@ -225,6 +233,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             color: model.currentColor,
             inUpdateProcess: widget.productId != null,
             productName: model.kProductName!);
+
+        if (!mounted) return;
 
         // Refresh the product list and asset data
         final combinedNotifier = ref.read(refreshProvider);
@@ -252,8 +262,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           'businessId': ProxyService.box.getBusinessId(),
           'timestamp': DateTime.now().toIso8601String(),
         },
+        extra: {
+          'resultCode': s,
+          'businessId': ProxyService.box.getBusinessId(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
       );
-      if (!_isDisposed) {
+      if (mounted) {
         ref.read(loadingProvider.notifier).stopLoading();
         toast("We did not close normally, check if your product is saved",
             duration: Toast.LENGTH_LONG);
@@ -263,7 +278,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 
   Future<void> _handleCompositeProductSave(ScannViewModel model) async {
-    if (_isDisposed) return;
+    if (!mounted) return;
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
@@ -284,6 +299,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         );
       }
 
+      if (!mounted) return;
+
       // Update the product
       await ProxyService.strategy.updateProduct(
         productId: ref.read(unsavedProductProvider)!.id,
@@ -292,6 +309,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         name: productNameController.text,
         isComposite: true,
       );
+
+      if (!mounted) return;
 
       // Create default variant
       await ProxyService.strategy.createVariant(
@@ -307,6 +326,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         color: ref.read(unsavedProductProvider)!.color,
         name: productNameController.text,
       );
+
+      if (!mounted) return;
 
       // Refresh the list
       final combinedNotifier = ref.read(refreshProvider);
@@ -325,7 +346,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
       ref.read(loadingProvider.notifier).stopLoading();
     } catch (e) {
-      if (!_isDisposed) {
+      if (mounted) {
         ref.read(loadingProvider.notifier).stopLoading();
         toast("Failed to save composite product: ${e.toString()}");
         talker.error("Error saving composite product: $e");
@@ -337,7 +358,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product,
       {required String selectedProductType}) async {
-    if (_isDisposed) return;
+    if (!mounted) return;
     try {
       if (model.scannedVariants.isEmpty && widget.productId == null) {
         _showNoProductSavedToast();
@@ -347,7 +368,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       await _saveProductAndVariants(model, context, product,
           selectedProductType: selectedProductType);
     } catch (e) {
-      if (!_isDisposed) {
+      if (mounted) {
         toast("Error saving product: ${e.toString()}");
         talker.error("Error in _onSaveButtonPressed: $e");
       }
@@ -377,7 +398,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                 Product product =
                     await model.getProduct(productId: widget.productId!);
-                if (!_isDisposed) {
+                if (!mounted) return;
+                if (mounted) {
                   ref
                       .read(unsavedProductProvider.notifier)
                       .emitProduct(value: product);
@@ -391,6 +413,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 List<Variant> variants = await ProxyService.strategy.variants(
                     productId: widget.productId!,
                     branchId: ProxyService.box.getBranchId()!);
+                if (!mounted) return;
 
                 // Preserve existing itemTyCd if it exists
                 if (variants.isNotEmpty && variants.first.itemTyCd != null) {
@@ -408,7 +431,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                 // Set the selectedCategoryId from the first variant's categoryId
                 if (variants.isNotEmpty && variants.first.categoryId != null) {
-                  if (!_isDisposed) {
+                  if (mounted) {
                     setState(() {
                       selectedCategoryId = variants.first.categoryId;
                     });
@@ -427,7 +450,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   name: TEMP_PRODUCT,
                   createItemCode: false,
                 );
-                if (!_isDisposed && product != null) {
+                if (!mounted) return;
+                if (mounted && product != null) {
                   ref
                       .read(unsavedProductProvider.notifier)
                       .emitProduct(value: product);
@@ -481,7 +505,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                               .sublist(2)
                                               .join(':')))),
                                   onChanged: (String? newValue) {
-                                    if (!_isDisposed && newValue != null) {
+                                    if (mounted && newValue != null) {
                                       setState(() {
                                         selectedPackageUnitValue = newValue;
                                       });
@@ -512,8 +536,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                           options: categoryOptions,
                                           displayNames: displayNames,
                                           onChanged: (String? newValue) {
-                                            if (!_isDisposed &&
-                                                newValue != null) {
+                                            if (mounted && newValue != null) {
                                               final value = newValue.split(":");
                                               setState(() {
                                                 selectedCategoryId = value[0];
@@ -548,7 +571,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                     selectedValue: selectedPackageUnitValue,
                                     options: model.pkgUnits,
                                     onChanged: (String? newValue) {
-                                      if (!_isDisposed && newValue != null) {
+                                      if (mounted && newValue != null) {
                                         setState(() {
                                           selectedPackageUnitValue = newValue;
                                         });
@@ -581,8 +604,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                             options: categoryOptions,
                                             displayNames: displayNames,
                                             onChanged: (String? newValue) {
-                                              if (!_isDisposed &&
-                                                  newValue != null) {
+                                              if (mounted && newValue != null) {
                                                 final value =
                                                     newValue.split(":");
                                                 setState(() {
@@ -616,7 +638,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         ProductTypeDropdown(
                           selectedValue: selectedProductType,
                           onChanged: (String? newValue) {
-                            if (!_isDisposed && newValue != null) {
+                            if (mounted && newValue != null) {
                               setState(() {
                                 selectedProductType = newValue;
                               });
@@ -749,7 +771,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   children: [
                     ElevatedButton(
                       onPressed: () async {
-                        if (_isDisposed) return;
+                        if (!mounted) return;
                         try {
                           if (_formKey.currentState!.validate() &&
                               !ref.watch(isCompositeProvider)) {
@@ -757,7 +779,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               toast("Invalid product reference");
                               return;
                             }
-
+                            if (!mounted) return;
                             _onSaveButtonPressed(
                               selectedProductType: selectedProductType,
                               productModel,
@@ -851,6 +873,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                   "Attempted to scan barcode with null productRef. Skipping scan.");
                               return;
                             }
+                            if (!mounted) return;
                             try {
                               model.onScanItem(
                                 countryCode: countryOfOriginController.text,
@@ -915,6 +938,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       "Attempted to scan barcode with null productRef. Skipping scan.");
                   return;
                 }
+                if (!mounted) return;
                 try {
                   model.onScanItem(
                     countryCode: countryOfOriginController.text,

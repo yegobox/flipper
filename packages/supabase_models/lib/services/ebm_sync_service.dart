@@ -89,7 +89,7 @@ class EbmSyncService {
       } else if (saveItemResponse.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
         // get retryable
-        final retryable = await repository.get(
+        final retryable = await repository.get<Retryable>(
             query: Query(where: [
           Where('entityId').isExactly(variant.id),
           Where('entityTable').isExactly("variants")
@@ -111,7 +111,7 @@ class EbmSyncService {
       } else if (saveStockMasterResponse.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
         // get retryable
-        final retryable = await repository.get(
+        final retryable = await repository.get<Retryable>(
             query: Query(where: [
           Where('entityId').isExactly(variant.id),
           Where('entityTable').isExactly("variants")
@@ -259,7 +259,7 @@ class EbmSyncService {
 
       if (responseSaveStockInput.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
-        final retryable = await repository.get(
+        final retryable = await repository.get<Retryable>(
             query: Query(where: [
           Where('entityId').isExactly(pendingTransaction.id),
           Where('entityTable').isExactly("transactions")
