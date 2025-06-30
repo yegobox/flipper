@@ -17,34 +17,39 @@ Future<Receipt> _$ReceiptFromSupabase(
         data['intrl_data'] == null ? null : data['intrl_data'] as String?,
     rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
     totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
-    vsdcRcptPbctDate: data['vsdc_rcpt_pbct_date'] == null
-        ? null
-        : data['vsdc_rcpt_pbct_date'] as String?,
+    vsdcRcptPbctDate:
+        data['vsdc_rcpt_pbct_date'] == null
+            ? null
+            : data['vsdc_rcpt_pbct_date'] as String?,
     sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
     mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
     qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
     receiptType:
         data['receipt_type'] == null ? null : data['receipt_type'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-    whenCreated: data['when_created'] == null
-        ? null
-        : data['when_created'] == null
+    whenCreated:
+        data['when_created'] == null
+            ? null
+            : data['when_created'] == null
             ? null
             : DateTime.tryParse(data['when_created'] as String),
     invoiceNumber:
         data['invoice_number'] == null ? null : data['invoice_number'] as int?,
-    timeReceivedFromserver: data['time_received_fromserver'] == null
-        ? null
-        : data['time_received_fromserver'] == null
+    timeReceivedFromserver:
+        data['time_received_fromserver'] == null
+            ? null
+            : data['time_received_fromserver'] == null
             ? null
             : DateTime.tryParse(data['time_received_fromserver'] as String),
   );
@@ -96,34 +101,39 @@ Future<Receipt> _$ReceiptFromSqlite(
         data['intrl_data'] == null ? null : data['intrl_data'] as String?,
     rcptSign: data['rcpt_sign'] == null ? null : data['rcpt_sign'] as String?,
     totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
-    vsdcRcptPbctDate: data['vsdc_rcpt_pbct_date'] == null
-        ? null
-        : data['vsdc_rcpt_pbct_date'] as String?,
+    vsdcRcptPbctDate:
+        data['vsdc_rcpt_pbct_date'] == null
+            ? null
+            : data['vsdc_rcpt_pbct_date'] as String?,
     sdcId: data['sdc_id'] == null ? null : data['sdc_id'] as String?,
     mrcNo: data['mrc_no'] == null ? null : data['mrc_no'] as String?,
     qrCode: data['qr_code'] == null ? null : data['qr_code'] as String?,
     receiptType:
         data['receipt_type'] == null ? null : data['receipt_type'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-    whenCreated: data['when_created'] == null
-        ? null
-        : data['when_created'] == null
+    whenCreated:
+        data['when_created'] == null
+            ? null
+            : data['when_created'] == null
             ? null
             : DateTime.tryParse(data['when_created'] as String),
     invoiceNumber:
         data['invoice_number'] == null ? null : data['invoice_number'] as int?,
-    timeReceivedFromserver: data['time_received_fromserver'] == null
-        ? null
-        : data['time_received_fromserver'] == null
+    timeReceivedFromserver:
+        data['time_received_fromserver'] == null
+            ? null
+            : data['time_received_fromserver'] == null
             ? null
             : DateTime.tryParse(data['time_received_fromserver'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -410,43 +420,39 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReceiptFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReceiptFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Receipt input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReceiptToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReceiptToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Receipt> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReceiptFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReceiptFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Receipt input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReceiptToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReceiptToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

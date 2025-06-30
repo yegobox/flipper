@@ -601,11 +601,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
     Query? query,
   }) async {
-    if (instance is Counter) {
-      // Only upsert locally for Counter
-      return await super.upsert(instance,
-          policy: OfflineFirstUpsertPolicy.optimisticLocal, query: query);
-    }
+    instance = await super.upsert(instance, policy: policy, query: query);
+
     if (instance is Stock) {
       // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
@@ -622,6 +619,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           instance: instance,
           serverUrl: serverUrl!,
         );
+        instance.ebmSynced = true;
+        super.upsert(instance);
       }
     }
     if (instance is Customer) {
@@ -633,6 +632,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         instance: instance,
         serverUrl: serverUrl!,
       );
+      instance.ebmSynced = true;
+      super.upsert(instance);
     }
     if (instance is Variant) {
       final serverUrl = await ProxyService.box.getServerUrl();
@@ -643,8 +644,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         variant: instance,
         serverUrl: serverUrl!,
       );
+      instance.ebmSynced = true;
+      super.upsert(instance);
     }
-    return await super.upsert(instance, policy: policy, query: query);
+    return instance;
   }
 
   @override

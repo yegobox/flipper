@@ -175,43 +175,39 @@ class CustomerPaymentsAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerPaymentsFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerPaymentsFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     CustomerPayments input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerPaymentsToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerPaymentsToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<CustomerPayments> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerPaymentsFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerPaymentsFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     CustomerPayments input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerPaymentsToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerPaymentsToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

@@ -216,12 +216,11 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$EbmFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$EbmFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Ebm input, {

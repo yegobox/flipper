@@ -8,9 +8,10 @@ Future<ImportPurchaseDates> _$ImportPurchaseDatesFromSupabase(
 }) async {
   return ImportPurchaseDates(
     id: data['id'] as String?,
-    lastRequestDate: data['last_request_date'] == null
-        ? null
-        : data['last_request_date'] as String?,
+    lastRequestDate:
+        data['last_request_date'] == null
+            ? null
+            : data['last_request_date'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     requestType:
         data['request_type'] == null ? null : data['request_type'] as String?,
@@ -37,9 +38,10 @@ Future<ImportPurchaseDates> _$ImportPurchaseDatesFromSqlite(
 }) async {
   return ImportPurchaseDates(
     id: data['id'] as String,
-    lastRequestDate: data['last_request_date'] == null
-        ? null
-        : data['last_request_date'] as String?,
+    lastRequestDate:
+        data['last_request_date'] == null
+            ? null
+            : data['last_request_date'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     requestType:
         data['request_type'] == null ? null : data['request_type'] as String?,
@@ -151,43 +153,39 @@ class ImportPurchaseDatesAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ImportPurchaseDatesFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ImportPurchaseDatesFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     ImportPurchaseDates input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ImportPurchaseDatesToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ImportPurchaseDatesToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<ImportPurchaseDates> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ImportPurchaseDatesFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ImportPurchaseDatesFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     ImportPurchaseDates input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ImportPurchaseDatesToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ImportPurchaseDatesToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

@@ -223,43 +223,39 @@ class UnversalProductAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$UnversalProductFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$UnversalProductFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     UnversalProduct input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$UnversalProductToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$UnversalProductToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<UnversalProduct> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$UnversalProductFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$UnversalProductFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     UnversalProduct input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$UnversalProductToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$UnversalProductToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

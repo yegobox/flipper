@@ -194,43 +194,39 @@ class CompositeAdapter extends OfflineFirstWithSupabaseAdapter<Composite> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CompositeFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CompositeFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Composite input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CompositeToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CompositeToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Composite> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CompositeFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CompositeFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Composite input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CompositeToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CompositeToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

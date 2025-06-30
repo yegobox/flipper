@@ -144,43 +144,39 @@ class DiscountAdapter extends OfflineFirstWithSupabaseAdapter<Discount> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DiscountFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DiscountFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Discount input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DiscountToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DiscountToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Discount> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DiscountFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DiscountFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Discount input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DiscountToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DiscountToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

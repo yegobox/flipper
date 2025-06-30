@@ -19,14 +19,16 @@ Future<Location> _$LocationFromSupabase(
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     location: data['location'] == null ? null : data['location'] as String?,
     isDefault: data['is_default'] as bool,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
     isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
@@ -73,14 +75,16 @@ Future<Location> _$LocationFromSqlite(
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     location: data['location'] == null ? null : data['location'] as String?,
     isDefault: data['is_default'] == 1,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
     isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
@@ -291,43 +295,39 @@ class LocationAdapter extends OfflineFirstWithSupabaseAdapter<Location> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$LocationFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$LocationFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Location input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$LocationToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$LocationToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Location> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$LocationFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$LocationFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Location input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$LocationToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$LocationToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

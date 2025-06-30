@@ -8,16 +8,19 @@ Future<TransactionPaymentRecord> _$TransactionPaymentRecordFromSupabase(
 }) async {
   return TransactionPaymentRecord(
     id: data['id'] as String?,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
     amount: data['amount'] == null ? null : data['amount'] as double? ?? 0.0,
-    paymentMethod: data['payment_method'] == null
-        ? null
-        : data['payment_method'] as String?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    paymentMethod:
+        data['payment_method'] == null
+            ? null
+            : data['payment_method'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
   );
@@ -44,16 +47,19 @@ Future<TransactionPaymentRecord> _$TransactionPaymentRecordFromSqlite(
 }) async {
   return TransactionPaymentRecord(
     id: data['id'] as String,
-    transactionId: data['transaction_id'] == null
-        ? null
-        : data['transaction_id'] as String?,
+    transactionId:
+        data['transaction_id'] == null
+            ? null
+            : data['transaction_id'] as String?,
     amount: data['amount'] == null ? null : data['amount'] as double? ?? 0.0,
-    paymentMethod: data['payment_method'] == null
-        ? null
-        : data['payment_method'] as String?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    paymentMethod:
+        data['payment_method'] == null
+            ? null
+            : data['payment_method'] as String?,
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -175,43 +181,39 @@ class TransactionPaymentRecordAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionPaymentRecordFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionPaymentRecordFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     TransactionPaymentRecord input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionPaymentRecordToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionPaymentRecordToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<TransactionPaymentRecord> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionPaymentRecordFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionPaymentRecordFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     TransactionPaymentRecord input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$TransactionPaymentRecordToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$TransactionPaymentRecordToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

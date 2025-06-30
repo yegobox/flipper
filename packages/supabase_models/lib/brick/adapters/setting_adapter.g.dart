@@ -15,27 +15,33 @@ Future<Setting> _$SettingFromSupabase(
             ? null
             : data['open_receipt_file_o_sale_complete'] as bool?,
     autoPrint: data['auto_print'] == null ? null : data['auto_print'] as bool?,
-    sendDailyReport: data['send_daily_report'] == null
-        ? null
-        : data['send_daily_report'] as bool?,
-    defaultLanguage: data['default_language'] == null
-        ? null
-        : data['default_language'] as String?,
-    attendnaceDocCreated: data['attendnace_doc_created'] == null
-        ? null
-        : data['attendnace_doc_created'] as bool?,
-    isAttendanceEnabled: data['is_attendance_enabled'] == null
-        ? null
-        : data['is_attendance_enabled'] as bool?,
+    sendDailyReport:
+        data['send_daily_report'] == null
+            ? null
+            : data['send_daily_report'] as bool?,
+    defaultLanguage:
+        data['default_language'] == null
+            ? null
+            : data['default_language'] as String?,
+    attendnaceDocCreated:
+        data['attendnace_doc_created'] == null
+            ? null
+            : data['attendnace_doc_created'] as bool?,
+    isAttendanceEnabled:
+        data['is_attendance_enabled'] == null
+            ? null
+            : data['is_attendance_enabled'] as bool?,
     type: data['type'] == null ? null : data['type'] as String?,
-    enrolledInBot: data['enrolled_in_bot'] == null
-        ? null
-        : data['enrolled_in_bot'] as bool?,
+    enrolledInBot:
+        data['enrolled_in_bot'] == null
+            ? null
+            : data['enrolled_in_bot'] as bool?,
     deviceToken:
         data['device_token'] == null ? null : data['device_token'] as String?,
-    businessPhoneNumber: data['business_phone_number'] == null
-        ? null
-        : data['business_phone_number'] as String?,
+    businessPhoneNumber:
+        data['business_phone_number'] == null
+            ? null
+            : data['business_phone_number'] as String?,
     autoRespond:
         data['auto_respond'] == null ? null : data['auto_respond'] as bool?,
     token: data['token'] == null ? null : data['token'] as String?,
@@ -44,14 +50,16 @@ Future<Setting> _$SettingFromSupabase(
         data['business_id'] == null ? null : data['business_id'] as int?,
     createdAt:
         data['created_at'] == null ? null : data['created_at'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
   );
@@ -100,26 +108,31 @@ Future<Setting> _$SettingFromSqlite(
             ? null
             : data['open_receipt_file_o_sale_complete'] == 1,
     autoPrint: data['auto_print'] == null ? null : data['auto_print'] == 1,
-    sendDailyReport: data['send_daily_report'] == null
-        ? null
-        : data['send_daily_report'] == 1,
-    defaultLanguage: data['default_language'] == null
-        ? null
-        : data['default_language'] as String?,
-    attendnaceDocCreated: data['attendnace_doc_created'] == null
-        ? null
-        : data['attendnace_doc_created'] == 1,
-    isAttendanceEnabled: data['is_attendance_enabled'] == null
-        ? null
-        : data['is_attendance_enabled'] == 1,
+    sendDailyReport:
+        data['send_daily_report'] == null
+            ? null
+            : data['send_daily_report'] == 1,
+    defaultLanguage:
+        data['default_language'] == null
+            ? null
+            : data['default_language'] as String?,
+    attendnaceDocCreated:
+        data['attendnace_doc_created'] == null
+            ? null
+            : data['attendnace_doc_created'] == 1,
+    isAttendanceEnabled:
+        data['is_attendance_enabled'] == null
+            ? null
+            : data['is_attendance_enabled'] == 1,
     type: data['type'] == null ? null : data['type'] as String?,
     enrolledInBot:
         data['enrolled_in_bot'] == null ? null : data['enrolled_in_bot'] == 1,
     deviceToken:
         data['device_token'] == null ? null : data['device_token'] as String?,
-    businessPhoneNumber: data['business_phone_number'] == null
-        ? null
-        : data['business_phone_number'] as String?,
+    businessPhoneNumber:
+        data['business_phone_number'] == null
+            ? null
+            : data['business_phone_number'] as String?,
     autoRespond:
         data['auto_respond'] == null ? null : data['auto_respond'] == 1,
     token: data['token'] == null ? null : data['token'] as String?,
@@ -128,14 +141,16 @@ Future<Setting> _$SettingFromSqlite(
         data['business_id'] == null ? null : data['business_id'] as int?,
     createdAt:
         data['created_at'] == null ? null : data['created_at'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
@@ -156,20 +171,24 @@ Future<Map<String, dynamic>> _$SettingToSqlite(
             : (instance.openReceiptFileOSaleComplete! ? 1 : 0),
     'auto_print':
         instance.autoPrint == null ? null : (instance.autoPrint! ? 1 : 0),
-    'send_daily_report': instance.sendDailyReport == null
-        ? null
-        : (instance.sendDailyReport! ? 1 : 0),
+    'send_daily_report':
+        instance.sendDailyReport == null
+            ? null
+            : (instance.sendDailyReport! ? 1 : 0),
     'default_language': instance.defaultLanguage,
-    'attendnace_doc_created': instance.attendnaceDocCreated == null
-        ? null
-        : (instance.attendnaceDocCreated! ? 1 : 0),
-    'is_attendance_enabled': instance.isAttendanceEnabled == null
-        ? null
-        : (instance.isAttendanceEnabled! ? 1 : 0),
+    'attendnace_doc_created':
+        instance.attendnaceDocCreated == null
+            ? null
+            : (instance.attendnaceDocCreated! ? 1 : 0),
+    'is_attendance_enabled':
+        instance.isAttendanceEnabled == null
+            ? null
+            : (instance.isAttendanceEnabled! ? 1 : 0),
     'type': instance.type,
-    'enrolled_in_bot': instance.enrolledInBot == null
-        ? null
-        : (instance.enrolledInBot! ? 1 : 0),
+    'enrolled_in_bot':
+        instance.enrolledInBot == null
+            ? null
+            : (instance.enrolledInBot! ? 1 : 0),
     'device_token': instance.deviceToken,
     'business_phone_number': instance.businessPhoneNumber,
     'auto_respond':
@@ -434,43 +453,39 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$SettingFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$SettingFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Setting input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$SettingToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$SettingToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Setting> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$SettingFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$SettingFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Setting input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$SettingToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$SettingToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

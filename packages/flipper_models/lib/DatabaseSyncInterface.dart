@@ -191,6 +191,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required bool isIncome,
     String? customerName,
     String? customerTin,
+    String? customerPhone,
   });
 
   Future<Setting?> getSetting({required int businessId});

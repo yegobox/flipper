@@ -31,36 +31,43 @@ Future<Business> _$BusinessFromSupabase(
     firstName:
         data['first_name'] == null ? null : data['first_name'] as String?,
     lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     deviceToken:
         data['device_token'] == null ? null : data['device_token'] as String?,
-    backUpEnabled: data['back_up_enabled'] == null
-        ? null
-        : data['back_up_enabled'] as bool?,
-    subscriptionPlan: data['subscription_plan'] == null
-        ? null
-        : data['subscription_plan'] as String?,
-    nextBillingDate: data['next_billing_date'] == null
-        ? null
-        : data['next_billing_date'] as String?,
-    previousBillingDate: data['previous_billing_date'] == null
-        ? null
-        : data['previous_billing_date'] as String?,
+    backUpEnabled:
+        data['back_up_enabled'] == null
+            ? null
+            : data['back_up_enabled'] as bool?,
+    subscriptionPlan:
+        data['subscription_plan'] == null
+            ? null
+            : data['subscription_plan'] as String?,
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] as String?,
+    previousBillingDate:
+        data['previous_billing_date'] == null
+            ? null
+            : data['previous_billing_date'] as String?,
     isLastSubscriptionPaymentSucceeded:
         data['is_last_subscription_payment_succeeded'] == null
             ? null
             : data['is_last_subscription_payment_succeeded'] as bool?,
-    backupFileId: data['backup_file_id'] == null
-        ? null
-        : data['backup_file_id'] as String?,
+    backupFileId:
+        data['backup_file_id'] == null
+            ? null
+            : data['backup_file_id'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
-    lastDbBackup: data['last_db_backup'] == null
-        ? null
-        : data['last_db_backup'] as String?,
+    lastDbBackup:
+        data['last_db_backup'] == null
+            ? null
+            : data['last_db_backup'] as String?,
     fullName: data['full_name'] == null ? null : data['full_name'] as String?,
     tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
@@ -68,26 +75,31 @@ Future<Business> _$BusinessFromSupabase(
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     taxEnabled:
         data['tax_enabled'] == null ? null : data['tax_enabled'] as bool?,
-    taxServerUrl: data['tax_server_url'] == null
-        ? null
-        : data['tax_server_url'] as String?,
+    taxServerUrl:
+        data['tax_server_url'] == null
+            ? null
+            : data['tax_server_url'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
-    businessTypeId: data['business_type_id'] == null
-        ? null
-        : data['business_type_id'] as int?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    businessTypeId:
+        data['business_type_id'] == null
+            ? null
+            : data['business_type_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
-    encryptionKey: data['encryption_key'] == null
-        ? null
-        : data['encryption_key'] as String?,
+    encryptionKey:
+        data['encryption_key'] == null
+            ? null
+            : data['encryption_key'] as String?,
   );
 }
 
@@ -174,61 +186,72 @@ Future<Business> _$BusinessFromSqlite(
     firstName:
         data['first_name'] == null ? null : data['first_name'] as String?,
     lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-    createdAt: data['created_at'] == null
-        ? null
-        : data['created_at'] == null
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : data['created_at'] == null
             ? null
             : DateTime.tryParse(data['created_at'] as String),
     deviceToken:
         data['device_token'] == null ? null : data['device_token'] as String?,
     backUpEnabled:
         data['back_up_enabled'] == null ? null : data['back_up_enabled'] == 1,
-    subscriptionPlan: data['subscription_plan'] == null
-        ? null
-        : data['subscription_plan'] as String?,
-    nextBillingDate: data['next_billing_date'] == null
-        ? null
-        : data['next_billing_date'] as String?,
-    previousBillingDate: data['previous_billing_date'] == null
-        ? null
-        : data['previous_billing_date'] as String?,
+    subscriptionPlan:
+        data['subscription_plan'] == null
+            ? null
+            : data['subscription_plan'] as String?,
+    nextBillingDate:
+        data['next_billing_date'] == null
+            ? null
+            : data['next_billing_date'] as String?,
+    previousBillingDate:
+        data['previous_billing_date'] == null
+            ? null
+            : data['previous_billing_date'] as String?,
     isLastSubscriptionPaymentSucceeded:
         data['is_last_subscription_payment_succeeded'] == null
             ? null
             : data['is_last_subscription_payment_succeeded'] == 1,
-    backupFileId: data['backup_file_id'] == null
-        ? null
-        : data['backup_file_id'] as String?,
+    backupFileId:
+        data['backup_file_id'] == null
+            ? null
+            : data['backup_file_id'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
-    lastDbBackup: data['last_db_backup'] == null
-        ? null
-        : data['last_db_backup'] as String?,
+    lastDbBackup:
+        data['last_db_backup'] == null
+            ? null
+            : data['last_db_backup'] as String?,
     fullName: data['full_name'] == null ? null : data['full_name'] as String?,
     tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dvcSrlNo: data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     taxEnabled: data['tax_enabled'] == null ? null : data['tax_enabled'] == 1,
-    taxServerUrl: data['tax_server_url'] == null
-        ? null
-        : data['tax_server_url'] as String?,
+    taxServerUrl:
+        data['tax_server_url'] == null
+            ? null
+            : data['tax_server_url'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
-    businessTypeId: data['business_type_id'] == null
-        ? null
-        : data['business_type_id'] as int?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    businessTypeId:
+        data['business_type_id'] == null
+            ? null
+            : data['business_type_id'] as int?,
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
-    encryptionKey: data['encryption_key'] == null
-        ? null
-        : data['encryption_key'] as String?,
+    encryptionKey:
+        data['encryption_key'] == null
+            ? null
+            : data['encryption_key'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -261,9 +284,10 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
     'last_name': instance.lastName,
     'created_at': instance.createdAt?.toIso8601String(),
     'device_token': instance.deviceToken,
-    'back_up_enabled': instance.backUpEnabled == null
-        ? null
-        : (instance.backUpEnabled! ? 1 : 0),
+    'back_up_enabled':
+        instance.backUpEnabled == null
+            ? null
+            : (instance.backUpEnabled! ? 1 : 0),
     'subscription_plan': instance.subscriptionPlan,
     'next_billing_date': instance.nextBillingDate,
     'previous_billing_date': instance.previousBillingDate,
@@ -772,43 +796,39 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BusinessFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BusinessFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Business input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BusinessToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BusinessToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Business> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BusinessFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BusinessFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Business input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BusinessToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BusinessToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

@@ -6,7 +6,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
 
 mixin TransactionItemMixin implements TransactionItemInterface {
@@ -34,7 +33,22 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         throw ArgumentError('Either `item` or `variation` must be provided.');
       }
       if (transaction == null) {
-        throw ArgumentError('Either `item` or `variation` must be provided.');
+        throw ArgumentError('Transaction cannot be null.');
+      }
+
+      // Defensive check: Ensure the parent transaction exists in the repository
+      // This helps prevent foreign key constraint errors if the transaction
+      // hasn't been fully committed yet, or if there's a timing issue.
+      final existingTransaction = await repository.get<ITransaction>(
+        query: Query(where: [Where('id').isExactly(transaction.id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      if (existingTransaction.isEmpty) {
+        talker.warning(
+            'Parent transaction with ID ${transaction.id} not found in repository. Cannot add item.');
+        throw Exception(
+            'Parent transaction not found for item insertion. Ensure the transaction is saved before adding items.');
       }
 
       TransactionItem transactionItem;
@@ -227,6 +241,20 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       // Upsert the item in the repository
       await repository.upsert<TransactionItem>(transactionItem);
 
+      // Re-fetch the transactionItem to ensure it has its brick_id populated
+      // and is fully committed before proceeding.
+      final committedTransactionItem = (await repository.get<TransactionItem>(
+        query: Query(where: [Where('id').isExactly(transactionItem.id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      ))
+          .firstOrNull;
+
+      if (committedTransactionItem == null) {
+        throw Exception(
+            'Failed to retrieve committed TransactionItem after upsert.');
+      }
+      transactionItem = committedTransactionItem; // Use the committed version
+
       // Fetch all items for the transaction and update their `itemSeq`
       final allItems = await repository.get<TransactionItem>(
         query: Query(
@@ -247,19 +275,33 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       double newSubTotal =
           allItems.fold(0, (sum, item) => sum + (item.price * item.qty));
 
+      // Re-fetch the transaction to ensure we have the latest, fully-persisted version
+      // before updating its items list and upserting it.
+      final latestTransaction = (await repository.get<ITransaction>(
+        query: Query(where: [Where('id').isExactly(transaction.id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      ))
+          .firstOrNull;
+
+      if (latestTransaction == null) {
+        throw Exception(
+            'Failed to retrieve latest ITransaction before final upsert.');
+      }
+
       // Only update if the subtotal has changed or is zero
-      if (transaction.subTotal == 0 || transaction.subTotal != newSubTotal) {
+      if (latestTransaction.subTotal == 0 ||
+          latestTransaction.subTotal != newSubTotal) {
         await ProxyService.strategy.updateTransaction(
-          transaction: transaction,
+          transaction: latestTransaction,
           subTotal: newSubTotal,
           cashReceived: ProxyService.box.getCashReceived(),
-          taxAmount: (transaction.taxAmount ?? 0) + taxAmt,
+          taxAmount: (latestTransaction.taxAmount ?? 0) + taxAmt,
           updatedAt: DateTime.now(),
           lastTouched: DateTime.now(),
         );
       }
-      transaction.items = allItems;
-      await repository.upsert<ITransaction>(transaction);
+      latestTransaction.items = allItems;
+      await repository.upsert<ITransaction>(latestTransaction);
     } catch (e, s) {
       talker.error(s);
       rethrow;

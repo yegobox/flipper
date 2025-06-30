@@ -61,8 +61,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return grandTotal - discountAmount;
   }
 
-  Timer? _refreshTimer;
-  bool _isRefreshing = false;
   bool _transactionCompleting = false;
 
   @override
@@ -76,80 +74,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Listen for transaction completion flag
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
-
-    // Set up a more efficient refresh timer for transaction items
-    // Use a longer interval on low-resource systems to reduce overhead
-    final isLowResourceDevice =
-        ProxyService.box.readBool(key: 'isLowResourceDevice') ?? false;
-    final refreshInterval =
-        isLowResourceDevice ? 1000 : 500; // 1 second for low-resource devices
-
-    _refreshTimer =
-        Timer.periodic(Duration(milliseconds: refreshInterval), (timer) {
-      if (mounted) {
-        // Check if a transaction is currently being completed
-        _transactionCompleting =
-            ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
-
-        // Skip refresh if transaction is in the process of being completed
-        if (_transactionCompleting) {
-          return;
-        }
-
-        final transactionAsyncValue = ref.read(pendingTransactionStreamProvider(
-            isExpense: ProxyService.box.isOrdering() ?? false));
-
-        if (transactionAsyncValue.hasValue &&
-            transactionAsyncValue.value != null) {
-          final transactionId = transactionAsyncValue.value!.id;
-
-          // Use a more efficient approach to refresh transaction items
-          // Only refresh if there hasn't been a refresh in the last 300ms
-          if (!_isRefreshing) {
-            _fetchAndUpdateTransactionItems(transactionId);
-          }
-        }
-      } else {
-        // Cancel the timer if the widget is no longer mounted
-        timer.cancel();
-      }
-    });
   }
 
-  // Cleanup timer when widget is disposed
   // Controllers for quantity inputs per item (small device view)
   final Map<String, TextEditingController> _quantityControllers = {};
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
     for (final c in _quantityControllers.values) {
       c.dispose();
     }
     super.dispose();
-  }
-
-  // Method to directly fetch transaction items and update state
-  Future<void> _fetchAndUpdateTransactionItems(String transactionId) async {
-    // Prevent refreshes during transaction completion
-    if (_transactionCompleting) return;
-
-    // Double-check transaction completion status to avoid race conditions
-    final isCompleting =
-        ProxyService.box.readBool(key: 'transactionCompleting') ?? false;
-    if (isCompleting) {
-      return;
-    }
-
-    // Invalidate the provider to trigger a refresh
-    // This will cause the provider to re-fetch data when watched in the UI
-    if (transactionId.isNotEmpty) {
-      ref.invalidate(
-          transactionItemsStreamProvider(transactionId: transactionId));
-    }
-
-    // The build method is already watching the provider and updating internalTransactionItems
-    // So we don't need to manually update the state here
   }
 
   void updatePaymentAmounts({required String transactionId}) {

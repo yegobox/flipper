@@ -2154,37 +2154,38 @@ class CoreSync extends AiStrategyImpl
     required bool isIncome,
     String? customerName,
     String? customerTin,
+    String? customerPhone,
   }) async {
     if (transaction != null) {
       try {
         // Fetch transaction items
-        List<TransactionItem> items = await transactionItems(
-          branchId: (await ProxyService.strategy.activeBranch()).id,
-          transactionId: transaction.id,
-        );
-        // Update numberOfItems before completing the sale
-        transaction.numberOfItems = items.length;
 
-        transaction.items = items;
+        // Update numberOfItems before completing the sale
+        transaction.numberOfItems = transaction.items!.length;
 
         // sum up all discount found on item then save them on a transaction
-        transaction.discountAmount = items.fold(0, (a, b) => a! + b.dcAmt!);
+        transaction.discountAmount =
+            transaction.items!.fold(0, (a, b) => a! + b.dcAmt!);
         transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
-        transaction.customerTin = ProxyService.box.customerTin();
+        transaction.customerTin = customerTin;
+        transaction.customerName =
+            customerName ?? ProxyService.box.customerName();
+        transaction.customerPhone =
+            customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
 
         double subTotalFinalized = 0.0;
         double cash = ProxyService.box.getCashReceived() ?? cashReceived;
         if (isIncome) {
           // Update transaction details
-          final double subTotal =
-              items.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
+          final double subTotal = transaction.items!
+              .fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
           /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
           final adjustmentTransaction = await _createAdjustmentTransaction(
-            items: items,
+            items: transaction.items!,
             orgSarNo: transaction.sarNo,
             sarNo: transaction.sarNo,
             receiptType: transaction.receiptType,
@@ -2196,7 +2197,7 @@ class CoreSync extends AiStrategyImpl
           );
 
           await _updateStockAndItems(
-              items: items,
+              items: transaction.items!,
               branchId: branchId,
               adjustmentTransaction: adjustmentTransaction);
         }
@@ -2211,7 +2212,7 @@ class CoreSync extends AiStrategyImpl
           transactionType: transactionType,
           categoryId: categoryId,
           customerName: customerName,
-          customerTin: ProxyService.box.customerTin(),
+          customerTin: transaction.customerTin,
         );
         // Handle receipt if required
         if (directlyHandleReceipt) {
@@ -2278,13 +2279,7 @@ class CoreSync extends AiStrategyImpl
     if (categoryId != null) {
       transaction.categoryId = categoryId;
     }
-    repository.upsert(transaction);
-    // create new pending transaction
-    ProxyService.strategy.manageTransaction(
-        branchId: ProxyService.box.getBranchId()!,
-        transactionType: transactionType,
-        status: PENDING,
-        isExpense: false);
+    await repository.upsert(transaction);
   }
 
   String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
