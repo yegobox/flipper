@@ -257,11 +257,10 @@ class CoreSync extends AiStrategyImpl
         await repository.upsert<Variant>(variant);
       } else {
         /// for relationship we save stock first then variant
-        await repository.upsert<Stock>(variation.stock!);
-        Variant variant = await repository.upsert<Variant>(variation);
-
-        variant.stockId = variation.stock!.id;
-        await repository.upsert<Variant>(variant);
+        Stock upsertedStock =
+            await repository.upsert<Stock>(variation.stock!); // Line 256
+        variation.stockId = upsertedStock.id;
+        await repository.upsert<Variant>(variation);
       }
     } catch (e, s) {
       talker.warning('Error in updateStock: $e $s');
