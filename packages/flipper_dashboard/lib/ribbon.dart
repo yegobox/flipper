@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show
         branchSelectionProvider,
@@ -243,7 +244,7 @@ class IconRowState extends ConsumerState<IconRow>
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider((active: false)));
+    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
   }
 
   void _showBranchPerformanceMobile(BuildContext context) {

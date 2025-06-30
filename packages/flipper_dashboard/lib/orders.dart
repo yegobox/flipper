@@ -1,3 +1,4 @@
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -18,7 +19,8 @@ class Orders extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final suppliers = ref.watch(branchesProvider((active: false)));
+    final suppliers = ref
+        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
     final theme = Theme.of(context);
     final pendingTransaction =
         ref.watch(pendingTransactionStreamProvider(isExpense: true));

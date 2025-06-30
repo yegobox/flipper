@@ -256,7 +256,7 @@ mixin AuthMixin implements AuthInterface {
       bool freshUser = false,
       required bool isInSignUpProgress}) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await branches(serverId: pin.businessId!);
+    List<Branch> branchesE = await branches(businessId: pin.businessId!);
 
     final bool shouldEnableOfflineLogin = forceOffline ||
         (businessesE.isNotEmpty &&
@@ -438,7 +438,7 @@ mixin AuthMixin implements AuthInterface {
           } else if (businesses.length == 1) {
             // If there's only one business, check if there are multiple branches
             final branches =
-                await this.branches(serverId: selectedBusiness!.serverId);
+                await this.branches(businessId: selectedBusiness!.serverId);
 
             // Only go to login_choices if there are multiple branches
             if (branches.length > 1) {
@@ -482,7 +482,7 @@ mixin AuthMixin implements AuthInterface {
 
         try {
           // Get the branch ID string if available
-          final branches = await this.branches(serverId: pin.businessId!);
+          final branches = await this.branches(businessId: pin.businessId!);
           Branch? selectedBranch;
 
           // Find the matching branch or use the first one if none matches
@@ -552,7 +552,7 @@ mixin AuthMixin implements AuthInterface {
       final businesses = await ProxyService.strategy
           .businesses(userId: savedLocalPinForThis.userId!);
       final branches = await ProxyService.strategy
-          .branches(serverId: tenants.businessId ?? 0);
+          .branches(businessId: tenants.businessId ?? 0);
 
       if (businesses.isNotEmpty && branches.isNotEmpty) {
         talker.debug(

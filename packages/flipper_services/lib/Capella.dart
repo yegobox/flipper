@@ -386,7 +386,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<Branch>> branches({int? serverId, bool? active = false}) {
+  Future<List<Branch>> branches({int? businessId, bool? active = false}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -1077,8 +1077,6 @@ class Capella extends AiStrategyImpl
     // TODO: implement branch
     throw UnimplementedError();
   }
-
-  
 
   @override
   Future<DatabaseSyncInterface> configureCapella(
@@ -2346,9 +2344,24 @@ class Capella extends AiStrategyImpl
     // TODO: implement transactionsAndItems
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<brick.ITransaction> collectPayment({required double cashReceived, brick.ITransaction? transaction, required String paymentType, required double discount, required int branchId, required String bhfId, required bool isProformaMode, required bool isTrainingMode, required String transactionType, String? categoryId, bool directlyHandleReceipt = false, required bool isIncome, String? customerName, String? customerTin, String? customerPhone}) {
+  Future<brick.ITransaction> collectPayment(
+      {required double cashReceived,
+      brick.ITransaction? transaction,
+      required String paymentType,
+      required double discount,
+      required int branchId,
+      required String bhfId,
+      required bool isProformaMode,
+      required bool isTrainingMode,
+      required String transactionType,
+      String? categoryId,
+      bool directlyHandleReceipt = false,
+      required bool isIncome,
+      String? customerName,
+      String? customerTin,
+      String? customerPhone}) {
     // TODO: implement collectPayment
     throw UnimplementedError();
   }

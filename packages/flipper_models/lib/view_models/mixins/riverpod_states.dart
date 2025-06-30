@@ -375,7 +375,9 @@ final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.strategy.transactionsStream(
-      branchId: branchId, removeAdjustmentTransactions: true,forceRealData: true);
+      branchId: branchId,
+      removeAdjustmentTransactions: true,
+      forceRealData: true);
 });
 
 final universalProductsNames =
@@ -674,15 +676,7 @@ final variantsProvider = FutureProvider.autoDispose
 
   return await ProxyService.strategy.variants(branchId: branchId);
 });
-final branchesProvider = FutureProvider.autoDispose
-    .family<List<Branch>, ({bool? active})>((ref, params) async {
-  final (:active) = params;
 
-  // Awaiting the asynchronous call
-  final branches = await ProxyService.strategy.branches(active: active);
-
-  return branches;
-});
 
 class Payment {
   double amount;

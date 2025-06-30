@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -40,7 +41,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, viewModel, child) {
         final businesses = ref.watch(businessesProvider);
-        final branches = ref.watch(branchesProvider((active: false,)));
+        final branches = ref.watch(
+            branchesProvider(businessId: ProxyService.box.getBusinessId()));
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -195,7 +197,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           .writeInt(key: 'businessId', value: business.serverId);
       await _setDefaultBusiness(business);
       final branches = await ProxyService.strategy.branches(
-        serverId: business.serverId,
+        businessId: business.serverId,
         active: false,
       );
 
@@ -209,7 +211,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           _selectedBusiness = business;
           _isSelectingBranch = true;
         });
-        ref.refresh(branchesProvider((active: false)));
+        ref.refresh(branchesProvider(businessId: _selectedBusiness!.serverId));
       }
     } catch (e) {
       talker.error('Error handling business selection: $e');
@@ -403,7 +405,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy
-        .branches(serverId: ProxyService.box.getBusinessId()!, active: true);
+        .branches(businessId: ProxyService.box.getBusinessId()!, active: true);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
@@ -437,6 +439,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider((active: false)));
+    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
   }
 }

@@ -1,7 +1,9 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/style_widget/text.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -11,7 +13,8 @@ class BranchDropdown extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncBranches = ref.watch(branchesProvider((active: true)));
+    final asyncBranches = ref
+        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
 
     return DropdownButtonHideUnderline(
       child: asyncBranches.when(

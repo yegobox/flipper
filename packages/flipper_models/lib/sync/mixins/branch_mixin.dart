@@ -48,17 +48,15 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Branch>> branches({
-    ///rename this to businessId
-    int? serverId,
-    bool? active,
+    int? businessId,
+    bool? active = false,
   }) async {
-    return await _getBranches(serverId, active);
+    return await _getBranches(businessId);
   }
 
-  Future<List<Branch>> _getBranches(int? serverId, bool? active) async {
+  Future<List<Branch>> _getBranches(int? businessId) async {
     final filters = <Where>[
-      if (serverId != null) Where('businessId').isExactly(serverId),
-      if (active != null) Where('active').isExactly(active),
+      if (businessId != null) Where('businessId').isExactly(businessId),
     ];
     var query = Query(where: filters);
 
