@@ -54,6 +54,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
+import 'package:supabase_models/services/ebm_sync_service.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -255,12 +256,26 @@ class CoreSync extends AiStrategyImpl
         variant.stockId = stock.id;
         await repository.upsert<Stock>(stock);
         await repository.upsert<Variant>(variant);
+        final ebmSyncService = EbmSyncService(repository);
+        if (variant.imptItemSttsCd != "1" || variant.pchsSttsCd != "1") {
+          await ebmSyncService.stockIo(
+            variant: variant,
+            serverUrl: (await ProxyService.box.getServerUrl())!,
+          );
+        }
       } else {
         /// for relationship we save stock first then variant
         Stock upsertedStock =
             await repository.upsert<Stock>(variation.stock!); // Line 256
         variation.stockId = upsertedStock.id;
         await repository.upsert<Variant>(variation);
+        final ebmSyncService = EbmSyncService(repository);
+        if (variation.imptItemSttsCd != "1" || variation.pchsSttsCd != "1") {
+          await ebmSyncService.stockIo(
+            variant: variation,
+            serverUrl: (await ProxyService.box.getServerUrl())!,
+          );
+        }
       }
     } catch (e, s) {
       talker.warning('Error in updateStock: $e $s');
@@ -2209,33 +2224,45 @@ class CoreSync extends AiStrategyImpl
               items: transaction.items!,
               branchId: branchId,
               adjustmentTransaction: adjustmentTransaction);
+          final ebmSyncService = EbmSyncService(repository);
+          await ebmSyncService.syncTransactionWithEbm(
+            instance: transaction,
+            serverUrl: (await ProxyService.box.getServerUrl())!,
+            sarTyCd: "11", //save
+          );
         }
-        _updateTransactionDetails(
-          transaction: transaction,
-          isIncome: isIncome,
-          cashReceived: cash,
-          subTotalFinalized: subTotalFinalized,
-          paymentType: paymentType,
-          isProformaMode: isProformaMode,
-          isTrainingMode: isTrainingMode,
-          transactionType: transactionType,
-          categoryId: categoryId,
-          customerName: customerName,
-          customerTin: transaction.customerTin,
+        await ProxyService.strategy.manageTransaction(
+          transactionType: TransactionType.sale,
+          isExpense: false,
+          status: PENDING,
+          branchId: ProxyService.box.getBranchId()!,
         );
-        // Handle receipt if required
-        if (directlyHandleReceipt) {
-          if (!isProformaMode && !isTrainingMode) {
-            TaxController(object: transaction)
-                .handleReceipt(filterType: FilterType.NS);
-          } else if (isProformaMode) {
-            TaxController(object: transaction)
-                .handleReceipt(filterType: FilterType.PS);
-          } else if (isTrainingMode) {
-            TaxController(object: transaction)
-                .handleReceipt(filterType: FilterType.TS);
-          }
-        }
+        // _updateTransactionDetails(
+        //   transaction: transaction,
+        //   isIncome: isIncome,
+        //   cashReceived: cash,
+        //   subTotalFinalized: subTotalFinalized,
+        //   paymentType: paymentType,
+        //   isProformaMode: isProformaMode,
+        //   isTrainingMode: isTrainingMode,
+        //   transactionType: transactionType,
+        //   categoryId: categoryId,
+        //   customerName: customerName,
+        //   customerTin: transaction.customerTin,
+        // );
+        // // Handle receipt if required
+        // if (directlyHandleReceipt) {
+        //   if (!isProformaMode && !isTrainingMode) {
+        //     TaxController(object: transaction)
+        //         .handleReceipt(filterType: FilterType.NS);
+        //   } else if (isProformaMode) {
+        //     TaxController(object: transaction)
+        //         .handleReceipt(filterType: FilterType.PS);
+        //   } else if (isTrainingMode) {
+        //     TaxController(object: transaction)
+        //         .handleReceipt(filterType: FilterType.TS);
+        //   }
+        // }
         return transaction;
       } catch (e, s) {
         talker.error(s);

@@ -188,7 +188,8 @@ class EbmSyncService {
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     ITransaction? pendingTransaction = transaction;
     // Create new transaction if needed
-    if (transaction == null && variant != null) {
+    /// when we are given that transaction we use it we do not create another
+    if (variant != null && transaction == null) {
       pendingTransaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
@@ -298,7 +299,9 @@ class EbmSyncService {
   ///
   /// Returns: `true` if synchronization was successful or not needed, `false` otherwise
   Future<bool> syncTransactionWithEbm(
-      {required ITransaction instance, required String serverUrl}) async {
+      {required ITransaction instance,
+      required String serverUrl,
+      required String sarTyCd}) async {
     if (instance.status == COMPLETE) {
       if (instance.customerName == null ||
           instance.customerTin == null ||
@@ -313,7 +316,8 @@ class EbmSyncService {
 
       // Variant variant = Variant.copyFromTransactionItem(item);
       // get transaction items
-      await stockIo(serverUrl: serverUrl, transaction: instance, sarTyCd: "11");
+      await stockIo(
+          serverUrl: serverUrl, transaction: instance, sarTyCd: sarTyCd);
 
       talker
           .info("Successfully synced all items for transaction ${instance.id}");
