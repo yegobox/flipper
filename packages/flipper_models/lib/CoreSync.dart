@@ -253,6 +253,7 @@ class CoreSync extends AiStrategyImpl
         variant.lastTouched = DateTime.now().toLocal();
         variant.stock = stock;
         variant.stockId = stock.id;
+        await repository.upsert<Stock>(stock);
         await repository.upsert<Variant>(variant);
       } else {
         /// for relationship we save stock first then variant
