@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -228,7 +229,8 @@ class TenantUIMixin {
   }
 
   static Widget buildBranchDropdownStatic(BuildContext context, WidgetRef ref) {
-    final asyncBranches = ref.watch(branchesProvider((active: false,)));
+    final asyncBranches = ref
+        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
     final selectedBranch = ref.watch(selectedBranchProvider);
 
     return asyncBranches.when(

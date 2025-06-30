@@ -97,7 +97,7 @@ class AppService with ListenableServiceMixin {
 
   Future<void> updateAllBranchesInactive() async {
     final branches = await ProxyService.strategy.branches(
-      serverId: ProxyService.box.getBusinessId()!,
+      businessId: ProxyService.box.getBusinessId()!,
       active: true,
     );
     for (final branch in branches) {
@@ -113,7 +113,7 @@ class AppService with ListenableServiceMixin {
         .businesses(userId: ProxyService.box.getUserId()!, active: true);
 
     List<Branch> branches = await ProxyService.strategy.branches(
-      serverId: ProxyService.box.getBusinessId()!,
+      businessId: ProxyService.box.getBusinessId()!,
       active: true,
     );
 

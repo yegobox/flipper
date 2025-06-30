@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/models/purchase.model.dart';
 import 'variant_converter.dart';
+import 'purchase_converter.dart';
 
 // Import the generated file for JSON serialization
 
@@ -40,6 +41,7 @@ class Data {
   @JsonKey(name: 'itemList')
   List<models.Variant>? itemList;
 
+  @PurchaseConverter()
   @JsonKey(name: 'saleList')
   List<models.Purchase>? saleList;
 

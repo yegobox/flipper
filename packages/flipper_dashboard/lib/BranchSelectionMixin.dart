@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -152,7 +153,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       await ProxyService.box.writeInt(key: 'active_branch_id', value: branchId);
 
       // Force refresh of branch providers
-      ref.invalidate(branchesProvider((active: false)));
+      ref.invalidate(
+          branchesProvider(businessId: ProxyService.box.getBusinessId()));
 
       // Trigger a search refresh to force variant reload
       // First emit "search" to trigger the refresh
@@ -411,7 +413,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     // This method refreshes data after branch switch without requiring a full app reload
     try {
       // Force a refresh of branch providers
-      ref.invalidate(branchesProvider((active: false)));
+      ref.invalidate(
+          branchesProvider(businessId: ProxyService.box.getBusinessId()));
 
       // Set a flag in storage to indicate a branch switch occurred
       // This can be used by other widgets to detect when they should refresh
@@ -491,7 +494,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
   Future<void> _fetchBranches() async {
     try {
       final branches = await ProxyService.strategy.branches(
-        serverId: ProxyService.box.getBusinessId()!,
+        businessId: ProxyService.box.getBusinessId()!,
         active: false,
       );
 

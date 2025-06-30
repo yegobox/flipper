@@ -41,7 +41,8 @@ abstract class AuthInterface {
 
   // Required methods that should be provided by other mixins
   Future<List<Business>> businesses({required int userId, bool active = false});
-  Future<List<Branch>> branches({required int serverId, bool? active = false});
+  Future<List<Branch>> branches(
+      {required int businessId, bool? active = false});
 
   Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
       {String? responseChannel});

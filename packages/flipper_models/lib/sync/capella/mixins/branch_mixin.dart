@@ -31,7 +31,7 @@ mixin CapellaBranchMixin implements BranchInterface {
   }
 
   @override
-  Future<List<Branch>> branches({int? serverId, bool? active = false}) async {
+  Future<List<Branch>> branches({int? businessId, bool? active = false}) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 

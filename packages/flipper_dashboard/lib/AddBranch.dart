@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   @override
   Widget build(BuildContext context) {
-    final branches = ref.watch(branchesProvider((active: false)));
+    final branches = ref
+        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
     final isProcessing = ref.watch(isProcessingProvider);
     final theme = Theme.of(context);
 
@@ -361,7 +363,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           branchId: branch.serverId!,
           flipperHttpClient: ProxyService.http,
         );
-        ref.refresh(branchesProvider((active: false)));
+        ref.refresh(branchesProvider(
+          businessId: ProxyService.box.getBusinessId(),
+        ));
       }
     });
   }
@@ -379,7 +383,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           userOwnerPhoneNumber: ProxyService.box.getUserPhone()!,
           flipperHttpClient: ProxyService.http,
         );
-        ref.refresh(branchesProvider((active: false)));
+        ref.refresh(
+            branchesProvider(businessId: ProxyService.box.getBusinessId()));
         _nameController.clear();
         _locationController.clear();
         setState(() {
