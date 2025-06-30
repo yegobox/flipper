@@ -780,7 +780,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
 
     final topMessage =
-        "${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";
+        "Welcome to  Our Shop \n${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";
 
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");

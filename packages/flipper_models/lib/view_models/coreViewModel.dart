@@ -1019,15 +1019,7 @@ class CoreViewModel extends FlipperBaseModel
           );
           await ProxyService.strategy
               .updateVariant(updatables: [variantFromPurchase]);
-          // if (pchsSttsCd == "02") {
-          //   await ProxyService.tax.saveItem(
-          //     variation: variant,
-          //     URI: await ProxyService.box.getServerUrl() ?? "",
-          //   );
-          //   await ProxyService.tax.saveStockMaster(
-          //       variant: variant,
-          //       URI: await ProxyService.box.getServerUrl() ?? "");
-          // }
+
           await ProxyService.strategy.assignTransaction(
             variant: variant,
             doneWithTransaction: true,
@@ -1075,13 +1067,10 @@ class CoreViewModel extends FlipperBaseModel
     try {
       setBusy(true);
 
-      final business = await _getBusiness();
-      final URI = await ProxyService.box.getServerUrl() ?? "";
-
       final tasks = <Future>[];
       for (final variant in importItems) {
         if (variant.imptItemSttsCd == "2") {
-          tasks.add(_processImportItem(variant, variantMap, business!, URI));
+          tasks.add(processImportItem(variant, variantMap));
         }
       }
       await Future.wait(tasks);
@@ -1094,22 +1083,15 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  Future<Business?> _getBusiness() async {
-    return await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-  }
 
-  Future<void> _processImportItem(
+  Future<void> processImportItem(
     Variant item,
     Map<String, Variant> variantToMapTo,
-    Business business,
-    String URI,
   ) async {
-    item.imptItemSttsCd = "3";
     item.taxName = "B";
     item.taxTyCd = "B";
-    item.ebmSynced = false;
 
+    final URI = await ProxyService.box.getServerUrl() ?? "";
     Variant? variantToProcess;
 
     if (variantToMapTo.isNotEmpty) {
@@ -1128,6 +1110,8 @@ class CoreViewModel extends FlipperBaseModel
             .updateVariant(updatables: [variantToProcess]);
       }
     } else {
+      item.imptItemSttsCd = "3";
+      item.ebmSynced = false;
       variantToProcess = item;
       variantToProcess.itemCd = await ProxyService.strategy.itemCode(
         countryCode: variantToProcess.orgnNatCd ?? "RW",
@@ -1145,47 +1129,6 @@ class CoreViewModel extends FlipperBaseModel
     await ProxyService.tax.updateImportItems(item: item, URI: URI);
   }
 
-  Future<void> _processImportItemSingle(
-    Variant incomingNewItem,
-    Map<String, Variant> existingItemToUpdate,
-    Business business,
-    String URI,
-  ) async {
-    Variant? variantToProcess;
-
-    /// if variant map is not empty, use the existing variant from the map
-    if (existingItemToUpdate.isNotEmpty) {
-      variantToProcess = existingItemToUpdate[incomingNewItem.id]!;
-
-      await _updateVariantStock(
-          item: incomingNewItem,
-          existingVariantToUpdate: existingItemToUpdate[incomingNewItem.id]!);
-
-      /// we preserve the original status code (3 for approved) and mark as ebm synced to avoid accidental
-      /// syncing it again.
-      incomingNewItem.assigned = true;
-      incomingNewItem.ebmSynced = true;
-      await ProxyService.strategy.updateVariant(updatables: [incomingNewItem]);
-
-      variantToProcess.
-      ebmSynced = false;
-      await ProxyService.strategy.updateVariant(updatables: [variantToProcess]);
-    } else {
-      /// we are not mapping save incoming item as new
-      variantToProcess = incomingNewItem;
-      variantToProcess.itemCd = await ProxyService.strategy.itemCode(
-        countryCode: variantToProcess.orgnNatCd ?? "RW",
-        productType: "2",
-        packagingUnit: variantToProcess.pkgUnitCd ?? "CT",
-        quantityUnit: variantToProcess.qtyUnitCd ?? "BJ",
-        branchId: ProxyService.box.getBranchId()!,
-      );
-      await _updateVariant(variantToProcess);
-    }
-
-    await ProxyService.tax.updateImportItems(item: incomingNewItem, URI: URI);
-  }
-
   Future<void> _updateVariantStock(
       {required Variant item, required Variant existingVariantToUpdate}) async {
     await ProxyService.strategy.updateStock(
@@ -1199,25 +1142,6 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _updateVariant(Variant variant) async {
     await ProxyService.strategy.updateVariant(updatables: [variant]);
-  }
-
-  Future<void> approveImportItem(Variant item,
-      {required Map<String, Variant> variantMap}) async {
-    try {
-      final business = await _getBusiness();
-      final URI = await ProxyService.box.getServerUrl() ?? "";
-
-      // Always set to approved (3) regardless of whether there's a selected item to assign
-      item.imptItemSttsCd = "3";
-      item.taxName = "B";
-      item.taxTyCd = "B";
-      item.ebmSynced = false;
-
-      await _processImportItemSingle(item, variantMap, business!, URI);
-    } catch (e, s) {
-      talker.error(s);
-      rethrow;
-    }
   }
 
   Future<void> rejectImportItem(Variant item) async {

@@ -356,7 +356,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               toast("Please set both retail and supply prices");
               return;
             }
-            await coreViewModel.approveImportItem(item, variantMap: variantMap);
+            await coreViewModel.processImportItem(item, variantMap);
             final combinedNotifier = ref.read(refreshProvider);
             combinedNotifier.performActions(productName: "", scanMode: true);
           },

@@ -352,11 +352,14 @@ mixin VariantMixin implements VariantInterface {
       updatables[i].lastTouched = DateTime.now().toUtc();
 
       await repository.upsert<Variant>(updatables[i]);
-      // final ebmSyncService = EbmSyncService(repository);
-      // ebmSyncService.syncVariantWithEbm(
-      //   variant: updatables[i],
-      //   serverUrl: (await ProxyService.box.getServerUrl())!,
-      // );
+      final ebmSyncService = EbmSyncService(repository);
+      if (updatables[i].imptItemSttsCd != "1" ||
+          updatables[i].pchsSttsCd != "1") {
+        await ebmSyncService.stockIo(
+          variant: updatables[i],
+          serverUrl: (await ProxyService.box.getServerUrl())!,
+        );
+      }
     }
   }
 

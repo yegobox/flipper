@@ -537,7 +537,7 @@ class CronService {
 
   /// Returns the duration for file download schedule
   Duration _getDownloadFileSchedule() {
-    return const Duration(minutes: 2);
+    return const Duration(minutes: 40);
   }
 
   /// Platform detection helpers

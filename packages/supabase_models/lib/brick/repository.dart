@@ -609,72 +609,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (instance is Stock) {
       // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
-    } else if (instance is ITransaction) {
-      if (instance.transactionType == TransactionType.adjustment &&
-          instance.status == COMPLETE &&
-          instance.items?.isNotEmpty == true) {
-        final serverUrl = await ProxyService.box.getServerUrl();
-        // Note: EBM sync service is called but not awaited to prevent blocking
-        // the database write operation. The sync will happen in the background.
-        final ebmSyncService = EbmSyncService(this);
-        ebmSyncService.syncTransactionWithEbm(
-          instance: instance,
-          serverUrl: serverUrl!,
-        );
-        instance.ebmSynced = true;
-        super.upsert(instance);
-      }
-    } else if (instance is Customer) {
-      final serverUrl = await ProxyService.box.getServerUrl();
-      // Note: EBM sync service is called but not awaited to prevent blocking
-      // the database write operation. The sync will happen in the background.
-      final ebmSyncService = EbmSyncService(this);
-      ebmSyncService.syncCustomerWithEbm(
-        instance: instance,
-        serverUrl: serverUrl!,
-      );
-      instance.ebmSynced = true;
-      super.upsert(instance);
-    } else if (instance is Variant) {
-      final serverUrl = await ProxyService.box.getServerUrl();
-      // Note: EBM sync service is called but not awaited to prevent blocking
-      // the database write operation. The sync will happen in the background.
-      final ebmSyncService = EbmSyncService(this);
-      ebmSyncService.stockIo(
-        variant: instance,
-        serverUrl: serverUrl!,
-      );
-      instance.ebmSynced = true;
-      super.upsert(instance);
-    } else if (instance is Retryable) {
-      final serverUrl = await ProxyService.box.getServerUrl();
-      if (instance.retryCount > 3) {
-        return instance;
-      }
-      if (instance.entityTable == "transactions") {
-        // get this failed transaction and try to sync it again
-        final transaction = await get<ITransaction>(
-            query: Query(where: [Where('id').isExactly(instance.entityId)]));
-        if (transaction.isNotEmpty) {
-          final ebmSyncService = EbmSyncService(this);
-          ebmSyncService.syncTransactionWithEbm(
-            instance: transaction.first,
-            serverUrl: serverUrl!,
-          );
-        }
-      } else if (instance.entityTable == "variants") {
-        // get this failed variant and try to sync it again
-        final variant = await get<Variant>(
-            query: Query(where: [Where('id').isExactly(instance.entityId)]));
-        if (variant.isNotEmpty) {
-          final ebmSyncService = EbmSyncService(this);
-          ebmSyncService.stockIo(
-            variant: variant.first,
-            serverUrl: serverUrl!,
-          );
-        }
-      }
     }
+
     return instance;
   }
 

@@ -181,7 +181,7 @@ mixin AssetMixin implements AssetInterface {
 
     final file = File(filePath);
     if (await file.exists()) {
-      talker.warning('File Exist: ${file.path}');
+      talker.info('File already exists locally: ${file.path}');
       return Stream.value(100.0); // Return a stream indicating 100% completion
     }
     talker.warning("file to Download:$filePath");
@@ -211,7 +211,7 @@ mixin AssetMixin implements AssetInterface {
       // Listen for the download completion
       operation.result.then((_) {
         progressController.close();
-        talker.warning("Downloaded file at path ${storagePath}");
+        talker.info("Downloaded file at path ${storagePath}");
       }).catchError((error) async {
         progressController.addError(error);
         progressController.close();

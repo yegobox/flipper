@@ -268,8 +268,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
+      ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        ref.read(loadingProvider.notifier).stopLoading();
         toast("We did not close normally, check if your product is saved",
             duration: Toast.LENGTH_LONG);
       }
@@ -346,8 +346,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
       ref.read(loadingProvider.notifier).stopLoading();
     } catch (e) {
+      ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        ref.read(loadingProvider.notifier).stopLoading();
         toast("Failed to save composite product: ${e.toString()}");
         talker.error("Error saving composite product: $e");
       }
