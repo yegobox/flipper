@@ -56,6 +56,11 @@ mixin TransactionMixinOld {
           key: "bhfId",
           value: ebm.bhfId,
         );
+
+        // Collect payment and complete transaction details before generating receipt
+        await _completeTransactionAfterTaxValidation(transaction,
+            customerName: customerNameController.text);
+
         response = await handleReceiptGeneration(
           formKey: formKey,
           context: context,
@@ -65,17 +70,10 @@ mixin TransactionMixinOld {
         if (response.resultCd != "000") {
           throw Exception("Invalid response from server");
         }
-
-        // Only complete the transaction after successful tax service response
-        await _completeTransactionAfterTaxValidation(transaction,
-            customerName: customerNameController.text);
-
-        onComplete();
       } else {
         // For non-tax enabled scenarios, complete the transaction here
         await _completeTransactionAfterTaxValidation(transaction,
             customerName: customerNameController.text);
-        onComplete();
       }
 
       if (response == null) {
@@ -222,9 +220,7 @@ mixin TransactionMixinOld {
         customerName: customer == null
             ? ProxyService.box.customerName() ?? "N/A"
             : customerName,
-        customerTin: customer == null
-            ? ProxyService.box.currentSaleCustomerPhoneNumber()
-            : customer.custTin,
+        customerTin: customer?.custTin,
         cashReceived: amount,
         transaction: transaction,
         categoryId: transaction.categoryId,
@@ -233,6 +229,8 @@ mixin TransactionMixinOld {
         paymentType: paymentType,
         discount: discount,
         directlyHandleReceipt: false,
+        customerPhone: customer?.telNo ??
+            ProxyService.box.currentSaleCustomerPhoneNumber(),
       );
       // final tinNumber = ProxyService.box.tin();
       // Clean up temporary storage

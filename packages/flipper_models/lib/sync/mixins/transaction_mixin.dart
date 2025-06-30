@@ -546,7 +546,7 @@ mixin TransactionMixin implements TransactionInterface {
       reference: randomNumber.toString(),
       invoiceNumber: invoiceNumber ?? randomNumber,
       receiptType: TransactionType.adjustment,
-      customerTin: ProxyService.box.customerTin() ?? "",
+      customerTin: pendingTransaction.customerTin,
       customerBhfId: await ProxyService.box.bhfId() ?? "00",
       subTotal: pendingTransaction.subTotal! > 0
           ? pendingTransaction.subTotal!

@@ -1078,25 +1078,7 @@ class Capella extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  Future<ITransaction> collectPayment(
-      {required double cashReceived,
-      ITransaction? transaction,
-      required String paymentType,
-      required double discount,
-      required int branchId,
-      required String bhfId,
-      String? customerName,
-      String? customerTin,
-      required bool isProformaMode,
-      required bool isTrainingMode,
-      required String transactionType,
-      String? categoryId,
-      bool directlyHandleReceipt = false,
-      required bool isIncome}) {
-    // TODO: implement collectPayment
-    throw UnimplementedError();
-  }
+  
 
   @override
   Future<DatabaseSyncInterface> configureCapella(
@@ -2362,6 +2344,12 @@ class Capella extends AiStrategyImpl
       bool includePending = false,
       bool skipOriginalTransactionCheck = false}) {
     // TODO: implement transactionsAndItems
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<brick.ITransaction> collectPayment({required double cashReceived, brick.ITransaction? transaction, required String paymentType, required double discount, required int branchId, required String bhfId, required bool isProformaMode, required bool isTrainingMode, required String transactionType, String? categoryId, bool directlyHandleReceipt = false, required bool isIncome, String? customerName, String? customerTin, String? customerPhone}) {
+    // TODO: implement collectPayment
     throw UnimplementedError();
   }
 }

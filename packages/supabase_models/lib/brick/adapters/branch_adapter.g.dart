@@ -248,34 +248,31 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BranchFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BranchFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Branch input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BranchToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BranchToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Branch> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$BranchFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$BranchFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Branch input, {

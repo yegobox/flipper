@@ -205,19 +205,13 @@ class TaxController<OBJ> {
           Configurations? taxConfigTaxD =
               await ProxyService.strategy.getByTaxType(taxtype: "D");
 
-          Customer? customer = (await ProxyService.strategy.customers(
-                  id: transaction.customerId ?? "",
-                  branchId: ProxyService.box.getBranchId()!))
-              .firstOrNull;
-
           Print print = Print();
 
           final List<TransactionPaymentRecord> paymentTypes = await ProxyService
               .strategy
               .getPaymentType(transactionId: transaction.id);
           await print.print(
-            customerPhone: customer?.telNo ??
-                ProxyService.box.currentSaleCustomerPhoneNumber(),
+            customerPhone: transaction.customerPhone,
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
             timeFromServer:
@@ -263,13 +257,9 @@ class TaxController<OBJ> {
             brandFooter: business.name!,
             emails: ['info@yegobox.com'],
             brandEmail: business.email,
-            customerTin: customer?.custTin == null ||
-                    customer?.custTin?.toLowerCase() == 'null'
-                ? null
-                : customer?.custTin,
+            customerTin: transaction.customerTin,
             receiptType: receiptType,
-            customerName:
-                customer?.custNm ?? ProxyService.box.customerName() ?? "N/A",
+            customerName: transaction.customerName!,
             printCallback: (Uint8List data) {
               bytes = data;
             },
@@ -353,7 +343,7 @@ class TaxController<OBJ> {
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
             receiptNumber: counter.invcNo,
-
+            customerPhone: transaction.customerPhone,
             totalReceiptNumber: counter.totRcptNo,
             invoiceNumber: counter.invcNo,
             customerName: transaction.customerName ?? "N/A",

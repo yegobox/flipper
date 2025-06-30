@@ -13,9 +13,10 @@ Future<Customer> _$CustomerFromSupabase(
     telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    updatedAt: data['updated_at'] == null
-        ? null
-        : data['updated_at'] == null
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
             ? null
             : DateTime.tryParse(data['updated_at'] as String),
     custNo: data['cust_no'] == null ? null : data['cust_no'] as String?,
@@ -70,9 +71,10 @@ Future<Customer> _$CustomerFromSqlite(
     telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    updatedAt: data['updated_at'] == null
-        ? null
-        : data['updated_at'] == null
+    updatedAt:
+        data['updated_at'] == null
+            ? null
+            : data['updated_at'] == null
             ? null
             : DateTime.tryParse(data['updated_at'] as String),
     custNo: data['cust_no'] == null ? null : data['cust_no'] as String?,
@@ -337,43 +339,39 @@ class CustomerAdapter extends OfflineFirstWithSupabaseAdapter<Customer> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Customer input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Customer> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Customer input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$CustomerToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$CustomerToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

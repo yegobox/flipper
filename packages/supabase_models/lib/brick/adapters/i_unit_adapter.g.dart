@@ -15,9 +15,10 @@ Future<IUnit> _$IUnitFromSupabase(
     code: data['code'] == null ? null : data['code'] as String?,
     description:
         data['description'] == null ? null : data['description'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     createdAt:
@@ -57,9 +58,10 @@ Future<IUnit> _$IUnitFromSqlite(
     code: data['code'] == null ? null : data['code'] as String?,
     description:
         data['description'] == null ? null : data['description'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     createdAt:
@@ -226,34 +228,31 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$IUnitFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$IUnitFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     IUnit input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$IUnitToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$IUnitToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<IUnit> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$IUnitFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$IUnitFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     IUnit input, {

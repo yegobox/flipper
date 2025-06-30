@@ -26,14 +26,6 @@ class EbmSyncService {
       Variant? variant, ITransaction? transaction) async {
     if (ProxyService.box.isProformaMode() ||
         ProxyService.box.isTrainingMode()) {
-      if (variant != null) {
-        variant.ebmSynced = true;
-        await repository.upsert(variant);
-      }
-      if (transaction != null) {
-        transaction.ebmSynced = true;
-        await repository.upsert(transaction);
-      }
       return true;
     }
     return false;
@@ -63,12 +55,6 @@ class EbmSyncService {
     String? sarTyCd,
   }) async {
     if (await _handleProformaOrTrainingMode(variant, transaction)) {
-      if (variant != null) {
-        repository.upsert<Variant>(variant);
-      }
-      if (transaction != null) {
-        repository.upsert<ITransaction>(transaction);
-      }
       return true;
     }
 
@@ -89,7 +75,6 @@ class EbmSyncService {
         /// save it anyway so we do not miss things
         talker.info("Syncing service called but skipped ${variant.itemCd}");
         variant.ebmSynced = true;
-        await repository.upsert<Variant>(variant);
         return true;
       }
       await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
@@ -201,12 +186,6 @@ class EbmSyncService {
 
       if (responseSaveStockInput.resultCd == "000") {
         if (variant != null) {
-          variant.ebmSynced = true;
-          variant.stockSynchronized = false;
-          pendingTransaction.status = COMPLETE;
-          pendingTransaction.ebmSynced = true;
-          await repository.upsert(pendingTransaction);
-          await repository.upsert(variant);
           ProxyService.notification
               .sendLocalNotification(body: "Synced ${variant.itemCd}");
           return true;
@@ -248,9 +227,6 @@ class EbmSyncService {
       // get transaction items
       await stockIo(serverUrl: serverUrl, transaction: instance, sarTyCd: "11");
 
-      // If all items synced successfully, mark transaction as synced
-      instance.ebmSynced = true;
-      await repository.upsert(instance);
       talker
           .info("Successfully synced all items for transaction ${instance.id}");
 
@@ -277,8 +253,6 @@ class EbmSyncService {
         URI: serverUrl,
       );
       if (response.resultCd == "000") {
-        instance.ebmSynced = true;
-        await repository.upsert<Customer>(instance);
         return true;
       }
     } catch (e, s) {

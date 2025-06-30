@@ -8,32 +8,38 @@ Future<Drawers> _$DrawersFromSupabase(
 }) async {
   return Drawers(
     id: data['id'] as String?,
-    openingBalance: data['opening_balance'] == null
-        ? null
-        : data['opening_balance'] as double?,
-    closingBalance: data['closing_balance'] == null
-        ? null
-        : data['closing_balance'] as double?,
-    openingDateTime: data['opening_date_time'] == null
-        ? null
-        : data['opening_date_time'] == null
+    openingBalance:
+        data['opening_balance'] == null
+            ? null
+            : data['opening_balance'] as double?,
+    closingBalance:
+        data['closing_balance'] == null
+            ? null
+            : data['closing_balance'] as double?,
+    openingDateTime:
+        data['opening_date_time'] == null
+            ? null
+            : data['opening_date_time'] == null
             ? null
             : DateTime.tryParse(data['opening_date_time'] as String),
-    closingDateTime: data['closing_date_time'] == null
-        ? null
-        : data['closing_date_time'] == null
+    closingDateTime:
+        data['closing_date_time'] == null
+            ? null
+            : data['closing_date_time'] == null
             ? null
             : DateTime.tryParse(data['closing_date_time'] as String),
     csSaleCount:
         data['cs_sale_count'] == null ? null : data['cs_sale_count'] as int?,
     tradeName:
         data['trade_name'] == null ? null : data['trade_name'] as String?,
-    totalNsSaleIncome: data['total_ns_sale_income'] == null
-        ? null
-        : data['total_ns_sale_income'] as double?,
-    totalCsSaleIncome: data['total_cs_sale_income'] == null
-        ? null
-        : data['total_cs_sale_income'] as double?,
+    totalNsSaleIncome:
+        data['total_ns_sale_income'] == null
+            ? null
+            : data['total_ns_sale_income'] as double?,
+    totalCsSaleIncome:
+        data['total_cs_sale_income'] == null
+            ? null
+            : data['total_cs_sale_income'] as double?,
     nrSaleCount:
         data['nr_sale_count'] == null ? null : data['nr_sale_count'] as int?,
     nsSaleCount:
@@ -42,19 +48,22 @@ Future<Drawers> _$DrawersFromSupabase(
         data['tr_sale_count'] == null ? null : data['tr_sale_count'] as int?,
     psSaleCount:
         data['ps_sale_count'] == null ? null : data['ps_sale_count'] as int?,
-    incompleteSale: data['incomplete_sale'] == null
-        ? null
-        : data['incomplete_sale'] as int?,
-    otherTransactions: data['other_transactions'] == null
-        ? null
-        : data['other_transactions'] as int?,
+    incompleteSale:
+        data['incomplete_sale'] == null
+            ? null
+            : data['incomplete_sale'] as int?,
+    otherTransactions:
+        data['other_transactions'] == null
+            ? null
+            : data['other_transactions'] as int?,
     paymentMode:
         data['payment_mode'] == null ? null : data['payment_mode'] as String?,
     cashierId: data['cashier_id'] == null ? null : data['cashier_id'] as int?,
     open: data['open'] == null ? null : data['open'] as bool?,
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
     businessId:
@@ -100,32 +109,38 @@ Future<Drawers> _$DrawersFromSqlite(
 }) async {
   return Drawers(
     id: data['id'] as String,
-    openingBalance: data['opening_balance'] == null
-        ? null
-        : data['opening_balance'] as double?,
-    closingBalance: data['closing_balance'] == null
-        ? null
-        : data['closing_balance'] as double?,
-    openingDateTime: data['opening_date_time'] == null
-        ? null
-        : data['opening_date_time'] == null
+    openingBalance:
+        data['opening_balance'] == null
+            ? null
+            : data['opening_balance'] as double?,
+    closingBalance:
+        data['closing_balance'] == null
+            ? null
+            : data['closing_balance'] as double?,
+    openingDateTime:
+        data['opening_date_time'] == null
+            ? null
+            : data['opening_date_time'] == null
             ? null
             : DateTime.tryParse(data['opening_date_time'] as String),
-    closingDateTime: data['closing_date_time'] == null
-        ? null
-        : data['closing_date_time'] == null
+    closingDateTime:
+        data['closing_date_time'] == null
+            ? null
+            : data['closing_date_time'] == null
             ? null
             : DateTime.tryParse(data['closing_date_time'] as String),
     csSaleCount:
         data['cs_sale_count'] == null ? null : data['cs_sale_count'] as int?,
     tradeName:
         data['trade_name'] == null ? null : data['trade_name'] as String?,
-    totalNsSaleIncome: data['total_ns_sale_income'] == null
-        ? null
-        : data['total_ns_sale_income'] as double?,
-    totalCsSaleIncome: data['total_cs_sale_income'] == null
-        ? null
-        : data['total_cs_sale_income'] as double?,
+    totalNsSaleIncome:
+        data['total_ns_sale_income'] == null
+            ? null
+            : data['total_ns_sale_income'] as double?,
+    totalCsSaleIncome:
+        data['total_cs_sale_income'] == null
+            ? null
+            : data['total_cs_sale_income'] as double?,
     nrSaleCount:
         data['nr_sale_count'] == null ? null : data['nr_sale_count'] as int?,
     nsSaleCount:
@@ -134,19 +149,22 @@ Future<Drawers> _$DrawersFromSqlite(
         data['tr_sale_count'] == null ? null : data['tr_sale_count'] as int?,
     psSaleCount:
         data['ps_sale_count'] == null ? null : data['ps_sale_count'] as int?,
-    incompleteSale: data['incomplete_sale'] == null
-        ? null
-        : data['incomplete_sale'] as int?,
-    otherTransactions: data['other_transactions'] == null
-        ? null
-        : data['other_transactions'] as int?,
+    incompleteSale:
+        data['incomplete_sale'] == null
+            ? null
+            : data['incomplete_sale'] as int?,
+    otherTransactions:
+        data['other_transactions'] == null
+            ? null
+            : data['other_transactions'] as int?,
     paymentMode:
         data['payment_mode'] == null ? null : data['payment_mode'] as String?,
     cashierId: data['cashier_id'] == null ? null : data['cashier_id'] as int?,
     open: data['open'] == null ? null : data['open'] == 1,
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
+    deletedAt:
+        data['deleted_at'] == null
+            ? null
+            : data['deleted_at'] == null
             ? null
             : DateTime.tryParse(data['deleted_at'] as String),
     businessId:
@@ -446,43 +464,39 @@ class DrawersAdapter extends OfflineFirstWithSupabaseAdapter<Drawers> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DrawersFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DrawersFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Drawers input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DrawersToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DrawersToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Drawers> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DrawersFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DrawersFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Drawers input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$DrawersToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$DrawersToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

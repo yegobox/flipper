@@ -175,34 +175,31 @@ class ReportAdapter extends OfflineFirstWithSupabaseAdapter<Report> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReportFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReportFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Report input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReportToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReportToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Report> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$ReportFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$ReportFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Report input, {

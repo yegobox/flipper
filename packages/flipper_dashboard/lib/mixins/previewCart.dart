@@ -213,7 +213,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Validate transaction
       if (transaction.subTotal == 0) {
-        throw Exception("Please add items in basket to complete a transaction");
+        throw Exception("Remove item and add them back, we encountered error");
       }
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;

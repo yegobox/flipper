@@ -11,31 +11,37 @@ Future<Stock> _$StockFromSupabase(
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    currentStock: data['current_stock'] == null
-        ? null
-        : data['current_stock'] as double? ?? 0.0,
+    currentStock:
+        data['current_stock'] == null
+            ? null
+            : data['current_stock'] as double? ?? 0.0,
     lowStock:
         data['low_stock'] == null ? null : data['low_stock'] as double? ?? 0.0,
-    canTrackingStock: data['can_tracking_stock'] == null
-        ? null
-        : data['can_tracking_stock'] as bool? ?? true,
-    showLowStockAlert: data['show_low_stock_alert'] == null
-        ? null
-        : data['show_low_stock_alert'] as bool? ?? true,
+    canTrackingStock:
+        data['can_tracking_stock'] == null
+            ? null
+            : data['can_tracking_stock'] as bool? ?? true,
+    showLowStockAlert:
+        data['show_low_stock_alert'] == null
+            ? null
+            : data['show_low_stock_alert'] as bool? ?? true,
     active: data['active'] == null ? null : data['active'] as bool?,
     value: data['value'] == null ? null : data['value'] as double?,
     rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as double?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
-    ebmSynced: data['ebm_synced'] == null
-        ? null
-        : data['ebm_synced'] as bool? ?? false,
-    initialStock: data['initial_stock'] == null
-        ? null
-        : data['initial_stock'] as double? ?? 0.0,
+    ebmSynced:
+        data['ebm_synced'] == null
+            ? null
+            : data['ebm_synced'] as bool? ?? false,
+    initialStock:
+        data['initial_stock'] == null
+            ? null
+            : data['initial_stock'] as double? ?? 0.0,
   );
 }
 
@@ -75,18 +81,21 @@ Future<Stock> _$StockFromSqlite(
     currentStock:
         data['current_stock'] == null ? null : data['current_stock'] as double?,
     lowStock: data['low_stock'] == null ? null : data['low_stock'] as double?,
-    canTrackingStock: data['can_tracking_stock'] == null
-        ? null
-        : data['can_tracking_stock'] == 1,
-    showLowStockAlert: data['show_low_stock_alert'] == null
-        ? null
-        : data['show_low_stock_alert'] == 1,
+    canTrackingStock:
+        data['can_tracking_stock'] == null
+            ? null
+            : data['can_tracking_stock'] == 1,
+    showLowStockAlert:
+        data['show_low_stock_alert'] == null
+            ? null
+            : data['show_low_stock_alert'] == 1,
     active: data['active'] == null ? null : data['active'] == 1,
     value: data['value'] == null ? null : data['value'] as double?,
     rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as double?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
+    lastTouched:
+        data['last_touched'] == null
+            ? null
+            : data['last_touched'] == null
             ? null
             : DateTime.tryParse(data['last_touched'] as String),
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
@@ -107,12 +116,14 @@ Future<Map<String, dynamic>> _$StockToSqlite(
     'branch_id': instance.branchId,
     'current_stock': instance.currentStock,
     'low_stock': instance.lowStock,
-    'can_tracking_stock': instance.canTrackingStock == null
-        ? null
-        : (instance.canTrackingStock! ? 1 : 0),
-    'show_low_stock_alert': instance.showLowStockAlert == null
-        ? null
-        : (instance.showLowStockAlert! ? 1 : 0),
+    'can_tracking_stock':
+        instance.canTrackingStock == null
+            ? null
+            : (instance.canTrackingStock! ? 1 : 0),
+    'show_low_stock_alert':
+        instance.showLowStockAlert == null
+            ? null
+            : (instance.showLowStockAlert! ? 1 : 0),
     'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'value': instance.value,
     'rsd_qty': instance.rsdQty,
@@ -314,34 +325,31 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$StockFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$StockFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Stock input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$StockToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$StockToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Stock> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$StockFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$StockFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Stock input, {

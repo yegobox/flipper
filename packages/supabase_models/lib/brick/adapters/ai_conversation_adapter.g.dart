@@ -10,12 +10,14 @@ Future<AiConversation> _$AiConversationFromSupabase(
     id: data['id'] as String?,
     title: data['title'] as String,
     branchId: data['branch_id'] as int,
-    createdAt: data['created_at'] == null
-        ? null
-        : DateTime.tryParse(data['created_at'] as String),
-    lastMessageAt: data['last_message_at'] == null
-        ? null
-        : DateTime.tryParse(data['last_message_at'] as String),
+    createdAt:
+        data['created_at'] == null
+            ? null
+            : DateTime.tryParse(data['created_at'] as String),
+    lastMessageAt:
+        data['last_message_at'] == null
+            ? null
+            : DateTime.tryParse(data['last_message_at'] as String),
   );
 }
 
@@ -163,43 +165,39 @@ class AiConversationAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$AiConversationFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$AiConversationFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     AiConversation input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$AiConversationToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$AiConversationToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<AiConversation> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$AiConversationFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$AiConversationFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     AiConversation input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$AiConversationToSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$AiConversationToSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
 }

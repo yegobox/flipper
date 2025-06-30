@@ -200,34 +200,31 @@ class NoticeAdapter extends OfflineFirstWithSupabaseAdapter<Notice> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$NoticeFromSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$NoticeFromSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Notice input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$NoticeToSupabase(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$NoticeToSupabase(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Notice> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async =>
-      await _$NoticeFromSqlite(
-        input,
-        provider: provider,
-        repository: repository,
-      );
+  }) async => await _$NoticeFromSqlite(
+    input,
+    provider: provider,
+    repository: repository,
+  );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Notice input, {
