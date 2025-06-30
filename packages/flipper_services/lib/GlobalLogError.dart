@@ -16,6 +16,12 @@ class GlobalErrorHandler {
         details.exception,
         stackTrace: details.stack,
         type: 'flutter_error',
+        extra: {
+          'library': details.library,
+          'context': details.context.toString(),
+          'informationCollector':
+              details.informationCollector?.call().toString(),
+        },
       );
 
       // Also print to console in debug mode
@@ -30,6 +36,9 @@ class GlobalErrorHandler {
         error,
         stackTrace: stack,
         type: 'platform_error',
+        extra: {
+          'error_type': error.runtimeType.toString(),
+        },
       );
       return true; // Handled
     };
@@ -45,6 +54,9 @@ class GlobalErrorHandler {
           error,
           stackTrace: StackTrace.fromString(stackTrace.toString()),
           type: 'isolate_error',
+          extra: {
+            'error_type': error.runtimeType.toString(),
+          },
         );
       }).sendPort,
     );
@@ -56,62 +68,63 @@ class GlobalErrorHandler {
     StackTrace? stackTrace,
     String? type,
     Map<String, dynamic>? context,
+    Map<String, String>? tags,
+    Map<String, dynamic>? extra,
   }) async {
     await _logService.logException(
       error,
       stackTrace: stackTrace,
       type: type ?? 'manual',
+      tags: tags,
+      extra: extra,
     );
-
-    // Log context if provided
-    if (context != null) {
-      await _logService.logMessage(
-        'Error context: ${context.toString()}',
-        type: '${type ?? 'manual'}_context',
-      );
-    }
   }
 
   /// Log custom messages
   static Future<void> logMessage(
     String message, {
     String? type,
-    Map<String, dynamic>? context,
+    Map<String, String>? tags,
+    Map<String, dynamic>? extra,
   }) async {
     await _logService.logMessage(
       message,
       type: type ?? 'info',
+      tags: tags,
+      extra: extra,
     );
   }
-}
 
-/// Enhanced runApp wrapper with error handling
-void runAppWithErrorHandling(Widget app) {
-  // Initialize error handling first
-  GlobalErrorHandler.initialize();
+  /// Enhanced runApp wrapper with error handling
+  void runAppWithErrorHandling(Widget app) {
+    // Initialize error handling first
+    GlobalErrorHandler.initialize();
 
-  // Run the app in a error zone
-  runZonedGuarded<Future<void>>(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
+    // Run the app in a error zone
+    runZonedGuarded<Future<void>>(
+      () async {
+        WidgetsFlutterBinding.ensureInitialized();
 
-      // Any other initialization code here
-      // e.g., Firebase, SharedPreferences, etc.
+        // Any other initialization code here
+        // e.g., Firebase, SharedPreferences, etc.
 
-      runApp(app);
-    },
-    (error, stackTrace) {
-      // This catches any errors not caught by Flutter
-      GlobalErrorHandler.logError(
-        error,
-        stackTrace: stackTrace,
-        type: 'zone_error',
-      );
-    },
-  );
-}
+        runApp(app);
+      },
+      (error, stackTrace) {
+        // This catches any errors not caught by Flutter
+        GlobalErrorHandler.logError(
+          error,
+          stackTrace: stackTrace,
+          type: 'zone_error',
+          extra: {
+            'error_type': error.runtimeType.toString(),
+          },
+        );
+      },
+    );
+  }
 
-/// Example of how to use in your main.dart
+  /// Example of how to use in your main.dart
 /*
 void main() {
   runAppWithErrorHandling(MyApp());
@@ -147,3 +160,4 @@ class MyApp extends StatelessWidget {
   }
 }
 */
+}

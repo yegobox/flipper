@@ -20,6 +20,8 @@ class LogService {
     StackTrace? stackTrace,
     String? type,
     int? businessId,
+    Map<String, String>? tags,
+    Map<String, dynamic>? extra,
   }) async {
     try {
       // Format the stack trace if provided
@@ -42,6 +44,8 @@ $formattedStack
         message: message,
         type: type ?? 'exception',
         businessId: logBusinessId,
+        tags: tags,
+        extra: extra,
       );
 
       // Save to database
@@ -64,6 +68,8 @@ $formattedStack
     String message, {
     String? type,
     int? businessId,
+    Map<String, String>? tags,
+    Map<String, dynamic>? extra,
   }) async {
     try {
       // Get business ID from proxy service if not provided
@@ -74,6 +80,8 @@ $formattedStack
         message: message,
         type: type ?? 'message',
         businessId: logBusinessId,
+        tags: tags,
+        extra: extra,
       );
 
       // Save to database
