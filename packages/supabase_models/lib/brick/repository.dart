@@ -606,8 +606,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (instance is Stock) {
       // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
-    }
-    if (instance is ITransaction) {
+    } else if (instance is ITransaction) {
       if (instance.transactionType == TransactionType.adjustment &&
           instance.status == COMPLETE &&
           instance.items?.isNotEmpty == true) {
@@ -622,8 +621,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         instance.ebmSynced = true;
         super.upsert(instance);
       }
-    }
-    if (instance is Customer) {
+    } else if (instance is Customer) {
       final serverUrl = await ProxyService.box.getServerUrl();
       // Note: EBM sync service is called but not awaited to prevent blocking
       // the database write operation. The sync will happen in the background.
@@ -634,8 +632,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       );
       instance.ebmSynced = true;
       super.upsert(instance);
-    }
-    if (instance is Variant) {
+    } else if (instance is Variant) {
       final serverUrl = await ProxyService.box.getServerUrl();
       // Note: EBM sync service is called but not awaited to prevent blocking
       // the database write operation. The sync will happen in the background.
