@@ -45,6 +45,7 @@ mixin ProductMixin {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
+    ///TODO: check why some business might return null when fetched business
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
@@ -121,9 +122,9 @@ mixin ProductMixin {
         variations[i].itemStdNm = productName;
         variations[i].taxPercentage = 18.0;
 
-        variations[i].tin = business!.tinNumber;
+        variations[i].tin = business?.tinNumber;
 
-        variations[i].bhfId = business.bhfId ?? "00";
+        variations[i].bhfId = business?.bhfId ?? "00";
         variations[i].bcd = variations[i].bcd;
         variations[i].splyAmt = variations[i].supplyPrice;
 
