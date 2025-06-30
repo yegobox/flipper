@@ -182,22 +182,6 @@ Future<ITransaction> _$ITransactionFromSupabase(
         data['discount_amount'] == null
             ? null
             : data['discount_amount'] as num?,
-    items:
-        data['items'] == null
-            ? null
-            : await Future.wait<TransactionItem>(
-              data['items']
-                      ?.map(
-                        (d) => TransactionItemAdapter().fromSupabase(
-                          d,
-                          provider: provider,
-                          repository: repository,
-                        ),
-                      )
-                      .toList()
-                      .cast<Future<TransactionItem>>() ??
-                  [],
-            ),
     customerPhone:
         data['customer_phone'] == null
             ? null
@@ -267,18 +251,6 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'tax_amount': instance.taxAmount,
     'number_of_items': instance.numberOfItems,
     'discount_amount': instance.discountAmount,
-    'items': await Future.wait<Map<String, dynamic>>(
-      instance.items
-              ?.map(
-                (s) => TransactionItemAdapter().toSupabase(
-                  s,
-                  provider: provider,
-                  repository: repository,
-                ),
-              )
-              .toList() ??
-          [],
-    ),
     'customer_phone': instance.customerPhone,
   };
 }
@@ -779,12 +751,6 @@ class ITransactionAdapter
     'discountAmount': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'discount_amount',
-    ),
-    'items': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'items',
-      associationType: TransactionItem,
-      associationIsNullable: true,
     ),
     'customerPhone': const RuntimeSupabaseColumnDefinition(
       association: false,

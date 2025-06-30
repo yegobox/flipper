@@ -8,8 +8,6 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
@@ -17,12 +15,7 @@ import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
-import 'package:supabase_models/brick/models/customer.model.dart';
-import 'package:supabase_models/brick/models/retryable.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
-import 'package:supabase_models/brick/models/transaction.model.dart';
-import 'package:supabase_models/services/ebm_sync_service.dart';
-import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
@@ -65,8 +58,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
   static const _queueFileBaseName = 'brick_offline_queue';
-  static const _standardVersion = 24;
-  static const _mobileTargetVersion = 24;
+  static const _standardVersion = 26;
+  static const _mobileTargetVersion = 26;
 
   // Flag to override version increment behavior (null = use platform default)
   static bool? _overrideVersionIncrement;

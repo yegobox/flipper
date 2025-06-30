@@ -544,89 +544,58 @@ mixin AuthMixin implements AuthInterface {
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
     final tenants = await ProxyService.strategy
         .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
-    // Only use cached credentials if they belong to the same user (phone number) that's trying to log in
-    // This prevents using cached credentials from a previous user if someone tries to log in with a different account
+
+    // Check if we have sufficient local data to skip the API call
     if (savedLocalPinForThis != null &&
         existingPhoneNumber == phoneNumber &&
         tenants != null) {
-      talker.debug(
-          "Using existing token and user ID, skipping duplicate sendLoginRequest");
-      // Create a mock response with the existing data to avoid a duplicate API call
       final businesses = await ProxyService.strategy
           .businesses(userId: savedLocalPinForThis.userId!);
-
       final branches = await ProxyService.strategy
           .branches(serverId: tenants.businessId ?? 0);
 
-      // Build a proper response structure with the fetched data
-      Map<String, dynamic> responseData = {
-        'id': savedLocalPinForThis.userId,
-        //TODO: this token I am passing here might not be the right token
-        'token': savedLocalPinForThis.tokenUid,
-        'uid': uid,
-        'phoneNumber': phoneNumber,
-        'channels': [savedLocalPinForThis.userId.toString()],
-        'pin': savedLocalPinForThis.userId,
-        'tenants': []
-      };
+      if (businesses.isNotEmpty && branches.isNotEmpty) {
+        talker.debug(
+            "Using existing token and user ID, skipping duplicate sendLoginRequest");
 
-      // Only add tenant data if we have valid tenant information
+        // Build a proper response structure with the fetched data
+        Map<String, dynamic> responseData = {
+          'id': savedLocalPinForThis.userId,
+          'token': savedLocalPinForThis.tokenUid,
+          'uid': uid,
+          'phoneNumber': phoneNumber,
+          'channels': [savedLocalPinForThis.userId.toString()],
+          'pin': savedLocalPinForThis.userId,
+          'tenants': []
+        };
 
-      // Create tenant entry with businesses and branches
-      Map<String, dynamic> tenantData = {
-        'id': tenants.id,
-        'name': tenants.name,
-        'phoneNumber': phoneNumber,
-        'businessId': tenants.businessId,
-        'userId': savedLocalPinForThis.userId,
-        'pin': savedLocalPinForThis.userId,
-        'type': tenants.type,
-        'default': tenants.isDefault,
-        'businesses': [],
-        'branches': []
-      };
+        Map<String, dynamic> tenantData = {
+          'id': tenants.id,
+          'name': tenants.name,
+          'phoneNumber': phoneNumber,
+          'businessId': tenants.businessId,
+          'userId': savedLocalPinForThis.userId,
+          'pin': savedLocalPinForThis.userId,
+          'type': tenants.type,
+          'default': tenants.isDefault,
+          'businesses': _convertBusinesses(businesses)
+              .map((e) => e.toJson())
+              .toList(), // Convert IBusiness to map
+          'branches': _convertBranches(branches)
+              .map((e) => e.toJson())
+              .toList(), // Convert IBranch to map
+        };
 
-      // Add businesses if available
-      if (businesses.isNotEmpty) {
-        List<Map<String, dynamic>> businessesList = [];
-        for (var business in businesses) {
-          businessesList.add({
-            'id': business.id,
-            'name': business.name,
-            'userId': business.userId?.toString(),
-            'serverId': business.serverId,
-            'default': business.isDefault,
-            'active': business.active
-          });
-        }
-        tenantData['businesses'] = businessesList;
+        responseData['tenants'] = [tenantData];
+
+        return http.Response(
+          jsonEncode(responseData),
+          200,
+        );
       }
-
-      // Add branches if available
-      if (branches.isNotEmpty) {
-        List<Map<String, dynamic>> branchesList = [];
-        for (var branch in branches) {
-          branchesList.add({
-            'id': branch.id,
-            'name': branch.name,
-            'businessId': branch.businessId,
-            'serverId': branch.serverId,
-            'default': branch.isDefault,
-            'active': branch.active
-          });
-        }
-        tenantData['branches'] = branchesList;
-      }
-
-      // Add the tenant to the response
-      responseData['tenants'] = [tenantData];
-
-      return http.Response(
-        jsonEncode(responseData),
-        200,
-      );
     }
 
+    // If local data is not sufficient, proceed with the actual API call
     try {
       talker.debug("Sending login request to API for phone: $phoneNumber");
       // Only add '+' prefix if it's a phone number (not email) and doesn't start with '+'
@@ -685,7 +654,7 @@ mixin AuthMixin implements AuthInterface {
       } else if (responseBody['id'] != null) {
         ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
       } else {
-        talker.error("Missing ID in response: $responseBody");
+        talker.error("Missing ID in response: ${responseBody}");
         throw Exception("Missing user ID in server response");
       }
 
@@ -701,6 +670,80 @@ mixin AuthMixin implements AuthInterface {
           talker.debug("Setting businessId from API response: $businessId");
           ProxyService.box.writeString(
               key: 'businessIdString', value: businessId.toString());
+        }
+
+        // Save businesses locally
+        if (tenant['businesses'] != null && tenant['businesses'] is List) {
+          for (var businessData in tenant['businesses']) {
+            final iBusiness = IBusiness.fromJson(businessData);
+            // Convert IBusiness to Business (from supabase_models)
+            final business = Business(
+              id: iBusiness.id,
+              serverId: iBusiness.serverId,
+              name: iBusiness.name,
+              currency: iBusiness.currency,
+              categoryId: iBusiness.categoryId,
+              latitude: iBusiness.latitude,
+              longitude: iBusiness.longitude,
+              userId: iBusiness.userId,
+              timeZone: iBusiness.timeZone,
+              country: iBusiness.country,
+              businessUrl: iBusiness.businessUrl,
+              hexColor: iBusiness.hexColor,
+              imageUrl: iBusiness.imageUrl,
+              type: iBusiness.type,
+              createdAt: iBusiness.createdAt,
+              metadata: iBusiness.metadata,
+              role: iBusiness.role,
+              lastSeen: iBusiness.lastSeen,
+              firstName: iBusiness.firstName,
+              lastName: iBusiness.lastName,
+              deviceToken: iBusiness.deviceToken,
+              chatUid: iBusiness.chatUid,
+              backUpEnabled: iBusiness.backUpEnabled,
+              subscriptionPlan: iBusiness.subscriptionPlan,
+              nextBillingDate: iBusiness.nextBillingDate,
+              previousBillingDate: iBusiness.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  iBusiness.isLastSubscriptionPaymentSucceeded,
+              backupFileId: iBusiness.backupFileId,
+              email: iBusiness.email,
+              lastDbBackup: iBusiness.lastDbBackup,
+              fullName: iBusiness.fullName,
+              tinNumber: iBusiness.tinNumber,
+              dvcSrlNo: iBusiness.dvcSrlNo,
+              bhfId: iBusiness.bhfId,
+              adrs: iBusiness.adrs,
+              taxEnabled: iBusiness.taxEnabled,
+              isDefault: iBusiness.isDefault,
+              businessTypeId: iBusiness.businessTypeId,
+              encryptionKey: iBusiness.encryptionKey,
+            );
+            await repository.upsert<Business>(business);
+            talker.debug("Saved business locally: ${business.name}");
+          }
+        }
+
+        // Save branches locally
+        if (tenant['branches'] != null && tenant['branches'] is List) {
+          for (var branchData in tenant['branches']) {
+            final iBranch = IBranch.fromJson(branchData);
+            // Convert IBranch to Branch (from supabase_models)
+            final branch = Branch(
+              id: iBranch.id,
+              serverId: iBranch.serverId,
+              active: iBranch.active,
+              description: iBranch.description,
+              name: iBranch.name,
+              businessId: iBranch.businessId,
+              longitude: iBranch.longitude,
+              latitude: iBranch.latitude,
+              location: iBranch.location,
+              isDefault: iBranch.isDefault,
+            );
+            await repository.upsert<Branch>(branch);
+            talker.debug("Saved branch locally: ${branch.name}");
+          }
         }
       }
 
