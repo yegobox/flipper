@@ -108,7 +108,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef,
       {required String selectedProductType}) async {
-    if (_isDisposed) return; // Check if the widget is disposed.
+    if (_isDisposed) return; // Moved to the top
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
