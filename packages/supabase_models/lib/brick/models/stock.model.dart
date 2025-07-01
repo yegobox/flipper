@@ -65,4 +65,39 @@ class Stock extends OfflineFirstWithSupabaseModel {
         initialStock = initialStock ?? 0.0,
         active = active ?? true,
         lastTouched = DateTime.now();
+
+  // add copyWith
+  Stock copyWith({
+    String? id,
+    int? tin,
+    String? bhfId,
+    int? branchId,
+    double? currentStock,
+    double? lowStock,
+    bool? canTrackingStock,
+    bool? showLowStockAlert,
+    bool? active,
+    double? value,
+    double? rsdQty,
+    DateTime? lastTouched,
+    bool? ebmSynced,
+    double? initialStock,
+  }) {
+    return Stock(
+      id: id ?? this.id,
+      tin: tin ?? this.tin,
+      bhfId: bhfId ?? this.bhfId,
+      branchId: branchId ?? this.branchId,
+      currentStock: currentStock ?? this.currentStock,
+      lowStock: lowStock ?? this.lowStock,
+      canTrackingStock: canTrackingStock ?? this.canTrackingStock,
+      showLowStockAlert: showLowStockAlert ?? this.showLowStockAlert,
+      active: active ?? this.active,
+      value: value ?? this.value,
+      rsdQty: rsdQty ?? this.rsdQty,
+      lastTouched: lastTouched ?? this.lastTouched,
+      ebmSynced: ebmSynced ?? this.ebmSynced,
+      initialStock: initialStock ?? this.initialStock,
+    );
+  }
 }

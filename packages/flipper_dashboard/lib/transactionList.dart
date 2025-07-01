@@ -267,25 +267,22 @@ class TransactionListState extends ConsumerState<TransactionList>
   ) {
     return dataProvider.when(
       data: (data) {
-        if (data.isEmpty) {
-          return _buildEmptyState();
-        }
-
-        // Ensure startDate and endDate are not null
+        // If data is empty, force DataView to use EmptyDataSource
         final validStartDate =
             startDate ?? DateTime.now().subtract(const Duration(days: 7));
         final validEndDate = endDate ?? DateTime.now();
 
         return DataView(
           key: ValueKey(showDetailed), // Force rebuild of DataView when showDetailed changes
-          transactions: transactions,
-          transactionItems: transactionItems,
+          transactions: data.isEmpty ? null : transactions,
+          transactionItems: data.isEmpty ? null : transactionItems,
           startDate: validStartDate,
           endDate: validEndDate,
           rowsPerPage: ref.read(rowsPerPageProvider),
           showDetailedReport: showDetailed,
           showDetailed: showDetailed, // Match with showDetailedReport
           workBookKey: workBookKey, // Use the persistent key
+          forceEmpty: data.isEmpty,
         );
       },
       loading: () => _buildLoadingState(),
