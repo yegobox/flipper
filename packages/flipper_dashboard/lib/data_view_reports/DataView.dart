@@ -68,8 +68,6 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   static const double dataPagerHeight = 60;
-  late DynamicDataSource _dataGridSource;
-
   int pageIndex = 0; // Keep pageIndex here
   final talker = TalkerFlutter.init();
   // Track loading states for different export operations
@@ -79,10 +77,21 @@ class DataViewState extends ConsumerState<DataView>
   bool _isExportingSaleReport = false;
   bool _isExportingPLUReport = false;
 
+  late DynamicDataSource _dataGridSource;
+
   @override
   void initState() {
     super.initState();
     talker.info('DataView: initState called.');
+    // Initialize _dataGridSource here to avoid LateInitializationError
+    _dataGridSource = _buildDataGridSource(
+      showDetailed: widget.showDetailedReport,
+      transactionItems: widget.transactionItems,
+      transactions: widget.transactions,
+      variants: widget.variants,
+      rowsPerPage: widget.rowsPerPage,
+      currentPageIndex: pageIndex,
+    );
     _fetchExportAccurateTotal();
   }
 
@@ -187,6 +196,36 @@ class DataViewState extends ConsumerState<DataView>
   @override
   Widget build(BuildContext context) {
     final showDetailed = ref.watch(toggleBooleanValueProvider);
+
+    // Ensure _dataGridSource is always up-to-date before building widgets
+    final shouldBeDetailed = widget.showDetailedReport;
+    final shouldBeItems =
+        widget.transactionItems != null && widget.transactionItems!.isNotEmpty;
+    final shouldBeTransactions =
+        widget.transactions != null && widget.transactions!.isNotEmpty;
+    final shouldBeVariants =
+        widget.variants != null && widget.variants!.isNotEmpty;
+    final correctType = shouldBeItems
+        ? _dataGridSource is TransactionItemDataSource
+        : shouldBeTransactions
+            ? _dataGridSource is TransactionDataSource
+            : shouldBeVariants
+                ? _dataGridSource.runtimeType.toString() == 'StockDataSource'
+                : _dataGridSource is EmptyDataSource;
+    final correctDetailed = _dataGridSource is EmptyDataSource
+        ? (_dataGridSource as EmptyDataSource).showDetailed == shouldBeDetailed
+        : true;
+    if (!correctType || !correctDetailed) {
+      _dataGridSource = _buildDataGridSource(
+        showDetailed: widget.showDetailedReport,
+        transactionItems: widget.transactionItems,
+        transactions: widget.transactions,
+        variants: widget.variants,
+        rowsPerPage: widget.rowsPerPage,
+        currentPageIndex: pageIndex,
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Padding(
