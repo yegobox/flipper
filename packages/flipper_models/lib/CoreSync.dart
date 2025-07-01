@@ -9,7 +9,6 @@ import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -213,82 +212,6 @@ class CoreSync extends AiStrategyImpl
 
       return 200;
     } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  Future<int> addVariant(
-      {required List<Variant> variations, required int branchId}) async {
-    try {
-      for (final variation in variations) {
-        await _processVariant(branchId, variation);
-      }
-      return 200;
-    } catch (e) {
-      print('Failed to add variants: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> _processVariant(int branchId, Variant variation) async {
-    try {
-      Variant? variant = await getVariant(id: variation.id);
-
-      if (variant != null) {
-        Stock? stock = await getStockById(id: variant.stockId!);
-
-        stock.currentStock = stock.currentStock! +
-            (variation.stock?.rsdQty ?? variation.qty ?? 0);
-        stock.rsdQty = stock.currentStock! + (stock.rsdQty!);
-        stock.lastTouched = DateTime.now().toLocal();
-        stock.value = (variation.stock?.rsdQty ?? 0 * (variation.retailPrice!))
-            .toDouble();
-
-        variant.stock?.rsdQty = variation.stock?.rsdQty ?? variation.qty ?? 0;
-        variant.stock?.initialStock =
-            variation.stock?.rsdQty ?? variation.qty ?? 0;
-        variant.retailPrice = variation.retailPrice;
-        variant.supplyPrice = variation.supplyPrice;
-        variant.taxPercentage = variation.taxPercentage!.toDouble();
-        variant.lastTouched = DateTime.now().toLocal();
-        variant.stock = stock;
-        variant.stockId = stock.id;
-        await repository.upsert<Stock>(stock);
-        await repository.upsert<Variant>(variant);
-        final ebmSyncService = TurboTaxService(repository);
-        if (variant.imptItemSttsCd != "1" || variant.pchsSttsCd != "1") {
-          await ebmSyncService.stockIo(
-            variant: variant,
-            serverUrl: (await ProxyService.box.getServerUrl())!,
-          );
-        }
-      } else {
-        /// for relationship we save stock first then variant
-        Stock upsertedStock =
-            await repository.upsert<Stock>(variation.stock!); // Line 256
-        variation.stockId = upsertedStock.id;
-        await repository.upsert<Variant>(variation);
-        final ebmSyncService = TurboTaxService(repository);
-        if (variation.imptItemSttsCd != "1" || variation.pchsSttsCd != "1") {
-          await ebmSyncService.stockIo(
-            variant: variation,
-            serverUrl: (await ProxyService.box.getServerUrl())!,
-          );
-        }
-      }
-    } catch (e, s) {
-      talker.warning('Error in updateStock: $e $s');
-      talker.error(s);
-      GlobalErrorHandler.logError(
-        s,
-        type: "PRODUCT-CREATION",
-        context: {
-          'resultCode': e,
-          'businessId': ProxyService.box.getBusinessId(),
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-      );
       rethrow;
     }
   }
