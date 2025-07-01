@@ -185,6 +185,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required List<Payment> paymentMethods,
     bool immediateCompletion = false, // New parameter
   }) async {
+    // Store original stock quantities for potential rollback
+    final Map<String, double> originalStockQuantities = {};
+
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
       final transaction = await ProxyService.strategy.getTransaction(
@@ -207,6 +210,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         ref.read(payButtonStateProvider.notifier).stopLoading();
         return;
       }
+
+      // Deduct stock for each transaction item
+      for (var item in transactionItems) {
+        final variant =
+            await ProxyService.strategy.getVariant(id: item.variantId!);
+        if (variant != null) {
+          final stock = variant.stock;
+          if (stock != null) {
+            originalStockQuantities[stock.id] =
+                stock.currentStock!; // Store original
+            final newStock = stock.currentStock! - item.qty;
+            await ProxyService.strategy.updateStock(
+                stockId: stock.id, currentStock: newStock, rsdQty: newStock);
+          }
+        }
+      }
+
       // update this transaction as completed
 
       final double finalSubTotal = transactionItems.fold(
@@ -280,6 +300,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
       talker.error("Error in complete transaction flow: $e", s);
+
+      // Rollback stock quantities
+      for (var entry in originalStockQuantities.entries) {
+        final stockId = entry.key;
+        final originalStock = entry.value;
+        await ProxyService.strategy.updateStock(
+            stockId: stockId,
+            currentStock: originalStock,
+            rsdQty: originalStock);
+      }
 
       /// first check if there is other pending transaction delete it before we set this transaction to pending, this
       /// facilitate to get items back on QuickSell as there is only one pending transaction at a time
