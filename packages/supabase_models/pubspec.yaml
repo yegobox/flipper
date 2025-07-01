@@ -14,7 +14,7 @@ dependencies:
   brick_supabase: ^2.0.0
   supabase_flutter: ^2.9.0
   sqflite_common: ^2.5.4+6 
-  sqflite_common_ffi: ^2.3.4+4
+  sqflite_common_ffi: ^2.3.6
   path_provider: ^2.1.5
   path: ^1.9.0
   uuid: ^4.5.1
@@ -26,13 +26,13 @@ dependencies:
   flipper_models: any
   flipper_services: any
   sqlite3_web: '>=0.2.1 <0.4.0'
-  sqlite3: ^2.7.5
+  sqlite3: ^2.7.6
   # never use realm for real data, we use realm as cache layer on whatever we aim to have real time update
   # e.g querying variant come with stock but refreshing this stock might be time consuming or not effient
   realm: ^20.1.1
 dependency_overrides:
   device_info_plus: ^11.2.2
-  sqlite3: ^2.7.5
+  sqlite3: ^2.7.6
   sqlite3_web: '>=0.2.1 <0.4.0'
   
 dev_dependencies:
