@@ -33,8 +33,13 @@ import 'package:supabase_models/brick/repository.dart';
 /// Fetches transaction items for the given transaction ID
 Future<List<TransactionItem>> _getTransactionItems(
     {required ITransaction transaction}) async {
-  final items = transaction.items ?? [];
-  return items.where((item) => item.active == true).toList();
+  final items = await ProxyService.strategy.transactionItems(
+    branchId: (await ProxyService.strategy.activeBranch()).id,
+    transactionId: transaction.id,
+    doneWithTransaction: false,
+    active: true,
+  );
+  return items;
 }
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
@@ -182,7 +187,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }) async {
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
-      final transaction = await ProxyService.strategy.getTransaction(id: transactionId,branchId: ProxyService.box.getBranchId()!);
+      final transaction = await ProxyService.strategy.getTransaction(
+          id: transactionId, branchId: ProxyService.box.getBranchId()!);
 
       if (transaction == null) {
         throw Exception("Transaction not found for completion.");
@@ -202,11 +208,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         return;
       }
       // update this transaction as completed
+
+      final double finalSubTotal = transactionItems.fold(
+          0, (sum, item) => sum + (item.price * item.qty));
+
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: COMPLETE,
         cashReceived: ProxyService.box.getCashReceived(),
+        subTotal: finalSubTotal,
       );
+      transaction.subTotal =
+          finalSubTotal; // Update the local object's subTotal
       // Save payment methods
       for (var payment in paymentMethods) {
         await ProxyService.strategy.savePaymentType(
