@@ -756,7 +756,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                               completeTransaction: () async {
                                 await _onQuickSellComplete(transaction);
                               },
-                              transaction: transaction,
+                              transactionId: transaction.id,
                               paymentMethods: ref.watch(paymentMethodsProvider),
                             );
                           });

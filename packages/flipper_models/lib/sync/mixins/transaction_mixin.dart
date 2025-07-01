@@ -763,7 +763,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime newLastTouched = DateTime.now();
 
     // Check if we're already in a write transaction
-    await ProxyService.strategy.updateTransaction(
+    updateTransaction(
       transaction: pendingTransaction,
       subTotal: newSubTotal,
       taxAmount: pendingTransaction.taxAmount ?? 0,
@@ -784,13 +784,14 @@ mixin TransactionMixin implements TransactionInterface {
   /// on the dashboard.
   @override
   FutureOr<void> updateTransaction({
-    required ITransaction? transaction,
+    ITransaction? transaction,
     num taxAmount = 0.0,
     String? receiptType,
     double? subTotal,
     String? note,
     String? status,
     String? customerId,
+    String? transactionId,
     bool? ebmSynced,
     String? sarTyCd,
     String? reference,
@@ -818,33 +819,34 @@ mixin TransactionMixin implements TransactionInterface {
     bool? isTrainingMode,
   }) async {
     if (transaction == null) {
-      print("Error: Transaction is null in updateTransaction.");
-      return; // Exit if transaction is null.
+      if (transactionId == null) {
+        print(
+            "Error: Transaction and transactionId are both null in updateTransaction.");
+        return; // Exit if transaction is null.
+      }
+      transaction = await getTransaction(
+          id: transactionId, branchId: ProxyService.box.getBranchId()!);
+      if (transaction == null) {
+        print("Error: Could not retrieve transaction with ID: $transactionId.");
+        return;
+      }
     }
 
     // Determine receipt type based on mode (or use the provided value if available)
-    if (isProformaMode != null || isTrainingMode != null) {
-      String newReceiptType = TransactionReceptType.NS;
-      if (isProformaMode == true) {
-        newReceiptType = TransactionReceptType.PS;
-      }
-      if (isTrainingMode == true) {
-        newReceiptType = TransactionReceptType.TS;
-      }
-      receiptType = newReceiptType; // Use the determined value for receiptType
-    }
+    receiptType = isProformaMode == true
+        ? TransactionReceptType.PS
+        : isTrainingMode == true
+            ? TransactionReceptType.TS
+            : receiptType;
 
     // update to avoid the same issue, make sure that every parameter is update correctly.
     transaction.receiptType = receiptType ?? transaction.receiptType;
-    if (subTotal != null && subTotal != 0) {
-      transaction.subTotal = subTotal;
-    }
+    transaction.subTotal = subTotal ?? transaction.subTotal;
     transaction.note = note ?? transaction.note;
     transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
     transaction.ticketName = ticketName ?? transaction.ticketName;
-    transaction.taxAmount =
-        taxAmount == 0.0 ? transaction.taxAmount : taxAmount;
+    transaction.taxAmount = taxAmount;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;

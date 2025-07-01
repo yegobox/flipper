@@ -175,12 +175,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> startCompleteTransactionFlow({
-    required ITransaction transaction,
+    required String transactionId,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
     bool immediateCompletion = false, // New parameter
   }) async {
     try {
+      // Fetch the latest transaction from the database to ensure subTotal is up-to-date
+      final transaction = await ProxyService.strategy.getTransaction(id: transactionId,branchId: ProxyService.box.getBranchId()!);
+
+      if (transaction == null) {
+        throw Exception("Transaction not found for completion.");
+      }
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return;
 
@@ -275,7 +281,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             .flipperDelete(id: pendingTransactions.id, endPoint: 'transaction');
       }
       await ProxyService.strategy.updateTransaction(
-        transaction: transaction,
+        transactionId: transactionId,
         status: PENDING,
         cashReceived: ProxyService.box.getCashReceived(),
       );
