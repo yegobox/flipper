@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
-import 'package:supabase_models/services/ebm_sync_service.dart';
+import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
@@ -541,7 +541,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd'],
             counter: counter);
 
-        final ebmSyncService = EbmSyncService(repository);
+        final ebmSyncService = TurboTaxService(repository);
         await ebmSyncService.syncTransactionWithEbm(
           instance: transaction,
           serverUrl: (await ProxyService.box.getServerUrl())!,
