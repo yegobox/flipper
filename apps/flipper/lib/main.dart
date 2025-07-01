@@ -10,6 +10,7 @@ import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
+import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -138,9 +139,9 @@ Future<void> main() async {
     }
 
     await SentryFlutter.init(
-      (options) => options
+      (options) async => options
         ..dsn = AppSecrets.sentryKey
-        ..release = 'flipper@1.170.4252223232243+1723059742'
+        ..release = await AppService().version()
         ..environment = 'production'
         ..experimental.replay.sessionSampleRate = 1.0
         ..experimental.replay.onErrorSampleRate = 1.0

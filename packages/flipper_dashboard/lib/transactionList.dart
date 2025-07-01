@@ -278,6 +278,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         final validEndDate = endDate ?? DateTime.now();
 
         return DataView(
+          key: ValueKey(showDetailed), // Force rebuild of DataView when showDetailed changes
           transactions: transactions,
           transactionItems: transactionItems,
           startDate: validStartDate,

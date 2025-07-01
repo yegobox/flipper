@@ -25,6 +25,14 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     notifyListeners();
   }
 
+  void updateDataSource(List<T> newData, bool newShowPluReport) {
+    data = newData;
+    showPluReport = newShowPluReport;
+    _dataGridRows = buildPaginatedDataGridRows();
+    talker.info('DynamicDataSource: updateDataSource - newData.length: ${newData.length}, newShowPluReport: $newShowPluReport, _dataGridRows.length: ${_dataGridRows.length}');
+    notifyListeners();
+  }
+
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
     talker.info('DynamicDataSource: handlePageChange - oldPageIndex: $oldPageIndex, newPageIndex: $newPageIndex');
@@ -41,7 +49,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        return DataGridRow(cells: []);
+        final int numberOfColumns = showPluReport ? 10 : 5; // 10 for detailed, 5 for summary
+        return DataGridRow(cells: List.generate(numberOfColumns, (index) => DataGridCell(columnName: 'empty', value: '')));
       }
     }).toList();
     talker.info('DynamicDataSource: handlePageChange - _dataGridRows.length: ${_dataGridRows.length}');
@@ -61,7 +70,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        return DataGridRow(cells: []);
+        final int numberOfColumns = showPluReport ? 10 : 5; // 10 for detailed, 5 for summary
+        return DataGridRow(cells: List.generate(numberOfColumns, (index) => DataGridCell(columnName: 'empty', value: '')));
       }
     }).toList();
   }
@@ -114,7 +124,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           value: transactionItem.qty.toDouble(),
         ),
         DataGridCell<double>(
-          columnName: 'Profit Made',
+          columnName: 'TotalSales',
           value: (transactionItem.price.toDouble()) *
                   (transactionItem.qty.toDouble()) -
               (transactionItem.splyAmt?.toDouble() ?? 0.0),

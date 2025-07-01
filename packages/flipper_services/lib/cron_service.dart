@@ -213,13 +213,13 @@ class CronService {
       // Process each variant
       for (final variant in variants) {
         try {
-          bool remoteQuantity =
+          bool remoteQuantityMatchLocal =
               await ProxyService.httpApi.fetchRemoteStockQuantity(
             variant: variant,
             client: ProxyService.http,
           );
 
-          if (remoteQuantity) {
+          if (remoteQuantityMatchLocal) {
             // the mote match then uplodate
             variant.stockSynchronized = true;
             ProxyService.strategy.updateVariant(updatables: [variant]);
