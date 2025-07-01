@@ -2,6 +2,7 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -162,7 +163,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.totalReceiptNumber,
     bool? isDigitalReceiptGenerated,
     this.invoiceNumber,
-    this.sarNo,
+    String? sarNo,
     this.orgSarNo,
     // LOAN TICKET: Add to constructor
     bool? isLoan,
@@ -204,6 +205,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
         categoryId =
             (categoryId != null && categoryId.isEmpty) ? null : categoryId,
         ebmSynced = ebmSynced ?? false,
+        sarNo = sarNo ?? randomNumber().toString(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         lastTouched = lastTouched ?? DateTime.now().toUtc();
 
@@ -319,7 +321,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       lastPaymentAmount: lastPaymentAmount ?? this.lastPaymentAmount,
       originalTransactionId:
           originalTransactionId ?? this.originalTransactionId,
-      isOriginalTransaction: isOriginalTransaction ?? this.isOriginalTransaction,
+      isOriginalTransaction:
+          isOriginalTransaction ?? this.isOriginalTransaction,
       taxAmount: taxAmount ?? this.taxAmount,
       numberOfItems: numberOfItems ?? this.numberOfItems,
       discountAmount: discountAmount ?? this.discountAmount,

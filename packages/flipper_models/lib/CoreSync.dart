@@ -1824,7 +1824,8 @@ class CoreSync extends AiStrategyImpl
         bus = Business.fromMap(jsonData);
         talker
             .info('Signup: Business parsed successfully, ID: ${bus.serverId}');
-        await repository.upsert<Business>(bus); // Save the business object locally
+        await repository
+            .upsert<Business>(bus); // Save the business object locally
       } catch (e, s) {
         talker.error('Signup: Error parsing business data: $e', s);
         throw e;
@@ -2198,39 +2199,14 @@ class CoreSync extends AiStrategyImpl
         transaction.customerPhone =
             customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
 
-        double subTotalFinalized = 0.0;
-        double cash = ProxyService.box.getCashReceived() ?? cashReceived;
         if (isIncome) {
           // Update transaction details
-          final double subTotal = transaction.items!
+          transaction.items!
               .fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
-          subTotalFinalized = !isIncome ? cashReceived : subTotal;
           // Update stock and transaction items
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
           /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
-          final adjustmentTransaction = await _createAdjustmentTransaction(
-            items: transaction.items!,
-            orgSarNo: transaction.sarNo,
-            sarNo: transaction.sarNo,
-            receiptType: transaction.receiptType,
-            customerName: transaction.customerName,
-            customerTin: transaction.customerTin,
-            remark: transaction.remark,
-            status: COMPLETE,
-            customerBhfId: transaction.customerBhfId,
-          );
-
-          await _updateStockAndItems(
-              items: transaction.items!,
-              branchId: branchId,
-              adjustmentTransaction: adjustmentTransaction);
-          final ebmSyncService = EbmSyncService(repository);
-          await ebmSyncService.syncTransactionWithEbm(
-            instance: transaction,
-            serverUrl: (await ProxyService.box.getServerUrl())!,
-            sarTyCd: "11", //save
-          );
         }
         await ProxyService.strategy.manageTransaction(
           transactionType: TransactionType.sale,
@@ -2238,32 +2214,7 @@ class CoreSync extends AiStrategyImpl
           status: PENDING,
           branchId: ProxyService.box.getBranchId()!,
         );
-        // _updateTransactionDetails(
-        //   transaction: transaction,
-        //   isIncome: isIncome,
-        //   cashReceived: cash,
-        //   subTotalFinalized: subTotalFinalized,
-        //   paymentType: paymentType,
-        //   isProformaMode: isProformaMode,
-        //   isTrainingMode: isTrainingMode,
-        //   transactionType: transactionType,
-        //   categoryId: categoryId,
-        //   customerName: customerName,
-        //   customerTin: transaction.customerTin,
-        // );
-        // // Handle receipt if required
-        // if (directlyHandleReceipt) {
-        //   if (!isProformaMode && !isTrainingMode) {
-        //     TaxController(object: transaction)
-        //         .handleReceipt(filterType: FilterType.NS);
-        //   } else if (isProformaMode) {
-        //     TaxController(object: transaction)
-        //         .handleReceipt(filterType: FilterType.PS);
-        //   } else if (isTrainingMode) {
-        //     TaxController(object: transaction)
-        //         .handleReceipt(filterType: FilterType.TS);
-        //   }
-        // }
+
         return transaction;
       } catch (e, s) {
         talker.error(s);
@@ -2271,259 +2222,6 @@ class CoreSync extends AiStrategyImpl
       }
     }
     throw Exception("transaction is null");
-  }
-
-  /// customerName and customerTin are optional
-  /// but for transactions that need to sync with ebm they need them otherwise they will be skipped.
-  Future<void> _updateTransactionDetails({
-    required ITransaction transaction,
-    required bool isIncome,
-    required double cashReceived,
-    required double subTotalFinalized,
-    required String paymentType,
-    required bool isProformaMode,
-    required bool isTrainingMode,
-    required String transactionType,
-    String? categoryId,
-    String? customerName,
-    String? customerTin,
-  }) async {
-    transaction.currentSaleCustomerPhoneNumber =
-        "250" + (ProxyService.box.currentSaleCustomerPhoneNumber() ?? "");
-
-    final now = DateTime.now().toUtc().toLocal();
-
-    // Update transaction properties using the = operator
-    transaction.status = COMPLETE;
-    transaction.isIncome = isIncome;
-    transaction.isExpense = !isIncome;
-    transaction.customerChangeDue = (cashReceived - subTotalFinalized);
-    transaction.paymentType = paymentType;
-    transaction.cashReceived = cashReceived;
-    transaction.subTotal = subTotalFinalized;
-    transaction.receiptType =
-        _determineReceiptType(isProformaMode, isTrainingMode);
-    transaction.updatedAt = now;
-    transaction.createdAt = now;
-    transaction.transactionType = transactionType;
-    transaction.lastTouched = now;
-    transaction.customerName = customerName;
-    transaction.receiptFileName =
-        transaction.receiptFileName ?? ProxyService.box.getReceiptFileName();
-    transaction.customerTin = customerTin;
-
-    // Optionally update categoryId if provided
-    if (categoryId != null) {
-      transaction.categoryId = categoryId;
-    }
-    await repository.upsert(transaction);
-  }
-
-  String _determineReceiptType(bool isProformaMode, bool isTrainingMode) {
-    if (isProformaMode) return TransactionReceptType.PS;
-    if (isTrainingMode) return TransactionReceptType.TS;
-    return TransactionReceptType.NS;
-  }
-
-  Future<void> _updateStockAndItems({
-    required List<TransactionItem> items,
-    required int branchId,
-    models.ITransaction? adjustmentTransaction,
-  }) async {
-    try {
-      final business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-      if (business == null) {
-        throw Exception("Business not found");
-      }
-
-      if (adjustmentTransaction == null) {
-        throw Exception("Failed to create adjustment transaction");
-      }
-      await _processTransactionItems(
-        items: items,
-        branchId: branchId,
-        adjustmentTransaction: adjustmentTransaction,
-        business: business,
-      );
-
-      // Assuming completeTransaction is defined in the same scope.
-
-      await completeTransaction(pendingTransaction: adjustmentTransaction);
-    } catch (e, s) {
-      talker.error(s);
-      talker.warning(e);
-      rethrow;
-    }
-  }
-
-  Future<ITransaction> _createAdjustmentTransaction({
-    required List<TransactionItem> items,
-    required String? orgSarNo,
-    required String? sarNo,
-    required String? receiptType,
-    required String? customerName,
-    required String? customerTin,
-    required String? remark,
-    required String status,
-    required String? customerBhfId,
-  }) async {
-    try {
-      talker.info('Creating new adjustment transaction', {
-        'branchId': ProxyService.box.getBranchId(),
-        'timestamp': DateTime.now().toIso8601String()
-      });
-
-      final transaction = await ProxyService.strategy.manageTransaction(
-        transactionType: TransactionType.adjustment,
-        isExpense: true,
-        status: status,
-        branchId: ProxyService.box.getBranchId()!,
-      );
-
-      if (transaction == null) {
-        throw Exception('Failed to create adjustment transaction');
-      }
-
-      transaction.items = items;
-      transaction.orgSarNo = orgSarNo;
-      transaction.sarNo = sarNo;
-      transaction.receiptType = receiptType;
-      transaction.customerName = customerName;
-      transaction.customerTin = customerTin;
-      transaction.remark = remark;
-      transaction.status = status;
-      transaction.customerBhfId = customerBhfId;
-      await repository.upsert<ITransaction>(transaction);
-      talker.info('Successfully created adjustment transaction', {
-        'transactionId': transaction.id,
-        'branchId': transaction.branchId,
-        'createdAt': transaction.createdAt?.toIso8601String()
-      });
-
-      return transaction;
-    } catch (e, s) {
-      talker.error('Error creating adjustment transaction', e, s);
-      rethrow;
-    }
-  }
-
-  Future<void> _processTransactionItems({
-    required List<TransactionItem> items,
-    required int branchId,
-    required ITransaction adjustmentTransaction,
-    required Business business,
-  }) async {
-    for (TransactionItem item in items) {
-      await _processSingleTransactionItem(
-        item: item,
-        branchId: branchId,
-        adjustmentTransaction: adjustmentTransaction,
-        business: business,
-      );
-    }
-  }
-
-  Future<void> _processSingleTransactionItem({
-    required TransactionItem item,
-    required int branchId,
-    required ITransaction adjustmentTransaction,
-    required Business business,
-  }) async {
-    if (!item.active!) {
-      repository.delete(item);
-      return;
-    }
-    String stockInOutType = ProxyService.box.stockInOutType();
-    await _updateStockForItem(item: item, branchId: branchId);
-
-    final variant = await ProxyService.strategy.getVariant(id: item.variantId);
-    // Setting the quantity here, after the stock patch is crucial for accuracy.
-
-    variant?.qty = item.qty.toDouble();
-    if (variant != null) {
-      await _updateVariantAndPatchStock(
-        variant: variant,
-        item: item,
-      );
-
-      // Assuming assignTransaction and randomNumber are defined in the same scope.
-      await assignTransaction(
-        variant: variant,
-        pendingTransaction: adjustmentTransaction,
-        business: business,
-        doneWithTransaction: true,
-        randomNumber: randomNumber(),
-
-        /// this item we are passing is the item from existing transaction
-        /// and since we are now using another type of transaction adjustment transaction
-        /// then we pass the same item so we can use same qty.
-        item: item,
-
-        /// usualy the flag useTransactionItemForQty is needed when we are dealing with adjustment
-        /// transaction i.e not original transaction
-        useTransactionItemForQty: true,
-
-        /// 11 is for sale
-        sarTyCd: stockInOutType,
-      );
-    }
-
-    item
-      ..doneWithTransaction = true
-      ..updatedAt = DateTime.now().toUtc().toLocal();
-    repository.upsert<TransactionItem>(item);
-  }
-
-  Future<void> _updateVariantAndPatchStock({
-    required Variant variant,
-    required TransactionItem item,
-  }) async {
-    ProxyService.box.writeBool(key: 'lockPatching', value: true);
-    variant.ebmSynced = false;
-    await ProxyService.strategy.updateVariant(updatables: [variant]);
-  }
-
-  Future<void> _updateStockForItem({
-    required TransactionItem item,
-    required int branchId,
-  }) async {
-    try {
-      final variant = await getVariant(id: item.variantId!);
-
-      if (variant != null && variant.stock != null) {
-        final currentStock = variant.stock?.currentStock ?? 0;
-        // in proforma we do not update stock
-        if (!ProxyService.box.isProformaMode() &&
-            !ProxyService.box.isTrainingMode()) {
-          final finalStock = currentStock - item.qty;
-          final stockValue = finalStock * (variant.retailPrice ?? 0);
-
-          // Update all stock-related fields
-          variant.stock!.rsdQty = finalStock;
-          variant.stock!.currentStock = finalStock;
-
-          variant.stock!.value = stockValue;
-          item.remainingStock = finalStock;
-        }
-
-        variant.stock!.ebmSynced = false;
-
-        // Update stock in repository
-        await repository.upsert<Stock>(variant.stock!);
-
-        // Update transaction item flags
-        item.active = true;
-        item.doneWithTransaction = true;
-
-        item.updatedAt = DateTime.now().toUtc().toLocal();
-        item.lastTouched = DateTime.now().toUtc().toLocal();
-        await repository.upsert<TransactionItem>(item);
-      }
-    } catch (e, s) {
-      talker.error(s);
-      talker.warning(e);
-    }
   }
 
   @override

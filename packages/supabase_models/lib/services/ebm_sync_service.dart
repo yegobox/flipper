@@ -303,13 +303,7 @@ class EbmSyncService {
       required String serverUrl,
       required String sarTyCd}) async {
     if (instance.status == COMPLETE) {
-      if (instance.customerName == null ||
-          instance.customerTin == null ||
-          instance.sarNo == null ||
-          instance.receiptType == "TS" ||
-          instance.receiptType == "PS" ||
-          instance.receiptType == "TR" ||
-          instance.ebmSynced!) {
+      if (instance.customerName == null || instance.sarNo == null) {
         return false;
       }
       talker.info("Syncing transaction with ${instance.items?.length} items");
