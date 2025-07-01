@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_dashboard/data_view_reports/EmptyDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/HeaderTransactionItem.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
@@ -64,7 +65,6 @@ class DataViewState extends ConsumerState<DataView>
 
     // Give the UI time to update and rebuild the DataGrid
     await Future.delayed(const Duration(milliseconds: 100));
-    if (mounted) setState(() {});
   }
 
   static const double dataPagerHeight = 60;
@@ -83,14 +83,6 @@ class DataViewState extends ConsumerState<DataView>
   void initState() {
     super.initState();
     talker.info('DataView: initState called.');
-    _dataGridSource = _buildDataGridSource(
-      showDetailed: widget.showDetailedReport,
-      transactionItems: widget.transactionItems,
-      transactions: widget.transactions,
-      variants: widget.variants,
-      rowsPerPage: widget.rowsPerPage,
-      currentPageIndex: pageIndex, // Pass initial page index
-    );
     _fetchExportAccurateTotal();
   }
 
@@ -112,7 +104,8 @@ class DataViewState extends ConsumerState<DataView>
         widget.transactionItems != oldWidget.transactionItems ||
             widget.transactions != oldWidget.transactions ||
             widget.variants != oldWidget.variants ||
-            widget.rowsPerPage != oldWidget.rowsPerPage;
+            widget.rowsPerPage != oldWidget.rowsPerPage ||
+            widget.showDetailedReport != oldWidget.showDetailedReport;
     talker.info('DataView: _shouldUpdateDataSource - changed: $changed');
     return changed;
   }
@@ -127,7 +120,7 @@ class DataViewState extends ConsumerState<DataView>
       rowsPerPage: widget.rowsPerPage,
       currentPageIndex: pageIndex, // Pass the current page index
     );
-    setState(() {}); // Trigger rebuild to reflect data changes
+    _dataGridSource.notifyListeners(); // Notify listeners of data change
   }
 
   void _handleCellTap(DataGridCellTapDetails details) {
@@ -366,7 +359,8 @@ class DataViewState extends ConsumerState<DataView>
         rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
       ),
       child: SfDataGrid(
-        key: widget.workBookKey,
+        key: ObjectKey(
+            _dataGridSource), // Force rebuild of SfDataGrid when _dataGridSource instance changes
         selectionMode: SelectionMode.multiple,
         allowSorting: true,
         allowColumnsResizing: true,
@@ -442,7 +436,7 @@ class DataViewState extends ConsumerState<DataView>
 
   Widget _buildDataPager(BoxConstraints constraints) {
     // Safely calculate page count to avoid null errors
-    final rowCount = (_dataGridSource).data.length;
+    final rowCount = _dataGridSource.data.length;
     final pageCount = rowCount > 0
         ? (rowCount / widget.rowsPerPage).ceilToDouble()
         : 1.0; // Default to at least 1 page
@@ -460,6 +454,18 @@ class DataViewState extends ConsumerState<DataView>
 
   List<GridColumn> _getTableHeaders() {
     const headerPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+
+    // If no specific data is provided, return headers for EmptyDataSource based on showDetailedReport
+    if ((widget.variants == null || widget.variants!.isEmpty) &&
+        (widget.transactions == null || widget.transactions!.isEmpty) &&
+        (widget.transactionItems == null || widget.transactionItems!.isEmpty)) {
+      if (widget.showDetailedReport) {
+        return pluReportTableHeader(headerPadding); // 10 columns
+      } else {
+        return zReportTableHeader(headerPadding); // 5 columns
+      }
+    }
+
     if (widget.variants != null && widget.variants!.isNotEmpty) {
       return stockTableHeader(headerPadding);
     } else if (widget.showDetailedReport) {
@@ -487,7 +493,8 @@ class DataViewState extends ConsumerState<DataView>
     } else if (variants != null && variants.isNotEmpty) {
       return StockDataSource(variants: variants, rowsPerPage: rowsPerPage);
     }
-    throw Exception('No valid data source available');
+    return EmptyDataSource(
+        showDetailed); // Pass showDetailed to EmptyDataSource
   }
 
   Future<void> _fetchExportAccurateTotal() async {
@@ -530,10 +537,6 @@ class DataViewState extends ConsumerState<DataView>
 
       // Force a rebuild of the UI and wait for it to complete
       if (mounted) {
-        // Re-initialize the data source with current view mode
-        _updateDataGridSource();
-        setState(() {});
-
         // Give the UI time to rebuild
         await Future.delayed(const Duration(milliseconds: 500));
       }

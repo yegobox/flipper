@@ -21,12 +21,6 @@ class IsolateHandler {
       if (message is Map<String, dynamic>) {
         if (message['task'] == 'taxService') {
           print("dealing with isolate");
-          // int branchId = message['branchId'];
-
-          // int businessId = message['businessId'];
-          // String dbPath = message['dbPath'] ?? "";
-          // String? URI = message['URI'];
-          // String? bhfId = message['bhfId'];
         }
       }
     });
