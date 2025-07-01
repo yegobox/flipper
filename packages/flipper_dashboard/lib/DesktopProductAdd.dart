@@ -272,6 +272,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (mounted) {
         toast("We did not close normally, check if your product is saved",
             duration: Toast.LENGTH_LONG);
+        Navigator.pop(context); // Always close the modal, even on error
       }
       rethrow;
     }

@@ -190,20 +190,8 @@ mixin VariantMixin implements VariantInterface {
           if (variantToSave.stock != null && variantToSave.stock!.id.isEmpty) {
             final newStockId = const Uuid().v4();
             // Create a new Stock instance with the new ID
-            final updatedStock = Stock(
-              id: newStockId,
-              branchId: branchId,
-              currentStock: variantToSave.stock!.currentStock,
-              lowStock: variantToSave.stock!.lowStock,
-              canTrackingStock: variantToSave.stock!.canTrackingStock,
-              showLowStockAlert: variantToSave.stock!.showLowStockAlert,
-              active: variantToSave.stock!.active,
-              value: variantToSave.stock!.value,
-              rsdQty: variantToSave.stock!.rsdQty,
-              lastTouched: variantToSave.stock!.lastTouched,
-              ebmSynced: variantToSave.stock!.ebmSynced,
-              initialStock: variantToSave.stock!.initialStock,
-            );
+            final updatedStock = variantToSave.stock!.copyWith(id: newStockId);
+            await repository.upsert<Stock>(updatedStock);
 
             // Update the variant with the new stock and stockId
             return await repository.upsert<Variant>(

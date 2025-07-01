@@ -39,6 +39,7 @@ class DataView extends StatefulHookConsumerWidget {
     required this.showDetailed,
     this.onTapRowShowRefundModal = true,
     this.onTapRowShowRecountModal = false,
+    this.forceEmpty = false,
   });
 
   final List<ITransaction>? transactions;
@@ -52,6 +53,7 @@ class DataView extends StatefulHookConsumerWidget {
   final bool onTapRowShowRefundModal;
   final bool onTapRowShowRecountModal;
   final GlobalKey<SfDataGridState> workBookKey;
+  final bool forceEmpty;
 
   @override
   DataViewState createState() => DataViewState();
@@ -59,12 +61,20 @@ class DataView extends StatefulHookConsumerWidget {
 
 class DataViewState extends ConsumerState<DataView>
     with ExportMixin, DateCoreWidget, Headers {
-  Future<void> _handleToggleReport() async {
-    // Toggle the report view
-    ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+  bool _isTransitioning = false;
 
-    // Give the UI time to update and rebuild the DataGrid
+  Future<void> _handleToggleReport() async {
+    setState(() {
+      _isTransitioning = true;
+    });
+    ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+    // Wait for provider and widget rebuilds
     await Future.delayed(const Duration(milliseconds: 100));
+    if (mounted) {
+      setState(() {
+        _isTransitioning = false;
+      });
+    }
   }
 
   static const double dataPagerHeight = 60;
@@ -83,15 +93,17 @@ class DataViewState extends ConsumerState<DataView>
   void initState() {
     super.initState();
     talker.info('DataView: initState called.');
-    // Initialize _dataGridSource here to avoid LateInitializationError
-    _dataGridSource = _buildDataGridSource(
-      showDetailed: widget.showDetailedReport,
-      transactionItems: widget.transactionItems,
-      transactions: widget.transactions,
-      variants: widget.variants,
-      rowsPerPage: widget.rowsPerPage,
-      currentPageIndex: pageIndex,
-    );
+    // If forceEmpty, always use EmptyDataSource
+    _dataGridSource = widget.forceEmpty
+        ? EmptyDataSource(widget.showDetailedReport)
+        : _buildDataGridSource(
+            showDetailed: widget.showDetailedReport,
+            transactionItems: widget.transactionItems,
+            transactions: widget.transactions,
+            variants: widget.variants,
+            rowsPerPage: widget.rowsPerPage,
+            currentPageIndex: pageIndex,
+          );
     _fetchExportAccurateTotal();
   }
 
@@ -108,6 +120,8 @@ class DataViewState extends ConsumerState<DataView>
     } else {
       talker.info('DataView: Data source does not need update.');
     }
+    debugPrint(
+        '[DataView] didUpdateWidget: _isTransitioning=$_isTransitioning');
   }
 
   bool _shouldUpdateDataSource(DataView oldWidget) {
@@ -122,15 +136,19 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   void _updateDataGridSource() {
-    // Reassign _dataGridSource to a new instance to force SfDataPager to re-evaluate its delegate
-    _dataGridSource = _buildDataGridSource(
-      showDetailed: widget.showDetailedReport,
-      transactionItems: widget.transactionItems,
-      transactions: widget.transactions,
-      variants: widget.variants,
-      rowsPerPage: widget.rowsPerPage,
-      currentPageIndex: pageIndex, // Pass the current page index
-    );
+    // If forceEmpty, always use EmptyDataSource
+    if (widget.forceEmpty) {
+      _dataGridSource = EmptyDataSource(widget.showDetailedReport);
+    } else {
+      _dataGridSource = _buildDataGridSource(
+        showDetailed: widget.showDetailedReport,
+        transactionItems: widget.transactionItems,
+        transactions: widget.transactions,
+        variants: widget.variants,
+        rowsPerPage: widget.rowsPerPage,
+        currentPageIndex: pageIndex, // Pass the current page index
+      );
+    }
     _dataGridSource.notifyListeners(); // Notify listeners of data change
   }
 
@@ -197,6 +215,7 @@ class DataViewState extends ConsumerState<DataView>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('[DataView] build: _isTransitioning=$_isTransitioning');
     final showDetailed = ref.watch(toggleBooleanValueProvider);
 
     return LayoutBuilder(
@@ -311,7 +330,9 @@ class DataViewState extends ConsumerState<DataView>
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: _buildDataGrid(constraints),
+                child: (widget.forceEmpty || _isTransitioning)
+                  ? _buildTransitioningGrid(constraints)
+                  : _buildDataGrid(constraints),
               ),
               _buildDataPager(constraints),
               _buildStickyFooter(),
@@ -361,6 +382,9 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildDataGrid(BoxConstraints constraints) {
+    final columns = _getTableHeaders();
+    debugPrint(
+        '[DataView] _buildDataGrid: columns=${columns.length}, rows=${_dataGridSource.rows.length}');
     return SfDataGridTheme(
       data: SfDataGridThemeData(
         headerHoverColor: Colors.yellow,
@@ -372,7 +396,7 @@ class DataViewState extends ConsumerState<DataView>
       ),
       child: SfDataGrid(
         key: ObjectKey(
-            '${_dataGridSource.runtimeType}_${widget.showDetailedReport}_${_getTableHeaders().length}'), // Force rebuild of SfDataGrid when mode or column count changes
+            '${_dataGridSource.runtimeType}_${widget.showDetailedReport}_${columns.length}'), // Force rebuild of SfDataGrid when mode or column count changes
         selectionMode: SelectionMode.multiple,
         allowSorting: true,
         allowColumnsResizing: true,
@@ -383,8 +407,44 @@ class DataViewState extends ConsumerState<DataView>
         headerGridLinesVisibility: GridLinesVisibility.both,
         columnWidthMode: ColumnWidthMode.fill,
         onCellTap: _handleCellTap,
-        columns: _getTableHeaders(),
+        columns: columns,
         rowsPerPage: widget.rowsPerPage,
+      ),
+    );
+  }
+
+  Widget _buildTransitioningGrid(BoxConstraints constraints) {
+    // Use the upcoming mode to determine column count
+    final columns = widget.showDetailedReport
+        ? pluReportTableHeader(
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0))
+        : zReportTableHeader(
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0));
+    debugPrint('[DataView] _buildTransitioningGrid: columns=${columns.length}');
+    final tempSource = EmptyDataSource(widget.showDetailedReport);
+    return SfDataGridTheme(
+      data: SfDataGridThemeData(
+        headerHoverColor: Colors.yellow,
+        gridLineColor: Colors.amber,
+        gridLineStrokeWidth: 1.0,
+        rowHoverColor: Colors.yellow,
+        selectionColor: Colors.yellow,
+        rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
+      ),
+      child: SfDataGrid(
+        key: ObjectKey(
+            'transitioning_${widget.showDetailedReport}_${columns.length}'),
+        selectionMode: SelectionMode.none,
+        allowSorting: false,
+        allowColumnsResizing: false,
+        source: tempSource,
+        allowFiltering: false,
+        highlightRowOnHover: false,
+        gridLinesVisibility: GridLinesVisibility.both,
+        headerGridLinesVisibility: GridLinesVisibility.both,
+        columnWidthMode: ColumnWidthMode.fill,
+        columns: columns,
+        rowsPerPage: 1,
       ),
     );
   }
