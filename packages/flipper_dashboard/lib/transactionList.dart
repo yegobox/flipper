@@ -44,6 +44,17 @@ class TransactionListState extends ConsumerState<TransactionList>
     // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
 
+    ref.listen<bool>(toggleBooleanValueProvider, (previous, next) {
+      if (previous != next) {
+        if (next) {
+          ref.invalidate(transactionItemListProvider);
+        } else {
+          ref.invalidate(transactionListProvider(
+              forceRealData: !(ProxyService.box.enableDebug() ?? false)));
+        }
+      }
+    });
+
     // Use a key to force rebuild when the toggle changes
     final AsyncValue<List<dynamic>> dataProvider;
 
@@ -57,15 +68,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           forceRealData: !(ProxyService.box.enableDebug() ?? false)));
     }
 
-    // Listen for toggle changes to ensure data is refreshed
-    ref.listen<bool>(toggleBooleanValueProvider, (previous, current) {
-      if (current != previous) {
-        // Always refresh both providers to ensure data is up-to-date
-        ref.invalidate(transactionItemListProvider);
-        ref.invalidate(transactionListProvider(
-            forceRealData: !(ProxyService.box.enableDebug() ?? false)));
-      }
-    });
+    
 
     // Conditionally cast the data based on the `showDetailed` flag
     List<ITransaction>? transactions;
@@ -207,8 +210,6 @@ class TransactionListState extends ConsumerState<TransactionList>
               if (!showDetailed) {
                 // Toggle the report and immediately invalidate both providers
                 ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-                ref.invalidate(transactionItemListProvider);
-                ref.invalidate(transactionListProvider);
               }
             },
           ),
@@ -219,8 +220,6 @@ class TransactionListState extends ConsumerState<TransactionList>
               if (showDetailed) {
                 // Toggle the report and immediately invalidate both providers
                 ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-                ref.invalidate(transactionItemListProvider);
-                ref.invalidate(transactionListProvider);
               }
             },
           ),
