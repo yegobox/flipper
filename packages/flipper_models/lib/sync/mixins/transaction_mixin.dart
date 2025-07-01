@@ -750,30 +750,16 @@ mixin TransactionMixin implements TransactionInterface {
 
   Future<void> updatePendingTransactionTotals(ITransaction pendingTransaction,
       {required String sarTyCd}) async {
-    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch()).id,
-      transactionId: pendingTransaction.id,
-      doneWithTransaction: false,
-      active: true,
-    );
-
-    // Calculate the new values
-    double newSubTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
     DateTime newUpdatedAt = DateTime.now();
     DateTime newLastTouched = DateTime.now();
 
     // Check if we're already in a write transaction
-    updateTransaction(
-      transaction: pendingTransaction,
-      subTotal: newSubTotal,
-      taxAmount: pendingTransaction.taxAmount ?? 0,
+    await repository.upsert<ITransaction>(pendingTransaction.copyWith(
       updatedAt: newUpdatedAt,
       lastTouched: newLastTouched,
       receiptType: "NS",
-      isProformaMode: false,
       sarTyCd: sarTyCd,
-      isTrainingMode: false,
-    );
+    ));
   }
 
   /// Updates a transaction with the provided details.
