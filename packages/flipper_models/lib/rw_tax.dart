@@ -212,6 +212,29 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         response.data,
       );
 
+      /// save stock master for  the involved variants
+      /// to keep stock master in sync
+      for (var item in items) {
+        Variant? variant =
+            await ProxyService.strategy.getVariant(id: item.variantId!);
+        if (variant != null) {
+          await saveStockMaster(variant: variant, URI: URI);
+        }
+      }
+
+      if (data.resultCd == "000" && sarTyCd != "06") {
+        // save the same but with the sarNo 06 Adjustment
+        // json['sarTyCd'] = "16";
+        // json['remark'] = "Adjustment";
+        // Response responseAdjustment = await sendPostRequest(url, json);
+        // final dataAdjustment = RwApiResponse.fromJson(
+        //   responseAdjustment.data,
+        // );
+        // if (dataAdjustment.resultCd != "000") {
+        //   throw Exception(dataAdjustment.resultMsg);
+        // }
+      }
+
       return data;
     } catch (e) {
       rethrow;
