@@ -214,7 +214,17 @@ mixin VariantMixin implements VariantInterface {
             );
           }
 
-          return await repository.upsert<Variant>(variantToSave);
+          final newVariantSaved =
+              await repository.upsert<Variant>(variantToSave);
+          final ebmSyncService = TurboTaxService(repository);
+          if (newVariantSaved.imptItemSttsCd != "1" ||
+              newVariantSaved.pchsSttsCd != "1") {
+            await ebmSyncService.stockIo(
+              variant: newVariantSaved,
+              serverUrl: (await ProxyService.box.getServerUrl())!,
+            );
+          }
+          return newVariantSaved;
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

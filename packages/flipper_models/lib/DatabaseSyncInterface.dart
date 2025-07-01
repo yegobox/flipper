@@ -130,9 +130,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
-  Future<int> addVariant(
-      {required List<Variant> variations, required int branchId});
-
   Future<int> addFavorite({required Favorite data});
 
   Future<List<Favorite>> getFavorites();
