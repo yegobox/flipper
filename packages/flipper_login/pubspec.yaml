@@ -51,7 +51,7 @@ dependency_overrides:
   meta: ^1.11.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.7.5
+  sqlite3: ^2.7.6
   device_info_plus: ^11.2.2
   
   
