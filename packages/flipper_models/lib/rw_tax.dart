@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
+import 'package:supabase_models/services/ebm_sync_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dio/dio.dart';
 import 'package:flipper_models/NetworkHelper.dart';
@@ -150,14 +151,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .toString();
       final mod = randomNumber().toString();
       final sar = randomNumber();
-      final branchId = (await ProxyService.strategy.activeBranch()).id;
+
       // Query active, done items only
       List<TransactionItem> items =
           await ProxyService.strategy.transactionItems(
-        branchId: branchId,
         transactionId: transaction.id,
-        doneWithTransaction: true,
-        active: true,
       );
       if (items.isEmpty) items = transaction.items ?? [];
       if (items.any((item) => item.itemCd == "3")) {
@@ -542,6 +540,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         // Update transaction and item statuses
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd'],
             counter: counter);
+
+        final ebmSyncService = EbmSyncService(repository);
+        await ebmSyncService.syncTransactionWithEbm(
+          instance: transaction,
+          serverUrl: (await ProxyService.box.getServerUrl())!,
+          sarTyCd: "11", //sale
+        );
         // mark item involved as need sync
 
         return data;
