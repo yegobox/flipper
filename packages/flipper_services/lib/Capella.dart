@@ -1857,7 +1857,7 @@ class Capella extends AiStrategyImpl
 
   @override
   FutureOr<void> updateTransaction(
-      {required brick.ITransaction? transaction,
+      {brick.ITransaction? transaction,
       String? receiptType,
       double? subTotal,
       String? note,
@@ -1883,6 +1883,7 @@ class Capella extends AiStrategyImpl
       String? sarNo,
       String? orgSarNo,
       bool isUnclassfied = false,
+      String? transactionId,
       bool? isTrainingMode}) {
     // TODO: implement updateTransaction
     throw UnimplementedError();

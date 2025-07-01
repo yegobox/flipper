@@ -305,6 +305,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     try {
       applyDiscount(transaction);
       await startCompleteTransactionFlow(
+        transactionId: transaction.id,
         immediateCompletion: immediateCompletion,
         completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
@@ -326,7 +327,6 @@ class CheckOutState extends ConsumerState<CheckOut>
             'source': 'checkout',
           });
         },
-        transaction: transaction,
         paymentMethods:
             ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );

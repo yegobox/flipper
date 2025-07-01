@@ -144,7 +144,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   /// on the dashboard.
   @override
   FutureOr<void> updateTransaction({
-    required ITransaction? transaction,
+    ITransaction? transaction,
     String? receiptType,
     double? subTotal,
     String? note,
@@ -176,6 +176,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
+    String? transactionId,
   }) {
     throw UnimplementedError(
         'updateTransaction needs to be implemented for Capella');

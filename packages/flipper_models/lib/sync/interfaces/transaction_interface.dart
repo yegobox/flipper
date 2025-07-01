@@ -116,7 +116,7 @@ abstract class TransactionInterface {
       required bool ignoreForReport,
       bool isDoneWithTransaction = false});
   FutureOr<void> updateTransaction({
-    required ITransaction? transaction,
+    ITransaction? transaction,
     String? receiptType,
     double? subTotal,
     String? note,
@@ -147,7 +147,7 @@ abstract class TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
-    num taxAmount = 0.0,
+    num taxAmount = 0.0,  String? transactionId,
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo, required int branchId, String? id});
