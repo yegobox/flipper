@@ -7,6 +7,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/cache/cache_manager.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -192,7 +193,7 @@ mixin VariantMixin implements VariantInterface {
             // Create a new Stock instance with the new ID
             final updatedStock = variantToSave.stock!.copyWith(id: newStockId);
             await repository.upsert<Stock>(updatedStock);
-
+            await CacheManager().saveStocks([updatedStock]);
             // Update the variant with the new stock and stockId
             return await repository.upsert<Variant>(
               variantToSave.copyWith(
@@ -349,6 +350,7 @@ mixin VariantMixin implements VariantInterface {
 
       updatables[i].lastTouched = DateTime.now().toUtc();
 
+      await CacheManager().saveStocks([updatables[i].stock!]);
       await repository.upsert<Variant>(updatables[i]);
       final ebmSyncService = TurboTaxService(repository);
       if (updatables[i].imptItemSttsCd != "1" ||
