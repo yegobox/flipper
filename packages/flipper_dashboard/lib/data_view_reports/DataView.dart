@@ -101,7 +101,9 @@ class DataViewState extends ConsumerState<DataView>
     talker.info('DataView: didUpdateWidget called.');
     if (_shouldUpdateDataSource(oldWidget)) {
       talker.info('DataView: Data source needs update.');
-      _updateDataGridSource();
+      setState(() {
+        _updateDataGridSource();
+      });
       _fetchExportAccurateTotal();
     } else {
       talker.info('DataView: Data source does not need update.');
@@ -196,35 +198,6 @@ class DataViewState extends ConsumerState<DataView>
   @override
   Widget build(BuildContext context) {
     final showDetailed = ref.watch(toggleBooleanValueProvider);
-
-    // Ensure _dataGridSource is always up-to-date before building widgets
-    final shouldBeDetailed = widget.showDetailedReport;
-    final shouldBeItems =
-        widget.transactionItems != null && widget.transactionItems!.isNotEmpty;
-    final shouldBeTransactions =
-        widget.transactions != null && widget.transactions!.isNotEmpty;
-    final shouldBeVariants =
-        widget.variants != null && widget.variants!.isNotEmpty;
-    final correctType = shouldBeItems
-        ? _dataGridSource is TransactionItemDataSource
-        : shouldBeTransactions
-            ? _dataGridSource is TransactionDataSource
-            : shouldBeVariants
-                ? _dataGridSource.runtimeType.toString() == 'StockDataSource'
-                : _dataGridSource is EmptyDataSource;
-    final correctDetailed = _dataGridSource is EmptyDataSource
-        ? (_dataGridSource as EmptyDataSource).showDetailed == shouldBeDetailed
-        : true;
-    if (!correctType || !correctDetailed) {
-      _dataGridSource = _buildDataGridSource(
-        showDetailed: widget.showDetailedReport,
-        transactionItems: widget.transactionItems,
-        transactions: widget.transactions,
-        variants: widget.variants,
-        rowsPerPage: widget.rowsPerPage,
-        currentPageIndex: pageIndex,
-      );
-    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -399,7 +372,7 @@ class DataViewState extends ConsumerState<DataView>
       ),
       child: SfDataGrid(
         key: ObjectKey(
-            _dataGridSource), // Force rebuild of SfDataGrid when _dataGridSource instance changes
+            '${_dataGridSource.runtimeType}_${widget.showDetailedReport}_${_getTableHeaders().length}'), // Force rebuild of SfDataGrid when mode or column count changes
         selectionMode: SelectionMode.multiple,
         allowSorting: true,
         allowColumnsResizing: true,
@@ -493,25 +466,28 @@ class DataViewState extends ConsumerState<DataView>
 
   List<GridColumn> _getTableHeaders() {
     const headerPadding = EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+    List<GridColumn> columns;
 
     // If no specific data is provided, return headers for EmptyDataSource based on showDetailedReport
     if ((widget.variants == null || widget.variants!.isEmpty) &&
         (widget.transactions == null || widget.transactions!.isEmpty) &&
         (widget.transactionItems == null || widget.transactionItems!.isEmpty)) {
       if (widget.showDetailedReport) {
-        return pluReportTableHeader(headerPadding); // 10 columns
+        columns = pluReportTableHeader(headerPadding); // 10 columns
       } else {
-        return zReportTableHeader(headerPadding); // 5 columns
+        columns = zReportTableHeader(headerPadding); // 5 columns
       }
-    }
-
-    if (widget.variants != null && widget.variants!.isNotEmpty) {
-      return stockTableHeader(headerPadding);
+    } else if (widget.variants != null && widget.variants!.isNotEmpty) {
+      columns = stockTableHeader(headerPadding);
     } else if (widget.showDetailedReport) {
-      return pluReportTableHeader(headerPadding);
+      columns = pluReportTableHeader(headerPadding);
     } else {
-      return zReportTableHeader(headerPadding);
+      columns = zReportTableHeader(headerPadding);
     }
+    // Debug log for column count
+    debugPrint(
+        '[DataView] _getTableHeaders: mode=${widget.showDetailedReport ? 'detailed' : 'summary'}, columns=${columns.length}');
+    return columns;
   }
 
   /// build an adapter of different view of the data, e.g transactions vs transactionItems and more to be

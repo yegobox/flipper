@@ -2,6 +2,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 final talker = TalkerFlutter.init();
 
@@ -63,16 +64,19 @@ abstract class DynamicDataSource<T> extends DataGridSource {
 
   List<DataGridRow> buildPaginatedDataGridRows() {
     return data.take(_rowsPerPage).map((item) {
+      DataGridRow row;
       if (item is TransactionItem && showPluReport) {
-        return _buildTransactionItemRow(item);
+        row = _buildTransactionItemRow(item);
       } else if (item is ITransaction && !showPluReport) {
-        return _buildITransactionRow(item);
+        row = _buildITransactionRow(item);
       } else if (item is Variant) {
-        return _buildStockRow(item);
+        row = _buildStockRow(item);
       } else {
-        final int numberOfColumns = showPluReport ? 10 : 5; // 10 for detailed, 5 for summary
-        return DataGridRow(cells: List.generate(numberOfColumns, (index) => DataGridCell(columnName: 'empty', value: '')));
+        final int numberOfColumns = showPluReport ? 10 : 5;
+        row = DataGridRow(cells: List.generate(numberOfColumns, (index) => DataGridCell(columnName: 'empty', value: '')));
       }
+      debugPrint('[DynamicDataSource] buildPaginatedDataGridRows: mode=${showPluReport ? 'detailed' : 'summary'}, cells=${row.getCells().length}');
+      return row;
     }).toList();
   }
 
