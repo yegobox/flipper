@@ -54,7 +54,7 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
-import 'package:supabase_models/services/ebm_sync_service.dart';
+import 'package:supabase_models/services/turbo_tax_service.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -256,7 +256,7 @@ class CoreSync extends AiStrategyImpl
         variant.stockId = stock.id;
         await repository.upsert<Stock>(stock);
         await repository.upsert<Variant>(variant);
-        final ebmSyncService = EbmSyncService(repository);
+        final ebmSyncService = TurboTaxService(repository);
         if (variant.imptItemSttsCd != "1" || variant.pchsSttsCd != "1") {
           await ebmSyncService.stockIo(
             variant: variant,
@@ -269,7 +269,7 @@ class CoreSync extends AiStrategyImpl
             await repository.upsert<Stock>(variation.stock!); // Line 256
         variation.stockId = upsertedStock.id;
         await repository.upsert<Variant>(variation);
-        final ebmSyncService = EbmSyncService(repository);
+        final ebmSyncService = TurboTaxService(repository);
         if (variation.imptItemSttsCd != "1" || variation.pchsSttsCd != "1") {
           await ebmSyncService.stockIo(
             variant: variation,
