@@ -22,7 +22,7 @@ Future<Shift> _$ShiftFromSupabase(
         data['closing_balance'] == null
             ? null
             : data['closing_balance'] as double?,
-    status: ShiftStatus.values[data['status'] as int],
+    status: ShiftStatus.values.byName(data['status']),
     cashSales:
         data['cash_sales'] == null ? null : data['cash_sales'] as double?,
     expectedCash:
@@ -47,7 +47,7 @@ Future<Map<String, dynamic>> _$ShiftToSupabase(
     'end_at': instance.endAt?.toIso8601String(),
     'opening_balance': instance.openingBalance,
     'closing_balance': instance.closingBalance,
-    'status': ShiftStatus.values.indexOf(instance.status),
+    'status': instance.status.name,
     'cash_sales': instance.cashSales,
     'expected_cash': instance.expectedCash,
     'cash_difference': instance.cashDifference,
@@ -75,7 +75,7 @@ Future<Shift> _$ShiftFromSqlite(
         data['closing_balance'] == null
             ? null
             : data['closing_balance'] as double?,
-    status: data['status'],
+    status: ShiftStatus.values.byName(data['status'] as String),
     cashSales:
         data['cash_sales'] == null ? null : data['cash_sales'] as double?,
     expectedCash:
@@ -100,7 +100,7 @@ Future<Map<String, dynamic>> _$ShiftToSqlite(
     'end_at': instance.endAt?.toIso8601String(),
     'opening_balance': instance.openingBalance,
     'closing_balance': instance.closingBalance,
-    'status': instance.status,
+    'status': instance.status.name,
     'cash_sales': instance.cashSales,
     'expected_cash': instance.expectedCash,
     'cash_difference': instance.cashDifference,

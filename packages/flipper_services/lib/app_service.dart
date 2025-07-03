@@ -3,6 +3,9 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 import 'proxy.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -136,6 +139,27 @@ class AppService with ListenableServiceMixin {
 
     if ((hasMultipleBusinesses || hasMultipleBranches)) {
       throw LoginChoicesException(term: "Choose default business");
+    }
+
+    // After successful business/branch selection, check for active shift
+    final userId = ProxyService.box.getUserId();
+    if (userId != null) {
+      final currentShift = await ProxyService.strategy.getCurrentShift(userId: userId);
+      if (currentShift == null) {
+        // No active shift, show dialog to start one
+        final dialogService = locator<DialogService>();
+        final response = await dialogService.showCustomDialog(
+          variant: DialogType.startShift,
+          title: 'Start New Shift',
+        );
+        if (response?.confirmed != true) {
+          // User cancelled starting shift, prevent proceeding
+          throw Exception('Shift not started. Please start a shift to proceed.');
+        }
+      }
+    } else {
+      // User ID is null, this should ideally not happen at this stage
+      throw Exception('User not logged in. Cannot start shift.');
     }
   }
 

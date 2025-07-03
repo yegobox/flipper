@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250703211657_up = [
+const List<MigrationCommand> _migration_20250703220348_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -838,7 +838,7 @@ const List<MigrationCommand> _migration_20250703211657_up = [
   InsertColumn('end_at', Column.datetime, onTable: 'Shift'),
   InsertColumn('opening_balance', Column.Double, onTable: 'Shift'),
   InsertColumn('closing_balance', Column.Double, onTable: 'Shift'),
-  InsertColumn('status', Column.text, onTable: 'Shift'),
+  InsertColumn('status', Column.integer, onTable: 'Shift'),
   InsertColumn('cash_sales', Column.Double, onTable: 'Shift'),
   InsertColumn('expected_cash', Column.Double, onTable: 'Shift'),
   InsertColumn('cash_difference', Column.Double, onTable: 'Shift'),
@@ -911,7 +911,7 @@ const List<MigrationCommand> _migration_20250703211657_up = [
   CreateIndex(columns: ['user_id'], onTable: 'Shift', unique: false)
 ];
 
-const List<MigrationCommand> _migration_20250703211657_down = [
+const List<MigrationCommand> _migration_20250703220348_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1818,15 +1818,15 @@ const List<MigrationCommand> _migration_20250703211657_down = [
 //
 
 @Migratable(
-  version: '20250703211657',
-  up: _migration_20250703211657_up,
-  down: _migration_20250703211657_down,
+  version: '20250703220348',
+  up: _migration_20250703220348_up,
+  down: _migration_20250703220348_down,
 )
-class Migration20250703211657 extends Migration {
-  const Migration20250703211657()
+class Migration20250703220348 extends Migration {
+  const Migration20250703220348()
     : super(
-        version: 20250703211657,
-        up: _migration_20250703211657_up,
-        down: _migration_20250703211657_down,
+        version: 20250703220348,
+        up: _migration_20250703220348_up,
+        down: _migration_20250703220348_down,
       );
 }

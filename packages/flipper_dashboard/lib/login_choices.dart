@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -234,6 +235,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
+    // Capture ScaffoldMessengerState before any async operations that might change the widget tree
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     // Set loading state for the selected branch and immediately hide branch selection
     setState(() {
       _loadingItemId = branch.serverId?.toString();
@@ -252,11 +256,49 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       try {
         final startupViewModel = StartupViewModel();
         await startupViewModel.hasActiveSubscription();
-        _completeAuthenticationFlow();
+
+        final userId = ProxyService.box.getUserId();
+        if (userId != null) {
+          final currentShift = await ProxyService.strategy.getCurrentShift(userId: userId);
+          if (currentShift == null) {
+            // No active shift, show dialog to start one
+            final dialogService = locator<DialogService>();
+            final response = await dialogService.showCustomDialog(
+              variant: DialogType.startShift,
+              title: 'Start New Shift',
+            );
+            if (response?.confirmed == true) {
+              _completeAuthenticationFlow();
+            } else {
+              // User cancelled starting shift, stay on login choices
+              if (mounted) {
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Shift not started. Please start a shift to proceed.'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+              // Revert loading state
+              setState(() {
+                _isLoading = false;
+                _loadingItemId = null;
+              });
+              return; // Stop further execution
+            }
+          } else {
+            // Active shift found, proceed
+            _completeAuthenticationFlow();
+          }
+        } else {
+          // User ID is null, proceed with authentication flow (should ideally not happen here)
+          _completeAuthenticationFlow();
+        }
       } on FailedPaymentException catch (e) {
         talker.error('Payment failed: ${e.message}');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text('Payment failed: ${e.message}'),
               backgroundColor: Colors.red,
@@ -273,7 +315,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         talker.error('Subscription check failed: $e');
         talker.error('Stack trace: $stackTrace');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text('Error checking subscription: ${e.toString()}'),
               backgroundColor: Colors.red,
@@ -285,7 +327,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
