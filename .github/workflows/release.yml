@@ -24,6 +24,7 @@ on:
       - main
       - dev
       - request-enhancment
+      - shifts
 
 env:
   URL: ${{ secrets.DB_URL }}
