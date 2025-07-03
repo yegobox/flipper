@@ -189,7 +189,7 @@ class TurboTaxService {
     ITransaction? pendingTransaction = transaction;
     // Create new transaction if needed
     /// when we are given that transaction we use it we do not create another
-    if (variant != null && transaction == null) {
+    if (variant != null && transaction == null && variant.ebmSynced == false) {
       pendingTransaction = await ProxyService.strategy.manageTransaction(
         transactionType: TransactionType.adjustment,
         isExpense: true,
@@ -208,6 +208,9 @@ class TurboTaxService {
         ///06 stock adjustment is needed for stock io to take effect
         sarTyCd: sarTyCd ?? "06",
       );
+    }
+    if (transaction != null && transaction.ebmSynced == true) {
+      return true;
     }
 
     if (pendingTransaction == null) {

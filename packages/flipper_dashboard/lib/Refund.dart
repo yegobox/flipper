@@ -329,11 +329,11 @@ class _RefundState extends ConsumerState<Refund> {
                 // 06 is incoming return.
                 sarTyCd: "03",
               );
-
+              variant.ebmSynced = true;
               ProxyService.strategy.updateVariant(
                   updatables: [variant],
                   variantId: variant.id,
-                  ebmSynced: false);
+                  ebmSynced: true);
             }
           }
         }
