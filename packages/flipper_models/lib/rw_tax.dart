@@ -224,7 +224,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       if (data.resultCd == "000" && sarTyCd != "06") {
         // save the same but with the sarNo 06 Adjustment
-        // json['sarTyCd'] = "16";
+        // json['sarTyCd'] = "06";
+        // json['modrId'] = randomNumber().toString().substring(0, 5);
+        // json['modrNm'] = randomNumber().toString().substring(0, 5);
+        // // json['sarNo'] = randomNumber().toString();
         // json['remark'] = "Adjustment";
         // Response responseAdjustment = await sendPostRequest(url, json);
         // final dataAdjustment = RwApiResponse.fromJson(
