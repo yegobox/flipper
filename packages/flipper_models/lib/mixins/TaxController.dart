@@ -98,6 +98,7 @@ class TaxController<OBJ> {
             receiptType: TransactionReceptType.TR,
             transaction: transaction,
             salesSttsCd: SalesSttsCd.refunded,
+            sarTyCd: StockInOutType.returnIn,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
