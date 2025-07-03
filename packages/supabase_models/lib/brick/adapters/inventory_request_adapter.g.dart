@@ -59,22 +59,6 @@ Future<InventoryRequest> _$InventoryRequestFromSupabase(
             ),
     financingId:
         data['financing_id'] == null ? null : data['financing_id'] as String?,
-    transactionItems:
-        data['transaction_items'] == null
-            ? null
-            : await Future.wait<TransactionItem>(
-              data['transaction_items']
-                      ?.map(
-                        (d) => TransactionItemAdapter().fromSupabase(
-                          d,
-                          provider: provider,
-                          repository: repository,
-                        ),
-                      )
-                      .toList()
-                      .cast<Future<TransactionItem>>() ??
-                  [],
-            ),
     branch:
         data['branch'] == null
             ? null
@@ -118,18 +102,6 @@ Future<Map<String, dynamic>> _$InventoryRequestToSupabase(
             )
             : null,
     'financing_id': instance.financingId,
-    'transaction_items': await Future.wait<Map<String, dynamic>>(
-      instance.transactionItems
-              ?.map(
-                (s) => TransactionItemAdapter().toSupabase(
-                  s,
-                  provider: provider,
-                  repository: repository,
-                ),
-              )
-              .toList() ??
-          [],
-    ),
     'branch':
         instance.branch != null
             ? await BranchAdapter().toSupabase(
@@ -367,12 +339,6 @@ class InventoryRequestAdapter
     'financingId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'financing_id',
-    ),
-    'transactionItems': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'transaction_items',
-      associationType: TransactionItem,
-      associationIsNullable: true,
     ),
     'branch': const RuntimeSupabaseColumnDefinition(
       association: true,

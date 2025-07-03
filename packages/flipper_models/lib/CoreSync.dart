@@ -1267,13 +1267,11 @@ class CoreSync extends AiStrategyImpl
     required int branchId,
     String filter = RequestStatus.pending,
     String? search,
-  }) async* {
-    // Build the base query conditions
+  }) {
     final whereConditions = <brick.Where>[
       brick.Where('mainBranchId').isExactly(branchId),
     ];
 
-    // Add status filter conditions
     if (filter == RequestStatus.approved) {
       whereConditions
           .add(brick.Where('status').isExactly(RequestStatus.approved));
@@ -1284,9 +1282,7 @@ class CoreSync extends AiStrategyImpl
       ]);
     }
 
-    // Add search condition if search term is provided
     if (search != null && search.isNotEmpty) {
-      // Search in request ID, delivery note, or any other relevant fields
       whereConditions.add(brick.Or('id')
           .contains(search)
           // .or('deliveryNote')
@@ -1297,83 +1293,22 @@ class CoreSync extends AiStrategyImpl
 
     final buildQuery = brick.Query(where: whereConditions);
 
-    // 1. First, yield local data immediately for instant UI update
-    final localData = await repository.get<InventoryRequest>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: buildQuery,
-    );
-
-    if (localData.isNotEmpty) {
-      yield localData;
-    }
-
-    // 2. Start fetching remote data in the background
-    final remoteDataFuture = repository
-        .get<InventoryRequest>(
-          policy: OfflineFirstGetPolicy.awaitRemote,
-          query: buildQuery,
-        )
-        .timeout(
-          const Duration(seconds: 5),
-          onTimeout: () => <InventoryRequest>[],
-        );
-
-    // 3. Set up real-time subscription
-    final realtimeController =
-        StreamController<List<InventoryRequest>>.broadcast();
-    final subscription = repository
-        .subscribeToRealtime<InventoryRequest>(
-      policy: OfflineFirstGetPolicy.awaitRemote,
+    return repository
+        .subscribe<InventoryRequest>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: buildQuery,
     )
-        .listen(
-      (changes) async {
-        if (changes.isNotEmpty) {
-          realtimeController.add(changes.toList());
-        }
-      },
-      onError: (e) => talker.error('Realtime subscription error: $e'),
-    );
-
-    // 4. Process remote data when it arrives
-    try {
-      final remoteData = await remoteDataFuture;
-      if (remoteData.isNotEmpty && remoteData != localData) {
-        yield remoteData;
-      }
-    } catch (e) {
-      talker.error('Error fetching remote data: $e');
-    }
-
-    // 5. Yield real-time updates
-    yield* realtimeController.stream.asyncMap((requests) async {
+        .asyncMap((requests) async {
       if (requests.isEmpty) return requests;
-      return _hydrateRequests(requests);
-    });
-
-    // 6. Clean up on cancel
-    Future.microtask(() async {
-      await subscription.cancel();
-      await realtimeController.close();
+      return Future.wait(requests.map(_hydrateSingleRequest));
     });
   }
 
-// Helper method to hydrate a list of requests
-  Future<List<InventoryRequest>> _hydrateRequests(
-    List<InventoryRequest> requests,
-  ) async {
-    return Future.wait(requests.map(_hydrateSingleRequest));
-  }
-
-// Helper method to hydrate a single request
   Future<InventoryRequest> _hydrateSingleRequest(InventoryRequest req) async {
     Branch? hydratedBranch = req.branch;
-    Financing? financingToUse;
-
-    // Hydrate branch
-    if (hydratedBranch == null) {
+    if (hydratedBranch == null && req.subBranchId != null) {
       final branches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(where: [
           brick.Where('serverId').isExactly(req.subBranchId),
         ]),
@@ -1383,12 +1318,12 @@ class CoreSync extends AiStrategyImpl
       }
     }
 
-    // Hydrate financing
-    if (req.financing != null) {
+    Financing? financingToUse = req.financing;
+    if (financingToUse == null && req.financingId != null) {
       final financingList = await repository.get<Financing>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(where: [
-          brick.Where('id').isExactly(req.financing!.id),
+          brick.Where('id').isExactly(req.financingId),
         ]),
       );
       if (financingList.isNotEmpty) {
@@ -1396,39 +1331,10 @@ class CoreSync extends AiStrategyImpl
       }
     }
 
-    // Handle transaction items
-    final transactionItems = await repository.get<TransactionItem>(
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: brick.Query(where: [
-        brick.Where('inventoryRequestId').isExactly(req.id),
-      ]),
-    );
-
-    // Update transaction items
-    for (var item in transactionItems) {
-      item.inventoryRequest = req;
-      await repository.upsert(item);
-    }
-
-    if (transactionItems.isEmpty) {
-      GlobalErrorHandler.logError(
-        'TransactionItem Sync Failed: ${req.id}',
-        type: "tax_error",
-        context: {
-          'resultCode': "",
-          'businessId': ProxyService.box.getBusinessId(),
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-      );
-    }
-
-    // Return hydrated request
-    final hydrated = await req.copyWith(
+    return await req.copyWith(
       branch: hydratedBranch,
       financing: financingToUse,
     );
-    await repository.upsert(hydrated);
-    return hydrated;
   }
 
   @override

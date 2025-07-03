@@ -23,6 +23,7 @@ on:
       - 'bugfix-*'
       - main
       - dev
+      - request-enhancment
 
 env:
   URL: ${{ secrets.DB_URL }}
