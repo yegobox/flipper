@@ -258,6 +258,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await startupViewModel.hasActiveSubscription();
 
         final userId = ProxyService.box.getUserId();
+          talker.debug('LoginChoices: userId: $userId');
+          final businessId = ProxyService.box.getBusinessId();
+          talker.debug('LoginChoices: businessId: $businessId');
+
         if (userId != null) {
           final currentShift = await ProxyService.strategy.getCurrentShift(userId: userId);
           if (currentShift == null) {
