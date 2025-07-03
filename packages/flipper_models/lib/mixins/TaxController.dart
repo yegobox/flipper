@@ -366,16 +366,15 @@ class TaxController<OBJ> {
             note: transaction.note,
             lastTouched: transaction.lastTouched,
             ticketName: transaction.ticketName,
-
             supplierId: transaction.supplierId,
-            ebmSynced: transaction.ebmSynced,
+            ebmSynced: true,
             isIncome: transaction.isIncome,
             isExpense: transaction.isExpense,
             isRefunded: transaction.isRefunded,
             customerTin: transaction.customerTin,
             remark: transaction.remark,
             customerBhfId: transaction.customerBhfId,
-            sarTyCd: receiptType == "NR" ? "03" : transaction.sarTyCd,
+            sarTyCd: transaction.sarTyCd,
             taxAmount: transaction.taxAmount,
           );
           await ProxyService.strategy
