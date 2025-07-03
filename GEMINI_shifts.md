@@ -115,11 +115,13 @@ final String? shiftId;
 
 ### Phase 2: User Workflow and UI
 
-*   **2.1. Login Flow:**
-    *   The existing PIN login screen will be the entry point.
-    *   After successful PIN entry, check if the user has an active shift.
-    *   If not, show a "Start Shift" screen prompting for the opening cash float.
-*   **2.2. "End of Day" / Close Shift Flow:**
+*   **2.1. Login Flow and Shift Start:**
+    *   The existing PIN login screen remains the entry point.
+    *   **After successful PIN entry and branch selection (in `login_choices.dart` or automatic selection in `app_service.dart`):**
+        *   The system will check if the currently logged-in user has an active shift.
+        *   If no active shift is found, a "Start Shift" screen will be presented, prompting the user for the opening cash float.
+        *   Upon successful shift start, the user will proceed to the main application dashboard (`FlipperAppRoute`).
+    *   If an active shift exists, the user will proceed directly to the main application.
     *   Create a "Close Shift" screen.
     *   This screen will allow the user to end their shift.
     *   It will prompt for the final cash count (closing balance).

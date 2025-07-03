@@ -29,7 +29,8 @@ class Shift extends OfflineFirstWithSupabaseModel {
   // Closing cash amount
   final double? closingBalance;
 
-  @Sqlite(columnType: Column.text)
+  @Supabase(enumAsString: true)
+  @Sqlite(enumAsString: true)
   final ShiftStatus status;
 
   // Expected cash from sales, minus refunds etc.
