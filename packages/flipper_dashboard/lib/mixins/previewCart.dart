@@ -27,6 +27,7 @@ import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/services/turbo_tax_service.dart';
 
 // Stock validation functions have been moved to utils/stock_validator.dart
 
@@ -215,7 +216,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       for (var item in transactionItems) {
         final variant =
             await ProxyService.strategy.getVariant(id: item.variantId!);
-        if (variant != null) {
+        if (variant != null &&
+            !(await TurboTaxService.handleProformaOrTrainingMode())) {
           final stock = variant.stock;
           if (stock != null) {
             originalStockQuantities[stock.id] =
