@@ -956,7 +956,8 @@ mixin AuthMixin implements AuthInterface {
       talker.debug('Supabase sign in successful');
     } catch (signInError) {
       talker.error('Supabase sign in failed: $signInError');
-      rethrow;
+      // Do not rethrow here. Supabase auth is optional and should not
+      // block the login process, especially in offline scenarios.
     }
   }
 
