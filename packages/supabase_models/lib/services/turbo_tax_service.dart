@@ -23,8 +23,7 @@ class TurboTaxService {
   /// Handles the case when the system is in proforma or training mode.
   /// Marks the variant and transaction as synced without sending to EBM.
   /// Returns true if in proforma/training mode, false otherwise.
-  Future<bool> _handleProformaOrTrainingMode(
-      Variant? variant, ITransaction? transaction) async {
+  static Future<bool> handleProformaOrTrainingMode() async {
     if (ProxyService.box.isProformaMode() ||
         ProxyService.box.isTrainingMode()) {
       return true;
@@ -55,7 +54,7 @@ class TurboTaxService {
     ITransaction? transaction,
     String? sarTyCd,
   }) async {
-    if (await _handleProformaOrTrainingMode(variant, transaction)) {
+    if (await TurboTaxService.handleProformaOrTrainingMode()) {
       return true;
     }
 

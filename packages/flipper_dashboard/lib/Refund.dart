@@ -95,6 +95,9 @@ class _RefundState extends ConsumerState<Refund> {
                           }
                           if (widget.transaction!.receiptType == "PS") {
                             toast("Can not refund a proforma");
+                            setState(() {
+                              isRefundProcessing = false;
+                            });
                             return;
                           } else if ((widget.transaction!.receiptType ==
                               "NS")) {
@@ -113,9 +116,15 @@ class _RefundState extends ConsumerState<Refund> {
                           await proceed(receiptType: "CR");
                         } else if (widget.transaction!.receiptType == "PS") {
                           toast("Can not refund a proforma");
+                          setState(() {
+                            isRefundProcessing = false;
+                          });
                           return;
                         } else if (widget.transaction!.receiptType == "PS") {
                           toast("Can not refund a proforma");
+                          setState(() {
+                            isRefundProcessing = false;
+                          });
                           return;
                         } else if (widget.transaction!.receiptType == "NS") {
                           await proceed(receiptType: "NR");
