@@ -60,6 +60,9 @@ abstract class TaxApi implements NoticeInterface {
       required brick.Counter counter,
       String? purchaseCode,
       required String URI,
+      required String salesSttsCd,
+      int? originalInvoiceNumber,
+      String? sarTyCd,
       required DateTime timeToUser});
   Future<RwApiResponse> saveItem(
       {required Variant variation, required String URI});

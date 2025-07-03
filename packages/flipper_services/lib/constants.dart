@@ -21,6 +21,33 @@ class TransactionReceptType {
   static const TR = "TR";
 }
 
+class StockInOutType {
+  // Incoming Types
+  static const String import = "01"; // Incoming-Import
+  static const String purchase = "02"; // Incoming-Purchase
+  static const String returnIn = "03"; // Incoming-Return
+  static const String stockMovementIn = "04"; // Incoming-Stock Movement
+  static const String processingIn = "05"; // Incoming-Processing
+  static const String adjustmentIn = "06"; // Incoming-Adjustment
+
+  // Outgoing Types
+  static const String sale = "11"; // Outgoing-Sale
+  static const String returnOut = "12"; // Outgoing-Return
+  static const String stockMovementOut = "13"; // Outgoing-Stock Movement
+  static const String processingOut = "14"; // Outgoing-Processing
+  static const String discarding = "15"; // Outgoing-Discarding
+  static const String adjustmentOut = "16"; // Outgoing-Adjustment
+}
+
+class SalesSttsCd {
+  static const String waitingForApproval = "01";
+  static const String approved = "02";
+  static const String voided = "03";
+  static const String cancelled = "04";
+  static const String refunded = "05";
+  static const String transferred = "06";
+}
+
 // Classes
 class RequestStatus {
   static const String pending = 'pending';

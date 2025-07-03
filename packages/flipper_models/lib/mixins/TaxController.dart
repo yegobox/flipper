@@ -28,7 +28,10 @@ class TaxController<OBJ> {
           return await printReceipt(
             receiptType: TransactionReceptType.CR,
             transaction: transaction,
+            originalInvoiceNumber: transaction.invoiceNumber,
+            salesSttsCd: SalesSttsCd.approved,
             purchaseCode: purchaseCode,
+            // sarTyCd: StockInOutType.stockMovementIn,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
@@ -39,6 +42,8 @@ class TaxController<OBJ> {
           return await printReceipt(
             receiptType: TransactionReceptType.NS,
             transaction: transaction,
+            salesSttsCd: SalesSttsCd.approved,
+            sarTyCd: StockInOutType.sale,
             purchaseCode: purchaseCode,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
@@ -50,7 +55,10 @@ class TaxController<OBJ> {
           return await printReceipt(
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.NR,
+            sarTyCd: StockInOutType.returnIn,
             transaction: transaction,
+            originalInvoiceNumber: transaction.invoiceNumber,
+            salesSttsCd: SalesSttsCd.refunded,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
@@ -62,6 +70,8 @@ class TaxController<OBJ> {
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.TS,
             transaction: transaction,
+            salesSttsCd: SalesSttsCd.approved,
+            sarTyCd: StockInOutType.sale,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
@@ -73,6 +83,8 @@ class TaxController<OBJ> {
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.PS,
             transaction: transaction,
+            sarTyCd: StockInOutType.sale,
+            salesSttsCd: SalesSttsCd.approved,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
@@ -82,8 +94,10 @@ class TaxController<OBJ> {
         try {
           return await printReceipt(
             purchaseCode: purchaseCode,
+            originalInvoiceNumber: transaction.invoiceNumber,
             receiptType: TransactionReceptType.TR,
             transaction: transaction,
+            salesSttsCd: SalesSttsCd.refunded,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
@@ -94,6 +108,7 @@ class TaxController<OBJ> {
           return await printReceipt(
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.CS,
+            salesSttsCd: SalesSttsCd.approved,
             transaction: transaction,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
@@ -133,7 +148,10 @@ class TaxController<OBJ> {
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
+    required String salesSttsCd,
     bool skiGenerateRRAReceiptSignature = false,
+    int? originalInvoiceNumber,
+    String? sarTyCd,
   }) async {
     RwApiResponse responses;
     Uint8List? bytes;
@@ -142,7 +160,10 @@ class TaxController<OBJ> {
         responses = await generateRRAReceiptSignature(
           transaction: transaction,
           receiptType: receiptType,
+          salesSttsCd: salesSttsCd,
+          originalInvoiceNumber: originalInvoiceNumber,
           purchaseCode: purchaseCode,
+          sarTyCd: sarTyCd,
         );
 
         if (responses.resultCd == "000") {
@@ -287,6 +308,9 @@ class TaxController<OBJ> {
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
+    required String salesSttsCd,
+    int? originalInvoiceNumber,
+    String? sarTyCd,
   }) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
@@ -316,9 +340,12 @@ class TaxController<OBJ> {
         transaction: transaction,
         receiptType: receiptType,
         counter: counter,
+        salesSttsCd: salesSttsCd,
+        originalInvoiceNumber: originalInvoiceNumber,
         URI: await ProxyService.box.getServerUrl() ?? "",
         purchaseCode: purchaseCode,
         timeToUser: now,
+        sarTyCd: sarTyCd,
       );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {

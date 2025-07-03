@@ -51,6 +51,10 @@ abstract class VariantInterface {
       bool? ebmSynced,
       String? categoryId,
       double? dcRt,
+
+      /// this is used when we need to update variant without updating IO
+      /// case of Normal refund as this might have been updated before
+      bool updateIo = true,
       double? prc,
       double? dftPrc});
 
