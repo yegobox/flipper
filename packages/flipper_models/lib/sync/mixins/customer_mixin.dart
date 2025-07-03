@@ -21,7 +21,7 @@ mixin CustomerMixin implements CustomerInterface {
       {required int branchId, String? key, String? id}) async {
     if (id != null) {
       return repository.get<Customer>(
-          policy: OfflineFirstGetPolicy.localOnly,
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: Query(where: [
             Where('id', value: id, compare: Compare.exact),
           ]));
@@ -36,7 +36,7 @@ mixin CustomerMixin implements CustomerInterface {
 
       final results =
           await Future.wait(queries.map((query) => repository.get<Customer>(
-                policy: OfflineFirstGetPolicy.localOnly,
+                policy: OfflineFirstGetPolicy.alwaysHydrate,
                 query: query,
               )));
 
@@ -45,7 +45,7 @@ mixin CustomerMixin implements CustomerInterface {
 
     // If only branchId is provided, return all customers for that branch
     return repository.get<Customer>(
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: Query(where: [
           Where('branchId', value: branchId, compare: Compare.exact),
         ]));
