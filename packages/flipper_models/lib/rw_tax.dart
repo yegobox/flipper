@@ -574,11 +574,21 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
         if (sarTyCd != null) {
           final ebmSyncService = TurboTaxService(repository);
+          // record stock Out sarTyCd = StockInOutType.sale
           await ebmSyncService.syncTransactionWithEbm(
             instance: transaction,
             serverUrl: (await ProxyService.box.getServerUrl())!,
             sarTyCd: sarTyCd,
           );
+          
+          // record stock In sarTyCd = StockInOutType.adjustmentOut
+          if (sarTyCd == StockInOutType.returnIn) {
+            await ebmSyncService.syncTransactionWithEbm(
+              instance: transaction,
+              serverUrl: (await ProxyService.box.getServerUrl())!,
+              sarTyCd: StockInOutType.returnOut,
+            );
+          }
         }
         // mark item involved as need sync
 
