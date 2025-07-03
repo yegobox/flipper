@@ -269,6 +269,7 @@ mixin TransactionMixin implements TransactionInterface {
     required bool isExpense,
     bool includeSubTotalCheck = true,
     required String status,
+    String? shiftId,
   }) async {
     try {
       // Base query to find PENDING transactions matching the criteria
@@ -277,6 +278,7 @@ mixin TransactionMixin implements TransactionInterface {
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
         Where('transactionType').isExactly(transactionType),
+        if (shiftId != null) Where('shiftId').isExactly(shiftId),
       ];
 
       // First try to find transactions with subtotal > 0
@@ -325,6 +327,7 @@ mixin TransactionMixin implements TransactionInterface {
     required int branchId,
     String status = PENDING,
     bool includeSubTotalCheck = false,
+    String? shiftId,
   }) async {
     return await _transactionLock.synchronized(() async {
       if (_isProcessingTransaction) return null; // Ensure return
@@ -339,6 +342,7 @@ mixin TransactionMixin implements TransactionInterface {
           transactionType: transactionType,
           includeSubTotalCheck: true,
           status: status,
+          shiftId: shiftId,
         );
 
         if (existTransaction != null) return existTransaction;
@@ -362,6 +366,7 @@ mixin TransactionMixin implements TransactionInterface {
           paymentType: ProxyService.box.paymentType() ?? "CASH",
           branchId: branchId,
           createdAt: now,
+          shiftId: shiftId,
         );
 
         await repository.upsert<ITransaction>(transaction);

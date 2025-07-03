@@ -192,6 +192,25 @@ class MyDrawer extends StatelessWidget {
         const Divider(),
         ListTile(
           leading: const Icon(Icons.logout),
+          title: const Text('Log Out Shift'),
+          onTap: () async {
+            final userId = ProxyService.box.getUserId();
+            if (userId != null) {
+              final currentShift =
+                  await ProxyService.strategy.getCurrentShift(userId: userId);
+              if (currentShift != null) {
+                // For now, assuming closing balance is 0.0. This will be handled by UI later.
+                await ProxyService.strategy
+                    .endShift(shiftId: currentShift.id, closingBalance: 0.0);
+                // Navigate to login screen
+                // locator<RouterService>().pop((route) => route.isFirst); // Pop all routes until the first one
+                // locator<RouterService>().navigateTo(Routes.login); // Navigate to login route
+              }
+            }
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.logout),
           title: const Text('Logout'),
           onTap: () {
             locator<DialogService>().showCustomDialog(

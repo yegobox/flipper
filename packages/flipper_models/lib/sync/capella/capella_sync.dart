@@ -33,6 +33,7 @@ import 'package:flipper_models/sync/capella/mixins/tenant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
 
 class CapellaSync extends CapellaSyncBase
     with
@@ -57,6 +58,7 @@ class CapellaSync extends CapellaSyncBase
         CapellaTransactionItemMixin,
         CapellaTransactionMixin,
         CapellaVariantMixin,
+        CapellaShiftMixin,
         CategoryMixin {
   CapellaSync() : super(AppSecrets.apihubProd);
 
@@ -159,6 +161,18 @@ class CapellaSync extends CapellaSyncBase
       {required int businessId,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement tenantsFromOnline
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ITransaction?> manageTransaction(
+      {required String transactionType,
+      required int branchId,
+      String status = PENDING,
+      required bool isExpense,
+      bool includeSubTotalCheck = false,
+      String? shiftId}) {
+    // TODO: implement manageTransaction
     throw UnimplementedError();
   }
 

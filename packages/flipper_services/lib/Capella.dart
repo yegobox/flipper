@@ -9,6 +9,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
+import 'package:flutter/src/material/date.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 // import 'package:supabase_flutter/supabase_flutter.dart' as superUser;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -1850,6 +1851,7 @@ class Capella extends AiStrategyImpl
       {required String transactionType,
       String status = PENDING,
       required bool isExpense,
+      String? shiftId,
       required int branchId,
       bool includeSubTotalCheck = false}) {
     // TODO: implement manageTransaction
@@ -2365,6 +2367,33 @@ class Capella extends AiStrategyImpl
       String? customerTin,
       String? customerPhone}) {
     // TODO: implement collectPayment
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Shift> endShift(
+      {required String shiftId, required double closingBalance}) {
+    // TODO: implement endShift
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Shift?> getCurrentShift({required int userId}) {
+    // TODO: implement getCurrentShift
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<brick.Shift>> getShifts(
+      {required int businessId, DateTimeRange<DateTime>? dateRange}) {
+    // TODO: implement getShifts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Shift> startShift(
+      {required int userId, required double openingBalance}) {
+    // TODO: implement startShift
     throw UnimplementedError();
   }
 }

@@ -77,6 +77,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? currentSaleCustomerPhoneNumber;
   String? sarNo;
   String? orgSarNo;
+  String? shiftId;
   // LOAN TICKET: Add this property to mark a transaction as a loan
   @Supabase(defaultValue: "false")
   bool? isLoan;
@@ -165,6 +166,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.invoiceNumber,
     String? sarNo,
     this.orgSarNo,
+    String? shiftId,
     // LOAN TICKET: Add to constructor
     bool? isLoan,
     this.dueDate,
@@ -207,7 +209,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
         ebmSynced = ebmSynced ?? false,
         sarNo = sarNo ?? randomNumber().toString(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
-        lastTouched = lastTouched ?? DateTime.now().toUtc();
+        lastTouched = lastTouched ?? DateTime.now().toUtc(),
+        shiftId = shiftId;
 
   ITransaction copyWith({
     String? id,
@@ -246,6 +249,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? currentSaleCustomerPhoneNumber,
     String? sarNo,
     String? orgSarNo,
+    String? shiftId,
     bool? isLoan,
     DateTime? dueDate,
     bool? isAutoBilled,
@@ -306,6 +310,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
           currentSaleCustomerPhoneNumber ?? this.currentSaleCustomerPhoneNumber,
       sarNo: sarNo ?? this.sarNo,
       orgSarNo: orgSarNo ?? this.orgSarNo,
+      shiftId: shiftId ?? this.shiftId,
       isLoan: isLoan ?? this.isLoan,
       dueDate: dueDate ?? this.dueDate,
       isAutoBilled: isAutoBilled ?? this.isAutoBilled,
