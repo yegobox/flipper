@@ -68,14 +68,15 @@ class FlipperApp extends HookConsumerWidget {
   }
 }
 
-class FlipperScaffold extends HookWidget {
+class FlipperScaffold extends HookConsumerWidget {
   const FlipperScaffold({Key? key, required this.model}) : super(key: key);
   final CoreViewModel model;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final keys = useState<List<LogicalKeyboardKey>>([]);
     final focusNode = useFocusNode();
+    final statusText = ref.watch(statusTextProvider).value ?? "";
 
     return KeyboardListener(
       focusNode: focusNode,
@@ -83,7 +84,7 @@ class FlipperScaffold extends HookWidget {
       onKeyEvent: (event) => _handleKeyEvent(event, keys, model),
       child: Scaffold(
         extendBody: true,
-        appBar: const StatusAppBar(),
+        appBar: statusText.isNotEmpty ? const StatusAppBar() : null,
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).unfocus(),

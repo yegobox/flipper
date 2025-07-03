@@ -47,10 +47,12 @@ class StatusAppBarForWindowsAndWeb
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
       if (connectivityResult
           .any((result) => result != ConnectivityResult.none)) {
-        // If connected to the internet, clear any error messages
-        _statusText.value = "";
-        _statusColor.value = Colors.black;
-        notifyListeners();
+        // If connected to the internet, clear only the internet-related error message
+        if (_statusText.value == "Flipper could not connect to the internet") {
+          _statusText.value = "";
+          _statusColor.value = Colors.black;
+          notifyListeners();
+        }
       } else {
         // If there's no internet connection
         _statusColor.value = Colors.red;
@@ -121,9 +123,11 @@ class StatusAppBarForAndroidAndIos
     Connectivity().onConnectivityChanged.listen((connectivityResult) {
       if (connectivityResult
           .any((result) => result != ConnectivityResult.none)) {
-        _statusText.value = "";
-        _statusColor.value = Colors.black;
-        appBarColor(Colors.black);
+        if (_statusText.value == "flipper could not connect to internet") {
+          _statusText.value = "";
+          _statusColor.value = Colors.black;
+          appBarColor(Colors.black);
+        }
       } else {
         _statusColor.value = Color(0xFF8B0000);
         _statusText.value = "flipper could not connect to internet";
