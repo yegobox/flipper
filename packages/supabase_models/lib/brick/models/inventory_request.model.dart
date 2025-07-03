@@ -1,3 +1,4 @@
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
@@ -37,6 +38,8 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   Financing? financing;
   String? financingId;
 
+  @Supabase(ignore: true)
+  @OfflineFirst(where: {'stockRequestId': 'id'})
   List<TransactionItem>? transactionItems;
 
   @Supabase(foreignKey: 'branch_id')
