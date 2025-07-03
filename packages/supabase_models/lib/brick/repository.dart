@@ -16,9 +16,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
-import 'package:supabase_models/brick/models/transaction.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
-import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
