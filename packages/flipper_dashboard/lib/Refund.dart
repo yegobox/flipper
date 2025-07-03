@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/RefundReasonForm.dart';
+import 'package:flipper_models/isolateHandelr.dart' show repository;
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -7,6 +8,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_models/helperModels/random.dart';
 
@@ -309,28 +311,17 @@ class _RefundState extends ConsumerState<Refund> {
                   currentStock: variant.stock!.currentStock! + item.qty,
                   ebmSynced: false);
 
-              // adjust rra stock as well  final pendingTransaction =
-              final pendingTransaction =
-                  await ProxyService.strategy.manageTransaction(
-                transactionType: TransactionType.adjustment,
-                isExpense: true,
-                branchId: ProxyService.box.getBranchId()!,
-              );
-              Business? business = await ProxyService.strategy
-                  .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-              await ProxyService.strategy.assignTransaction(
-                variant: variant,
-                updatableQty: item.qty.toDouble(),
-                doneWithTransaction: true,
-                invoiceNumber: int.parse(widget.transaction!.sarNo!),
-                pendingTransaction: pendingTransaction!,
-                business: business!,
-                randomNumber: randomNumber(),
-                // 06 is incoming return.
-                sarTyCd: "03",
-              );
               variant.ebmSynced = true;
+              final ebmSyncService = TurboTaxService(repository);
+              await ebmSyncService.syncTransactionWithEbm(
+                instance: widget.transaction!,
+                serverUrl: (await ProxyService.box.getServerUrl())!,
+                sarTyCd: StockInOutType.returnIn,
+              );
+
+              /// since calling syncTransactionWithEbm calls the method for IO, we pass updateIo as false below
               ProxyService.strategy.updateVariant(
+                  updateIo: false,
                   updatables: [variant],
                   variantId: variant.id,
                   ebmSynced: true);

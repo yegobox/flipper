@@ -1467,6 +1467,7 @@ class Capella extends AiStrategyImpl
       {required List<brick.Variant> updatables,
       String? color,
       String? taxTyCd,
+      bool updateIo = true,
       double? dcRt,
       String? variantId,
       double? newRetailPrice,

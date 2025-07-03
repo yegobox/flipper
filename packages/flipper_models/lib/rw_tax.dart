@@ -477,6 +477,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     String? purchaseCode,
     required DateTime timeToUser,
     required String URI,
+    required String salesSttsCd,
+    int? originalInvoiceNumber,
+    String? sarTyCd,
   }) async {
     // Get business details
     Business? business = await ProxyService.strategy
@@ -524,8 +527,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         business: business,
         counter: counter,
         bhFId: bhfId,
+        salesSttsCd: salesSttsCd,
         transaction: transaction,
         date: date,
+        originalInvoiceNumber: originalInvoiceNumber,
         totalTaxable: totalTaxable,
         taxTotals: taxTotals,
         receiptCodes: receiptCodes,
@@ -567,12 +572,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd'],
             counter: counter);
 
-        final ebmSyncService = TurboTaxService(repository);
-        await ebmSyncService.syncTransactionWithEbm(
-          instance: transaction,
-          serverUrl: (await ProxyService.box.getServerUrl())!,
-          sarTyCd: "11", //sale
-        );
+        if (sarTyCd != null) {
+          final ebmSyncService = TurboTaxService(repository);
+          await ebmSyncService.syncTransactionWithEbm(
+            instance: transaction,
+            serverUrl: (await ProxyService.box.getServerUrl())!,
+            sarTyCd: sarTyCd,
+          );
+        }
         // mark item involved as need sync
 
         return data;
@@ -785,6 +792,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String receiptType,
     required DateTime timeToUse,
     required String bhFId,
+    required String salesSttsCd,
+    int? originalInvoiceNumber,
   }) async {
     odm.Configurations? taxConfigTaxB =
         await ProxyService.strategy.getByTaxType(taxtype: "B");
@@ -820,11 +829,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
       "invcNo": counter.invcNo,
-      "orgInvcNo": 0,
+      "orgInvcNo": originalInvoiceNumber ?? 0,
       "salesTyCd": receiptCodes['salesTyCd'],
       "rcptTyCd": receiptCodes['rcptTyCd'],
       "pmtTyCd": pmtTyCd,
-      "salesSttsCd": "02",
+      "salesSttsCd": salesSttsCd,
       "cfmDt": date,
       "salesDt": date.substring(0, 8),
       // "stockRlsDt": timeToUse.toYYYYMMddHHmmss(),

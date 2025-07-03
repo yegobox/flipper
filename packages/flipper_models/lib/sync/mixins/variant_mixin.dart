@@ -283,6 +283,7 @@ mixin VariantMixin implements VariantInterface {
       double? dcRt,
       DateTime? expirationDate,
       double? prc,
+      bool updateIo = true,
       double? dftPrc,
       bool? ebmSynced}) async {
     if (variantId != null) {
@@ -354,7 +355,7 @@ mixin VariantMixin implements VariantInterface {
       await repository.upsert<Variant>(updatables[i]);
       final ebmSyncService = TurboTaxService(repository);
       if (updatables[i].imptItemSttsCd != "1" ||
-          updatables[i].pchsSttsCd != "1") {
+          updatables[i].pchsSttsCd != "1" && updateIo == true) {
         await ebmSyncService.stockIo(
           variant: updatables[i],
           serverUrl: (await ProxyService.box.getServerUrl())!,
