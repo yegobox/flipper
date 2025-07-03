@@ -66,6 +66,7 @@ abstract class TransactionInterface {
     required int branchId,
     String status = PENDING,
     bool includeSubTotalCheck = false,
+    String? shiftId,
   });
 
   Stream<ITransaction> manageTransactionStream({

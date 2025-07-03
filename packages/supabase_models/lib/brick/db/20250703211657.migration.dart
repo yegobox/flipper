@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250703201913_up = [
+const List<MigrationCommand> _migration_20250703211657_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -70,6 +70,7 @@ const List<MigrationCommand> _migration_20250703201913_up = [
   InsertTable('Plan'),
   InsertTable('Drawers'),
   InsertTable('Retryable'),
+  InsertTable('Shift'),
   InsertColumn('id', Column.varchar, onTable: 'ItemCode', unique: true),
   InsertColumn('code', Column.varchar, onTable: 'ItemCode'),
   InsertColumn('created_at', Column.datetime, onTable: 'ItemCode'),
@@ -201,6 +202,7 @@ const List<MigrationCommand> _migration_20250703201913_up = [
   InsertColumn('current_sale_customer_phone_number', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('sar_no', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('org_sar_no', Column.varchar, onTable: 'ITransaction'),
+  InsertColumn('shift_id', Column.varchar, onTable: 'ITransaction'),
   InsertColumn('is_loan', Column.boolean, onTable: 'ITransaction'),
   InsertColumn('due_date', Column.datetime, onTable: 'ITransaction'),
   InsertColumn('is_auto_billed', Column.boolean, onTable: 'ITransaction'),
@@ -829,6 +831,17 @@ const List<MigrationCommand> _migration_20250703201913_up = [
   InsertColumn('last_failure_reason', Column.varchar, onTable: 'Retryable'),
   InsertColumn('retry_count', Column.integer, onTable: 'Retryable'),
   InsertColumn('created_at', Column.datetime, onTable: 'Retryable'),
+  InsertColumn('id', Column.varchar, onTable: 'Shift', unique: true),
+  InsertColumn('business_id', Column.integer, onTable: 'Shift'),
+  InsertColumn('user_id', Column.integer, onTable: 'Shift'),
+  InsertColumn('start_at', Column.datetime, onTable: 'Shift'),
+  InsertColumn('end_at', Column.datetime, onTable: 'Shift'),
+  InsertColumn('opening_balance', Column.Double, onTable: 'Shift'),
+  InsertColumn('closing_balance', Column.Double, onTable: 'Shift'),
+  InsertColumn('status', Column.text, onTable: 'Shift'),
+  InsertColumn('cash_sales', Column.Double, onTable: 'Shift'),
+  InsertColumn('expected_cash', Column.Double, onTable: 'Shift'),
+  InsertColumn('cash_difference', Column.Double, onTable: 'Shift'),
   CreateIndex(columns: ['id'], onTable: 'ItemCode', unique: true),
   CreateIndex(columns: ['code'], onTable: 'ItemCode', unique: false),
   CreateIndex(columns: ['id'], onTable: 'ImportPurchaseDates', unique: true),
@@ -893,10 +906,12 @@ const List<MigrationCommand> _migration_20250703201913_up = [
   CreateIndex(columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], onTable: '_brick_Plan_addons', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true),
-  CreateIndex(columns: ['id'], onTable: 'Retryable', unique: true)
+  CreateIndex(columns: ['id'], onTable: 'Retryable', unique: true),
+  CreateIndex(columns: ['business_id'], onTable: 'Shift', unique: false),
+  CreateIndex(columns: ['user_id'], onTable: 'Shift', unique: false)
 ];
 
-const List<MigrationCommand> _migration_20250703201913_down = [
+const List<MigrationCommand> _migration_20250703211657_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -957,6 +972,7 @@ const List<MigrationCommand> _migration_20250703201913_down = [
   DropTable('Plan'),
   DropTable('Drawers'),
   DropTable('Retryable'),
+  DropTable('Shift'),
   DropColumn('id', onTable: 'ItemCode'),
   DropColumn('code', onTable: 'ItemCode'),
   DropColumn('created_at', onTable: 'ItemCode'),
@@ -1088,6 +1104,7 @@ const List<MigrationCommand> _migration_20250703201913_down = [
   DropColumn('current_sale_customer_phone_number', onTable: 'ITransaction'),
   DropColumn('sar_no', onTable: 'ITransaction'),
   DropColumn('org_sar_no', onTable: 'ITransaction'),
+  DropColumn('shift_id', onTable: 'ITransaction'),
   DropColumn('is_loan', onTable: 'ITransaction'),
   DropColumn('due_date', onTable: 'ITransaction'),
   DropColumn('is_auto_billed', onTable: 'ITransaction'),
@@ -1716,6 +1733,17 @@ const List<MigrationCommand> _migration_20250703201913_down = [
   DropColumn('last_failure_reason', onTable: 'Retryable'),
   DropColumn('retry_count', onTable: 'Retryable'),
   DropColumn('created_at', onTable: 'Retryable'),
+  DropColumn('id', onTable: 'Shift'),
+  DropColumn('business_id', onTable: 'Shift'),
+  DropColumn('user_id', onTable: 'Shift'),
+  DropColumn('start_at', onTable: 'Shift'),
+  DropColumn('end_at', onTable: 'Shift'),
+  DropColumn('opening_balance', onTable: 'Shift'),
+  DropColumn('closing_balance', onTable: 'Shift'),
+  DropColumn('status', onTable: 'Shift'),
+  DropColumn('cash_sales', onTable: 'Shift'),
+  DropColumn('expected_cash', onTable: 'Shift'),
+  DropColumn('cash_difference', onTable: 'Shift'),
   DropIndex('index_ItemCode_on_id'),
   DropIndex('index_ItemCode_on_code'),
   DropIndex('index_ImportPurchaseDates_on_id'),
@@ -1780,7 +1808,9 @@ const List<MigrationCommand> _migration_20250703201913_down = [
   DropIndex('index__brick_Plan_addons_on_l_Plan_brick_id_f_PlanAddon_brick_id'),
   DropIndex('index_Plan_on_id'),
   DropIndex('index_Drawers_on_id'),
-  DropIndex('index_Retryable_on_id')
+  DropIndex('index_Retryable_on_id'),
+  DropIndex('index_Shift_on_business_id'),
+  DropIndex('index_Shift_on_user_id')
 ];
 
 //
@@ -1788,15 +1818,15 @@ const List<MigrationCommand> _migration_20250703201913_down = [
 //
 
 @Migratable(
-  version: '20250703201913',
-  up: _migration_20250703201913_up,
-  down: _migration_20250703201913_down,
+  version: '20250703211657',
+  up: _migration_20250703211657_up,
+  down: _migration_20250703211657_down,
 )
-class Migration20250703201913 extends Migration {
-  const Migration20250703201913()
+class Migration20250703211657 extends Migration {
+  const Migration20250703211657()
     : super(
-        version: 20250703201913,
-        up: _migration_20250703201913_up,
-        down: _migration_20250703201913_down,
+        version: 20250703211657,
+        up: _migration_20250703211657_up,
+        down: _migration_20250703211657_down,
       );
 }

@@ -96,6 +96,7 @@ import '../brick/models/ai_conversation.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/drawer.model.dart';
 import '../brick/models/retryable.model.dart';
+import '../brick/models/shift.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -152,6 +153,7 @@ part 'adapters/ai_conversation_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/drawers_adapter.g.dart';
 part 'adapters/retryable_adapter.g.dart';
+part 'adapters/shift_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -209,7 +211,8 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
-  Retryable: RetryableAdapter()
+  Retryable: RetryableAdapter(),
+  Shift: ShiftAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -269,6 +272,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter(),
   Drawers: DrawersAdapter(),
-  Retryable: RetryableAdapter()
+  Retryable: RetryableAdapter(),
+  Shift: ShiftAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,6 +101,37 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 3;
+              },
+            ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              isSelected: selectedItem == 4,
+              highlightSelectedColor: Colors.red.withValues(alpha: 0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Log Out Shift',
+              icon: Icon(
+                Icons.logout,
+                color: Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () async {
+                final userId = ProxyService.box.getUserId();
+                if (userId != null) {
+                  final currentShift = await ProxyService.strategy
+                      .getCurrentShift(userId: userId);
+                  if (currentShift != null) {
+                    // For now, assuming closing balance is 0.0. This will be handled by UI later.
+                    await ProxyService.strategy.endShift(
+                        shiftId: currentShift.id, closingBalance: 0.0);
+                    // Navigate to login screen
+                    // ProxyService.nav.popUntil((route) => route.isFirst); // Pop all routes until the first one
+                    // ProxyService.nav.navigateTo(Routes.login); // Navigate to login route
+                  }
+                }
               },
             ),
           ],

@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/mixins/customer_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/log_mixin.dart';
+import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
@@ -28,7 +29,6 @@ import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -53,7 +53,6 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
-import 'package:supabase_models/services/turbo_tax_service.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
@@ -82,6 +81,7 @@ class CoreSync extends AiStrategyImpl
         CustomerMixin,
         LogMixin,
         EbmMixin,
+        ShiftMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -3011,15 +3011,6 @@ class CoreSync extends AiStrategyImpl
   Future<ext.SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) {
     // TODO: implement loginOnSocial
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<models.ITransaction> manageCashInOutTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId}) {
-    // TODO: implement manageCashInOutTransaction
     throw UnimplementedError();
   }
 

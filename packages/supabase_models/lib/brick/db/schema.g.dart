@@ -1,11 +1,11 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250703201913.migration.dart';
+part '20250703211657.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250703201913(),};
+  const Migration20250703211657(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -336,6 +336,7 @@ final schema = Schema(
         SchemaColumn('current_sale_customer_phone_number', Column.varchar),
         SchemaColumn('sar_no', Column.varchar),
         SchemaColumn('org_sar_no', Column.varchar),
+        SchemaColumn('shift_id', Column.varchar),
         SchemaColumn('is_loan', Column.boolean),
         SchemaColumn('due_date', Column.datetime),
         SchemaColumn('is_auto_billed', Column.boolean),
@@ -1807,6 +1808,33 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'Shift',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('business_id', Column.integer),
+        SchemaColumn('user_id', Column.integer),
+        SchemaColumn('start_at', Column.datetime),
+        SchemaColumn('end_at', Column.datetime),
+        SchemaColumn('opening_balance', Column.Double),
+        SchemaColumn('closing_balance', Column.Double),
+        SchemaColumn('status', Column.text),
+        SchemaColumn('cash_sales', Column.Double),
+        SchemaColumn('expected_cash', Column.Double),
+        SchemaColumn('cash_difference', Column.Double),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['business_id'], unique: false),
+        SchemaIndex(columns: ['user_id'], unique: false),
       },
     ),
   },

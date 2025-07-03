@@ -67,11 +67,19 @@ class KeyPadService with ListenableServiceMixin {
   /// we have one transaction but an transaction can have more than 1 transactionitem(s)
   /// it is in this recard in application anywhere else it's okay to access transactions[0]
   Future<ITransaction?> getPendingTransaction({required int branchId}) async {
+    final int? userId = ProxyService.box.getUserId();
+    String? shiftId;
+    if (userId != null) {
+      final currentShift = await ProxyService.strategy.getCurrentShift(userId: userId);
+      shiftId = currentShift?.id;
+    }
+
     ITransaction? transaction = await ProxyService.strategy.manageTransaction(
       branchId: ProxyService.box.getBranchId()!,
       transactionType: TransactionType.sale,
       isExpense: false,
       includeSubTotalCheck: false,
+      shiftId: shiftId,
     );
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(

@@ -108,6 +108,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
             : data['current_sale_customer_phone_number'] as String?,
     sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
     orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
+    shiftId: data['shift_id'] == null ? null : data['shift_id'] as String?,
     isLoan: data['is_loan'] == null ? null : data['is_loan'] as bool? ?? false,
     dueDate:
         data['due_date'] == null
@@ -233,6 +234,7 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
         instance.currentSaleCustomerPhoneNumber,
     'sar_no': instance.sarNo,
     'org_sar_no': instance.orgSarNo,
+    'shift_id': instance.shiftId,
     'is_loan': instance.isLoan,
     'due_date': instance.dueDate?.toIso8601String(),
     'is_auto_billed': instance.isAutoBilled,
@@ -349,6 +351,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
             : data['current_sale_customer_phone_number'] as String?,
     sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
     orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
+    shiftId: data['shift_id'] == null ? null : data['shift_id'] as String?,
     isLoan: data['is_loan'] == null ? null : data['is_loan'] == 1,
     dueDate:
         data['due_date'] == null
@@ -495,6 +498,7 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
         instance.currentSaleCustomerPhoneNumber,
     'sar_no': instance.sarNo,
     'org_sar_no': instance.orgSarNo,
+    'shift_id': instance.shiftId,
     'is_loan': instance.isLoan == null ? null : (instance.isLoan! ? 1 : 0),
     'due_date': instance.dueDate?.toIso8601String(),
     'is_auto_billed':
@@ -679,6 +683,10 @@ class ITransactionAdapter
     'orgSarNo': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'org_sar_no',
+    ),
+    'shiftId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'shift_id',
     ),
     'isLoan': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -988,6 +996,12 @@ class ITransactionAdapter
     'orgSarNo': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'org_sar_no',
+      iterable: false,
+      type: String,
+    ),
+    'shiftId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'shift_id',
       iterable: false,
       type: String,
     ),
