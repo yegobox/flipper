@@ -288,56 +288,53 @@ class _RefundState extends ConsumerState<Refund> {
           isRefunded: true,
         );
         await handleReceipt(filterType: FilterType.NR);
-      }
+        talker.info(
+            "Original transaction ${widget.transaction!.id} marked as refunded");
 
-      talker.info(
-          "Original transaction ${widget.transaction!.id} marked as refunded");
+        List<TransactionItem> items = await ProxyService.strategy
+            .transactionItems(transactionId: widget.transactionId);
+        talker.info("Items to Refund: ${items.length}");
 
-      List<TransactionItem> items = await ProxyService.strategy
-          .transactionItems(
-              transactionId: widget.transactionId,
-              doneWithTransaction: true,
-              branchId: (await ProxyService.strategy.activeBranch()).id,
-              active: true);
-      talker.error("Items to Refund: ${items.length}");
+        for (TransactionItem item in items) {
+          Variant? variant =
+              await ProxyService.strategy.getVariant(id: item.variantId);
+          if (variant != null) {
+            if (variant.stock != null) {
+              // mark the variant.ebmSynced to false
+              ProxyService.strategy
+                  .updateVariant(updatables: [variant], ebmSynced: false);
+              // Update the stock
+              ProxyService.strategy.updateStock(
+                  stockId: variant.stock!.id,
+                  currentStock: variant.stock!.currentStock! + item.qty,
+                  ebmSynced: false);
 
-      for (TransactionItem item in items) {
-        Variant? variant =
-            await ProxyService.strategy.getVariant(id: item.variantId);
-        if (variant != null) {
-          if (variant.stock != null) {
-            // mark the variant.ebmSynced to false
-            ProxyService.strategy
-                .updateVariant(updatables: [variant], ebmSynced: false);
-            // Update the stock
-            ProxyService.strategy.updateStock(
-                stockId: variant.stock!.id,
-                currentStock: variant.stock!.currentStock! + item.qty,
-                ebmSynced: false);
+              // adjust rra stock as well  final pendingTransaction =
+              final pendingTransaction =
+                  await ProxyService.strategy.manageTransaction(
+                transactionType: TransactionType.adjustment,
+                isExpense: true,
+                branchId: ProxyService.box.getBranchId()!,
+              );
+              Business? business = await ProxyService.strategy
+                  .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+              await ProxyService.strategy.assignTransaction(
+                variant: variant,
+                updatableQty: item.qty.toDouble(),
+                doneWithTransaction: true,
+                invoiceNumber: int.parse(widget.transaction!.sarNo!),
+                pendingTransaction: pendingTransaction!,
+                business: business!,
+                randomNumber: randomNumber(),
+                // 06 is incoming return.
+                sarTyCd: "03",
+              );
 
-            // adjust rra stock as well  final pendingTransaction =
-            final pendingTransaction =
-                await ProxyService.strategy.manageTransaction(
-              transactionType: TransactionType.adjustment,
-              isExpense: true,
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            Business? business = await ProxyService.strategy
-                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-            await ProxyService.strategy.assignTransaction(
-              variant: variant,
-              updatableQty: item.qty.toDouble(),
-              doneWithTransaction: true,
-              invoiceNumber: int.parse(widget.transaction!.sarNo!),
-              pendingTransaction: pendingTransaction!,
-              business: business!,
-              randomNumber: randomNumber(),
-              // 06 is incoming return.
-              sarTyCd: "03",
-            );
-
-            ProxyService.strategy.updateVariant(
-                updatables: [variant], variantId: variant.id, ebmSynced: false);
+              ProxyService.strategy.updateVariant(
+                  updatables: [variant],
+                  variantId: variant.id,
+                  ebmSynced: false);
+            }
           }
         }
       }

@@ -375,7 +375,7 @@ class TaxController<OBJ> {
             customerTin: transaction.customerTin,
             remark: transaction.remark,
             customerBhfId: transaction.customerBhfId,
-            sarTyCd: transaction.sarTyCd,
+            sarTyCd: receiptType == "NR" ? "03" : transaction.sarTyCd,
             taxAmount: transaction.taxAmount,
           );
           await ProxyService.strategy
