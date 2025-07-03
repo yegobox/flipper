@@ -580,15 +580,21 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             serverUrl: (await ProxyService.box.getServerUrl())!,
             sarTyCd: sarTyCd,
           );
-          
+          // if (sarTyCd == StockInOutType.sale) {
+          //   await ebmSyncService.syncTransactionWithEbm(
+          //     instance: transaction,
+          //     serverUrl: (await ProxyService.box.getServerUrl())!,
+          //     sarTyCd: StockInOutType.processingOut,
+          //   );
+          // }
           // record stock In sarTyCd = StockInOutType.adjustmentOut
-          if (sarTyCd == StockInOutType.returnIn) {
-            await ebmSyncService.syncTransactionWithEbm(
-              instance: transaction,
-              serverUrl: (await ProxyService.box.getServerUrl())!,
-              sarTyCd: StockInOutType.returnOut,
-            );
-          }
+          // if (sarTyCd == StockInOutType.returnIn) {
+          //   await ebmSyncService.syncTransactionWithEbm(
+          //     instance: transaction,
+          //     serverUrl: (await ProxyService.box.getServerUrl())!,
+          //     sarTyCd: StockInOutType.returnOut,
+          //   );
+          // }
         }
         // mark item involved as need sync
 
