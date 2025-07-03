@@ -556,6 +556,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           // Use GlobalErrorHandler to log the error
           final errorMessage = data.resultMsg + " ${data.resultCd}";
           final exception = Exception(errorMessage);
+          if (data.resultMsg == "Invoice number already exists.") {
+            print("Invoice number already exists.");
+            counter.invcNo = counter.invcNo! + 1;
+            repository.upsert(counter);
+          }
           GlobalErrorHandler.logError(
             exception,
             type: "tax_error",
