@@ -214,7 +214,7 @@ class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: colorScheme.outline.withValues(alpha: 0.2),

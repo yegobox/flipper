@@ -262,10 +262,17 @@ class _StartShiftDialogState extends State<StartShiftDialog>
             return null;
           },
           decoration: InputDecoration(
-            prefixIcon: Icon(
-              Icons.attach_money,
-              color: colorScheme.primary,
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Text(
+                '${ProxyService.box.defaultCurrency()} ',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
+            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
             hintText: '0.00',
             filled: true,
             fillColor: colorScheme.surface,
