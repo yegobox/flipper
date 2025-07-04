@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:intl/intl.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/providers/shift_data_provider.dart';
+import 'package:flipper_services/proxy.dart';
 
-class CloseShiftDialog extends StatefulWidget {
+class CloseShiftDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
   final Function(DialogResponse) completer;
 
@@ -17,17 +20,17 @@ class CloseShiftDialog extends StatefulWidget {
   _CloseShiftDialogState createState() => _CloseShiftDialogState();
 }
 
-class _CloseShiftDialogState extends State<CloseShiftDialog>
+class _CloseShiftDialogState extends ConsumerState<CloseShiftDialog>
     with SingleTickerProviderStateMixin {
   final TextEditingController _closingBalanceController =
       TextEditingController();
   final TextEditingController _notesController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  double _cashDifference = 0.0;
-  late double _openingBalance;
-  late double _cashSales;
-  late double _expectedCash;
+  num _cashDifference = 0.0;
+  num _openingBalance = 0;
+  num _cashSales = 0;
+  num _expectedCash = 0;
   bool _isLoading = false;
   bool _hasError = false;
   String _errorMessage = '';
@@ -48,11 +51,6 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
     );
     _animationController.forward();
 
-    _openingBalance =
-        (widget.request.data?['openingBalance'] as num?)?.toDouble() ?? 0.0;
-    _cashSales = (widget.request.data?['cashSales'] as num?)?.toDouble() ?? 0.0;
-    _expectedCash =
-        (widget.request.data?['expectedCash'] as num?)?.toDouble() ?? 0.0;
     _closingBalanceController.addListener(_calculateCashDifference);
     _calculateCashDifference();
   }
@@ -78,6 +76,9 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final currencySymbol = ProxyService.box.defaultCurrency();
+
+    final shiftDataAsyncValue = ref.watch(shiftDataProvider);
 
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -95,32 +96,48 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
               padding: const EdgeInsets.all(24.0),
               child: Form(
                 key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildHeader(context),
-                    const SizedBox(height: 24),
-                    _buildShiftSummary(context),
-                    const SizedBox(height: 24),
-                    _buildCashReconciliation(context),
-                    const SizedBox(height: 20),
-                    _buildClosingBalanceSection(context),
-                    const SizedBox(height: 20),
-                    _buildCashDifferenceSection(context),
-                    const SizedBox(height: 20),
-                    _buildNotesSection(context),
-                    if (_hasError) ...[
-                      const SizedBox(height: 16),
-                      _buildErrorMessage(context),
-                    ],
-                    if (_showConfirmation) ...[
-                      const SizedBox(height: 16),
-                      _buildConfirmationSection(context),
-                    ],
-                    const SizedBox(height: 32),
-                    _buildActionButtons(context),
-                  ],
+                child: shiftDataAsyncValue.when(
+                  data: (shiftData) {
+                    // Update state variables when data is available
+                    _openingBalance = shiftData.openingBalance;
+                    _cashSales = shiftData.cashSales;
+                    _expectedCash = shiftData.expectedCash;
+                    _calculateCashDifference(); // Recalculate difference with new data
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildHeader(context),
+                        const SizedBox(height: 24),
+                        _buildShiftSummary(context, currencySymbol),
+                        const SizedBox(height: 24),
+                        _buildCashReconciliation(context),
+                        const SizedBox(height: 20),
+                        _buildClosingBalanceSection(context, currencySymbol),
+                        const SizedBox(height: 20),
+                        _buildCashDifferenceSection(context, currencySymbol),
+                        const SizedBox(height: 20),
+                        _buildNotesSection(context),
+                        if (_hasError) ...[
+                          const SizedBox(height: 16),
+                          _buildErrorMessage(context),
+                        ],
+                        if (_showConfirmation) ...[
+                          const SizedBox(height: 16),
+                          _buildConfirmationSection(context),
+                        ],
+                        const SizedBox(height: 32),
+                        _buildActionButtons(context),
+                      ],
+                    );
+                  },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  error: (error, stack) => Center(
+                    child: Text('Error loading shift data: $error'),
+                  ),
                 ),
               ),
             ),
@@ -190,7 +207,7 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
     );
   }
 
-  Widget _buildShiftSummary(BuildContext context) {
+  Widget _buildShiftSummary(BuildContext context, String currencySymbol) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -224,7 +241,7 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
                 ),
               ),
               Text(
-                '\$${_openingBalance.toStringAsFixed(2)}',
+                '${currencySymbol} ${_openingBalance.toStringAsFixed(2)}',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.onSurface,
@@ -243,7 +260,7 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
                 ),
               ),
               Text(
-                '\$${_cashSales.toStringAsFixed(2)}',
+                '${currencySymbol} ${_cashSales.toStringAsFixed(2)}',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: colorScheme.primary,
@@ -265,7 +282,7 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
                 ),
               ),
               Text(
-                '\$${_expectedCash.toStringAsFixed(2)}',
+                '${currencySymbol} ${_expectedCash.toStringAsFixed(2)}',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: colorScheme.primary,
@@ -323,7 +340,8 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
     );
   }
 
-  Widget _buildClosingBalanceSection(BuildContext context) {
+  Widget _buildClosingBalanceSection(
+      BuildContext context, String currencySymbol) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -362,10 +380,18 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
             return null;
           },
           decoration: InputDecoration(
-            prefixIcon: Icon(
-              Icons.attach_money,
-              color: colorScheme.primary,
+            prefixIcon: Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Text(
+                '${currencySymbol} ',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
+            prefixIconConstraints:
+                const BoxConstraints(minWidth: 0, minHeight: 0),
             hintText: '0.00',
             filled: true,
             fillColor: colorScheme.surface,
@@ -399,7 +425,8 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
     );
   }
 
-  Widget _buildCashDifferenceSection(BuildContext context) {
+  Widget _buildCashDifferenceSection(
+      BuildContext context, String currencySymbol) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -462,7 +489,7 @@ class _CloseShiftDialogState extends State<CloseShiftDialog>
                 ),
               ),
               Text(
-                '\$${_cashDifference.abs().toStringAsFixed(2)}',
+                '${currencySymbol} ${_cashDifference.abs().toStringAsFixed(2)}',
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: differenceColor,
