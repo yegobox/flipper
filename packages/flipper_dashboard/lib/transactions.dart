@@ -37,7 +37,7 @@ class TransactionsState extends ConsumerState<Transactions>
     super.initState();
   }
 
-  List<Widget> _zTransactions({required Drawers drawer}) {
+  List<Widget> _zTransactions() {
     zlist = []; // Clear existing items
     zlist.add(
       Card(
@@ -51,7 +51,7 @@ class TransactionsState extends ConsumerState<Transactions>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Trade Name: ${drawer.tradeName}',
+                    'Trade Name: ',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -68,19 +68,17 @@ class TransactionsState extends ConsumerState<Transactions>
                 ],
               ),
             ),
-            _buildZReportRow('Opening Deposit',
-                '${drawer.openingBalance} ${ProxyService.box.defaultCurrency()}'),
-            _buildZReportRow('Total NS', drawer.nsSaleCount.toString()),
-            _buildZReportRow('Total NR', drawer.nrSaleCount.toString()),
+            _buildZReportRow(
+                'Opening Deposit', '${ProxyService.box.defaultCurrency()}'),
+            _buildZReportRow('Total NS', "0"),
+            _buildZReportRow('Total NR', "0"),
             _buildZReportRow(
               'Total Taxes',
-              ((drawer.totalNsSaleIncome ?? 0) -
-                      (drawer.totalCsSaleIncome ?? 0))
-                  .toString(),
+              "0".toString(),
             ),
-            _buildZReportRow('Total CS', drawer.csSaleCount.toString()),
-            _buildZReportRow('Total TS', drawer.trSaleCount.toString()),
-            _buildZReportRow('Total PS', drawer.psSaleCount.toString()),
+            _buildZReportRow('Total CS', "0"),
+            _buildZReportRow('Total TS', "0"),
+            _buildZReportRow('Total PS', "0"),
             _buildZReportRow('Total Sales per payment mode', '100% cash'),
             _buildZReportRow('All Discounts', '0'),
             _buildZReportRow('Incomplete sales', '0'),
@@ -234,14 +232,9 @@ class TransactionsState extends ConsumerState<Transactions>
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
-        Drawers? drawer = await ProxyService.strategy
-            .getDrawer(cashierId: ProxyService.box.getUserId()!);
-
-        if (drawer != null) {
-          setState(() {
-            zlist = _zTransactions(drawer: drawer);
-          });
-        }
+        setState(() {
+          zlist = _zTransactions();
+        });
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {

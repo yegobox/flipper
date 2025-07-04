@@ -71,7 +71,7 @@ mixin ShiftMixin implements ShiftApi {
       query: brick.Query(where: [
         brick.Where('userId').isExactly(userId),
         brick.Where('businessId').isExactly(businessId),
-        brick.Where('status').isExactly(models.ShiftStatus.Open),
+        brick.Where('status').isExactly(models.ShiftStatus.Open.name),
       ]),
     );
     talker.debug('getCurrentShift: found ${shifts.length} shifts');

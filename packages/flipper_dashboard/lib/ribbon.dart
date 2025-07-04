@@ -5,24 +5,20 @@ import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     show
         branchSelectionProvider,
-        branchesProvider,
         businessesProvider,
         buttonIndexProvider,
         selectedBranchProvider;
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
-import 'package:flipper_services/constants.dart' show TransactionPeriod;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
-import 'package:flipper_routing/app.router.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IconText extends StatelessWidget {
@@ -173,74 +169,11 @@ class IconRowState extends ConsumerState<IconRow>
         },
       );
     } else if (index == 2) {
-      final data = await ProxyService.strategy
-          .getTransactionsAmountsSum(period: TransactionPeriod.today);
-      final drawer = await ProxyService.strategy
-          .getDrawer(cashierId: ProxyService.box.getUserId()!);
-
-      if (drawer != null) {
-        ProxyService.strategy.updateDrawer(
-          drawerId: drawer.id,
-          closingBalance: data.income,
-          cashierId: ProxyService.box.getUserId()!,
-        );
-        _routerService
-            .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
-      } else {
-        // Show branch switch dialog instantly with a loading indicator, then load branches async
-        showBranchSwitchDialog(
-          context: context,
-          branches: null, // Now allowed: nullable
-          loadingItemId: _loadingItemId,
-          setDefaultBranch: (branch) async {
-            setState(() {
-              _isLoading = true;
-            });
-            handleBranchSelection(
-              branch,
-              context,
-              setLoadingState: (String? id) {
-                setState(() {
-                  _loadingItemId = id;
-                });
-              },
-              setDefaultBranch: _setDefaultBranch,
-              onComplete: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _isLoading = false;
-                });
-              },
-              setIsLoading: (bool value) {
-                setState(() {
-                  _isLoading = value;
-                });
-              },
-            );
-          },
-          handleBranchSelection:
-              handleBranchSelection, // Pass required argument
-          onLogout: () async {
-            await showLogoutConfirmationDialog(
-              context,
-            );
-          },
-          setLoadingState: (String? id) {
-            setState(() {
-              _loadingItemId = id;
-            });
-          },
-        );
-        // Now trigger branch loading in the dialog itself (modal should handle async fetch)
-      }
+      //TODO: rethinkg If closing shift should be here
     }
   }
 
-  Future<void> _setDefaultBranch(Branch branch) async {
-    ref.read(branchSelectionProvider.notifier).setLoading(true);
-    _refreshBusinessAndBranchProviders();
-    return Future.value(); // Return a completed Future<void>
-  }
+  
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);

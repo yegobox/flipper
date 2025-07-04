@@ -26,7 +26,6 @@ class ExcelUtils {
     required ExcelStyler styler,
     required ExportConfig config,
     required Business business,
-    required Drawers? drawer,
     required String headerTitle,
     int startRow = 1, // Add optional startRow parameter with default value of 1
   }) async {
@@ -50,7 +49,6 @@ class ExcelUtils {
       ['BHF ID', await ProxyService.box.bhfId() ?? '00'],
       ['Start Date', config.startDate?.toIso8601String() ?? '-'],
       ['End Date', config.endDate?.toIso8601String() ?? '-'],
-      ['Opening Balance', drawer?.openingBalance ?? 0],
       ['Gross Profit', null], // We'll set this with a formula
       // Net Profit row will be added below, after Gross Profit
       ['Tax Rate', taxRate],

@@ -17,20 +17,19 @@ Future<Shift> _$ShiftFromSupabase(
             : data['end_at'] == null
             ? null
             : DateTime.tryParse(data['end_at'] as String),
-    openingBalance: data['opening_balance'] as double,
+    openingBalance: data['opening_balance'] as num,
     closingBalance:
         data['closing_balance'] == null
             ? null
-            : data['closing_balance'] as double?,
+            : data['closing_balance'] as num?,
     status: ShiftStatus.values.byName(data['status']),
-    cashSales:
-        data['cash_sales'] == null ? null : data['cash_sales'] as double?,
+    cashSales: data['cash_sales'] == null ? null : data['cash_sales'] as num?,
     expectedCash:
-        data['expected_cash'] == null ? null : data['expected_cash'] as double?,
+        data['expected_cash'] == null ? null : data['expected_cash'] as num?,
     cashDifference:
         data['cash_difference'] == null
             ? null
-            : data['cash_difference'] as double?,
+            : data['cash_difference'] as num?,
   );
 }
 
@@ -70,20 +69,19 @@ Future<Shift> _$ShiftFromSqlite(
             : data['end_at'] == null
             ? null
             : DateTime.tryParse(data['end_at'] as String),
-    openingBalance: data['opening_balance'] as double,
+    openingBalance: data['opening_balance'] as num,
     closingBalance:
         data['closing_balance'] == null
             ? null
-            : data['closing_balance'] as double?,
+            : data['closing_balance'] as num?,
     status: ShiftStatus.values.byName(data['status'] as String),
-    cashSales:
-        data['cash_sales'] == null ? null : data['cash_sales'] as double?,
+    cashSales: data['cash_sales'] == null ? null : data['cash_sales'] as num?,
     expectedCash:
-        data['expected_cash'] == null ? null : data['expected_cash'] as double?,
+        data['expected_cash'] == null ? null : data['expected_cash'] as num?,
     cashDifference:
         data['cash_difference'] == null
             ? null
-            : data['cash_difference'] as double?,
+            : data['cash_difference'] as num?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -208,13 +206,13 @@ class ShiftAdapter extends OfflineFirstWithSupabaseAdapter<Shift> {
       association: false,
       columnName: 'opening_balance',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'closingBalance': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'closing_balance',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'status': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -226,19 +224,19 @@ class ShiftAdapter extends OfflineFirstWithSupabaseAdapter<Shift> {
       association: false,
       columnName: 'cash_sales',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'expectedCash': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'expected_cash',
       iterable: false,
-      type: double,
+      type: num,
     ),
     'cashDifference': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'cash_difference',
       iterable: false,
-      type: double,
+      type: num,
     ),
   };
   @override

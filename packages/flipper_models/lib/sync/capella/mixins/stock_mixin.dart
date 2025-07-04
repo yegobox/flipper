@@ -14,8 +14,30 @@ mixin CapellaStockMixin implements StockInterface {
   }
 
   @override
-  Future<void> updateStock({required Stock stock}) async {
+  Future<void> updateStock({
+    required String stockId,
+    double? qty,
+    double? rsdQty,
+    double? initialStock,
+    bool? ebmSynced,
+    double? currentStock,
+    double? value,
+    bool appending = false,
+    DateTime? lastTouched,
+  }) {
     throw UnimplementedError('updateStock needs to be implemented for Capella');
+  }
+
+  @override
+  Future<Stock> saveStock(
+      {Variant? variant,
+      required double rsdQty,
+      required String productId,
+      required String variantId,
+      required int branchId,
+      required double currentStock,
+      required double value}) {
+    throw UnimplementedError('saveStock needs to be implemented for Capella');
   }
 
   @override

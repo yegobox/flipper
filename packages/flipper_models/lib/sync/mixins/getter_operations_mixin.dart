@@ -70,16 +70,6 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    final query = Query(where: [Where('cashierId').isExactly(cashierId)]);
-    final List<Drawers> fetchedDrawers = await repository.get<Drawers>(
-      query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-    return fetchedDrawers.firstOrNull;
-  }
-
-  @override
   Future<Favorite?> getFavoriteById({required String favId}) async {
     final query = Query(where: [Where('id').isExactly(favId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(

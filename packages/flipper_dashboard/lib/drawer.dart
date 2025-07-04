@@ -1,7 +1,5 @@
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -11,15 +9,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:intl/intl.dart';
 
 class DrawerScreen extends StatefulHookConsumerWidget {
-  const DrawerScreen({Key? key, required this.open, required this.drawer})
-      : super(key: key);
+  const DrawerScreen({Key? key, required this.open}) : super(key: key);
   final String open;
-  final Drawers drawer;
 
   @override
   _DrawerScreenState createState() => _DrawerScreenState();
@@ -178,47 +173,12 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
               setState(() {
                 isProcessing = true;
               });
-              if (widget.open == "open") {
-                handleOpenDrawer();
-              } else {
-                handleCloseDrawer();
-              }
             }
           },
           busy: isProcessing,
         ),
       ),
     );
-  }
-
-  Future<void> handleOpenDrawer() async {
-    Drawers drawer = widget.drawer;
-    drawer.cashierId = ProxyService.box.getUserId();
-    drawer.openingBalance = double.tryParse(_controller.text) ?? 0;
-    drawer.open = true;
-    ProxyService.strategy.openDrawer(
-      drawer: drawer,
-    );
-
-    LoginInfo().isLoggedIn = true;
-    _routerService.navigateTo(FlipperAppRoute());
-  }
-
-  void handleCloseDrawer() async {
-    try {
-      Drawers? drawers = await ProxyService.strategy
-          .getDrawer(cashierId: ProxyService.box.getUserId()!);
-      if (drawers != null) {
-        ProxyService.strategy
-            .closeDrawer(drawer: drawers, eod: double.parse(_controller.text));
-      }
-      await logOut();
-
-      _routerService.navigateTo(LoginRoute());
-    } catch (e, s) {
-      talker.error(e);
-      talker.error(s);
-    }
   }
 
   Widget buildLogoutButton() {

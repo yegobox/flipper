@@ -16,6 +16,7 @@ import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:http/http.dart' as http;
@@ -70,6 +71,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         CustomerInterface,
         CategoryInterface,
         ShiftApi,
+        StockInterface,
         LogInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
@@ -342,7 +344,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required int branchId,
       String filter = RequestStatus.pending,
       String? search});
-  FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
 
   Future<({String url, int userId, String customerCode})> subscribe(
@@ -399,23 +400,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required int branchId, required HttpClientInterface flipperHttpClient});
   FutureOr<Branch?> branch({required int serverId});
 
-  bool isDrawerOpen({required int cashierId, required int branchId});
-  Future<Drawers?> getDrawer({required int cashierId});
-
-  Drawers? openDrawer({required Drawers drawer});
-
-  FutureOr<Drawers?> closeDrawer(
-      {required Drawers drawer, required double eod});
-  FutureOr<Stock> saveStock({
-    Variant? variant,
-    required double rsdQty,
-    required String productId,
-    required String variantId,
-    required int branchId,
-    required double currentStock,
-    required double value,
-  });
-
   FutureOr<void> savePaymentType(
       {TransactionPaymentRecord? paymentRecord,
       String? transactionId,
@@ -440,36 +424,9 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required Map<String, String> itemTypes,
   });
 
-  FutureOr<void> updateStock({
-    required String stockId,
-    double? qty,
-    double? rsdQty,
-    double? initialStock,
-    bool? ebmSynced,
-    double? currentStock,
-    double? value,
-    DateTime? lastTouched,
-    bool appending = false,
-  });
-
   void updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
-  });
-  FutureOr<void> updateDrawer({
-    required String drawerId,
-    int? cashierId,
-    int? nsSaleCount,
-    int? trSaleCount,
-    int? psSaleCount,
-    int? csSaleCount,
-    int? nrSaleCount,
-    int? incompleteSale,
-    double? totalCsSaleIncome,
-    double? totalNsSaleIncome,
-    DateTime? openingDateTime,
-    double? closingBalance,
-    bool? open,
   });
 
   FutureOr<void> updateCategory({

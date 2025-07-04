@@ -24,6 +24,7 @@ import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
+import 'package:flipper_models/sync/mixins/stock_mixin.dart';
 import 'package:flipper_models/sync/mixins/tenant_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
@@ -82,6 +83,7 @@ class CoreSync extends AiStrategyImpl
         LogMixin,
         EbmMixin,
         ShiftMixin,
+        StockMixin,
         CategoryMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -265,17 +267,6 @@ class CoreSync extends AiStrategyImpl
     }
     // Close the StreamController after the stream is finishe
     controller.close();
-  }
-
-  @override
-  Future<Drawers?> closeDrawer(
-      {required Drawers drawer, required double eod}) async {
-    drawer.open = false;
-    drawer.cashierId = ProxyService.box.getUserId()!;
-    // drawer.closingBalance = double.parse(_controller.text);
-    drawer.closingBalance = eod;
-    drawer.closingDateTime = DateTime.now();
-    return await repository.upsert(drawer);
   }
 
   @override
@@ -905,15 +896,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    final query =
-        brick.Query(where: [brick.Where('cashierId').isExactly(cashierId)]);
-    final List<Drawers> fetchedDrawers = await repository.get<Drawers>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
-    return fetchedDrawers.firstOrNull;
-  }
-
-  @override
   Future<Favorite?> getFavoriteById({required String favId}) async {
     final query = brick.Query(where: [brick.Where('id').isExactly(favId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
@@ -1243,7 +1225,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<models.InventoryRequest>> requests(
+  Future<List<models.InventoryRequest>> requests(
       {int? branchId, String? requestId}) async {
     if (branchId != null) {
       return await repository.get<InventoryRequest>(
@@ -2407,68 +2389,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Stock> saveStock(
-      {Variant? variant,
-      required double rsdQty,
-      required String productId,
-      required String variantId,
-      required int branchId,
-      required double currentStock,
-      required double value}) async {
-    final stock = Stock(
-      id: const Uuid().v4(),
-      lastTouched: DateTime.now().toUtc(),
-      branchId: branchId,
-      currentStock: currentStock,
-      rsdQty: rsdQty,
-      value: value,
-    );
-    return await repository.upsert<Stock>(stock);
-  }
-
-  @override
-  FutureOr<void> updateStock({
-    required String stockId,
-    double? qty,
-    double? rsdQty,
-    double? initialStock,
-    bool? ebmSynced,
-    double? currentStock,
-    double? value,
-    bool appending = false,
-    DateTime? lastTouched,
-  }) async {
-    Stock? stock = await getStockById(id: stockId);
-    Variant? variant = await getVariant(stockId: stock.id);
-
-    // If appending, add to existing values; otherwise, replace.
-    if (currentStock != null) {
-      stock.currentStock =
-          appending ? (stock.currentStock ?? 0) + currentStock : currentStock;
-    }
-    if (rsdQty != null) {
-      stock.rsdQty = appending ? (stock.rsdQty ?? 0) + rsdQty : rsdQty;
-    }
-    if (initialStock != null) {
-      stock.initialStock =
-          appending ? (stock.initialStock ?? 0) + initialStock : initialStock;
-    }
-    if (value != null) {
-      stock.value = appending ? (variant!.retailPrice! * currentStock!) : value;
-    }
-
-    // These fields should always be replaced, not appended
-    if (ebmSynced != null) {
-      stock.ebmSynced = ebmSynced;
-    }
-    if (lastTouched != null) {
-      stock.lastTouched = lastTouched;
-    }
-
-    await repository.upsert(stock);
-  }
-
-  @override
   FutureOr<LPermission?> permission({required int userId}) async {
     return (await repository.get<LPermission>(
             query:
@@ -2989,12 +2909,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  bool isDrawerOpen({required int cashierId, required int branchId}) {
-    // TODO: implement isDrawerOpen
-    throw UnimplementedError();
-  }
-
-  @override
   bool isSubscribed({required String feature, required int businessId}) {
     // TODO: implement isSubscribed
     throw UnimplementedError();
@@ -3017,12 +2931,6 @@ class CoreSync extends AiStrategyImpl
   @override
   void notify({required models.AppNotification notification}) {
     // TODO: implement notify
-  }
-
-  @override
-  models.Drawers? openDrawer({required models.Drawers drawer}) {
-    // TODO: implement openDrawer
-    throw UnimplementedError();
   }
 
   @override
@@ -3140,25 +3048,6 @@ class CoreSync extends AiStrategyImpl
   FutureOr<void> updateColor(
       {required String colorId, String? name, bool? active}) {
     // TODO: implement updateColor
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> updateDrawer(
-      {required String drawerId,
-      int? cashierId,
-      int? nsSaleCount,
-      int? trSaleCount,
-      int? psSaleCount,
-      int? csSaleCount,
-      int? nrSaleCount,
-      int? incompleteSale,
-      double? totalCsSaleIncome,
-      double? totalNsSaleIncome,
-      DateTime? openingDateTime,
-      double? closingBalance,
-      bool? open}) {
-    // TODO: implement updateDrawer
     throw UnimplementedError();
   }
 

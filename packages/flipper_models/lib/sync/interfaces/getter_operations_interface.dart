@@ -9,7 +9,6 @@ abstract class GetterOperationsInterface {
       {required String phone, required String linkingCode});
   Future<Device?> getDeviceById({required int id});
   Future<List<Device>> getDevices({required int businessId});
-  Future<Drawers?> getDrawer({required int cashierId});
   Future<Favorite?> getFavoriteById({required String favId});
   Future<Favorite?> getFavoriteByIndex({required String favIndex});
   Stream<Favorite?> getFavoriteByIndexStream({required String favIndex});

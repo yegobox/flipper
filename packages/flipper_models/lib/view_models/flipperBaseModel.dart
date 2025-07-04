@@ -4,27 +4,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/services.dart';
 
 class FlipperBaseModel extends ReactiveViewModel {
-  void openDrawer() {
-    Drawers drawer = Drawers(
-      openingBalance: 0.0,
-      closingBalance: 0.0,
-      cashierId: ProxyService.box.getUserId()!,
-      tradeName: ProxyService.app.business.name,
-      openingDateTime: DateTime.now().toUtc(),
-      open: true,
-      businessId: ProxyService.box.getBusinessId(),
-      branchId: ProxyService.box.getBranchId(),
-    );
-
-    final _routerService = locator<RouterService>();
-    _routerService.navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
-  }
-
   List<Tenant> _tenants = [];
   List<Tenant> get tenants => _tenants;
 

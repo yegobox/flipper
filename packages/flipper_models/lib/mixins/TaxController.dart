@@ -476,41 +476,6 @@ class TaxController<OBJ> {
     }
   }
 
-  Future<void> updateDrawer(
-      String receiptType, ITransaction transaction) async {
-    Drawers? drawer = await ProxyService.strategy
-        .getDrawer(cashierId: ProxyService.box.getUserId()!);
-
-    ProxyService.strategy.updateDrawer(
-      drawerId: drawer!.id,
-      cashierId: ProxyService.box.getBusinessId()!,
-      nsSaleCount: receiptType == "NS"
-          ? drawer.nsSaleCount ?? 0 + 1
-          : drawer.nsSaleCount ?? 0,
-      trSaleCount: receiptType == "TR"
-          ? drawer.trSaleCount ?? 0 + 1
-          : drawer.trSaleCount ?? 0,
-      psSaleCount: receiptType == "PS"
-          ? drawer.psSaleCount ?? 0 + 1
-          : drawer.psSaleCount ?? 0,
-      csSaleCount: receiptType == "CS"
-          ? drawer.csSaleCount ?? 0 + 1
-          : drawer.csSaleCount ?? 0,
-      nrSaleCount: receiptType == "NR"
-          ? drawer.nrSaleCount ?? 0 + 1
-          : drawer.nrSaleCount ?? 0,
-      incompleteSale: 0,
-      totalCsSaleIncome: receiptType == "CS"
-          ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal!
-          : drawer.totalCsSaleIncome ?? 0,
-      totalNsSaleIncome: receiptType == "NS"
-          ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal!
-          : drawer.totalNsSaleIncome ?? 0,
-      openingDateTime: DateTime.now().toUtc(),
-      open: true,
-    );
-  }
-
   Future<void> saveReceipt(
       RwApiResponse receiptSignature,
       ITransaction transaction,

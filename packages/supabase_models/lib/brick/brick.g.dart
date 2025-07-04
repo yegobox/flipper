@@ -94,7 +94,6 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/ai_conversation.model.dart';
 import '../brick/models/plans.model.dart';
-import '../brick/models/drawer.model.dart';
 import '../brick/models/retryable.model.dart';
 import '../brick/models/shift.model.dart';
 
@@ -151,7 +150,6 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/ai_conversation_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
-part 'adapters/drawers_adapter.g.dart';
 part 'adapters/retryable_adapter.g.dart';
 part 'adapters/shift_adapter.g.dart';
 
@@ -210,7 +208,6 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Assets: AssetsAdapter(),
   AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
   Retryable: RetryableAdapter(),
   Shift: ShiftAdapter()
 };
@@ -271,7 +268,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Assets: AssetsAdapter(),
   AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter(),
-  Drawers: DrawersAdapter(),
   Retryable: RetryableAdapter(),
   Shift: ShiftAdapter()
 };

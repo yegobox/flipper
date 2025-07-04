@@ -16,7 +16,6 @@ export 'configuration.model.dart';
 export 'customer.model.dart';
 export 'device.model.dart';
 export 'message.model.dart';
-export 'drawer.model.dart';
 export 'favorite.model.dart';
 export 'location.model.dart';
 export 'pin.model.dart';

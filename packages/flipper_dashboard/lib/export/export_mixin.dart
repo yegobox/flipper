@@ -63,9 +63,6 @@ mixin ExportMixin on ConsumerState {
         _addTransactionsToExcel(reportSheet, config.transactions);
 
         if (!isStockRecount) {
-          final drawer = await ProxyService.strategy
-              .getDrawer(cashierId: ProxyService.box.getUserId()!);
-
           // Create a styler instance
           final styler = ExcelUtils.createExcelStyler(workbook);
 
@@ -82,7 +79,6 @@ mixin ExportMixin on ConsumerState {
             styler: styler,
             config: config,
             business: business!,
-            drawer: drawer,
             headerTitle: headerTitle,
             startRow: lastRow,
           );
