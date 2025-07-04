@@ -175,9 +175,11 @@ class EnhancedSideMenu extends ConsumerWidget {
                                   as Map<dynamic, dynamic>)['closingBalance']
                               as double? ??
                           0.0;
+                      final notes = (dialogResponse?.data as Map<dynamic, dynamic>)['notes'] as String?;
                       await ProxyService.strategy.endShift(
                           shiftId: currentShift.id,
-                          closingBalance: closingBalance);
+                          closingBalance: closingBalance,
+                          note: notes);
                       _routerService.replaceWith(const LoginRoute());
                     }
                   } else {

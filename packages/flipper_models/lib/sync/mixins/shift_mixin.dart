@@ -8,9 +8,9 @@ import 'package:flipper_services/proxy.dart';
 
 abstract class ShiftApi {
   Future<models.Shift> startShift(
-      {required int userId, required double openingBalance});
+      {required int userId, required double openingBalance, String? note});
   Future<models.Shift> endShift(
-      {required String shiftId, required double closingBalance});
+      {required String shiftId, required double closingBalance, String? note});
   Future<models.Shift?> getCurrentShift({required int userId});
   Stream<List<models.Shift>> getShifts(
       {required int businessId, DateTimeRange? dateRange});
@@ -21,7 +21,9 @@ mixin ShiftMixin implements ShiftApi {
 
   @override
   Future<models.Shift> startShift(
-      {required int userId, required double openingBalance}) async {
+      {required int userId,
+      required double openingBalance,
+      String? note}) async {
     final String shiftId = const Uuid().v4();
     final int businessId =
         ProxyService.box.getBusinessId()!; // Assuming businessId is available
@@ -33,13 +35,16 @@ mixin ShiftMixin implements ShiftApi {
       startAt: DateTime.now().toUtc(),
       openingBalance: openingBalance,
       status: models.ShiftStatus.Open,
+      note: note,
     );
     return await repository.upsert(shift);
   }
 
   @override
   Future<models.Shift> endShift(
-      {required String shiftId, required double closingBalance}) async {
+      {required String shiftId,
+      required double closingBalance,
+      String? note}) async {
     final shift = (await repository.get<models.Shift>(
       query: brick.Query(where: [brick.Where('id').isExactly(shiftId)]),
     ))
@@ -52,6 +57,7 @@ mixin ShiftMixin implements ShiftApi {
       cashSales: shift.cashSales,
       expectedCash: shift.expectedCash,
       cashDifference: closingBalance - (shift.expectedCash ?? 0.0),
+      note: note,
     );
     return await repository.upsert(updatedShift);
   }

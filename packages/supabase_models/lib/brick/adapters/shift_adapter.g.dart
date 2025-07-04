@@ -30,6 +30,7 @@ Future<Shift> _$ShiftFromSupabase(
         data['cash_difference'] == null
             ? null
             : data['cash_difference'] as num?,
+    note: data['note'] == null ? null : data['note'] as String?,
   );
 }
 
@@ -50,6 +51,7 @@ Future<Map<String, dynamic>> _$ShiftToSupabase(
     'cash_sales': instance.cashSales,
     'expected_cash': instance.expectedCash,
     'cash_difference': instance.cashDifference,
+    'note': instance.note,
   };
 }
 
@@ -82,6 +84,7 @@ Future<Shift> _$ShiftFromSqlite(
         data['cash_difference'] == null
             ? null
             : data['cash_difference'] as num?,
+    note: data['note'] == null ? null : data['note'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -102,6 +105,7 @@ Future<Map<String, dynamic>> _$ShiftToSqlite(
     'cash_sales': instance.cashSales,
     'expected_cash': instance.expectedCash,
     'cash_difference': instance.cashDifference,
+    'note': instance.note,
   };
 }
 
@@ -158,6 +162,10 @@ class ShiftAdapter extends OfflineFirstWithSupabaseAdapter<Shift> {
     'cashDifference': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'cash_difference',
+    ),
+    'note': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'note',
     ),
   };
   @override
@@ -237,6 +245,12 @@ class ShiftAdapter extends OfflineFirstWithSupabaseAdapter<Shift> {
       columnName: 'cash_difference',
       iterable: false,
       type: num,
+    ),
+    'note': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'note',
+      iterable: false,
+      type: String,
     ),
   };
   @override
