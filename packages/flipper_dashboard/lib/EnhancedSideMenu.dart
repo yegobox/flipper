@@ -4,7 +4,11 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 
 class EnhancedSideMenu extends ConsumerWidget {
   const EnhancedSideMenu({super.key});
@@ -12,6 +16,8 @@ class EnhancedSideMenu extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedItem = ref.watch(selectedMenuItemProvider);
+    final _dialogService = locator<DialogService>();
+    final _routerService = locator<RouterService>();
 
     return SideMenu(
       mode: SideMenuMode.compact,
@@ -124,13 +130,34 @@ class EnhancedSideMenu extends ConsumerWidget {
                   final currentShift = await ProxyService.strategy
                       .getCurrentShift(userId: userId);
                   if (currentShift != null) {
-                    // For now, assuming closing balance is 0.0. This will be handled by UI later.
-                    await ProxyService.strategy.endShift(
-                        shiftId: currentShift.id, closingBalance: 0.0);
-                    // Navigate to login screen
-                    // ProxyService.nav.popUntil((route) => route.isFirst); // Pop all routes until the first one
-                    // ProxyService.nav.navigateTo(Routes.login); // Navigate to login route
+                    final dialogResponse =
+                        await _dialogService.showCustomDialog(
+                      variant: DialogType.closeShift,
+                      title: 'Close Shift',
+                      data: {
+                        'openingBalance': currentShift.openingBalance,
+                        'cashSales': currentShift.cashSales,
+                        'expectedCash': currentShift.expectedCash,
+                      },
+                    );
+
+                    if (dialogResponse?.confirmed == true &&
+                        dialogResponse?.data != null) {
+                      final closingBalance =
+                          double.tryParse(dialogResponse!.data.toString()) ??
+                              0.0;
+                      await ProxyService.strategy.endShift(
+                          shiftId: currentShift.id,
+                          closingBalance: closingBalance);
+                      _routerService.replaceWith(const LoginRoute());
+                    }
+                  } else {
+                    // If no active shift, just navigate to login
+                    _routerService.replaceWith(const LoginRoute());
                   }
+                } else {
+                  // If no user ID, just navigate to login
+                  _routerService.replaceWith(const LoginRoute());
                 }
               },
             ),
