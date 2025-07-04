@@ -4,6 +4,7 @@
 
 # Flipper
 ### Enterprise-Grade Business Software with Military-Level Encryption
+### This is not open source as west would describe it, but it is open source as in the source code is available on GitHub. If you want to benefit from this source you need to have known contributions by YEGOBOX LTD. and or acknowledged by YEGOBOX LTD. that you are a valuable investor,contributor or partner to this project. otherwise do not dare to use this source code.
 
 &ensp;
 &ensp;
