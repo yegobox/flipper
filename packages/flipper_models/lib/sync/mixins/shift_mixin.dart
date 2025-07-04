@@ -45,19 +45,13 @@ mixin ShiftMixin implements ShiftApi {
     ))
         .first;
 
-    // TODO: Implement actual calculation of cashSales, expectedCash, cashDifference based on transactions
-    // For now, using placeholders or simple calculations
-    final double cashSales = 0.0; // Placeholder
-    final double expectedCash = shift.openingBalance + cashSales; // Placeholder
-    final double cashDifference = closingBalance - expectedCash; // Placeholder
-
     final updatedShift = shift.copyWith(
       endAt: DateTime.now().toUtc(),
       closingBalance: closingBalance,
       status: models.ShiftStatus.Closed,
-      cashSales: cashSales,
-      expectedCash: expectedCash,
-      cashDifference: cashDifference,
+      cashSales: shift.cashSales,
+      expectedCash: shift.expectedCash,
+      cashDifference: closingBalance - (shift.expectedCash ?? 0.0),
     );
     return await repository.upsert(updatedShift);
   }
