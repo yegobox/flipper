@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250703220348_up = [
+const List<MigrationCommand> _migration_20250704055316_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -68,7 +68,6 @@ const List<MigrationCommand> _migration_20250703220348_up = [
   InsertTable('AiConversation'),
   InsertTable('_brick_Plan_addons'),
   InsertTable('Plan'),
-  InsertTable('Drawers'),
   InsertTable('Retryable'),
   InsertTable('Shift'),
   InsertColumn('id', Column.varchar, onTable: 'ItemCode', unique: true),
@@ -804,27 +803,6 @@ const List<MigrationCommand> _migration_20250703220348_up = [
   InsertColumn('updated_at', Column.datetime, onTable: 'Plan'),
   InsertColumn('last_updated', Column.datetime, onTable: 'Plan'),
   InsertColumn('processing_status', Column.varchar, onTable: 'Plan'),
-  InsertColumn('id', Column.varchar, onTable: 'Drawers', unique: true),
-  InsertColumn('opening_balance', Column.Double, onTable: 'Drawers'),
-  InsertColumn('closing_balance', Column.Double, onTable: 'Drawers'),
-  InsertColumn('opening_date_time', Column.datetime, onTable: 'Drawers'),
-  InsertColumn('closing_date_time', Column.datetime, onTable: 'Drawers'),
-  InsertColumn('cs_sale_count', Column.integer, onTable: 'Drawers'),
-  InsertColumn('trade_name', Column.varchar, onTable: 'Drawers'),
-  InsertColumn('total_ns_sale_income', Column.Double, onTable: 'Drawers'),
-  InsertColumn('total_cs_sale_income', Column.Double, onTable: 'Drawers'),
-  InsertColumn('nr_sale_count', Column.integer, onTable: 'Drawers'),
-  InsertColumn('ns_sale_count', Column.integer, onTable: 'Drawers'),
-  InsertColumn('tr_sale_count', Column.integer, onTable: 'Drawers'),
-  InsertColumn('ps_sale_count', Column.integer, onTable: 'Drawers'),
-  InsertColumn('incomplete_sale', Column.integer, onTable: 'Drawers'),
-  InsertColumn('other_transactions', Column.integer, onTable: 'Drawers'),
-  InsertColumn('payment_mode', Column.varchar, onTable: 'Drawers'),
-  InsertColumn('cashier_id', Column.integer, onTable: 'Drawers'),
-  InsertColumn('open', Column.boolean, onTable: 'Drawers'),
-  InsertColumn('deleted_at', Column.datetime, onTable: 'Drawers'),
-  InsertColumn('business_id', Column.integer, onTable: 'Drawers'),
-  InsertColumn('branch_id', Column.integer, onTable: 'Drawers'),
   InsertColumn('id', Column.varchar, onTable: 'Retryable', unique: true),
   InsertColumn('entity_id', Column.varchar, onTable: 'Retryable'),
   InsertColumn('entity_table', Column.varchar, onTable: 'Retryable'),
@@ -836,12 +814,12 @@ const List<MigrationCommand> _migration_20250703220348_up = [
   InsertColumn('user_id', Column.integer, onTable: 'Shift'),
   InsertColumn('start_at', Column.datetime, onTable: 'Shift'),
   InsertColumn('end_at', Column.datetime, onTable: 'Shift'),
-  InsertColumn('opening_balance', Column.Double, onTable: 'Shift'),
-  InsertColumn('closing_balance', Column.Double, onTable: 'Shift'),
+  InsertColumn('opening_balance', Column.num, onTable: 'Shift'),
+  InsertColumn('closing_balance', Column.num, onTable: 'Shift'),
   InsertColumn('status', Column.integer, onTable: 'Shift'),
-  InsertColumn('cash_sales', Column.Double, onTable: 'Shift'),
-  InsertColumn('expected_cash', Column.Double, onTable: 'Shift'),
-  InsertColumn('cash_difference', Column.Double, onTable: 'Shift'),
+  InsertColumn('cash_sales', Column.num, onTable: 'Shift'),
+  InsertColumn('expected_cash', Column.num, onTable: 'Shift'),
+  InsertColumn('cash_difference', Column.num, onTable: 'Shift'),
   CreateIndex(columns: ['id'], onTable: 'ItemCode', unique: true),
   CreateIndex(columns: ['code'], onTable: 'ItemCode', unique: false),
   CreateIndex(columns: ['id'], onTable: 'ImportPurchaseDates', unique: true),
@@ -905,13 +883,12 @@ const List<MigrationCommand> _migration_20250703220348_up = [
   CreateIndex(columns: ['id'], onTable: 'AiConversation', unique: true),
   CreateIndex(columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'], onTable: '_brick_Plan_addons', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true),
-  CreateIndex(columns: ['id'], onTable: 'Drawers', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Retryable', unique: true),
   CreateIndex(columns: ['business_id'], onTable: 'Shift', unique: false),
   CreateIndex(columns: ['user_id'], onTable: 'Shift', unique: false)
 ];
 
-const List<MigrationCommand> _migration_20250703220348_down = [
+const List<MigrationCommand> _migration_20250704055316_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -970,7 +947,6 @@ const List<MigrationCommand> _migration_20250703220348_down = [
   DropTable('AiConversation'),
   DropTable('_brick_Plan_addons'),
   DropTable('Plan'),
-  DropTable('Drawers'),
   DropTable('Retryable'),
   DropTable('Shift'),
   DropColumn('id', onTable: 'ItemCode'),
@@ -1706,27 +1682,6 @@ const List<MigrationCommand> _migration_20250703220348_down = [
   DropColumn('updated_at', onTable: 'Plan'),
   DropColumn('last_updated', onTable: 'Plan'),
   DropColumn('processing_status', onTable: 'Plan'),
-  DropColumn('id', onTable: 'Drawers'),
-  DropColumn('opening_balance', onTable: 'Drawers'),
-  DropColumn('closing_balance', onTable: 'Drawers'),
-  DropColumn('opening_date_time', onTable: 'Drawers'),
-  DropColumn('closing_date_time', onTable: 'Drawers'),
-  DropColumn('cs_sale_count', onTable: 'Drawers'),
-  DropColumn('trade_name', onTable: 'Drawers'),
-  DropColumn('total_ns_sale_income', onTable: 'Drawers'),
-  DropColumn('total_cs_sale_income', onTable: 'Drawers'),
-  DropColumn('nr_sale_count', onTable: 'Drawers'),
-  DropColumn('ns_sale_count', onTable: 'Drawers'),
-  DropColumn('tr_sale_count', onTable: 'Drawers'),
-  DropColumn('ps_sale_count', onTable: 'Drawers'),
-  DropColumn('incomplete_sale', onTable: 'Drawers'),
-  DropColumn('other_transactions', onTable: 'Drawers'),
-  DropColumn('payment_mode', onTable: 'Drawers'),
-  DropColumn('cashier_id', onTable: 'Drawers'),
-  DropColumn('open', onTable: 'Drawers'),
-  DropColumn('deleted_at', onTable: 'Drawers'),
-  DropColumn('business_id', onTable: 'Drawers'),
-  DropColumn('branch_id', onTable: 'Drawers'),
   DropColumn('id', onTable: 'Retryable'),
   DropColumn('entity_id', onTable: 'Retryable'),
   DropColumn('entity_table', onTable: 'Retryable'),
@@ -1807,7 +1762,6 @@ const List<MigrationCommand> _migration_20250703220348_down = [
   DropIndex('index_AiConversation_on_id'),
   DropIndex('index__brick_Plan_addons_on_l_Plan_brick_id_f_PlanAddon_brick_id'),
   DropIndex('index_Plan_on_id'),
-  DropIndex('index_Drawers_on_id'),
   DropIndex('index_Retryable_on_id'),
   DropIndex('index_Shift_on_business_id'),
   DropIndex('index_Shift_on_user_id')
@@ -1818,15 +1772,15 @@ const List<MigrationCommand> _migration_20250703220348_down = [
 //
 
 @Migratable(
-  version: '20250703220348',
-  up: _migration_20250703220348_up,
-  down: _migration_20250703220348_down,
+  version: '20250704055316',
+  up: _migration_20250704055316_up,
+  down: _migration_20250704055316_down,
 )
-class Migration20250703220348 extends Migration {
-  const Migration20250703220348()
+class Migration20250704055316 extends Migration {
+  const Migration20250704055316()
     : super(
-        version: 20250703220348,
-        up: _migration_20250703220348_up,
-        down: _migration_20250703220348_down,
+        version: 20250704055316,
+        up: _migration_20250704055316_up,
+        down: _migration_20250704055316_down,
       );
 }

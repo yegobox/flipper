@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
@@ -24,23 +26,23 @@ class Shift extends OfflineFirstWithSupabaseModel {
   final DateTime? endAt;
 
   // Opening cash float
-  final double openingBalance;
+  final num openingBalance;
 
   // Closing cash amount
-  final double? closingBalance;
+  final num? closingBalance;
 
   @Supabase(enumAsString: true)
   @Sqlite(enumAsString: true)
   final ShiftStatus status;
 
   // Expected cash from sales, minus refunds etc.
-  final double? cashSales;
+  final num? cashSales;
 
   // Total cash expected at the end of the shift
-  final double? expectedCash;
+  final num? expectedCash;
 
   // Difference between closingBalance and expectedCash
-  final double? cashDifference;
+  final num? cashDifference;
 
   Shift({
     required this.id,
@@ -62,12 +64,12 @@ class Shift extends OfflineFirstWithSupabaseModel {
     int? userId,
     DateTime? startAt,
     DateTime? endAt,
-    double? openingBalance,
-    double? closingBalance,
+    num? openingBalance,
+    num? closingBalance,
     ShiftStatus? status,
-    double? cashSales,
-    double? expectedCash,
-    double? cashDifference,
+    num? cashSales,
+    num? expectedCash,
+    num? cashDifference,
   }) {
     return Shift(
       id: id ?? this.id,

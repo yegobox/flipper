@@ -20,6 +20,7 @@ Future<Setting> _$SettingFromSupabase(
             ? null
             : data['send_daily_report'] as bool?,
     defaultLanguage:
+    
         data['default_language'] == null
             ? null
             : data['default_language'] as String?,

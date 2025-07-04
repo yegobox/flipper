@@ -13,7 +13,6 @@ import 'package:flipper_models/sync/mixins/business_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/stock_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
-import 'package:flipper_models/sync/mixins/drawer_mixin.dart';
 import 'package:flipper_models/sync/mixins/composite_mixin.dart';
 import 'package:flipper_models/sync/mixins/system_mixin.dart';
 import 'package:flipper_models/sync/mixins/receipt_mixin.dart';
@@ -49,7 +48,6 @@ class CoreSync extends CoreSyncBase
         FavoriteMixin,
         ConversationMixin,
         TransactionItemMixin,
-        DrawerMixin,
         CompositeMixin,
         ReceiptMixin,
         DefaultMixin,

@@ -411,12 +411,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Drawers? closeDrawer({required Drawers drawer, required double eod}) {
-    // TODO: implement closeDrawer
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<PColor>> colors({required int branchId}) {
     // TODO: implement colors
     throw UnimplementedError();
@@ -548,12 +542,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) {
-    // TODO: implement getDrawer
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Favorite?> getFavoriteById({required String favId}) {
     // TODO: implement getFavoriteById
     throw UnimplementedError();
@@ -664,12 +652,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  bool isDrawerOpen({required int cashierId, required int branchId}) {
-    // TODO: implement isDrawerOpen
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> loadConversations(
       {required int businessId, int? pageSize = 10, String? pk, String? sk}) {
     // TODO: implement loadConversations
@@ -686,12 +668,6 @@ class Capella extends AiStrategyImpl
       required Pin pin,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement login
-    throw UnimplementedError();
-  }
-
-  @override
-  Drawers? openDrawer({required Drawers drawer}) {
-    // TODO: implement openDrawer
     throw UnimplementedError();
   }
 
@@ -756,7 +732,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  List<InventoryRequest> requests({int? branchId, String? requestId}) {
+  Future<List<InventoryRequest>> requests({int? branchId, String? requestId}) {
     // TODO: implement requests
     throw UnimplementedError();
   }
@@ -988,25 +964,6 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateDrawer(
-      {required String drawerId,
-      int? cashierId,
-      int? nsSaleCount,
-      int? trSaleCount,
-      int? psSaleCount,
-      int? csSaleCount,
-      int? nrSaleCount,
-      int? incompleteSale,
-      double? totalCsSaleIncome,
-      double? totalNsSaleIncome,
-      DateTime? openingDateTime,
-      double? closingBalance,
-      bool? open}) {
-    // TODO: implement updateDrawer
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> updateNotification(
       {required String notificationId, bool? completed}) {
     // TODO: implement updateNotification
@@ -1194,7 +1151,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateStock(
+  Future<void> updateStock(
       {required String stockId,
       double? qty,
       double? rsdQty,
@@ -1266,19 +1223,6 @@ class Capella extends AiStrategyImpl
   @override
   Future<Pin?> savePin({required Pin pin}) {
     // TODO: implement savePin
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<Stock> saveStock(
-      {Variant? variant,
-      required double rsdQty,
-      required String productId,
-      required String variantId,
-      required int branchId,
-      required double currentStock,
-      required double value}) {
-    // TODO: implement saveStock
     throw UnimplementedError();
   }
 
@@ -2394,6 +2338,19 @@ class Capella extends AiStrategyImpl
   Future<brick.Shift> startShift(
       {required int userId, required double openingBalance}) {
     // TODO: implement startShift
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Stock> saveStock(
+      {brick.Variant? variant,
+      required double rsdQty,
+      required String productId,
+      required String variantId,
+      required int branchId,
+      required double currentStock,
+      required double value}) {
+    // TODO: implement saveStock
     throw UnimplementedError();
   }
 }

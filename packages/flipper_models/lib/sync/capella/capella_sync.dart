@@ -50,7 +50,6 @@ class CapellaSync extends CapellaSyncBase
         CapellaProductMixin,
         CapellaPurchaseMixin,
         CapellaReceiptMixin,
-        CapellaStockMixin,
         CapellaStorageMixin,
         CapellaSystemMixin,
         CapellaEbmMixin,
@@ -59,6 +58,7 @@ class CapellaSync extends CapellaSyncBase
         CapellaTransactionMixin,
         CapellaVariantMixin,
         CapellaShiftMixin,
+        CapellaStockMixin,
         CategoryMixin {
   CapellaSync() : super(AppSecrets.apihubProd);
 

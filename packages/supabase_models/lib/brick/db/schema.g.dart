@@ -1,11 +1,11 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250703220348.migration.dart';
+part '20250704055316.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250703220348(),};
+  const Migration20250704055316(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -1754,42 +1754,6 @@ final schema = Schema(
       },
     ),
     SchemaTable(
-      'Drawers',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('opening_balance', Column.Double),
-        SchemaColumn('closing_balance', Column.Double),
-        SchemaColumn('opening_date_time', Column.datetime),
-        SchemaColumn('closing_date_time', Column.datetime),
-        SchemaColumn('cs_sale_count', Column.integer),
-        SchemaColumn('trade_name', Column.varchar),
-        SchemaColumn('total_ns_sale_income', Column.Double),
-        SchemaColumn('total_cs_sale_income', Column.Double),
-        SchemaColumn('nr_sale_count', Column.integer),
-        SchemaColumn('ns_sale_count', Column.integer),
-        SchemaColumn('tr_sale_count', Column.integer),
-        SchemaColumn('ps_sale_count', Column.integer),
-        SchemaColumn('incomplete_sale', Column.integer),
-        SchemaColumn('other_transactions', Column.integer),
-        SchemaColumn('payment_mode', Column.varchar),
-        SchemaColumn('cashier_id', Column.integer),
-        SchemaColumn('open', Column.boolean),
-        SchemaColumn('deleted_at', Column.datetime),
-        SchemaColumn('business_id', Column.integer),
-        SchemaColumn('branch_id', Column.integer),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
       'Retryable',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1825,12 +1789,12 @@ final schema = Schema(
         SchemaColumn('user_id', Column.integer),
         SchemaColumn('start_at', Column.datetime),
         SchemaColumn('end_at', Column.datetime),
-        SchemaColumn('opening_balance', Column.Double),
-        SchemaColumn('closing_balance', Column.Double),
+        SchemaColumn('opening_balance', Column.num),
+        SchemaColumn('closing_balance', Column.num),
         SchemaColumn('status', Column.integer),
-        SchemaColumn('cash_sales', Column.Double),
-        SchemaColumn('expected_cash', Column.Double),
-        SchemaColumn('cash_difference', Column.Double),
+        SchemaColumn('cash_sales', Column.num),
+        SchemaColumn('expected_cash', Column.num),
+        SchemaColumn('cash_difference', Column.num),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['business_id'], unique: false),

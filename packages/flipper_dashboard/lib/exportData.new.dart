@@ -79,8 +79,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
         if (!isStockRecount) {
-          final drawer = await ProxyService.strategy
-              .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final styler = new_styler.ExcelStyler(workbook);
 
           await ExcelUtils.addHeaderAndInfoRows(
@@ -88,7 +86,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               styler: styler,
               config: config,
               business: business!,
-              drawer: drawer,
               headerTitle: headerTitle);
 
           ExcelUtils.addClosingBalanceRow(

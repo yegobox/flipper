@@ -438,7 +438,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         child: _i1.DrawerScreen(
           key: args.key,
           open: args.open,
-          drawer: args.drawer,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1898,14 +1897,12 @@ class DrawerScreenRoute extends _i4.PageRouteInfo<DrawerScreenArgs> {
   DrawerScreenRoute({
     _i5.Key? key,
     required String open,
-    required _i9.Drawers drawer,
   }) : super(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
           args: DrawerScreenArgs(
             key: key,
             open: open,
-            drawer: drawer,
           ),
         );
 
@@ -1916,18 +1913,15 @@ class DrawerScreenArgs {
   const DrawerScreenArgs({
     this.key,
     required this.open,
-    required this.drawer,
   });
 
   final _i5.Key? key;
 
   final String open;
 
-  final _i9.Drawers drawer;
-
   @override
   String toString() {
-    return 'DrawerScreenArgs{key: $key, open: $open, drawer: $drawer}';
+    return 'DrawerScreenArgs{key: $key, open: $open}';
   }
 }
 
@@ -2876,14 +2870,12 @@ extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToDrawerScreen({
     _i5.Key? key,
     required String open,
-    required _i9.Drawers drawer,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       DrawerScreenRoute(
         key: key,
         open: open,
-        drawer: drawer,
       ),
       onFailure: onFailure,
     );
@@ -3585,14 +3577,12 @@ extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> replaceWithDrawerScreen({
     _i5.Key? key,
     required String open,
-    required _i9.Drawers drawer,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       DrawerScreenRoute(
         key: key,
         open: open,
-        drawer: drawer,
       ),
       onFailure: onFailure,
     );

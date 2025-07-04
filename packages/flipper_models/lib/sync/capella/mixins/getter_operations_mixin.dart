@@ -29,11 +29,6 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    throw UnimplementedError('getDrawer needs to be implemented for Capella');
-  }
-
-  @override
   Future<Favorite?> getFavoriteById({required String favId}) async {
     throw UnimplementedError(
         'getFavoriteById needs to be implemented for Capella');

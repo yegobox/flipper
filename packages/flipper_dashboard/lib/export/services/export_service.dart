@@ -59,8 +59,6 @@ class ExportService {
         reportSheet.name = isStockRecount ? 'Stock Recount' : 'Report';
 
         if (!isStockRecount) {
-          final drawer = await ProxyService.strategy
-              .getDrawer(cashierId: ProxyService.box.getUserId()!);
           final ExcelStyler styler = ExcelStyler(workbook);
 
           await ExcelUtils.addHeaderAndInfoRows(
@@ -68,7 +66,6 @@ class ExportService {
               styler: styler,
               config: config,
               business: business!,
-              drawer: drawer,
               headerTitle: headerTitle);
 
           ExcelUtils.addClosingBalanceRow(
