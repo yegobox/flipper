@@ -273,8 +273,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
               title: 'Start New Shift',
             );
             if (response?.confirmed == true) {
-              _completeAuthenticationFlow();
-            } else {
+              final openingBalance = response?.data['openingBalance'] as double? ?? 0.0;
+              final notes = response?.data['notes'] as String?;
+              await ProxyService.strategy.startShift(
+                userId: userId,
+                openingBalance: openingBalance,
+                note: notes,
+              );
               // User cancelled starting shift, stay on login choices
               if (mounted) {
                 scaffoldMessenger.showSnackBar(

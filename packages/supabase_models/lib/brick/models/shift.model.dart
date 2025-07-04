@@ -44,37 +44,40 @@ class Shift extends OfflineFirstWithSupabaseModel {
   // Difference between closingBalance and expectedCash
   final num? cashDifference;
 
-  Shift({
-    required this.id,
-    required this.businessId,
-    required this.userId,
-    required this.startAt,
-    this.endAt,
-    required this.openingBalance,
-    this.closingBalance,
-    this.status = ShiftStatus.Open,
-    this.cashSales,
-    this.expectedCash,
-    this.cashDifference,
-  });
+  String? note;
+
+  Shift(
+      {required this.id,
+      required this.businessId,
+      required this.userId,
+      required this.startAt,
+      this.endAt,
+      required this.openingBalance,
+      this.closingBalance,
+      this.status = ShiftStatus.Open,
+      this.cashSales,
+      this.expectedCash,
+      this.cashDifference,
+      this.note});
   //copyWith
-  Shift copyWith({
-    String? id,
-    int? businessId,
-    int? userId,
-    DateTime? startAt,
-    DateTime? endAt,
-    num? openingBalance,
-    num? closingBalance,
-    ShiftStatus? status,
-    num? cashSales,
-    num? expectedCash,
-    num? cashDifference,
-  }) {
+  Shift copyWith(
+      {String? id,
+      int? businessId,
+      int? userId,
+      DateTime? startAt,
+      DateTime? endAt,
+      num? openingBalance,
+      num? closingBalance,
+      ShiftStatus? status,
+      num? cashSales,
+      num? expectedCash,
+      num? cashDifference,
+      String? note}) {
     return Shift(
       id: id ?? this.id,
       businessId: businessId ?? this.businessId,
       userId: userId ?? this.userId,
+      note: note ?? this.note,
       startAt: startAt ?? this.startAt,
       endAt: endAt ?? this.endAt,
       openingBalance: openingBalance ?? this.openingBalance,

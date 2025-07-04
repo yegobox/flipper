@@ -2316,7 +2316,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<brick.Shift> endShift(
-      {required String shiftId, required double closingBalance}) {
+      {required String shiftId, required double closingBalance, String? note}) {
     // TODO: implement endShift
     throw UnimplementedError();
   }
@@ -2336,7 +2336,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<brick.Shift> startShift(
-      {required int userId, required double openingBalance}) {
+      {required int userId, required double openingBalance, String? note}) {
     // TODO: implement startShift
     throw UnimplementedError();
   }
