@@ -8,7 +8,7 @@ void main() {
     });
     // tearDown(mock.tearDown);
 
-    test('#getPurchaseWithVariants', () async {
+    test('#getPurchaseWithVariants', () {
       // Create mock Variant data
       // final variant1 = Variant(
       //   id: const Uuid().v4(),

@@ -345,27 +345,14 @@ Future<void> initializeDependenciesForTest({
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Allow GetIt to reassign registrations for testing purposes
-  GetIt.I.allowReassignment = true;
-
   // Initialize only the necessary dependencies for tests
   // Skip Firebase initialization in test mode
-  if (!kTestMode) {
-    await loadSupabase();
-  }
+
+  await loadSupabase();
 
   loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();
 
   await initDependencies(); // This will register the default implementations
-
-  // Register provided mocks, overriding default implementations
-  if (localStorage != null) {
-    GetIt.I.registerSingleton<LocalStorage>(localStorage);
-  }
-
-  if (databaseSyncInterface != null) {
-    GetIt.I.registerSingleton<DatabaseSyncInterface>(databaseSyncInterface);
-  }
 }

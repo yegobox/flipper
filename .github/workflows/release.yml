@@ -85,7 +85,7 @@ jobs:
           cd apps/flipper
           cd ../..
           cd packages/flipper_dashboard
-          flutter test --dart-define=FLUTTER_TEST_ENV=true --verbose
+          flutter test --dart-define=FLUTTER_TEST_ENV=true 
   build_web_deploy_firebase:
     runs-on: ubuntu-latest
     needs: [unit-testing]
