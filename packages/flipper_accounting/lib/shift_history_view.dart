@@ -153,7 +153,6 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
   }
 
   Widget _buildShiftCard(Shift shift, String currencySymbol, ThemeData theme) {
-    final isActive = shift.status.name.toLowerCase() == 'active';
     final statusColor = _getStatusColor(shift.status.name);
     final cashDifference = shift.cashDifference ?? 0.0;
     final hasCashDifference = cashDifference != 0.0;
@@ -392,10 +391,10 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
