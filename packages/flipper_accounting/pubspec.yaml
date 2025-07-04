@@ -1,0 +1,33 @@
+name: flipper_accounting
+description: A new Flutter package.
+version: 0.0.1
+homepage: 
+
+environment:
+  sdk: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  stacked: ^3.4.3
+  flipper_models: any
+  flipper_services: any
+  intl: ^0.20.2
+
+
+dependency_overrides:
+  http: ^1.2.2
+  meta: ^1.12.0
+  web: ^1.0.0
+  json_annotation: ^4.9.0
+  sqlite3: ^2.7.6
+  device_info_plus: ^11.2.2
+  archive: ^3.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # flutter_lints: ^2.0.0
+  # stacked_generator: ^1.3.0
+  # build_runner: ^2.4.6
+

@@ -633,6 +633,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    ShiftHistoryViewRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.ShiftHistoryView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -868,6 +876,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           WaitingOrdersPlacedRoute.name,
           path: '/waiting-orders-placed',
+        ),
+        _i4.RouteConfig(
+          ShiftHistoryViewRoute.name,
+          path: '/shift-history-view',
         ),
       ];
 }
@@ -2362,28 +2374,28 @@ class PaymentFinalizeRoute extends _i4.PageRouteInfo<void> {
 /// [_i1.WaitingOrdersPlaced]
 class WaitingOrdersPlacedRoute
     extends _i4.PageRouteInfo<WaitingOrdersPlacedArgs> {
-  WaitingOrdersPlacedRoute({
-    required int orderId,
+  WaitingOrdersPlacedRoute(
+    String orderId, {
     _i5.Key? key,
   }) : super(
           WaitingOrdersPlacedRoute.name,
           path: '/waiting-orders-placed',
           args: WaitingOrdersPlacedArgs(
-            orderId: orderId,
+            orderId,
             key: key,
           ),
         );
 
-  static const String name = 'WaitingOrdersPlaced';
+  static const String name = 'WaitingOrdersPlacedRoute';
 }
 
 class WaitingOrdersPlacedArgs {
-  const WaitingOrdersPlacedArgs({
-    required this.orderId,
+  const WaitingOrdersPlacedArgs(
+    this.orderId, {
     this.key,
   });
 
-  final int orderId;
+  final String orderId;
 
   final _i5.Key? key;
 
@@ -2391,6 +2403,18 @@ class WaitingOrdersPlacedArgs {
   String toString() {
     return 'WaitingOrdersPlacedArgs{orderId: $orderId, key: $key}';
   }
+}
+
+/// generated route for
+/// [_i1.ShiftHistoryView]
+class ShiftHistoryViewRoute extends _i4.PageRouteInfo<void> {
+  const ShiftHistoryViewRoute()
+      : super(
+          ShiftHistoryViewRoute.name,
+          path: '/shift-history-view',
+        );
+
+  static const String name = 'ShiftHistoryViewRoute';
 }
 
 extension RouterStateExtension on _i3.RouterService {
@@ -3088,13 +3112,13 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> navigateToWaitingOrdersPlaced({
-    required int orderId,
+    required String orderId,
     _i5.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       WaitingOrdersPlacedRoute(
-        orderId: orderId,
+        orderId,
         key: key,
       ),
       onFailure: onFailure,
@@ -3795,13 +3819,13 @@ extension RouterStateExtension on _i3.RouterService {
   }
 
   Future<dynamic> replaceWithWaitingOrdersPlaced({
-    required int orderId,
+    required String orderId,
     _i5.Key? key,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       WaitingOrdersPlacedRoute(
-        orderId: orderId,
+        orderId,
         key: key,
       ),
       onFailure: onFailure,

@@ -70,6 +70,7 @@ import 'all_routes.dart';
     CustomRoute(page: WaitingOrdersPlaced),
     CustomRoute(page: CreditApp),
     CustomRoute(page: CreditApp),
+    CustomRoute(page: ShiftHistoryView),
     //
   ],
   dependencies: [

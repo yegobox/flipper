@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart' as foundation;
 
 class WaitingOrdersPlaced extends HookConsumerWidget {
   const WaitingOrdersPlaced(this.orderId, {super.key});
-  final int orderId;
+  final String orderId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

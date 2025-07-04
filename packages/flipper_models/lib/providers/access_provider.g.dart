@@ -6,7 +6,7 @@ part of 'access_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userAccessesHash() => r'bb185f317a17ad40cdcd2491b53e2995ac90545b';
+String _$isAdminHash() => r'416198676268569ff4c9c3747693349817595a8a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -28,6 +28,152 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [isAdmin].
+@ProviderFor(isAdmin)
+const isAdminProvider = IsAdminFamily();
+
+/// See also [isAdmin].
+class IsAdminFamily extends Family<AsyncValue<bool>> {
+  /// See also [isAdmin].
+  const IsAdminFamily();
+
+  /// See also [isAdmin].
+  IsAdminProvider call(
+    int userId, {
+    required String featureName,
+  }) {
+    return IsAdminProvider(
+      userId,
+      featureName: featureName,
+    );
+  }
+
+  @override
+  IsAdminProvider getProviderOverride(
+    covariant IsAdminProvider provider,
+  ) {
+    return call(
+      provider.userId,
+      featureName: provider.featureName,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'isAdminProvider';
+}
+
+/// See also [isAdmin].
+class IsAdminProvider extends AutoDisposeFutureProvider<bool> {
+  /// See also [isAdmin].
+  IsAdminProvider(
+    int userId, {
+    required String featureName,
+  }) : this._internal(
+          (ref) => isAdmin(
+            ref as IsAdminRef,
+            userId,
+            featureName: featureName,
+          ),
+          from: isAdminProvider,
+          name: r'isAdminProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$isAdminHash,
+          dependencies: IsAdminFamily._dependencies,
+          allTransitiveDependencies: IsAdminFamily._allTransitiveDependencies,
+          userId: userId,
+          featureName: featureName,
+        );
+
+  IsAdminProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.userId,
+    required this.featureName,
+  }) : super.internal();
+
+  final int userId;
+  final String featureName;
+
+  @override
+  Override overrideWith(
+    FutureOr<bool> Function(IsAdminRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: IsAdminProvider._internal(
+        (ref) => create(ref as IsAdminRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        userId: userId,
+        featureName: featureName,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<bool> createElement() {
+    return _IsAdminProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is IsAdminProvider &&
+        other.userId == userId &&
+        other.featureName == featureName;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, userId.hashCode);
+    hash = _SystemHash.combine(hash, featureName.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin IsAdminRef on AutoDisposeFutureProviderRef<bool> {
+  /// The parameter `userId` of this provider.
+  int get userId;
+
+  /// The parameter `featureName` of this provider.
+  String get featureName;
+}
+
+class _IsAdminProviderElement extends AutoDisposeFutureProviderElement<bool>
+    with IsAdminRef {
+  _IsAdminProviderElement(super.provider);
+
+  @override
+  int get userId => (origin as IsAdminProvider).userId;
+  @override
+  String get featureName => (origin as IsAdminProvider).featureName;
+}
+
+String _$userAccessesHash() => r'bb185f317a17ad40cdcd2491b53e2995ac90545b';
 
 /// See also [userAccesses].
 @ProviderFor(userAccesses)
