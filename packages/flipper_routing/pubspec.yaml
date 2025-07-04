@@ -19,6 +19,7 @@ dependencies:
   logger: ^2.5.0
   firebase_ui_auth: ^1.16.1
   flipper_actionable: 0.0.1
+  flipper_accounting: any
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0

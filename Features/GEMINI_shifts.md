@@ -112,12 +112,12 @@ final String? shiftId;
 *   **2.3. Active User Display:** (Not directly implemented by me, but part of the overall UI plan)
 *   **2.4. Switch User / Log Out Shift Functionality:** Implemented "Log Out Shift" in `EnhancedSideMenu` with dialog for closing balance and navigation to login.
 
-### Phase 3: Reporting and Management (Pending)
+### Phase 3: Reporting and Management (Partially Completed)
 
-*   **3.1. Shift History Screen:**
-    *   Develop a new screen to list all shifts (both open and closed). only visible if you are admin.
-    *   Allow filtering by date and user.
-    *   Each list item should show key details (User, Start/End Time, Cash Difference).
+*   **3.1. Shift History Screen (Implemented):**
+    *   Developed a new screen to list all shifts (both open and closed).
+    *   Visibility is restricted to admin users using `eligibleToSeeIfYouAre`.
+    *   Each list item shows key details (User, Start/End Time, Cash Difference).
 *   **3.2. Shift Details View:**
     *   Tapping on a shift from the history list will navigate to a details screen.
     *   This screen will show the full shift summary (as seen in the "Close Shift" flow).

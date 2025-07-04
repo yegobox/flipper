@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
+import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_services/constants.dart'; // Import for AppFeature
 
 class EnhancedSideMenu extends ConsumerWidget {
   const EnhancedSideMenu({super.key});
@@ -18,6 +20,10 @@ class EnhancedSideMenu extends ConsumerWidget {
     final selectedItem = ref.watch(selectedMenuItemProvider);
     final _dialogService = locator<DialogService>();
     final _routerService = locator<RouterService>();
+    final isAdminAsyncValue = ref.watch(isAdminProvider(
+      ProxyService.box.getUserId() ?? 0,
+      featureName: AppFeature.ShiftHistory,
+    ));
 
     return SideMenu(
       mode: SideMenuMode.compact,
@@ -109,6 +115,28 @@ class EnhancedSideMenu extends ConsumerWidget {
                 ref.read(selectedMenuItemProvider.notifier).state = 3;
               },
             ),
+            if (isAdminAsyncValue.value ==
+                true) // Conditionally add Shift History
+              SideMenuItemDataTile(
+                hasSelectedLine: true,
+                highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
+                selectedTitleStyle: const TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w600,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                title: 'Shift History',
+                isSelected: selectedItem == 5,
+                icon: Icon(
+                  Icons.history,
+                  color: selectedItem == 5 ? Colors.blue : Colors.grey.shade600,
+                  size: 20,
+                ),
+                onTap: () {
+                  ref.read(selectedMenuItemProvider.notifier).state = 5;
+                  _routerService.navigateTo(ShiftHistoryViewRoute());
+                },
+              ),
             SideMenuItemDataTile(
               hasSelectedLine: true,
               isSelected: selectedItem == 4,

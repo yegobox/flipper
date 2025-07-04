@@ -36,7 +36,8 @@ class StockInOutType {
   static const String stockMovementOut = "13"; // Outgoing-Stock Movement
   static const String processingOut = "14"; // Outgoing-Processing
   static const String discarding = "15"; // Outgoing-Discarding
-  static const String adjustmentOut = "16"; // Outgoing-Adjustment, this can be used when marking if item is damaged etc...
+  static const String adjustmentOut =
+      "16"; // Outgoing-Adjustment, this can be used when marking if item is damaged etc...
 }
 
 class SalesSttsCd {
@@ -71,6 +72,7 @@ final features = [
   AppFeature.Driver,
   AppFeature.Stock,
   AppFeature.Tickets,
+  AppFeature.ShiftHistory,
 ];
 
 class AppFeature {
@@ -78,6 +80,7 @@ class AppFeature {
   static const String Inventory = "Inventory";
   static const String Reports = "Reports";
   static const String Settings = "Settings";
+  static const String ShiftHistory = "ShiftHistory";
   static const String Tickets = "Tickets";
   static const String AddProduct = "Add Product";
   static const String Orders = "Orders";

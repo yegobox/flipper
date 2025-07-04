@@ -8,6 +8,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'access_provider.g.dart';
 
 @riverpod
+Future<bool> isAdmin(Ref ref, int userId, {required String featureName}) async {
+  return await ProxyService.strategy
+      .isAdmin(userId: userId, appFeature: featureName);
+}
+
+@riverpod
 Future<List<Access>> userAccesses(Ref ref, int userId,
     {required String featureName}) async {
   return await ProxyService.strategy
