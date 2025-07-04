@@ -1995,6 +1995,31 @@ class CoreSync extends AiStrategyImpl
   }) async {
     if (transaction != null) {
       try {
+        // Update shift details for cash transactions
+        if (paymentType ==
+            paymentTypes.firstWhere((element) => element == 'CASH')) {
+          final userId = ProxyService.box.getUserId();
+          if (userId != null) {
+            final currentShift = await getCurrentShift(userId: userId);
+            if (currentShift != null) {
+              num saleAmount = transaction.subTotal ?? 0.0;
+              if (!isIncome) {
+                saleAmount = -saleAmount;
+              }
+
+              final updatedCashSales =
+                  (currentShift.cashSales ?? 0) + saleAmount;
+              final updatedExpectedCash =
+                  currentShift.openingBalance + updatedCashSales;
+
+              final updatedShift = currentShift.copyWith(
+                cashSales: updatedCashSales,
+                expectedCash: updatedExpectedCash,
+              );
+              await repository.upsert<Shift>(updatedShift);
+            }
+          }
+        }
         // Fetch transaction items
 
         // Update numberOfItems before completing the sale
