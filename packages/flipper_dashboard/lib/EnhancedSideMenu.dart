@@ -143,9 +143,10 @@ class EnhancedSideMenu extends ConsumerWidget {
 
                     if (dialogResponse?.confirmed == true &&
                         dialogResponse?.data != null) {
-                      final closingBalance =
-                          double.tryParse(dialogResponse!.data.toString()) ??
-                              0.0;
+                      final closingBalance = (dialogResponse?.data
+                                  as Map<dynamic, dynamic>)['closingBalance']
+                              as double? ??
+                          0.0;
                       await ProxyService.strategy.endShift(
                           shiftId: currentShift.id,
                           closingBalance: closingBalance);
