@@ -75,7 +75,7 @@ mixin ShiftMixin implements ShiftApi {
       ]),
     );
     talker.debug('getCurrentShift: found ${shifts.length} shifts');
-    return shifts.firstOrNull;
+    return shifts.lastOrNull;
   }
 
   @override
