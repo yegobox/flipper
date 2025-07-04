@@ -37,7 +37,6 @@ import 'package:supabase_models/brick/repository/storage_adapter.dart';
 import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
-import 'package:get_it/get_it.dart';
 
 const bool kTestMode = true;
 
