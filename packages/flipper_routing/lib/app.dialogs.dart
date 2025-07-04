@@ -12,12 +12,14 @@ import 'package:flipper_socials/ui/dialogs/app_center/app_center.dart';
 import 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';
 
 import 'package:flipper_dashboard/start_shift_dialog.dart';
+import 'package:flipper_dashboard/close_shift_dialog.dart';
 
 enum DialogType {
   infoAlert,
   appCenter,
   logOut,
   startShift,
+  closeShift,
 }
 
 void setupDialogUi() {
@@ -32,6 +34,8 @@ void setupDialogUi() {
         LogOut(request: request, completer: completer),
     DialogType.startShift: (context, request, completer) =>
         StartShiftDialog(request: request, completer: completer),
+    DialogType.closeShift: (context, request, completer) =>
+        CloseShiftDialog(request: request, completer: completer),
   };
 
   dialogService.registerCustomDialogBuilders(builders);

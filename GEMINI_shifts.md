@@ -122,10 +122,11 @@ final String? shiftId;
         *   If no active shift is found, a "Start Shift" screen will be presented, prompting the user for the opening cash float.
         *   Upon successful shift start, the user will proceed to the main application dashboard (`FlipperAppRoute`).
     *   If an active shift exists, the user will proceed directly to the main application.
-    *   Create a "Close Shift" screen.
-    *   This screen will allow the user to end their shift.
-    *   It will prompt for the final cash count (closing balance).
-    *   It will display a summary:
+*   **2.2. Implement "Close Shift" Screen (Implemented):**
+    *   A "Close Shift" screen has been created.
+    *   This screen allows the user to end their shift.
+    *   It prompts for the final cash count (closing balance).
+    *   It displays a summary:
         *   Opening Float
         *   Cash Sales
         *   Expected Cash in Drawer
@@ -134,11 +135,12 @@ final String? shiftId;
     *   Upon confirmation, the shift is marked as `Closed`.
 *   **2.3. Active User Display:**
     *   The app's main navigation bar or a prominent UI element should always display the name of the currently logged-in user.
-*   **2.4. Switch User / Log Out Shift Functionality:**
-    *   A "Log Out Shift" button will be added to the `EnhancedSideMenu` (for larger screens) and to `MyDrawer` (for mobile view).
+*   **2.4. Switch User / Log Out Shift Functionality (Implemented):**
+    *   A "Log Out Shift" button has been added to the `EnhancedSideMenu` (for larger screens) and to `MyDrawer` (for mobile view).
     *   Tapping this button will:
-        *   Call `ProxyService.strategy.endShift` for the current user's active shift (with a placeholder `closingBalance` for now, to be refined with actual cash count UI).
-        *   Navigate the user back to the login screen (`Routes.login`), effectively ending their session on the device.
+        *   Prompt the user to enter the closing balance via a dialog.
+        *   Call `ProxyService.strategy.endShift` for the current user's active shift with the provided `closingBalance`.
+        *   Navigate the user back to the login screen (`LoginRoute`), effectively ending their session on the device.
 
 ### Phase 3: Reporting and Management
 
