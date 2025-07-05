@@ -286,6 +286,7 @@ class _SearchInputWithDropdownState
   Widget build(BuildContext context) {
     final transaction = ref.watch(pendingTransactionStreamProvider(
       isExpense: false,
+      
     ));
 
     final attachedCustomerFuture = ref.watch(
