@@ -229,8 +229,7 @@ class CoreSync extends AiStrategyImpl
   Future<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId}) async {
     try {
-      final transaction =
-          (await transactions(id: transactionId!, status: PENDING)).firstOrNull;
+      final transaction = (await transactions(id: transactionId!)).firstOrNull;
       if (transaction != null) {
         transaction.customerId = customerId;
         repository.upsert<ITransaction>(transaction);
