@@ -278,7 +278,9 @@ class TaxController<OBJ> {
             brandDescription: business.name!,
             brandFooter: business.name!,
             emails: ['info@yegobox.com'],
-            brandEmail: business.email,
+
+            /// TODO: remove defaulting to info@yegobox.com after approval
+            brandEmail: business.email ?? "info@yegobox.com",
             customerTin: transaction.customerTin,
             receiptType: receiptType,
             customerName: transaction.customerName!,

@@ -1436,7 +1436,7 @@ class Capella extends AiStrategyImpl
 
   @override
   FutureOr<List<brick.Customer>> customers(
-      {required int branchId, String? key, String? id}) {
+      {int? branchId, String? key, String? id}) {
     // TODO: implement customers
     throw UnimplementedError();
   }

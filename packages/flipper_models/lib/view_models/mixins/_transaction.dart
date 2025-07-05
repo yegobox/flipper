@@ -208,8 +208,7 @@ mixin TransactionMixinOld {
       final paymentType = ProxyService.box.paymentType() ?? "CASH";
       final transactionType = transaction.receiptType ?? TransactionType.sale;
       Customer? customer = (await ProxyService.strategy.customers(
-              id: transaction.customerId,
-              branchId: ProxyService.box.getBranchId()!))
+              id: transaction.customerId,))
           .firstOrNull;
       // First collect the payment
       ProxyService.strategy.collectPayment(

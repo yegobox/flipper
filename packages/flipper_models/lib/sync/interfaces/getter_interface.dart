@@ -29,7 +29,7 @@ abstract class GetterInterface {
     required String bhFId,
   });
   FutureOr<List<Customer>> customers({
-    required int branchId,
+    int? branchId,
     String? key,
     String? id,
   });
