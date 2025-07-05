@@ -68,8 +68,6 @@ class TransactionListState extends ConsumerState<TransactionList>
           forceRealData: !(ProxyService.box.enableDebug() ?? false)));
     }
 
-    
-
     // Conditionally cast the data based on the `showDetailed` flag
     List<ITransaction>? transactions;
     List<TransactionItem>? transactionItems;
@@ -271,11 +269,13 @@ class TransactionListState extends ConsumerState<TransactionList>
         final validStartDate =
             startDate ?? DateTime.now().subtract(const Duration(days: 7));
         final validEndDate = endDate ?? DateTime.now();
+        final showDetailed = ref.read(toggleBooleanValueProvider);
 
         return DataView(
-          key: ValueKey(showDetailed), // Force rebuild of DataView when showDetailed changes
-          transactions: data.isEmpty ? null : transactions,
-          transactionItems: data.isEmpty ? null : transactionItems,
+          key: ValueKey(
+              showDetailed), // Force rebuild of DataView when showDetailed changes
+          transactions: data.isEmpty ? [] : transactions,
+          transactionItems: data.isEmpty ? [] : transactionItems,
           startDate: validStartDate,
           endDate: validEndDate,
           rowsPerPage: ref.read(rowsPerPageProvider),
@@ -289,7 +289,6 @@ class TransactionListState extends ConsumerState<TransactionList>
       error: (error, stackTrace) => _buildErrorState(error),
     );
   }
-
 
   Widget _buildLoadingState() {
     return Center(
