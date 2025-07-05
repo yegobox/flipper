@@ -379,6 +379,10 @@ class _RefundState extends ConsumerState<Refund> {
         );
         talker.info(
             "Transaction ${widget.transaction!.id} marked as refunded after successful receipt handling.");
+        await ProxyService.strategy.updateShiftTotals(
+          transactionAmount: widget.refundAmount,
+          isRefund: true,
+        );
       }
 
       setState(() {

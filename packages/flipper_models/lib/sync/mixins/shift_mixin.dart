@@ -14,6 +14,8 @@ abstract class ShiftApi {
   Future<models.Shift?> getCurrentShift({required int userId});
   Stream<List<models.Shift>> getShifts(
       {required int businessId, DateTimeRange? dateRange});
+  Future<models.Shift> updateShiftTotals(
+      {required double transactionAmount, required bool isRefund});
 }
 
 mixin ShiftMixin implements ShiftApi {
@@ -59,6 +61,37 @@ mixin ShiftMixin implements ShiftApi {
       cashDifference: closingBalance - (shift.expectedCash ?? 0.0),
       note: note,
     );
+    return await repository.upsert(updatedShift);
+  }
+
+  @override
+  Future<models.Shift> updateShiftTotals(
+      {required double transactionAmount, required bool isRefund}) async {
+    final int userId = ProxyService.box.getUserId()!;
+    models.Shift? currentShift = await getCurrentShift(userId: userId);
+
+    if (currentShift == null) {
+      talker.warning('No open shift found for user $userId. Cannot update shift totals.');
+      throw Exception('No open shift found. Please start a shift first.');
+    }
+
+    num cashSales = currentShift.cashSales ?? 0.0;
+    num refunds = currentShift.refunds ?? 0.0;
+
+    if (isRefund) {
+      refunds += transactionAmount;
+    } else {
+      cashSales += transactionAmount;
+    }
+
+    final num expectedCash = currentShift.openingBalance + cashSales - refunds;
+
+    final updatedShift = currentShift.copyWith(
+      cashSales: cashSales,
+      refunds: refunds,
+      expectedCash: expectedCash,
+    );
+
     return await repository.upsert(updatedShift);
   }
 

@@ -30,7 +30,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 
 enum ShiftStatus { Open, Closed }
 
-@ConnectOfflineFirstWithSupabase(
+@ConnectOffline_first_with_supabase(
   supabaseConfig: SupabaseSerializable(tableName: 'shifts'),
 )
 class Shift extends OfflineFirstWithSupabaseModel {
@@ -56,9 +56,12 @@ class Shift extends OfflineFirstWithSupabaseModel {
   @Sqlite(columnType: Column.String)
   final ShiftStatus status;
 
-  // Expected cash from sales, minus refunds etc.
+  // Total cash from sales during the shift
   final num? cashSales;
-  
+
+  // Total cash given back as refunds
+  final num? refunds;
+
   // Total cash expected at the end of the shift
   final num? expectedCash;
 
@@ -76,6 +79,7 @@ class Shift extends OfflineFirstWithSupabaseModel {
     this.closingBalance,
     this.status = ShiftStatus.Open,
     this.cashSales,
+    this.refunds,
     this.expectedCash,
     this.cashDifference,
   });
@@ -124,6 +128,69 @@ final String? shiftId;
     *   It will also provide a list of all transactions recorded during that shift.
 *   **3.3. Update Existing Reports:**
     *   Modify existing financial and sales reports to allow filtering by shift.
+
+### Phase 4: Real-time Shift Financials
+
+This phase ensures that the active `Shift` model is updated in real-time as transactions occur, providing an accurate expected cash balance at all times.
+
+#### 4.1. Update `Shift` Model
+To provide more detailed tracking, we will add a `refunds` field to the `Shift` model.
+
+```dart
+// In Shift model
+// ...
+// Total cash from sales during the shift
+final num? cashSales;
+
+// Total cash given back as refunds
+final num? refunds;
+
+// Total cash expected at the end of the shift
+final num? expectedCash;
+// ...
+
+Shift({
+  //...
+  this.cashSales,
+  this.refunds,
+  this.expectedCash,
+  //...
+});
+```
+
+#### 4.2. Implement `ShiftApi.updateShiftTotals`
+A new method will be added to the `ShiftApi` and implemented in the `ShiftMixin`. This method will adjust the financial totals of the currently active shift.
+
+*   **`updateShiftTotals({required double transactionAmount, required bool isRefund})`**
+    *   It will fetch the current open `Shift` for the logged-in user.
+    *   If `isRefund` is `true`, it will add the `transactionAmount` to the `refunds` total.
+    *   If `isRefund` is `false`, it will add the `transactionAmount` to the `cashSales` total.
+    *   It will then recalculate `expectedCash` using the formula: `openingBalance + cashSales - refunds`.
+    *   Finally, it will save the updated `Shift` object.
+
+#### 4.3. Integrate with Refund Process
+The `proceed` method in `Refund.dart` will be updated. After a refund transaction is successfully created and the original transaction is marked as refunded, it **must** call the new `updateShiftTotals` method.
+
+*   **Example call in `Refund.dart`:**
+    ```dart
+    // After successful refund...
+    await ProxyService.shift.updateShiftTotals(
+      transactionAmount: refundAmount,
+      isRefund: true
+    );
+    ```
+
+#### 4.4. Integrate with Sales Process
+The standard transaction completion flow must be updated to call `updateShiftTotals` after a sale is successfully processed to ensure `cashSales` are recorded against the shift.
+
+*   **Example call in the sales completion logic:**
+    ```dart
+    // After successful sale...
+    await ProxyService.shift.updateShiftTotals(
+      transactionAmount: saleAmount,
+      isRefund: false
+    );
+    ```
 
 ### Phase 5: Testing and Verification (Pending)
 
