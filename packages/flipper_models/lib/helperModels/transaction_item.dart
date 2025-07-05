@@ -87,6 +87,7 @@ class TransactionItem extends IJsonSerializable {
   String? regrNm;
   String? modrId;
   String? modrNm;
+  double? supplyPriceAtSale;
 
   @JsonKey(
       includeIfNull: true, fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
@@ -160,6 +161,7 @@ class TransactionItem extends IJsonSerializable {
     this.modrNm,
     this.lastTouched,
     this.deletedAt,
+    this.supplyPriceAtSale,
   });
 
   factory TransactionItem.fromJson(Map<String, dynamic> json) {

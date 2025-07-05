@@ -151,6 +151,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Sqlite(defaultValue: 'false')
   bool ignoreForReport;
 
+  num? supplyPriceAtSale;
+
   /// Creates a new TransactionItem with required fields for proper functionality
   ///
   /// Required fields:
@@ -254,6 +256,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.spplrItemClsCd,
     this.spplrItemCd,
     bool? ignoreForReport,
+    this.supplyPriceAtSale,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         ignoreForReport = false,
@@ -354,6 +357,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     num? compositePrice,
     InventoryRequest? inventoryRequest,
     String? taxTyCd,
+    num? supplyPriceAtSale,
   }) {
     return TransactionItem(
       id: id ?? this.id,
@@ -444,6 +448,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       compositePrice: compositePrice ?? this.compositePrice,
       inventoryRequest: inventoryRequest ?? this.inventoryRequest,
       taxTyCd: taxTyCd ?? this.taxTyCd,
+      supplyPriceAtSale: supplyPriceAtSale ?? this.supplyPriceAtSale,
     );
   }
 
@@ -537,6 +542,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       'compositePrice': compositePrice,
       'inventoryRequest': inventoryRequest,
       'taxTyCd': taxTyCd,
+      'supplyPriceAtSale': supplyPriceAtSale,
     };
   }
 }

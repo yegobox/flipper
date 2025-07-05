@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250704173921_up = [
+const List<MigrationCommand> _migration_20250705061847_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -371,6 +371,7 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
   InsertColumn('inventory_request_id', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('ignore_for_report', Column.boolean, onTable: 'TransactionItem'),
+  InsertColumn('supply_price_at_sale', Column.num, onTable: 'TransactionItem'),
   InsertColumn('id', Column.varchar, onTable: 'LPermission', unique: true),
   InsertColumn('name', Column.varchar, onTable: 'LPermission'),
   InsertColumn('user_id', Column.integer, onTable: 'LPermission'),
@@ -889,7 +890,7 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250704173921_down = [
+const List<MigrationCommand> _migration_20250705061847_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1251,6 +1252,7 @@ const List<MigrationCommand> _migration_20250704173921_down = [
   DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
   DropColumn('inventory_request_id', onTable: 'TransactionItem'),
   DropColumn('ignore_for_report', onTable: 'TransactionItem'),
+  DropColumn('supply_price_at_sale', onTable: 'TransactionItem'),
   DropColumn('id', onTable: 'LPermission'),
   DropColumn('name', onTable: 'LPermission'),
   DropColumn('user_id', onTable: 'LPermission'),
@@ -1774,15 +1776,15 @@ const List<MigrationCommand> _migration_20250704173921_down = [
 //
 
 @Migratable(
-  version: '20250704173921',
-  up: _migration_20250704173921_up,
-  down: _migration_20250704173921_down,
+  version: '20250705061847',
+  up: _migration_20250705061847_up,
+  down: _migration_20250705061847_down,
 )
-class Migration20250704173921 extends Migration {
-  const Migration20250704173921()
+class Migration20250705061847 extends Migration {
+  const Migration20250705061847()
     : super(
-        version: 20250704173921,
-        up: _migration_20250704173921_up,
-        down: _migration_20250704173921_down,
+        version: 20250705061847,
+        up: _migration_20250705061847_up,
+        down: _migration_20250705061847_down,
       );
 }
