@@ -331,8 +331,8 @@ class DataViewState extends ConsumerState<DataView>
               const SizedBox(height: 10),
               Expanded(
                 child: (widget.forceEmpty || _isTransitioning)
-                  ? _buildTransitioningGrid(constraints)
-                  : _buildDataGrid(constraints),
+                    ? _buildTransitioningGrid(constraints)
+                    : _buildDataGrid(constraints),
               ),
               _buildDataPager(constraints),
               _buildStickyFooter(),
@@ -793,9 +793,8 @@ class DataViewState extends ConsumerState<DataView>
 
           // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
           rowData['TaxPayable'] = item.taxAmt ?? 0.0;
-          rowData['GrossProfit'] = (item.price * item.qty) -
-              (item.splyAmt ??
-                  (item.price * item.qty * 0.7)); // Estimate gross profit
+          rowData['GrossProfit'] =
+              (item.price * item.qty) - (item.supplyPriceAtSale ?? 0.0);
 
           preparedData.add(rowData);
         }
