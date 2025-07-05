@@ -61,8 +61,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return grandTotal - discountAmount;
   }
 
-  bool _transactionCompleting = false;
-
   @override
   void initState() {
     super.initState();
@@ -277,7 +275,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -408,11 +406,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: Offset(0, 2),
           ),
@@ -467,7 +465,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                   .textTheme
                                   .bodySmall
                                   ?.color
-                                  ?.withOpacity(0.7),
+                                  ?.withValues(alpha: 0.7),
                             ),
                       ),
                       Text(
@@ -484,7 +482,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 // Quantity controls
                 Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -534,7 +533,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 color: Theme.of(context)
                     .colorScheme
                     .primaryContainer
-                    .withOpacity(0.5),
+                    .withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -569,7 +568,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -590,7 +589,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -613,7 +612,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -645,7 +644,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           style: BorderStyle.solid,
         ),
       ),
@@ -668,7 +667,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             subtitle,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline.withOpacity(0.7),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.7),
                 ),
           ),
         ],
@@ -705,7 +707,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     color: Theme.of(context)
                         .colorScheme
                         .onErrorContainer
-                        .withOpacity(0.8),
+                        .withValues(alpha: 0.8),
                   ),
             ),
           ],
@@ -733,7 +735,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     color: Theme.of(context).colorScheme.surface,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withValues(alpha: 0.08),
                         blurRadius: 12,
                         offset: Offset(0, -4),
                       ),

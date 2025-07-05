@@ -673,10 +673,10 @@ class DataViewState extends ConsumerState<DataView>
     if (widget.transactionItems == null) return 0;
     double grossProfit = 0.0;
     for (final item in widget.transactionItems!) {
-      // Fetch the associated variant to get the supply price
-      final variant =
-          await ProxyService.strategy.getVariant(id: item.variantId.toString());
-      final supplyPrice = variant?.supplyPrice ?? 0.0;
+      // Use the supplyPriceAtSale stored on the TransactionItem for accurate historical gross profit.
+      // This ensures that gross profit is calculated based on the supply price at the time of sale,
+      // not the current supply price of the variant.
+      final supplyPrice = item.supplyPriceAtSale ?? 0.0;
       grossProfit += (item.price - supplyPrice) * item.qty;
     }
     return grossProfit;

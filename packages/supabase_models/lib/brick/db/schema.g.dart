@@ -1,11 +1,11 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250704173921.migration.dart';
+part '20250705061847.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250704173921(),};
+  const Migration20250705061847(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -693,6 +693,7 @@ final schema = Schema(
         ),
         SchemaColumn('inventory_request_id', Column.varchar),
         SchemaColumn('ignore_for_report', Column.boolean),
+        SchemaColumn('supply_price_at_sale', Column.num),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
