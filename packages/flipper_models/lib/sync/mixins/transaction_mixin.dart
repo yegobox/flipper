@@ -163,7 +163,6 @@ mixin TransactionMixin implements TransactionInterface {
     // Step 1: Fetch transactions using the same logic as the transactions() method
     final transactionss = await transactions(
       startDate: startDate,
-      forceRealData: false,
       endDate: endDate,
       status: status,
       transactionType: transactionType,
