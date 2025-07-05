@@ -2353,4 +2353,11 @@ class Capella extends AiStrategyImpl
     // TODO: implement saveStock
     throw UnimplementedError();
   }
+
+  @override
+  Future<brick.Shift> updateShiftTotals(
+      {required double transactionAmount, required bool isRefund}) {
+    // TODO: implement updateShiftTotals
+    throw UnimplementedError();
+  }
 }

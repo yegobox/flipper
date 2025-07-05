@@ -1,11 +1,11 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250705061847.migration.dart';
+part '20250705112257.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250705061847(),};
+  const Migration20250705112257(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -1707,6 +1707,7 @@ final schema = Schema(
         SchemaColumn('expected_cash', Column.num),
         SchemaColumn('cash_difference', Column.num),
         SchemaColumn('note', Column.varchar),
+        SchemaColumn('refunds', Column.num),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['business_id'], unique: false),
