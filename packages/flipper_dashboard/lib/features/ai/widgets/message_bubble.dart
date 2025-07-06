@@ -184,7 +184,8 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   // Helper function to determine whether to show DataVisualization or Text
   bool _shouldShowDataVisualization(String messageText) {
-    return messageText.contains('**[SUMMARY]**') ||
+    return messageText.contains('{{VISUALIZATION_DATA}}') ||
+        messageText.contains('**[SUMMARY]**') ||
         messageText.contains('Tax Summary') ||
         messageText.contains('Tax Payable') ||
         (messageText.contains('Tax Breakdown') &&

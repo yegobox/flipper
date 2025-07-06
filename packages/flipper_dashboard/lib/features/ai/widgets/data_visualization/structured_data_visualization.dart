@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
 
@@ -479,7 +480,9 @@ class StructuredDataVisualization implements VisualizationInterface {
               child: BarChart(
                 BarChartData(
                   alignment: BarChartAlignment.spaceAround,
-                  maxY: revenueDisplay * 1.2,
+                  maxY: [revenueDisplay, profitDisplay, unitsDisplay]
+                          .reduce(max) *
+                      1.2,
                   barGroups: [
                     _createBarGroup(0, revenueDisplay),
                     _createBarGroup(1, profitDisplay),
