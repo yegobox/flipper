@@ -262,9 +262,9 @@ class AppChoiceDialog extends StatelessWidget {
   double _getResponsiveDialogWidth(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     if (screenWidth >= 900) {
-      // Desktop/tablet: use up to 50% of width, max 700, min 400
-      final dialogWidth = screenWidth * 0.5;
-      if (dialogWidth > 700) return 700;
+      // Desktop/tablet: use up to 80% of width, max 1600, min 400
+      final dialogWidth = screenWidth * 0.8;
+      if (dialogWidth > 1600) return 1600;
       if (dialogWidth < 400) return 400;
       return dialogWidth;
     } else {
