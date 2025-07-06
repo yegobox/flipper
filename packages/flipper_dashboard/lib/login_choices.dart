@@ -279,7 +279,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       }
 
       // Choose default app if not set
-      String? defaultApp = ProxyService.box.readString(key: 'defaultApp');
+      String? defaultApp = ProxyService.box.getDefaultApp();
       if (defaultApp == null) {
         final dialogService = locator<DialogService>();
         final response = await dialogService.showCustomDialog(

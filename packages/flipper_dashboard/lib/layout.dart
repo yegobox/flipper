@@ -33,6 +33,25 @@ class DashboardLayout extends HookConsumerWidget {
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         ref.read(previewingCart.notifier).state = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final defaultApp = ProxyService.box.getDefaultApp();
+          if (defaultApp != null) {
+            DashboardPage page;
+            switch (defaultApp) {
+              case 'POS':
+              case 'Inventory':
+                page = DashboardPage.inventory;
+                break;
+              case 'Reports':
+                page = DashboardPage.reports;
+                break;
+              default:
+                page = DashboardPage.inventory;
+                break;
+            }
+            ref.read(selectedPageProvider.notifier).state = page;
+          }
+        });
       },
       builder: (context, model, child) {
         final selectedPageWidget = _buildSelectedApp(ref, searchController);

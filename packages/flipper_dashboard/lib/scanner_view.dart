@@ -701,7 +701,7 @@ class ScannViewState extends ConsumerState<ScannView>
       int businessId = ProxyService.box.getBusinessId()!;
       int branchId = ProxyService.box.getBranchId()!;
       String phone = ProxyService.box.getUserPhone()!;
-      String defaultApp = ProxyService.box.getDefaultApp();
+      String defaultApp = ProxyService.box.getDefaultApp() ?? "POS";
       String linkingCode = randomNumber().toString();
 
       // Create a unique response channel for this login attempt
