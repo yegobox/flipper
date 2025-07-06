@@ -19,7 +19,7 @@ class AppChoiceDialog extends StatelessWidget {
       ),
       elevation: 24,
       child: Container(
-        width: 400,
+        width: _getResponsiveDialogWidth(context),
         padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -83,7 +83,12 @@ class AppChoiceDialog extends StatelessWidget {
             // Content Section
             Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
+              child: GridView.count(
+                shrinkWrap: true,
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 2.5,
                 children: [
                   _buildAppOption(
                     context: context,
@@ -96,7 +101,6 @@ class AppChoiceDialog extends StatelessWidget {
                       data: {'defaultApp': 'POS'},
                     )),
                   ),
-                  const SizedBox(height: 12),
                   _buildAppOption(
                     context: context,
                     title: 'Inventory',
@@ -108,7 +112,6 @@ class AppChoiceDialog extends StatelessWidget {
                       data: {'defaultApp': 'Inventory'},
                     )),
                   ),
-                  const SizedBox(height: 12),
                   _buildAppOption(
                     context: context,
                     title: 'Reports',
@@ -120,7 +123,6 @@ class AppChoiceDialog extends StatelessWidget {
                       data: {'defaultApp': 'Reports'},
                     )),
                   ),
-                  const SizedBox(height: 12),
                   _buildAppOption(
                     context: context,
                     title: 'Settings',
@@ -212,7 +214,7 @@ class AppChoiceDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -255,5 +257,19 @@ class AppChoiceDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _getResponsiveDialogWidth(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    if (screenWidth >= 900) {
+      // Desktop/tablet: use up to 50% of width, max 700, min 400
+      final dialogWidth = screenWidth * 0.5;
+      if (dialogWidth > 700) return 700;
+      if (dialogWidth < 400) return 400;
+      return dialogWidth;
+    } else {
+      // Mobile: use 90% of width
+      return screenWidth * 0.9;
+    }
   }
 }
