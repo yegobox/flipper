@@ -1,16 +1,59 @@
 import 'dart:convert';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
+import 'package:pasteboard/pasteboard.dart';
 
 /// Visualization for structured data returned by AI
 class StructuredDataVisualization implements VisualizationInterface {
   final String data;
   final dynamic currencyService;
+  final GlobalKey _cardKey = GlobalKey();
 
   StructuredDataVisualization(this.data, this.currencyService);
+
+  Future<void> _captureAndCopyWidget(BuildContext context) async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        RenderRepaintBoundary? boundary = _cardKey.currentContext
+            ?.findRenderObject() as RenderRepaintBoundary?;
+        if (boundary == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Error: Could not find render object.')),
+          );
+          return;
+        }
+
+        ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+        ByteData? byteData =
+            await image.toByteData(format: ui.ImageByteFormat.png);
+        if (byteData == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Error: Could not convert image to bytes.')),
+          );
+          return;
+        }
+
+        await Pasteboard.writeImage(byteData.buffer.asUint8List());
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Graph copied to clipboard!')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to copy graph: $e')),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context, {String? currency}) {
@@ -187,140 +230,152 @@ class StructuredDataVisualization implements VisualizationInterface {
       }
     }
 
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return RepaintBoundary(
+        key: _cardKey,
+        child: Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  displayTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Total: $currencyCode ${totalTax.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (usePieChart) ...[
-              // Pie chart for fewer items
-              SizedBox(
-                height: 200,
-                child: PieChart(
-                  PieChartData(
-                    sections: pieChartSections,
-                    centerSpaceRadius: 40,
-                    sectionsSpace: 2,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Legend for pie chart
-              Wrap(
-                spacing: 16.0,
-                runSpacing: 8.0,
-                children: [
-                  for (int i = 0; i < pieChartItems.length; i++)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      displayTitle,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          color: colors[i % colors.length],
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          '${pieChartItems[i].key}: $currencyCode ${pieChartItems[i].value.toStringAsFixed(2)}',
-                          style: const TextStyle(fontSize: 12),
+                          'Total: $currencyCode ${totalTax.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy,
+                              size: 20, color: Colors.grey),
+                          onPressed: () => _captureAndCopyWidget(context),
+                          tooltip: 'Copy graph as PNG',
                         ),
                       ],
                     ),
-                ],
-              ),
-            ] else ...[
-              // Bar chart for many items
-              SizedBox(
-                height: sortedItems.length *
-                    30.0, // Dynamic height based on number of items
-                child: ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: sortedItems.length,
-                  itemBuilder: (context, index) {
-                    final item = sortedItems[index];
-                    final percentage = (item.value / totalTax) * 100;
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(
-                                  item.key,
-                                  style: const TextStyle(fontSize: 12),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Text(
-                                  '$currencyCode ${item.value.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 12),
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Stack(
-                            children: [
-                              Container(
-                                height: 8,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                              ),
-                              FractionallySizedBox(
-                                widthFactor: percentage / 100,
-                                child: Container(
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: colors[index % colors.length],
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
+                  ],
                 ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
+                const SizedBox(height: 20),
+                if (usePieChart) ...[
+                  // Pie chart for fewer items
+                  SizedBox(
+                    height: 200,
+                    child: PieChart(
+                      PieChartData(
+                        sections: pieChartSections,
+                        centerSpaceRadius: 40,
+                        sectionsSpace: 2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Legend for pie chart
+                  Wrap(
+                    spacing: 16.0,
+                    runSpacing: 8.0,
+                    children: [
+                      for (int i = 0; i < pieChartItems.length; i++)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              color: colors[i % colors.length],
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${pieChartItems[i].key}: $currencyCode ${pieChartItems[i].value.toStringAsFixed(2)}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ] else ...[
+                  // Bar chart for many items
+                  SizedBox(
+                    height: sortedItems.length *
+                        30.0, // Dynamic height based on number of items
+                    child: ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: sortedItems.length,
+                      itemBuilder: (context, index) {
+                        final item = sortedItems[index];
+                        final percentage = (item.value / totalTax) * 100;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      item.key,
+                                      style: const TextStyle(fontSize: 12),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      '$currencyCode ${item.value.toStringAsFixed(2)}',
+                                      style: const TextStyle(fontSize: 12),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Stack(
+                                children: [
+                                  Container(
+                                    height: 8,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  FractionallySizedBox(
+                                    widthFactor: percentage / 100,
+                                    child: Container(
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: colors[index % colors.length],
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ));
   }
 
   /// Build business analytics visualization from structured data
@@ -418,132 +473,145 @@ class StructuredDataVisualization implements VisualizationInterface {
 
     final title = 'Business Analytics for $date';
 
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Summary cards in a row
-            Row(
+    return RepaintBoundary(
+        key: _cardKey,
+        child: Card(
+          elevation: 4,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Revenue',
-                    formattedRevenue,
-                    Colors.blue.shade100,
-                    Colors.blue,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon:
+                          const Icon(Icons.copy, size: 20, color: Colors.grey),
+                      onPressed: () => _captureAndCopyWidget(context),
+                      tooltip: 'Copy graph as PNG',
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Profit',
-                    formattedProfit,
-                    Colors.green.shade100,
-                    Colors.green,
-                  ),
+                const SizedBox(height: 8),
+                // Summary cards in a row
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Revenue',
+                        formattedRevenue,
+                        Colors.blue.shade100,
+                        Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Profit',
+                        formattedProfit,
+                        Colors.green.shade100,
+                        Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        'Units Sold',
+                        formattedUnitsSold,
+                        Colors.orange.shade100,
+                        Colors.orange,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Units Sold',
-                    formattedUnitsSold,
-                    Colors.orange.shade100,
-                    Colors.orange,
+                const SizedBox(height: 16),
+                if (needsScaling)
+                  Text(
+                    'Chart values$scaleSuffix',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 200,
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: [revenueDisplay, profitDisplay, unitsDisplay]
+                              .reduce(max) *
+                          1.2,
+                      barGroups: [
+                        _createBarGroup(0, revenueDisplay),
+                        _createBarGroup(1, profitDisplay),
+                        _createBarGroup(2, unitsDisplay),
+                      ],
+                      titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              final titles = ['Revenue', 'Profit', 'Units'];
+                              return Text(
+                                titles[value.toInt()],
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              return Text(
+                                value.toInt().toString(),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 10,
+                                ),
+                              );
+                            },
+                            reservedSize: 40,
+                          ),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      gridData: FlGridData(
+                        show: true,
+                        drawHorizontalLine: true,
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: Colors.grey[300],
+                          strokeWidth: 1,
+                        ),
+                        drawVerticalLine: false,
+                      ),
+                      borderData: FlBorderData(show: false),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (needsScaling)
-              Text(
-                'Chart values$scaleSuffix',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 200,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: [revenueDisplay, profitDisplay, unitsDisplay]
-                          .reduce(max) *
-                      1.2,
-                  barGroups: [
-                    _createBarGroup(0, revenueDisplay),
-                    _createBarGroup(1, profitDisplay),
-                    _createBarGroup(2, unitsDisplay),
-                  ],
-                  titlesData: FlTitlesData(
-                    show: true,
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final titles = ['Revenue', 'Profit', 'Units'];
-                          return Text(
-                            titles[value.toInt()],
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 10,
-                            ),
-                          );
-                        },
-                        reservedSize: 40,
-                      ),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                  ),
-                  gridData: FlGridData(
-                    show: true,
-                    drawHorizontalLine: true,
-                    getDrawingHorizontalLine: (value) => FlLine(
-                      color: Colors.grey[300],
-                      strokeWidth: 1,
-                    ),
-                    drawVerticalLine: false,
-                  ),
-                  borderData: FlBorderData(show: false),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 
   /// Helper method to build summary cards

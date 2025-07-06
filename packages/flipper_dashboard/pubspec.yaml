@@ -118,6 +118,7 @@ dependencies:
   flutter_typeahead: ^5.2.0
   desktop_drop: ^0.5.0
   email_validator: ^2.1.17
+  pasteboard: ^0.4.0
   
   
 
