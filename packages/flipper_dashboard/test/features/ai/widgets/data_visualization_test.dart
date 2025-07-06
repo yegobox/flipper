@@ -254,7 +254,7 @@ Some details...
             theme: ThemeData(primaryColor: Colors.blue),
             home: Scaffold(
               body: DataVisualization(
-                data: testData,
+                data: taxData,
                 cardKey: GlobalKey(),
                 onCopyGraph: _doNothing,
               ),
