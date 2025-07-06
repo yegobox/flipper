@@ -94,10 +94,9 @@ Some random text without proper summary format
         UncontrolledProviderScope(
           container: container,
           child: MaterialApp(
-            theme: ThemeData(primaryColor: Colors.blue),
             home: Scaffold(
               body: DataVisualization(
-                data: testData,
+                data: invalidData,
                 cardKey: GlobalKey(),
                 onCopyGraph: _doNothing,
               ),
@@ -105,7 +104,6 @@ Some random text without proper summary format
           ),
         ),
       );
-      await tester.pump();
 
       // Verify no chart components are rendered
       expect(find.byType(BarChart), findsNothing);
