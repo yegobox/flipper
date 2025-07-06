@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:ui' as ui;
+import 'package:pasteboard/pasteboard.dart';
 
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
@@ -25,10 +28,40 @@ class MessageBubble extends StatefulWidget {
 class _MessageBubbleState extends State<MessageBubble> {
   bool _isHovering = false;
   bool _showCopied = false;
+  final GlobalKey _visualizationKey = GlobalKey();
 
-  void _copyToClipboard() async {
-    final text = widget.message.text;
-    await Clipboard.setData(ClipboardData(text: text));
+  Future<void> _copyToClipboard() async {
+    if (_shouldShowDataVisualization(widget.message.text)) {
+      // If it's a visualization, capture and copy the image
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          RenderRepaintBoundary? boundary = _visualizationKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+          if (boundary == null) {
+            _showSnackBar('Error: Could not find render object.');
+            return;
+          }
+
+          ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+          ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+          if (byteData == null) {
+            _showSnackBar('Error: Could not convert image to bytes.');
+            return;
+          }
+
+          await Pasteboard.writeImage(byteData.buffer.asUint8List());
+
+          _showSnackBar('Graph copied to clipboard!');
+        } catch (e) {
+          _showSnackBar('Failed to copy graph: $e');
+        }
+      });
+    } else {
+      // If it's plain text, copy the text
+      final text = widget.message.text;
+      await Clipboard.setData(ClipboardData(text: text));
+      _showSnackBar('Text copied to clipboard!');
+    }
+
     setState(() {
       _showCopied = true;
     });
@@ -39,6 +72,13 @@ class _MessageBubbleState extends State<MessageBubble> {
         });
       }
     });
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   @override
@@ -101,6 +141,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                               DataVisualization(
                                 data: widget.message.text,
                                 currency: ProxyService.box.defaultCurrency(),
+                                cardKey: _visualizationKey,
+                                onCopyGraph: _copyToClipboard,
                               )
                             else
                               Text(

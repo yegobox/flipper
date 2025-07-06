@@ -1,59 +1,22 @@
 import 'dart:convert';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
 import 'package:flutter/rendering.dart';
-import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
-import 'package:pasteboard/pasteboard.dart';
 
 /// Visualization for structured data returned by AI
 class StructuredDataVisualization implements VisualizationInterface {
   final String data;
   final dynamic currencyService;
-  final GlobalKey _cardKey = GlobalKey();
+  final GlobalKey cardKey;
+  final VoidCallback onCopyGraph;
 
-  StructuredDataVisualization(this.data, this.currencyService);
+  StructuredDataVisualization(this.data, this.currencyService, {required this.cardKey, required this.onCopyGraph});
 
-  Future<void> _captureAndCopyWidget(BuildContext context) async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      try {
-        RenderRepaintBoundary? boundary = _cardKey.currentContext
-            ?.findRenderObject() as RenderRepaintBoundary?;
-        if (boundary == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Error: Could not find render object.')),
-          );
-          return;
-        }
-
-        ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-        ByteData? byteData =
-            await image.toByteData(format: ui.ImageByteFormat.png);
-        if (byteData == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Error: Could not convert image to bytes.')),
-          );
-          return;
-        }
-
-        await Pasteboard.writeImage(byteData.buffer.asUint8List());
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Graph copied to clipboard!')),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to copy graph: $e')),
-        );
-      }
-    });
-  }
+  
 
   @override
   Widget build(BuildContext context, {String? currency}) {
@@ -231,45 +194,45 @@ class StructuredDataVisualization implements VisualizationInterface {
     }
 
     return RepaintBoundary(
-        key: _cardKey,
-        child: Card(
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      displayTitle,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      key: cardKey,
+      child: Card(
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    displayTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Total: $currencyCode ${totalTax.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
                       ),
+                      IconButton(
+                      icon:
+                          const Icon(Icons.copy, size: 20, color: Colors.grey),
+                      onPressed: onCopyGraph,
+                      tooltip: 'Copy graph as PNG',
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          'Total: $currencyCode ${totalTax.toStringAsFixed(2)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.copy,
-                              size: 20, color: Colors.grey),
-                          onPressed: () => _captureAndCopyWidget(context),
-                          tooltip: 'Copy graph as PNG',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
                 if (usePieChart) ...[
                   // Pie chart for fewer items
                   SizedBox(
@@ -474,7 +437,7 @@ class StructuredDataVisualization implements VisualizationInterface {
     final title = 'Business Analytics for $date';
 
     return RepaintBoundary(
-        key: _cardKey,
+        key: cardKey,
         child: Card(
           elevation: 4,
           child: Padding(
@@ -495,7 +458,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                     IconButton(
                       icon:
                           const Icon(Icons.copy, size: 20, color: Colors.grey),
-                      onPressed: () => _captureAndCopyWidget(context),
+                      onPressed: onCopyGraph,
                       tooltip: 'Copy graph as PNG',
                     ),
                   ],
