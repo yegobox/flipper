@@ -232,14 +232,27 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           key: _scaffoldKey,
           backgroundColor: AiTheme.backgroundColor,
           appBar: AppBar(
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: () => Navigator.of(context).pop(),
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: IconButton(
+                icon:
+                    const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Go back',
+              ),
             ),
-            title: const Text('AI Assistant'),
-            elevation: 0,
+            title: const Text(
+              'AI Assistant',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            centerTitle: false,
+            elevation: 2,
             backgroundColor: AiTheme.surfaceColor,
             foregroundColor: Colors.black,
+            shadowColor: Colors.black.withOpacity(0.1),
           ),
           drawer: isMobile ? _buildDrawer() : null,
           body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
