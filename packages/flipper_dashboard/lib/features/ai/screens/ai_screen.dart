@@ -225,18 +225,27 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Check if we're on a mobile device
-    final isMobile = MediaQuery.of(context).size.width < 600;
-
-    return SafeArea(
-      child: Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: AiTheme.backgroundColor,
-        // Add drawer for mobile view
-        drawer: isMobile ? _buildDrawer() : null,
-        body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
-      ),
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      final isMobile = constraints.maxWidth < 600;
+      return SafeArea(
+        child: Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: AiTheme.backgroundColor,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: const Text('AI Assistant'),
+            elevation: 0,
+            backgroundColor: AiTheme.surfaceColor,
+            foregroundColor: Colors.black,
+          ),
+          drawer: isMobile ? _buildDrawer() : null,
+          body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+        ),
+      );
+    });
   }
 
   // Drawer for mobile view
@@ -291,7 +300,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   Widget _buildMobileLayout() {
     return Column(
       children: [
-        _buildHeader(isMobile: true),
         Expanded(
           child: _messages.isEmpty && !_isLoading
               ? Center(
@@ -377,7 +385,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         Expanded(
           child: Column(
             children: [
-              _buildHeader(isMobile: false),
               Expanded(
                 child: _messages.isEmpty && !_isLoading
                     ? Center(
@@ -421,46 +428,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  /// Builds the header of the conversation list.
-  Widget _buildHeader({required bool isMobile}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AiTheme.surfaceColor,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Hamburger Icon - only show on mobile
-          if (isMobile)
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                // Open the drawer using the scaffold key
-                _scaffoldKey.currentState?.openDrawer();
-              },
-            ),
-          if (isMobile) const SizedBox(width: 8),
-          Text(
-            'AI Assistant',
-            style: TextStyle(
-              fontSize: isMobile ? 18 : 22,
-              fontWeight: FontWeight.w600, // Semi-bold
-            ),
-          ),
-          const Spacer(),
-          if (_messages.isNotEmpty)
-            Text(
-              _formatTimestamp(_messages.last.timestamp),
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
-        ],
-      ),
     );
   }
 
