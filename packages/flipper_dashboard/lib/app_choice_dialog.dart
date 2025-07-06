@@ -19,7 +19,7 @@ class AppChoiceDialog extends StatelessWidget {
       ),
       elevation: 24,
       child: Container(
-        width: _getResponsiveDialogWidth(context),
+        width: 600,
         padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -43,7 +43,7 @@ class AppChoiceDialog extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -69,7 +69,7 @@ class AppChoiceDialog extends StatelessWidget {
                         Text(
                           'Select your preferred application to launch',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: Colors.white.withOpacity(0.9),
                             fontSize: 14,
                           ),
                         ),
@@ -81,76 +81,71 @@ class AppChoiceDialog extends StatelessWidget {
             ),
 
             // Content Section
-            Flexible(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 2.5,
-                    children: [
-                      _buildAppOption(
-                        context: context,
-                        title: 'POS (Point of Sale)',
-                        subtitle: 'Process transactions and manage sales',
-                        icon: Icons.point_of_sale,
-                        color: const Color(0xFF0078D4),
-                        onTap: () => completer(DialogResponse(
-                          confirmed: true,
-                          data: {'defaultApp': 'POS'},
-                        )),
-                      ),
-                      _buildAppOption(
-                        context: context,
-                        title: 'Inventory',
-                        subtitle: 'Track stock levels and manage products',
-                        icon: Icons.inventory_2,
-                        color: const Color(0xFF107C10),
-                        onTap: () => completer(DialogResponse(
-                          confirmed: true,
-                          data: {'defaultApp': 'Inventory'},
-                        )),
-                      ),
-                      _buildAppOption(
-                        context: context,
-                        title: 'Reports',
-                        subtitle: 'View analytics and business insights',
-                        icon: Icons.analytics,
-                        color: const Color(0xFF8764B8),
-                        onTap: () => completer(DialogResponse(
-                          confirmed: true,
-                          data: {'defaultApp': 'Reports'},
-                        )),
-                      ),
-                      _buildAppOption(
-                        context: context,
-                        title: 'Settings',
-                        subtitle: 'Configure app preferences and account',
-                        icon: Icons.settings,
-                        color: const Color(0xFF6B6B6B),
-                        onTap: () => completer(DialogResponse(
-                          confirmed: true,
-                          data: {'defaultApp': 'Settings'},
-                        )),
-                      ),
-                      _buildAppOption(
-                        context: context,
-                        title: 'Orders',
-                        subtitle: 'Manage incoming orders',
-                        icon: Icons.shopping_cart,
-                        color: const Color(0xFFF2C80F),
-                        onTap: () => completer(DialogResponse(
-                          confirmed: true,
-                          data: {'defaultApp': 'Orders'},
-                        )),
-                      ),
-                    ],
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: GridView.count(
+                shrinkWrap: true,
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 2.5,
+                children: [
+                  _buildAppOption(
+                    context: context,
+                    title: 'POS (Point of Sale)',
+                    subtitle: 'Process transactions and manage sales',
+                    icon: Icons.point_of_sale,
+                    color: const Color(0xFF0078D4),
+                    onTap: () => completer(DialogResponse(
+                      confirmed: true,
+                      data: {'defaultApp': 'POS'},
+                    )),
                   ),
-                ),
+                  _buildAppOption(
+                    context: context,
+                    title: 'Inventory',
+                    subtitle: 'Track stock levels and manage products',
+                    icon: Icons.inventory_2,
+                    color: const Color(0xFF107C10),
+                    onTap: () => completer(DialogResponse(
+                      confirmed: true,
+                      data: {'defaultApp': 'Inventory'},
+                    )),
+                  ),
+                  _buildAppOption(
+                    context: context,
+                    title: 'Reports',
+                    subtitle: 'View analytics and business insights',
+                    icon: Icons.analytics,
+                    color: const Color(0xFF8764B8),
+                    onTap: () => completer(DialogResponse(
+                      confirmed: true,
+                      data: {'defaultApp': 'Reports'},
+                    )),
+                  ),
+                  _buildAppOption(
+                    context: context,
+                    title: 'Orders',
+                    subtitle: 'Manage incoming orders',
+                    icon: Icons.shopping_cart,
+                    color: const Color(0xFF8764B8),
+                    onTap: () => completer(DialogResponse(
+                      confirmed: true,
+                      data: {'defaultApp': 'Orders'},
+                    )),
+                  ),
+                  _buildAppOption(
+                    context: context,
+                    title: 'Settings',
+                    subtitle: 'Configure app preferences and account',
+                    icon: Icons.settings,
+                    color: const Color(0xFF6B6B6B),
+                    onTap: () => completer(DialogResponse(
+                      confirmed: true,
+                      data: {'defaultApp': 'Settings'},
+                    )),
+                  ),
+                ],
               ),
             ),
 
@@ -214,51 +209,56 @@ class AppChoiceDialog extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             border: Border.all(
               color: Colors.grey.shade200,
               width: 1,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             color: Colors.white,
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(
                   icon,
                   color: color,
-                  size: 24,
+                  size: 18,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF323130),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -266,26 +266,12 @@ class AppChoiceDialog extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 color: Colors.grey.shade400,
-                size: 16,
+                size: 14,
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  double _getResponsiveDialogWidth(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    if (screenWidth >= 900) {
-      // Desktop/tablet: use up to 80% of width, max 1600, min 400
-      final dialogWidth = screenWidth * 0.8;
-      if (dialogWidth > 1600) return 1600;
-      if (dialogWidth < 400) return 400;
-      return dialogWidth;
-    } else {
-      // Mobile: use 90% of width
-      return screenWidth * 0.9;
-    }
   }
 }
