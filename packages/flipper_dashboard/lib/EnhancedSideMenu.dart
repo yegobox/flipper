@@ -10,6 +10,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_services/constants.dart'; // Import for AppFeature
 
 class EnhancedSideMenu extends ConsumerWidget {
@@ -56,6 +57,8 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 0;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.inventory;
               },
             ),
             SideMenuItemDataTile(
@@ -75,6 +78,8 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 1;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.ai;
               },
             ),
             SideMenuItemDataTile(
@@ -94,6 +99,8 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 2;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.inventory;
               },
             ),
             SideMenuItemDataTile(
@@ -113,6 +120,8 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 3;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.kitchen;
               },
             ),
             if (isAdminAsyncValue.value ==
