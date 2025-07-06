@@ -1,7 +1,9 @@
+import 'package:flipper_dashboard/layout.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class AppChoiceDialog extends StatelessWidget {
+class AppChoiceDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
   final Function(DialogResponse) completer;
 
@@ -11,6 +13,11 @@ class AppChoiceDialog extends StatelessWidget {
     required this.completer,
   }) : super(key: key);
 
+  @override
+  _AppChoiceDialogState createState() => _AppChoiceDialogState();
+}
+
+class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -58,7 +65,7 @@ class AppChoiceDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          request.title ?? 'Choose Default App',
+                          widget.request.title ?? 'Choose Default App',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -96,10 +103,14 @@ class AppChoiceDialog extends StatelessWidget {
                     subtitle: 'Process transactions and manage sales',
                     icon: Icons.point_of_sale,
                     color: const Color(0xFF0078D4),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'POS'},
-                    )),
+                    onTap: () {
+                      ref.read(selectedPageProvider.notifier).state =
+                          DashboardPage.inventory;
+                      widget.completer(DialogResponse(
+                        confirmed: true,
+                        data: {'defaultApp': 'POS'},
+                      ));
+                    },
                   ),
                   _buildAppOption(
                     context: context,
@@ -107,10 +118,14 @@ class AppChoiceDialog extends StatelessWidget {
                     subtitle: 'Track stock levels and manage products',
                     icon: Icons.inventory_2,
                     color: const Color(0xFF107C10),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Inventory'},
-                    )),
+                    onTap: () {
+                      ref.read(selectedPageProvider.notifier).state =
+                          DashboardPage.inventory;
+                      widget.completer(DialogResponse(
+                        confirmed: true,
+                        data: {'defaultApp': 'Inventory'},
+                      ));
+                    },
                   ),
                   _buildAppOption(
                     context: context,
@@ -118,10 +133,14 @@ class AppChoiceDialog extends StatelessWidget {
                     subtitle: 'View analytics and business insights',
                     icon: Icons.analytics,
                     color: const Color(0xFF8764B8),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Reports'},
-                    )),
+                    onTap: () {
+                      ref.read(selectedPageProvider.notifier).state =
+                          DashboardPage.reports;
+                      widget.completer(DialogResponse(
+                        confirmed: true,
+                        data: {'defaultApp': 'Reports'},
+                      ));
+                    },
                   ),
                   _buildAppOption(
                     context: context,
@@ -129,10 +148,14 @@ class AppChoiceDialog extends StatelessWidget {
                     subtitle: 'Manage incoming orders',
                     icon: Icons.shopping_cart,
                     color: const Color(0xFF8764B8),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Orders'},
-                    )),
+                    onTap: () {
+                      ref.read(selectedPageProvider.notifier).state =
+                          DashboardPage.orders;
+                      widget.completer(DialogResponse(
+                        confirmed: true,
+                        data: {'defaultApp': 'Orders'},
+                      ));
+                    },
                   ),
                   _buildAppOption(
                     context: context,
@@ -140,10 +163,13 @@ class AppChoiceDialog extends StatelessWidget {
                     subtitle: 'Configure app preferences and account',
                     icon: Icons.settings,
                     color: const Color(0xFF6B6B6B),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Settings'},
-                    )),
+                    onTap: () {
+                      // Assuming there is no specific page for settings in the main layout
+                      widget.completer(DialogResponse(
+                        confirmed: true,
+                        data: {'defaultApp': 'Settings'},
+                      ));
+                    },
                   ),
                 ],
               ),
@@ -170,7 +196,7 @@ class AppChoiceDialog extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () =>
-                        completer(DialogResponse(confirmed: false)),
+                        widget.completer(DialogResponse(confirmed: false)),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
