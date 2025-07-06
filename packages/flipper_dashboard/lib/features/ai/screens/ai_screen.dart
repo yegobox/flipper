@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -231,29 +234,181 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         child: Scaffold(
           key: _scaffoldKey,
           backgroundColor: AiTheme.backgroundColor,
-          appBar: AppBar(
-            leading: Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: IconButton(
-                icon:
-                    const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
-                onPressed: () => Navigator.of(context).pop(),
-                tooltip: 'Go back',
-              ),
-            ),
-            title: const Text(
-              'AI Assistant',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            centerTitle: false,
-            elevation: 2,
-            backgroundColor: AiTheme.surfaceColor,
-            foregroundColor: Colors.black,
-            shadowColor: Colors.black.withOpacity(0.1),
-          ),
+          appBar: (!kIsWeb && (Platform.isAndroid || Platform.isIOS))
+              ? AppBar(
+                  leading: Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => Navigator.of(context).pop(),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.grey.shade200,
+                              width: 1,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.black87,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  title: Row(
+                    children: [
+                      // AI Logo/Icon
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF667EEA),
+                              Color(0xFF764BA2),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF667EEA)
+                                  .withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.auto_awesome,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Title
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'AI Assistant',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 17,
+                              color: Colors.black87,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Text(
+                            'Ready to help',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 11,
+                              color: Colors.black54,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    // Search Button
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            // Handle search
+                          },
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.search,
+                              color: Colors.black54,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Menu Button
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () {
+                            // Handle menu
+                          },
+                          child: Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 1,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.more_horiz,
+                              color: Colors.black54,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  centerTitle: false,
+                  elevation: 0,
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black87,
+                  surfaceTintColor: Colors.transparent,
+                  toolbarHeight: 70,
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(1.0),
+                    child: Container(
+                      height: 1.0,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            Colors.transparent,
+                            Colors.grey.shade200,
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
           drawer: isMobile ? _buildDrawer() : null,
           body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
         ),
