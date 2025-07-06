@@ -11,11 +11,15 @@ import 'data_visualization/index.dart';
 class DataVisualization extends ConsumerWidget {
   final String data;
   final String? currency;
+  final GlobalKey cardKey;
+  final VoidCallback onCopyGraph;
 
   const DataVisualization({
     super.key,
     required this.data,
     this.currency,
+    required this.cardKey,
+    required this.onCopyGraph,
   });
 
   @override
@@ -24,7 +28,7 @@ class DataVisualization extends ConsumerWidget {
 
     // Use the visualization factory to get the appropriate visualization
     final visualization =
-        VisualizationFactory.createVisualization(data, currencyService);
+        VisualizationFactory.createVisualization(data, currencyService, cardKey, onCopyGraph);
 
     // If no visualization can handle this data, return an empty widget
     if (visualization == null) {

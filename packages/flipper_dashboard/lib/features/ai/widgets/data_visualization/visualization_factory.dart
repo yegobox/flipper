@@ -1,3 +1,6 @@
+import 'dart:ui';
+import 'package:flutter/material.dart';
+
 import 'visualization_interface.dart';
 import 'business_analytics_visualization.dart';
 import 'tax_visualization.dart';
@@ -7,9 +10,9 @@ import 'structured_data_visualization.dart';
 class VisualizationFactory {
   /// Create the appropriate visualization for the given data
   static VisualizationInterface? createVisualization(
-      String data, dynamic currencyService) {
+      String data, dynamic currencyService, GlobalKey cardKey, VoidCallback onCopyGraph) {
     // First try the structured data approach (preferred)
-    final structuredViz = StructuredDataVisualization(data, currencyService);
+    final structuredViz = StructuredDataVisualization(data, currencyService, cardKey: cardKey, onCopyGraph: onCopyGraph);
     if (structuredViz.canVisualize(data)) {
       return structuredViz;
     }
