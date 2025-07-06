@@ -175,7 +175,8 @@ class EnhancedSideMenu extends ConsumerWidget {
                                   as Map<dynamic, dynamic>)['closingBalance']
                               as double? ??
                           0.0;
-                      final notes = (dialogResponse?.data as Map<dynamic, dynamic>)['notes'] as String?;
+                      final notes = (dialogResponse?.data
+                          as Map<dynamic, dynamic>)['notes'] as String?;
                       await ProxyService.strategy.endShift(
                           shiftId: currentShift.id,
                           closingBalance: closingBalance,
@@ -193,9 +194,23 @@ class EnhancedSideMenu extends ConsumerWidget {
               },
             ),
           ],
-          footer: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: const ActiveBranch(),
+          footer: Column(
+            children: [
+              // add icon button
+              IconButton(
+                icon: const Icon(Icons.apps),
+                onPressed: () {
+                  _dialogService.showCustomDialog(
+                    variant: DialogType.appChoice,
+                    title: 'Choose Your Default App',
+                  );
+                },
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: const ActiveBranch(),
+              ),
+            ],
           ),
         );
       },
