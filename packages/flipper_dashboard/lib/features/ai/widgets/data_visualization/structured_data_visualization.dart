@@ -222,12 +222,6 @@ class StructuredDataVisualization implements VisualizationInterface {
                           color: Colors.blue,
                         ),
                       ),
-                      IconButton(
-                      icon:
-                          const Icon(Icons.copy, size: 20, color: Colors.grey),
-                      onPressed: onCopyGraph,
-                      tooltip: 'Copy graph as PNG',
-                    ),
                     ],
                   ),
                 ],
@@ -449,21 +443,15 @@ class StructuredDataVisualization implements VisualizationInterface {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    IconButton(
-                      icon:
-                          const Icon(Icons.copy, size: 20, color: Colors.grey),
-                      onPressed: onCopyGraph,
-                      tooltip: 'Copy graph as PNG',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
                 // Summary cards in a row
                 Row(
                   children: [

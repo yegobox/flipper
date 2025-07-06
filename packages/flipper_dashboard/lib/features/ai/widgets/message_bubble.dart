@@ -35,14 +35,16 @@ class _MessageBubbleState extends State<MessageBubble> {
       // If it's a visualization, capture and copy the image
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         try {
-          RenderRepaintBoundary? boundary = _visualizationKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+          RenderRepaintBoundary? boundary = _visualizationKey.currentContext
+              ?.findRenderObject() as RenderRepaintBoundary?;
           if (boundary == null) {
             _showSnackBar('Error: Could not find render object.');
             return;
           }
 
           ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-          ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+          ByteData? byteData =
+              await image.toByteData(format: ui.ImageByteFormat.png);
           if (byteData == null) {
             _showSnackBar('Error: Could not convert image to bytes.');
             return;
@@ -126,7 +128,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withValues(alpha: 0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -174,7 +176,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black87,
+                                      color:
+                                          Colors.black.withValues(alpha: 0.87),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: const Text(
