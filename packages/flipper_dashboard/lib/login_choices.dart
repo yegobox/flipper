@@ -236,6 +236,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final platform = Theme.of(context).platform;
+    final isMobile =
+        platform == TargetPlatform.android || platform == TargetPlatform.iOS;
     setState(() {
       _loadingItemId = branch.serverId?.toString();
       _isLoading = true;
@@ -254,6 +257,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         await startupViewModel.hasActiveSubscription();
       } on FailedPaymentException catch (e) {
         talker.error('Payment failed: ${e.message}');
+        if (!mounted) return;
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Payment failed: ${e.message}'),
@@ -264,10 +268,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         return;
       } on NoPaymentPlanFound catch (e) {
         talker.error('No payment plan found: $e');
+        if (!mounted) return;
         _routerService.navigateTo(PaymentPlanUIRoute());
         return;
       } catch (e, stackTrace) {
         talker.error('Subscription check failed: $e', stackTrace);
+        if (!mounted) return;
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('Error checking subscription: ${e.toString()}'),
@@ -278,70 +284,77 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         return;
       }
 
-      // Choose default app if not set
-      String? defaultApp = ProxyService.box.getDefaultApp();
-      if (defaultApp == null) {
-        final dialogService = locator<DialogService>();
-        final response = await dialogService.showCustomDialog(
-          variant: DialogType.appChoice,
-          title: 'Choose Your Default App',
-        );
+      if (!isMobile) {
+        // Choose default app if not set
+        String? defaultApp = ProxyService.box.getDefaultApp();
+        if (defaultApp == null) {
+          final dialogService = locator<DialogService>();
+          final response = await dialogService.showCustomDialog(
+            variant: DialogType.appChoice,
+            title: 'Choose Your Default App',
+          );
 
-        if (response?.confirmed == true && response?.data != null) {
-          defaultApp = response!.data['defaultApp'];
-          await ProxyService.box.writeString(key: 'defaultApp', value: defaultApp!);
-        } else {
-          // User cancelled app choice, maybe default to POS or stay here
-          setState(() => _isLoading = false);
-          return; // Stop if no app is chosen
+          if (response?.confirmed == true && response?.data != null) {
+            defaultApp = response!.data['defaultApp'];
+            await ProxyService.box
+                .writeString(key: 'defaultApp', value: defaultApp!);
+          } else {
+            // User cancelled app choice, maybe default to POS or stay here
+            setState(() => _isLoading = false);
+            return; // Stop if no app is chosen
+          }
         }
-      }
 
-      // Handle POS shift logic
-      if (defaultApp == 'POS') {
-        final userId = ProxyService.box.getUserId();
-        if (userId != null) {
-          final currentShift =
-              await ProxyService.strategy.getCurrentShift(userId: userId);
-          if (currentShift == null) {
-            final dialogService = locator<DialogService>();
-            final response = await dialogService.showCustomDialog(
-              variant: DialogType.startShift,
-              title: 'Start New Shift',
-            );
-            if (response?.confirmed == true) {
-              final openingBalance =
-                  response?.data['openingBalance'] as double? ?? 0.0;
-              final notes = response?.data['notes'] as String?;
-              await ProxyService.strategy.startShift(
-                userId: userId,
-                openingBalance: openingBalance,
-                note: notes,
+        // Handle POS shift logic
+        if (defaultApp == 'POS') {
+          final userId = ProxyService.box.getUserId();
+          if (userId != null) {
+            final currentShift =
+                await ProxyService.strategy.getCurrentShift(userId: userId);
+            if (currentShift == null) {
+              final dialogService = locator<DialogService>();
+              final response = await dialogService.showCustomDialog(
+                variant: DialogType.startShift,
+                title: 'Start New Shift',
               );
-               _completeAuthenticationFlow();
+              if (response?.confirmed == true) {
+                final openingBalance =
+                    response?.data['openingBalance'] as double? ?? 0.0;
+                final notes = response?.data['notes'] as String?;
+                await ProxyService.strategy.startShift(
+                  userId: userId,
+                  openingBalance: openingBalance,
+                  note: notes,
+                );
+                _completeAuthenticationFlow();
+              } else {
+                if (!mounted) return;
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Shift not started. Please start a shift to proceed.'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                setState(() => _isLoading = false);
+                return;
+              }
             } else {
-              scaffoldMessenger.showSnackBar(
-                const SnackBar(
-                  content:
-                      Text('Shift not started. Please start a shift to proceed.'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
-              setState(() => _isLoading = false);
-              return;
+              _completeAuthenticationFlow();
             }
           } else {
             _completeAuthenticationFlow();
           }
         } else {
+          // For other apps, complete flow directly
           _completeAuthenticationFlow();
         }
       } else {
-        // For other apps, complete flow directly
         _completeAuthenticationFlow();
       }
     } catch (e) {
       talker.error('Error handling branch selection: $e');
+      if (!mounted) return;
       scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('An error occurred: ${e.toString()}'),
