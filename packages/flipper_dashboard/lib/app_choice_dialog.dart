@@ -81,60 +81,76 @@ class AppChoiceDialog extends StatelessWidget {
             ),
 
             // Content Section
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 2.5,
-                children: [
-                  _buildAppOption(
-                    context: context,
-                    title: 'POS (Point of Sale)',
-                    subtitle: 'Process transactions and manage sales',
-                    icon: Icons.point_of_sale,
-                    color: const Color(0xFF0078D4),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'POS'},
-                    )),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 2.5,
+                    children: [
+                      _buildAppOption(
+                        context: context,
+                        title: 'POS (Point of Sale)',
+                        subtitle: 'Process transactions and manage sales',
+                        icon: Icons.point_of_sale,
+                        color: const Color(0xFF0078D4),
+                        onTap: () => completer(DialogResponse(
+                          confirmed: true,
+                          data: {'defaultApp': 'POS'},
+                        )),
+                      ),
+                      _buildAppOption(
+                        context: context,
+                        title: 'Inventory',
+                        subtitle: 'Track stock levels and manage products',
+                        icon: Icons.inventory_2,
+                        color: const Color(0xFF107C10),
+                        onTap: () => completer(DialogResponse(
+                          confirmed: true,
+                          data: {'defaultApp': 'Inventory'},
+                        )),
+                      ),
+                      _buildAppOption(
+                        context: context,
+                        title: 'Reports',
+                        subtitle: 'View analytics and business insights',
+                        icon: Icons.analytics,
+                        color: const Color(0xFF8764B8),
+                        onTap: () => completer(DialogResponse(
+                          confirmed: true,
+                          data: {'defaultApp': 'Reports'},
+                        )),
+                      ),
+                      _buildAppOption(
+                        context: context,
+                        title: 'Settings',
+                        subtitle: 'Configure app preferences and account',
+                        icon: Icons.settings,
+                        color: const Color(0xFF6B6B6B),
+                        onTap: () => completer(DialogResponse(
+                          confirmed: true,
+                          data: {'defaultApp': 'Settings'},
+                        )),
+                      ),
+                      _buildAppOption(
+                        context: context,
+                        title: 'Orders',
+                        subtitle: 'Manage incoming orders',
+                        icon: Icons.shopping_cart,
+                        color: const Color(0xFFF2C80F),
+                        onTap: () => completer(DialogResponse(
+                          confirmed: true,
+                          data: {'defaultApp': 'Orders'},
+                        )),
+                      ),
+                    ],
                   ),
-                  _buildAppOption(
-                    context: context,
-                    title: 'Inventory',
-                    subtitle: 'Track stock levels and manage products',
-                    icon: Icons.inventory_2,
-                    color: const Color(0xFF107C10),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Inventory'},
-                    )),
-                  ),
-                  _buildAppOption(
-                    context: context,
-                    title: 'Reports',
-                    subtitle: 'View analytics and business insights',
-                    icon: Icons.analytics,
-                    color: const Color(0xFF8764B8),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Reports'},
-                    )),
-                  ),
-                  _buildAppOption(
-                    context: context,
-                    title: 'Settings',
-                    subtitle: 'Configure app preferences and account',
-                    icon: Icons.settings,
-                    color: const Color(0xFF6B6B6B),
-                    onTap: () => completer(DialogResponse(
-                      confirmed: true,
-                      data: {'defaultApp': 'Settings'},
-                    )),
-                  ),
-                ],
+                ),
               ),
             ),
 
