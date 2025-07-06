@@ -114,21 +114,6 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog> {
                   ),
                   _buildAppOption(
                     context: context,
-                    title: 'Inventory',
-                    subtitle: 'Track stock levels and manage products',
-                    icon: Icons.inventory_2,
-                    color: const Color(0xFF107C10),
-                    onTap: () {
-                      ref.read(selectedPageProvider.notifier).state =
-                          DashboardPage.inventory;
-                      widget.completer(DialogResponse(
-                        confirmed: true,
-                        data: {'defaultApp': 'Inventory'},
-                      ));
-                    },
-                  ),
-                  _buildAppOption(
-                    context: context,
                     title: 'Reports',
                     subtitle: 'View analytics and business insights',
                     icon: Icons.analytics,
@@ -154,20 +139,6 @@ class _AppChoiceDialogState extends ConsumerState<AppChoiceDialog> {
                       widget.completer(DialogResponse(
                         confirmed: true,
                         data: {'defaultApp': 'Orders'},
-                      ));
-                    },
-                  ),
-                  _buildAppOption(
-                    context: context,
-                    title: 'Settings',
-                    subtitle: 'Configure app preferences and account',
-                    icon: Icons.settings,
-                    color: const Color(0xFF6B6B6B),
-                    onTap: () {
-                      // Assuming there is no specific page for settings in the main layout
-                      widget.completer(DialogResponse(
-                        confirmed: true,
-                        data: {'defaultApp': 'Settings'},
                       ));
                     },
                   ),
