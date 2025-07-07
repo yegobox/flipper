@@ -63,7 +63,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  String getDefaultApp() {
+  String? getDefaultApp() {
     return "1"; // Sample default app version
   }
 

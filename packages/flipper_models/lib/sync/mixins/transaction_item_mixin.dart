@@ -532,7 +532,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       // Update splyAmt if variant is available
       Variant? variant =
           await ProxyService.strategy.getVariant(id: item.variantId);
-      item.splyAmt = (variant?.supplyPrice ?? 1) * currentQty;
+
+      item.splyAmt =
+          (item.supplyPriceAtSale ?? variant?.supplyPrice ?? 1) * currentQty;
 
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
       item.doneWithTransaction =
