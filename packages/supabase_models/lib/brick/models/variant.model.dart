@@ -54,12 +54,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? pkgUnitCd;
   String? qtyUnitCd;
   String? itemNm;
-  @Supabase(defaultValue: "0.0")
+
   double? prc;
   double? splyAmt;
   int? tin;
   String? bhfId;
-  @Supabase(defaultValue: "0.0")
   double? dftPrc;
   String? addInfo;
   String? isrcAplcbYn;
@@ -83,7 +82,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   /// only a placeholder for capturing stock quantity for this variant,
   /// since when capturing qty we only have variant and not stock.
 
-  @Sqlite(defaultValue: "0.0", ignore: true)
+  @Sqlite(ignore: true)
   @Supabase(ignore: true)
   double? qty;
   @Sqlite(ignore: true)

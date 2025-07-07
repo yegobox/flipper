@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250707051301_up = [
+const List<MigrationCommand> _migration_20250707173120_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -436,7 +436,7 @@ const List<MigrationCommand> _migration_20250707051301_up = [
   InsertColumn('net_wt', Column.integer, onTable: 'Variant'),
   InsertColumn('spplr_nm', Column.varchar, onTable: 'Variant'),
   InsertColumn('agnt_nm', Column.varchar, onTable: 'Variant'),
-  InsertColumn('invc_fcur_amt', Column.integer, onTable: 'Variant'),
+  InsertColumn('invc_fcur_amt', Column.num, onTable: 'Variant'),
   InsertColumn('invc_fcur_cd', Column.varchar, onTable: 'Variant'),
   InsertColumn('invc_fcur_excrt', Column.Double, onTable: 'Variant'),
   InsertColumn('expt_nat_cd', Column.varchar, onTable: 'Variant'),
@@ -890,7 +890,7 @@ const List<MigrationCommand> _migration_20250707051301_up = [
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250707051301_down = [
+const List<MigrationCommand> _migration_20250707173120_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1776,15 +1776,15 @@ const List<MigrationCommand> _migration_20250707051301_down = [
 //
 
 @Migratable(
-  version: '20250707051301',
-  up: _migration_20250707051301_up,
-  down: _migration_20250707051301_down,
+  version: '20250707173120',
+  up: _migration_20250707173120_up,
+  down: _migration_20250707173120_down,
 )
-class Migration20250707051301 extends Migration {
-  const Migration20250707051301()
+class Migration20250707173120 extends Migration {
+  const Migration20250707173120()
     : super(
-        version: 20250707051301,
-        up: _migration_20250707051301_up,
-        down: _migration_20250707051301_down,
+        version: 20250707173120,
+        up: _migration_20250707173120_up,
+        down: _migration_20250707173120_down,
       );
 }
