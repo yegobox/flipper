@@ -19,6 +19,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IconText extends StatelessWidget {
@@ -218,6 +219,11 @@ class IconRowState extends ConsumerState<IconRow>
     ref.read(branchSelectionProvider.notifier).setLoading(true);
     _refreshBusinessAndBranchProviders();
     return Future.value(); // Return a completed Future<void>
+  }
+
+  void _refreshBusinessAndBranchProviders() {
+    ref.refresh(businessesProvider);
+    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
   }
 
   void _showBranchPerformanceMobile(BuildContext context) {
