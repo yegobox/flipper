@@ -12,13 +12,13 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         businessesProvider,
         buttonIndexProvider,
         selectedBranchProvider;
+import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IconText extends StatelessWidget {
@@ -169,11 +169,9 @@ class IconRowState extends ConsumerState<IconRow>
         },
       );
     } else if (index == 2) {
-      //TODO: rethinkg If closing shift should be here
+      _refreshBusinessAndBranchProviders();
     }
   }
-
-  
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
