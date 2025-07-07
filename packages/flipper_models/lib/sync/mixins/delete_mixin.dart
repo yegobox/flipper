@@ -31,8 +31,7 @@ mixin DeleteMixin implements DeleteInterface {
 
   Future<Variant?> getVariant({required String id});
   Future<Stock?> getStockById({required String id});
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id});
+  FutureOr<List<Customer>> customers({int? branchId, String? key, String? id});
   // FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
   @override
   Future<void> deleteTransactionItemAndResequence({required String id}) async {

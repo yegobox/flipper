@@ -462,6 +462,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               model.initialize();
             },
             builder: (context, model, child) {
+              // Every time the widget rebuilds, ensure variants have the correct product type.
+              // This is essential for new products where variants are scanned before the type is set.
+              for (var variant in model.scannedVariants) {
+                if (variant.itemTyCd != selectedProductType) {
+                  variant.itemTyCd = selectedProductType;
+                  // If the product is a service, its quantity should be 0.
+                  if (selectedProductType == "3") {
+                    variant.qty = 0;
+                  }
+                }
+              }
               return Form(
                 // Wrap the entire content with a Form widget
                 key: _formKey,

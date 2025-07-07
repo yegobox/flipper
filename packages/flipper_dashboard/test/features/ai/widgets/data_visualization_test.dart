@@ -7,6 +7,9 @@ import 'package:fl_chart/fl_chart.dart';
 import '../services/mock_currency_service.dart';
 
 void main() {
+  // A dummy function for onCopyGraph since the tests don't focus on copy functionality
+  void _doNothing() {}
+
   group('DataVisualization Widget Tests', () {
     const testData = '''
 **[SUMMARY]**
@@ -63,8 +66,12 @@ Some random text without proper summary format
           container: container,
           child: MaterialApp(
             theme: ThemeData(primaryColor: Colors.blue),
-            home: const Scaffold(
-              body: DataVisualization(data: testData),
+            home: Scaffold(
+              body: DataVisualization(
+                data: testData,
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
+              ),
             ),
           ),
         ),
@@ -87,13 +94,16 @@ Some random text without proper summary format
         UncontrolledProviderScope(
           container: container,
           child: MaterialApp(
-            home: const Scaffold(
-              body: DataVisualization(data: invalidData),
+            home: Scaffold(
+              body: DataVisualization(
+                data: invalidData,
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
+              ),
             ),
           ),
         ),
       );
-      await tester.pump();
 
       // Verify no chart components are rendered
       expect(find.byType(BarChart), findsNothing);
@@ -111,8 +121,13 @@ Some details...
         UncontrolledProviderScope(
           container: container,
           child: MaterialApp(
-            home: const Scaffold(
-              body: DataVisualization(data: emptyData),
+            theme: ThemeData(primaryColor: Colors.blue),
+            home: Scaffold(
+              body: DataVisualization(
+                data: invalidData,
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
+              ),
             ),
           ),
         ),
@@ -131,8 +146,12 @@ Some details...
           container: container,
           child: MaterialApp(
             theme: ThemeData(primaryColor: Colors.blue),
-            home: const Scaffold(
-              body: DataVisualization(data: testData),
+            home: Scaffold(
+              body: DataVisualization(
+                data: testData,
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
+              ),
             ),
           ),
         ),
@@ -160,10 +179,12 @@ Some details...
           container: customContainer,
           child: MaterialApp(
             theme: ThemeData(primaryColor: Colors.blue),
-            home: const Scaffold(
+            home: Scaffold(
               body: DataVisualization(
                 data: testData,
                 currency: 'USD',
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
               ),
             ),
           ),
@@ -185,8 +206,12 @@ Some details...
           container: container,
           child: MaterialApp(
             theme: ThemeData(primaryColor: Colors.blue),
-            home: const Scaffold(
-              body: DataVisualization(data: testData),
+            home: Scaffold(
+              body: DataVisualization(
+                data: testData,
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
+              ),
             ),
           ),
         ),
@@ -227,8 +252,12 @@ Some details...
           container: container,
           child: MaterialApp(
             theme: ThemeData(primaryColor: Colors.blue),
-            home: const Scaffold(
-              body: DataVisualization(data: taxData),
+            home: Scaffold(
+              body: DataVisualization(
+                data: taxData,
+                cardKey: GlobalKey(),
+                onCopyGraph: _doNothing,
+              ),
             ),
           ),
         ),

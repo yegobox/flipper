@@ -400,8 +400,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String getDefaultApp() {
-    return (_cache['defaultApp'] as String?) ?? "1";
+  String? getDefaultApp() {
+    return _cache['defaultApp'] as String?;
   }
 
   @override

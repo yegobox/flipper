@@ -108,7 +108,6 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
               provider: provider,
               repository: repository,
             ),
-    stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
     taxPercentage:
         data['tax_percentage'] == null ? null : data['tax_percentage'] as num?,
     color: data['color'] == null ? null : data['color'] as String?,
@@ -169,19 +168,15 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
         data['composite_price'] == null
             ? null
             : data['composite_price'] as num?,
-    inventoryRequest:
-        data['inventory_request'] == null
-            ? null
-            : await InventoryRequestAdapter().fromSupabase(
-              data['inventory_request'],
-              provider: provider,
-              repository: repository,
-            ),
     inventoryRequestId:
         data['inventory_request_id'] == null
             ? null
             : data['inventory_request_id'] as String?,
     ignoreForReport: data['ignore_for_report'] as bool?,
+    supplyPriceAtSale:
+        data['supply_price_at_sale'] == null
+            ? null
+            : data['supply_price_at_sale'] as num?,
   );
 }
 
@@ -250,7 +245,6 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
               repository: repository,
             )
             : null,
-    'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'color': instance.color,
     'sku': instance.sku,
@@ -284,16 +278,9 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'ebm_synced': instance.ebmSynced,
     'part_of_composite': instance.partOfComposite,
     'composite_price': instance.compositePrice,
-    'inventory_request':
-        instance.inventoryRequest != null
-            ? await InventoryRequestAdapter().toSupabase(
-              instance.inventoryRequest!,
-              provider: provider,
-              repository: repository,
-            )
-            : null,
     'inventory_request_id': instance.inventoryRequestId,
     'ignore_for_report': instance.ignoreForReport,
+    'supply_price_at_sale': instance.supplyPriceAtSale,
   };
 }
 
@@ -407,7 +394,6 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
                   ),
                 ))?.first
                 : null),
-    stockId: data['stock_id'] == null ? null : data['stock_id'] as String?,
     taxPercentage:
         data['tax_percentage'] == null ? null : data['tax_percentage'] as num?,
     color: data['color'] == null ? null : data['color'] as String?,
@@ -468,23 +454,15 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
         data['composite_price'] == null
             ? null
             : data['composite_price'] as num?,
-    inventoryRequest:
-        data['inventory_request_InventoryRequest_brick_id'] == null
-            ? null
-            : (data['inventory_request_InventoryRequest_brick_id'] > -1
-                ? (await repository?.getAssociation<InventoryRequest>(
-                  Query.where(
-                    'primaryKey',
-                    data['inventory_request_InventoryRequest_brick_id'] as int,
-                    limit1: true,
-                  ),
-                ))?.first
-                : null),
     inventoryRequestId:
         data['inventory_request_id'] == null
             ? null
             : data['inventory_request_id'] as String?,
     ignoreForReport: data['ignore_for_report'] == 1,
+    supplyPriceAtSale:
+        data['supply_price_at_sale'] == null
+            ? null
+            : data['supply_price_at_sale'] as num?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -557,7 +535,6 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
                   repository: repository,
                 )
             : null,
-    'stock_id': instance.stockId,
     'tax_percentage': instance.taxPercentage,
     'color': instance.color,
     'sku': instance.sku,
@@ -596,16 +573,9 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
             ? null
             : (instance.partOfComposite! ? 1 : 0),
     'composite_price': instance.compositePrice,
-    'inventory_request_InventoryRequest_brick_id':
-        instance.inventoryRequest != null
-            ? instance.inventoryRequest!.primaryKey ??
-                await provider.upsert<InventoryRequest>(
-                  instance.inventoryRequest!,
-                  repository: repository,
-                )
-            : null,
     'inventory_request_id': instance.inventoryRequestId,
     'ignore_for_report': instance.ignoreForReport ? 1 : 0,
+    'supply_price_at_sale': instance.supplyPriceAtSale,
   };
 }
 
@@ -830,10 +800,6 @@ class TransactionItemAdapter
       associationType: Stock,
       associationIsNullable: true,
     ),
-    'stockId': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'stock_id',
-    ),
     'taxPercentage': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tax_percentage',
@@ -966,20 +932,18 @@ class TransactionItemAdapter
       association: false,
       columnName: 'composite_price',
     ),
-    'inventoryRequest': const RuntimeSupabaseColumnDefinition(
-      association: true,
-      columnName: 'inventory_request',
-      associationType: InventoryRequest,
-      associationIsNullable: true,
-      foreignKey: 'inventory_request_id',
-    ),
     'inventoryRequestId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'inventory_request_id',
+      foreignKey: 'inventory_requests',
     ),
     'ignoreForReport': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'ignore_for_report',
+    ),
+    'supplyPriceAtSale': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'supply_price_at_sale',
     ),
   };
   @override
@@ -1306,12 +1270,6 @@ class TransactionItemAdapter
       iterable: false,
       type: Stock,
     ),
-    'stockId': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'stock_id',
-      iterable: false,
-      type: String,
-    ),
     'taxPercentage': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_percentage',
@@ -1510,12 +1468,6 @@ class TransactionItemAdapter
       iterable: false,
       type: num,
     ),
-    'inventoryRequest': const RuntimeSqliteColumnDefinition(
-      association: true,
-      columnName: 'inventory_request_InventoryRequest_brick_id',
-      iterable: false,
-      type: InventoryRequest,
-    ),
     'inventoryRequestId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'inventory_request_id',
@@ -1527,6 +1479,12 @@ class TransactionItemAdapter
       columnName: 'ignore_for_report',
       iterable: false,
       type: bool,
+    ),
+    'supplyPriceAtSale': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'supply_price_at_sale',
+      iterable: false,
+      type: num,
     ),
   };
   @override

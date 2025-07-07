@@ -190,25 +190,7 @@ class MyDrawer extends StatelessWidget {
           },
         ),
         const Divider(),
-        ListTile(
-          leading: const Icon(Icons.logout),
-          title: const Text('Log Out Shift'),
-          onTap: () async {
-            final userId = ProxyService.box.getUserId();
-            if (userId != null) {
-              final currentShift =
-                  await ProxyService.strategy.getCurrentShift(userId: userId);
-              if (currentShift != null) {
-                // For now, assuming closing balance is 0.0. This will be handled by UI later.
-                await ProxyService.strategy
-                    .endShift(shiftId: currentShift.id, closingBalance: 0.0);
-                // Navigate to login screen
-                // locator<RouterService>().pop((route) => route.isFirst); // Pop all routes until the first one
-                // locator<RouterService>().navigateTo(Routes.login); // Navigate to login route
-              }
-            }
-          },
-        ),
+        const ShiftTile(),
         ListTile(
           leading: const Icon(Icons.logout),
           title: const Text('Logout'),
@@ -238,6 +220,100 @@ class MyDrawer extends StatelessWidget {
   void _handleBranchSelection(
       BuildContext context, Business business, String branchName) {
     Navigator.pop(context);
+  }
+}
+
+class ShiftTile extends StatefulWidget {
+  const ShiftTile({Key? key}) : super(key: key);
+
+  @override
+  _ShiftTileState createState() => _ShiftTileState();
+}
+
+class _ShiftTileState extends State<ShiftTile> {
+  Future<Shift?>? _shiftFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadShiftStatus();
+  }
+
+  void _loadShiftStatus() {
+    final userId = ProxyService.box.getUserId();
+    if (userId != null) {
+      setState(() {
+        _shiftFuture = ProxyService.strategy.getCurrentShift(userId: userId);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Shift?>(
+      future: _shiftFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const ListTile(
+            leading: SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            title: Text('Checking shift status...'),
+          );
+        }
+
+        final shift = snapshot.data;
+        if (shift != null) {
+          return ListTile(
+            leading: const Icon(Icons.lock_clock),
+            title: const Text('Close Shift'),
+            onTap: () async {
+              final dialogService = locator<DialogService>();
+              final response = await dialogService.showConfirmationDialog(
+                title: 'Close Shift',
+                description:
+                    'Are you sure you want to close the current shift?',
+                confirmationTitle: 'Close',
+                cancelTitle: 'Cancel',
+              );
+              if (response?.confirmed == true) {
+                await ProxyService.strategy
+                    .endShift(shiftId: shift.id, closingBalance: 0.0);
+                _loadShiftStatus();
+              }
+            },
+          );
+        } else {
+          return ListTile(
+            leading: const Icon(Icons.lock_open),
+            title: const Text('Open Shift'),
+            onTap: () async {
+              final userId = ProxyService.box.getUserId();
+              if (userId == null) return;
+
+              final dialogService = locator<DialogService>();
+              final response = await dialogService.showCustomDialog(
+                variant: DialogType.startShift,
+                title: 'Start New Shift',
+              );
+              if (response?.confirmed == true) {
+                final openingBalance =
+                    response?.data['openingBalance'] as double? ?? 0.0;
+                final notes = response?.data['notes'] as String?;
+                await ProxyService.strategy.startShift(
+                  userId: userId,
+                  openingBalance: openingBalance,
+                  note: notes,
+                );
+                _loadShiftStatus();
+              }
+            },
+          );
+        }
+      },
+    );
   }
 }
 

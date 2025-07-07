@@ -176,7 +176,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           regrId: variation.regrId,
           regrNm: variation.regrNm,
           stock: variation.stock,
-          stockId: variation.stockId,
           taxPercentage: variation.taxPercentage,
           color: variation.color,
           sku: variation.sku,
@@ -193,7 +192,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           netWt: variation.netWt,
           spplrNm: variation.spplrNm,
           agntNm: variation.agntNm,
-          invcFcurAmt: variation.invcFcurAmt,
+          invcFcurAmt: variation.invcFcurAmt?.toInt() ?? 0,
           invcFcurCd: variation.invcFcurCd,
           invcFcurExcrt: variation.invcFcurExcrt,
           exptNatCd: variation.exptNatCd,
@@ -235,6 +234,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           isrccNm: variation.isrccNm,
           isrcRt: variation.isrcRt,
           isrcAmt: variation.isrcAmt,
+          supplyPriceAtSale: variation.supplyPrice, // Populate new field
         );
       }
 
@@ -482,7 +482,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.active = active ?? item.active;
       item.price = price ?? item.price;
       item.prc = prc ?? item.price;
-      item.taxAmt = taxAmt ?? item.taxAmt;
       item.isRefunded = isRefunded ?? item.isRefunded;
       item.ebmSynced = ebmSynced ?? item.ebmSynced;
       item.quantityApproved =
@@ -490,22 +489,54 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.quantityRequested = incrementQty == true
           ? (item.qty + 1).toInt()
           : qty?.toInt() ?? item.qty.toInt();
+
+      // Recalculate based on potentially updated price and quantity
+      num currentPrice = item.price;
+      num currentQty = qty ?? item.qty.toDouble();
+      num currentTaxPercentage = item.taxPercentage ?? 0.0;
+      String currentTaxTyCd = item.taxTyCd ?? 'B'; // Default to 'B'
+
+      // Recalculate discount amount (dcAmt) and price after discount
+      double originalAmount = (currentPrice * currentQty).toDouble();
+      num currentDcRt = item.dcRt ?? 0.0;
+      double calculatedDcAmt = (originalAmount * currentDcRt) / 100;
+      double priceAfterDiscount = originalAmount - calculatedDcAmt;
+
+      // Recalculate taxblAmt, taxAmt, and totAmt
+      double calculatedTaxblAmt;
+      double calculatedTaxAmt;
+      double calculatedTotAmt;
+
+      if (currentTaxTyCd == 'B') {
+        // Tax is included in the price
+        calculatedTaxAmt = double.parse((priceAfterDiscount *
+                currentTaxPercentage /
+                (100 + currentTaxPercentage))
+            .toStringAsFixed(2));
+        calculatedTaxblAmt = priceAfterDiscount - calculatedTaxAmt;
+        calculatedTotAmt = priceAfterDiscount;
+      } else {
+        // Tax is added to the price
+        calculatedTaxblAmt = priceAfterDiscount;
+        calculatedTaxAmt = double.parse(
+            (calculatedTaxblAmt * currentTaxPercentage / 100)
+                .toStringAsFixed(2));
+        calculatedTotAmt = calculatedTaxblAmt + calculatedTaxAmt;
+      }
+
+      item.taxAmt = taxAmt ?? calculatedTaxAmt;
+      item.taxblAmt = taxblAmt ?? calculatedTaxblAmt;
+      item.totAmt = totAmt ?? calculatedTotAmt;
+      item.dcAmt = dcAmt ?? calculatedDcAmt;
+
+      // Update splyAmt if variant is available
       Variant? variant =
           await ProxyService.strategy.getVariant(id: item.variantId);
-      double currentQty = qty ?? item.qty.toDouble();
-      item.splyAmt = (variant?.supplyPrice ?? 1) * currentQty;
-      talker.info('qty: $currentQty');
-      talker.info('supplyPrice: ${variant?.supplyPrice}');
-      talker.info('splyAmt: ${item.splyAmt}');
+
+      item.splyAmt =
+          (item.supplyPriceAtSale ?? variant?.supplyPrice ?? 1) * currentQty;
+
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
-      // Fix the calculation for taxblAmt and totAmt to properly factor in quantity
-      // Ensure precise calculation for decimal quantities
-      item.taxblAmt =
-          taxblAmt ?? ((variant?.retailPrice ?? 1) * currentQty).toDouble();
-      item.totAmt =
-          totAmt ?? ((variant?.retailPrice ?? 1) * currentQty).toDouble();
-      talker.info('taxblAmt: ${item.taxblAmt}');
-      talker.info('totAmt: ${item.totAmt}');
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
       repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);

@@ -158,20 +158,21 @@ Widget BuildGaugeOrList({
                           ),
                           Text(
                             DateFormat('dd/MM/yyyy')
-                                .format(transaction.createdAt!),
+                                .format(transaction.lastTouched!),
+                            style: GoogleFonts.poppins(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                          ),
+                          Text(
+                            DateFormat('HH:mm')
+                                .format(transaction.lastTouched!),
                             style: GoogleFonts.poppins(
                                 fontSize: 17,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.grey),
                           ),
                         ],
-                      ),
-                      trailing: Text(
-                        DateFormat('HH:mm').format(transaction.createdAt!),
-                        style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey),
                       ),
                     ),
                   ),
@@ -213,22 +214,24 @@ List<ITransaction> filterTransactionsByPeriod({
   switch (period) {
     case 'Today':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!.toLocal();
-        return transactionDate.isAfter(today);
+        final transactionDate = transaction.lastTouched!.toLocal();
+        return transactionDate.year == today.year &&
+            transactionDate.month == today.month &&
+            transactionDate.day == today.day;
       }).toList();
     case 'This Week':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!.toLocal();
+        final transactionDate = transaction.lastTouched!.toLocal();
         return transactionDate.isAfter(thisWeek);
       }).toList();
     case 'This Month':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!.toLocal();
+        final transactionDate = transaction.lastTouched!.toLocal();
         return transactionDate.isAfter(thisMonth);
       }).toList();
     case 'This Year':
       return transactions.where((transaction) {
-        final transactionDate = transaction.createdAt!.toLocal();
+        final transactionDate = transaction.lastTouched!.toLocal();
         return transactionDate.isAfter(thisYear);
       }).toList();
     default:

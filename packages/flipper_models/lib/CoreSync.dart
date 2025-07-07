@@ -229,8 +229,7 @@ class CoreSync extends AiStrategyImpl
   Future<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId}) async {
     try {
-      final transaction =
-          (await transactions(id: transactionId!, status: PENDING)).firstOrNull;
+      final transaction = (await transactions(id: transactionId!)).firstOrNull;
       if (transaction != null) {
         transaction.customerId = customerId;
         repository.upsert<ITransaction>(transaction);
@@ -1546,7 +1545,7 @@ class CoreSync extends AiStrategyImpl
       itemCd: item.itemCd,
       spplrNm: item.spplrNm,
       agntNm: item.agntNm,
-      invcFcurAmt: item.invcFcurAmt,
+      invcFcurAmt: item.invcFcurAmt?.toInt() ?? 0,
       invcFcurCd: item.invcFcurCd,
       invcFcurExcrt: item.invcFcurExcrt,
       exptNatCd: item.exptNatCd,
@@ -2698,72 +2697,41 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<String> createStockRequest(List<models.TransactionItem> items,
-      {required String deliveryNote,
-      DateTime? deliveryDate,
-      required ITransaction transaction,
-      required FinanceProvider financeOption,
-      required int mainBranchId}) async {
+      {required int mainBranchId,
+      required int subBranchId,
+      String? deliveryNote,
+      String? orderNote,
+      String? financingId}) async {
     try {
-      // Create a unique ID for the stock request
-      String orderId = const Uuid().v4();
+      final String requestId = const Uuid().v4();
+      final String? bhfId = await ProxyService.box.bhfId();
+      final int? tinNumber = ProxyService.box.tin();
 
-      // Step 1: First upsert the associated objects separately
-      final financing = Financing(
-        requested: true,
-        financeProviderId: financeOption.id,
-        provider: financeOption, // Now we can include the provider object
+      final InventoryRequest request = InventoryRequest(
+        id: requestId,
+        mainBranchId: mainBranchId,
+        subBranchId: subBranchId,
+        createdAt: DateTime.now().toUtc(),
         status: RequestStatus.pending,
-        amount: transaction.subTotal!,
-        approvalDate: DateTime.now().toUtc(),
+        deliveryNote: deliveryNote,
+        orderNote: orderNote,
+        bhfId: bhfId,
+        tinNumber: tinNumber.toString(),
+        branchId: (await ProxyService.strategy.activeBranch()).id,
+        financingId: financingId,
+        itemCounts: items.length,
       );
-      await repository.upsert(financing);
 
-      // Get branch
-      Branch branch = await activeBranch();
+      await repository.upsert(request);
 
-      try {
-        // Step 2: Create the request with both ID and object references
-        // Now that the adapter is fixed, this should work correctly
-        final stockRequest = InventoryRequest(
-          id: orderId,
-          branchId: branch.id,
-          financingId: financing.id,
-          itemCounts: items.length,
-          transactionItems: items,
-          deliveryDate: deliveryDate,
-          deliveryNote: deliveryNote,
-          mainBranchId: mainBranchId,
-          // branchId: branch.id,
-          branch: branch, // We can now include the branch object directly
-          subBranchId: ProxyService.box.getBranchId(),
-          status: RequestStatus.pending,
-          updatedAt: DateTime.now().toUtc().toLocal(),
-          createdAt: DateTime.now().toUtc().toLocal(),
-          // financingId: financing.id,
-          financing:
-              financing, // We can now include the financing object directly
-        );
-
-        // Step 3: Upsert the request with all associations
-        InventoryRequest request = await repository.upsert(stockRequest);
-
-        // Step 4: Process transaction items
-        for (TransactionItem item in items) {
-          // Now we can set the full object reference
-          item.inventoryRequest = request;
-          await repository.upsert(item);
-        }
-
-        talker.info('Successfully created stock request with ID: $orderId');
-      } catch (e, s) {
-        talker.error('Error in stock request processing: $e');
-        talker.error(s);
+      // Associate transaction items with the stock request
+      for (final item in items) {
+        item.inventoryRequestId = requestId;
+        await repository.upsert(item);
       }
-
-      return orderId;
-    } catch (e, s) {
+      return requestId;
+    } catch (e) {
       talker.error('Error in createStockRequest: $e');
-      talker.error(s);
       rethrow;
     }
   }
@@ -2862,7 +2830,7 @@ class CoreSync extends AiStrategyImpl
             netWt: item.netWt,
             spplrNm: item.spplrNm,
             agntNm: item.agntNm,
-            invcFcurAmt: item.invcFcurAmt,
+            invcFcurAmt: item.invcFcurAmt?.toInt() ?? 0,
             invcFcurCd: item.invcFcurCd,
             invcFcurExcrt: item.invcFcurExcrt,
             exptNatCd: item.exptNatCd,

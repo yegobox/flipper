@@ -69,7 +69,7 @@ final productFromSupplier =
 
   // Construct the Supabase URL with query parameters
   final supabaseUrl =
-      '${AppSecrets.newApiEndPoints}${supplier.serverId}&limit=100&pchs_stts_cd=neq.01&pchs_stts_cd=neq.04&impt_item_stts_cd=neq.2&impt_item_stts_cd=neq.4';
+      '${AppSecrets.newApiEndPoints}${supplier.serverId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.neq.01,pchs_stts_cd.neq.04)&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.neq.2,impt_item_stts_cd.neq.4)';
 
   var dio = Dio();
   try {

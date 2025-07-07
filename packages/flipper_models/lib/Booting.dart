@@ -219,8 +219,8 @@ mixin Booting {
   Future<void> setDefaultApp(IUser user) async {
     final String defaultAppValue = user.tenants.isEmpty
         ? 'null'
-        : ProxyService.box.getDefaultApp() != "1"
-            ? ProxyService.box.getDefaultApp()
+        : ProxyService.box.getDefaultApp() != "POS"
+            ? ProxyService.box.getDefaultApp() ?? "POS"
             : user.tenants.first.businesses!.first.businessTypeId.toString();
 
     await ProxyService.box

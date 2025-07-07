@@ -7,6 +7,5 @@ abstract class CustomerInterface {
     required Customer customer,
     String? transactionId,
   });
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id});
+  FutureOr<List<Customer>> customers({int? branchId, String? key, String? id});
 }

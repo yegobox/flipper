@@ -604,8 +604,9 @@ mixin AuthMixin implements AuthInterface {
       }
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(
-            <String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
+        body: jsonEncode(uid != null
+            ? <String, String?>{'phoneNumber': phoneNumber, 'uid': uid}
+            : <String, String?>{'phoneNumber': phoneNumber}),
       );
 
       // Check for 401 Unauthorized response

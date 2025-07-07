@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/EnhancedSideMenu.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/inventory_dashboard_app.dart';
 import 'package:flipper_dashboard/kitchen_display.dart';
+import 'package:flipper_dashboard/orders_app.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -17,6 +18,7 @@ enum DashboardPage {
   ai,
   reports,
   kitchen,
+  orders,
 }
 
 final selectedPageProvider =
@@ -33,6 +35,28 @@ class DashboardLayout extends HookConsumerWidget {
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
         ref.read(previewingCart.notifier).state = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final defaultApp = ProxyService.box.getDefaultApp();
+          if (defaultApp != null) {
+            DashboardPage page;
+            switch (defaultApp) {
+              case 'POS':
+              case 'Inventory':
+                page = DashboardPage.inventory;
+                break;
+              case 'Reports':
+                page = DashboardPage.reports;
+                break;
+              case 'Orders':
+                page = DashboardPage.orders;
+                break;
+              default:
+                page = DashboardPage.inventory;
+                break;
+            }
+            ref.read(selectedPageProvider.notifier).state = page;
+          }
+        });
       },
       builder: (context, model, child) {
         final selectedPageWidget = _buildSelectedApp(ref, searchController);
@@ -74,6 +98,8 @@ class DashboardLayout extends HookConsumerWidget {
         return const InventoryDashboardApp();
       case DashboardPage.kitchen:
         return const KitchenDisplay();
+      case DashboardPage.orders:
+        return const OrdersApp();
     }
   }
 }

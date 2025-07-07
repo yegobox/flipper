@@ -46,6 +46,9 @@ class Shift extends OfflineFirstWithSupabaseModel {
 
   String? note;
 
+  // Total cash given back as refunds
+  final num? refunds;
+
   Shift(
       {required this.id,
       required this.businessId,
@@ -58,7 +61,8 @@ class Shift extends OfflineFirstWithSupabaseModel {
       this.cashSales,
       this.expectedCash,
       this.cashDifference,
-      this.note});
+      this.note,
+      this.refunds});
   //copyWith
   Shift copyWith(
       {String? id,
@@ -72,7 +76,8 @@ class Shift extends OfflineFirstWithSupabaseModel {
       num? cashSales,
       num? expectedCash,
       num? cashDifference,
-      String? note}) {
+      String? note,
+      num? refunds}) {
     return Shift(
       id: id ?? this.id,
       businessId: businessId ?? this.businessId,
@@ -86,6 +91,7 @@ class Shift extends OfflineFirstWithSupabaseModel {
       cashSales: cashSales ?? this.cashSales,
       expectedCash: expectedCash ?? this.expectedCash,
       cashDifference: cashDifference ?? this.cashDifference,
+      refunds: refunds ?? this.refunds,
     );
   }
 }

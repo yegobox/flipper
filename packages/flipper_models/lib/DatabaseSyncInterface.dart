@@ -198,9 +198,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       {required String customerId, String? transactionId});
   FutureOr<void> removeCustomerFromTransaction(
       {required ITransaction transaction});
-  // FutureOr<Customer?> getCustomer({String? key, int? id});
-  // FutureOr<List<Customer>> getCustomers({String? key, int? id});
-  // Future<Customer?> getCustomerFuture({String? key, int? id});
   Stream<List<Customer>> customersStream(
       {required int branchId, String? key, String? id});
 
@@ -380,11 +377,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
   Future<String> createStockRequest(List<TransactionItem> items,
-      {required String deliveryNote,
-      DateTime? deliveryDate,
-      required ITransaction transaction,
-      required int mainBranchId,
-      required FinanceProvider financeOption});
+      {required int mainBranchId,
+      required int subBranchId,
+      String? deliveryNote,
+      String? orderNote,
+      String? financingId});
 
   Future<Business?> signup(
       {required Map business, required HttpClientInterface flipperHttpClient});

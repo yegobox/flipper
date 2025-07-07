@@ -1,4 +1,6 @@
 // OrderingView
+import 'dart:io';
+
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -171,30 +173,32 @@ class ProductListScreenState extends ConsumerState<OrderingView>
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return Scaffold(
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            foregroundColor: Theme.of(context).colorScheme.onSurface,
-            title: Text(
-              isOrdering ? 'New Order' : 'Point of Sale',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
+          appBar: (Platform.isAndroid || Platform.isIOS)
+              ? AppBar(
+                  elevation: 0,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  title: Text(
+                    isOrdering ? 'New Order' : 'Point of Sale',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-            ),
-            actions: [
-              if (!isOrdering)
-                IconButton(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  onPressed: () => null,
-                  tooltip: 'Transaction History',
-                ),
-              IconButton(
-                icon: Icon(Icons.more_vert),
-                onPressed: () => null,
-                tooltip: 'More Options',
-              ),
-            ],
-          ),
+                  actions: [
+                    if (!isOrdering)
+                      IconButton(
+                        icon: Icon(Icons.receipt_long_outlined),
+                        onPressed: () => null,
+                        tooltip: 'Transaction History',
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.more_vert),
+                      onPressed: () => null,
+                      tooltip: 'More Options',
+                    ),
+                  ],
+                )
+              : null,
           body: _buildBody(ref, model: model),
           floatingActionButton: _buildFloatingActionButton(ref, isOrdering,
               orderCount: orderCount),
@@ -212,7 +216,7 @@ class ProductListScreenState extends ConsumerState<OrderingView>
           ? _buildEmptyProductList()
           : _buildProductView(variants, isPreviewing, model: model),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error: $error')),
+      error: (error, stack) => Center(child: Text('$error')),
     );
   }
 
@@ -224,14 +228,17 @@ class ProductListScreenState extends ConsumerState<OrderingView>
           Icon(
             Icons.store_rounded,
             size: 48,
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 16),
           Text(
             'Select a supplier to view products',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
           ),
         ],

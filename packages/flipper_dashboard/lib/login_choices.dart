@@ -235,53 +235,99 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _handleBranchSelection(
       Branch branch, BuildContext context) async {
-    // Capture ScaffoldMessengerState before any async operations that might change the widget tree
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-
-    // Set loading state for the selected branch and immediately hide branch selection
+    final platform = Theme.of(context).platform;
+    final isMobile =
+        platform == TargetPlatform.android || platform == TargetPlatform.iOS;
     setState(() {
       _loadingItemId = branch.serverId?.toString();
-      _isLoading = true; // Show loading indicator instead of branch selection
-      _isSelectingBranch = false; // Hide branch selection immediately
+      _isLoading = true;
     });
 
-    // Set flag to prevent branch selection from showing again during navigation
     await ProxyService.box
         .writeBool(key: 'branch_navigation_in_progress', value: true);
 
     try {
       await _setDefaultBranch(branch);
 
-      // Check for active subscription after branch is set
+      // Check for active subscription
       try {
         final startupViewModel = StartupViewModel();
         await startupViewModel.hasActiveSubscription();
+      } on FailedPaymentException catch (e) {
+        talker.error('Payment failed: ${e.message}');
+        if (!mounted) return;
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Payment failed: ${e.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        _routerService.navigateTo(FailedPaymentRoute());
+        return;
+      } on NoPaymentPlanFound catch (e) {
+        talker.error('No payment plan found: $e');
+        if (!mounted) return;
+        _routerService.navigateTo(PaymentPlanUIRoute());
+        return;
+      } catch (e, stackTrace) {
+        talker.error('Subscription check failed: $e', stackTrace);
+        if (!mounted) return;
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Error checking subscription: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isLoading = false);
+        return;
+      }
 
-        final userId = ProxyService.box.getUserId();
-        talker.debug('LoginChoices: userId: $userId');
-        final businessId = ProxyService.box.getBusinessId();
-        talker.debug('LoginChoices: businessId: $businessId');
+      if (!isMobile) {
+        // Choose default app if not set
+        String? defaultApp = ProxyService.box.getDefaultApp();
+        if (defaultApp == null) {
+          final dialogService = locator<DialogService>();
+          final response = await dialogService.showCustomDialog(
+            variant: DialogType.appChoice,
+            title: 'Choose Your Default App',
+          );
 
-        if (userId != null) {
-          final currentShift =
-              await ProxyService.strategy.getCurrentShift(userId: userId);
-          if (currentShift == null) {
-            // No active shift, show dialog to start one
-            final dialogService = locator<DialogService>();
-            final response = await dialogService.showCustomDialog(
-              variant: DialogType.startShift,
-              title: 'Start New Shift',
-            );
-            if (response?.confirmed == true) {
-              final openingBalance = response?.data['openingBalance'] as double? ?? 0.0;
-              final notes = response?.data['notes'] as String?;
-              await ProxyService.strategy.startShift(
-                userId: userId,
-                openingBalance: openingBalance,
-                note: notes,
+          if (response?.confirmed == true && response?.data != null) {
+            defaultApp = response!.data['defaultApp'];
+            await ProxyService.box
+                .writeString(key: 'defaultApp', value: defaultApp!);
+          } else {
+            // User cancelled app choice, maybe default to POS or stay here
+            setState(() => _isLoading = false);
+            return; // Stop if no app is chosen
+          }
+        }
+
+        // Handle POS shift logic
+        if (defaultApp == 'POS') {
+          final userId = ProxyService.box.getUserId();
+          if (userId != null) {
+            final currentShift =
+                await ProxyService.strategy.getCurrentShift(userId: userId);
+            if (currentShift == null) {
+              final dialogService = locator<DialogService>();
+              final response = await dialogService.showCustomDialog(
+                variant: DialogType.startShift,
+                title: 'Start New Shift',
               );
-              // User cancelled starting shift, stay on login choices
-              if (mounted) {
+              if (response?.confirmed == true) {
+                final openingBalance =
+                    response?.data['openingBalance'] as double? ?? 0.0;
+                final notes = response?.data['notes'] as String?;
+                await ProxyService.strategy.startShift(
+                  userId: userId,
+                  openingBalance: openingBalance,
+                  note: notes,
+                );
+                _completeAuthenticationFlow();
+              } else {
+                if (!mounted) return;
                 scaffoldMessenger.showSnackBar(
                   const SnackBar(
                     content: Text(
@@ -289,66 +335,36 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                     backgroundColor: Colors.orange,
                   ),
                 );
+                setState(() => _isLoading = false);
+                return;
               }
-              // Revert loading state
-              setState(() {
-                _isLoading = false;
-                _loadingItemId = null;
-              });
-              return; // Stop further execution
+            } else {
+              _completeAuthenticationFlow();
             }
           } else {
-            // Active shift found, proceed
             _completeAuthenticationFlow();
           }
         } else {
-          // User ID is null, proceed with authentication flow (should ideally not happen here)
+          // For other apps, complete flow directly
           _completeAuthenticationFlow();
         }
-      } on FailedPaymentException catch (e) {
-        talker.error('Payment failed: ${e.message}');
-        if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Text('Payment failed: ${e.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          _routerService.navigateTo(FailedPaymentRoute());
-        }
-      } on NoPaymentPlanFound catch (e) {
-        talker.error('No payment plan found: $e');
-        if (mounted) {
-          _routerService.navigateTo(PaymentPlanUIRoute());
-        }
-      } catch (e, stackTrace) {
-        talker.error('Subscription check failed: $e');
-        talker.error('Stack trace: $stackTrace');
-        if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            SnackBar(
-              content: Text('Error checking subscription: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        rethrow;
+      } else {
+        _completeAuthenticationFlow();
       }
     } catch (e) {
       talker.error('Error handling branch selection: $e');
-      if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      rethrow;
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
           _loadingItemId = null;
+          // Do not set _isLoading to false here if a navigation is happening
         });
       }
     }

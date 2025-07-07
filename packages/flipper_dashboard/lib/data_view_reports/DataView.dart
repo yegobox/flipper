@@ -62,17 +62,21 @@ class DataView extends StatefulHookConsumerWidget {
 class DataViewState extends ConsumerState<DataView>
     with ExportMixin, DateCoreWidget, Headers {
   bool _isTransitioning = false;
+  bool _showGrid = true;
 
   Future<void> _handleToggleReport() async {
     setState(() {
       _isTransitioning = true;
+      _showGrid = false;
     });
     ref.read(toggleBooleanValueProvider.notifier).toggleReport();
     // Wait for provider and widget rebuilds
     await Future.delayed(const Duration(milliseconds: 100));
     if (mounted) {
+      _updateDataGridSource();
       setState(() {
         _isTransitioning = false;
+        _showGrid = true;
       });
     }
   }
@@ -148,6 +152,20 @@ class DataViewState extends ConsumerState<DataView>
         rowsPerPage: widget.rowsPerPage,
         currentPageIndex: pageIndex, // Pass the current page index
       );
+    }
+    final columns = _getTableHeaders();
+    final rows = _dataGridSource.rows;
+    debugPrint(
+        '[DataView] _updateDataGridSource: showDetailedReport=${widget.showDetailedReport}, columns=${columns.length}, dataGridRows=${rows.length}');
+    if (rows.isNotEmpty) {
+      final firstRowCells = rows.first.getCells().length;
+      if (firstRowCells != columns.length) {
+        debugPrint(
+            '[DataView][ERROR][updateDataGridSource] Column/cell mismatch: columns=${columns.length}, firstRowCells=$firstRowCells');
+      } else {
+        debugPrint(
+            '[DataView][SYNC][updateDataGridSource] Columns and cells are aligned: ${columns.length}');
+      }
     }
     _dataGridSource.notifyListeners(); // Notify listeners of data change
   }
@@ -330,9 +348,25 @@ class DataViewState extends ConsumerState<DataView>
               ),
               const SizedBox(height: 10),
               Expanded(
-                child: (widget.forceEmpty || _isTransitioning)
-                  ? _buildTransitioningGrid(constraints)
-                  : _buildDataGrid(constraints),
+                child: (!(_showGrid && !_isTransitioning) || widget.forceEmpty)
+                    ? _buildTransitioningGrid(constraints)
+                    : Builder(
+                        builder: (context) {
+                          final columns = _getTableHeaders();
+                          final rows = _dataGridSource.rows;
+                          final firstRowCells = rows.isNotEmpty
+                              ? rows.first.getCells().length
+                              : columns.length;
+                          if (rows.isNotEmpty &&
+                              firstRowCells != columns.length) {
+                            debugPrint(
+                                '[DataView][WAITING] Waiting for sync: columns=${columns.length}, firstRowCells=$firstRowCells');
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          return _buildDataGridWithKey(
+                              constraints, columns, rows);
+                        },
+                      ),
               ),
               _buildDataPager(constraints),
               _buildStickyFooter(),
@@ -381,10 +415,10 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  Widget _buildDataGrid(BoxConstraints constraints) {
-    final columns = _getTableHeaders();
+  Widget _buildDataGridWithKey(BoxConstraints constraints,
+      List<GridColumn> columns, List<DataGridRow> rows) {
     debugPrint(
-        '[DataView] _buildDataGrid: columns=${columns.length}, rows=${_dataGridSource.rows.length}');
+        '[DataView] _buildDataGridWithKey: columns=${columns.length}, rows=${rows.length}');
     return SfDataGridTheme(
       data: SfDataGridThemeData(
         headerHoverColor: Colors.yellow,
@@ -395,8 +429,7 @@ class DataViewState extends ConsumerState<DataView>
         rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
       ),
       child: SfDataGrid(
-        key: ObjectKey(
-            '${_dataGridSource.runtimeType}_${widget.showDetailedReport}_${columns.length}'), // Force rebuild of SfDataGrid when mode or column count changes
+        key: UniqueKey(), // Always force full rebuild on every render
         selectionMode: SelectionMode.multiple,
         allowSorting: true,
         allowColumnsResizing: true,
@@ -673,10 +706,10 @@ class DataViewState extends ConsumerState<DataView>
     if (widget.transactionItems == null) return 0;
     double grossProfit = 0.0;
     for (final item in widget.transactionItems!) {
-      // Fetch the associated variant to get the supply price
-      final variant =
-          await ProxyService.strategy.getVariant(id: item.variantId.toString());
-      final supplyPrice = variant?.supplyPrice ?? 0.0;
+      // Use the supplyPriceAtSale stored on the TransactionItem for accurate historical gross profit.
+      // This ensures that gross profit is calculated based on the supply price at the time of sale,
+      // not the current supply price of the variant.
+      final supplyPrice = item.supplyPriceAtSale ?? 0.0;
       grossProfit += (item.price - supplyPrice) * item.qty;
     }
     return grossProfit;
@@ -793,9 +826,8 @@ class DataViewState extends ConsumerState<DataView>
 
           // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
           rowData['TaxPayable'] = item.taxAmt ?? 0.0;
-          rowData['GrossProfit'] = (item.price * item.qty) -
-              (item.splyAmt ??
-                  (item.price * item.qty * 0.7)); // Estimate gross profit
+          rowData['GrossProfit'] =
+              (item.price * item.qty) - (item.supplyPriceAtSale ?? 0.0);
 
           preparedData.add(rowData);
         }
