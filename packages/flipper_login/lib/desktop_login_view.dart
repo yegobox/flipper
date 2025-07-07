@@ -87,7 +87,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 width: 200,
                                 height: 200,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
@@ -115,7 +115,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 width: 200,
                                 height: 200,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
@@ -176,7 +176,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 width: 200,
                                 height: 200,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Column(
@@ -218,10 +218,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
+                              color: Colors.green.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                  color: Colors.green.withOpacity(0.3)),
+                                  color: Colors.green.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               'QR Code scanned! Completing login...',
@@ -240,10 +240,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.1),
+                              color: Colors.red.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                  color: Colors.red.withOpacity(0.3)),
+                                  color: Colors.red.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               'Login failed. Please try again.',
@@ -344,8 +344,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 color: Colors.transparent,
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(8),
-                                  splashColor: Colors.blue.withOpacity(0.3),
-                                  hoverColor: Colors.grey.withOpacity(0.1),
+                                  splashColor:
+                                      Colors.blue.withValues(alpha: 0.3),
+                                  hoverColor:
+                                      Colors.grey.withValues(alpha: 0.1),
                                   onTap: () {
                                     // iOS App Store link
                                     launchUrl(Uri.parse(
@@ -378,8 +380,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                                 color: Colors.transparent,
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(8),
-                                  splashColor: Colors.green.withOpacity(0.3),
-                                  hoverColor: Colors.grey.withOpacity(0.1),
+                                  splashColor:
+                                      Colors.green.withValues(alpha: 0.3),
+                                  hoverColor:
+                                      Colors.grey.withValues(alpha: 0.1),
                                   onTap: () {
                                     // Google Play Store link
                                     launchUrl(Uri.parse(
