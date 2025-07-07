@@ -18,13 +18,13 @@ class VisualizationFactory {
     }
 
     // Fall back to legacy visualizations if structured data not found
-    if (TaxVisualization(data, currencyService).canVisualize(data)) {
-      return TaxVisualization(data, currencyService);
+    if (TaxVisualization(data, currencyService, cardKey: cardKey, onCopyGraph: onCopyGraph).canVisualize(data)) {
+      return TaxVisualization(data, currencyService, cardKey: cardKey, onCopyGraph: onCopyGraph);
     }
 
-    if (BusinessAnalyticsVisualization(data, currencyService)
+    if (BusinessAnalyticsVisualization(data, currencyService, cardKey: cardKey, onCopyGraph: onCopyGraph)
         .canVisualize(data)) {
-      return BusinessAnalyticsVisualization(data, currencyService);
+      return BusinessAnalyticsVisualization(data, currencyService, cardKey: cardKey, onCopyGraph: onCopyGraph);
     }
 
     // No suitable visualization found

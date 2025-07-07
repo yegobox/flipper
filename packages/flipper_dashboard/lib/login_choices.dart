@@ -242,7 +242,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     setState(() {
       _loadingItemId = branch.serverId?.toString();
       _isLoading = true;
-      _isSelectingBranch = false;
     });
 
     await ProxyService.box

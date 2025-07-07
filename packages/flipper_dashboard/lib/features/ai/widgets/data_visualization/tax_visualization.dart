@@ -6,8 +6,10 @@ import 'visualization_interface.dart';
 class TaxVisualization implements VisualizationInterface {
   final String data;
   final dynamic currencyService;
+  final GlobalKey cardKey;
+  final VoidCallback onCopyGraph;
 
-  TaxVisualization(this.data, this.currencyService);
+  TaxVisualization(this.data, this.currencyService, {required this.cardKey, required this.onCopyGraph});
 
   @override
   Widget build(BuildContext context, {String? currency}) {
