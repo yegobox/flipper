@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250705112257_up = [
+const List<MigrationCommand> _migration_20250707051301_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -334,7 +334,6 @@ const List<MigrationCommand> _migration_20250705112257_up = [
   InsertColumn('last_touched', Column.datetime, onTable: 'TransactionItem'),
   InsertColumn('purchase_id', Column.varchar, onTable: 'TransactionItem'),
   InsertForeignKey('TransactionItem', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertColumn('stock_id', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('tax_percentage', Column.num, onTable: 'TransactionItem'),
   InsertColumn('color', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('sku', Column.varchar, onTable: 'TransactionItem'),
@@ -368,7 +367,6 @@ const List<MigrationCommand> _migration_20250705112257_up = [
   InsertColumn('ebm_synced', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('part_of_composite', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('composite_price', Column.num, onTable: 'TransactionItem'),
-  InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
   InsertColumn('inventory_request_id', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('ignore_for_report', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('supply_price_at_sale', Column.num, onTable: 'TransactionItem'),
@@ -850,6 +848,7 @@ const List<MigrationCommand> _migration_20250705112257_up = [
   CreateIndex(columns: ['id'], onTable: 'TransactionItem', unique: true),
   CreateIndex(columns: ['transaction_id'], onTable: 'TransactionItem', unique: false),
   CreateIndex(columns: ['variant_id'], onTable: 'TransactionItem', unique: false),
+  CreateIndex(columns: ['inventory_request_id'], onTable: 'TransactionItem', unique: false),
   CreateIndex(columns: ['id'], onTable: 'LPermission', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Credit', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Variant', unique: true),
@@ -891,7 +890,7 @@ const List<MigrationCommand> _migration_20250705112257_up = [
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250705112257_down = [
+const List<MigrationCommand> _migration_20250707051301_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1216,7 +1215,6 @@ const List<MigrationCommand> _migration_20250705112257_down = [
   DropColumn('last_touched', onTable: 'TransactionItem'),
   DropColumn('purchase_id', onTable: 'TransactionItem'),
   DropColumn('stock_Stock_brick_id', onTable: 'TransactionItem'),
-  DropColumn('stock_id', onTable: 'TransactionItem'),
   DropColumn('tax_percentage', onTable: 'TransactionItem'),
   DropColumn('color', onTable: 'TransactionItem'),
   DropColumn('sku', onTable: 'TransactionItem'),
@@ -1250,7 +1248,6 @@ const List<MigrationCommand> _migration_20250705112257_down = [
   DropColumn('ebm_synced', onTable: 'TransactionItem'),
   DropColumn('part_of_composite', onTable: 'TransactionItem'),
   DropColumn('composite_price', onTable: 'TransactionItem'),
-  DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
   DropColumn('inventory_request_id', onTable: 'TransactionItem'),
   DropColumn('ignore_for_report', onTable: 'TransactionItem'),
   DropColumn('supply_price_at_sale', onTable: 'TransactionItem'),
@@ -1732,6 +1729,7 @@ const List<MigrationCommand> _migration_20250705112257_down = [
   DropIndex('index_TransactionItem_on_id'),
   DropIndex('index_TransactionItem_on_transaction_id'),
   DropIndex('index_TransactionItem_on_variant_id'),
+  DropIndex('index_TransactionItem_on_inventory_request_id'),
   DropIndex('index_LPermission_on_id'),
   DropIndex('index_Credit_on_id'),
   DropIndex('index_Variant_on_id'),
@@ -1778,15 +1776,15 @@ const List<MigrationCommand> _migration_20250705112257_down = [
 //
 
 @Migratable(
-  version: '20250705112257',
-  up: _migration_20250705112257_up,
-  down: _migration_20250705112257_down,
+  version: '20250707051301',
+  up: _migration_20250707051301_up,
+  down: _migration_20250707051301_down,
 )
-class Migration20250705112257 extends Migration {
-  const Migration20250705112257()
+class Migration20250707051301 extends Migration {
+  const Migration20250707051301()
     : super(
-        version: 20250705112257,
-        up: _migration_20250705112257_up,
-        down: _migration_20250705112257_down,
+        version: 20250707051301,
+        up: _migration_20250707051301_up,
+        down: _migration_20250707051301_down,
       );
 }

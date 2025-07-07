@@ -40,12 +40,11 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     final startDate = dateRange.startDate;
 
     await ProxyService.strategy.createStockRequest(
-      transaction: transaction,
       items,
-      financeOption: financeOption,
-      deliveryNote: deliveryNote,
-      deliveryDate: startDate,
       mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+      subBranchId: ProxyService.box.getBranchId()!,
+      deliveryNote: deliveryNote,
+      financingId: financeOption.id,
     );
 
     await _finalizeOrder(items, transaction);

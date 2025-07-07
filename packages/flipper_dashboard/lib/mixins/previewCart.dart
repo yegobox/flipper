@@ -82,11 +82,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(items,
-          financeOption: financeOption,
-          transaction: transaction,
+          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+          subBranchId: ProxyService.box.getBranchId()!,
           deliveryNote: deliveryNote,
-          deliveryDate: startDate,
-          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!);
+          orderNote: null,
+          financingId: financeOption.id);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);
