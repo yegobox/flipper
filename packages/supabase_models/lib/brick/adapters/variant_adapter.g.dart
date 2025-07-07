@@ -58,11 +58,11 @@ Future<Variant> _$VariantFromSupabase(
     qtyUnitCd:
         data['qty_unit_cd'] == null ? null : data['qty_unit_cd'] as String?,
     itemNm: data['item_nm'] == null ? null : data['item_nm'] as String?,
-    prc: data['prc'] == null ? null : data['prc'] as double? ?? 0.0,
+    prc: data['prc'] == null ? null : data['prc'] as double?,
     splyAmt: data['sply_amt'] == null ? null : data['sply_amt'] as double?,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double? ?? 0.0,
+    dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
     isrcAplcbYn:
         data['isrc_aplcb_yn'] == null ? null : data['isrc_aplcb_yn'] as String?,
@@ -102,7 +102,7 @@ Future<Variant> _$VariantFromSupabase(
     spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
     agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
     invcFcurAmt:
-        data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
+        data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as num?,
     invcFcurCd:
         data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
     invcFcurExcrt:
@@ -326,7 +326,7 @@ Future<Variant> _$VariantFromSqlite(
     spplrNm: data['spplr_nm'] == null ? null : data['spplr_nm'] as String?,
     agntNm: data['agnt_nm'] == null ? null : data['agnt_nm'] as String?,
     invcFcurAmt:
-        data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as int?,
+        data['invc_fcur_amt'] == null ? null : data['invc_fcur_amt'] as num?,
     invcFcurCd:
         data['invc_fcur_cd'] == null ? null : data['invc_fcur_cd'] as String?,
     invcFcurExcrt:
@@ -1104,7 +1104,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: false,
       columnName: 'invc_fcur_amt',
       iterable: false,
-      type: int,
+      type: num,
     ),
     'invcFcurCd': const RuntimeSqliteColumnDefinition(
       association: false,

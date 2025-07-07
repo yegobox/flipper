@@ -1,15 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250707051301.migration.dart';
+part '20250707173120.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
-final migrations = <Migration>{
-  const Migration20250707051301(),};
+final migrations = <Migration>{const Migration20250707173120()};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  0,
+  20250707173120,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -806,7 +805,7 @@ final schema = Schema(
         SchemaColumn('net_wt', Column.integer),
         SchemaColumn('spplr_nm', Column.varchar),
         SchemaColumn('agnt_nm', Column.varchar),
-        SchemaColumn('invc_fcur_amt', Column.integer),
+        SchemaColumn('invc_fcur_amt', Column.num),
         SchemaColumn('invc_fcur_cd', Column.varchar),
         SchemaColumn('invc_fcur_excrt', Column.Double),
         SchemaColumn('expt_nat_cd', Column.varchar),
