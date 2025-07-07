@@ -192,7 +192,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           netWt: variation.netWt,
           spplrNm: variation.spplrNm,
           agntNm: variation.agntNm,
-          invcFcurAmt: variation.invcFcurAmt,
+          invcFcurAmt: variation.invcFcurAmt?.toInt() ?? 0,
           invcFcurCd: variation.invcFcurCd,
           invcFcurExcrt: variation.invcFcurExcrt,
           exptNatCd: variation.exptNatCd,

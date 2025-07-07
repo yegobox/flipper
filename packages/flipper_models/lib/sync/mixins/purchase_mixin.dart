@@ -39,7 +39,7 @@ mixin PurchaseMixin
       itemCd: item.itemCd,
       spplrNm: item.spplrNm,
       agntNm: item.agntNm,
-      invcFcurAmt: item.invcFcurAmt,
+      invcFcurAmt: item.invcFcurAmt?.toInt() ?? 0,
       invcFcurCd: item.invcFcurCd,
       invcFcurExcrt: item.invcFcurExcrt,
       exptNatCd: item.exptNatCd,
