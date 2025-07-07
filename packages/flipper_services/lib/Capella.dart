@@ -416,16 +416,7 @@ class Capella extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  Future<String> createStockRequest(List<TransactionItem> items,
-      {required String deliveryNote,
-      required ITransaction transaction,
-      DateTime? deliveryDate,
-      required FinanceProvider financeOption,
-      required int mainBranchId}) {
-    // TODO: implement createStockRequest
-    throw UnimplementedError();
-  }
+ 
 
   @override
   Branch? defaultBranch() {
@@ -1436,7 +1427,7 @@ class Capella extends AiStrategyImpl
 
   @override
   FutureOr<List<brick.Customer>> customers(
-      {required int branchId, String? key, String? id}) {
+      {int? branchId, String? key, String? id}) {
     // TODO: implement customers
     throw UnimplementedError();
   }
@@ -2351,6 +2342,19 @@ class Capella extends AiStrategyImpl
       required double currentStock,
       required double value}) {
     // TODO: implement saveStock
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<brick.Shift> updateShiftTotals(
+      {required double transactionAmount, required bool isRefund}) {
+    // TODO: implement updateShiftTotals
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<String> createStockRequest(List<brick.TransactionItem> items, {required int mainBranchId, required int subBranchId, String? deliveryNote, String? orderNote, String? financingId}) {
+    // TODO: implement createStockRequest
     throw UnimplementedError();
   }
 }

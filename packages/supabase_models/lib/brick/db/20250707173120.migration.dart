@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250704173921_up = [
+const List<MigrationCommand> _migration_20250707173120_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -334,7 +334,6 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   InsertColumn('last_touched', Column.datetime, onTable: 'TransactionItem'),
   InsertColumn('purchase_id', Column.varchar, onTable: 'TransactionItem'),
   InsertForeignKey('TransactionItem', 'Stock', foreignKeyColumn: 'stock_Stock_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
-  InsertColumn('stock_id', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('tax_percentage', Column.num, onTable: 'TransactionItem'),
   InsertColumn('color', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('sku', Column.varchar, onTable: 'TransactionItem'),
@@ -368,9 +367,9 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   InsertColumn('ebm_synced', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('part_of_composite', Column.boolean, onTable: 'TransactionItem'),
   InsertColumn('composite_price', Column.num, onTable: 'TransactionItem'),
-  InsertForeignKey('TransactionItem', 'InventoryRequest', foreignKeyColumn: 'inventory_request_InventoryRequest_brick_id', onDeleteCascade: false, onDeleteSetDefault: false),
   InsertColumn('inventory_request_id', Column.varchar, onTable: 'TransactionItem'),
   InsertColumn('ignore_for_report', Column.boolean, onTable: 'TransactionItem'),
+  InsertColumn('supply_price_at_sale', Column.num, onTable: 'TransactionItem'),
   InsertColumn('id', Column.varchar, onTable: 'LPermission', unique: true),
   InsertColumn('name', Column.varchar, onTable: 'LPermission'),
   InsertColumn('user_id', Column.integer, onTable: 'LPermission'),
@@ -437,7 +436,7 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   InsertColumn('net_wt', Column.integer, onTable: 'Variant'),
   InsertColumn('spplr_nm', Column.varchar, onTable: 'Variant'),
   InsertColumn('agnt_nm', Column.varchar, onTable: 'Variant'),
-  InsertColumn('invc_fcur_amt', Column.integer, onTable: 'Variant'),
+  InsertColumn('invc_fcur_amt', Column.num, onTable: 'Variant'),
   InsertColumn('invc_fcur_cd', Column.varchar, onTable: 'Variant'),
   InsertColumn('invc_fcur_excrt', Column.Double, onTable: 'Variant'),
   InsertColumn('expt_nat_cd', Column.varchar, onTable: 'Variant'),
@@ -793,6 +792,7 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   InsertColumn('expected_cash', Column.num, onTable: 'Shift'),
   InsertColumn('cash_difference', Column.num, onTable: 'Shift'),
   InsertColumn('note', Column.varchar, onTable: 'Shift'),
+  InsertColumn('refunds', Column.num, onTable: 'Shift'),
   InsertColumn('id', Column.varchar, onTable: 'AiConversation', unique: true),
   InsertColumn('title', Column.varchar, onTable: 'AiConversation'),
   InsertColumn('branch_id', Column.integer, onTable: 'AiConversation'),
@@ -848,6 +848,7 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   CreateIndex(columns: ['id'], onTable: 'TransactionItem', unique: true),
   CreateIndex(columns: ['transaction_id'], onTable: 'TransactionItem', unique: false),
   CreateIndex(columns: ['variant_id'], onTable: 'TransactionItem', unique: false),
+  CreateIndex(columns: ['inventory_request_id'], onTable: 'TransactionItem', unique: false),
   CreateIndex(columns: ['id'], onTable: 'LPermission', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Credit', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Variant', unique: true),
@@ -889,7 +890,7 @@ const List<MigrationCommand> _migration_20250704173921_up = [
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250704173921_down = [
+const List<MigrationCommand> _migration_20250707173120_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1214,7 +1215,6 @@ const List<MigrationCommand> _migration_20250704173921_down = [
   DropColumn('last_touched', onTable: 'TransactionItem'),
   DropColumn('purchase_id', onTable: 'TransactionItem'),
   DropColumn('stock_Stock_brick_id', onTable: 'TransactionItem'),
-  DropColumn('stock_id', onTable: 'TransactionItem'),
   DropColumn('tax_percentage', onTable: 'TransactionItem'),
   DropColumn('color', onTable: 'TransactionItem'),
   DropColumn('sku', onTable: 'TransactionItem'),
@@ -1248,9 +1248,9 @@ const List<MigrationCommand> _migration_20250704173921_down = [
   DropColumn('ebm_synced', onTable: 'TransactionItem'),
   DropColumn('part_of_composite', onTable: 'TransactionItem'),
   DropColumn('composite_price', onTable: 'TransactionItem'),
-  DropColumn('inventory_request_InventoryRequest_brick_id', onTable: 'TransactionItem'),
   DropColumn('inventory_request_id', onTable: 'TransactionItem'),
   DropColumn('ignore_for_report', onTable: 'TransactionItem'),
+  DropColumn('supply_price_at_sale', onTable: 'TransactionItem'),
   DropColumn('id', onTable: 'LPermission'),
   DropColumn('name', onTable: 'LPermission'),
   DropColumn('user_id', onTable: 'LPermission'),
@@ -1673,6 +1673,7 @@ const List<MigrationCommand> _migration_20250704173921_down = [
   DropColumn('expected_cash', onTable: 'Shift'),
   DropColumn('cash_difference', onTable: 'Shift'),
   DropColumn('note', onTable: 'Shift'),
+  DropColumn('refunds', onTable: 'Shift'),
   DropColumn('id', onTable: 'AiConversation'),
   DropColumn('title', onTable: 'AiConversation'),
   DropColumn('branch_id', onTable: 'AiConversation'),
@@ -1728,6 +1729,7 @@ const List<MigrationCommand> _migration_20250704173921_down = [
   DropIndex('index_TransactionItem_on_id'),
   DropIndex('index_TransactionItem_on_transaction_id'),
   DropIndex('index_TransactionItem_on_variant_id'),
+  DropIndex('index_TransactionItem_on_inventory_request_id'),
   DropIndex('index_LPermission_on_id'),
   DropIndex('index_Credit_on_id'),
   DropIndex('index_Variant_on_id'),
@@ -1774,15 +1776,15 @@ const List<MigrationCommand> _migration_20250704173921_down = [
 //
 
 @Migratable(
-  version: '20250704173921',
-  up: _migration_20250704173921_up,
-  down: _migration_20250704173921_down,
+  version: '20250707173120',
+  up: _migration_20250707173120_up,
+  down: _migration_20250707173120_down,
 )
-class Migration20250704173921 extends Migration {
-  const Migration20250704173921()
+class Migration20250707173120 extends Migration {
+  const Migration20250707173120()
     : super(
-        version: 20250704173921,
-        up: _migration_20250704173921_up,
-        down: _migration_20250704173921_down,
+        version: 20250707173120,
+        up: _migration_20250707173120_up,
+        down: _migration_20250707173120_down,
       );
 }

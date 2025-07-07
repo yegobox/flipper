@@ -2,7 +2,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:flutter/foundation.dart';
 
 final talker = TalkerFlutter.init();
 

@@ -28,7 +28,7 @@ abstract class LocalStorage {
   bool hasSignedInForAutoBackup();
   String? gdID();
   String? getBearerToken();
-  String getDefaultApp();
+  String? getDefaultApp();
   String? whatsAppToken();
   String? paginationCreatedAt();
   int? paginationId();

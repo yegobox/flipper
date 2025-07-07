@@ -1007,7 +1007,7 @@ class _RowItemState extends ConsumerState<RowItem>
   Widget _buildFloatingActionButtons(ColorScheme colorScheme) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(12),
         ),
@@ -1020,9 +1020,15 @@ class _RowItemState extends ConsumerState<RowItem>
             icon:
                 Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
             tooltip: 'Delete',
-            onPressed: () {
+            onPressed: () async {
               if (widget.variant != null) {
-                widget.delete(widget.variant?.productId, 'product');
+                final stock = await CacheManager()
+                    .getStockByVariantId(widget.variant!.id);
+                if (stock != null && stock.currentStock != 0) {
+                  toast('Cannot delete a variant with stock.');
+                  return;
+                }
+                widget.delete(widget.variant!.productId!, 'product');
               } else if (widget.product != null) {
                 widget.delete(widget.product?.id, 'product');
               }

@@ -82,11 +82,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(items,
-          financeOption: financeOption,
-          transaction: transaction,
+          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+          subBranchId: ProxyService.box.getBranchId()!,
           deliveryNote: deliveryNote,
-          deliveryDate: startDate,
-          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!);
+          orderNote: null,
+          financingId: financeOption.id);
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);
@@ -203,7 +203,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // Validate stock levels before proceeding
       final transactionItems =
           await _getTransactionItems(transaction: transaction);
-      final outOfStockItems = await validateStockQuantity(transactionItems);
+      // Filter out services (itemTyCd == "3") from stock validation
+      final itemsToValidate =
+          transactionItems.where((item) => item.itemTyCd != "3").toList();
+      final outOfStockItems = await validateStockQuantity(itemsToValidate);
       if (outOfStockItems.isNotEmpty) {
         if (mounted) {
           await showOutOfStockDialog(context, outOfStockItems);
@@ -214,6 +217,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Deduct stock for each transaction item
       for (var item in transactionItems) {
+        // Do not deduct stock for services
+        if (item.itemTyCd == "3") {
+          continue;
+        }
         final variant =
             await ProxyService.strategy.getVariant(id: item.variantId!);
         if (variant != null &&

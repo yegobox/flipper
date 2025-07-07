@@ -33,4 +33,11 @@ mixin CapellaShiftMixin implements ShiftApi {
       {required int businessId, DateTimeRange? dateRange}) {
     throw UnimplementedError('getShifts needs to be implemented for Capella');
   }
+
+  @override
+  Future<models.Shift> updateShiftTotals(
+      {required double transactionAmount, required bool isRefund}) {
+    throw UnimplementedError(
+        'updateShiftTotals needs to be implemented for Capella');
+  }
 }

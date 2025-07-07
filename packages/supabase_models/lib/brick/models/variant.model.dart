@@ -54,12 +54,11 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? pkgUnitCd;
   String? qtyUnitCd;
   String? itemNm;
-  @Supabase(defaultValue: "0.0")
+
   double? prc;
   double? splyAmt;
   int? tin;
   String? bhfId;
-  @Supabase(defaultValue: "0.0")
   double? dftPrc;
   String? addInfo;
   String? isrcAplcbYn;
@@ -83,7 +82,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   /// only a placeholder for capturing stock quantity for this variant,
   /// since when capturing qty we only have variant and not stock.
 
-  @Sqlite(defaultValue: "0.0", ignore: true)
+  @Sqlite(ignore: true)
   @Supabase(ignore: true)
   double? qty;
   @Sqlite(ignore: true)
@@ -96,7 +95,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   int? netWt;
   String? spplrNm;
   String? agntNm;
-  int? invcFcurAmt;
+  num? invcFcurAmt;
   String? invcFcurCd;
   double? invcFcurExcrt;
   String? exptNatCd;
@@ -269,8 +268,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
         categoryName: parseOrDefault<String?>(json['categoryName'], null),
 
         taxName: parseOrDefault<String?>(json['taxName'], null),
-        taxPercentage:
-            (json['taxPercentage'] as num?)?.toDouble() ?? 18.0,
+        taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 18.0,
         itemSeq: parseOrDefault<int>(json['itemSeq'], 1),
         isrccCd: parseOrDefault<String?>(json['isrccCd'], null),
         isrccNm: parseOrDefault<String?>(json['isrccNm'], null),
@@ -316,7 +314,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
         netWt: (json['netWt'] as num?)?.toInt() ?? 0,
         spplrNm: parseOrDefault<String?>(json['spplrNm'], null),
         agntNm: parseOrDefault<String?>(json['agntNm'], null),
-        invcFcurAmt: (json['invcFcurAmt'] as num?)?.toInt() ?? 0,
+        invcFcurAmt: (json['invcFcurAmt'] as num?) ?? 0.0,
         invcFcurCd: parseOrDefault<String?>(json['invcFcurCd'], null),
         invcFcurExcrt: (json['invcFcurExcrt'] as num?)?.toDouble() ?? 0.0,
         exptNatCd: parseOrDefault<String?>(json['exptNatCd'], null),

@@ -72,18 +72,21 @@ mixin TransactionMixin implements TransactionInterface {
       );
     }
     final List<Where> conditions = [
-      Where('status').isExactly(status ?? COMPLETE), // Ensure default value
-      if (skipOriginalTransactionCheck == false)
-        Where('isOriginalTransaction').isExactly(true),
-      if (!includeZeroSubTotal)
-        Where('subTotal').isGreaterThan(0), // Optional condition
-      if (id != null) Where('id').isExactly(id),
-      if (branchId != null) Where('branchId').isExactly(branchId),
-      Where('isExpense').isExactly(isExpense),
-      if (includePending) Where('status').isExactly(PENDING),
-      if (filterType != null) Where('type').isExactly(filterType.toString()),
-      if (transactionType != null)
-        Where('transactionType').isExactly(transactionType),
+      if (id != null)
+        Where('id').isExactly(id)
+      else ...[
+        Where('status').isExactly(status ?? COMPLETE), // Ensure default value
+        if (skipOriginalTransactionCheck == false)
+          Where('isOriginalTransaction').isExactly(true),
+        if (!includeZeroSubTotal)
+          Where('subTotal').isGreaterThan(0), // Optional condition
+        if (branchId != null) Where('branchId').isExactly(branchId),
+        Where('isExpense').isExactly(isExpense),
+        if (includePending) Where('status').isExactly(PENDING),
+        if (filterType != null) Where('type').isExactly(filterType.toString()),
+        if (transactionType != null)
+          Where('transactionType').isExactly(transactionType),
+      ]
     ];
 
     if (startDate != null && endDate != null) {
@@ -160,7 +163,6 @@ mixin TransactionMixin implements TransactionInterface {
     // Step 1: Fetch transactions using the same logic as the transactions() method
     final transactionss = await transactions(
       startDate: startDate,
-      forceRealData: false,
       endDate: endDate,
       status: status,
       transactionType: transactionType,

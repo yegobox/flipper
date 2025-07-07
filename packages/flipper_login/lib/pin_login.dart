@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -103,6 +104,14 @@ class _PinLoginState extends State<PinLogin> with CoreMiscellaneous {
 
     // Extract the error information
     final String errorMessage = errorDetails['errorMessage'];
+    GlobalErrorHandler.logError(
+      e,
+      stackTrace: s,
+      type: 'Pin Login Error',
+      extra: {
+        'error_type': e.runtimeType.toString(),
+      },
+    );
 
     // Only show error message if we have one - navigation is handled in auth_mixin
     if (errorMessage.isNotEmpty) {

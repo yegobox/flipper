@@ -12,13 +12,14 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         businessesProvider,
         buttonIndexProvider,
         selectedBranchProvider;
+import 'package:flipper_routing/app.locator.dart' show locator;
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class IconText extends StatelessWidget {
@@ -169,11 +170,56 @@ class IconRowState extends ConsumerState<IconRow>
         },
       );
     } else if (index == 2) {
-      //TODO: rethinkg If closing shift should be here
+      showBranchSwitchDialog(
+        context: context,
+        branches: null, // Now allowed: nullable
+        loadingItemId: _loadingItemId,
+        setDefaultBranch: (branch) async {
+          setState(() {
+            _isLoading = true;
+          });
+          handleBranchSelection(
+            branch,
+            context,
+            setLoadingState: (String? id) {
+              setState(() {
+                _loadingItemId = id;
+              });
+            },
+            setDefaultBranch: _setDefaultBranch,
+            onComplete: () {
+              Navigator.of(context).pop();
+              setState(() {
+                _isLoading = false;
+              });
+            },
+            setIsLoading: (bool value) {
+              setState(() {
+                _isLoading = value;
+              });
+            },
+          );
+        },
+        handleBranchSelection: handleBranchSelection, // Pass required argument
+        onLogout: () async {
+          await showLogoutConfirmationDialog(
+            context,
+          );
+        },
+        setLoadingState: (String? id) {
+          setState(() {
+            _loadingItemId = id;
+          });
+        },
+      );
     }
   }
 
-  
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    _refreshBusinessAndBranchProviders();
+    return Future.value(); // Return a completed Future<void>
+  }
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);

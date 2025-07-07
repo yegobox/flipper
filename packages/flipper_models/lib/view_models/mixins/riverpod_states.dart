@@ -6,6 +6,7 @@ import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
+import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -676,7 +677,6 @@ final variantsProvider = FutureProvider.autoDispose
   return await ProxyService.strategy.variants(branchId: branchId);
 });
 
-
 class Payment {
   double amount;
   String method;
@@ -755,6 +755,11 @@ class StringState extends StateNotifier<String?> {
 final stringProvider = StateNotifierProvider<StringState, String?>((ref) {
   return StringState(null);
 });
+
+final orderStatusProvider =
+    StateProvider<OrderStatus>((ref) => OrderStatus.pending);
+final requestStatusProvider =
+    StateProvider<String>((ref) => RequestStatus.pending);
 
 final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
 List<ProviderBase> allProviders = [

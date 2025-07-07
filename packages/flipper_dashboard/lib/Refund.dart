@@ -277,30 +277,15 @@ class _RefundState extends ConsumerState<Refund> {
 
 // Common refund logic
   Future<void> proceed({required String receiptType}) async {
-    // Add stock back to same item refunded
     try {
-      // First create the refund transaction with the correct receipt type
+      // Perform refund operations
       if (receiptType == "CR") {
         await handleReceipt(filterType: FilterType.CR);
       } else if (receiptType == "CS") {
         await handleReceipt(filterType: FilterType.CS);
       } else if (receiptType == "TR") {
-        // Mark the original transaction as refunded
-        await ProxyService.strategy.updateTransaction(
-          transaction: widget.transaction!,
-          isRefunded: true,
-        );
         await handleReceipt(filterType: FilterType.TR);
       } else if (receiptType == "NR") {
-        // Mark the original transaction as refunded
-        await ProxyService.strategy.updateTransaction(
-          transaction: widget.transaction!,
-          isRefunded: true,
-        );
-        await handleReceipt(filterType: FilterType.NR);
-        talker.info(
-            "Original transaction ${widget.transaction!.id} marked as refunded");
-
         List<TransactionItem> items = await ProxyService.strategy
             .transactionItems(transactionId: widget.transactionId);
         talker.info("Items to Refund: ${items.length}");
@@ -310,7 +295,7 @@ class _RefundState extends ConsumerState<Refund> {
               await ProxyService.strategy.getVariant(id: item.variantId);
           if (variant != null) {
             if (variant.stock != null) {
-              // mark the variant.ebmSynced to false
+              // Mark the variant.ebmSynced to false (for re-sync if needed)
               ProxyService.strategy
                   .updateVariant(updatables: [variant], ebmSynced: false);
               // Update the stock
@@ -319,7 +304,7 @@ class _RefundState extends ConsumerState<Refund> {
                   currentStock: variant.stock!.currentStock! + item.qty,
                   ebmSynced: false);
 
-              variant.ebmSynced = true;
+              // Sync with EBM for stock return
               final ebmSyncService = TurboTaxService(repository);
               await ebmSyncService.syncTransactionWithEbm(
                 instance: widget.transaction!,
@@ -327,7 +312,7 @@ class _RefundState extends ConsumerState<Refund> {
                 sarTyCd: StockInOutType.returnIn,
               );
 
-              /// since calling syncTransactionWithEbm calls the method for IO, we pass updateIo as false below
+              // Since syncTransactionWithEbm calls the method for IO, we pass updateIo as false below
               ProxyService.strategy.updateVariant(
                   updateIo: false,
                   updatables: [variant],
@@ -336,6 +321,15 @@ class _RefundState extends ConsumerState<Refund> {
             }
           }
         }
+        // After all operations are successful, mark the original transaction as refunded
+        // This will be handled in handleReceipt for refund types
+        // await ProxyService.strategy.updateTransaction(
+        //   transaction: widget.transaction!,
+        //   isRefunded: true,
+        // );
+        await handleReceipt(filterType: FilterType.NR);
+        talker.info(
+            "Original transaction ${widget.transaction!.id} marked as refunded");
       }
     } catch (e) {
       talker.error(e);
@@ -374,6 +368,22 @@ class _RefundState extends ConsumerState<Refund> {
 
       await TaxController(object: widget.transaction)
           .handleReceipt(filterType: filterType);
+
+      // Only mark as refunded if it's a refund operation and successful
+      if (filterType == FilterType.NR ||
+          filterType == FilterType.CR ||
+          filterType == FilterType.TR) {
+        await ProxyService.strategy.updateTransaction(
+          transaction: widget.transaction!,
+          isRefunded: true,
+        );
+        talker.info(
+            "Transaction ${widget.transaction!.id} marked as refunded after successful receipt handling.");
+        await ProxyService.strategy.updateShiftTotals(
+          transactionAmount: widget.refundAmount,
+          isRefund: true,
+        );
+      }
 
       setState(() {
         // Reset the loading state when done

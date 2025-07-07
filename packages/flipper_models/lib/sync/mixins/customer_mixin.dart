@@ -17,21 +17,20 @@ mixin CustomerMixin implements CustomerInterface {
   }
 
   @override
-  FutureOr<List<Customer>> customers(
-      {required int branchId, String? key, String? id}) async {
-    if (id != null) {
-      return repository.get<Customer>(
-          policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: Query(where: [
-            Where('id', value: id, compare: Compare.exact),
-          ]));
-    }
-
-    if (key != null) {
+  FutureOr<List<Customer>> customers({
+    int? branchId,
+    String? key,
+    String? id,
+  }) async {
+    // If a key is provided, perform a search across multiple fields
+    if (key != null && key.isNotEmpty) {
       final searchFields = ['custNm', 'email', 'telNo'];
+
       final queries = searchFields.map((field) => Query(where: [
             Where(field, value: key, compare: Compare.contains),
-            Where('branchId', value: branchId, compare: Compare.exact),
+            if (branchId != null)
+              Where('branchId', value: branchId, compare: Compare.exact),
+            if (id != null) Where('id', value: id, compare: Compare.exact),
           ]));
 
       final results =
@@ -43,11 +42,16 @@ mixin CustomerMixin implements CustomerInterface {
       return results.expand((customers) => customers).toList();
     }
 
-    // If only branchId is provided, return all customers for that branch
+    // Default fallback: filter by available parameters (id and/or branchId)
+    final query = Query(where: [
+      Where('id', value: id, compare: Compare.exact),
+      if (branchId != null)
+        Where('branchId', value: branchId, compare: Compare.exact),
+    ]);
+
     return repository.get<Customer>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: Query(where: [
-          Where('branchId', value: branchId, compare: Compare.exact),
-        ]));
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: query,
+    );
   }
 }
