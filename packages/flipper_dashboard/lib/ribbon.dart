@@ -214,7 +214,11 @@ class IconRowState extends ConsumerState<IconRow>
     }
   }
 
- 
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+    _refreshBusinessAndBranchProviders();
+    return Future.value(); // Return a completed Future<void>
+  }
 
   void _showBranchPerformanceMobile(BuildContext context) {
     WoltModalSheet.show<void>(
