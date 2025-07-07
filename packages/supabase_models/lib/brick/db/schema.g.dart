@@ -1,11 +1,11 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250705112257.migration.dart';
+part '20250707051301.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250705112257(),};
+  const Migration20250707051301(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
@@ -649,7 +649,6 @@ final schema = Schema(
           onDeleteCascade: false,
           onDeleteSetDefault: false,
         ),
-        SchemaColumn('stock_id', Column.varchar),
         SchemaColumn('tax_percentage', Column.num),
         SchemaColumn('color', Column.varchar),
         SchemaColumn('sku', Column.varchar),
@@ -683,14 +682,6 @@ final schema = Schema(
         SchemaColumn('ebm_synced', Column.boolean),
         SchemaColumn('part_of_composite', Column.boolean),
         SchemaColumn('composite_price', Column.num),
-        SchemaColumn(
-          'inventory_request_InventoryRequest_brick_id',
-          Column.integer,
-          isForeignKey: true,
-          foreignTableName: 'InventoryRequest',
-          onDeleteCascade: false,
-          onDeleteSetDefault: false,
-        ),
         SchemaColumn('inventory_request_id', Column.varchar),
         SchemaColumn('ignore_for_report', Column.boolean),
         SchemaColumn('supply_price_at_sale', Column.num),
@@ -699,6 +690,7 @@ final schema = Schema(
         SchemaIndex(columns: ['id'], unique: true),
         SchemaIndex(columns: ['transaction_id'], unique: false),
         SchemaIndex(columns: ['variant_id'], unique: false),
+        SchemaIndex(columns: ['inventory_request_id'], unique: false),
       },
     ),
     SchemaTable(

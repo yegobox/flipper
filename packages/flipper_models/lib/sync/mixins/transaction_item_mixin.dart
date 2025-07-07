@@ -176,7 +176,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           regrId: variation.regrId,
           regrNm: variation.regrNm,
           stock: variation.stock,
-          stockId: variation.stockId,
           taxPercentage: variation.taxPercentage,
           color: variation.color,
           sku: variation.sku,
