@@ -128,6 +128,11 @@ class TransactionsState extends ConsumerState<Transactions>
     }
   }
 
+  // Helper to get the correct date for display/filtering
+  DateTime _getEffectiveDate(ITransaction transaction) {
+    return transaction.lastTouched ?? transaction.createdAt!;
+  }
+
   List<Widget> _normalTransactions(
       {required List<ITransaction> completedTransaction}) {
     list.clear(); // Clear existing items
@@ -141,9 +146,9 @@ class TransactionsState extends ConsumerState<Transactions>
         continue;
       }
 
-      if (lastSeen !=
-          transaction.createdAt!.toIso8601String().substring(0, 10)) {
-        lastSeen = transaction.createdAt!.toIso8601String().substring(0, 10);
+      final effectiveDate = _getEffectiveDate(transaction);
+      if (lastSeen != effectiveDate.toIso8601String().substring(0, 10)) {
+        lastSeen = effectiveDate.toIso8601String().substring(0, 10);
         list.add(_buildDateHeader(transaction));
       }
 
@@ -153,10 +158,11 @@ class TransactionsState extends ConsumerState<Transactions>
   }
 
   Widget _buildDateHeader(ITransaction transaction) {
+    final effectiveDate = _getEffectiveDate(transaction);
     return Container(
       margin: const EdgeInsets.fromLTRB(30, 10, 0, 10),
       child: Text(
-        isEquivalentToToday(transaction.createdAt!.toIso8601String()),
+        isEquivalentToToday(effectiveDate.toIso8601String()),
         style: GoogleFonts.poppins(
           fontSize: 17,
           fontWeight: FontWeight.w500,
@@ -213,7 +219,7 @@ class TransactionsState extends ConsumerState<Transactions>
                 ),
               ),
               Text(
-                transaction.createdAt.toString().substring(11, 16),
+                _getEffectiveDate(transaction).toString().substring(11, 16),
                 style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w400,
