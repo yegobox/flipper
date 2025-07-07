@@ -169,14 +169,52 @@ class IconRowState extends ConsumerState<IconRow>
         },
       );
     } else if (index == 2) {
-      _refreshBusinessAndBranchProviders();
+      showBranchSwitchDialog(
+        context: context,
+        branches: null, // Now allowed: nullable
+        loadingItemId: _loadingItemId,
+        setDefaultBranch: (branch) async {
+          setState(() {
+            _isLoading = true;
+          });
+          handleBranchSelection(
+            branch,
+            context,
+            setLoadingState: (String? id) {
+              setState(() {
+                _loadingItemId = id;
+              });
+            },
+            setDefaultBranch: _setDefaultBranch,
+            onComplete: () {
+              Navigator.of(context).pop();
+              setState(() {
+                _isLoading = false;
+              });
+            },
+            setIsLoading: (bool value) {
+              setState(() {
+                _isLoading = value;
+              });
+            },
+          );
+        },
+        handleBranchSelection: handleBranchSelection, // Pass required argument
+        onLogout: () async {
+          await showLogoutConfirmationDialog(
+            context,
+          );
+        },
+        setLoadingState: (String? id) {
+          setState(() {
+            _loadingItemId = id;
+          });
+        },
+      );
     }
   }
 
-  void _refreshBusinessAndBranchProviders() {
-    ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
-  }
+ 
 
   void _showBranchPerformanceMobile(BuildContext context) {
     WoltModalSheet.show<void>(
