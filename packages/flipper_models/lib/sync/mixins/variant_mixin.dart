@@ -309,9 +309,6 @@ mixin VariantMixin implements VariantInterface {
       final name = (productName ?? updatables[i].productName)!;
       updatables[i].productName = name;
       if (updatables[i].stock == null) {
-        // if (selectedProductType == "3") {
-        //   updatables[i].stock?.currentStock = 0;
-        // }
         await addStockToVariant(variant: updatables[i]);
       }
 

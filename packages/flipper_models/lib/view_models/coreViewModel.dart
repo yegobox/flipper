@@ -1049,48 +1049,68 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> processImportItem(
-    Variant item,
+    Variant incomingImportVariant,
     Map<String, Variant> variantToMapTo,
   ) async {
-    item.taxName = "B";
-    item.taxTyCd = "B";
+    incomingImportVariant.taxName = "B";
+    incomingImportVariant.taxTyCd = "B";
 
     final URI = await ProxyService.box.getServerUrl() ?? "";
-    Variant? variantToProcess;
+    Variant? existingVariantToUpdate;
 
+    /// we have item to map, this means we are taking incoming import's Qty
+    /// and assign it to existing variant's stock.
     if (variantToMapTo.isNotEmpty) {
-      variantToProcess = variantToMapTo[item.id];
-      if (variantToProcess != null) {
-        variantToProcess.ebmSynced = false;
+      existingVariantToUpdate = variantToMapTo[incomingImportVariant.id];
+      if (existingVariantToUpdate != null) {
+        existingVariantToUpdate.ebmSynced = false;
         await _updateVariantStock(
-            item: item, existingVariantToUpdate: variantToProcess);
+            item: incomingImportVariant,
+            existingVariantToUpdate: existingVariantToUpdate);
+
+        /// get updated variant with new stock
+        existingVariantToUpdate = await ProxyService.strategy
+                .getVariant(id: existingVariantToUpdate.id) ??
+            incomingImportVariant;
 
         /// we mark this item as 3 approved since it's stock has been merged with existing, and also as ebm synced to avoid accidental
         /// syncing it again.
-        item.imptItemSttsCd = "3";
-        item.ebmSynced = true;
-        await ProxyService.strategy.updateVariant(updatables: [item]);
+        // item.imptItemSttsCd = "3";
+        incomingImportVariant.ebmSynced = true;
+        incomingImportVariant.assigned = false;
+
+        incomingImportVariant.imptItemSttsCd = "3";
+        existingVariantToUpdate.ebmSynced = true;
+        incomingImportVariant.assigned = true;
         await ProxyService.strategy
-            .updateVariant(updatables: [variantToProcess]);
+            .updateVariant(updatables: [incomingImportVariant]);
+        await ProxyService.strategy
+            .updateVariant(updatables: [existingVariantToUpdate]);
       }
     } else {
-      item.imptItemSttsCd = "3";
-      item.ebmSynced = false;
-      variantToProcess = item;
-      variantToProcess.itemCd = await ProxyService.strategy.itemCode(
-        countryCode: variantToProcess.orgnNatCd ?? "RW",
+      existingVariantToUpdate = incomingImportVariant;
+      existingVariantToUpdate.itemCd = await ProxyService.strategy.itemCode(
+        countryCode: existingVariantToUpdate.orgnNatCd ?? "RW",
         productType: "2",
-        packagingUnit: variantToProcess.pkgUnitCd ?? "CT",
-        quantityUnit: variantToProcess.qtyUnitCd ?? "BJ",
+        packagingUnit: existingVariantToUpdate.pkgUnitCd ?? "CT",
+        quantityUnit: existingVariantToUpdate.qtyUnitCd ?? "BJ",
         branchId: ProxyService.box.getBranchId()!,
       );
-      await _updateVariant(variantToProcess);
+      existingVariantToUpdate.imptItemSttsCd = "3";
+      existingVariantToUpdate.assigned = false;
+
+      await _updateVariant(existingVariantToUpdate);
+      // get freshly updated Variant with its updated stock.
+      existingVariantToUpdate = await ProxyService.strategy
+              .getVariant(id: existingVariantToUpdate.id) ??
+          incomingImportVariant;
     }
 
     // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
     // "02" is the code for Incoming purchase/import in the system
 
-    await ProxyService.tax.updateImportItems(item: item, URI: URI);
+    await ProxyService.tax
+        .updateImportItems(item: incomingImportVariant, URI: URI);
   }
 
   Future<void> _updateVariantStock(
