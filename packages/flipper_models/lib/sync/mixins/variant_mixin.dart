@@ -309,9 +309,9 @@ mixin VariantMixin implements VariantInterface {
       final name = (productName ?? updatables[i].productName)!;
       updatables[i].productName = name;
       if (updatables[i].stock == null) {
-        if (selectedProductType == "3") {
-          updatables[i].stock?.currentStock = 0;
-        }
+        // if (selectedProductType == "3") {
+        //   updatables[i].stock?.currentStock = 0;
+        // }
         await addStockToVariant(variant: updatables[i]);
       }
 
@@ -350,12 +350,13 @@ mixin VariantMixin implements VariantInterface {
       }
 
       updatables[i].lastTouched = DateTime.now().toUtc();
+      updatables[i].qty = updatables[i].stock?.currentStock;
 
       await CacheManager().saveStocks([updatables[i].stock!]);
       await repository.upsert<Variant>(updatables[i]);
+
       final ebmSyncService = TurboTaxService(repository);
-      if (updatables[i].imptItemSttsCd != "1" ||
-          updatables[i].pchsSttsCd != "1" && updateIo == true) {
+      if (updatables[i].assigned == false && updateIo == true) {
         await ebmSyncService.stockIo(
           variant: updatables[i],
           serverUrl: (await ProxyService.box.getServerUrl())!,

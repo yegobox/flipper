@@ -364,7 +364,11 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
               Map<String, model.Variant> variantMap) async {
             await coreViewModel.rejectImportItem(item);
           },
-          variants: ref.read(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0)).value ?? [],
+          variants: ref
+                  .read(outerVariantsProvider(
+                      ProxyService.box.getBranchId() ?? 0))
+                  .value ??
+              [],
         );
       },
     );

@@ -911,6 +911,9 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> acceptPurchase(
       {required List<Purchase> purchases,
       required String pchsSttsCd,
+
+      ///item mapper contain id of existing variant and variant being mapped (purchase variant)
+      /// id => purchaseVariant
       Map<String, Variant>? itemMapper,
       required Purchase purchase,
       Variant? clickedVariant}) async {
@@ -956,8 +959,10 @@ class CoreViewModel extends FlipperBaseModel
           pchsSttsCd: pchsSttsCd,
         );
 
-        /// if itemMapper is empty then means we are entirely approving and creating this item in our app
-        if (itemMapper?.isEmpty == true) {
+        final isVariantMapped =
+            itemMapper?.values.any((v) => v.id == variant.id) ?? false;
+
+        if (!isVariantMapped) {
           // Generate new itemCode for new item
           variant.itemCd = await ProxyService.strategy.itemCode(
             countryCode: "RW",
@@ -969,29 +974,29 @@ class CoreViewModel extends FlipperBaseModel
           variant.ebmSynced = false;
           variant.pchsSttsCd = pchsSttsCd;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          ITransaction? pendingTransaction;
-          pendingTransaction = await ProxyService.strategy.manageTransaction(
-            transactionType: TransactionType.adjustment,
-            isExpense: true,
-            status: PENDING,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          await ProxyService.strategy.assignTransaction(
-            variant: variant,
-            doneWithTransaction: true,
-            invoiceNumber: 0,
-            updatableQty: variant.stock?.currentStock,
-            pendingTransaction: pendingTransaction!,
-            business: business,
-            randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
+          // ITransaction? pendingTransaction;
+          // pendingTransaction = await ProxyService.strategy.manageTransaction(
+          //   transactionType: TransactionType.adjustment,
+          //   isExpense: true,
+          //   status: PENDING,
+          //   branchId: ProxyService.box.getBranchId()!,
+          // );
+          // await ProxyService.strategy.assignTransaction(
+          //   variant: variant,
+          //   doneWithTransaction: true,
+          //   invoiceNumber: 0,
+          //   updatableQty: variant.stock?.currentStock,
+          //   pendingTransaction: pendingTransaction!,
+          //   business: business,
+          //   randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
 
-            /// puting pchsSttsCd so I know this adjustment was used for which purpose
-            sarTyCd: pchsSttsCd,
-          );
-          //complete the transaction
-          pendingTransaction.status = COMPLETE;
-          await ProxyService.strategy
-              .updateTransaction(transaction: pendingTransaction);
+          //   /// puting pchsSttsCd so I know this adjustment was used for which purpose
+          //   sarTyCd: pchsSttsCd,
+          // );
+          // //complete the transaction
+          // pendingTransaction.status = COMPLETE;
+          // await ProxyService.strategy
+          //     .updateTransaction(transaction: pendingTransaction);
         }
       }
 
@@ -1000,12 +1005,17 @@ class CoreViewModel extends FlipperBaseModel
       /// and item that is taking db space for no reason
       itemMapper
           ?.forEach((String itemToAssignId, Variant variantFromPurchase) async {
+        if (itemToAssignId == variantFromPurchase.id) {
+          talker.warning(
+              "Skipping self-mapping for variant ID: ${variantFromPurchase.id}");
+          return; // Skip if the item is mapped to itself
+        }
         Variant? variant =
             await ProxyService.strategy.getVariant(id: itemToAssignId);
 
         /// update the relevant stock
         if (variant != null) {
-          _updateVariantStock(
+          await _updateVariantStock(
               item: variantFromPurchase, existingVariantToUpdate: variant);
 
           // final business = (await ProxyService.strategy
@@ -1027,29 +1037,15 @@ class CoreViewModel extends FlipperBaseModel
           // show those approved, rejected etc...
           // await ProxyService.strategy
           //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
-          variant.ebmSynced = false;
+          ///re-fetch for updated variant's stock.
+          variant = await ProxyService.strategy.getVariant(id: itemToAssignId);
+          variant!.ebmSynced = false;
           //this help us to not show it on dashboard as it has been assigned to another item
           variantFromPurchase.assigned = true;
-
-          await ProxyService.strategy.updateVariant(updatables: [variant]);
-
           await ProxyService.strategy
               .updateVariant(updatables: [variantFromPurchase]);
-// Start of comment
-          // await ProxyService.strategy.assignTransaction(
-          //   variant: variant,
-          //   doneWithTransaction: true,
-          //   invoiceNumber: 0,
-          //   updatableQty: variantFromPurchase.stock?.currentStock,
-          //   pendingTransaction: pendingTransaction!,
-          //   business: business!,
-          //   randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
-          //   sarTyCd: pchsSttsCd,
-          // );
-          // pendingTransaction.status = COMPLETE;
-          // await ProxyService.strategy
-          //     .updateTransaction(transaction: pendingTransaction);
-// End of comment
+
+          await ProxyService.strategy.updateVariant(updatables: [variant]);
         } else {
           talker.warning("We should not be in this condition");
         }
