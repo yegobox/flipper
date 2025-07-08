@@ -123,6 +123,9 @@ mixin VariantMixin implements VariantInterface {
         conditions.add(Where('stockSynchronized').isNot(false));
       }
 
+      /// eliminate varinats that have been assigned to other variant, this is case for import or purchase
+      conditions.add(Where('assigned').isExactly(false));
+
       final query = Query(
         where: conditions,
         orderBy: [const OrderBy('lastTouched', ascending: false)],

@@ -1106,7 +1106,7 @@ class CoreViewModel extends FlipperBaseModel
           incomingImportVariant;
     }
 
-    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
+    // Use sarTyCd = ""0"2" for imports (same as purchases) to ensure consistent recording
     // "02" is the code for Incoming purchase/import in the system
 
     await ProxyService.tax
