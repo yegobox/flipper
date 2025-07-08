@@ -123,6 +123,9 @@ mixin VariantMixin implements VariantInterface {
         conditions.add(Where('stockSynchronized').isNot(false));
       }
 
+      /// eliminate varinats that have been assigned to other variant, this is case for import or purchase
+      conditions.add(Where('assigned').isExactly(false));
+
       final query = Query(
         where: conditions,
         orderBy: [const OrderBy('lastTouched', ascending: false)],
@@ -309,9 +312,6 @@ mixin VariantMixin implements VariantInterface {
       final name = (productName ?? updatables[i].productName)!;
       updatables[i].productName = name;
       if (updatables[i].stock == null) {
-        if (selectedProductType == "3") {
-          updatables[i].stock?.currentStock = 0;
-        }
         await addStockToVariant(variant: updatables[i]);
       }
 
@@ -350,12 +350,25 @@ mixin VariantMixin implements VariantInterface {
       }
 
       updatables[i].lastTouched = DateTime.now().toUtc();
+      updatables[i].qty = updatables[i].stock?.currentStock;
 
       await CacheManager().saveStocks([updatables[i].stock!]);
       await repository.upsert<Variant>(updatables[i]);
+
+      /// handle imptItemSttsCd = 4 separetly same for purchase
+      /// this
+      ///
       final ebmSyncService = TurboTaxService(repository);
-      if (updatables[i].imptItemSttsCd != "1" ||
-          updatables[i].pchsSttsCd != "1" && updateIo == true) {
+
+      /// still experimenting bellow.
+      if (updatables[i].imptItemSttsCd == "4" ||
+          updatables[i].pchsSttsCd == "04" && updateIo == true) {
+        await ebmSyncService.stockIo(
+          variant: updatables[i],
+          serverUrl: (await ProxyService.box.getServerUrl())!,
+        );
+      }
+      if (updatables[i].assigned == false && updateIo == true) {
         await ebmSyncService.stockIo(
           variant: updatables[i],
           serverUrl: (await ProxyService.box.getServerUrl())!,

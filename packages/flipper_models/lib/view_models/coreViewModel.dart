@@ -911,6 +911,9 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> acceptPurchase(
       {required List<Purchase> purchases,
       required String pchsSttsCd,
+
+      ///item mapper contain id of existing variant and variant being mapped (purchase variant)
+      /// id => purchaseVariant
       Map<String, Variant>? itemMapper,
       required Purchase purchase,
       Variant? clickedVariant}) async {
@@ -956,8 +959,10 @@ class CoreViewModel extends FlipperBaseModel
           pchsSttsCd: pchsSttsCd,
         );
 
-        /// if itemMapper is empty then means we are entirely approving and creating this item in our app
-        if (itemMapper?.isEmpty == true) {
+        final isVariantMapped =
+            itemMapper?.values.any((v) => v.id == variant.id) ?? false;
+
+        if (!isVariantMapped) {
           // Generate new itemCode for new item
           variant.itemCd = await ProxyService.strategy.itemCode(
             countryCode: "RW",
@@ -969,29 +974,6 @@ class CoreViewModel extends FlipperBaseModel
           variant.ebmSynced = false;
           variant.pchsSttsCd = pchsSttsCd;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          ITransaction? pendingTransaction;
-          pendingTransaction = await ProxyService.strategy.manageTransaction(
-            transactionType: TransactionType.adjustment,
-            isExpense: true,
-            status: PENDING,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          await ProxyService.strategy.assignTransaction(
-            variant: variant,
-            doneWithTransaction: true,
-            invoiceNumber: 0,
-            updatableQty: variant.stock?.currentStock,
-            pendingTransaction: pendingTransaction!,
-            business: business,
-            randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
-
-            /// puting pchsSttsCd so I know this adjustment was used for which purpose
-            sarTyCd: pchsSttsCd,
-          );
-          //complete the transaction
-          pendingTransaction.status = COMPLETE;
-          await ProxyService.strategy
-              .updateTransaction(transaction: pendingTransaction);
         }
       }
 
@@ -1000,54 +982,37 @@ class CoreViewModel extends FlipperBaseModel
       /// and item that is taking db space for no reason
       itemMapper
           ?.forEach((String itemToAssignId, Variant variantFromPurchase) async {
+        if (itemToAssignId == variantFromPurchase.id) {
+          talker.warning(
+              "Skipping self-mapping for variant ID: ${variantFromPurchase.id}");
+          return; // Skip if the item is mapped to itself
+        }
         Variant? variant =
             await ProxyService.strategy.getVariant(id: itemToAssignId);
 
         /// update the relevant stock
         if (variant != null) {
-          _updateVariantStock(
+          await _updateVariantStock(
               item: variantFromPurchase, existingVariantToUpdate: variant);
-
-          final business = (await ProxyService.strategy
-              .getBusiness(businessId: ProxyService.box.getBusinessId()));
-          ITransaction? pendingTransaction;
-          pendingTransaction = await ProxyService.strategy.manageTransaction(
-            transactionType: TransactionType.adjustment,
-            isExpense: true,
-            status: PENDING,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          await ProxyService.strategy
-              .updateVariant(updatables: [variantFromPurchase]);
-
-          await ProxyService.strategy.assignTransaction(
-            variant: variant,
-            doneWithTransaction: true,
-            invoiceNumber: 0,
-            updatableQty: variantFromPurchase.stock?.currentStock,
-            pendingTransaction: pendingTransaction!,
-            business: business!,
-            randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
-            sarTyCd: pchsSttsCd,
-          );
-          pendingTransaction.status = COMPLETE;
-          await ProxyService.strategy
-              .updateTransaction(transaction: pendingTransaction);
 
           /// we are setting to 1 just to not have it on dashboard
           /// this is not part 4.11. Transaction Progress rather my own way knowing
           /// something has been assigned to another item while approving.
           /// delete this??
-          variantFromPurchase.pchsSttsCd = "1";
+          variantFromPurchase.pchsSttsCd = "3";
           // deleting it is not an option because at the end we need to be able to
           // show those approved, rejected etc...
           // await ProxyService.strategy
           //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
-          variant.ebmSynced = false;
+          ///re-fetch for updated variant's stock.
+          variant = await ProxyService.strategy.getVariant(id: itemToAssignId);
+          variant!.ebmSynced = false;
+          //this help us to not show it on dashboard as it has been assigned to another item
+          variantFromPurchase.assigned = true;
+          await ProxyService.strategy
+              .updateVariant(updatables: [variantFromPurchase]);
 
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-        } else {
-          talker.warning("We should not be in this condition");
         }
       });
       isLoading = false;
@@ -1083,50 +1048,69 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-
   Future<void> processImportItem(
-    Variant item,
+    Variant incomingImportVariant,
     Map<String, Variant> variantToMapTo,
   ) async {
-    item.taxName = "B";
-    item.taxTyCd = "B";
+    incomingImportVariant.taxName = "B";
+    incomingImportVariant.taxTyCd = "B";
 
     final URI = await ProxyService.box.getServerUrl() ?? "";
-    Variant? variantToProcess;
+    Variant? existingVariantToUpdate;
 
+    /// we have item to map, this means we are taking incoming import's Qty
+    /// and assign it to existing variant's stock.
     if (variantToMapTo.isNotEmpty) {
-      variantToProcess = variantToMapTo[item.id];
-      if (variantToProcess != null) {
-        variantToProcess.ebmSynced = false;
+      existingVariantToUpdate = variantToMapTo[incomingImportVariant.id];
+      if (existingVariantToUpdate != null) {
+        existingVariantToUpdate.ebmSynced = false;
         await _updateVariantStock(
-            item: item, existingVariantToUpdate: variantToProcess);
+            item: incomingImportVariant,
+            existingVariantToUpdate: existingVariantToUpdate);
 
-        /// we mark this item as unsend since it's stock has been merged with existing, and also as ebm synced to avoid accidental
+        /// get updated variant with new stock
+        existingVariantToUpdate = await ProxyService.strategy
+                .getVariant(id: existingVariantToUpdate.id) ??
+            incomingImportVariant;
+
+        /// we mark this item as 3 approved since it's stock has been merged with existing, and also as ebm synced to avoid accidental
         /// syncing it again.
-        item.imptItemSttsCd = "1"; // 1 means unsend
-        item.ebmSynced = true;
-        await ProxyService.strategy.updateVariant(updatables: [item]);
+        // item.imptItemSttsCd = "3";
+        incomingImportVariant.ebmSynced = true;
+        incomingImportVariant.assigned = false;
+
+        incomingImportVariant.imptItemSttsCd = "3";
+        existingVariantToUpdate.ebmSynced = true;
+        incomingImportVariant.assigned = true;
         await ProxyService.strategy
-            .updateVariant(updatables: [variantToProcess]);
+            .updateVariant(updatables: [incomingImportVariant]);
+        await ProxyService.strategy
+            .updateVariant(updatables: [existingVariantToUpdate]);
       }
     } else {
-      item.imptItemSttsCd = "3";
-      item.ebmSynced = false;
-      variantToProcess = item;
-      variantToProcess.itemCd = await ProxyService.strategy.itemCode(
-        countryCode: variantToProcess.orgnNatCd ?? "RW",
+      existingVariantToUpdate = incomingImportVariant;
+      existingVariantToUpdate.itemCd = await ProxyService.strategy.itemCode(
+        countryCode: existingVariantToUpdate.orgnNatCd ?? "RW",
         productType: "2",
-        packagingUnit: variantToProcess.pkgUnitCd ?? "CT",
-        quantityUnit: variantToProcess.qtyUnitCd ?? "BJ",
+        packagingUnit: existingVariantToUpdate.pkgUnitCd ?? "CT",
+        quantityUnit: existingVariantToUpdate.qtyUnitCd ?? "BJ",
         branchId: ProxyService.box.getBranchId()!,
       );
-      await _updateVariant(variantToProcess);
+      existingVariantToUpdate.imptItemSttsCd = "3";
+      existingVariantToUpdate.assigned = false;
+
+      await _updateVariant(existingVariantToUpdate);
+      // get freshly updated Variant with its updated stock.
+      existingVariantToUpdate = await ProxyService.strategy
+              .getVariant(id: existingVariantToUpdate.id) ??
+          incomingImportVariant;
     }
 
-    // Use sarTyCd = "02" for imports (same as purchases) to ensure consistent recording
+    // Use sarTyCd = ""0"2" for imports (same as purchases) to ensure consistent recording
     // "02" is the code for Incoming purchase/import in the system
 
-    await ProxyService.tax.updateImportItems(item: item, URI: URI);
+    await ProxyService.tax
+        .updateImportItems(item: incomingImportVariant, URI: URI);
   }
 
   Future<void> _updateVariantStock(

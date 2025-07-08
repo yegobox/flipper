@@ -123,10 +123,6 @@ class PurchaseDataSource extends DataGridSource {
     }
   }
 
-  void dispose() {
-    _loadingStates.clear();
-    notifyListeners();
-  }
 
   void _setLoading(String id,
       {required bool isLoadingApprove, required bool isLoadingDecline}) {
