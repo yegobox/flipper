@@ -974,29 +974,6 @@ class CoreViewModel extends FlipperBaseModel
           variant.ebmSynced = false;
           variant.pchsSttsCd = pchsSttsCd;
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-          // ITransaction? pendingTransaction;
-          // pendingTransaction = await ProxyService.strategy.manageTransaction(
-          //   transactionType: TransactionType.adjustment,
-          //   isExpense: true,
-          //   status: PENDING,
-          //   branchId: ProxyService.box.getBranchId()!,
-          // );
-          // await ProxyService.strategy.assignTransaction(
-          //   variant: variant,
-          //   doneWithTransaction: true,
-          //   invoiceNumber: 0,
-          //   updatableQty: variant.stock?.currentStock,
-          //   pendingTransaction: pendingTransaction!,
-          //   business: business,
-          //   randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
-
-          //   /// puting pchsSttsCd so I know this adjustment was used for which purpose
-          //   sarTyCd: pchsSttsCd,
-          // );
-          // //complete the transaction
-          // pendingTransaction.status = COMPLETE;
-          // await ProxyService.strategy
-          //     .updateTransaction(transaction: pendingTransaction);
         }
       }
 
@@ -1018,16 +995,6 @@ class CoreViewModel extends FlipperBaseModel
           await _updateVariantStock(
               item: variantFromPurchase, existingVariantToUpdate: variant);
 
-          // final business = (await ProxyService.strategy
-          //     .getBusiness(businessId: ProxyService.box.getBusinessId()));
-          // ITransaction? pendingTransaction;
-          // pendingTransaction = await ProxyService.strategy.manageTransaction(
-          //   transactionType: TransactionType.adjustment,
-          //   isExpense: true,
-          //   status: PENDING,
-          //   branchId: ProxyService.box.getBranchId()!,
-          // );
-
           /// we are setting to 1 just to not have it on dashboard
           /// this is not part 4.11. Transaction Progress rather my own way knowing
           /// something has been assigned to another item while approving.
@@ -1046,8 +1013,6 @@ class CoreViewModel extends FlipperBaseModel
               .updateVariant(updatables: [variantFromPurchase]);
 
           await ProxyService.strategy.updateVariant(updatables: [variant]);
-        } else {
-          talker.warning("We should not be in this condition");
         }
       });
       isLoading = false;
