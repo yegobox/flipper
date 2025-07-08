@@ -201,7 +201,7 @@ mixin PurchaseMixin
           return await repository.get<Purchase>(
             query: brick.Query(
               where: [
-                brick.Where('branchId').isExactly(activeBranch.id),
+                brick.Where('branchId').isExactly(branchId),
               ],
             ),
           );

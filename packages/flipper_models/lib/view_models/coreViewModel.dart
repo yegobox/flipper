@@ -1008,44 +1008,48 @@ class CoreViewModel extends FlipperBaseModel
           _updateVariantStock(
               item: variantFromPurchase, existingVariantToUpdate: variant);
 
-          final business = (await ProxyService.strategy
-              .getBusiness(businessId: ProxyService.box.getBusinessId()));
-          ITransaction? pendingTransaction;
-          pendingTransaction = await ProxyService.strategy.manageTransaction(
-            transactionType: TransactionType.adjustment,
-            isExpense: true,
-            status: PENDING,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          await ProxyService.strategy
-              .updateVariant(updatables: [variantFromPurchase]);
-
-          await ProxyService.strategy.assignTransaction(
-            variant: variant,
-            doneWithTransaction: true,
-            invoiceNumber: 0,
-            updatableQty: variantFromPurchase.stock?.currentStock,
-            pendingTransaction: pendingTransaction!,
-            business: business!,
-            randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
-            sarTyCd: pchsSttsCd,
-          );
-          pendingTransaction.status = COMPLETE;
-          await ProxyService.strategy
-              .updateTransaction(transaction: pendingTransaction);
+          // final business = (await ProxyService.strategy
+          //     .getBusiness(businessId: ProxyService.box.getBusinessId()));
+          // ITransaction? pendingTransaction;
+          // pendingTransaction = await ProxyService.strategy.manageTransaction(
+          //   transactionType: TransactionType.adjustment,
+          //   isExpense: true,
+          //   status: PENDING,
+          //   branchId: ProxyService.box.getBranchId()!,
+          // );
 
           /// we are setting to 1 just to not have it on dashboard
           /// this is not part 4.11. Transaction Progress rather my own way knowing
           /// something has been assigned to another item while approving.
           /// delete this??
-          variantFromPurchase.pchsSttsCd = "1";
+          variantFromPurchase.pchsSttsCd = "3";
           // deleting it is not an option because at the end we need to be able to
           // show those approved, rejected etc...
           // await ProxyService.strategy
           //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
           variant.ebmSynced = false;
+          //this help us to not show it on dashboard as it has been assigned to another item
+          variantFromPurchase.assigned = true;
 
           await ProxyService.strategy.updateVariant(updatables: [variant]);
+
+          await ProxyService.strategy
+              .updateVariant(updatables: [variantFromPurchase]);
+// Start of comment
+          // await ProxyService.strategy.assignTransaction(
+          //   variant: variant,
+          //   doneWithTransaction: true,
+          //   invoiceNumber: 0,
+          //   updatableQty: variantFromPurchase.stock?.currentStock,
+          //   pendingTransaction: pendingTransaction!,
+          //   business: business!,
+          //   randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,
+          //   sarTyCd: pchsSttsCd,
+          // );
+          // pendingTransaction.status = COMPLETE;
+          // await ProxyService.strategy
+          //     .updateTransaction(transaction: pendingTransaction);
+// End of comment
         } else {
           talker.warning("We should not be in this condition");
         }
@@ -1083,7 +1087,6 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-
   Future<void> processImportItem(
     Variant item,
     Map<String, Variant> variantToMapTo,
@@ -1101,9 +1104,9 @@ class CoreViewModel extends FlipperBaseModel
         await _updateVariantStock(
             item: item, existingVariantToUpdate: variantToProcess);
 
-        /// we mark this item as unsend since it's stock has been merged with existing, and also as ebm synced to avoid accidental
+        /// we mark this item as 3 approved since it's stock has been merged with existing, and also as ebm synced to avoid accidental
         /// syncing it again.
-        item.imptItemSttsCd = "1"; // 1 means unsend
+        item.imptItemSttsCd = "3";
         item.ebmSynced = true;
         await ProxyService.strategy.updateVariant(updatables: [item]);
         await ProxyService.strategy
