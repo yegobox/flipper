@@ -49,8 +49,8 @@ class PurchaseTable extends StatefulHookConsumerWidget {
 }
 
 class _PurchaseTableState extends ConsumerState<PurchaseTable> {
-  String? _selectedStatusFilter =
-      '01'; // null for 'All', '01' for Waiting, '02' for Approved, '04' for Declined
+  // null for 'All', '01' for Waiting, '02' for Approved, '04' for Declined
+  String? _selectedStatusFilter = '01';
   final Map<String, double> _editedRetailPrices = {};
   final Map<String, double> _editedSupplyPrices = {};
   final Talker talker = TalkerFlutter.init();

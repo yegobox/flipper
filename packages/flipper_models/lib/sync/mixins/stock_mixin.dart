@@ -3,7 +3,6 @@ import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
 mixin StockMixin implements StockInterface {
