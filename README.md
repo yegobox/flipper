@@ -18,10 +18,7 @@
 </div>
 
 <div align="center">
-  [Discord](https://img.shields.io/discord/948937918347608085?style=for-the-badge&logo=Discord&logoColor=white&label=Discord)](https://discord.gg/z2YVKkycX3)
-  [Twitter](https://twitter.com/Flipperio)
-  [Mastodon](https://fosstodon.org/@Flipper)
-  [Blog RSS](https://yegobox.com/blog/rss.xml)
+  [Discord](https://discord.gg/z2YVKkycX3)
 </div>
 
 
