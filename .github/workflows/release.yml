@@ -294,6 +294,7 @@ jobs:
           melos bootstrap
 
       - name: Configure Missing files 
+        shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
