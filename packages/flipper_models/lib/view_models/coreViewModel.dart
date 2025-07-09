@@ -951,6 +951,7 @@ class CoreViewModel extends FlipperBaseModel
         final business = (await ProxyService.strategy
             .getBusiness(businessId: ProxyService.box.getBusinessId()));
 
+        variant.pchsSttsCd = pchsSttsCd;
         await ProxyService.tax.savePurchases(
           item: purchase,
           business: business!,

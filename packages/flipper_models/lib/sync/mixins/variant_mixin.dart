@@ -361,13 +361,7 @@ mixin VariantMixin implements VariantInterface {
       final ebmSyncService = TurboTaxService(repository);
 
       /// still experimenting bellow.
-      if (updatables[i].imptItemSttsCd == "4" ||
-          updatables[i].pchsSttsCd == "04" && updateIo == true) {
-        await ebmSyncService.stockIo(
-          variant: updatables[i],
-          serverUrl: (await ProxyService.box.getServerUrl())!,
-        );
-      }
+
       if (updatables[i].assigned == false && updateIo == true) {
         await ebmSyncService.stockIo(
           variant: updatables[i],
