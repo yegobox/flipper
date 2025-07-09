@@ -30,11 +30,11 @@ class VariantConverter
     variant.taxName = json['taxName'] as String?;
 
     // Set RRA and import fields
-    variant.itemSeq = json['itemSeq'] as int?;
+    variant.itemSeq = (json['itemSeq'])?.toInt() ?? 0;
     variant.isrccCd = json['isrccCd'] as String?;
     variant.isrccNm = json['isrccNm'] as String?;
-    variant.isrcRt = json['isrcRt'] as int?;
-    variant.isrcAmt = json['isrcAmt'] as int?;
+    variant.isrcRt = (json['isrcRt'])?.toInt() ?? 0;
+    variant.isrcAmt = (json['isrcAmt'])?.toInt() ?? 0;
     variant.taxTyCd = json['taxTyCd'] as String?;
     variant.bcd = json['bcd'] as String?;
     variant.itemClsCd = json['itemClsCd'] as String?;
@@ -48,12 +48,12 @@ class VariantConverter
     variant.imptItemSttsCd =
         json['imptItemsttsCd'] as String? ?? json['imptItemSttsCd'] as String?;
     variant.exptNatCd = json['exptNatCd'] as String?;
-    variant.pkg = json['pkg'] as int?;
+    variant.pkg = (json['pkg'])?.toInt() ?? 0;
     variant.pkgUnitCd = json['pkgUnitCd'] as String?;
     variant.qty = (json['qty'] as int?)?.toDouble() ?? 0.0;
     variant.qtyUnitCd = json['qtyUnitCd'] as String?;
-    variant.totWt = json['totWt'] as int?;
-    variant.netWt = json['netWt'] as int?;
+    variant.totWt = (json['totWt'])?.toInt() ?? 0;
+    variant.netWt = (json['netWt'])?.toInt() ?? 0;
     variant.spplrNm = json['spplrNm'] as String?;
     variant.agntNm = json['agntNm'] as String?;
     variant.invcFcurCd = json['invcFcurCd'] as String?;

@@ -840,8 +840,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
     talker.warning("HARD COPY TOTALTAX: ${totalTax.toStringAsFixed(2)}");
 
-    final topMessage =
-        "Welcome to  Our Shop \n${business?.name}\n${ProxyService.box.getUserPhone()!.replaceAll("+", "")}\n${business?.adrs?.isNotEmpty == true ? business?.adrs : 'Kigali, Rwanda'}\n${business?.tinNumber ?? '999909695'}";
+    final topMessage = [
+      business?.name ?? 'Our Business',
+      business?.adrs?.isNotEmpty == true ? business!.adrs : 'Kigali, Rwanda',
+      'TEL: ${ProxyService.box.getUserPhone()?.replaceAll("+", "") ?? '0780000000'}',
+      'Email: ${business?.email ?? 'info@yegobox.com'}',
+      'TIN: ${business?.tinNumber ?? '999909695'}',
+      'WELCOME TO OUR SHOP'
+    ].join('\n');
 
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");

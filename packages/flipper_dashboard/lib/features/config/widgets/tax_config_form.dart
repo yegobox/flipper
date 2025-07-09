@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/style_widget/button.dart';
@@ -108,7 +110,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       // Invalidate the outerVariantsProvider to refresh the variants list
                       final branchId = ProxyService.box.getBranchId();
                       if (branchId != null) {
-                        ref.invalidate(outerVariantsProvider(branchId));
+                        ref.refresh(outerVariantsProvider(branchId));
                       }
                     },
                   ),
@@ -280,7 +282,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       // Invalidate the outerVariantsProvider to refresh the variants list
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
-        ref.invalidate(outerVariantsProvider(branchId));
+        ref.refresh(outerVariantsProvider(branchId));
       }
 
       toast("Saved successfully");

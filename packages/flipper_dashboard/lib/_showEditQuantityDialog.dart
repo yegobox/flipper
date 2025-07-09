@@ -42,6 +42,10 @@ void showEditQuantityDialog(
               }
               double newQuantity =
                   double.tryParse(quantityController.text) ?? 0.0;
+              if (newQuantity < (variant.stock?.currentStock ?? 0.0)) {
+                toast("Quantity cannot be less than the current stock.");
+                return;
+              }
               model.updateVariantQuantity(variant.id, newQuantity);
               Navigator.pop(context);
             },
