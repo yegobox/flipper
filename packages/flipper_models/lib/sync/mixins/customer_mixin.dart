@@ -16,6 +16,18 @@ mixin CustomerMixin implements CustomerInterface {
     return await repository.upsert(customer);
   }
 
+  /// Returns a list of customers filtered by [branchId], [key], and/or [id].
+  ///
+  /// - If [key] is provided and not empty:
+  ///   - Searches across 'custNm', 'email', and 'telNo' fields using a contains match.
+  ///   - Combines results from all fields, filters by [branchId] if provided.
+  ///   - If [id] is provided, further filters results to only those with the matching id.
+  ///   - Deduplicates the final list by customer id.
+  /// - If [key] is not provided or empty:
+  ///   - Filters by [id] and/or [branchId] if provided.
+  ///   - If no filters are provided, returns an empty list.
+  ///
+  /// This method ensures efficient customer search and avoids duplicate entries in the results.
   @override
   FutureOr<List<Customer>> customers({
     int? branchId,

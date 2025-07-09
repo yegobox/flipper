@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
@@ -22,10 +23,10 @@ class EbmSyncService {
           instance: customer,
           serverUrl: serverUrl,
         );
-        print('EBM Sync successful for customer ${customer.id}');
+        talker.info('EBM Sync successful for customer ${customer.id}');
       }
     } catch (e) {
-      print('EBM Sync failed for customer ${customer.id}: $e');
+      talker.error('EBM Sync failed for customer ${customer.id}: $e');
       // You can add more robust error handling here, like logging to a service.
     }
   }
