@@ -9,7 +9,7 @@ import 'package:uuid/uuid.dart';
 class Customer extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
-  String id;
+  final String id;
 
   //customer name
   String? custNm;
