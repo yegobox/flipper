@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:flipper_services/event_bus.dart';
@@ -6,13 +8,19 @@ import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 class EbmSyncService {
+  StreamSubscription<CustomerUpserted>? _subscription;
+
   EbmSyncService(this.repository) {
-    EventBus().on<CustomerUpserted>().listen((event) {
+    _subscription = EventBus().on<CustomerUpserted>().listen((event) {
       _handleCustomerUpsert(event.customer);
     });
   }
 
   final Repository repository;
+
+  void dispose() {
+    _subscription?.cancel();
+  }
 
   Future<void> _handleCustomerUpsert(Customer customer) async {
     try {
