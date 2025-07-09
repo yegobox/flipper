@@ -9,7 +9,7 @@ import 'package:uuid/uuid.dart';
 class Customer extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
-  final String id;
+  String id;
 
   //customer name
   String? custNm;
@@ -88,5 +88,46 @@ class Customer extends OfflineFirstWithSupabaseModel {
       'useYn': useYn,
       'customerType': customerType,
     };
+  }
+
+  // copyWith
+  Customer copyWith({
+    String? id,
+    String? custNm,
+    String? email,
+    String? telNo,
+    String? adrs,
+    int? branchId,
+    DateTime? updatedAt,
+    String? custNo,
+    String? custTin,
+    String? modrNm,
+    String? regrNm,
+    String? regrId,
+    String? modrId,
+    bool? ebmSynced,
+    String? bhfId,
+    String? useYn,
+    String? customerType,
+  }) {
+    return Customer(
+      id: id ?? this.id,
+      custNm: custNm ?? this.custNm,
+      email: email ?? this.email,
+      telNo: telNo ?? this.telNo,
+      adrs: adrs ?? this.adrs,
+      branchId: branchId ?? this.branchId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      custNo: custNo ?? this.custNo,
+      custTin: custTin ?? this.custTin,
+      modrNm: modrNm ?? this.modrNm,
+      regrNm: regrNm ?? this.regrNm,
+      regrId: regrId ?? this.regrId,
+      modrId: modrId ?? this.modrId,
+      ebmSynced: ebmSynced ?? this.ebmSynced,
+      bhfId: bhfId ?? this.bhfId,
+      useYn: useYn ?? this.useYn,
+      customerType: customerType ?? this.customerType,
+    );
   }
 }

@@ -53,6 +53,10 @@ mixin CustomerMixin implements CustomerInterface {
         Where('branchId', value: branchId, compare: Compare.exact),
     ]);
 
+    if (query.where!.isEmpty && (key == null || key.isEmpty)) {
+      return [];
+    }
+
     return repository.get<Customer>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: query,

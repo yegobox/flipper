@@ -822,3 +822,6 @@ class App {}
 
 // We need to follow https://julius.ai/ by enahncing our built-in ai
 // https://github.com/GetDutchie/brick/blob/main/packages/brick_offline_first/lib/src/offline_first_repository.dart#L246-L283
+
+
+//Enable repo git hooks git config core.hooksPath hooks
