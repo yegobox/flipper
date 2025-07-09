@@ -361,7 +361,6 @@ mixin VariantMixin implements VariantInterface {
       final ebmSyncService = TurboTaxService(repository);
 
       /// still experimenting bellow.
-
       if (updatables[i].assigned == false && updateIo == true) {
         await ebmSyncService.stockIo(
           variant: updatables[i],
