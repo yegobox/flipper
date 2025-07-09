@@ -341,6 +341,8 @@ class TurboTaxService {
         URI: serverUrl,
       );
       if (response.resultCd == "000") {
+        ProxyService.notification
+            .sendLocalNotification(body: "Customer Synced");
         return true;
       }
     } catch (e, s) {
