@@ -15,11 +15,13 @@ import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 final isWindows = UniversalPlatform.isWindows;
 
 class AddCustomer extends StatefulHookConsumerWidget {
-  const AddCustomer({Key? key, required this.transactionId, this.searchedKey})
+  const AddCustomer(
+      {Key? key, required this.transactionId, this.searchedKey, this.customer})
       : super(key: key);
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final String transactionId;
   final String? searchedKey;
+  final Customer? customer;
 
   @override
   AddCustomerState createState() => AddCustomerState();
@@ -51,16 +53,24 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
 
   @override
   void initState() {
-    if (isNumeric(widget.searchedKey)) {
-      _phoneController.text = widget.searchedKey!;
-    }
-    if (!isNumeric(widget.searchedKey) && !isEmail(widget.searchedKey)) {
-      _nameController.text = widget.searchedKey!;
-    }
-    if (isEmail(widget.searchedKey)) {
-      _emailController.text = widget.searchedKey!;
-    }
     super.initState();
+    if (widget.customer != null) {
+      _nameController.text = widget.customer!.custNm!;
+      _phoneController.text = widget.customer!.telNo!;
+      _emailController.text = widget.customer!.email ?? '';
+      _tinNumberController.text = widget.customer!.custTin ?? '';
+      selectedCustomerTypeValue = widget.customer!.customerType ?? 'Individual';
+    } else {
+      if (isNumeric(widget.searchedKey)) {
+        _phoneController.text = widget.searchedKey!;
+      }
+      if (!isNumeric(widget.searchedKey) && !isEmail(widget.searchedKey)) {
+        _nameController.text = widget.searchedKey!;
+      }
+      if (isEmail(widget.searchedKey)) {
+        _emailController.text = widget.searchedKey!;
+      }
+    }
   }
 
   @override
@@ -73,7 +83,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              'Add New Customer',
+              widget.customer == null
+                  ? 'Add New Customer'
+                  : 'Update Customer',
               style: theme.textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -95,7 +107,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.2),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -113,7 +126,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: theme.colorScheme.outline
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                 ),
                               ),
                               child: DropdownButtonHideUnderline(
@@ -156,7 +169,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.2),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -228,6 +242,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                 if (!isNumeric(value)) {
                                   return 'TIN should be a number';
                                 }
+                                if (value.length != 9) {
+                                  return 'TIN must be 9 digits';
+                                }
                                 return null;
                               },
                             ),
@@ -250,6 +267,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                   setState(() => isLoading = true);
                                   try {
                                     await model.addCustomer(
+                                      id: widget.customer?.id,
                                       customerType: selectedCustomerTypeValue,
                                       email: _emailController.text,
                                       phone: _phoneController.text,
@@ -266,7 +284,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                         Navigator.of(context,
                                                 rootNavigator: true)
                                             .context,
-                                        'Customer added successfully!',
+                                        widget.customer == null
+                                            ? 'Customer added successfully!'
+                                            : 'Customer updated successfully!',
                                         backgroundColor: Colors.green[600],
                                       );
                                     });
@@ -306,9 +326,11 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                       Colors.white),
                                 ),
                               )
-                            : const Text(
-                                'Add Customer',
-                                style: TextStyle(
+                            : Text(
+                                widget.customer == null
+                                    ? 'Add Customer'
+                                    : 'Update Customer',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),

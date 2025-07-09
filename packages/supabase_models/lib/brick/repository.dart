@@ -8,6 +8,8 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
+import 'package:flipper_services/event_bus.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
@@ -15,8 +17,10 @@ import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
+import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
+import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -602,6 +606,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (instance is Stock) {
       // Only upsert locally for Stock
       await CacheManager().saveStocks([instance]);
+    }
+    if (instance is Customer) {
+      EventBus().fire(CustomerUpserted(instance));
     }
 
     return instance;

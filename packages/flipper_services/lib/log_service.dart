@@ -45,7 +45,7 @@ $formattedStack
         type: type ?? 'exception',
         businessId: logBusinessId,
         tags: tags,
-        extra: extra,
+        extra: null,
       );
 
       // Save to database
@@ -81,7 +81,7 @@ $formattedStack
         type: type ?? 'message',
         businessId: logBusinessId,
         tags: tags,
-        extra: extra,
+        extra: null,
       );
 
       // Save to database

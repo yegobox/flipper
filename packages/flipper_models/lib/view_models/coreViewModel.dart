@@ -500,10 +500,12 @@ class CoreViewModel extends FlipperBaseModel
       required String name,
       required String transactionId,
       required String customerType,
+      String? id,
       String? tinNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
     ProxyService.strategy.addCustomer(
         customer: Customer(
+          id: id,
           custNm: name,
           custTin: tinNumber ?? phone,
           email: email,
@@ -949,6 +951,7 @@ class CoreViewModel extends FlipperBaseModel
         final business = (await ProxyService.strategy
             .getBusiness(businessId: ProxyService.box.getBusinessId()));
 
+        variant.pchsSttsCd = pchsSttsCd;
         await ProxyService.tax.savePurchases(
           item: purchase,
           business: business!,

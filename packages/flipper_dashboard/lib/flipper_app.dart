@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -159,6 +160,9 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       onResumed();
+    } else if (state == AppLifecycleState.detached) {
+      // Clean up global event bus on app shutdown
+      EventBus().dispose();
     }
   }
 }

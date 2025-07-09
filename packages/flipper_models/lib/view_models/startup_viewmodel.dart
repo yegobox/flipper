@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flipper_services/ebm_sync_service.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -59,6 +61,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // Ensure admin access for API/onboarded users
 
       AppInitializer.initialize();
+
+      // Initialize the EBM Sync Service to listen for customer updates.
+      final repository = Repository();
+      EbmSyncService(repository);
+
       AssetSyncService().initialize();
       ProxyService.strategy.supabaseAuth();
       ProxyService.strategy.cleanDuplicatePlans();

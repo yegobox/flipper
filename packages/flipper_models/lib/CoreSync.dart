@@ -180,11 +180,7 @@ class CoreSync extends AiStrategyImpl
   @override
   SendPort? sendPort;
 
-  @override
-  Future<Customer?> addCustomer(
-      {required Customer customer, String? transactionId}) async {
-    return await repository.upsert(customer);
-  }
+
 
   @override
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) async {

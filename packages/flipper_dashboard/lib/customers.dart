@@ -522,7 +522,7 @@ class CustomersState extends ConsumerState<Customers> {
                         transactionId: transaction.id,
                         searchedKey: customer.custNm ?? '',
                         // isEdit: true,
-                        // customer: customer,
+                        customer: customer,
                       ),
                     );
                   },
@@ -681,7 +681,7 @@ class CustomersState extends ConsumerState<Customers> {
                     Container(
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: successColor.withOpacity(0.2),
+                        color: successColor.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

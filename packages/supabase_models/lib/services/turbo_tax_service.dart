@@ -2,6 +2,7 @@
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -336,16 +337,38 @@ class TurboTaxService {
   Future<bool> syncCustomerWithEbm(
       {required Customer instance, required String serverUrl}) async {
     try {
-      final response = await ProxyService.tax.saveCustomer(
+      RwApiResponse response = await ProxyService.tax.saveCustomer(
         customer: ICustomer.fromJson(instance.toFlipperJson()),
         URI: serverUrl,
       );
       if (response.resultCd == "000") {
+        ProxyService.notification
+            .sendLocalNotification(body: "Customer Synced");
         return true;
+      } else {
+        final message = response.resultMsg.extractMeaningfulMessage();
+        ProxyService.notification.sendLocalNotification(body: message);
       }
     } catch (e, s) {
       talker.error(e, s);
     }
     return false;
+  }
+}
+
+extension ResultMsgParser on String {
+  String extractMeaningfulMessage() {
+    final fieldRegExp =
+        RegExp(r"\[\s*'(.+?)'\s*:\s*(.+?)\. rejected value", dotAll: true);
+    final match = fieldRegExp.firstMatch(this);
+
+    if (match != null && match.groupCount >= 2) {
+      final field = match.group(1)?.trim();
+      final message = match.group(2)?.trim();
+      return '$field: $message';
+    }
+
+    // Fallback to full message if parsing fails
+    return this;
   }
 }
