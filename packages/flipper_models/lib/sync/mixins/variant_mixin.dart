@@ -296,8 +296,8 @@ mixin VariantMixin implements VariantInterface {
         variant.productId = productId ?? variant.productId;
         variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
         variant.unit = unit ?? variant.unit;
-        variant.prc = prc ?? variant.prc;
-        variant.dftPrc = dftPrc ?? variant.dftPrc;
+        variant.prc = variant.retailPrice;
+        variant.dftPrc = variant.retailPrice;
         variant.retailPrice = retailPrice ?? variant.retailPrice;
         variant.supplyPrice = supplyPrice ?? variant.supplyPrice;
         repository.upsert(variant);
@@ -320,8 +320,10 @@ mixin VariantMixin implements VariantInterface {
       updatables[i].categoryName = category?.name ?? updatables[i].categoryName;
       updatables[i].itemStdNm = name;
       updatables[i].spplrItemNm = name;
-      updatables[i].prc = prc ?? updatables[i].prc;
-      updatables[i].dftPrc = dftPrc ?? updatables[i].dftPrc;
+      updatables[i].prc =
+          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+      updatables[i].dftPrc =
+          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
       if (color != null) {
         updatables[i].color = color;
       }
@@ -353,7 +355,7 @@ mixin VariantMixin implements VariantInterface {
       updatables[i].qty = updatables[i].stock?.currentStock;
 
       await CacheManager().saveStocks([updatables[i].stock!]);
-      await repository.upsert<Variant>(updatables[i]);
+      final updated = await repository.upsert<Variant>(updatables[i]);
 
       /// handle imptItemSttsCd = 4 separetly same for purchase
       /// this
@@ -363,7 +365,7 @@ mixin VariantMixin implements VariantInterface {
       /// still experimenting bellow.
       if (updatables[i].assigned == false && updateIo == true) {
         await ebmSyncService.stockIo(
-          variant: updatables[i],
+          variant: updated,
           serverUrl: (await ProxyService.box.getServerUrl())!,
         );
       }
