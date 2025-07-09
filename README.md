@@ -70,6 +70,11 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
     melos bootstrap
     ```
 
+4.  **Enable repo git hooks**:
+    ```bash
+    git config core.hooksPath hooks
+    ```
+
 ### Manual Configuration
 
 For security reasons, some configuration files containing sensitive information are not included in the repository. You will need to create them manually.
