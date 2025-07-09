@@ -16,7 +16,7 @@ class Log extends OfflineFirstWithSupabaseModel {
   int? businessId;
   DateTime? createdAt;
   Map<String, String>? tags;
-  Map<String, dynamic>? extra;
+  Map<String, String>? extra;
   Log({
     String? id,
     this.message,

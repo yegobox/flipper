@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# Automatically validates commit messages to ensure they follow the Conventional Commits standard.
+# This hook is triggered by the 'commit-msg' event in Git.
+
+# Run commitlint on the commit message file provided by Git ($1)
+# npx --no-install ensures that we use the locally installed commitlint without any network calls.
+
+npx --no-install commitlint --edit "$1"

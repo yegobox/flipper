@@ -42,7 +42,7 @@ abstract class TaxApi implements NoticeInterface {
       required String remark,
       required DateTime ocrnDt,
       required String URI});
-  Future saveCustomer({required ICustomer customer, required String URI});
+  Future<RwApiResponse> saveCustomer({required ICustomer customer, required String URI});
   Future<BusinessInfo> initApi(
       {required String tinNumber,
       required String bhfId,

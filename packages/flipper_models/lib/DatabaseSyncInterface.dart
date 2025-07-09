@@ -192,8 +192,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<Setting?> getSetting({required int businessId});
 
-  Future<Customer?> addCustomer(
-      {required Customer customer, String? transactionId});
+ 
   FutureOr<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId});
   FutureOr<void> removeCustomerFromTransaction(

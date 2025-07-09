@@ -15,18 +15,10 @@
   <a href="https://yegobox.com"><img height="42" src=".github/assets/desktop-badge.png" alt="Desktop"></a>
   <a href="https://web.yegobox.com"><img height="42" src=".github/assets/web-badge.svg" alt="Web"></a>
   <br/>
-  <a href="https://apps.apple.com/app/id6444121398"><img height="42" src=".github/assets/app-store-badge.svg" alt="App Store"></a>
-  <a href="https://play.google.com/store/apps/details?id=io.Flipper.auth"><img height="42" src=".github/assets/play-store-badge.png" alt="Google Play"></a>
-  <a href="https://f-droid.org/packages/io.Flipper.auth/"><img height="42" src=".github/assets/f-droid-badge.png" alt="F-Droid"></a>
-  <a href="https://github.com/Flipper-io/Flipper/releases?q=tag%3Aauth-v3"><img height="42" src=".github/assets/desktop-badge.png" alt="Desktop"></a>
-  <a href="https://auth.yegobox.com"><img height="42" src=".github/assets/web-badge.svg" alt="Web"></a>
 </div>
 
 <div align="center">
-  [![Discord](https://img.shields.io/discord/948937918347608085?style=for-the-badge&logo=Discord&logoColor=white&label=Discord)](https://discord.gg/z2YVKkycX3)
-  <a href="https://twitter.com/Flipperio"><img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/Flipperio?style=for-the-badge&logo=twitter"></a>
-  <a href="https://fosstodon.org/@Flipper"><img alt="Mastodon Follow" src="https://img.shields.io/mastodon/follow/109298448551394851?style=for-the-badge&logo=mastodon&domain=https%3A%2F%2Ffosstodon.org"></a>
-  <a href="https://yegobox.com/blog/rss.xml"><img alt="Blog RSS" src="https://img.shields.io/badge/blog-rss-F88900?style=for-the-badge&logo=rss&logoColor=white"></a>
+  [Discord](https://discord.gg/z2YVKkycX3)
 </div>
 
 
@@ -76,6 +68,11 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
     This command links all local packages and installs dependencies.
     ```bash
     melos bootstrap
+    ```
+
+4.  **Enable repo git hooks**:
+    ```bash
+    git config core.hooksPath hooks
     ```
 
 ### Manual Configuration

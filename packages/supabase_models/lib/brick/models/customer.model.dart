@@ -55,7 +55,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.adrs,
     this.branchId,
     this.updatedAt,
-    this.custNo,
+    String? custNo,
     this.custTin,
     this.modrNm,
     this.regrNm,
@@ -65,7 +65,8 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.bhfId,
     this.useYn,
     this.customerType,
-  }) : id = id ?? const Uuid().v4();
+  })  : custNo = telNo,
+        id = id ?? const Uuid().v4();
   // toJson method
   Map<String, dynamic> toFlipperJson() {
     return {
@@ -76,7 +77,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
       'adrs': adrs,
       'branchId': branchId,
       'updatedAt': updatedAt,
-      'custNo': custNo,
+      'custNo': telNo, // Always set custNo to telNo for serialization
       'custTin': custTin,
       'regrNm': regrNm,
       'regrId': regrId,
@@ -87,5 +88,46 @@ class Customer extends OfflineFirstWithSupabaseModel {
       'useYn': useYn,
       'customerType': customerType,
     };
+  }
+
+  // copyWith
+  Customer copyWith({
+    String? id,
+    String? custNm,
+    String? email,
+    String? telNo,
+    String? adrs,
+    int? branchId,
+    DateTime? updatedAt,
+    String? custNo,
+    String? custTin,
+    String? modrNm,
+    String? regrNm,
+    String? regrId,
+    String? modrId,
+    bool? ebmSynced,
+    String? bhfId,
+    String? useYn,
+    String? customerType,
+  }) {
+    return Customer(
+      id: id ?? this.id,
+      custNm: custNm ?? this.custNm,
+      email: email ?? this.email,
+      telNo: telNo ?? this.telNo,
+      adrs: adrs ?? this.adrs,
+      branchId: branchId ?? this.branchId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      custNo: custNo ?? this.custNo,
+      custTin: custTin ?? this.custTin,
+      modrNm: modrNm ?? this.modrNm,
+      regrNm: regrNm ?? this.regrNm,
+      regrId: regrId ?? this.regrId,
+      modrId: modrId ?? this.modrId,
+      ebmSynced: ebmSynced ?? this.ebmSynced,
+      bhfId: bhfId ?? this.bhfId,
+      useYn: useYn ?? this.useYn,
+      customerType: customerType ?? this.customerType,
+    );
   }
 }
