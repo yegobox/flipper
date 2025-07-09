@@ -357,9 +357,6 @@ mixin VariantMixin implements VariantInterface {
       await CacheManager().saveStocks([updatables[i].stock!]);
       final updated = await repository.upsert<Variant>(updatables[i]);
 
-      /// handle imptItemSttsCd = 4 separetly same for purchase
-      /// this
-      ///
       final ebmSyncService = TurboTaxService(repository);
 
       /// still experimenting bellow.
