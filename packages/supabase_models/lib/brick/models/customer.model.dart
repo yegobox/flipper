@@ -55,7 +55,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.adrs,
     this.branchId,
     this.updatedAt,
-    this.custNo,
+    String? custNo,
     this.custTin,
     this.modrNm,
     this.regrNm,
@@ -65,7 +65,8 @@ class Customer extends OfflineFirstWithSupabaseModel {
     this.bhfId,
     this.useYn,
     this.customerType,
-  }) : id = id ?? const Uuid().v4();
+  })  : custNo = telNo,
+        id = id ?? const Uuid().v4();
   // toJson method
   Map<String, dynamic> toFlipperJson() {
     return {
@@ -76,7 +77,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
       'adrs': adrs,
       'branchId': branchId,
       'updatedAt': updatedAt,
-      'custNo': custNo,
+      'custNo': telNo, // Always set custNo to telNo for serialization
       'custTin': custTin,
       'regrNm': regrNm,
       'regrId': regrId,

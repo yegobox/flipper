@@ -95,7 +95,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.2),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -113,7 +114,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
                                   color: theme.colorScheme.outline
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                 ),
                               ),
                               child: DropdownButtonHideUnderline(
@@ -156,7 +157,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: theme.colorScheme.outline.withOpacity(0.2),
+                          color:
+                              theme.colorScheme.outline.withValues(alpha: 0.2),
                         ),
                       ),
                       child: Padding(
@@ -227,6 +229,9 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                 }
                                 if (!isNumeric(value)) {
                                   return 'TIN should be a number';
+                                }
+                                if (value.length != 9) {
+                                  return 'TIN must be 9 digits';
                                 }
                                 return null;
                               },
