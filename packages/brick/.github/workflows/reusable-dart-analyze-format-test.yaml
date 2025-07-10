@@ -1,0 +1,50 @@
+name: Reusable | Dart Analyze, Dart Format, Dart Test
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.package }}
+  cancel-in-progress: true
+
+jobs:
+  dart_analyze_format_test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk_version: [beta, stable]
+    steps:
+      - name: Install SQLite3
+        run: sudo apt-get update && sudo apt-get -y install sqlite3 libsqlite3-dev
+
+      - uses: dart-lang/setup-dart@v1.0
+        with:
+          sdk: ${{ matrix.sdk_version }}
+      - name: Cache Pub hosted dependencies
+        uses: actions/cache@v4
+        with:
+          path: "~/.pub-cache/hosted"
+          key: ${{ runner.os }}-${{ inputs.package }}-v1-${{ matrix.sdk_version }}-${{ hashFiles(format('packages/{0}/pubspec.yaml', inputs.package)) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ inputs.package }}-v1-${{ matrix.sdk_version }}
+
+      - uses: actions/checkout@v4
+
+      - run: dart pub get && dart run melos bootstrap --scope="${{ inputs.package }}"
+
+      # TODO: Restore --fatal-infos when analyzer 6.5 is significantly available
+      # in major versions of Flutter. Likely in Q1 2025 https://github.com/GetDutchie/brick/pull/435
+      # - run: dart analyze --fatal-infos lib
+      - run: dart analyze lib
+        working-directory: packages/${{ inputs.package }}
+
+      - run: dart format --output=none --line-length 100 --set-exit-if-changed lib test
+        working-directory: packages/${{ inputs.package }}
+
+      - run: if [ -d "test" ]; then dart test; fi
+        working-directory: packages/${{ inputs.package }}

@@ -1,0 +1,17 @@
+name: brick_graphql_example
+
+version: 0.0.0
+
+publish_to: none
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  brick_graphql:
+    path: ../
+  gql_http_link:
+
+dependency_overrides:
+  brick_core:
+    path: ../../brick_core

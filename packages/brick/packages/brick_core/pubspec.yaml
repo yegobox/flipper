@@ -1,0 +1,18 @@
+name: brick_core
+description: Interfaces and shared helpers for implementing models, adapters, providers, and repositories in Brick, an intuitive way to work with persistent data in Dart.
+homepage: https://github.com/GetDutchie/brick/tree/main/packages/brick_core
+issue_tracker: https://github.com/GetDutchie/brick/issues
+repository: https://github.com/GetDutchie/brick
+
+version: 2.0.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  collection: ">=1.15.0 <2.0.0"
+
+dev_dependencies:
+  lints:
+  mockito:
+  test:
