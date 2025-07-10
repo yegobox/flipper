@@ -9,7 +9,6 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:flipper_services/event_bus.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
@@ -20,7 +19,6 @@ import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
-import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -62,8 +60,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
   static const _queueFileBaseName = 'brick_offline_queue';
-  static const _standardVersion = 30;
-  static const _mobileTargetVersion = 30;
+  static const _standardVersion = 31;
+  static const _mobileTargetVersion = 31;
 
   // Flag to override version increment behavior (null = use platform default)
   static bool? _overrideVersionIncrement;

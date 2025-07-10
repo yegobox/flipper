@@ -416,8 +416,6 @@ class Capella extends AiStrategyImpl
     throw UnimplementedError();
   }
 
- 
-
   @override
   Branch? defaultBranch() {
     // TODO: implement defaultBranch
@@ -1667,6 +1665,7 @@ class Capella extends AiStrategyImpl
     required int branchId,
     String? productId,
     int? page,
+    List<String>? taxTyCds,
     bool? stockSynchronized,
     String? variantId,
     bool forImportScreen = false,
@@ -1946,6 +1945,7 @@ class Capella extends AiStrategyImpl
       {required String id,
       required int userId,
       required int serverId,
+      required String phoneNumber,
       String? name,
       String? currency,
       String? categoryId,
@@ -2351,9 +2351,14 @@ class Capella extends AiStrategyImpl
     // TODO: implement updateShiftTotals
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<String> createStockRequest(List<brick.TransactionItem> items, {required int mainBranchId, required int subBranchId, String? deliveryNote, String? orderNote, String? financingId}) {
+  Future<String> createStockRequest(List<brick.TransactionItem> items,
+      {required int mainBranchId,
+      required int subBranchId,
+      String? deliveryNote,
+      String? orderNote,
+      String? financingId}) {
     // TODO: implement createStockRequest
     throw UnimplementedError();
   }

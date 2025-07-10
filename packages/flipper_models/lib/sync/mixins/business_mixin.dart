@@ -107,6 +107,7 @@ mixin BusinessMixin implements BusinessInterface {
       Business business = Business(
           serverId: iBusiness.serverId,
           name: iBusiness.name,
+          phoneNumber: iBusiness.phoneNumber!,
           userId: int.parse(iBusiness.userId),
           createdAt: DateTime.now());
 
@@ -161,6 +162,7 @@ mixin BusinessMixin implements BusinessInterface {
       int? businessTypeId,
       DateTime? lastTouched,
       DateTime? deletedAt,
+      required String phoneNumber,
       required String encryptionKey}) async {
     Business? exist = await getBusiness(businessId: serverId);
 
@@ -175,6 +177,7 @@ mixin BusinessMixin implements BusinessInterface {
       repository.upsert<Business>(Business(
         id: id,
         serverId: serverId,
+        phoneNumber: phoneNumber,
         name: name,
         currency: currency,
         categoryId: categoryId,

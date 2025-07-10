@@ -56,7 +56,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
         try {
           // First try to find locally
           List<Variant> variants = await ProxyService.strategy
-              .variants(bcd: value, branchId: ProxyService.box.getBranchId()!)
+              .variants(name: value, branchId: ProxyService.box.getBranchId()!)
               .timeout(
             const Duration(seconds: 5),
             onTimeout: () {
@@ -90,7 +90,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
             // Try to fetch from remote with fetchRemote flag set to true
             variants = await ProxyService.strategy
                 .variants(
-                    bcd: value,
+                    name: value,
                     branchId: ProxyService.box.getBranchId()!,
                     fetchRemote: true)
                 .timeout(

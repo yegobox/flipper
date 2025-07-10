@@ -993,6 +993,7 @@ final businessMock = Business(
   longitude: '2',
   name: 'name',
   isDefault: true,
+  phoneNumber: '+250783054871',
 );
 
 final payStackCustomer = {

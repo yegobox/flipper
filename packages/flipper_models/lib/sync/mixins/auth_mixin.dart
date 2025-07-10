@@ -679,6 +679,7 @@ mixin AuthMixin implements AuthInterface {
             final iBusiness = IBusiness.fromJson(businessData);
             // Convert IBusiness to Business (from supabase_models)
             final business = Business(
+              phoneNumber: iBusiness.phoneNumber!,
               id: iBusiness.id,
               serverId: iBusiness.serverId,
               name: iBusiness.name,

@@ -9,9 +9,8 @@ abstract class VariantInterface {
     String? productId,
     int? page,
     String? variantId,
-    String? name,
+    String? name, // Can be a name or a barcode
     String? pchsSttsCd,
-    String? bcd,
     String? purchaseId,
     int? itemsPerPage,
     String? imptItemSttsCd,
@@ -20,6 +19,7 @@ abstract class VariantInterface {
     bool fetchRemote = false,
     bool forImportScreen = false,
     bool? stockSynchronized,
+    List<String>? taxTyCds,
   });
   Future<Variant?> getVariant({required String id});
 

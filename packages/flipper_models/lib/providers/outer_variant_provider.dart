@@ -65,140 +65,53 @@ class OuterVariants extends _$OuterVariants {
 
   Future<List<Variant>> _loadVariants(int branchId,
       {bool fetchRemote = false}) async {
-    // Early return if already loading or no more items to load
     if (_isLoading || !_hasMore) return [];
 
     _isLoading = true;
-    print('Loading variants for branchId: $branchId, page: $_currentPage');
 
     try {
       final searchString = ref.watch(searchStringProvider);
-      print('Search string: $searchString');
+      final isVatEnabled = ProxyService.box.vatEnabled();
 
-      // Get VAT enabled status
-      final bool isVatEnabled = ProxyService.box.vatEnabled();
-      print('VAT status - Enabled: $isVatEnabled');
+      // Determine the tax codes to filter by at the database level.
+      final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
 
-      // First try to fetch variants locally
-      List<Variant> variants = await ProxyService.strategy
-          .variants(
+      // First, try to fetch variants locally with the tax filter.
+      List<Variant> variants = await ProxyService.strategy.variants(
+        name: searchString,
+        fetchRemote: false, // Start with local
+        branchId: branchId,
+        page: _currentPage,
+        itemsPerPage: _itemsPerPage,
+        taxTyCds: taxTyCds,
+      );
+
+      // If no variants were found locally, try fetching from remote.
+      if (variants.isEmpty) {
+        try {
+          variants = await ProxyService.strategy.variants(
             name: searchString,
-            fetchRemote: fetchRemote, // First try locally
+            fetchRemote: true, // Fetch remote as a fallback
             branchId: branchId,
             page: _currentPage,
             itemsPerPage: _itemsPerPage,
-          )
-          .timeout(
-              const Duration(seconds: 10)); // Add a timeout to prevent hanging
-
-      // Filter variants based on VAT status
-      variants = variants.where((variant) {
-        if (isVatEnabled) {
-          // When VAT is enabled, exclude items with taxTyCd == 'D'
-          return variant.taxTyCd != 'D';
-        } else {
-          // When VAT is disabled, only include items with taxTyCd == 'D'
-          return (variant.taxTyCd ?? '') == 'D';
-        }
-      }).toList();
-
-      print('Filtered ${variants.length} variants based on VAT status');
-
-      // If no variants found locally or very few, try to fetch from remote
-      if (variants.isEmpty ||
-          (variants.length < 5 && searchString.isNotEmpty)) {
-        print('Few or no variants found locally, trying remote fetch');
-
-        try {
-          // Try to fetch from remote
-          final remoteVariants = await ProxyService.strategy
-              .variants(
-                name: searchString,
-                fetchRemote: true,
-                branchId: branchId,
-                page: _currentPage,
-                itemsPerPage: _itemsPerPage,
-              )
-              .timeout(
-                  const Duration(seconds: 30)); // Longer timeout for remote
-
-          // If we got results from remote, use those instead
-          if (remoteVariants.isNotEmpty) {
-            print('Found ${remoteVariants.length} variants from remote');
-            variants = remoteVariants;
-
-            // Save Stock objects to cache
-            _saveStocksToCache(remoteVariants);
-          }
+            taxTyCds: taxTyCds, // Apply the same tax filter to the remote query
+          );
         } catch (e) {
-          // If remote fetch fails, continue with local results
-          print('Remote fetch failed: $e');
+          print('Remote variant fetch failed: $e');
         }
       }
 
-      // If search string is empty, return all variants
-      if (searchString.isEmpty) {
-        _currentPage++;
-        _hasMore = variants.length == _itemsPerPage;
-        print('Loaded ${variants.length} variants (no search filter)');
+      // Save stock to cache for the retrieved variants.
+      if (variants.isNotEmpty) {
         _saveStocksToCache(variants);
-        return variants;
       }
 
-      // Filter variants based on the search string
-      final filteredVariants = variants.where((variant) {
-        return variant.name
-                .toLowerCase()
-                .contains(searchString.toLowerCase()) ||
-            (variant.productName != null &&
-                variant.productName!
-                    .toLowerCase()
-                    .contains(searchString.toLowerCase())) ||
-            (variant.bcd != null &&
-                variant.bcd!
-                    .toLowerCase()
-                    .contains(searchString.toLowerCase()));
-      }).toList();
-
-      // also save stock in cache
-
-      // If no matches, try fetching by barcode if the search string looks like a barcode
-      if (filteredVariants.isEmpty && _isNumeric(searchString)) {
-        print('No matches found, trying barcode search for: $searchString');
-        try {
-          final barcodeVariants = await ProxyService.strategy
-              .variants(
-                bcd: searchString,
-                fetchRemote: true, // Always try remote for barcode search
-                branchId: branchId,
-              )
-              .timeout(const Duration(seconds: 20));
-
-          if (barcodeVariants.isNotEmpty) {
-            print('Found ${barcodeVariants.length} variants by barcode');
-            _currentPage++;
-            _hasMore = barcodeVariants.length == _itemsPerPage;
-            return barcodeVariants;
-          }
-        } catch (e) {
-          print('Barcode search failed: $e');
-        }
-      }
-
-      // If still no matches, return the unfiltered list
-      if (filteredVariants.isEmpty) {
-        print('No matches found for search string: $searchString');
-        _currentPage++;
-        _hasMore = variants.length == _itemsPerPage;
-        return variants; // Return unfiltered list
-      }
-
-      // Update pagination state
+      // Update pagination state.
       _currentPage++;
-      _hasMore = filteredVariants.length == _itemsPerPage;
+      _hasMore = variants.length == _itemsPerPage;
 
-      print('Loaded ${filteredVariants.length} variants (filtered)');
-      return filteredVariants;
+      return variants;
     } on TimeoutException {
       print('Timeout: Variants loading took too long');
       state = AsyncValue.error(
@@ -206,18 +119,11 @@ class OuterVariants extends _$OuterVariants {
       return [];
     } catch (error, stackTrace) {
       print('Error loading variants: $error');
-      print('Stack trace: $stackTrace');
       state = AsyncValue.error(error, stackTrace);
       return [];
     } finally {
       _isLoading = false;
     }
-  }
-
-  // Helper method to check if a string is numeric (likely a barcode)
-  bool _isNumeric(String str) {
-    if (str.isEmpty) return false;
-    return double.tryParse(str) != null;
   }
 
   Future<void> loadMore(int branchId) async {

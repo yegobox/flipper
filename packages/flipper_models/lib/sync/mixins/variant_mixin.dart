@@ -40,9 +40,14 @@ mixin VariantMixin implements VariantInterface {
     bool fetchRemote = false,
     bool forImportScreen = false,
     bool? stockSynchronized,
+    List<String>? taxTyCds,
   }) async {
     try {
       final List<WhereCondition> conditions = [];
+
+      if (taxTyCds != null && taxTyCds.isNotEmpty) {
+        conditions.add(Where('taxTyCd').isIn(taxTyCds));
+      }
 
       if (forImportScreen) {
         conditions.addAll([
@@ -73,7 +78,10 @@ mixin VariantMixin implements VariantInterface {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
         conditions.addAll([
-          Where('name').contains(name),
+          WherePhrase([
+            Or('name').contains(name),
+            Or('bcd').isExactly(name),
+          ]),
           Where('branchId').isExactly(branchId),
         ]);
       } else if (bcd != null) {

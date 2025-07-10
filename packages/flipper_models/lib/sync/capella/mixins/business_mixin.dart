@@ -55,6 +55,7 @@ mixin CapellaBusinessMixin implements BusinessInterface {
   @override
   Future<void> addBusiness(
       {required String id,
+      required String phoneNumber,
       required int userId,
       required int serverId,
       String? name,
