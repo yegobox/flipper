@@ -105,6 +105,13 @@ class _RowItemState extends ConsumerState<RowItem>
     with Refresh, CoreMiscellaneous, SnackBarMixin {
   final _routerService = locator<RouterService>();
 
+  String _truncateString(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return text.substring(0, maxLength) + '...';
+  }
+
   // Constants for consistent styling
   static const double cardBorderRadius = 12.0;
   static const double imageBorderRadius = 10.0;
@@ -344,11 +351,13 @@ class _RowItemState extends ConsumerState<RowItem>
   // New compact product info section specifically designed to avoid overflow
   Widget _buildCompactProductInfo(TextTheme textTheme) {
     // Get appropriate display names with safe fallbacks
-    final String displayProductName =
-        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product";
+    final String displayProductName = _truncateString(
+        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product",
+        10);
 
-    final String displayVariantName =
-        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant";
+    final String displayVariantName = _truncateString(
+        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant",
+        10);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -360,7 +369,7 @@ class _RowItemState extends ConsumerState<RowItem>
           style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
-            fontSize: 12, // Smaller font size
+            fontSize: 11, // Smaller font size
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -372,7 +381,7 @@ class _RowItemState extends ConsumerState<RowItem>
             displayVariantName,
             style: textTheme.bodyMedium?.copyWith(
               color: Colors.grey[600],
-              fontSize: 10, // Smaller font size
+              fontSize: 9, // Smaller font size
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -448,13 +457,15 @@ class _RowItemState extends ConsumerState<RowItem>
               children: [
                 // Product name
                 Text(
-                  widget.productName.isNotEmpty
-                      ? widget.productName
-                      : "Unnamed Product",
+                  _truncateString(
+                      widget.productName.isNotEmpty
+                          ? widget.productName
+                          : "Unnamed Product",
+                      10),
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
-                    fontSize: 13, // Smaller font size
+                    fontSize: 12, // Smaller font size
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -466,10 +477,10 @@ class _RowItemState extends ConsumerState<RowItem>
                 if (widget.variantName != widget.productName &&
                     widget.variantName.isNotEmpty)
                   Text(
-                    widget.variantName,
+                    _truncateString(widget.variantName, 10),
                     style: textTheme.bodyMedium?.copyWith(
                       color: Colors.grey[600],
-                      fontSize: 11, // Smaller font size
+                      fontSize: 10, // Smaller font size
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

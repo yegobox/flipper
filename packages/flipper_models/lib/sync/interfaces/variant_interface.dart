@@ -19,7 +19,7 @@ abstract class VariantInterface {
     bool fetchRemote = false,
     bool forImportScreen = false,
     bool? stockSynchronized,
-    List<String>? taxTyCds,
+    required List<String> taxTyCds,
   });
   Future<Variant?> getVariant({required String id});
 

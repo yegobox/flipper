@@ -113,7 +113,11 @@ mixin PurchaseMixin
       if (response.data == null ||
           response.data!.itemList == null ||
           response.data!.itemList!.isEmpty) {
-        return await variants(branchId: branchId, forImportScreen: true);
+        return await variants(branchId: branchId, forImportScreen: true,
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D'],
+        );
       }
 
       final List<Future<void>> saveVariantTasks = [];
@@ -142,7 +146,10 @@ mixin PurchaseMixin
         );
       }
 
-      return await variants(branchId: branchId, forImportScreen: true);
+      return await variants(branchId: branchId, forImportScreen: true,
+          taxTyCds: ProxyService.box.vatEnabled()
+              ? ['A', 'B', 'C']
+              : ['D']);
     } catch (e, stackTrace) {
       talker.error("Error in selectImportItems: $e", stackTrace);
       rethrow;

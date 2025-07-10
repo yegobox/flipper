@@ -431,13 +431,19 @@ class CoreViewModel extends FlipperBaseModel
   Future<List<Variant>> getVariants({required String productId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     _variants = await ProxyService.strategy
-        .variants(branchId: branchId, productId: productId);
+        .variants(branchId: branchId, productId: productId,
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D']);
     notifyListeners();
     return _variants;
   }
 
   Future<Variant?> getVariant({required String variantId}) async {
     return (await ProxyService.strategy.variants(
+      taxTyCds: ProxyService.box.vatEnabled()
+          ? ['A', 'B', 'C']
+          : ['D'],
             variantId: variantId, branchId: ProxyService.box.getBranchId()!))
         .firstOrNull;
   }

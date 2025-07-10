@@ -409,9 +409,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 // Populate product name with the name of the product being edited
                 productNameController.text = product.name;
                 model.setProductName(name: product.name);
-
+                final isVatEnabled = ProxyService.box.vatEnabled();
                 // Populate variants related to the product
                 List<Variant> variants = await ProxyService.strategy.variants(
+                    taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
                     productId: widget.productId!,
                     branchId: ProxyService.box.getBranchId()!);
                 if (!mounted) return;

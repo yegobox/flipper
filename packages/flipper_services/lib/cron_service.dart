@@ -198,6 +198,7 @@ class CronService {
 
       // Get all variants that haven't been synchronized yet
       final variants = await ProxyService.strategy.variants(
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
         branchId: branchId,
         stockSynchronized: false,
       );
@@ -343,8 +344,10 @@ class CronService {
 
       // Update variants if force upsert is enabled
       if (ProxyService.box.forceUPSERT()) {
-        await ProxyService.strategy
-            .variants(branchId: branchId, fetchRemote: true);
+        await ProxyService.strategy.variants(
+            branchId: branchId,
+            fetchRemote: true,
+            taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
       }
 
       // Sync analytics

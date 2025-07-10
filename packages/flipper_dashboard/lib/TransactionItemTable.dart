@@ -449,8 +449,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       TransactionItem item, bool isOrdering) async {
     try {
       Variant? variant = (await ProxyService.strategy.variants(
-              variantId: item.variantId!,
-              branchId: ProxyService.box.getBranchId()!))
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D'],
+        variantId: item.variantId!,
+        branchId: ProxyService.box.getBranchId()!))
           .firstOrNull;
       final composites = await ProxyService.strategy
           .composites(productId: variant!.productId!);

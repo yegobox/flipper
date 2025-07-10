@@ -494,6 +494,12 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                           await ProxyService
                                                               .strategy
                                                               .variants(
+                                                                  taxTyCds:
+                                                                      ProxyService
+                                                                              .box
+                                                                              .vatEnabled()
+                                                                          ? ['A', 'B', 'C']
+                                                                          : ['D'],
                                                                   fetchRemote:
                                                                       false,
                                                                   branchId:

@@ -58,8 +58,13 @@ class CreateMockdata {
 
     if (product != null) {
       // Query for the variant
-      var variants = await ProxyService.strategy
-          .variants(productId: product.id, branchId: 1);
+      var variants = await ProxyService.strategy.variants(
+        productId: product.id,
+        branchId: 1,
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D'],
+      );
       var variant = variants.isNotEmpty ? variants.first : null;
 
       final mockStockRequests = [

@@ -43,8 +43,12 @@ mixin VariantMixin implements VariantInterface {
     List<String>? taxTyCds,
   }) async {
     try {
-      final List<WhereCondition> conditions = [];
+      final List<WhereCondition> conditions = [
+        Where('branchId').isExactly(branchId),
+        Where('assigned').isExactly(false),
+      ];
 
+      // Apply taxTyCds filter FIRST and ensure it's always respected
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
         conditions.add(Where('taxTyCd').isIn(taxTyCds));
       }
@@ -52,71 +56,50 @@ mixin VariantMixin implements VariantInterface {
       if (forImportScreen) {
         conditions.addAll([
           Where('imptItemSttsCd').isExactly("2"),
-          Where('branchId').isExactly(branchId),
-          Where('imptItemSttsCd').isNot(null),
           Or('imptItemSttsCd').isExactly("3"),
-          Where('branchId').isExactly(branchId),
-          Or('dclDe').isNot(null),
-          Where('branchId').isExactly(branchId),
           Or('imptItemSttsCd').isExactly("4"),
+          Or('dclDe').isNot(null),
         ]);
       } else if (forPurchaseScreen) {
         conditions.addAll([
-          // (branchId = ? AND pchsSttsCd = '01')
-          Where('branchId').isExactly(branchId),
           Where('pchsSttsCd').isExactly("01"),
-
-          // OR (branchId = ? AND pchsSttsCd = '02')
-          Or('branchId').isExactly(branchId),
-          Where('pchsSttsCd').isExactly("02"),
-
-          // OR (branchId = ? AND pchsSttsCd = '04')
-          Or('branchId').isExactly(branchId),
-          Where('pchsSttsCd').isExactly("04"),
+          Or('pchsSttsCd').isExactly("02"),
+          Or('pchsSttsCd').isExactly("04"),
         ]);
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
-        conditions.addAll([
+        conditions.add(
           WherePhrase([
             Or('name').contains(name),
             Or('bcd').isExactly(name),
           ]),
-          Where('branchId').isExactly(branchId),
-        ]);
+        );
       } else if (bcd != null) {
-        conditions.addAll([
-          Where('bcd').isExactly(bcd),
-          Where('branchId').isExactly(branchId),
-        ]);
+        conditions.add(Where('bcd').isExactly(bcd));
       } else if (stockSynchronized != null) {
-        conditions.addAll([
-          Where('stockSynchronized').isExactly(stockSynchronized),
-          Where('branchId').isExactly(branchId),
-        ]);
+        conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
       } else if (purchaseId != null) {
-        conditions.addAll([
-          Where('purchaseId').isExactly(purchaseId),
-          Where('branchId').isExactly(branchId),
-        ]);
+        conditions.add(Where('purchaseId').isExactly(purchaseId));
       } else if (productId != null) {
-        conditions.addAll([
-          Where('productId').isExactly(productId),
-          Where('branchId').isExactly(branchId),
-        ]);
+        conditions.add(Where('productId').isExactly(productId));
       } else if (pchsSttsCd != null) {
+        conditions.add(Where('pchsSttsCd').isExactly(pchsSttsCd));
+      }
+      // General fetch conditions if no specific filter is applied
+      else if (name == null &&
+          bcd == null &&
+          variantId == null &&
+          productId == null &&
+          pchsSttsCd == null &&
+          imptItemSttsCd == null &&
+          stockSynchronized == null &&
+          purchaseId == null &&
+          !forImportScreen &&
+          !forPurchaseScreen) {
         conditions.addAll([
-          Where('pchsSttsCd').isExactly(pchsSttsCd),
-          Where('branchId').isExactly(branchId),
-        ]);
-      } else {
-        talker.info(
-            "TEMPORARY LOGGING (Corrected): Entering general variant fetch for branchId: $branchId. ProductId: $productId, Name: $name, BCD: $bcd, PurchaseID: $purchaseId, pchsSttsCd_param: $pchsSttsCd, imptItemSttsCd_param: $imptItemSttsCd, excludeApproved: $excludeApprovedInWaitingOrCanceledItems");
-        conditions.addAll([
-          Where('branchId').isExactly(branchId),
           Where('name').isNot(TEMP_PRODUCT),
           Where('productName').isNot(CUSTOM_PRODUCT),
-          Where('assigned').isExactly(false),
         ]);
         if (excludeApprovedInWaitingOrCanceledItems) {
           conditions.add(Where('pchsSttsCd').isExactly("01"));
@@ -131,9 +114,6 @@ mixin VariantMixin implements VariantInterface {
         conditions.add(Where('stockSynchronized').isNot(false));
       }
 
-      /// eliminate varinats that have been assigned to other variant, this is case for import or purchase
-      conditions.add(Where('assigned').isExactly(false));
-
       final query = Query(
         where: conditions,
         orderBy: [const OrderBy('lastTouched', ascending: false)],
@@ -146,6 +126,7 @@ mixin VariantMixin implements VariantInterface {
             : OfflineFirstGetPolicy.localOnly,
       );
 
+      // Post-query filtering with taxTyCds validation
       if (!forImportScreen && !forPurchaseScreen) {
         fetchedVariants = fetchedVariants.where((v) {
           final isWaitingImport = v.imptItemSttsCd == "2";
@@ -153,24 +134,48 @@ mixin VariantMixin implements VariantInterface {
           final isCancelledPurchase = v.pchsSttsCd == "04";
           final isWaitingPurchase = v.pchsSttsCd == "01";
 
-          return !isWaitingImport &&
+          // First check status conditions
+          final statusCheck = !isWaitingImport &&
               !isCancelledImport &&
               !isCancelledPurchase &&
               !isWaitingPurchase;
+
+          // Then verify taxTyCds if provided
+          if (taxTyCds != null && taxTyCds.isNotEmpty) {
+            final taxTyCheck =
+                v.taxTyCd != null && taxTyCds.contains(v.taxTyCd);
+            return statusCheck && taxTyCheck;
+          }
+
+          return statusCheck;
         }).toList();
       }
+
       if (forImportScreen) {
         fetchedVariants = fetchedVariants.where((v) {
           final isImportItemSttsCdNull =
               v.imptItemSttsCd == null || v.imptItemSttsCd!.isEmpty;
 
+          // Additional taxTyCds validation for import screen
+          if (taxTyCds != null && taxTyCds.isNotEmpty) {
+            final taxTyCheck =
+                v.taxTyCd != null && taxTyCds.contains(v.taxTyCd);
+            return !isImportItemSttsCdNull && taxTyCheck;
+          }
+
           return !isImportItemSttsCdNull;
+        }).toList();
+      }
+
+      // Final validation: Double-check taxTyCds filter wasn't bypassed
+      if (taxTyCds != null && taxTyCds.isNotEmpty) {
+        fetchedVariants = fetchedVariants.where((v) {
+          return v.taxTyCd != null && taxTyCds.contains(v.taxTyCd);
         }).toList();
       }
 
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
-        // Ensure we don't go out of bounds if fetchedVariants is smaller than offset + itemsPerPage
         if (offset >= fetchedVariants.length) return [];
         return fetchedVariants.skip(offset).take(itemsPerPage).toList();
       }

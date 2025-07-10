@@ -115,6 +115,9 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   Future<void> _fillFormForExistingProduct(ProductViewModel model) async {
     List<Variant> variants = await ProxyService.strategy.variants(
       productId: widget.productId!,
+      taxTyCds: ProxyService.box.vatEnabled()
+          ? ['A', 'B', 'C']
+          : ['D'],
       branchId: ProxyService.box.getBranchId()!,
     );
 
