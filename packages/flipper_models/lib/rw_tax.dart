@@ -843,7 +843,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final topMessage = [
       business?.name ?? 'Our Business',
       business?.adrs?.isNotEmpty == true ? business!.adrs : 'Kigali, Rwanda',
-      'TEL: ${ProxyService.box.getUserPhone()?.replaceAll("+", "") ?? '0780000000'}',
+      'TEL: ${business?.phoneNumber?.replaceAll("+", "") ?? '0780000000'}',
       'Email: ${business?.email ?? 'info@yegobox.com'}',
       'TIN: ${business?.tinNumber ?? '999909695'}',
       'WELCOME TO OUR SHOP'

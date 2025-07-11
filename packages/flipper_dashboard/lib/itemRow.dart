@@ -225,20 +225,20 @@ class _RowItemState extends ConsumerState<RowItem>
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primaryContainer.withOpacity(0.15)
+                ? colorScheme.primaryContainer.withValues(alpha: 0.15)
                 : Colors.white,
             borderRadius: BorderRadius.circular(cardBorderRadius),
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary
-                  : Colors.grey.withOpacity(0.12),
+                  ? colorScheme.primary.withValues(alpha: 0.12)
+                  : Colors.grey.withValues(alpha: 0.12),
               width: isSelected ? 2.0 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: isSelected
-                    ? colorScheme.primary.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.04),
+                    ? colorScheme.primary.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.04),
                 blurRadius: isSelected ? 8.0 : 4.0,
                 spreadRadius: isSelected ? 1.0 : 0.0,
                 offset: const Offset(0, 2),
@@ -353,11 +353,11 @@ class _RowItemState extends ConsumerState<RowItem>
     // Get appropriate display names with safe fallbacks
     final String displayProductName = _truncateString(
         widget.productName.isNotEmpty ? widget.productName : "Unnamed Product",
-        10);
+        20);
 
     final String displayVariantName = _truncateString(
         widget.variantName.isNotEmpty ? widget.variantName : "Default Variant",
-        10);
+        20);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -461,7 +461,7 @@ class _RowItemState extends ConsumerState<RowItem>
                       widget.productName.isNotEmpty
                           ? widget.productName
                           : "Unnamed Product",
-                      10),
+                      20),
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -477,7 +477,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 if (widget.variantName != widget.productName &&
                     widget.variantName.isNotEmpty)
                   Text(
-                    _truncateString(widget.variantName, 10),
+                    _truncateString(widget.variantName, 20),
                     style: textTheme.bodyMedium?.copyWith(
                       color: Colors.grey[600],
                       fontSize: 10, // Smaller font size

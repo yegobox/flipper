@@ -490,25 +490,30 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                               details.rowColumnIndex
                                                                       .rowIndex -
                                                                   1];
-                                                      final variants =
-                                                          await ProxyService
-                                                              .strategy
-                                                              .variants(
-                                                                  taxTyCds:
-                                                                      ProxyService
-                                                                              .box
-                                                                              .vatEnabled()
-                                                                          ? ['A', 'B', 'C']
-                                                                          : ['D'],
-                                                                  fetchRemote:
-                                                                      false,
-                                                                  branchId:
-                                                                      ProxyService
-                                                                          .box
-                                                                          .getBranchId()!);
+                                                      final variants = await ProxyService
+                                                          .strategy
+                                                          .variants(
+                                                              taxTyCds: ProxyService
+                                                                      .box
+                                                                      .vatEnabled()
+                                                                  ? [
+                                                                      'A',
+                                                                      'B',
+                                                                      'C'
+                                                                    ]
+                                                                  : ['D'],
+                                                              fetchRemote:
+                                                                  false,
+                                                              branchId: ProxyService
+                                                                  .box
+                                                                  .getBranchId()!);
                                                       _showEditDialog(
                                                           context, item,
-                                                          variants: variants);
+                                                          variants: variants
+                                                              .where((v) =>
+                                                                  v.itemTyCd !=
+                                                                  "3")
+                                                              .toList());
                                                     }
                                                   },
                                                 ),
