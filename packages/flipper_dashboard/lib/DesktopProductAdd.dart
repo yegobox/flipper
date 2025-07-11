@@ -668,6 +668,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                         !ref.watch(isCompositeProvider)
                             ? TableVariants(
+                                isEditMode: widget.productId != null,
                                 onDateChanged:
                                     (String variantId, DateTime date) {
                                   _dates[variantId] = TextEditingController(

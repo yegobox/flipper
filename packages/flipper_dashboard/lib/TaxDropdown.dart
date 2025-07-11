@@ -5,6 +5,7 @@ class TaxDropdown extends StatelessWidget {
   final List<String> options; // List of available options
   final ValueChanged<String> onChanged; // Callback for value changes
   final String defaultValue; // Default value if no selection is made
+  final bool isEditMode;
 
   const TaxDropdown({
     Key? key,
@@ -12,10 +13,24 @@ class TaxDropdown extends StatelessWidget {
     required this.options,
     required this.onChanged,
     this.defaultValue = "B",
+    this.isEditMode = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    if (isEditMode) {
+      return TextFormField(
+        initialValue: selectedValue ?? defaultValue,
+        readOnly: true,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+        ),
+      );
+    }
     return DropdownButton<String>(
       value: selectedValue ?? defaultValue,
       items: options.map((String option) {
