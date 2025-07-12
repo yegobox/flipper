@@ -1,7 +1,10 @@
+import 'package:flipper_dashboard/OrderStatusSelector.dart';
+import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -109,6 +112,20 @@ class IncomingOrdersScreen extends HookConsumerWidget {
 
                       const SizedBox(height: 20),
 
+                      OrderStatusSelector(
+                        selectedStatus: ref.watch(orderStatusProvider),
+                        onStatusChanged: (newStatus) {
+                          ref.read(orderStatusProvider.notifier).state =
+                              newStatus;
+                          ref.read(requestStatusProvider.notifier).state =
+                              newStatus == OrderStatus.approved
+                                  ? RequestStatus.approved
+                                  : RequestStatus.pending;
+                        },
+                      ),
+
+                      const SizedBox(height: 20),
+
                       // Orders List Header
                       Text(
                         'Recent Orders',
@@ -134,7 +151,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: Colors.black.withValues(alpha: 0.04),
                                 blurRadius: 15,
                                 offset: const Offset(0, 2),
                               ),
@@ -178,7 +195,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -189,7 +206,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: const Color(0xFF0078D4).withOpacity(0.1),
+              color: const Color(0xFF0078D4).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
