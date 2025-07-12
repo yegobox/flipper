@@ -182,36 +182,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: _buildCompactAppBar(isOrdering),
       body: _buildScrollableContent(isOrdering, transactionAsyncValue, model),
       bottomNavigationBar: _buildBottomActionBar(transactionAsyncValue, model),
-    );
-  }
-
-  PreferredSizeWidget _buildCompactAppBar(bool isOrdering) {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      foregroundColor: Theme.of(context).colorScheme.onSurface,
-      title: Text(
-        isOrdering ? 'New Order' : 'Point of Sale',
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-      actions: [
-        if (!isOrdering)
-          IconButton(
-            icon: Icon(Icons.receipt_long_outlined),
-            onPressed: () => _showTransactionHistory(),
-            tooltip: 'Transaction History',
-          ),
-        IconButton(
-          icon: Icon(Icons.more_vert),
-          onPressed: () => _showOptionsMenu(),
-          tooltip: 'More Options',
-        ),
-      ],
     );
   }
 

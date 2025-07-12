@@ -180,8 +180,6 @@ class CoreSync extends AiStrategyImpl
   @override
   SendPort? sendPort;
 
-
-
   @override
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) async {
     final branchId = ProxyService.box.getBranchId()!;
@@ -1245,40 +1243,17 @@ class CoreSync extends AiStrategyImpl
     String filter = RequestStatus.pending,
     String? search,
   }) {
-    final whereConditions = <brick.Where>[
-      brick.Where('mainBranchId').isExactly(branchId),
-    ];
-
-    if (filter == RequestStatus.approved) {
-      whereConditions
-          .add(brick.Where('status').isExactly(RequestStatus.approved));
-    } else {
-      whereConditions.addAll([
-        brick.Where('status').isExactly(RequestStatus.pending),
-        brick.Or('status').isExactly(RequestStatus.partiallyApproved),
-      ]);
-    }
-
-    if (search != null && search.isNotEmpty) {
-      whereConditions.add(brick.Or('id')
-          .contains(search)
-          // .or('deliveryNote')
-          .contains(search)
-          // .or('orderNote')
-          .contains(search));
-    }
-
-    final buildQuery = brick.Query(where: whereConditions);
-
-    return repository
-        .subscribe<InventoryRequest>(
+    final request = repository.subscribeToRealtime<InventoryRequest>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
-      query: buildQuery,
-    )
-        .asyncMap((requests) async {
+      query: brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Where('status').isExactly(filter),
+      ]),
+    );
+    return request.asyncMap((requests) async {
       if (requests.isEmpty) return requests;
       return Future.wait(requests.map(_hydrateSingleRequest));
-    });
+    }).asBroadcastStream();
   }
 
   Future<InventoryRequest> _hydrateSingleRequest(InventoryRequest req) async {
@@ -1307,10 +1282,13 @@ class CoreSync extends AiStrategyImpl
         financingToUse = financingList.first;
       }
     }
+    List<TransactionItem> items =
+        await transactionItems(requestId: req.id, fetchRemote: true);
 
     return await req.copyWith(
       branch: hydratedBranch,
       financing: financingToUse,
+      transactionItems: items,
     );
   }
 
@@ -1995,6 +1973,7 @@ class CoreSync extends AiStrategyImpl
         //     paymentTypes.firstWhere((element) => element == 'CASH')) {
         final userId = ProxyService.box.getUserId();
         if (userId != null) {
+          transaction.customerChangeDue = cashReceived - transaction.subTotal!;
           final currentShift = await getCurrentShift(userId: userId);
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
@@ -2703,10 +2682,33 @@ class CoreSync extends AiStrategyImpl
       final String? bhfId = await ProxyService.box.bhfId();
       final int? tinNumber = ProxyService.box.tin();
 
+      FinanceProvider? provider;
+      if (financingId != null) {
+        // get financing
+        provider = (await repository.get<FinanceProvider>(
+                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+                query: brick.Query(where: [
+                  brick.Where('id').isExactly(financingId),
+                ])))
+            .firstOrNull;
+      }
+      final financing = Financing(
+        id: provider?.id,
+        provider: provider,
+        requested: true,
+        amount: items.fold(
+            0, (previousValue, element) => previousValue! + element.price),
+        status: 'pending',
+        financeProviderId: provider?.id,
+        approvalDate: DateTime.now().toUtc(),
+      );
+      await repository.upsert(financing);
+
       final InventoryRequest request = InventoryRequest(
         id: requestId,
         mainBranchId: mainBranchId,
         subBranchId: subBranchId,
+        financing: financing,
         createdAt: DateTime.now().toUtc(),
         status: RequestStatus.pending,
         deliveryNote: deliveryNote,

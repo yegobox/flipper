@@ -679,7 +679,9 @@ mixin AuthMixin implements AuthInterface {
             final iBusiness = IBusiness.fromJson(businessData);
             // Convert IBusiness to Business (from supabase_models)
             final business = Business(
-              phoneNumber: iBusiness.phoneNumber!,
+              phoneNumber: businessData['phoneNumber'] as String? ??
+                  iBusiness.phoneNumber ??
+                  '',
               id: iBusiness.id,
               serverId: iBusiness.serverId,
               name: iBusiness.name,
@@ -819,8 +821,7 @@ mixin AuthMixin implements AuthInterface {
           .writeString(key: 'business_${e.serverId}_uuid', value: e.id);
 
       return IBusiness(
-        // For id, we need to use serverId for backward compatibility
-        // since IBusiness.id expects an int
+        phoneNumber: e.phoneNumber,
         id: e.id,
         serverId: e.serverId,
         name: e.name ?? '',

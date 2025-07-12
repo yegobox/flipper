@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
@@ -28,6 +29,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/DeviceType.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -1036,7 +1038,13 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock = await CacheManager()
                     .getStockByVariantId(widget.variant!.id);
                 if (stock != null && stock.currentStock != 0) {
-                  toast('Cannot delete a variant with stock.');
+                  final dialogService = locator<DialogService>();
+                  dialogService.showCustomDialog(
+                    variant: DialogType.info,
+                    title: 'Error',
+                    description: 'Cannot delete a variant with stock.',
+                    data: {'status': InfoDialogStatus.error},
+                  );
                   return;
                 }
                 widget.delete(widget.variant!.productId!, 'product');
