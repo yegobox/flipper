@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/OrderStatusSelector.dart';
+// import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -7,6 +7,82 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+class OrderStatusSelector extends StatelessWidget {
+  final OrderStatus selectedStatus;
+  final Function(OrderStatus) onStatusChanged;
+
+  const OrderStatusSelector({
+    required this.selectedStatus,
+    required this.onStatusChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: SegmentedButton<OrderStatus>(
+        style: _getButtonStyle(context),
+        segments: const [
+          ButtonSegment<OrderStatus>(
+            value: OrderStatus.pending,
+            label: Text('Pending'),
+            icon: Icon(Icons.hourglass_empty),
+          ),
+          ButtonSegment<OrderStatus>(
+            value: OrderStatus.approved,
+            label: Text('Approved'),
+            icon: Icon(Icons.check_circle_outline),
+          ),
+        ],
+        selected: {selectedStatus},
+        onSelectionChanged: (newSelection) {
+          onStatusChanged(newSelection.first);
+        },
+      ),
+    );
+  }
+
+  ButtonStyle _getButtonStyle(BuildContext context) {
+    return ButtonStyle(
+      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return Theme.of(context).colorScheme.primary;
+          }
+          return Colors.white;
+        },
+      ),
+      foregroundColor: WidgetStateProperty.resolveWith<Color>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
+            return Colors.white;
+          }
+          return Theme.of(context).colorScheme.primary;
+        },
+      ),
+      side: WidgetStateProperty.all(
+        BorderSide(color: Theme.of(context).colorScheme.primary),
+      ),
+      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+      ),
+      overlayColor: WidgetStateProperty.all(Colors.transparent),
+    );
+  }
+}
 
 class IncomingOrdersScreen extends HookConsumerWidget {
   const IncomingOrdersScreen({Key? key}) : super(key: key);
@@ -38,7 +114,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
         child: stockRequests.when(
           data: (requests) {
             if (requests.isEmpty) {
-              return _buildEmptyState();
+              return _buildEmptyState(ref);
             }
 
             return incomingBranchAsync.when(
@@ -67,7 +143,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -94,9 +170,26 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                                     'Manage your pending requests',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.9),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.9),
                                       fontWeight: FontWeight.w400,
                                     ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  OrderStatusSelector(
+                                    selectedStatus:
+                                        ref.watch(orderStatusProvider),
+                                    onStatusChanged: (newStatus) {
+                                      ref
+                                          .read(orderStatusProvider.notifier)
+                                          .state = newStatus;
+                                      ref
+                                          .read(requestStatusProvider.notifier)
+                                          .state = newStatus ==
+                                              OrderStatus.approved
+                                          ? RequestStatus.approved
+                                          : RequestStatus.pending;
+                                    },
                                   ),
                                 ],
                               ),
@@ -109,20 +202,6 @@ class IncomingOrdersScreen extends HookConsumerWidget {
 
                       // Stats Card
                       _buildStatsCard(requests.length),
-
-                      const SizedBox(height: 20),
-
-                      OrderStatusSelector(
-                        selectedStatus: ref.watch(orderStatusProvider),
-                        onStatusChanged: (newStatus) {
-                          ref.read(orderStatusProvider.notifier).state =
-                              newStatus;
-                          ref.read(requestStatusProvider.notifier).state =
-                              newStatus == OrderStatus.approved
-                                  ? RequestStatus.approved
-                                  : RequestStatus.pending;
-                        },
-                      ),
 
                       const SizedBox(height: 20),
 
@@ -260,7 +339,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(WidgetRef ref) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(48),
@@ -315,9 +394,20 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                         'Manage your pending requests',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w400,
                         ),
+                      ),
+                      OrderStatusSelector(
+                        selectedStatus: ref.watch(orderStatusProvider),
+                        onStatusChanged: (newStatus) {
+                          ref.read(orderStatusProvider.notifier).state =
+                              newStatus;
+                          ref.read(requestStatusProvider.notifier).state =
+                              newStatus == OrderStatus.approved
+                                  ? RequestStatus.approved
+                                  : RequestStatus.pending;
+                        },
                       ),
                     ],
                   ),
@@ -362,7 +452,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: Colors.grey.withValues(alpha: 0.6),
               height: 1.4,
             ),
           ),
@@ -416,7 +506,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -443,7 +533,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                         'Manage your pending requests',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -461,7 +551,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -524,7 +614,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -551,7 +641,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                         'Manage your pending requests',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -569,7 +659,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
@@ -580,7 +670,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE74C3C).withOpacity(0.1),
+                    color: const Color(0xFFE74C3C).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -604,7 +694,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Colors.grey.withValues(alpha: 0.6),
                     height: 1.4,
                   ),
                 ),

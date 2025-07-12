@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:flipper_dashboard/IncomingOrders.dart';
+import 'package:flipper_dashboard/IncomingOrders.dart' hide OrderStatusSelector;
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
