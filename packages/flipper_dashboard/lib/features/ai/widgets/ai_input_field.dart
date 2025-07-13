@@ -26,22 +26,14 @@ class AiInputField extends StatefulWidget {
 class _AiInputFieldState extends State<AiInputField>
     with TickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode();
-  late AnimationController _buttonAnimationController;
 
   bool _hasText = false;
 
   @override
   void initState() {
     super.initState();
-    _buttonAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
     widget.controller.addListener(_handleTextChange);
     _hasText = widget.controller.text.isNotEmpty;
-    if (_hasText) {
-      _buttonAnimationController.value = 1.0;
-    }
     _focusNode.onKeyEvent = _handleKeyEvent;
   }
 
@@ -50,7 +42,6 @@ class _AiInputFieldState extends State<AiInputField>
     _focusNode.onKeyEvent = null;
     widget.controller.removeListener(_handleTextChange);
     _focusNode.dispose();
-    _buttonAnimationController.dispose();
     super.dispose();
   }
 
@@ -60,11 +51,6 @@ class _AiInputFieldState extends State<AiInputField>
       setState(() {
         _hasText = hasText;
       });
-      if (hasText) {
-        _buttonAnimationController.forward();
-      } else {
-        _buttonAnimationController.reverse();
-      }
     }
   }
 
@@ -103,7 +89,7 @@ class _AiInputFieldState extends State<AiInputField>
           children: [
             Expanded(child: _buildInputField()),
             const SizedBox(width: 12),
-            _buildSendButton(),
+            _buildSendOrMicButton(),
           ],
         ),
       ),
@@ -114,7 +100,7 @@ class _AiInputFieldState extends State<AiInputField>
     return Container(
       decoration: BoxDecoration(
         color: AiTheme.inputBackgroundColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(color: AiTheme.borderColor),
       ),
       child: TextField(
@@ -138,24 +124,31 @@ class _AiInputFieldState extends State<AiInputField>
     );
   }
 
-  Widget _buildSendButton() {
+  Widget _buildSendOrMicButton() {
+    final hasText = _hasText;
     final canSend = _canSend();
-    return ScaleTransition(
-      scale:
-          _buttonAnimationController.drive(CurveTween(curve: Curves.easeOut)),
-      child: SizedBox(
-        width: 52,
-        height: 52,
-        child: Material(
-          color: canSend ? AiTheme.primaryColor : AiTheme.inputBackgroundColor,
+
+    return SizedBox(
+      width: 52,
+      height: 52,
+      child: Material(
+        color: hasText ? AiTheme.primaryColor : AiTheme.inputBackgroundColor,
+        borderRadius: BorderRadius.circular(26),
+        elevation: hasText ? 2 : 0,
+        child: InkWell(
           borderRadius: BorderRadius.circular(26),
-          elevation: canSend ? 2 : 0,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(26),
-            onTap: canSend ? () => _handleSubmit(widget.controller.text) : null,
-            child: Center(
-              child: widget.isLoading
+          onTap: hasText
+              ? (canSend ? () => _handleSubmit(widget.controller.text) : null)
+              : () {/* TODO: Implement microphone action */},
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: (widget.isLoading && hasText)
                   ? const SizedBox(
+                      key: ValueKey('loader'),
                       width: 24,
                       height: 24,
                       child: CircularProgressIndicator(
@@ -164,8 +157,9 @@ class _AiInputFieldState extends State<AiInputField>
                       ),
                     )
                   : Icon(
-                      Icons.send_rounded,
-                      color: canSend ? Colors.white : AiTheme.hintColor,
+                      hasText ? Icons.send_rounded : Icons.mic,
+                      key: ValueKey(hasText ? 'send' : 'mic'),
+                      color: hasText ? Colors.white : AiTheme.secondaryColor,
                       size: 24,
                     ),
             ),
