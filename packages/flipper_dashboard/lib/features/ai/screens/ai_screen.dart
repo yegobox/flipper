@@ -166,7 +166,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _scrollToBottom();
 
       final aiResponseText = await ref
-          .read(
+          .refresh(
         geminiBusinessAnalyticsProvider(branchId, text).future,
       )
           .catchError((e) {
