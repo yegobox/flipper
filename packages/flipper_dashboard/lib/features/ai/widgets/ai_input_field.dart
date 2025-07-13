@@ -146,7 +146,7 @@ class _AiInputFieldState extends State<AiInputField>
               transitionBuilder: (child, animation) {
                 return ScaleTransition(scale: animation, child: child);
               },
-              child: (widget.isLoading && hasText)
+              child: widget.isLoading
                   ? const SizedBox(
                       key: ValueKey('loader'),
                       width: 24,

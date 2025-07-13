@@ -194,6 +194,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                   title: date.isNotEmpty ? '$title for $date' : title,
                   subtitle: 'Total: $currencyCode ${_formatCurrency(totalTax)}',
                   config: config,
+                  onCopy: onCopyGraph,
                 ),
                 SizedBox(height: config['cardPadding']),
                 _buildAdaptiveTaxChart(
@@ -433,6 +434,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                   title: 'Business Analytics',
                   subtitle: date,
                   config: config,
+                  onCopy: onCopyGraph,
                 ),
                 SizedBox(height: config['cardPadding']),
                 _buildMetricCards(
@@ -694,27 +696,42 @@ class StructuredDataVisualization implements VisualizationInterface {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Inventory Visualization',
+                          style: TextStyle(
+                            fontSize: config['titleSize'],
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Coming Soon',
+                          style: TextStyle(
+                            fontSize: config['legendSize'],
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, color: Colors.grey),
+                      onPressed: onCopyGraph,
+                      tooltip: 'Copy Graph',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 Icon(
                   Icons.inventory_2_outlined,
                   size: 48,
                   color: Colors.grey.shade400,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Inventory Visualization',
-                  style: TextStyle(
-                    fontSize: config['titleSize'],
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Coming Soon',
-                  style: TextStyle(
-                    fontSize: config['legendSize'],
-                    color: Colors.grey.shade500,
-                  ),
                 ),
               ],
             ),
@@ -731,27 +748,39 @@ class StructuredDataVisualization implements VisualizationInterface {
     required String title,
     required String subtitle,
     required Map<String, dynamic> config,
+    VoidCallback? onCopy,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: config['titleSize'],
-            fontWeight: FontWeight.w700,
-            color: Colors.grey.shade800,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: config['titleSize'],
+                fontWeight: FontWeight.w700,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: config['subtitleSize'],
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF0078D4),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: TextStyle(
-            fontSize: config['subtitleSize'],
-            fontWeight: FontWeight.w500,
-            color: const Color(0xFF0078D4),
+        if (onCopy != null)
+          IconButton(
+            icon: const Icon(Icons.copy_rounded, color: Colors.grey),
+            onPressed: onCopy,
+            tooltip: 'Copy Graph',
           ),
-        ),
       ],
     );
   }
