@@ -50,7 +50,8 @@ BEGIN
                    v.tax_ty_cd, 
                    ti.price, 
                    v.category_name,  -- ✅ Fetch category_name from variants
-                   v.category_id     -- ✅ Fetch category_id from variants
+                   v.category_id,     -- ✅ Fetch category_id from variants
+                   v.supply_price    -- ✅ Fetch supply_price from variants
             FROM transaction_items ti
             JOIN variants v ON ti.variant_id = v.id  -- ✅ Ensure v is from variants
             WHERE ti.transaction_id = NEW.id
@@ -63,10 +64,8 @@ BEGIN
             total_price := total_price + transaction_item.price;
             total_quantity := total_quantity + transaction_item.qty;
 
-            -- Calculate profit based on tax type
-            IF transaction_item.tax_ty_cd = 'B' THEN
-                total_profit := total_profit + (transaction_item.price * transaction_item.qty) * 0.18;
-            END IF;
+            -- Calculate profit based on selling price and supply price
+            total_profit := total_profit + (transaction_item.price - transaction_item.supply_price) * transaction_item.qty;
         END LOOP;
 
         -- Remove the leading comma and space if there are items

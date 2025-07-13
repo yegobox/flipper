@@ -165,9 +165,16 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _controller.clear();
       _scrollToBottom();
 
-      final aiResponseText = await ref.read(
+      final aiResponseText = await ref
+          .read(
         geminiBusinessAnalyticsProvider(branchId, text).future,
-      );
+      )
+          .catchError((e) {
+        if (e.toString().contains('RESOURCE_EXHAUSTED')) {
+          return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
+        }
+        throw e; // Re-throw other errors
+      });
 
       await ProxyService.strategy.saveMessage(
         text: aiResponseText,
@@ -230,7 +237,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           style: TextStyle(color: AiTheme.textColor)),
       backgroundColor: AiTheme.surfaceColor,
       elevation: 1,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
     );
   }
 
