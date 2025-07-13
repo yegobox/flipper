@@ -100,7 +100,7 @@ class EnhancedSideMenu extends ConsumerWidget {
               onTap: () {
                 ref.read(selectedMenuItemProvider.notifier).state = 2;
                 ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.inventory;
+                    DashboardPage.reports;
               },
             ),
             SideMenuItemDataTile(
