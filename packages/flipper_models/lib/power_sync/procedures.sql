@@ -19,6 +19,14 @@ END;
 $$;
 
 
+-- Scripts useful
+
+SELECT *
+FROM business_analytics
+WHERE date::date = CURRENT_DATE and branch_id = 1;
+
+-- end of useful scripts
+
 -- For transation
 
 -- Drop the existing trigger and function if they exist
