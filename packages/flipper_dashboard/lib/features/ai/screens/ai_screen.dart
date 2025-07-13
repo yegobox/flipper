@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 // ignore: avoid_web_libraries_in_flutter
-import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
@@ -78,8 +76,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _conversations = groupedMessages;
           _currentConversationId = conversations.first.id;
           _messages = _conversations[_currentConversationId] ?? [];
-          _subscribeToCurrentConversation();
         });
+        _subscribeToCurrentConversation();
+        _scrollToBottom();
       }
     } catch (e) {
       if (mounted) _showError('Error loading conversations: ${e.toString()}');
@@ -101,8 +100,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _currentConversationId = conversation.id;
           _conversations[conversation.id] = [];
           _messages = [];
-          _subscribeToCurrentConversation();
         });
+        _subscribeToCurrentConversation();
+        _scrollToBottom();
       }
     } catch (e) {
       if (mounted) _showError('Error creating conversation: ${e.toString()}');
@@ -123,6 +123,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             _startNewConversation();
           }
         });
+        _scrollToBottom();
       }
     } catch (e) {
       if (mounted) _showError('Error deleting conversation: ${e.toString()}');
@@ -139,6 +140,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _messages = messages;
           _conversations[_currentConversationId] = messages;
         });
+        _scrollToBottom(); // Scroll to bottom when new messages arrive
       }
     });
   }
@@ -224,7 +226,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         icon: const Icon(Icons.menu_rounded, color: AiTheme.secondaryColor),
         onPressed: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      title: const Text('AI Assistant', style: TextStyle(color: AiTheme.textColor)),
+      title: const Text('AI Assistant',
+          style: TextStyle(color: AiTheme.textColor)),
       backgroundColor: AiTheme.surfaceColor,
       elevation: 1,
       shadowColor: Colors.black.withOpacity(0.1),
@@ -242,6 +245,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             _messages = _conversations[id] ?? [];
           });
           _subscribeToCurrentConversation();
+          _scrollToBottom(); // Scroll to bottom after selecting conversation
           Navigator.of(context).pop();
         },
         onDeleteConversation: (id) => _deleteCurrentConversation(id),
@@ -278,6 +282,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               _messages = _conversations[id] ?? [];
             });
             _subscribeToCurrentConversation();
+            _scrollToBottom(); // Scroll to bottom after selecting conversation
           },
           onDeleteConversation: (id) => _deleteCurrentConversation(id),
           onNewConversation: _startNewConversation,
