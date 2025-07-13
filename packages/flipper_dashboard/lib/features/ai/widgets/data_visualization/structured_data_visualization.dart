@@ -7,26 +7,23 @@ import 'visualization_interface.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-/// Visualization for structured data returned by AI
+/// Enhanced visualization for structured data with adaptive design
 class StructuredDataVisualization implements VisualizationInterface {
   final String data;
   final dynamic currencyService;
   final GlobalKey cardKey;
   final VoidCallback onCopyGraph;
 
-  StructuredDataVisualization(this.data, this.currencyService, {required this.cardKey, required this.onCopyGraph});
-
-  
+  StructuredDataVisualization(this.data, this.currencyService,
+      {required this.cardKey, required this.onCopyGraph});
 
   @override
   Widget build(BuildContext context, {String? currency}) {
-    // Try to extract structured data JSON from the response
     final structuredData = _extractStructuredData(data);
     if (structuredData == null) {
       return const SizedBox.shrink();
     }
 
-    // Check the visualization type
     final String? visualizationType = structuredData['type'];
 
     switch (visualizationType) {
@@ -44,14 +41,12 @@ class StructuredDataVisualization implements VisualizationInterface {
 
   @override
   bool canVisualize(String data) {
-    // Check if the data contains structured visualization data
     return _extractStructuredData(data) != null;
   }
 
   /// Extract structured data from the response
   Map<String, dynamic>? _extractStructuredData(String data) {
     try {
-      // Look for JSON data between visualization markers
       final RegExp jsonRegex = RegExp(
           r'\{\{VISUALIZATION_DATA\}\}([\s\S]*?)\{\{\/VISUALIZATION_DATA\}\}');
       final match = jsonRegex.firstMatch(data);
@@ -69,560 +64,840 @@ class StructuredDataVisualization implements VisualizationInterface {
     }
   }
 
-  /// Build tax visualization from structured data
+  /// Get responsive breakpoints and sizing
+  Map<String, dynamic> _getResponsiveConfig(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
+    final isDesktop = screenWidth > 900;
+
+    return {
+      'isDesktop': isDesktop,
+      'isTablet': isTablet,
+      'isMobile': !isTablet,
+      'screenWidth': screenWidth,
+      'screenHeight': screenHeight,
+      'cardPadding': isDesktop
+          ? 24.0
+          : isTablet
+              ? 20.0
+              : 16.0,
+      'chartHeight': isDesktop
+          ? 280.0
+          : isTablet
+              ? 240.0
+              : 200.0,
+      'titleSize': isDesktop
+          ? 20.0
+          : isTablet
+              ? 18.0
+              : 16.0,
+      'subtitleSize': isDesktop
+          ? 16.0
+          : isTablet
+              ? 14.0
+              : 12.0,
+      'legendSize': isDesktop
+          ? 14.0
+          : isTablet
+              ? 12.0
+              : 11.0,
+      'maxLegendColumns': isDesktop
+          ? 3
+          : isTablet
+              ? 2
+              : 1,
+      'pieRadius': isDesktop
+          ? 80.0
+          : isTablet
+              ? 70.0
+              : 60.0,
+      'barWidth': isDesktop
+          ? 32.0
+          : isTablet
+              ? 28.0
+              : 24.0,
+    };
+  }
+
+  /// Enhanced modern color palette inspired by Microsoft/QuickBooks
+  List<Color> _getModernColorPalette() {
+    return [
+      const Color(0xFF0078D4), // Microsoft Blue
+      const Color(0xFF107C10), // Success Green
+      const Color(0xFFFF8C00), // Vibrant Orange
+      const Color(0xFF5C2D91), // Purple
+      const Color(0xFF00BCF2), // Cyan
+      const Color(0xFFE81123), // Red
+      const Color(0xFF00B7C3), // Teal
+      const Color(0xFF8764B8), // Lavender
+      const Color(0xFF498205), // Forest Green
+      const Color(0xFFFF4B4B), // Coral
+    ];
+  }
+
+  /// Build enhanced tax visualization with adaptive layout
   Widget _buildTaxVisualization(
       BuildContext context, Map<String, dynamic> data, String? currency) {
-    // Extract data from the structured format
+    final config = _getResponsiveConfig(context);
+    final colors = _getModernColorPalette();
+
     final String title = data['title'] ?? 'Tax Summary';
     final String date = data['date'] ?? 'Today';
-
-    // Handle totalTax more robustly to prevent failures
-    double totalTax = 0.0;
-    final dynamic rawTotalTax = data['totalTax'];
-    if (rawTotalTax != null) {
-      if (rawTotalTax is num) {
-        totalTax = rawTotalTax.toDouble();
-      } else if (rawTotalTax is String) {
-        // Try to parse string to double, removing any non-numeric characters except decimal point
-        final cleanedStr = rawTotalTax.replaceAll(RegExp(r'[^\d.]'), '');
-        try {
-          totalTax = double.parse(cleanedStr);
-        } catch (e) {
-          print('Error parsing totalTax: $e');
-        }
-      }
-    }
-
+    final double totalTax = _parseNumericValue(data['totalTax']);
     final String currencyCode =
         data['currencyCode'] ?? '${ProxyService.box.defaultCurrency()}';
-
-    // Include date in title if available
-    final String displayTitle = date.isNotEmpty ? '$title for $date' : title;
     final List<dynamic> items = data['items'] ?? [];
 
-    // Prepare data for pie chart
-    final pieChartSections = <PieChartSectionData>[];
-    final colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-      Colors.teal,
-    ];
-
-    // Group and sort items by tax amount
+    // Process and group items
     final Map<String, double> itemTaxContributions = {};
     for (final item in items) {
       final String name = item['name'] ?? 'Unknown';
-
-      // Handle taxAmount more robustly
-      double taxAmount = 0.0;
-      final dynamic rawTaxAmount = item['taxAmount'];
-      if (rawTaxAmount != null) {
-        if (rawTaxAmount is num) {
-          taxAmount = rawTaxAmount.toDouble();
-        } else if (rawTaxAmount is String) {
-          // Try to parse string to double, removing any non-numeric characters except decimal point
-          final cleanedStr = rawTaxAmount.replaceAll(RegExp(r'[^\d.]'), '');
-          try {
-            taxAmount = double.parse(cleanedStr);
-          } catch (e) {
-            print('Error parsing item taxAmount: $e');
-          }
-        }
-      }
+      final double taxAmount = _parseNumericValue(item['taxAmount']);
 
       if (taxAmount > 0) {
-        // Group by main product name (before comma if present)
         final mainProductName = name.split(',').first.trim();
-
-        if (itemTaxContributions.containsKey(mainProductName)) {
-          itemTaxContributions[mainProductName] =
-              (itemTaxContributions[mainProductName] ?? 0) + taxAmount;
-        } else {
-          itemTaxContributions[mainProductName] = taxAmount;
-        }
+        itemTaxContributions[mainProductName] =
+            (itemTaxContributions[mainProductName] ?? 0) + taxAmount;
       }
     }
 
-    // Sort by contribution (highest first)
     final sortedItems = itemTaxContributions.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-
-    // Determine visualization approach based on number of items
-    final bool usePieChart = sortedItems.length <= 6;
-
-    // For pie chart, limit to top 5 + Other
-    List<MapEntry<String, double>> pieChartItems = [];
-    if (usePieChart) {
-      pieChartItems = List.from(sortedItems);
-      if (pieChartItems.length > 5) {
-        // Group smaller items as "Other"
-        double otherTaxes = 0.0;
-        for (int i = 5; i < pieChartItems.length; i++) {
-          otherTaxes += pieChartItems[i].value;
-        }
-
-        // Keep only top 5 items
-        pieChartItems = pieChartItems.sublist(0, 5);
-
-        // Add "Other" category if needed
-        if (otherTaxes > 0) {
-          pieChartItems.add(MapEntry('Other Items', otherTaxes));
-        }
-      }
-
-      // Create pie chart sections
-      for (int i = 0; i < pieChartItems.length; i++) {
-        final item = pieChartItems[i];
-        final percentage = (item.value / totalTax) * 100;
-
-        pieChartSections.add(
-          PieChartSectionData(
-            color: colors[i % colors.length],
-            value: item.value,
-            title: percentage >= 5 ? '${percentage.toStringAsFixed(1)}%' : '',
-            radius: 60,
-            titleStyle: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        );
-      }
-    }
 
     return RepaintBoundary(
       key: cardKey,
       child: Card(
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    displayTitle,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        'Total: $currencyCode ${totalTax.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-                if (usePieChart) ...[
-                  // Pie chart for fewer items
-                  SizedBox(
-                    height: 200,
-                    child: PieChart(
-                      PieChartData(
-                        sections: pieChartSections,
-                        centerSpaceRadius: 40,
-                        sectionsSpace: 2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Legend for pie chart
-                  Wrap(
-                    spacing: 16.0,
-                    runSpacing: 8.0,
-                    children: [
-                      for (int i = 0; i < pieChartItems.length; i++)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              color: colors[i % colors.length],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${pieChartItems[i].key}: $currencyCode ${pieChartItems[i].value.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                ] else ...[
-                  // Bar chart for many items
-                  SizedBox(
-                    height: sortedItems.length *
-                        30.0, // Dynamic height based on number of items
-                    child: ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: sortedItems.length,
-                      itemBuilder: (context, index) {
-                        final item = sortedItems[index];
-                        final percentage = (item.value / totalTax) * 100;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      item.key,
-                                      style: const TextStyle(fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: Text(
-                                      '$currencyCode ${item.value.toStringAsFixed(2)}',
-                                      style: const TextStyle(fontSize: 12),
-                                      textAlign: TextAlign.right,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Stack(
-                                children: [
-                                  Container(
-                                    height: 8,
-                                    width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[200],
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                  FractionallySizedBox(
-                                    widthFactor: percentage / 100,
-                                    child: Container(
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: colors[index % colors.length],
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white,
+                Colors.grey.shade50,
               ],
             ),
           ),
-        ));
-  }
-
-  /// Build business analytics visualization from structured data
-  Widget _buildBusinessAnalyticsVisualization(
-      BuildContext context, Map<String, dynamic> data, String? currency) {
-    // Extract data from the structured format with robust parsing
-    double revenue = 0.0;
-    double profit = 0.0;
-    double unitsSold = 0.0;
-
-    // Parse revenue safely
-    final dynamic rawRevenue = data['revenue'];
-    if (rawRevenue != null) {
-      if (rawRevenue is num) {
-        revenue = rawRevenue.toDouble();
-      } else if (rawRevenue is String) {
-        final cleanedStr = rawRevenue.replaceAll(RegExp(r'[^\d.]'), '');
-        try {
-          revenue = double.parse(cleanedStr);
-        } catch (e) {
-          print('Error parsing revenue: $e');
-        }
-      }
-    }
-
-    // Parse profit safely
-    final dynamic rawProfit = data['profit'];
-    if (rawProfit != null) {
-      if (rawProfit is num) {
-        profit = rawProfit.toDouble();
-      } else if (rawProfit is String) {
-        final cleanedStr = rawProfit.replaceAll(RegExp(r'[^\d.]'), '');
-        try {
-          profit = double.parse(cleanedStr);
-        } catch (e) {
-          print('Error parsing profit: $e');
-        }
-      }
-    }
-
-    // Parse units sold safely
-    final dynamic rawUnitsSold = data['unitsSold'];
-    if (rawUnitsSold != null) {
-      if (rawUnitsSold is num) {
-        unitsSold = rawUnitsSold.toDouble();
-      } else if (rawUnitsSold is String) {
-        final cleanedStr = rawUnitsSold.replaceAll(RegExp(r'[^\d.]'), '');
-        try {
-          unitsSold = double.parse(cleanedStr);
-        } catch (e) {
-          print('Error parsing unitsSold: $e');
-        }
-      }
-    }
-    final String currencyCode = data['currencyCode'] ?? currency ?? 'USD';
-    final String date = data['date'] ?? 'Today';
-
-    // Format values with commas for large numbers
-    String formatNumber(double value) {
-      return value.toStringAsFixed(0).replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-            (Match m) => '${m[1]},',
-          );
-    }
-
-    final formattedRevenue = '$currencyCode ${formatNumber(revenue)}';
-    final formattedProfit = '$currencyCode ${formatNumber(profit)}';
-    final formattedUnitsSold = formatNumber(unitsSold);
-
-    // Determine if we need to scale values for visualization
-    bool needsScaling =
-        revenue > 1000000 || profit > 1000000 || unitsSold > 1000;
-    double revenueDisplay = revenue;
-    double profitDisplay = profit;
-    double unitsDisplay = unitsSold;
-    String scaleSuffix = '';
-
-    if (needsScaling) {
-      if (revenue > 1000000) {
-        // Scale to millions
-        revenueDisplay = revenue / 1000000;
-        profitDisplay = profit / 1000000;
-        scaleSuffix = ' (in millions)';
-      } else if (revenue > 1000) {
-        // Scale to thousands
-        revenueDisplay = revenue / 1000;
-        profitDisplay = profit / 1000;
-        scaleSuffix = ' (in thousands)';
-      }
-
-      if (unitsSold > 1000) {
-        unitsDisplay = unitsSold / 1000;
-      }
-    }
-
-    final title = 'Business Analytics for $date';
-
-    return RepaintBoundary(
-        key: cardKey,
-        child: Card(
-          elevation: 4,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(config['cardPadding']),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                _buildModernHeader(
+                  title: date.isNotEmpty ? '$title for $date' : title,
+                  subtitle: 'Total: $currencyCode ${_formatCurrency(totalTax)}',
+                  config: config,
+                ),
+                SizedBox(height: config['cardPadding']),
+                _buildAdaptiveTaxChart(
+                  context,
+                  sortedItems,
+                  totalTax,
+                  currencyCode,
+                  colors,
+                  config,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build adaptive tax chart (pie for few items, horizontal bars for many)
+  Widget _buildAdaptiveTaxChart(
+    BuildContext context,
+    List<MapEntry<String, double>> sortedItems,
+    double totalTax,
+    String currencyCode,
+    List<Color> colors,
+    Map<String, dynamic> config,
+  ) {
+    final shouldUsePie = sortedItems.length <= 6 && !config['isMobile'];
+
+    if (shouldUsePie) {
+      return _buildModernPieChart(
+          sortedItems, totalTax, currencyCode, colors, config);
+    } else {
+      return _buildModernHorizontalBarChart(
+          sortedItems, totalTax, currencyCode, colors, config);
+    }
+  }
+
+  /// Build modern pie chart with enhanced styling
+  Widget _buildModernPieChart(
+    List<MapEntry<String, double>> items,
+    double totalTax,
+    String currencyCode,
+    List<Color> colors,
+    Map<String, dynamic> config,
+  ) {
+    // Limit to top 5 + Other for clarity
+    final displayItems = items.take(5).toList();
+    final hasOther = items.length > 5;
+
+    if (hasOther) {
+      final otherAmount =
+          items.skip(5).fold(0.0, (sum, item) => sum + item.value);
+      displayItems.add(MapEntry('Other Items', otherAmount));
+    }
+
+    final pieChartSections = displayItems.asMap().entries.map((entry) {
+      final index = entry.key;
+      final item = entry.value;
+      final percentage = totalTax > 0 ? (item.value / totalTax) * 100 : 0;
+
+      return PieChartSectionData(
+        color: colors[index % colors.length],
+        value: item.value,
+        title: percentage >= 3 ? '${percentage.toStringAsFixed(1)}%' : '',
+        radius: config['pieRadius'],
+        titleStyle: TextStyle(
+          fontSize: config['legendSize'],
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          shadows: [
+            Shadow(
+              offset: const Offset(0, 1),
+              blurRadius: 2,
+              color: Colors.black.withValues(alpha: 0.3),
+            ),
+          ],
+        ),
+        badgeWidget: percentage < 3
+            ? _buildSmallPercentageBadge(percentage.toDouble())
+            : null,
+        badgePositionPercentageOffset: 1.3,
+      );
+    }).toList();
+
+    return Column(
+      children: [
+        SizedBox(
+          height: config['chartHeight'],
+          child: Row(
+            children: [
+              Expanded(
+                flex: config['isDesktop'] ? 2 : 3,
+                child: PieChart(
+                  PieChartData(
+                    sections: pieChartSections,
+                    centerSpaceRadius: config['pieRadius'] * 0.5,
+                    sectionsSpace: 2,
+                    startDegreeOffset: -90,
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 8),
-                // Summary cards in a row
-                Row(
+              if (config['isDesktop'] || config['isTablet'])
+                Expanded(
+                  flex: 2,
+                  child: _buildModernLegend(
+                      displayItems, currencyCode, colors, config),
+                ),
+            ],
+          ),
+        ),
+        if (config['isMobile'])
+          _buildModernLegend(displayItems, currencyCode, colors, config),
+      ],
+    );
+  }
+
+  /// Build modern horizontal bar chart
+  Widget _buildModernHorizontalBarChart(
+    List<MapEntry<String, double>> items,
+    double totalTax,
+    String currencyCode,
+    List<Color> colors,
+    Map<String, dynamic> config,
+  ) {
+    final maxValue = items.isEmpty ? 0.0 : items.first.value;
+
+    return Column(
+      children: [
+        Container(
+          height: min(config['chartHeight'], items.length * 50.0),
+          child: ListView.builder(
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              final percentage =
+                  totalTax > 0 ? (item.value / totalTax) * 100 : 0;
+              final barColor = colors[index % colors.length];
+
+              return Container(
+                margin: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _buildSummaryCard(
-                        'Revenue',
-                        formattedRevenue,
-                        Colors.blue.shade100,
-                        Colors.blue,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.key,
+                            style: TextStyle(
+                              fontSize: config['legendSize'],
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey.shade800,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '$currencyCode ${_formatCurrency(item.value)}',
+                          style: TextStyle(
+                            fontSize: config['legendSize'],
+                            fontWeight: FontWeight.w600,
+                            color: barColor,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildSummaryCard(
-                        'Profit',
-                        formattedProfit,
-                        Colors.green.shade100,
-                        Colors.green,
+                    const SizedBox(height: 6),
+                    Container(
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildSummaryCard(
-                        'Units Sold',
-                        formattedUnitsSold,
-                        Colors.orange.shade100,
-                        Colors.orange,
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: maxValue > 0 ? (item.value / maxValue) : 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                barColor.withOpacity(0.7),
+                                barColor,
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                if (needsScaling)
-                  Text(
-                    'Chart values$scaleSuffix',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 200,
-                  child: BarChart(
-                    BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: [revenueDisplay, profitDisplay, unitsDisplay]
-                              .reduce(max) *
-                          1.2,
-                      barGroups: [
-                        _createBarGroup(0, revenueDisplay),
-                        _createBarGroup(1, profitDisplay),
-                        _createBarGroup(2, unitsDisplay),
-                      ],
-                      titlesData: FlTitlesData(
-                        show: true,
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              final titles = ['Revenue', 'Profit', 'Units'];
-                              return Text(
-                                titles[value.toInt()],
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              return Text(
-                                value.toInt().toString(),
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 10,
-                                ),
-                              );
-                            },
-                            reservedSize: 40,
-                          ),
-                        ),
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                      ),
-                      gridData: FlGridData(
-                        show: true,
-                        drawHorizontalLine: true,
-                        getDrawingHorizontalLine: (value) => FlLine(
-                          color: Colors.grey[300],
-                          strokeWidth: 1,
-                        ),
-                        drawVerticalLine: false,
-                      ),
-                      borderData: FlBorderData(show: false),
-                    ),
-                  ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build enhanced business analytics visualization
+  Widget _buildBusinessAnalyticsVisualization(
+      BuildContext context, Map<String, dynamic> data, String? currency) {
+    final config = _getResponsiveConfig(context);
+    final colors = _getModernColorPalette();
+
+    final double revenue = _parseNumericValue(data['revenue']);
+    final double profit = _parseNumericValue(data['profit']);
+    final double unitsSold = _parseNumericValue(data['unitsSold']);
+    final String currencyCode = data['currencyCode'] ?? currency ?? 'USD';
+    final String date = data['date'] ?? 'Today';
+
+    return RepaintBoundary(
+      key: cardKey,
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(config['cardPadding']),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildModernHeader(
+                  title: 'Business Analytics',
+                  subtitle: date,
+                  config: config,
                 ),
+                SizedBox(height: config['cardPadding']),
+                _buildMetricCards(
+                    revenue, profit, unitsSold, currencyCode, colors, config),
+                SizedBox(height: config['cardPadding']),
+                _buildModernBarChart(
+                    revenue, profit, unitsSold, currencyCode, colors, config),
               ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 
-  /// Helper method to build summary cards
-  Widget _buildSummaryCard(
-      String title, String value, Color bgColor, Color textColor) {
+  /// Build modern metric cards
+  Widget _buildMetricCards(
+    double revenue,
+    double profit,
+    double unitsSold,
+    String currencyCode,
+    List<Color> colors,
+    Map<String, dynamic> config,
+  ) {
+    final metrics = [
+      {
+        'title': 'Revenue',
+        'value': '$currencyCode ${_formatCurrency(revenue)}',
+        'color': colors[0],
+        'icon': Icons.trending_up,
+      },
+      {
+        'title': 'Profit',
+        'value': '$currencyCode ${_formatCurrency(profit)}',
+        'color': colors[1],
+        'icon': Icons.account_balance_wallet,
+      },
+      {
+        'title': 'Units Sold',
+        'value': _formatNumber(unitsSold),
+        'color': colors[2],
+        'icon': Icons.inventory,
+      },
+    ];
+
+    if (config['isMobile']) {
+      return Column(
+        children: metrics
+            .map(
+              (metric) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: _buildMetricCard(metric, config),
+              ),
+            )
+            .toList(),
+      );
+    } else {
+      return Row(
+        children: metrics
+            .map(
+              (metric) => Expanded(
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  child: _buildMetricCard(metric, config),
+                ),
+              ),
+            )
+            .toList()
+          ..removeLast(),
+      );
+    }
+  }
+
+  /// Build individual metric card
+  Widget _buildMetricCard(
+      Map<String, dynamic> metric, Map<String, dynamic> config) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(config['cardPadding'] * 0.75),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: (metric['color'] as Color).withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: (metric['color'] as Color).withOpacity(0.2),
+          width: 1,
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: textColor,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: metric['color'],
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(
+              metric['icon'],
+              color: Colors.white,
+              size: config['legendSize'] + 2,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: textColor,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  metric['title'],
+                  style: TextStyle(
+                    fontSize: config['legendSize'],
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  metric['value'],
+                  style: TextStyle(
+                    fontSize: config['subtitleSize'],
+                    fontWeight: FontWeight.w700,
+                    color: metric['color'],
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 
-  /// Build inventory visualization from structured data
-  Widget _buildInventoryVisualization(
-      BuildContext context, Map<String, dynamic> data, String? currency) {
-    // Implement inventory visualization
-    // This is a placeholder for future implementation
-    return const Center(child: Text('Inventory Visualization'));
+  /// Build modern bar chart
+  Widget _buildModernBarChart(
+    double revenue,
+    double profit,
+    double unitsSold,
+    String currencyCode,
+    List<Color> colors,
+    Map<String, dynamic> config,
+  ) {
+    final maxValue = [revenue, profit, unitsSold * 100].reduce(max);
+
+    return SizedBox(
+      height: config['chartHeight'],
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxValue * 1.1,
+          barGroups: [
+            _createModernBarGroup(0, revenue, colors[0], config),
+            _createModernBarGroup(1, profit, colors[1], config),
+            _createModernBarGroup(2, unitsSold * 100, colors[2], config),
+          ],
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final titles = ['Revenue', 'Profit', 'Units×100'];
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      titles[value.toInt()],
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: config['legendSize'],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                },
+                reservedSize: 24,
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    _formatAxisValue(value),
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: config['legendSize'] - 1,
+                    ),
+                  );
+                },
+                reservedSize: 50,
+              ),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawHorizontalLine: true,
+            horizontalInterval: maxValue / 5,
+            getDrawingHorizontalLine: (value) => FlLine(
+              color: Colors.grey.shade300,
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            ),
+            drawVerticalLine: false,
+          ),
+          borderData: FlBorderData(show: false),
+          barTouchData: BarTouchData(
+            enabled: true,
+            touchTooltipData: BarTouchTooltipData(
+              // tooltipBgColor: Colors.grey.shade800,
+              tooltipRoundedRadius: 8,
+              tooltipPadding: const EdgeInsets.all(8),
+              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                final values = [revenue, profit, unitsSold];
+                final labels = ['Revenue', 'Profit', 'Units Sold'];
+                return BarTooltipItem(
+                  '${labels[groupIndex]}\n${_formatCurrency(values[groupIndex])}',
+                  TextStyle(
+                    color: Colors.white,
+                    fontSize: config['legendSize'],
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  /// Helper method to create bar chart groups
-  BarChartGroupData _createBarGroup(int x, double y) {
+  /// Build inventory visualization placeholder
+  Widget _buildInventoryVisualization(
+      BuildContext context, Map<String, dynamic> data, String? currency) {
+    final config = _getResponsiveConfig(context);
+
+    return RepaintBoundary(
+      key: cardKey,
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Container(
+          height: config['chartHeight'],
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 48,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Inventory Visualization',
+                  style: TextStyle(
+                    fontSize: config['titleSize'],
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Coming Soon',
+                  style: TextStyle(
+                    fontSize: config['legendSize'],
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper methods
+
+  /// Build modern header with title and subtitle
+  Widget _buildModernHeader({
+    required String title,
+    required String subtitle,
+    required Map<String, dynamic> config,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: config['titleSize'],
+            fontWeight: FontWeight.w700,
+            color: Colors.grey.shade800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: config['subtitleSize'],
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF0078D4),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Build modern legend
+  Widget _buildModernLegend(
+    List<MapEntry<String, double>> items,
+    String currencyCode,
+    List<Color> colors,
+    Map<String, dynamic> config,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 12,
+        children: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final color = colors[index % colors.length];
+
+          return SizedBox(
+            width: config['isMobile']
+                ? double.infinity
+                : (config['screenWidth'] / config['maxLegendColumns']) - 32,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${item.key}: $currencyCode ${_formatCurrency(item.value)}',
+                    style: TextStyle(
+                      fontSize: config['legendSize'],
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade700,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// Build small percentage badge for pie chart
+  Widget _buildSmallPercentageBadge(double percentage) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade800,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        '${percentage.toStringAsFixed(1)}%',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  /// Create modern bar group with gradient
+  BarChartGroupData _createModernBarGroup(
+      int x, double y, Color color, Map<String, dynamic> config) {
     return BarChartGroupData(
       x: x,
       barRods: [
         BarChartRodData(
           toY: y,
-          width: 20,
+          width: config['barWidth'],
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(4),
-            topRight: Radius.circular(4),
+            topLeft: Radius.circular(6),
+            topRight: Radius.circular(6),
           ),
-          color: Colors.blue,
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              color.withOpacity(0.7),
+              color,
+            ],
+          ),
         ),
       ],
     );
+  }
+
+  /// Parse numeric value safely
+  double _parseNumericValue(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      final cleanedStr = value.replaceAll(RegExp(r'[^\d.]'), '');
+      try {
+        return double.parse(cleanedStr);
+      } catch (e) {
+        return 0.0;
+      }
+    }
+    return 0.0;
+  }
+
+  /// Format currency with proper separators
+  String _formatCurrency(double value) {
+    if (value.abs() >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value.abs() >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}K';
+    }
+    return value.toStringAsFixed(2).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+  }
+
+  /// Format number with proper separators
+  String _formatNumber(double value) {
+    return value.toStringAsFixed(0).replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (Match m) => '${m[1]},',
+        );
+  }
+
+  /// Format axis values
+  String _formatAxisValue(double value) {
+    if (value == 0) return '0';
+    if (value.abs() >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value.abs() >= 1000) {
+      return '${(value / 1000).toStringAsFixed(0)}K';
+    }
+    return value.toInt().toString();
   }
 }
