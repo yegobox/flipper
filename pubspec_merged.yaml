@@ -181,7 +181,7 @@ dependencies:
   flutter_statusbarcolor_ns: ^0.5.0-flipper
   
   shared_preferences: ^2.5.2
-  newrelic_mobile: ^1.1.12
+  # newrelic_mobile: ^1.1.12
   flutter_local_notifications: ^19.1.0
   
   window_manager: ^0.4.0
