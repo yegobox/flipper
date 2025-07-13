@@ -10,7 +10,7 @@ import 'package:pasteboard/pasteboard.dart';
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
 
-/// Widget that displays a chat message bubble.
+/// A chat message bubble with a modern and clean design.
 class MessageBubble extends StatefulWidget {
   final Message message;
   final bool isUser;
@@ -85,171 +85,164 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final hasVisualization = _shouldShowDataVisualization(widget.message.text);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment:
             widget.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!widget.isUser) _buildAvatar(Icons.smart_toy, theme),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: widget.isUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                MouseRegion(
-                  onEnter: (_) => setState(() => _isHovering = true),
-                  onExit: (_) => setState(() => _isHovering = false),
-                  child: Stack(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: widget.isUser
-                              ? theme.colorScheme.primary
-                              : theme.colorScheme.surface,
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(16),
-                            topRight: const Radius.circular(16),
-                            bottomLeft: widget.isUser
-                                ? const Radius.circular(16)
-                                : const Radius.circular(2),
-                            bottomRight: widget.isUser
-                                ? const Radius.circular(2)
-                                : const Radius.circular(16),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Conditionally render DataVisualization and Text widgets
-                            if (_shouldShowDataVisualization(
-                                widget.message.text))
-                              DataVisualization(
-                                data: widget.message.text,
-                                currency: ProxyService.box.defaultCurrency(),
-                                cardKey: _visualizationKey,
-                                onCopyGraph: _copyToClipboard,
-                              )
-                            else
-                              Text(
-                                widget.message.text,
-                                style: TextStyle(
-                                  color: widget.isUser
-                                      ? theme.colorScheme.onPrimary
-                                      : theme.colorScheme.onSurface,
-                                  fontSize: 16,
-                                ),
+          if (!widget.isUser) _buildAvatar(Icons.smart_toy_rounded),
+          Flexible(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Column(
+                crossAxisAlignment: widget.isUser
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  MouseRegion(
+                    onEnter: (_) => setState(() => _isHovering = true),
+                    onExit: (_) => setState(() => _isHovering = false),
+                    child: Stack(
+                      alignment: widget.isUser
+                          ? Alignment.topRight
+                          : Alignment.topLeft,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(hasVisualization ? 0 : 14),
+                          decoration: BoxDecoration(
+                            color: widget.isUser
+                                ? AiTheme.userMessageColor
+                                : AiTheme.assistantMessageColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
                               ),
-                          ],
-                        ),
-                      ),
-                      if (_isHovering)
-                        Positioned(
-                          top: 0,
-                          right: widget.isUser ? null : 0,
-                          left: widget.isUser ? 0 : null,
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_showCopied)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.87),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: const Text(
-                                      'Copied!',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.copy_outlined,
-                                      size: 20,
-                                      color: Colors.blue,
-                                    ),
-                                    color: Colors.grey[600],
-                                    onPressed: _copyToClipboard,
-                                    tooltip: 'Copy message',
-                                    splashRadius: 20,
-                                  ),
-                              ],
-                            ),
+                            ],
                           ),
+                          child: hasVisualization
+                              ? DataVisualization(
+                                  data: widget.message.text,
+                                  currency: ProxyService.box.defaultCurrency(),
+                                  cardKey: _visualizationKey,
+                                  onCopyGraph: _copyToClipboard,
+                                )
+                              : Text(
+                                  widget.message.text,
+                                  style: TextStyle(
+                                    color: widget.isUser
+                                        ? AiTheme.onPrimaryColor
+                                        : AiTheme.onAssistantMessageColor,
+                                    fontSize: 16,
+                                    height: 1.4,
+                                  ),
+                                ),
                         ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-                  child: Text(
-                    _formatTimestamp(widget.message.timestamp),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                        if (_isHovering && !hasVisualization)
+                          Positioned(
+                            top: -10,
+                            right: widget.isUser ? 0 : null,
+                            left: widget.isUser ? null : 0,
+                            child: _buildCopyButton(),
+                          ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
+                    child: Text(
+                      _formatTimestamp(widget.message.timestamp),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AiTheme.hintColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          if (widget.isUser) _buildAvatar(Icons.person, theme),
+          if (widget.isUser) _buildAvatar(Icons.person_rounded),
         ],
       ),
     );
   }
 
-  // Helper function to determine whether to show DataVisualization or Text
-  bool _shouldShowDataVisualization(String messageText) {
-    return messageText.contains('{{VISUALIZATION_DATA}}') ||
-        messageText.contains('**[SUMMARY]**') ||
-        messageText.contains('Tax Summary') ||
-        messageText.contains('Tax Payable') ||
-        (messageText.contains('Tax Breakdown') &&
-            messageText.contains('Tax Rate'));
+  Widget _buildCopyButton() {
+    return AnimatedOpacity(
+      opacity: _isHovering ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AiTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 5,
+            )
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: _copyToClipboard,
+            child: Padding(
+              padding: const EdgeInsets.all(6.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _showCopied ? Icons.check_rounded : Icons.copy_outlined,
+                    size: 16,
+                    color: _showCopied ? Colors.green : AiTheme.secondaryColor,
+                  ),
+                  if (_showCopied)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4.0),
+                      child: Text(
+                        'Copied',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  Widget _buildAvatar(IconData icon, ThemeData theme) {
+  bool _shouldShowDataVisualization(String messageText) {
+    return messageText.contains('{{VISUALIZATION_DATA}}');
+  }
+
+  Widget _buildAvatar(IconData icon) {
     return Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: AiTheme.inputBackgroundColor,
+        color: widget.isUser
+            ? AiTheme.primaryColor.withOpacity(0.1)
+            : AiTheme.inputBackgroundColor,
         shape: BoxShape.circle,
       ),
       child: Center(
         child: Icon(
           icon,
           size: 20,
-          color: AiTheme.secondaryColor,
+          color: widget.isUser ? AiTheme.primaryColor : AiTheme.secondaryColor,
         ),
       ),
     );
@@ -257,6 +250,6 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   String _formatTimestamp(DateTime? timestamp) {
     if (timestamp == null) return '';
-    return DateFormat('jm').format(timestamp);
+    return DateFormat('h:mm a').format(timestamp);
   }
 }
