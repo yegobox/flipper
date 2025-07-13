@@ -330,8 +330,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
-              final percentage =
-                  totalTax > 0 ? (item.value / totalTax) * 100 : 0;
+
               final barColor = colors[index % colors.length];
 
               return Container(
@@ -377,7 +376,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                barColor.withOpacity(0.7),
+                                barColor.withValues(alpha: 0.7),
                                 barColor,
                               ],
                             ),
@@ -513,10 +512,10 @@ class StructuredDataVisualization implements VisualizationInterface {
     return Container(
       padding: EdgeInsets.all(config['cardPadding'] * 0.75),
       decoration: BoxDecoration(
-        color: (metric['color'] as Color).withOpacity(0.1),
+        color: (metric['color'] as Color).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: (metric['color'] as Color).withOpacity(0.2),
+          color: (metric['color'] as Color).withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -845,7 +844,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
             colors: [
-              color.withOpacity(0.7),
+              color.withValues(alpha: 0.7),
               color,
             ],
           ),
