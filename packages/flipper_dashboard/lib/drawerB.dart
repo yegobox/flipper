@@ -93,7 +93,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -431,7 +431,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           isDefault: true,
         );
 
-        ref.invalidate(branchesProvider(businessId: business.serverId!));
+        ref.invalidate(branchesProvider(businessId: business.serverId));
         ref.read(searchStringProvider.notifier).emitString(value: "search");
         ref.read(searchStringProvider.notifier).emitString(value: "");
       }
@@ -512,7 +512,7 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
             border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -532,8 +532,8 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                       height: 40,
                       decoration: BoxDecoration(
                         color: isShiftOpen
-                            ? const Color(0xFFD13438).withOpacity(0.1)
-                            : const Color(0xFF107C10).withOpacity(0.1),
+                            ? const Color(0xFFD13438).withValues(alpha: 0.1)
+                            : const Color(0xFF107C10).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -576,8 +576,8 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                       height: 24,
                       decoration: BoxDecoration(
                         color: isShiftOpen
-                            ? const Color(0xFFD13438).withOpacity(0.1)
-                            : const Color(0xFF107C10).withOpacity(0.1),
+                            ? const Color(0xFFD13438).withValues(alpha: 0.1)
+                            : const Color(0xFF107C10).withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -604,18 +604,25 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
     final dialogService = locator<DialogService>();
 
     if (isShiftOpen && shift != null) {
-      final response = await dialogService.showConfirmationDialog(
+      final dialogResponse = await dialogService.showCustomDialog(
+        variant: DialogType.closeShift,
         title: 'Close Shift',
-        description: 'Are you sure you want to close the current shift?',
-        confirmationTitle: 'Close',
-        cancelTitle: 'Cancel',
+        data: {
+          'openingBalance': shift.openingBalance,
+          'cashSales': shift.cashSales,
+          'expectedCash': shift.expectedCash,
+        },
       );
-      if (response?.confirmed == true) {
+
+      if (dialogResponse?.confirmed == true && dialogResponse?.data != null) {
+        final closingBalance = (dialogResponse?.data
+                as Map<dynamic, dynamic>)['closingBalance'] as double? ??
+            0.0;
+        final notes =
+            (dialogResponse?.data as Map<dynamic, dynamic>)['notes'] as String?;
         await ProxyService.strategy.endShift(
-          shiftId: shift.id,
-          closingBalance: 0.0,
-        );
-        _loadShiftStatus();
+            shiftId: shift.id, closingBalance: closingBalance, note: notes);
+        locator<RouterService>().replaceWith(const LoginRoute());
       }
     } else {
       final userId = ProxyService.box.getUserId();
@@ -663,9 +670,9 @@ class _QuickActionCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
@@ -708,7 +715,7 @@ class _ModernBusinessCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -833,7 +840,7 @@ class _ModernBusinessCard extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: const Color(0xFF0078D4).withOpacity(0.1),
+          color: const Color(0xFF0078D4).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: const Icon(
@@ -913,7 +920,7 @@ class _BranchItem extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? const Color(0xFF0078D4).withOpacity(0.1)
+                      ? const Color(0xFF0078D4).withValues(alpha: 0.1)
                       : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(6),
                 ),
