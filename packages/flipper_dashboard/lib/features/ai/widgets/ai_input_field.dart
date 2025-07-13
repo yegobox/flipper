@@ -42,12 +42,12 @@ class _AiInputFieldState extends State<AiInputField>
     if (_hasText) {
       _buttonAnimationController.value = 1.0;
     }
-    _focusNode.onKey = _handleKeyEvent;
+    _focusNode.onKeyEvent = _handleKeyEvent;
   }
 
   @override
   void dispose() {
-    _focusNode.onKey = null;
+    _focusNode.onKeyEvent = null;
     widget.controller.removeListener(_handleTextChange);
     _focusNode.dispose();
     _buttonAnimationController.dispose();
@@ -68,10 +68,12 @@ class _AiInputFieldState extends State<AiInputField>
     }
   }
 
-  KeyEventResult _handleKeyEvent(FocusNode node, RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.enter &&
-          (event.isControlPressed || event.isMetaPressed)) {
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent) {
+      final isModifierPressed = HardwareKeyboard.instance.isControlPressed ||
+          HardwareKeyboard.instance.isMetaPressed;
+
+      if (event.logicalKey == LogicalKeyboardKey.enter && isModifierPressed) {
         if (_canSend()) {
           _handleSubmit(widget.controller.text);
         }
@@ -89,7 +91,7 @@ class _AiInputFieldState extends State<AiInputField>
         color: AiTheme.surfaceColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -126,8 +128,11 @@ class _AiInputFieldState extends State<AiInputField>
             fontSize: 16,
           ),
           border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
+          ),
         ),
-        keyboardType: TextInputType.text,
         textCapitalization: TextCapitalization.sentences,
       ),
     );
@@ -140,7 +145,7 @@ class _AiInputFieldState extends State<AiInputField>
           _buttonAnimationController.drive(CurveTween(curve: Curves.easeOut)),
       child: SizedBox(
         width: 52,
-        height: 48,
+        height: 52,
         child: Material(
           color: canSend ? AiTheme.primaryColor : AiTheme.inputBackgroundColor,
           borderRadius: BorderRadius.circular(26),
