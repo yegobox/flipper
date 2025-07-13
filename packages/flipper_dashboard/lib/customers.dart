@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -96,7 +94,7 @@ class CustomersState extends ConsumerState<Customers> {
     setState(() {
       isLoadingMore = true;
     });
-    await Future.delayed(Duration(milliseconds: 300)); // Simulate loading
+    await Future.delayed(const Duration(milliseconds: 300)); // Simulate loading
     final customers = ref.read(customersProvider.notifier).filterCustomers(
           ref.read(customersProvider).asData?.value ?? [],
           lastSearch,
@@ -115,7 +113,7 @@ class CustomersState extends ConsumerState<Customers> {
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
     final customersRef = ref.watch(customersProvider);
-    final transaction =
+    final transactionAsyncValue =
         ref.watch(pendingTransactionStreamProvider(isExpense: false));
 
     // Listen for provider data becoming available and trigger initial load only once
@@ -145,8 +143,6 @@ class CustomersState extends ConsumerState<Customers> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios, color: primaryColor, size: 22),
               onPressed: () {
-                // ref.refresh(customersProvider);
-                ///TODO: this is supposed to make SearchCustomer refresh but for somereason it is not,debug this further
                 ref.refresh(pendingTransactionStreamProvider(isExpense: false));
                 _routerService.pop();
               },
@@ -159,7 +155,7 @@ class CustomersState extends ConsumerState<Customers> {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Customer Management Help'),
+                      title: const Text('Customer Management Help'),
                       content: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,8 +163,8 @@ class CustomersState extends ConsumerState<Customers> {
                           children: [
                             _buildHelpItem(Icons.search,
                                 'Search for customers by name or phone number'),
-                            _buildHelpItem(
-                                Icons.swipe, 'Swipe left to delete a customer'),
+                            _buildHelpItem(Icons.swipe,
+                                'Swipe left to delete or edit a customer'),
                             _buildHelpItem(Icons.swipe_right,
                                 'Swipe right to add/remove from sale'),
                             _buildHelpItem(Icons.add_circle_outline,
@@ -189,16 +185,22 @@ class CustomersState extends ConsumerState<Customers> {
               ),
             ],
           ),
-          body: Column(
-            children: [
-              _buildSearchBar(),
-              _buildResultStats(), // New: shows number of results
-              Expanded(
-                child: _buildCustomerList(model, transaction.value!),
-              ),
-              _buildAddButton(context, model, customersRef, searchKeyword,
-                  transaction.value!.id),
-            ],
+          body: transactionAsyncValue.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(child: Text('Error: $error')),
+            data: (transaction) {
+              return Column(
+                children: [
+                  _buildSearchBar(),
+                  _buildResultStats(), // New: shows number of results
+                  Expanded(
+                    child: _buildCustomerList(model, transaction),
+                  ),
+                  _buildAddButton(context, model, customersRef, searchKeyword,
+                      transaction.id),
+                ],
+              );
+            },
           ),
         );
       },
@@ -211,7 +213,7 @@ class CustomersState extends ConsumerState<Customers> {
       child: Row(
         children: [
           Icon(icon, color: primaryColor, size: 20),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(text,
                 style: TextStyle(fontSize: 14, color: textSecondaryColor)),
@@ -257,7 +259,7 @@ class CustomersState extends ConsumerState<Customers> {
           child: Focus(
             onFocusChange: (hasFocus) => setState(() {}),
             child: AnimatedContainer(
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
                 color: cardColor,
                 borderRadius: BorderRadius.circular(8),
@@ -291,7 +293,7 @@ class CustomersState extends ConsumerState<Customers> {
                       : null,
                   border: InputBorder.none,
                   contentPadding:
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 ),
                 onChanged: (value) {
                   _onSearchChanged(value);
@@ -307,13 +309,14 @@ class CustomersState extends ConsumerState<Customers> {
 
   Widget _buildCustomerList(CoreViewModel model, ITransaction transaction) {
     if (displayedCustomers.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(transaction);
     }
 
     return ListView.builder(
       controller: _scrollController,
-      padding: EdgeInsets.only(bottom: 16),
-      physics: AlwaysScrollableScrollPhysics(), // Makes empty lists scrollable
+      padding: const EdgeInsets.only(bottom: 16),
+      physics:
+          const AlwaysScrollableScrollPhysics(), // Makes empty lists scrollable
       itemCount: displayedCustomers.length + (hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == displayedCustomers.length) {
@@ -333,15 +336,15 @@ class CustomersState extends ConsumerState<Customers> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ITransaction transaction) {
     return Center(
       child: SingleChildScrollView(
-        physics: AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'No customers found',
               style: TextStyle(
@@ -350,7 +353,7 @@ class CustomersState extends ConsumerState<Customers> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               _searchController.text.isNotEmpty
                   ? 'Try different search terms or add a new customer'
@@ -358,7 +361,7 @@ class CustomersState extends ConsumerState<Customers> {
               textAlign: TextAlign.center,
               style: TextStyle(color: textSecondaryColor),
             ),
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
             _searchController.text.isNotEmpty
                 ? ElevatedButton.icon(
                     onPressed: () {
@@ -376,24 +379,19 @@ class CustomersState extends ConsumerState<Customers> {
                           return Padding(
                             padding: MediaQuery.of(context).viewInsets,
                             child: AddCustomer(
-                              transactionId: ref
-                                  .watch(pendingTransactionStreamProvider(
-                                      isExpense: false))
-                                  .value!
-                                  .id,
+                              transactionId: transaction.id,
                               searchedKey: _searchController.text,
                             ),
                           );
                         },
                       );
                     },
-                    icon: Icon(Icons.add_circle_outline),
+                    icon: const Icon(Icons.add_circle_outline),
                     label:
                         Text('Add "${_searchController.text}" as new customer'),
                     style: ElevatedButton.styleFrom(
-                      // primary: primaryColor,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
@@ -417,11 +415,7 @@ class CustomersState extends ConsumerState<Customers> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 AddCustomer(
-                                  transactionId: ref
-                                      .watch(pendingTransactionStreamProvider(
-                                          isExpense: false))
-                                      .value!
-                                      .id,
+                                  transactionId: transaction.id,
                                   searchedKey: '',
                                 ),
                               ],
@@ -430,12 +424,11 @@ class CustomersState extends ConsumerState<Customers> {
                         },
                       );
                     },
-                    icon: Icon(Icons.add_circle_outline),
-                    label: Text('Add New Customer'),
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Add New Customer'),
                     style: ElevatedButton.styleFrom(
-                      // primary: primaryColor,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
                     ),
@@ -473,12 +466,12 @@ class CustomersState extends ConsumerState<Customers> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: Text('Delete Customer'),
+                    title: const Text('Delete Customer'),
                     content: Text(
                         'Are you sure you want to delete ${customer.custNm}?'),
                     actions: [
                       TextButton(
-                        child: Text('Cancel'),
+                        child: const Text('Cancel'),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       TextButton(
@@ -543,17 +536,6 @@ class CustomersState extends ConsumerState<Customers> {
                 model.assignToSale(
                     customerId: customer.id, transactionId: transaction.id);
                 model.getTransactionById();
-
-                // Show elegant toast instead of alert
-                showSimpleNotification(
-                  Text(
-                    "Customer added to sale",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  background: successColor,
-                  duration: Duration(seconds: 2),
-                  slideDismissDirection: DismissDirection.up,
-                );
               },
               backgroundColor: successColor,
               foregroundColor: Colors.white,
@@ -567,12 +549,12 @@ class CustomersState extends ConsumerState<Customers> {
 
                 // Show elegant toast instead of alert
                 showSimpleNotification(
-                  Text(
+                  const Text(
                     "Customer removed from sale",
                     style: TextStyle(color: Colors.white),
                   ),
                   background: Colors.orange,
-                  duration: Duration(seconds: 2),
+                  duration: const Duration(seconds: 2),
                   slideDismissDirection: DismissDirection.up,
                 );
               },
@@ -586,7 +568,7 @@ class CustomersState extends ConsumerState<Customers> {
         ),
         child: Card(
           elevation: 1,
-          color: isSelected ? Color(0xFFEDF6FB) : cardColor,
+          color: isSelected ? const Color(0xFFEDF6FB) : cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(
@@ -600,17 +582,6 @@ class CustomersState extends ConsumerState<Customers> {
               model.assignToSale(
                   customerId: customer.id, transactionId: transaction.id);
               model.getTransactionById();
-
-              // Show elegant toast instead of alert dialog
-              showSimpleNotification(
-                Text(
-                  "Customer added to sale",
-                  style: TextStyle(color: Colors.white),
-                ),
-                background: successColor,
-                duration: Duration(seconds: 2),
-                slideDismissDirection: DismissDirection.up,
-              );
             },
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -621,14 +592,14 @@ class CustomersState extends ConsumerState<Customers> {
                     backgroundColor: avatarColor,
                     child: Text(
                       nameInitial,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,7 +612,7 @@ class CustomersState extends ConsumerState<Customers> {
                             color: textPrimaryColor,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         if (customer.telNo != null &&
                             customer.telNo!.isNotEmpty)
                           Padding(
@@ -650,7 +621,7 @@ class CustomersState extends ConsumerState<Customers> {
                               children: [
                                 Icon(Icons.phone,
                                     size: 14, color: textSecondaryColor),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
                                   customer.telNo!,
                                   style: TextStyle(color: textSecondaryColor),
@@ -666,7 +637,7 @@ class CustomersState extends ConsumerState<Customers> {
                               children: [
                                 Icon(Icons.receipt,
                                     size: 14, color: textSecondaryColor),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Text(
                                   "TIN: ${customer.custTin!}",
                                   style: TextStyle(color: textSecondaryColor),
@@ -679,9 +650,9 @@ class CustomersState extends ConsumerState<Customers> {
                   ),
                   if (isSelected)
                     Container(
-                      padding: EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: successColor.withValues(alpha: 0.2),
+                        color: successColor.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -702,14 +673,14 @@ class CustomersState extends ConsumerState<Customers> {
   Color _getAvatarColor(String name) {
     // Generate consistent colors based on name
     final List<Color> colors = [
-      Color(0xFF0078D4), // Blue
-      Color(0xFF107C10), // Green
-      Color(0xFFD83B01), // Red
-      Color(0xFF5C2D91), // Purple
-      Color(0xFF008575), // Teal
-      Color(0xFFE3008C), // Magenta
-      Color(0xFF00B7C3), // Cyan
-      Color(0xFFFFB900), // Yellow
+      const Color(0xFF0078D4), // Blue
+      const Color(0xFF107C10), // Green
+      const Color(0xFFD83B01), // Red
+      const Color(0xFF5C2D91), // Purple
+      const Color(0xFF008575), // Teal
+      const Color(0xFFE3008C), // Magenta
+      const Color(0xFF00B7C3), // Cyan
+      const Color(0xFFFFB900), // Yellow
     ];
 
     if (name.isEmpty) return colors[0];
@@ -738,17 +709,15 @@ class CustomersState extends ConsumerState<Customers> {
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: Offset(0, -5),
+            offset: const Offset(0, -5),
           ),
         ],
       ),
       child: ElevatedButton.icon(
-        icon: Icon(Icons.add_circle_outline),
+        icon: const Icon(Icons.add_circle_outline),
         label: Text(_getButtonText(customersRef, searchKeyword)),
         style: ElevatedButton.styleFrom(
-          // primary: primaryColor,
-          // onPrimary: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -811,17 +780,6 @@ class CustomersState extends ConsumerState<Customers> {
     } else {
       final customer = filteredCustomers.first;
       model.assignToSale(customerId: customer.id, transactionId: id);
-
-      // Show elegant toast instead of alert dialog
-      showSimpleNotification(
-        Text(
-          "Customer added to sale",
-          style: TextStyle(color: Colors.white),
-        ),
-        background: successColor,
-        duration: Duration(seconds: 2),
-        slideDismissDirection: DismissDirection.up,
-      );
     }
   }
 }
