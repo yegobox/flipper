@@ -89,7 +89,7 @@ class _AiInputFieldState extends State<AiInputField>
         color: AiTheme.surfaceColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -112,7 +112,7 @@ class _AiInputFieldState extends State<AiInputField>
     return Container(
       decoration: BoxDecoration(
         color: AiTheme.inputBackgroundColor,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AiTheme.borderColor),
       ),
       child: TextField(
@@ -126,47 +126,46 @@ class _AiInputFieldState extends State<AiInputField>
             fontSize: 16,
           ),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 14,
-          ),
         ),
-        style: const TextStyle(
-          fontSize: 16,
-          color: AiTheme.textColor,
-          height: 1.5,
-        ),
-        maxLines: 5,
-        minLines: 1,
-        keyboardType: TextInputType.multiline,
+        keyboardType: TextInputType.text,
         textCapitalization: TextCapitalization.sentences,
       ),
     );
   }
 
   Widget _buildSendButton() {
+    final canSend = _canSend();
     return ScaleTransition(
-      scale: _buttonAnimationController.drive(CurveTween(curve: Curves.easeOut)),
-      child: FloatingActionButton(
-        onPressed: _canSend() ? () => _handleSubmit(widget.controller.text) : null,
-        backgroundColor:
-            _canSend() ? AiTheme.primaryColor : AiTheme.inputBackgroundColor,
-        elevation: _canSend() ? 2 : 0,
-        tooltip: 'Send message',
-        child: widget.isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation(Colors.white),
-                ),
-              )
-            : Icon(
-                Icons.send_rounded,
-                color: _canSend() ? Colors.white : AiTheme.hintColor,
-                size: 24,
-              ),
+      scale:
+          _buttonAnimationController.drive(CurveTween(curve: Curves.easeOut)),
+      child: SizedBox(
+        width: 52,
+        height: 48,
+        child: Material(
+          color: canSend ? AiTheme.primaryColor : AiTheme.inputBackgroundColor,
+          borderRadius: BorderRadius.circular(26),
+          elevation: canSend ? 2 : 0,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(26),
+            onTap: canSend ? () => _handleSubmit(widget.controller.text) : null,
+            child: Center(
+              child: widget.isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    )
+                  : Icon(
+                      Icons.send_rounded,
+                      color: canSend ? Colors.white : AiTheme.hintColor,
+                      size: 24,
+                    ),
+            ),
+          ),
+        ),
       ),
     );
   }
