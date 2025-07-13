@@ -3321,7 +3321,7 @@ class CoreSync extends AiStrategyImpl
         /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
         policy: OfflineFirstGetPolicy.awaitRemote,
         query: brick.Query(
-          // limit:1000,
+          // limit: 100,
           where: [brick.Where('branchId').isExactly(branchId)],
           orderBy: [OrderBy('date', ascending: false)],
         ),
