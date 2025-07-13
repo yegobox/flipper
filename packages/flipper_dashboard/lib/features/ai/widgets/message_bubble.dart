@@ -46,22 +46,18 @@ class _MessageBubbleState extends State<MessageBubble> {
           ByteData? byteData =
               await image.toByteData(format: ui.ImageByteFormat.png);
           if (byteData == null) {
-            _showSnackBar('Error: Could not convert image to bytes.');
             return;
           }
 
           await Pasteboard.writeImage(byteData.buffer.asUint8List());
-
-          _showSnackBar('Graph copied to clipboard!');
         } catch (e) {
-          _showSnackBar('Failed to copy graph: $e');
+          return;
         }
       });
     } else {
       // If it's plain text, copy the text
       final text = widget.message.text;
       await Clipboard.setData(ClipboardData(text: text));
-      _showSnackBar('Text copied to clipboard!');
     }
 
     setState(() {
@@ -120,7 +116,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 5,
                                 offset: const Offset(0, 2),
                               ),
@@ -184,7 +180,7 @@ class _MessageBubbleState extends State<MessageBubble> {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 5,
             )
           ],
@@ -234,7 +230,7 @@ class _MessageBubbleState extends State<MessageBubble> {
       height: 36,
       decoration: BoxDecoration(
         color: widget.isUser
-            ? AiTheme.primaryColor.withOpacity(0.1)
+            ? AiTheme.primaryColor.withValues(alpha: 0.1)
             : AiTheme.inputBackgroundColor,
         shape: BoxShape.circle,
       ),
