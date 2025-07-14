@@ -87,12 +87,26 @@ class _AiInputFieldState extends State<AiInputField>
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            _buildAttachmentButton(),
+            const SizedBox(width: 8),
             Expanded(child: _buildInputField()),
             const SizedBox(width: 12),
             _buildSendOrMicButton(),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAttachmentButton() {
+    return IconButton(
+      onPressed: () {
+        // TODO: Implement file picking logic.
+      },
+      icon: const Icon(Icons.attach_file),
+      color: AiTheme.secondaryColor,
+      iconSize: 28,
+      splashRadius: 24,
     );
   }
 

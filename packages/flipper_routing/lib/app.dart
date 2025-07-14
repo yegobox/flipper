@@ -824,4 +824,6 @@ class App {}
 // https://github.com/GetDutchie/brick/blob/main/packages/brick_offline_first/lib/src/offline_first_repository.dart#L246-L283
 
 
+// https://getstream.io/
+
 //Enable repo git hooks git config core.hooksPath hooks

@@ -280,10 +280,6 @@ PODS:
     - FlutterMacOS
   - smart_auth (0.0.1):
     - FlutterMacOS
-  - speech_to_text (0.0.1):
-    - Flutter
-    - FlutterMacOS
-    - Try
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
@@ -311,7 +307,6 @@ PODS:
     - sqlite3/rtree
   - tray_manager (0.0.1):
     - FlutterMacOS
-  - Try (2.1.1)
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
   - window_manager (0.2.0):
@@ -354,7 +349,6 @@ DEPENDENCIES:
   - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sign_in_with_apple (from `Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos`)
   - smart_auth (from `Flutter/ephemeral/.symlinks/plugins/smart_auth/macos`)
-  - speech_to_text (from `Flutter/ephemeral/.symlinks/plugins/speech_to_text/darwin`)
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
   - sqlite3_flutter_libs (from `Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - tray_manager (from `Flutter/ephemeral/.symlinks/plugins/tray_manager/macos`)
@@ -393,7 +387,6 @@ SPEC REPOS:
     - PromisesSwift
     - Sentry
     - sqlite3
-    - Try
 
 EXTERNAL SOURCES:
   amplify_auth_cognito:
@@ -468,8 +461,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/sign_in_with_apple/macos
   smart_auth:
     :path: Flutter/ephemeral/.symlinks/plugins/smart_auth/macos
-  speech_to_text:
-    :path: Flutter/ephemeral/.symlinks/plugins/speech_to_text/darwin
   sqflite_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin
   sqlite3_flutter_libs:
@@ -547,12 +538,10 @@ SPEC CHECKSUMS:
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   sign_in_with_apple: a9e97e744e8edc36aefc2723111f652102a7a727
   smart_auth: b38e3ab4bfe089eacb1e233aca1a2340f96c28e9
-  speech_to_text: 627d3fd2194770b51abb324ba45c2d39398f24a8
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
   sqlite3: 1d85290c3321153511f6e900ede7a1608718bbd5
   sqlite3_flutter_libs: 2c48c4ee7217fd653251975e43412250d5bcbbe2
   tray_manager: 9064e219c56d75c476e46b9a21182087930baf90
-  Try: 5ef669ae832617b3cee58cb2c6f99fb767a4ff96
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
   window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
 
