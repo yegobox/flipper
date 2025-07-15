@@ -608,8 +608,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         throw Exception(
             "Failed to send request. Status Code: ${response.statusCode}");
       }
-    } catch (e) {
+    } catch (e, s) {
       _talker?.error(e);
+      _talker?.error(s);
       rethrow;
     }
   }

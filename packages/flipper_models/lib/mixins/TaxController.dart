@@ -273,7 +273,7 @@ class TaxController<OBJ> {
             totRcptNo: receipt.totRcptNo ?? 0,
             brandName: business.name!,
             brandAddress: business.adrs ?? "Kigali,Rwanda",
-            brandTel: ProxyService.box.getUserPhone()!,
+            brandTel: business.phoneNumber ?? "",
             brandTIN: business.tinNumber.toString(),
             brandDescription: business.name!,
             brandFooter: business.name!,
@@ -283,7 +283,7 @@ class TaxController<OBJ> {
             brandEmail: business.email ?? "info@yegobox.com",
             customerTin: transaction.customerTin,
             receiptType: receiptType,
-            customerName: transaction.customerName!,
+            customerName: transaction.customerName ?? "",
             printCallback: (Uint8List data) {
               bytes = data;
             },
