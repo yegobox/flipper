@@ -1,4 +1,6 @@
 // import 'package:flipper_dashboard/OrderStatusSelector.dart';
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/checkout.dart' show OrderStatus;
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_card.dart';
@@ -7,6 +9,7 @@ import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class IncomingOrdersScreen extends HookConsumerWidget {
@@ -15,12 +18,33 @@ class IncomingOrdersScreen extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final stringValue = ref.watch(stringProvider);
+    final refreshedOnce = useState(false);
+    final status = ref.watch(requestStatusProvider);
+    final search = stringValue?.isNotEmpty == true ? stringValue : null;
     final stockRequests = ref.watch(
-      stockRequestsProvider(
-          status: ref.watch(requestStatusProvider),
-          search: stringValue?.isNotEmpty == true ? stringValue : null),
+      stockRequestsProvider(status: status, search: search),
     );
     final incomingBranchAsync = ref.watch(activeBranchProvider);
+
+    useEffect(() {
+      stockRequests.whenData((requests) {
+        if (!refreshedOnce.value && requests.isNotEmpty) {
+          final needsRefresh = requests.any((request) =>
+              (request.transactionItems == null ||
+                  request.transactionItems!.isEmpty) &&
+              (request.itemCounts ?? 0) > 0);
+
+          if (needsRefresh) {
+            refreshedOnce.value = true;
+            Future.delayed(const Duration(milliseconds: 500), () {
+              ref.refresh(
+                  stockRequestsProvider(status: status, search: search));
+            });
+          }
+        }
+      });
+      return null;
+    }, [stockRequests, refreshedOnce.value]);
 
     return Container(
       decoration: BoxDecoration(
