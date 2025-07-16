@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Current version of the preferences file format
 /// Increment this when making breaking changes to the preferences structure
-const String _kPreferencesVersion = '24';
+const String _kPreferencesVersion = '33';
 const String _kPreferencesKey = 'flipper_preferences';
 const String _kPreferencesBackupKey = 'flipper_preferences_backup';
 

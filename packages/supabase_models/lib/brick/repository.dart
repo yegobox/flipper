@@ -60,8 +60,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
   static const _queueFileBaseName = 'brick_offline_queue';
-  static const _standardVersion = 32;
-  static const _mobileTargetVersion = 32;
+  static const _standardVersion = 33;
+  static const _mobileTargetVersion = 33;
 
   // Flag to override version increment behavior (null = use platform default)
   static bool? _overrideVersionIncrement;
