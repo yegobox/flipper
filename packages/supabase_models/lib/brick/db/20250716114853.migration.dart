@@ -9,10 +9,11 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20250709202737_up = [
+const List<MigrationCommand> _migration_20250716114853_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
+  InsertTable('Sar'),
   InsertTable('Counter'),
   InsertTable('Retryable'),
   InsertTable('Category'),
@@ -92,6 +93,10 @@ const List<MigrationCommand> _migration_20250709202737_up = [
   InsertColumn('last_touched', Column.datetime, onTable: 'Stock'),
   InsertColumn('ebm_synced', Column.boolean, onTable: 'Stock'),
   InsertColumn('initial_stock', Column.Double, onTable: 'Stock'),
+  InsertColumn('id', Column.varchar, onTable: 'Sar', unique: true),
+  InsertColumn('sar_no', Column.integer, onTable: 'Sar'),
+  InsertColumn('branch_id', Column.integer, onTable: 'Sar'),
+  InsertColumn('created_at', Column.datetime, onTable: 'Sar'),
   InsertColumn('id', Column.varchar, onTable: 'Counter', unique: true),
   InsertColumn('business_id', Column.integer, onTable: 'Counter'),
   InsertColumn('branch_id', Column.integer, onTable: 'Counter'),
@@ -618,8 +623,6 @@ const List<MigrationCommand> _migration_20250709202737_up = [
   InsertColumn('type', Column.varchar, onTable: 'Log'),
   InsertColumn('business_id', Column.integer, onTable: 'Log'),
   InsertColumn('created_at', Column.datetime, onTable: 'Log'),
-  InsertColumn('tags', Column.varchar, onTable: 'Log'),
-  InsertColumn('extra', Column.varchar, onTable: 'Log'),
   InsertColumn('id', Column.varchar, onTable: 'Report', unique: true),
   InsertColumn('branch_id', Column.integer, onTable: 'Report'),
   InsertColumn('business_id', Column.integer, onTable: 'Report'),
@@ -788,7 +791,7 @@ const List<MigrationCommand> _migration_20250709202737_up = [
   InsertColumn('end_at', Column.datetime, onTable: 'Shift'),
   InsertColumn('opening_balance', Column.num, onTable: 'Shift'),
   InsertColumn('closing_balance', Column.num, onTable: 'Shift'),
-  InsertColumn('status', Column.integer, onTable: 'Shift'),
+  InsertColumn('status', Column.varchar, onTable: 'Shift'),
   InsertColumn('cash_sales', Column.num, onTable: 'Shift'),
   InsertColumn('expected_cash', Column.num, onTable: 'Shift'),
   InsertColumn('cash_difference', Column.num, onTable: 'Shift'),
@@ -826,6 +829,10 @@ const List<MigrationCommand> _migration_20250709202737_up = [
   CreateIndex(columns: ['code'], onTable: 'ItemCode', unique: false),
   CreateIndex(columns: ['id'], onTable: 'ImportPurchaseDates', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Stock', unique: true),
+  CreateIndex(columns: ['id'], onTable: 'Sar', unique: true),
+  CreateIndex(columns: ['sar_no'], onTable: 'Sar', unique: false),
+  CreateIndex(columns: ['branch_id'], onTable: 'Sar', unique: false),
+  CreateIndex(columns: ['created_at'], onTable: 'Sar', unique: false),
   CreateIndex(columns: ['id'], onTable: 'Counter', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Retryable', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Category', unique: true),
@@ -891,10 +898,11 @@ const List<MigrationCommand> _migration_20250709202737_up = [
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20250709202737_down = [
+const List<MigrationCommand> _migration_20250716114853_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
+  DropTable('Sar'),
   DropTable('Counter'),
   DropTable('Retryable'),
   DropTable('Category'),
@@ -974,6 +982,10 @@ const List<MigrationCommand> _migration_20250709202737_down = [
   DropColumn('last_touched', onTable: 'Stock'),
   DropColumn('ebm_synced', onTable: 'Stock'),
   DropColumn('initial_stock', onTable: 'Stock'),
+  DropColumn('id', onTable: 'Sar'),
+  DropColumn('sar_no', onTable: 'Sar'),
+  DropColumn('branch_id', onTable: 'Sar'),
+  DropColumn('created_at', onTable: 'Sar'),
   DropColumn('id', onTable: 'Counter'),
   DropColumn('business_id', onTable: 'Counter'),
   DropColumn('branch_id', onTable: 'Counter'),
@@ -1500,8 +1512,6 @@ const List<MigrationCommand> _migration_20250709202737_down = [
   DropColumn('type', onTable: 'Log'),
   DropColumn('business_id', onTable: 'Log'),
   DropColumn('created_at', onTable: 'Log'),
-  DropColumn('tags', onTable: 'Log'),
-  DropColumn('extra', onTable: 'Log'),
   DropColumn('id', onTable: 'Report'),
   DropColumn('branch_id', onTable: 'Report'),
   DropColumn('business_id', onTable: 'Report'),
@@ -1708,6 +1718,10 @@ const List<MigrationCommand> _migration_20250709202737_down = [
   DropIndex('index_ItemCode_on_code'),
   DropIndex('index_ImportPurchaseDates_on_id'),
   DropIndex('index_Stock_on_id'),
+  DropIndex('index_Sar_on_id'),
+  DropIndex('index_Sar_on_sar_no'),
+  DropIndex('index_Sar_on_branch_id'),
+  DropIndex('index_Sar_on_created_at'),
   DropIndex('index_Counter_on_id'),
   DropIndex('index_Retryable_on_id'),
   DropIndex('index_Category_on_id'),
@@ -1778,15 +1792,15 @@ const List<MigrationCommand> _migration_20250709202737_down = [
 //
 
 @Migratable(
-  version: '20250709202737',
-  up: _migration_20250709202737_up,
-  down: _migration_20250709202737_down,
+  version: '20250716114853',
+  up: _migration_20250716114853_up,
+  down: _migration_20250716114853_down,
 )
-class Migration20250709202737 extends Migration {
-  const Migration20250709202737()
+class Migration20250716114853 extends Migration {
+  const Migration20250716114853()
     : super(
-        version: 20250709202737,
-        up: _migration_20250709202737_up,
-        down: _migration_20250709202737_down,
+        version: 20250716114853,
+        up: _migration_20250716114853_up,
+        down: _migration_20250716114853_down,
       );
 }
