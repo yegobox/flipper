@@ -623,6 +623,7 @@ mixin AuthMixin implements AuthInterface {
         throw Exception(
             "Authentication failed with status code ${response.statusCode}");
       }
+      //
 
       // Validate response body
       if (response.body.isEmpty) {
