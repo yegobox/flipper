@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,53 @@ import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+
+/// A stateful button that shows a checkmark for a short duration when tapped.
+class CopyButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+
+  const CopyButton({
+    Key? key,
+    required this.onPressed,
+    this.icon = Icons.copy_rounded,
+    this.color = Colors.grey,
+    this.tooltip = 'Copy Graph',
+  }) : super(key: key);
+
+  @override
+  _CopyButtonState createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<CopyButton> {
+  bool _isCopied = false;
+
+  void _handleCopy() {
+    if (_isCopied) return;
+
+    widget.onPressed();
+    setState(() => _isCopied = true);
+    Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() => _isCopied = false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        _isCopied ? Icons.check_circle_outline_rounded : widget.icon,
+        color: _isCopied ? Colors.green : widget.color,
+      ),
+      onPressed: _handleCopy,
+      tooltip: _isCopied ? 'Copied!' : widget.tooltip,
+    );
+  }
+}
 
 /// Enhanced visualization for structured data with adaptive design
 class StructuredDataVisualization implements VisualizationInterface {
@@ -269,7 +317,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             Shadow(
               offset: const Offset(0, 1),
               blurRadius: 2,
-              color: Colors.black.withValues(alpha: 0.3),
+              color: Colors.black.withOpacity(0.3),
             ),
           ],
         ),
@@ -377,7 +425,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                barColor.withValues(alpha: 0.7),
+                                barColor.withOpacity(0.7),
                                 barColor,
                               ],
                             ),
@@ -405,8 +453,12 @@ class StructuredDataVisualization implements VisualizationInterface {
     final double revenue = _parseNumericValue(data['revenue']);
     final double profit = _parseNumericValue(data['profit']);
     final double unitsSold = _parseNumericValue(data['unitsSold']);
-    final String currencyCode = data['currencyCode'] ?? currency ?? 'USD';
+    final String currencyCode = data['currencyCode'] ??
+        currency ??
+        '${ProxyService.box.defaultCurrency()}';
     final String date = data['date'] ?? 'Today';
+    final List<dynamic> bestSellingItems = data['bestSellingItems'] ?? [];
+    final List<dynamic> worstSellingItems = data['worstSellingItems'] ?? [];
 
     return RepaintBoundary(
       key: cardKey,
@@ -427,22 +479,43 @@ class StructuredDataVisualization implements VisualizationInterface {
           ),
           child: Padding(
             padding: EdgeInsets.all(config['cardPadding']),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildModernHeader(
-                  title: 'Business Analytics',
-                  subtitle: date,
-                  config: config,
-                  onCopy: onCopyGraph,
-                ),
-                SizedBox(height: config['cardPadding']),
-                _buildMetricCards(
-                    revenue, profit, unitsSold, currencyCode, colors, config),
-                SizedBox(height: config['cardPadding']),
-                _buildModernBarChart(
-                    revenue, profit, unitsSold, currencyCode, colors, config),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildModernHeader(
+                    title: 'Business Analytics',
+                    subtitle: date,
+                    config: config,
+                    onCopy: onCopyGraph,
+                  ),
+                  SizedBox(height: config['cardPadding']),
+                  _buildMetricCards(
+                      revenue, profit, unitsSold, currencyCode, colors, config),
+                  SizedBox(height: config['cardPadding']),
+                  _buildModernBarChart(
+                      revenue, profit, unitsSold, currencyCode, colors, config),
+                  SizedBox(height: config['cardPadding']),
+                  if (bestSellingItems.isNotEmpty)
+                    _buildItemPerformanceList(
+                      title: 'Best Selling Items',
+                      items: bestSellingItems,
+                      currencyCode: currencyCode,
+                      config: config,
+                      color: colors[1], // Success Green
+                    ),
+                  if (worstSellingItems.isNotEmpty)
+                    SizedBox(height: config['cardPadding']),
+                  if (worstSellingItems.isNotEmpty)
+                    _buildItemPerformanceList(
+                      title: 'Worst Selling Items',
+                      items: worstSellingItems,
+                      currencyCode: currencyCode,
+                      config: config,
+                      color: colors[5], // Red
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -493,17 +566,17 @@ class StructuredDataVisualization implements VisualizationInterface {
       );
     } else {
       return Row(
-        children: metrics
-            .map(
-              (metric) => Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  child: _buildMetricCard(metric, config),
-                ),
-              ),
-            )
-            .toList()
-          ..removeLast(),
+        children: metrics.asMap().entries.map((entry) {
+          final index = entry.key;
+          final metric = entry.value;
+          return Expanded(
+            child: Container(
+              margin:
+                  EdgeInsets.only(right: index < metrics.length - 1 ? 8 : 0),
+              child: _buildMetricCard(metric, config),
+            ),
+          );
+        }).toList(),
       );
     }
   }
@@ -720,10 +793,8 @@ class StructuredDataVisualization implements VisualizationInterface {
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.copy_rounded, color: Colors.grey),
+                    CopyButton(
                       onPressed: onCopyGraph,
-                      tooltip: 'Copy Graph',
                     ),
                   ],
                 ),
@@ -753,34 +824,124 @@ class StructuredDataVisualization implements VisualizationInterface {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: config['titleSize'],
-                fontWeight: FontWeight.w700,
-                color: Colors.grey.shade800,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: config['titleSize'],
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey.shade800,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: config['subtitleSize'],
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF0078D4),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: config['subtitleSize'],
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF0078D4),
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (onCopy != null)
-          IconButton(
-            icon: const Icon(Icons.copy_rounded, color: Colors.grey),
+          CopyButton(
             onPressed: onCopy,
-            tooltip: 'Copy Graph',
           ),
+      ],
+    );
+  }
+
+  /// Build a list for item performance (best/worst selling)
+  Widget _buildItemPerformanceList({
+    required String title,
+    required List<dynamic> items,
+    required String currencyCode,
+    required Map<String, dynamic> config,
+    required Color color,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: config['subtitleSize'],
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
+          ),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final itemName = item['itemName'] ?? 'Unknown';
+              final unitsSold = _parseNumericValue(item['unitsSold']);
+              final revenue = _parseNumericValue(item['revenue']);
+
+              return Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: index < items.length - 1
+                        ? BorderSide(color: Colors.grey.shade200, width: 1)
+                        : BorderSide.none,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        itemName,
+                        style: TextStyle(
+                          fontSize: config['legendSize'],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${_formatNumber(unitsSold)} units',
+                          style: TextStyle(
+                            fontSize: config['legendSize'],
+                            fontWeight: FontWeight.w600,
+                            color: color,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '$currencyCode ${_formatCurrency(revenue)}',
+                          style: TextStyle(
+                            fontSize: config['legendSize'] - 1,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
       ],
     );
   }
@@ -873,7 +1034,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
             colors: [
-              color.withValues(alpha: 0.7),
+              color.withOpacity(0.7),
               color,
             ],
           ),

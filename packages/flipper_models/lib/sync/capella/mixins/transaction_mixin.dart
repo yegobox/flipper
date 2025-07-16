@@ -3,6 +3,7 @@ import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
@@ -88,13 +89,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<void> assignTransaction({
+  Future<ITransaction> assignTransaction({
     required Variant variant,
     required ITransaction pendingTransaction,
     Purchase? purchase,
     double? updatableQty,
-    required bool doneWithTransaction,
     int? invoiceNumber,
+    required bool doneWithTransaction,
     required Business business,
     required int randomNumber,
     required String sarTyCd,
@@ -118,6 +119,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       required double amountTotal,
       required bool customItem,
       required ITransaction pendingTransaction,
+      int? invoiceNumber,
       required double currentStock,
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
@@ -230,5 +232,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }) async {
     throw UnimplementedError(
         'transactions needs to be implemented for Capella');
+  }
+
+  @override
+  Future<Sar> getSar({required int branchId}) async {
+    throw UnimplementedError('getSar needs to be implemented for Capella');
   }
 }

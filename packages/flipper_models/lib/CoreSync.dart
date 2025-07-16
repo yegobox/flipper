@@ -37,6 +37,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -1880,8 +1881,9 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  void updateCounters(
-      {required List<Counter> counters, RwApiResponse? receiptSignature}) {
+  Future<void> updateCounters(
+      {required List<Counter> counters,
+      RwApiResponse? receiptSignature}) async {
     // build brick Counter to pass in to upsert
     for (Counter counter in counters) {
       final upCounter = models.Counter(
@@ -1897,7 +1899,21 @@ class CoreSync extends AiStrategyImpl
         receiptType: counter.receiptType,
       );
       counter.invcNo = counter.invcNo! + 1;
-      repository.upsert(upCounter);
+      await repository.upsert(upCounter);
+
+      /// also update sar
+      // get the sar
+      final sar = await getSar(branchId: counter.branchId!);
+      if (sar != null) {
+        sar.sarNo = sar.sarNo + 1;
+        await repository.upsert(sar);
+      } else {
+        final sar = Sar(
+          sarNo: counter.totRcptNo!,
+          branchId: counter.branchId!,
+        );
+        await repository.upsert(sar);
+      }
       // in erference https://github.com/GetDutchie/brick/issues/580#issuecomment-2845610769
       // Repository().sqliteProvider.upsert<Counter>(upCounter);
     }

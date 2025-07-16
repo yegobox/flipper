@@ -144,6 +144,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required double totalAmount,
       required String remark,
       required DateTime ocrnDt,
+      num? invoiceNumber,
+      String? sarNo,
+      num? approvedQty,
       required String URI}) async {
     try {
       final url = Uri.parse(URI)
@@ -162,7 +165,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         throw Exception("Service item cannot be saved in IO");
       }
       List<Map<String, dynamic>> itemsList = await Future.wait(items
-          .map((item) async => await mapItemToJson(item, bhfId: bhFId))
+          .map((item) async =>
+              await mapItemToJson(item, bhfId: bhFId, approvedQty: approvedQty))
           .toList());
       if (itemsList.isEmpty) throw Exception("No items to save");
 
@@ -197,8 +201,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": transaction.sarNo,
-        "orgSarNo": transaction.orgSarNo,
+        "sarNo": sarNo ?? transaction.sarNo,
+        "orgSarNo": invoiceNumber ?? transaction.orgSarNo,
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
@@ -617,7 +621,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
 // Helper function to map TransactionItem to JSON
   Future<Map<String, dynamic>> mapItemToJson(TransactionItem item,
-      {required String bhfId}) async {
+      {required String bhfId, num? approvedQty}) async {
     final repository = Repository();
 
     List<Configurations> taxConfigs = await repository.get<Configurations>(
@@ -635,7 +639,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     // Base calculations
     final unitPrice = item.price;
-    final quantity = item.qty;
+    final quantity = approvedQty ?? item.qty;
     final baseTotal = unitPrice * quantity;
 
     // Calculate discount amount correctly for the total
@@ -964,6 +968,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       List<TransactionItem> items, String? receiptType,
       {required odm.Counter counter}) async {
     transaction.sarNo = counter.invcNo.toString();
+    transaction.invoiceNumber = counter.invcNo;
     transaction.orgSarNo = counter.invcNo.toString();
     await repository.upsert(transaction);
   }
@@ -1065,7 +1070,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
     data['regrId'] = randomNumber().toString();
-    data['pchsSttsCd'] = '02'; // purchase status 02= approved.
+    data['pchsSttsCd'] = pchsSttsCd; // purchase status 02= approved.
     data['modrNm'] = randomNumber().toString();
     data['orgInvcNo'] = item.spplrInvcNo;
     data['regrNm'] = randomNumber();

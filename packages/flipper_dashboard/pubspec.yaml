@@ -39,7 +39,7 @@ dependencies:
   url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^3.13.0
+  firebase_core: ^3.15.1
   cupertino_icons: ^1.0.4
   flipper_services: any
 
@@ -156,6 +156,6 @@ dev_dependencies:
     sdk: flutter
   path_provider_platform_interface: ^2.0.0
   sqflite_common_ffi: ^2.3.0
-  firebase_core_platform_interface: ^5.0.0
+  firebase_core_platform_interface: ^6.0.0
   firebase_crashlytics_platform_interface: ^3.0.0
   firebase_crashlytics: ^4.0.0

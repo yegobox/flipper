@@ -420,7 +420,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required Map<String, String> itemTypes,
   });
 
-  void updateCounters({
+  Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,
   });

@@ -35,8 +35,8 @@ import 'repository/local_storage.dart';
 import 'models/counter.model.dart';
 
 // Default values that will be used if LocalStorage is not available
-const defaultDbFileName = 'flipper_v17.sqlite';
-const defaultQueueName = 'brick_offline_queue_v17.sqlite';
+const defaultDbFileName = 'flipper_v33.sqlite';
+const defaultQueueName = 'brick_offline_queue_v33.sqlite';
 const maxBackupCount = 3; // Maximum number of backups to keep
 
 // Interface for retrieving database configuration

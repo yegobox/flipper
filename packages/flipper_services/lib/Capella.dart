@@ -21,6 +21,7 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -1313,12 +1314,7 @@ class Capella extends AiStrategyImpl
     // TODO: implement notify
   }
 
-  @override
-  void updateCounters(
-      {required List<brick.Counter> counters,
-      RwApiResponse? receiptSignature}) {
-    // TODO: implement updateCounters
-  }
+ 
 
   @override
   conversations({int? conversationId}) {
@@ -1401,6 +1397,9 @@ class Capella extends AiStrategyImpl
       {required List<brick.Variant> updatables,
       String? color,
       String? taxTyCd,
+      num? approvedQty,
+      num? invoiceNumber,
+      Purchase? purchase,
       bool updateIo = true,
       double? dcRt,
       String? variantId,
@@ -1775,6 +1774,7 @@ class Capella extends AiStrategyImpl
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
       brick.TransactionItem? item,
+      int? invoiceNumber,
       String? sarTyCd}) {
     // TODO: implement saveTransaction
     throw UnimplementedError();
@@ -1917,7 +1917,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<void> assignTransaction(
+  Future<ITransaction> assignTransaction(
       {double? updatableQty,
       required brick.Variant variant,
       required bool doneWithTransaction,
@@ -2360,6 +2360,18 @@ class Capella extends AiStrategyImpl
       String? orderNote,
       String? financingId}) {
     // TODO: implement createStockRequest
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Sar?> getSar({required int branchId}) {
+    // TODO: implement getSar
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<void> updateCounters({required List<brick.Counter> counters, RwApiResponse? receiptSignature}) {
+    // TODO: implement updateCounters
     throw UnimplementedError();
   }
 }

@@ -5,6 +5,7 @@ import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/cache/cache_manager.dart';
@@ -224,10 +225,16 @@ mixin VariantMixin implements VariantInterface {
           final ebmSyncService = TurboTaxService(repository);
           if (newVariantSaved.imptItemSttsCd != "1" ||
               newVariantSaved.pchsSttsCd != "1") {
+            // get the sar
+            final sar = await ProxyService.strategy.getSar(branchId: branchId);
             await ebmSyncService.stockIo(
+              invoiceNumber: sar?.sarNo ?? 1,
               variant: newVariantSaved,
               serverUrl: (await ProxyService.box.getServerUrl())!,
             );
+            // increament sar and save
+            sar!.sarNo = sar.sarNo + 1;
+            await repository.upsert<Sar>(sar);
           }
           return newVariantSaved;
         } catch (e, stackTrace) {
@@ -301,6 +308,9 @@ mixin VariantMixin implements VariantInterface {
       double? prc,
       bool updateIo = true,
       double? dftPrc,
+      num? approvedQty,
+      num? invoiceNumber,
+      Purchase? purchase,
       bool? ebmSynced}) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
@@ -365,7 +375,8 @@ mixin VariantMixin implements VariantInterface {
       }
 
       updatables[i].lastTouched = DateTime.now().toUtc();
-      updatables[i].qty = updatables[i].stock?.currentStock;
+      updatables[i].qty =
+          (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
 
       await CacheManager().saveStocks([updatables[i].stock!]);
       final updated = await repository.upsert<Variant>(updatables[i]);
@@ -374,10 +385,19 @@ mixin VariantMixin implements VariantInterface {
 
       /// still experimenting bellow.
       if (updatables[i].assigned == false && updateIo == true) {
+        // get sar
+        final sar = await ProxyService.strategy
+            .getSar(branchId: ProxyService.box.getBranchId()!);
         await ebmSyncService.stockIo(
+          approvedQty: approvedQty,
+          invoiceNumber: invoiceNumber?.toInt() ?? sar?.sarNo ?? 1,
           variant: updated,
+          purchase: purchase,
           serverUrl: (await ProxyService.box.getServerUrl())!,
         );
+        // increament sar and save
+        sar!.sarNo = sar.sarNo + 1;
+        await repository.upsert<Sar>(sar);
       }
     }
   }

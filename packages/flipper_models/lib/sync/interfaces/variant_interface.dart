@@ -51,11 +51,14 @@ abstract class VariantInterface {
       bool? ebmSynced,
       String? categoryId,
       double? dcRt,
+      Purchase? purchase,
 
       /// this is used when we need to update variant without updating IO
       /// case of Normal refund as this might have been updated before
       bool updateIo = true,
       double? prc,
+      num? approvedQty,
+      num? invoiceNumber,
       double? dftPrc});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});

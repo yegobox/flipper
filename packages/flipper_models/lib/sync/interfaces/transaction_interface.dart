@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 
 abstract class TransactionInterface {
+  Future<Sar?> getSar({required int branchId});
   Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
@@ -79,7 +81,7 @@ abstract class TransactionInterface {
   FutureOr<void> removeCustomerFromTransaction(
       {required ITransaction transaction});
 
-  Future<void> assignTransaction({
+  Future<ITransaction> assignTransaction({
     double? updatableQty,
     required Variant variant,
     required bool doneWithTransaction,
@@ -109,6 +111,7 @@ abstract class TransactionInterface {
       required bool partOfComposite,
       double? updatableQty,
       TransactionItem? item,
+      int? invoiceNumber,
       String? sarTyCd});
 
   Future<void> markItemAsDoneWithTransaction(
@@ -148,7 +151,8 @@ abstract class TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
-    num taxAmount = 0.0,  String? transactionId,
+    num taxAmount = 0.0,
+    String? transactionId,
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo, required int branchId, String? id});
