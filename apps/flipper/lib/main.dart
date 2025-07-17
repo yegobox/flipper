@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -73,6 +74,7 @@ Future<void> main() async {
       setupDialogUi();
       setupBottomSheetUi();
       await initDependencies();
+      initializeNonCriticalDependencies();
     }
   }
 
