@@ -25,7 +25,6 @@ import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
-import 'package:flipper_rw/loading_screen.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -101,7 +100,8 @@ Future<void> main() async {
               } else {
                 // While initializing, show the loading screen.
                 // The native splash is preserved until the future completes.
-                return const LoadingScreen();
+                return const Scaffold(
+                    body: Center(child: CircularProgressIndicator()));
               }
             },
           );
