@@ -17,7 +17,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -88,24 +87,20 @@ Future<void> main() async {
       ..tracesSampleRate = 1.0
       ..attachScreenshot = true,
     appRunner: () => runApp(
-      Sizer(
-        builder: (context, orientation, deviceType) {
-          return FutureBuilder(
-            future: initializeApp(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                // Remove splash screen when the main app is ready
-                FlutterNativeSplash.remove();
-                return const FlipperApp();
-              } else {
-                // While initializing, show the loading screen.
-                // The native splash is preserved until the future completes.
-                return const Scaffold(
-                  backgroundColor: Colors.white,
-                    body: Center(child: CircularProgressIndicator()));
-              }
-            },
-          );
+      FutureBuilder(
+        future: initializeApp(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // Remove splash screen when the main app is ready
+            FlutterNativeSplash.remove();
+            return const FlipperApp();
+          } else {
+            // While initializing, show the loading screen.
+            // The native splash is preserved until the future completes.
+            return const Scaffold(
+                backgroundColor: Colors.white,
+                body: Center(child: CircularProgressIndicator()));
+          }
         },
       ),
     ),
