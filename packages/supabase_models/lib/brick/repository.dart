@@ -8,6 +8,7 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
 import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
@@ -35,8 +36,8 @@ import 'repository/local_storage.dart';
 import 'models/counter.model.dart';
 
 // Default values that will be used if LocalStorage is not available
-const defaultDbFileName = 'flipper_v33.sqlite';
-const defaultQueueName = 'brick_offline_queue_v33.sqlite';
+const defaultDbFileName = 'flipper_v$dbVersion.sqlite';
+const defaultQueueName = 'brick_offline_queue_v$dbVersion.sqlite';
 const maxBackupCount = 3; // Maximum number of backups to keep
 
 // Interface for retrieving database configuration
@@ -60,8 +61,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
   static const _queueFileBaseName = 'brick_offline_queue';
-  static const _standardVersion = 33;
-  static const _mobileTargetVersion = 33;
+  static const _standardVersion = dbVersion;
+  static const _mobileTargetVersion = dbVersion;
 
   // Flag to override version increment behavior (null = use platform default)
   static bool? _overrideVersionIncrement;

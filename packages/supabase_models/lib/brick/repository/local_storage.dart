@@ -8,10 +8,11 @@ import 'package:supabase_models/brick/repository/storage.dart';
 // ignore: depend_on_referenced_packages
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flipper_services/constants.dart';
 
 /// Current version of the preferences file format
 /// Increment this when making breaking changes to the preferences structure
-const String _kPreferencesVersion = '33';
+const int _kPreferencesVersion = dbVersion;
 const String _kPreferencesKey = 'flipper_preferences';
 const String _kPreferencesBackupKey = 'flipper_preferences_backup';
 
@@ -146,9 +147,9 @@ class SharedPreferenceStorage implements LocalStorage {
 
       // Set the file paths with version number
       _filePath = path.join(
-          directory, '${_kPreferencesKey}_v${_kPreferencesVersion}.json');
+          directory, '${_kPreferencesKey}_v$_kPreferencesVersion.json');
       _backupFilePath = path.join(
-          directory, '${_kPreferencesBackupKey}_v${_kPreferencesVersion}.json');
+          directory, '${_kPreferencesBackupKey}_v$_kPreferencesVersion.json');
 
       // Load preferences from file
       await _loadPreferences();
@@ -668,7 +669,8 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String getDatabaseFilename() {
-    return (_cache['databaseFilename'] as String?) ?? 'flipper_v$_kPreferencesVersion.sqlite';
+    return (_cache['databaseFilename'] as String?) ??
+        'flipper_v$_kPreferencesVersion.sqlite';
   }
 
   @override
@@ -686,7 +688,7 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String getQueueFilename() {
     return (_cache['queueFilename'] as String?) ??
-        'brick_offline_queue_v17.sqlite';
+        'brick_offline_queue_v$_kPreferencesVersion.sqlite';
   }
 
   @override
