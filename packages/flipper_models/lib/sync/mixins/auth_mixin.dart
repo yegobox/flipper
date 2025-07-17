@@ -607,6 +607,7 @@ mixin AuthMixin implements AuthInterface {
         Uri.parse(apihub + '/v2/api/user'),
         body: jsonEncode(<String, String?>{
           'phoneNumber': phoneNumber,
+          // TODO: fix this on api level so it works, currently not accepting uuid.
           // if (uid != null && uid.isNotEmpty) 'uid': uid
         }),
       );
