@@ -133,9 +133,8 @@ Future<void> main() async {
       setupDialogUi();
       setupBottomSheetUi();
       await initDependencies();
-      initializeDependencies().then((_) {
-        // talker.info('All dependencies initialized');
-      });
+      // Centralize initialization here
+      await initializeDependencies();
     }
 
     await SentryFlutter.init(

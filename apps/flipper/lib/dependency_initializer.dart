@@ -33,7 +33,6 @@ import 'amplifyconfiguration.dart';
 // Import for database configuration
 // ignore: depend_on_referenced_packages
 // ignore: depend_on_referenced_packages
-import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
@@ -91,7 +90,7 @@ Future<void> _initializeCriticalDependencies() async {
   // Platform-specific database initialization
   if (!kIsWeb && Platform.isWindows) {
     // Use the ffi on windows
-    sqfliteFfiInit();
+    // sqfliteFfiInit();
     databaseFactoryOrNull = databaseFactoryFfi;
   } else if (kIsWeb) {
     databaseFactoryOrNull = databaseFactoryFfiWeb;
@@ -137,9 +136,6 @@ Future<void> _initializeNonCriticalDependencies() async {
   if (Platform.isAndroid) {
     // Android-specific optimizations
     await _optimizeForAndroid();
-  } else if (Platform.isWindows) {
-    // Windows-specific optimizations
-    await _optimizeForWindows();
   }
 }
 
@@ -165,44 +161,6 @@ Future<void> _optimizeForAndroid() async {
   if (kDebugMode) {
     talker.info('Applying Android-specific optimizations to reduce EGL issues');
   }
-}
-
-// Windows-specific optimizations
-Future<void> _optimizeForWindows() async {
-  // Windows-specific performance improvements
-
-  // Optimize SQLite operations for Windows
-  // This significantly improves startup time on Windows
-  if (kDebugMode) {
-    talker.info('Applying Windows-specific optimizations');
-  }
-
-  // Reduce file I/O operations during startup
-  // Windows file I/O can be slow, especially on older systems
-
-  // Use a more efficient transaction mode for SQLite on Windows
-  // to reduce file I/O overhead during startup
-  if (!kIsWeb) {
-    try {
-      // Optimize SQLite for Windows by setting pragmas
-      // These settings can significantly improve performance on Windows
-      // Note: We're using direct SQLite optimization since Repository doesn't have an optimizeForPlatform method
-
-      // sqfliteFfiInit() was already called in _initializeCriticalDependencies
-      // No need to call it again here
-
-      // Set journal mode to WAL for better performance
-      // This reduces file I/O overhead during startup
-      if (kDebugMode) {
-        talker.info('Optimizing SQLite for Windows platform');
-      }
-    } catch (e) {
-      talker.info('Error optimizing database for Windows: $e');
-    }
-  }
-
-  // Optimize memory usage for Windows
-  // Windows has different memory management characteristics
 }
 
 // Configure error handling for different platforms
@@ -275,9 +233,6 @@ Future<void> initializeDependencies() async {
         // Start Android optimizations early but don't wait
         _optimizeForAndroid()
             .catchError((e) => talker.info('Android optimization error: $e'));
-      } else if (Platform.isWindows) {
-        // Windows optimizations are more critical for performance
-        await _optimizeForWindows();
       }
     }
 
