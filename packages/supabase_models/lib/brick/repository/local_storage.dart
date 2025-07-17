@@ -192,7 +192,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<String> _getStorageDirectory() async {
     if (Platform.isWindows) {
       final appDir = await getApplicationDocumentsDirectory();
-      return path.join(appDir.path, '.db');
+      return path.join(appDir.path, 'Flipper');
     } else if (Platform.isAndroid) {
       return await getDatabasesPath();
     } else if (Platform.isIOS || Platform.isMacOS) {

@@ -25,7 +25,7 @@ mixin DatabasePath {
       appDir = await getApplicationDocumentsDirectory();
     }
 
-    final dbPath = join(appDir.path, kDebugMode ? 'db' : '.db');
+    final dbPath = join(appDir.path, 'Flipper');
 
     // Ensure the directory exists, mimicking the successful pattern from local_storage.dart
     final dbDir = Directory(dbPath);
