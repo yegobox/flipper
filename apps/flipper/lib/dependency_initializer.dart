@@ -32,7 +32,6 @@ import 'amplifyconfiguration.dart';
 
 // Import for database configuration
 // ignore: depend_on_referenced_packages
-import 'package:supabase_models/brick/repository/storage_adapter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
@@ -77,27 +76,6 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
-/// Initialize the database configuration with LocalStorage
-/// This connects the LocalStorage implementation with the Repository
-/// to provide configurable database filenames
-Future<void> initializeDatabaseConfig() async {
-  // Initialize the shared preferences storage
-  final localStorage = await SharedPreferenceStorage().initializePreferences();
-
-  // Create an adapter that connects LocalStorage to Repository
-  StorageAdapter(
-    getDatabaseFilename: () => localStorage.getDatabaseFilename(),
-    getQueueFilename: () => localStorage.getQueueFilename(),
-  );
-
-  // Set the storage adapter in the Repository class
-  // Repository.setConfigStorage(storageAdapter);
-
-  // Log the configured database filenames
-  // print('Database configured with main DB: ${Repository.dbFileName}');
-  // print('Database configured with queue DB: ${Repository.queueName}');
-}
-
 // Critical dependencies that must be initialized immediately
 Future<void> _initializeCriticalDependencies() async {
   // Note: WidgetsFlutterBinding is already initialized in main.dart
@@ -118,10 +96,6 @@ Future<void> _initializeCriticalDependencies() async {
   } else if (kIsWeb) {
     databaseFactoryOrNull = databaseFactoryFfiWeb;
   }
-
-  // Initialize the database configuration with LocalStorage
-  await initializeDatabaseConfig();
-
   // Font configuration - moved earlier as it affects UI
   GoogleFonts.config.allowRuntimeFetching = true;
 }

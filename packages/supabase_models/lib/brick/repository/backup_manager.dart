@@ -163,12 +163,6 @@ class BackupManager {
     }
   }
 
-  // Get the database filename from storage or use default
-  static String get dbFileName =>
-      _configStorage?.getDatabaseFilename() ?? defaultDbFileName;
-
-  static DatabaseConfigStorage? _configStorage;
-
   /// Cleans up old backups, keeping only the most recent ones
   Future<void> cleanupOldBackups(String directory, String baseFilename,
       {String? currentBackupPath}) async {
@@ -191,10 +185,6 @@ class BackupManager {
       // Keep only the most recent backups
       if (backupFiles.length > maxBackupCount) {
         for (var i = maxBackupCount; i < backupFiles.length; i++) {
-          if (backupFiles[i].path == dbFileName) {
-            _logger.info('Skipping current backup: ${backupFiles[i].path}');
-            continue;
-          }
           await backupFiles[i].delete();
           _logger.info('Deleted old backup: ${backupFiles[i].path}');
         }
