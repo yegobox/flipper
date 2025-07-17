@@ -63,7 +63,7 @@ class _LoadingScreenState extends State<LoadingScreen>
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: const Color(0xFF0F1419), // Microsoft dark theme
+        backgroundColor: Colors.white, // Microsoft dark theme
         body: SafeArea(
           child: Center(
             child: Column(
@@ -82,7 +82,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.blue.withOpacity(0.3),
+                                color: Colors.blue.withValues(alpha: 0.3),
                                 blurRadius: 30,
                                 spreadRadius: 5,
                               ),
@@ -94,6 +94,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                               'assets/flipper_logo.png',
                               height: 35.h,
                               width: 35.w,
+                              // package: "flipper_rw",
                             ),
                           ),
                         ),
@@ -109,7 +110,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                   width: 60.w,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                   child: ClipRRect(
@@ -201,7 +202,7 @@ class _LoadingScreenState extends State<LoadingScreen>
 
                 // Microsoft-style footer
                 Text(
-                  'Powered by Flutter',
+                  'Powered by yegobox',
                   style: TextStyle(
                     fontSize: 8.sp,
                     color: Colors.grey[600],
