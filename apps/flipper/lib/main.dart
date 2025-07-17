@@ -101,6 +101,7 @@ Future<void> main() async {
                 // While initializing, show the loading screen.
                 // The native splash is preserved until the future completes.
                 return const Scaffold(
+                  backgroundColor: Colors.white,
                     body: Center(child: CircularProgressIndicator()));
               }
             },

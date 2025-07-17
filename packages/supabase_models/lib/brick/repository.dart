@@ -1,9 +1,9 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'dart:io';
+import 'dart:async';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_supabase/testing.dart';
-// import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
@@ -40,9 +40,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static Repository? _singleton;
   static final _logger = Logger('Repository');
 
-  // Remove SharedPreferenceStorage dependency for filenames
-  // static DatabaseConfigStorage? _configStorage;
   static SharedPreferenceStorage? _sharedPreferenceStorage;
+  // Flag to track if the singleton has been explicitly disposed and its resources released.
+  static bool _isDisposed = false;
+  // Flag to prevent multiple concurrent calls to initializeSupabaseAndConfigure.
+  static bool _isInitializing = false;
 
   // Constants for database filenames and versioning
   static const _dbFileBaseName = 'flipper';
@@ -57,10 +59,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   late final DatabaseManager _databaseManager;
   late final QueueManager _queueManager;
 
-  // Lock detection
-  // Lock detection
-  static bool _isCleanupInProgress = false;
-  static bool _isMigrationInProgress = false;
+  // Thread-safe locks using Completer for specific operations
+  static Completer<void>? _cleanupCompleter;
+  static Completer<void>? _migrationCompleter;
+
+  // Timeout for operations
+  static const _operationTimeout = Duration(seconds: 30);
 
   /// Override the default version increment behavior
   ///
@@ -86,8 +90,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
 
     // Otherwise use platform default (mobile version on mobile platforms)
-    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-      return _mobileTargetVersion;
+    try {
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        return _mobileTargetVersion;
+      }
+    } catch (e) {
+      _logger.warning('Error detecting platform, using standard version: $e');
     }
     return _standardVersion;
   }
@@ -100,27 +108,21 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     return '${_queueFileBaseName}_v$_effectiveVersion.sqlite';
   }
 
-  // Remove setConfigStorage and related getters to centralize filename logic
-  /*
-  /// Set the storage for database configuration
-  static void setConfigStorage(DatabaseConfigStorage storage) {
-    _configStorage = storage;
-    _logger.info('Database configuration storage set');
-    _logger.info('Using database filename: $dbFileName');
-    _logger.info('Using queue filename: $queueName');
-  }
-  */
-
   /// Get the shared preference storage instance
-  static Future<SharedPreferenceStorage> getSharedPreferenceStorage() async {
+  static Future<SharedPreferenceStorage?> getSharedPreferenceStorage() async {
     if (_sharedPreferenceStorage == null) {
-      _logger.info('Initializing SharedPreferenceStorage');
-      final storage = SharedPreferenceStorage();
-      _sharedPreferenceStorage =
-          await storage.initializePreferences() as SharedPreferenceStorage;
-      _logger.info('SharedPreferenceStorage initialized successfully');
+      try {
+        _logger.info('Initializing SharedPreferenceStorage');
+        final storage = SharedPreferenceStorage();
+        _sharedPreferenceStorage =
+            await storage.initializePreferences() as SharedPreferenceStorage;
+        _logger.info('SharedPreferenceStorage initialized successfully');
+      } catch (e) {
+        _logger.severe('Failed to initialize SharedPreferenceStorage: $e');
+        return null;
+      }
     }
-    return _sharedPreferenceStorage!;
+    return _sharedPreferenceStorage;
   }
 
   // Get the database filename from storage or use dynamic default
@@ -129,6 +131,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   // Get the queue filename from storage or use dynamic default
   static String get queueName => _generatedDefaultQueueFileName;
 
+  // Private constructor: Only called internally to create the singleton instance.
   Repository._({
     required super.supabaseProvider,
     required super.sqliteProvider,
@@ -139,35 +142,41 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }) {
     _databaseManager = DatabaseManager(dbFileName: dbFileName);
     _queueManager = QueueManager(offlineRequestQueue);
-
-    // Log the final database filename being used
+    // Reset the disposed flag when a new instance is successfully created.
+    _isDisposed = false;
     _logger.info('FINAL DATABASE FILENAME: $dbFileName');
     _logger.info('FINAL DATABASE PATH: $dbPath');
   }
 
+  /// Factory constructor to retrieve the singleton instance.
+  /// Throws [StateError] if the repository has not been initialized
+  /// or if it was previously disposed and not re-initialized.
   factory Repository() {
-    // For web or uninitialized cases, return a dummy repository instead of throwing
-    if (_singleton == null) {
+    // If the singleton is null or has been disposed, throw an error (unless on web).
+    if (_singleton == null || _isDisposed) {
       if (kIsWeb) {
-        // Create and return a dummy repository for web that silently does nothing
+        _logger.warning(
+            'Repository not initialized on web or disposed, returning dummy repository');
         return _createDummyRepository();
       } else {
-        // For non-web platforms, still throw an error as it's likely a real issue
         throw StateError(
-            'Repository not initialized. Call initializeSupabaseAndConfigure first.');
+            'Repository not initialized or already disposed. Call initializeSupabaseAndConfigure first.');
       }
     }
     return _singleton!;
   }
 
-// Static helper methods for database operations
+  // Static helper methods for database operations
   static Future<void> _configureAndInitializeDatabase({
     required String supabaseUrl,
     required String supabaseAnonKey,
     bool configureDatabase = true,
   }) async {
     // Initialize SharedPreferenceStorage first to ensure it's available
-    await getSharedPreferenceStorage();
+    final storage = await getSharedPreferenceStorage();
+    if (storage == null) {
+      throw StateError('Failed to initialize SharedPreferenceStorage');
+    }
 
     String dbPath;
     String queuePath;
@@ -177,7 +186,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       dbPath = PlatformHelpers.getInMemoryDatabasePath();
       queuePath = PlatformHelpers.getInMemoryDatabasePath();
     } else {
-      // Initialize FFI for Windows platforms
+      // Initialize FFI for Windows platforms (no-op on other platforms)
       PlatformHelpers.initializePlatform();
 
       // Get the appropriate directory path for native platforms
@@ -190,36 +199,38 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Create database manager for initialization
       final databaseManager = DatabaseManager(dbFileName: dbFileName);
 
-      // Ensure the directory exists
+      // Ensure the database directory exists
       await databaseManager.initializeDatabaseDirectory(directory);
 
       // Construct the full database path
       dbPath = databaseManager.getDatabasePath(directory);
       queuePath = join(directory, queueFileName);
 
-      // Ensure the queue directory exists (this was in the old implementation)
-      final queueDir = Directory(dirname(queuePath));
-      if (!await queueDir.exists()) {
-        await queueDir.create(recursive: true);
-      }
+      // Atomically ensure the queue directory exists
+      await _ensureDirectoryExists(dirname(queuePath));
 
-      // Ensure the queue database is properly initialized
+      // Ensure the queue database is properly initialized (schema setup).
+      // This static method opens a temporary connection and closes it.
       await _ensureQueueDatabaseInitialized(queuePath);
     }
 
+    // Create the client and queue for OfflineFirst
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: PlatformHelpers.getDatabaseFactory(),
-      databasePath: queuePath,
+      databasePath: queuePath, // This is the path for the queue database
       onReattempt: (http.Request request, dynamic object) async {
         _logger.info('Reattempting offline request: ${request.url}');
         try {
-          final statusBefore = await _singleton?._queueManager.getQueueStatus();
-          _logger.info(
-              'Queue status before deletion (onReattempt): $statusBefore');
-          await _singleton?._queueManager.deleteFailedRequests();
-          final statusAfter = await _singleton?._queueManager.getQueueStatus();
-          _logger
-              .info('Queue status after deletion (onReattempt): $statusAfter');
+          final instance = _singleton;
+          if (instance != null) {
+            final statusBefore = await instance._queueManager.getQueueStatus();
+            _logger.info(
+                'Queue status before deletion (onReattempt): $statusBefore');
+            await instance._queueManager.deleteFailedRequests();
+            final statusAfter = await instance._queueManager.getQueueStatus();
+            _logger.info(
+                'Queue status after deletion (onReattempt): $statusAfter');
+          }
         } catch (e) {
           _logger.severe('Error handling queue cleanup on reattempt: $e');
         }
@@ -258,13 +269,15 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     // Create the SQLite provider with robust settings
     final sqliteProvider = SqliteProvider(
+      // Use in-memory for tests/web, file path for native
       DatabasePath.isTestEnvironment() || kIsWeb
           ? PlatformHelpers.getInMemoryDatabasePath()
-          : dbPath,
+          : dbPath, // This is the path for the main SQLite database
       databaseFactory: PlatformHelpers.getDatabaseFactory(),
       modelDictionary: sqliteModelDictionary,
     );
 
+    // Create and assign the singleton instance
     _singleton = Repository._(
       supabaseProvider: provider,
       sqliteProvider: sqliteProvider,
@@ -274,7 +287,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       dbPath: dbPath,
     );
 
-    // Configure the database after initialization (non-web only)
+    // Configure the main database after initialization (non-web only)
     if (configureDatabase && !kIsWeb && !DatabasePath.isTestEnvironment()) {
       try {
         // Configure the database with WAL mode and other settings
@@ -284,7 +297,21 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         }
       } catch (e) {
         _logger.warning('Error during database configuration: $e');
+        // Continue without database configuration as it's not critical
       }
+    }
+  }
+
+  /// Atomically ensure directory exists
+  static Future<void> _ensureDirectoryExists(String dirPath) async {
+    try {
+      final dir = Directory(dirPath);
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+    } catch (e) {
+      _logger.severe('Failed to create directory $dirPath: $e');
+      rethrow;
     }
   }
 
@@ -306,10 +333,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final (_, dummyQueue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: PlatformHelpers.getDatabaseFactory(),
       databasePath: PlatformHelpers.getInMemoryDatabasePath(),
-      onReattempt: (_, __) {},
+      onReattempt: (_, __) async {},
       onRequestException: (_, __) async {},
     );
 
+    // Dummy repository also sets _isDisposed to false internally
     return Repository._(
       supabaseProvider: dummySupabaseProvider,
       sqliteProvider: dummySqliteProvider,
@@ -320,17 +348,45 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     );
   }
 
+  /// Initializes the Supabase client and configures the Repository.
+  /// This method should be called once at the start of the application.
+  /// It prevents concurrent initialization and handles re-initialization after disposal.
   static Future<void> initializeSupabaseAndConfigure({
     required String supabaseUrl,
     required String supabaseAnonKey,
     bool configureDatabase = true,
   }) async {
-    // Use the helper method to initialize and configure the database
-    await _configureAndInitializeDatabase(
-      supabaseUrl: supabaseUrl,
-      supabaseAnonKey: supabaseAnonKey,
-      configureDatabase: configureDatabase,
-    );
+    // Prevent concurrent initialization attempts
+    if (_isInitializing) {
+      _logger.info(
+          'Repository initialization already in progress, waiting or skipping.');
+      // You might want to await a Completer here if multiple callers need to wait
+      // for the first initialization to complete. For simplicity, we just return.
+      return;
+    }
+
+    // If already initialized and not disposed, skip re-initialization
+    if (_singleton != null && !_isDisposed) {
+      _logger.info(
+          'Repository already initialized and not disposed. Skipping re-initialization.');
+      return;
+    }
+
+    _isInitializing = true;
+    _logger.info(
+        'Starting Repository initialization (first time or after disposal).');
+
+    try {
+      await _configureAndInitializeDatabase(
+        supabaseUrl: supabaseUrl,
+        supabaseAnonKey: supabaseAnonKey,
+        configureDatabase: configureDatabase,
+      );
+      _logger.info('Repository initialization complete.');
+    } finally {
+      // Ensure the initialization flag is reset
+      _isInitializing = false;
+    }
   }
 
   /// Get the number of requests in the queue
@@ -339,7 +395,18 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb) {
       return 0;
     }
-    return await _queueManager.availableQueue();
+    // Check if the repository is disposed before proceeding
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call availableQueue on a disposed Repository.');
+      return 0;
+    }
+    try {
+      return await _queueManager.availableQueue();
+    } catch (e) {
+      _logger.warning('Error getting available queue count: $e');
+      return 0;
+    }
   }
 
   /// Clear any locked requests in the queue
@@ -348,7 +415,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb) {
       return;
     }
-    await _queueManager.deleteUnprocessedRequests();
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call deleteUnprocessedRequests on a disposed Repository.');
+      return;
+    }
+    try {
+      await _queueManager.deleteUnprocessedRequests();
+    } catch (e) {
+      _logger.warning('Error deleting unprocessed requests: $e');
+    }
   }
 
   /// Get information about the queue status
@@ -357,7 +433,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb) {
       return {'locked': 0, 'unlocked': 0, 'total': 0};
     }
-    return await _queueManager.getQueueStatus();
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call getQueueStatus on a disposed Repository.');
+      return {'locked': 0, 'unlocked': 0, 'total': 0};
+    }
+    try {
+      return await _queueManager.getQueueStatus();
+    } catch (e) {
+      _logger.warning('Error getting queue status: $e');
+      return {'locked': 0, 'unlocked': 0, 'total': 0};
+    }
   }
 
   /// Delete only failed requests from the queue
@@ -366,46 +452,64 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb) {
       return 0;
     }
-    return await _queueManager.deleteFailedRequests();
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call deleteFailedRequests on a disposed Repository.');
+      return 0;
+    }
+    try {
+      return await _queueManager.deleteFailedRequests();
+    } catch (e) {
+      _logger.warning('Error deleting failed requests: $e');
+      return 0;
+    }
   }
 
-  /// Cleanup failed requests from the queue
+  /// Cleanup failed requests from the queue with thread safety
   /// This method is designed to be called from CronService
   /// Returns the number of failed requests that were cleaned up
   Future<int> cleanupFailedRequests() async {
     if (kIsWeb) {
       return 0;
     }
-
-    // Prevent concurrent cleanup operations
-    if (_isCleanupInProgress) {
-      _logger.info('Cleanup already in progress, skipping');
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call cleanupFailedRequests on a disposed Repository.');
       return 0;
     }
 
-    _isCleanupInProgress = true;
+    // Thread-safe cleanup operation
+    if (_cleanupCompleter != null && !_cleanupCompleter!.isCompleted) {
+      _logger.info('Cleanup already in progress, waiting for completion');
+      await _cleanupCompleter!.future;
+      return 0;
+    }
+
+    _cleanupCompleter = Completer<void>();
 
     try {
-      // Check if queue manager is properly initialized
+      // Check if queue manager is properly initialized with timeout
       try {
-        // This will throw an exception if not properly initialized
-        await _queueManager.getQueueStatus();
+        await _queueManager.getQueueStatus().timeout(_operationTimeout);
       } catch (e) {
         _logger.warning(
-            'Queue manager not fully initialized, skipping cleanup: $e');
-        _isCleanupInProgress = false;
+            'Queue manager not fully initialized or timeout, skipping cleanup: $e');
+        _cleanupCompleter!.complete();
         return 0;
       }
 
       // Add a longer delay before cleanup to allow any pending operations to complete
       await Future.delayed(const Duration(milliseconds: 500));
 
-      final result = await _queueManager.cleanupFailedRequests();
-      _isCleanupInProgress = false;
+      final result = await _queueManager
+          .cleanupFailedRequests()
+          .timeout(_operationTimeout);
+
+      _cleanupCompleter!.complete();
       return result;
     } catch (e) {
       _logger.warning('Error during cleanup: $e');
-      _isCleanupInProgress = false;
+      _cleanupCompleter!.complete();
       return 0;
     }
   }
@@ -415,7 +519,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
       return;
     }
-
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call configureDatabase on a disposed Repository.');
+      return;
+    }
     try {
       final dbPath =
           join(await DatabasePath.getDatabaseDirectory(), dbFileName);
@@ -424,12 +532,15 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       _logger.info('Database configured for better crash resilience');
     } catch (e) {
       _logger.warning('Error during database configuration: $e');
+      // Continue without throwing as this is not critical
     }
   }
 
+  /// Fixed tax calculation
   static double calculateTotalTax(double tax, Configurations config) {
     final percentage = config.taxPercentage ?? 0;
-    return (tax * percentage) / 100 + percentage;
+    // Fixed: Add the calculated tax to the original tax amount
+    return tax + (tax * percentage) / 100;
   }
 
   @override
@@ -438,17 +549,27 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
     Query? query,
   }) async {
-    instance = await super.upsert(instance, policy: policy, query: query);
-
-    if (instance is Stock) {
-      // Only upsert locally for Stock
-      await CacheManager().saveStocks([instance]);
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call upsert on a disposed Repository. Operation aborted.');
+      throw StateError('Repository is disposed');
     }
-    if (instance is Customer) {
-      EventBus().fire(CustomerUpserted(instance));
-    }
+    try {
+      instance = await super.upsert(instance, policy: policy, query: query);
 
-    return instance;
+      if (instance is Stock) {
+        // Only upsert locally for Stock
+        await CacheManager().saveStocks([instance]);
+      }
+      if (instance is Customer) {
+        EventBus().fire(CustomerUpserted(instance));
+      }
+
+      return instance;
+    } catch (e) {
+      _logger.severe('Error during upsert: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -457,12 +578,22 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     OfflineFirstDeletePolicy policy = OfflineFirstDeletePolicy.optimisticLocal,
     Query? query,
   }) async {
-    if (instance is Counter) {
-      // Only delete locally for Counter
-      return await super.delete(instance,
-          policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call delete on a disposed Repository. Operation aborted.');
+      throw StateError('Repository is disposed');
     }
-    return await super.delete(instance, policy: policy, query: query);
+    try {
+      if (instance is Counter) {
+        // Only delete locally for Counter
+        return await super.delete(instance,
+            policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
+      }
+      return await super.delete(instance, policy: policy, query: query);
+    } catch (e) {
+      _logger.severe('Error during delete: $e');
+      rethrow;
+    }
   }
 
   /// Ensures that the queue database is properly initialized with the required tables
@@ -474,16 +605,17 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
     _logger.info('Ensuring queue database is initialized: $queuePath');
     final dbFactory = PlatformHelpers.getDatabaseFactory();
+    Database? db;
 
     try {
       // Open the database with explicit creation of tables
-      final db = await dbFactory.openDatabase(
+      db = await dbFactory.openDatabase(
         queuePath,
         options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: (Database db, int version) async {
+          version: 1, // Version of the queue DB schema
+          onCreate: (Database database, int version) async {
             _logger.info('Creating queue database tables');
-            await db.execute('''
+            await database.execute('''
               CREATE TABLE IF NOT EXISTS "HttpJobs" (
                 "id" INTEGER,
                 "attempts" INTEGER DEFAULT 1,
@@ -499,16 +631,16 @@ class Repository extends OfflineFirstWithSupabaseRepository {
               );
             ''');
           },
-          onOpen: (Database db) async {
+          onOpen: (Database database) async {
             // Verify the table exists, create it if it doesn't
-            final tables = await db.query('sqlite_master',
+            final tables = await database.query('sqlite_master',
                 columns: ['name'],
                 where: "type = 'table' AND name = 'HttpJobs'");
 
             if (tables.isEmpty) {
               _logger
                   .warning('Queue database missing tables, creating them now');
-              await db.execute('''
+              await database.execute('''
                 CREATE TABLE IF NOT EXISTS "HttpJobs" (
                   "id" INTEGER,
                   "attempts" INTEGER DEFAULT 1,
@@ -530,12 +662,20 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         ),
       );
 
-      await db.close();
       _logger.info('Queue database initialization complete');
     } catch (e) {
       _logger.severe('Error initializing queue database: $e');
       // Try a more direct approach if the standard approach fails
       await _directQueueDatabaseInitialization(queuePath);
+    } finally {
+      // IMPORTANT: Properly close the temporary database connection used for schema setup.
+      // This does NOT close the persistent connection created later for offlineRequestQueue.
+      try {
+        await db?.close();
+      } catch (e) {
+        _logger
+            .warning('Error closing queue database during initialization: $e');
+      }
     }
   }
 
@@ -544,43 +684,57 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static Future<void> _directQueueDatabaseInitialization(
       String queuePath) async {
     _logger.info('Attempting direct queue database initialization');
+    Database? db;
 
     try {
-      // If the file doesn't exist, create it
-      final file = File(queuePath);
+      // Ensure the file exists
+      await _ensureFileExists(queuePath);
+
+      final dbFactory = PlatformHelpers.getDatabaseFactory();
+      db = await dbFactory.openDatabase(queuePath);
+
+      // Create the requests table directly
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS "HttpJobs" (
+          "id" INTEGER,
+          "attempts" INTEGER DEFAULT 1,
+          "body" TEXT,
+          "encoding" TEXT,
+          "headers" TEXT,
+          "locked" INTEGER DEFAULT 0,
+          "request_method" TEXT,
+          "updated_at" INTEGER DEFAULT 0,
+          "url" TEXT,
+          "created_at" INTEGER DEFAULT 0,
+          PRIMARY KEY("id" AUTOINCREMENT)
+        );
+      ''');
+
+      _logger.info('Direct queue database initialization successful');
+    } catch (e) {
+      _logger.severe('Direct queue database initialization failed: $e');
+      rethrow;
+    } finally {
+      // IMPORTANT: Properly close the temporary database connection used for schema setup.
+      try {
+        await db?.close();
+      } catch (e) {
+        _logger
+            .warning('Error closing database during direct initialization: $e');
+      }
+    }
+  }
+
+  /// Atomically ensure file exists
+  static Future<void> _ensureFileExists(String filePath) async {
+    try {
+      final file = File(filePath);
       if (!await file.exists()) {
         await file.create(recursive: true);
       }
-
-      final dbFactory = PlatformHelpers.getDatabaseFactory();
-      Database? db;
-
-      try {
-        db = await dbFactory.openDatabase(queuePath);
-
-        // Create the requests table directly
-        await db.execute('''
-          CREATE TABLE IF NOT EXISTS "HttpJobs" (
-            "id" INTEGER,
-            "attempts" INTEGER DEFAULT 1,
-            "body" TEXT,
-            "encoding" TEXT,
-            "headers" TEXT,
-            "locked" INTEGER DEFAULT 0,
-            "request_method" TEXT,
-            "updated_at" INTEGER DEFAULT 0,
-            "url" TEXT,
-            "created_at" INTEGER DEFAULT 0,
-            PRIMARY KEY("id" AUTOINCREMENT)
-          );
-        ''');
-
-        _logger.info('Direct queue database initialization successful');
-      } finally {
-        await db?.close();
-      }
     } catch (e) {
-      _logger.severe('Direct queue database initialization failed: $e');
+      _logger.severe('Failed to create file $filePath: $e');
+      rethrow;
     }
   }
 
@@ -594,13 +748,22 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       _logger.warning('Cannot initialize queue database on web platform');
       return false;
     }
-
-    if (_isMigrationInProgress) {
-      _logger.info('Another migration is already in progress, skipping');
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call initializeQueueWithScript on a disposed Repository.');
       return false;
     }
 
-    _isMigrationInProgress = true;
+    // Thread-safe migration operation
+    if (_migrationCompleter != null && !_migrationCompleter!.isCompleted) {
+      _logger.info(
+          'Another migration is already in progress, waiting for completion');
+      await _migrationCompleter!.future;
+      return false;
+    }
+
+    _migrationCompleter = Completer<void>();
+    Database? db;
 
     try {
       final directory = await DatabasePath.getDatabaseDirectory();
@@ -610,15 +773,11 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       final file = File(sqlScriptPath);
       if (!await file.exists()) {
         _logger.severe('SQL script file not found: $sqlScriptPath');
-        _isMigrationInProgress = false;
+        _migrationCompleter!.complete();
         return false;
       }
 
       final script = await file.readAsString();
-
-      // Close any active connections to the queue database
-      // We don't have direct access to close connections through QueueManager
-      // so we'll rely on the database factory's mechanisms
 
       // Split the script into individual statements
       final statements = script
@@ -628,26 +787,28 @@ class Repository extends OfflineFirstWithSupabaseRepository {
           .toList();
 
       final dbFactory = PlatformHelpers.getDatabaseFactory();
-      Database? db;
+      db = await dbFactory.openDatabase(queuePath);
 
-      try {
-        db = await dbFactory.openDatabase(queuePath);
-
-        // Execute each statement
-        for (final statement in statements) {
-          await db.execute(statement);
-        }
-
-        _logger.info('Queue database initialization with script successful');
-        _isMigrationInProgress = false;
-        return true;
-      } finally {
-        await db?.close();
+      // Execute each statement
+      for (final statement in statements) {
+        await db.execute(statement);
       }
+
+      _logger.info('Queue database initialization with script successful');
+      _migrationCompleter!.complete();
+      return true;
     } catch (e) {
       _logger.severe('Error initializing queue database with script: $e');
-      _isMigrationInProgress = false;
+      _migrationCompleter!.complete();
       return false;
+    } finally {
+      // Properly close the database connection
+      try {
+        await db?.close();
+      } catch (e) {
+        _logger
+            .warning('Error closing database during script initialization: $e');
+      }
     }
   }
 }
