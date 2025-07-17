@@ -222,7 +222,7 @@ Future<void> _configurePlatformServices() async {
 }
 
 // Main dependency initialization function
-Future<void> initializeDependencies() async {
+Future<void> initializeNonCriticalDependencies() async {
   try {
     // Step 1: Initialize critical dependencies needed for UI
     await _initializeCriticalDependencies();

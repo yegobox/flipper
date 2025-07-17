@@ -1,6 +1,5 @@
 // import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:async';
-import 'dart:isolate';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/state_observer.dart';
@@ -9,7 +8,6 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
-import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
@@ -20,21 +18,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/GlobalLogError.dart';
-import 'package:flipper_services/log_service.dart';
-
-import 'dart:developer' as developer;
-
-// Memory tracking variables
-bool _memoryTrackingEnabled = true;
-Timer? _memoryTrackingTimer;
+// Flag to control dependency initialization in tests
+import 'package:flipper_rw/loading_screen.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -62,43 +52,6 @@ Future<void> _initializeSupabase() async {
   }
 }
 
-// Function to start memory tracking
-void _startMemoryTracking() {
-  if (!_memoryTrackingEnabled || !kDebugMode) return;
-
-  _memoryTrackingTimer?.cancel();
-  _memoryTrackingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-    _trackMemoryUsage();
-  });
-
-  developer.log('Memory tracking started', name: 'MemoryTracker');
-}
-
-// Function to track memory usage
-void _trackMemoryUsage() {
-  // This function primarily triggers memory events for external profiling tools.
-  // Direct in-app logging of detailed memory usage is complex and typically
-  // handled by tools like Flutter DevTools.
-
-  // Force a GC to help external tools get more accurate readings
-  if (kDebugMode) {
-    developer.log('Forcing GC for memory tracking (for external tools)',
-        name: 'MemoryTracker');
-  }
-
-  // Log memory info from VM (sends event to VM service)
-  try {
-    developer.Timeline.startSync('getMemoryInfo');
-    developer.postEvent('memory', {'command': 'collect'});
-    developer.Timeline.finishSync();
-
-    developer.log('Memory collection triggered', name: 'MemoryTracker');
-  } catch (e) {
-    developer.log('Error triggering memory collection: $e',
-        name: 'MemoryTracker');
-  }
-}
-
 // Flag to control dependency initialization in tests
 bool skipDependencyInitialization = false;
 
@@ -108,24 +61,11 @@ Future<void> main() async {
   // Initialize GlobalErrorHandler first to capture early errors
   GlobalErrorHandler.initialize();
 
-  // Flutter framework error handler - combine Sentry with LogService
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    // Send to both Sentry and our LogService
-    Sentry.captureException(details.exception, stackTrace: details.stack);
-    LogService().logException(details.exception,
-        stackTrace: details.stack, type: 'flutter_error');
-  };
+  final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
-  // Run everything in a guarded zone
-  await runZonedGuarded<Future<void>>(() async {
-    final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
-    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
-
+  // Centralized initialization function
+  Future<void> initializeApp() async {
     if (!skipDependencyInitialization) {
       await _initializeFirebase();
       await _initializeSupabase();
@@ -133,108 +73,92 @@ Future<void> main() async {
       setupDialogUi();
       setupBottomSheetUi();
       await initDependencies();
-      // Centralize initialization here
-      await initializeDependencies();
     }
+  }
 
-    await SentryFlutter.init(
-      (options) async => options
-        ..dsn = AppSecrets.sentryKey
-        ..release = await AppService().version()
-        ..environment = 'production'
-        ..experimental.replay.sessionSampleRate = 1.0
-        ..experimental.replay.onErrorSampleRate = 1.0
-        ..tracesSampleRate = 1.0
-        ..attachScreenshot = true,
-      appRunner: () {
-        // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          FlutterNativeSplash.remove();
-          // Use PosthogService singleton to initialize PostHog
-          await PosthogService.instance.initialize();
+  // Run the app within Sentry's guarded zone
+  await SentryFlutter.init(
+    (options) async => options
+      ..dsn = AppSecrets.sentryKey
+      ..release = await AppService().version()
+      ..environment = 'production'
+      ..experimental.replay.sessionSampleRate = 1.0
+      ..experimental.replay.onErrorSampleRate = 1.0
+      ..tracesSampleRate = 1.0
+      ..attachScreenshot = true,
+    appRunner: () => runApp(
+      Sizer(
+        builder: (context, orientation, deviceType) {
+          return FutureBuilder(
+            future: initializeApp(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                // Remove splash screen when the main app is ready
+                FlutterNativeSplash.remove();
+                return const FlipperApp();
+              } else {
+                // While initializing, show the loading screen.
+                // The native splash is preserved until the future completes.
+                return const LoadingScreen();
+              }
+            },
+          );
+        },
+      ),
+    ),
+  );
+}
 
-          // Start memory tracking after app initialization
-          if (kDebugMode) {
-            _startMemoryTracking();
-          }
+class FlipperApp extends StatelessWidget {
+  const FlipperApp({super.key});
 
-          // Initialize asset sync service for background uploads
-        });
-        runApp(
-          ProviderScope(
-            observers: [StateObserver()],
-            child: OverlaySupport.global(
-              child: Sizer(builder: (context, orientation, deviceType) {
-                return MaterialApp.router(
-                  debugShowCheckedModeBanner: false,
-                  title: 'flipper',
-                  theme: ThemeData(
-                    textTheme: GoogleFonts.poppinsTextTheme(),
-                    brightness: Brightness.light,
-                    primaryColor: Colors.blue,
-                    colorScheme: ColorScheme.fromSeed(
-                      seedColor: const Color(0xFF00C2E8),
-                      primary: const Color(0xFF00C2E8),
-                      secondary: const Color(0xFF1D1D1D),
-                    ).copyWith(surface: Colors.white),
-                    appBarTheme: const AppBarTheme(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                    ),
-                    cardTheme: CardThemeData(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4)),
-                    ),
-                  ),
-                  localizationsDelegates: [
-                    FirebaseUILocalizations.withDefaultOverrides(
-                      const LabelOverrides(),
-                    ),
-                    const FlipperLocalizationsDelegate(),
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalWidgetsLocalizations.delegate,
-                    CountryLocalizations.delegate
-                  ],
-                  supportedLocales: const [
-                    Locale('en'),
-                    Locale('es'),
-                  ],
-                  locale: const Locale('en'),
-                  themeMode: ThemeMode.system,
-                  routerDelegate: stackedRouter.delegate(),
-                  routeInformationParser: stackedRouter.defaultRouteParser(),
-                );
-              }),
+  @override
+  Widget build(BuildContext context) {
+    return ProviderScope(
+      observers: [StateObserver()],
+      child: OverlaySupport.global(
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'flipper',
+          theme: ThemeData(
+            textTheme: GoogleFonts.poppinsTextTheme(),
+            brightness: Brightness.light,
+            primaryColor: Colors.blue,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF00C2E8),
+              primary: const Color(0xFF00C2E8),
+              secondary: const Color(0xFF1D1D1D),
+            ).copyWith(surface: Colors.white),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              elevation: 0,
+            ),
+            cardTheme: CardThemeData(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4)),
             ),
           ),
-        );
-      },
+          localizationsDelegates: [
+            FirebaseUILocalizations.withDefaultOverrides(
+              const LabelOverrides(),
+            ),
+            const FlipperLocalizationsDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            CountryLocalizations.delegate
+          ],
+          supportedLocales: const [
+            Locale('en'),
+            Locale('es'),
+          ],
+          locale: const Locale('en'),
+          themeMode: ThemeMode.system,
+          routerDelegate: stackedRouter.delegate(),
+          routeInformationParser: stackedRouter.defaultRouteParser(),
+        ),
+      ),
     );
-  }, (error, stackTrace) {
-    // Catch uncaught async errors
-    Sentry.captureException(error, stackTrace: stackTrace);
-    // Also log to our LogService
-    LogService()
-        .logException(error, stackTrace: stackTrace, type: 'zone_error');
-    debugPrint("Uncaught error: $error");
-  });
-
-  // Add isolate error listener
-  RawReceivePort? errorListenerPort = RawReceivePort((pair) async {
-    final List<dynamic> errorAndStacktrace = pair;
-    final error = errorAndStacktrace.first;
-    final stackTrace = errorAndStacktrace.last;
-
-    // Send to both Sentry and LogService
-    Sentry.captureException(error,
-        stackTrace: StackTrace.fromString(stackTrace.toString()));
-    await LogService().logException(
-      error,
-      stackTrace: StackTrace.fromString(stackTrace.toString()),
-      type: 'isolate_error',
-    );
-  });
-  Isolate.current.addErrorListener(errorListenerPort.sendPort);
+  }
 }
