@@ -30,7 +30,8 @@ dependency_overrides:
   sqlite3: ^2.7.6
   stacked_services: ^1.6.0
   device_info_plus: ^11.2.2
-  
+  archive: ^4.0.2
+  excel: ^4.0.6
 
 dev_dependencies:
   flutter_test:

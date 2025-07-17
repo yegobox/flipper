@@ -15,7 +15,7 @@ dependencies:
   firebase_remote_config: ^5.4.0
   share_plus: ^10.1.4
   firebase_messaging: ^15.2.2
-  image: ^4.0.17
+  image: ^4.5.4
   firebase_auth: ^5.6.2
   geolocator: ^13.0.2
   geocode: ^1.0.3
@@ -67,6 +67,8 @@ dependency_overrides:
   sqlite3: ^2.7.6
   package_info_plus: ^8.1.1
   device_info_plus: ^11.2.2
+  archive: ^3.6.1
+  excel: ^4.0.6
   
 dev_dependencies:
   flutter_test:

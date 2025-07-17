@@ -34,6 +34,8 @@ dependency_overrides:
   device_info_plus: ^11.2.2
   sqlite3: ^2.7.6
   sqlite3_web: '>=0.2.1 <0.4.0'
+  archive: ^3.6.1
+  excel: ^4.0.6
   
 dev_dependencies:
   flutter_test:

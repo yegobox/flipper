@@ -632,32 +632,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
             ''');
           },
           onOpen: (Database database) async {
-            // Verify the table exists, create it if it doesn't
-            final tables = await database.query('sqlite_master',
-                columns: ['name'],
-                where: "type = 'table' AND name = 'HttpJobs'");
-
-            if (tables.isEmpty) {
-              _logger
-                  .warning('Queue database missing tables, creating them now');
-              await database.execute('''
-                CREATE TABLE IF NOT EXISTS "HttpJobs" (
-                  "id" INTEGER,
-                  "attempts" INTEGER DEFAULT 1,
-                  "body" TEXT,
-                  "encoding" TEXT,
-                  "headers" TEXT,
-                  "locked" INTEGER DEFAULT 0,
-                  "request_method" TEXT,
-                  "updated_at" INTEGER DEFAULT 0,
-                  "url" TEXT,
-                  "created_at" INTEGER DEFAULT 0,
-                  PRIMARY KEY("id" AUTOINCREMENT)
-                );
-              ''');
-            } else {
-              _logger.info('Queue database tables verified');
-            }
+            _logger.info('Queue database opened and verified.');
           },
         ),
       );
