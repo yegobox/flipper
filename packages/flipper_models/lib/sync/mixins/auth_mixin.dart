@@ -542,6 +542,7 @@ mixin AuthMixin implements AuthInterface {
     // get userId of the user that is trying to log in
     final savedLocalPinForThis = await ProxyService.strategy
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
+    uid ??= savedLocalPinForThis?.uid;
     final tenants = await ProxyService.strategy
         .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
 
