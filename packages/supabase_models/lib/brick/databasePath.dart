@@ -1,4 +1,6 @@
 // ignore: file_names
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart'
@@ -7,10 +9,31 @@ import 'package:path_provider/path_provider.dart'
 mixin DatabasePath {
   static Future<String> getDatabaseDirectory() async {
     if (isTestEnvironment()) {
+      final testDir = Directory('.db');
+      if (!await testDir.exists()) {
+        await testDir.create(recursive: true);
+      }
       return '.db';
     }
-    final appDir = await getApplicationDocumentsDirectory();
-    return join(appDir.path, kDebugMode ? 'db' : '.db');
+
+    Directory appDir;
+    try {
+      // This is the preferred, more persistent location.
+      appDir = await getApplicationDocumentsDirectory();
+    } catch (e) {
+      // Fallback for Windows configurations where Documents directory is not available.
+      appDir = await getApplicationDocumentsDirectory();
+    }
+
+    final dbPath = join(appDir.path, kDebugMode ? 'db' : '.db');
+
+    // Ensure the directory exists, mimicking the successful pattern from local_storage.dart
+    final dbDir = Directory(dbPath);
+    if (!await dbDir.exists()) {
+      await dbDir.create(recursive: true);
+    }
+
+    return dbPath;
   }
 
   static bool isTestEnvironment() {
