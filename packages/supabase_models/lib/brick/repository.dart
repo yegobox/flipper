@@ -55,7 +55,9 @@ abstract class DatabaseConfigStorage {
 class Repository extends OfflineFirstWithSupabaseRepository {
   static Repository? _singleton;
   static final _logger = Logger('Repository');
-  static DatabaseConfigStorage? _configStorage;
+
+  // Remove SharedPreferenceStorage dependency for filenames
+  // static DatabaseConfigStorage? _configStorage;
   static SharedPreferenceStorage? _sharedPreferenceStorage;
 
   // Constants for database filenames and versioning
@@ -116,6 +118,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     return '${_queueFileBaseName}_v$_effectiveVersion.sqlite';
   }
 
+  // Remove setConfigStorage and related getters to centralize filename logic
+  /*
   /// Set the storage for database configuration
   static void setConfigStorage(DatabaseConfigStorage storage) {
     _configStorage = storage;
@@ -123,6 +127,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _logger.info('Using database filename: $dbFileName');
     _logger.info('Using queue filename: $queueName');
   }
+  */
 
   /// Get the shared preference storage instance
   static Future<SharedPreferenceStorage> getSharedPreferenceStorage() async {
@@ -137,12 +142,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }
 
   // Get the database filename from storage or use dynamic default
-  static String get dbFileName =>
-      _configStorage?.getDatabaseFilename() ?? _generatedDefaultDbFileName;
+  static String get dbFileName => _generatedDefaultDbFileName;
 
   // Get the queue filename from storage or use dynamic default
-  static String get queueName =>
-      _configStorage?.getQueueFilename() ?? _generatedDefaultQueueFileName;
+  static String get queueName => _generatedDefaultQueueFileName;
 
   Repository._({
     required super.supabaseProvider,
@@ -177,7 +180,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     return _singleton!;
   }
 
-  // Static helper methods for database operations
+// Static helper methods for database operations
   static Future<void> _configureAndInitializeDatabase({
     required String supabaseUrl,
     required String supabaseAnonKey,
@@ -200,6 +203,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       // Get the appropriate directory path for native platforms
       final directory = await DatabasePath.getDatabaseDirectory();
 
+      // Use the generated filenames directly
+      final dbFileName = _generatedDefaultDbFileName;
+      final queueFileName = _generatedDefaultQueueFileName;
+
       // Create database manager for initialization
       final databaseManager = DatabaseManager(dbFileName: dbFileName);
       final backupManager = BackupManager(maxBackupCount: maxBackupCount);
@@ -209,7 +216,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
       // Construct the full database path
       dbPath = databaseManager.getDatabasePath(directory);
-      queuePath = join(directory, queueName);
+      queuePath = join(directory, queueFileName);
 
       // Ensure the queue directory exists (this was in the old implementation)
       final queueDir = Directory(dirname(queuePath));
