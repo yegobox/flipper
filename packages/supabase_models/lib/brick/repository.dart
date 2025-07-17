@@ -35,20 +35,7 @@ import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
 import 'models/counter.model.dart';
 
-// Default values that will be used if LocalStorage is not available
-const defaultDbFileName = 'flipper_v$dbVersion.sqlite';
-const defaultQueueName = 'brick_offline_queue_v$dbVersion.sqlite';
 const maxBackupCount = 3; // Maximum number of backups to keep
-
-// Interface for retrieving database configuration
-/// This allows the Repository to get database filenames from any storage implementation
-abstract class DatabaseConfigStorage {
-  /// Get the main database filename
-  String getDatabaseFilename();
-
-  /// Get the queue filename
-  String getQueueFilename();
-}
 
 /// Main repository class that serves as an entry point to the database operations
 /// This class maintains backward compatibility with the original implementation
