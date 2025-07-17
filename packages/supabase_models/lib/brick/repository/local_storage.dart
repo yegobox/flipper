@@ -668,7 +668,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String getDatabaseFilename() {
-    return (_cache['databaseFilename'] as String?) ?? 'flipper_v17.sqlite';
+    return (_cache['databaseFilename'] as String?) ?? 'flipper_v$_kPreferencesVersion.sqlite';
   }
 
   @override
