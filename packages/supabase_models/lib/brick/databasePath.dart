@@ -1,10 +1,10 @@
 // ignore: file_names
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart'
     if (dart.library.io) 'package:path_provider/path_provider.dart'; // Conditional import
+import 'package:sqflite_common/sqflite.dart';
 
 mixin DatabasePath {
   static Future<String> getDatabaseDirectory() async {
@@ -16,18 +16,17 @@ mixin DatabasePath {
       return '.db';
     }
 
-    Directory appDir;
-    try {
-      // This is the preferred, more persistent location.
-      appDir = await getApplicationDocumentsDirectory();
-    } catch (e) {
-      // Fallback for Windows configurations where Documents directory is not available.
-      appDir = await getApplicationDocumentsDirectory();
+    String dbPath;
+    if (Platform.isAndroid) {
+      // Use the dedicated databases directory on Android
+      dbPath = await getDatabasesPath();
+    } else {
+      // For all desktop platforms (Windows, macOS, Linux) and iOS
+      final appDir = await getApplicationDocumentsDirectory();
+      dbPath = join(appDir.path, 'Flipper');
     }
 
-    final dbPath = join(appDir.path, 'Flipper');
-
-    // Ensure the directory exists, mimicking the successful pattern from local_storage.dart
+    // Ensure the directory exists
     final dbDir = Directory(dbPath);
     if (!await dbDir.exists()) {
       await dbDir.create(recursive: true);

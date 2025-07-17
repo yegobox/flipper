@@ -7,10 +7,10 @@ Future<void> hideDbDirectoryIfWindows({
   required String appDir,
   required Talker talker,
 }) async {
-  final dbDir = Directory(p.join(appDir, '.db'));
+  final dbDir = Directory(p.join(appDir, 'Flipper'));
   if (Platform.isWindows && await dbDir.exists()) {
     try {
-      final result = await Process.run('attrib', ['+h', dbDir.path]);
+      final result = await Process.run('attrib', ['+h +s', dbDir.path]);
       if (result.exitCode == 0) {
         talker.info('DB folder is now hidden (Windows attrib +h succeeded).');
       } else {
@@ -28,8 +28,8 @@ Future<void> migrateOldDbFiles({
   required String appDir,
   required Talker talker,
 }) async {
-  final oldDir = Directory(p.join(appDir, '_db'));
-  final newDir = Directory(p.join(appDir, '.db'));
+  final oldDir = Directory(p.join(appDir, 'Flipper'));
+  final newDir = Directory(p.join(appDir, 'Flipper'));
   if (!(await oldDir.exists())) {
     talker.info('Old DB folder does not exist, skipping migration.');
     return;
