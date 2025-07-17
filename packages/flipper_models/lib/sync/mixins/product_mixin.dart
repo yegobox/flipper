@@ -7,6 +7,7 @@ import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
@@ -547,5 +548,25 @@ mixin ProductMixin implements ProductInterface {
       product.color = color ?? product.color;
       await repository.upsert(product);
     }
+  }
+
+  @override
+  Future<void> hydrateCodes({required int branchId}) async {
+    await repository.get<ItemCode>(
+      policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(branchId)],
+      ),
+    );
+  }
+
+  @override
+  Future<void> hydrateSars({required int branchId}) async {
+    await repository.get<Sar>(
+      policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(branchId)],
+      ),
+    );
   }
 }

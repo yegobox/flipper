@@ -1314,8 +1314,6 @@ class Capella extends AiStrategyImpl
     // TODO: implement notify
   }
 
- 
-
   @override
   conversations({int? conversationId}) {
     // TODO: implement conversations
@@ -2368,10 +2366,24 @@ class Capella extends AiStrategyImpl
     // TODO: implement getSar
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<void> updateCounters({required List<brick.Counter> counters, RwApiResponse? receiptSignature}) {
+  Future<void> updateCounters(
+      {required List<brick.Counter> counters,
+      RwApiResponse? receiptSignature}) {
     // TODO: implement updateCounters
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> hydrateCodes({required int branchId}) {
+    // TODO: implement hydrateCodes
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> hydrateSars({required int branchId}) {
+    // TODO: implement hydrateSars
     throw UnimplementedError();
   }
 }

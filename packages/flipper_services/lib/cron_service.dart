@@ -161,6 +161,8 @@ class CronService {
                 .hydrateDate(
                     branchId: (await ProxyService.strategy.activeBranch()).id)
                 .then((_) {}),
+            ProxyService.strategy.hydrateCodes(branchId: branchId).then((_) {}),
+            ProxyService.strategy.hydrateSars(branchId: branchId).then((_) {}),
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
 
             // ProxyService.strategy

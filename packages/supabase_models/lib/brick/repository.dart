@@ -28,14 +28,11 @@ import 'package:logging/logging.dart';
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
-import 'repository/backup_manager.dart';
 import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
 import 'models/counter.model.dart';
-
-const maxBackupCount = 3; // Maximum number of backups to keep
 
 /// Main repository class that serves as an entry point to the database operations
 /// This class maintains backward compatibility with the original implementation
@@ -57,15 +54,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static bool? _overrideVersionIncrement;
 
   // Managers for different responsibilities
-  late final BackupManager _backupManager;
   late final DatabaseManager _databaseManager;
   late final QueueManager _queueManager;
 
   // Lock detection
-  static bool _isBackupInProgress = false;
+  // Lock detection
   static bool _isCleanupInProgress = false;
   static bool _isMigrationInProgress = false;
-  static DateTime? _lastBackupTime;
 
   /// Override the default version increment behavior
   ///
@@ -142,9 +137,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     required String dbPath,
     super.memoryCacheProvider,
   }) {
-    _backupManager = BackupManager(maxBackupCount: maxBackupCount);
-    _databaseManager =
-        DatabaseManager(dbFileName: dbFileName, backupManager: _backupManager);
+    _databaseManager = DatabaseManager(dbFileName: dbFileName);
     _queueManager = QueueManager(offlineRequestQueue);
 
     // Log the final database filename being used
@@ -196,7 +189,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
       // Create database manager for initialization
       final databaseManager = DatabaseManager(dbFileName: dbFileName);
-      final backupManager = BackupManager(maxBackupCount: maxBackupCount);
 
       // Ensure the directory exists
       await databaseManager.initializeDatabaseDirectory(directory);
@@ -213,40 +205,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
       // Ensure the queue database is properly initialized
       await _ensureQueueDatabaseInitialized(queuePath);
-
-      // Check if the database exists and verify its integrity
-      if (await File(dbPath).exists()) {
-        try {
-          // Try to open the database to check if it's valid
-          // await connectionManager.executeOperation(
-          //   dbPath,
-          //   (db) async {
-          //     // Just query to check if database is accessible
-          //     await db.query('sqlite_master', limit: 1);
-          //     return null;
-          //   },
-          //   busyTimeout: 5000,
-          //   timeout: const Duration(seconds: 10),
-          // );
-          _logger.info('Database integrity check passed');
-        } catch (e) {
-          _logger.warning('Database corruption detected: $e');
-          // Close any existing connections before restoration
-          // await connectionManager.closeConnection(dbPath);
-
-          // Database is corrupted, try to restore from backup
-          final restored = await backupManager.restoreLatestBackup(
-              directory, dbPath, PlatformHelpers.getDatabaseFactory());
-          if (!restored) {
-            _logger.severe(
-                'Failed to restore from any backup, creating new database');
-            // If restore fails, delete corrupted database to start fresh
-            if (await File(dbPath).exists()) {
-              await File(dbPath).delete();
-            }
-          }
-        }
-      }
     }
 
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
@@ -319,13 +277,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     // Configure the database after initialization (non-web only)
     if (configureDatabase && !kIsWeb && !DatabasePath.isTestEnvironment()) {
       try {
-        // Backup creation moved to explicit calls
-        // Database backups should be called explicitly using performPeriodicBackup() or backupDatabase()
-        // instead of during initialization to improve startup performance
-        // if (await File(dbPath).exists()) {
-        //   await _singleton!._backupManager.createVersionedBackup(dbPath);
-        // }
-
         // Configure the database with WAL mode and other settings
         if (await File(dbPath).exists()) {
           await _singleton!._databaseManager.configureDatabaseSettings(
@@ -473,113 +424,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       _logger.info('Database configured for better crash resilience');
     } catch (e) {
       _logger.warning('Error during database configuration: $e');
-    }
-  }
-
-  /// Create a backup of the database
-  Future<void> backupDatabase() async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
-      return;
-    }
-
-    try {
-      final dbPath =
-          join(await DatabasePath.getDatabaseDirectory(), dbFileName);
-      await _backupManager.createVersionedBackup(dbPath);
-      _logger.info('Database backup created successfully');
-    } catch (e) {
-      _logger.warning('Error during database backup: $e');
-    }
-  }
-
-  /// Restore the database from backup if needed
-  Future<bool> restoreFromBackupIfNeeded() async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
-      return false;
-    }
-
-    try {
-      final directory = await DatabasePath.getDatabaseDirectory();
-      final dbPath = join(directory, dbFileName);
-      return await _databaseManager.restoreIfCorrupted(
-          directory, dbPath, PlatformHelpers.getDatabaseFactory());
-    } catch (e) {
-      _logger.severe('Error during database restore process: $e');
-      return false;
-    }
-  }
-
-  /// Perform a periodic backup if enough time has passed since the last backup
-  /// Returns true if a backup was performed, false otherwise
-  Future<bool> performPeriodicBackup(
-      {Duration minInterval = const Duration(minutes: 20)}) async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
-      return false;
-    }
-
-    // Prevent concurrent backup operations
-    if (_isBackupInProgress) {
-      _logger.info('Backup already in progress, skipping');
-      return false;
-    }
-
-    // Check if enough time has passed since the last backup
-    if (_lastBackupTime != null) {
-      final timeSinceLastBackup = DateTime.now().difference(_lastBackupTime!);
-      if (timeSinceLastBackup < minInterval) {
-        _logger.fine('Not enough time passed since last backup, skipping');
-        return false;
-      }
-    }
-
-    _isBackupInProgress = true;
-
-    // Reduced delay to improve performance (was 500ms)
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    try {
-      // Get the database directory and path
-      final directory = await DatabasePath.getDatabaseDirectory();
-      final dbPath = join(directory, dbFileName);
-
-      // Verify the database file exists before attempting backup
-      if (!await File(dbPath).exists()) {
-        _logger.info('Database file does not exist, skipping backup');
-        _isBackupInProgress = false;
-        return false;
-      }
-
-      // Get the database factory to ensure transaction-safe backups
-      final dbFactory = PlatformHelpers.getDatabaseFactory();
-
-      // Use a try-catch block specifically for the backup operation
-      try {
-        // Close any active connections before backup
-        await _databaseManager.closeAllConnections();
-
-        final result = await _backupManager.performPeriodicBackup(
-          dbPath,
-          minInterval: minInterval,
-          dbFactory: dbFactory,
-          currentBackupPath: dbFileName,
-        );
-
-        if (result) {
-          _lastBackupTime = DateTime.now();
-        }
-
-        _isBackupInProgress = false;
-        return result;
-      } catch (e) {
-        // Log the specific backup error but don't rethrow
-        _logger.warning('Backup operation failed: $e');
-        _isBackupInProgress = false;
-        return false;
-      }
-    } catch (e) {
-      _logger.warning('Error during periodic database backup setup: $e');
-      _isBackupInProgress = false;
-      return false;
     }
   }
 
