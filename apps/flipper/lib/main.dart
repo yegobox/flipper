@@ -51,9 +51,6 @@ Future<void> _initializeSupabase() async {
   }
 }
 
-// Flag to control dependency initialization in tests
-bool skipDependencyInitialization = false;
-
 // net info: billers
 //1.1.14
 Future<void> main() async {
@@ -65,15 +62,13 @@ Future<void> main() async {
 
   // Centralized initialization function
   Future<void> initializeApp() async {
-    if (!skipDependencyInitialization) {
-      await _initializeFirebase();
-      await _initializeSupabase();
-      loc.setupLocator(stackedRouter: stackedRouter);
-      setupDialogUi();
-      setupBottomSheetUi();
-      await initDependencies();
-      await initializeDependencies();
-    }
+    await _initializeFirebase();
+    await initializeDependencies();
+    await _initializeSupabase();
+    loc.setupLocator(stackedRouter: stackedRouter);
+    setupDialogUi();
+    setupBottomSheetUi();
+    await initDependencies();
   }
 
   // Run the app within Sentry's guarded zone
@@ -97,9 +92,13 @@ Future<void> main() async {
           } else {
             // While initializing, show the loading screen.
             // The native splash is preserved until the future completes.
-            return const Scaffold(
-                backgroundColor: Colors.white,
-                body: Center(child: CircularProgressIndicator()));
+            return const MaterialApp(
+              home: Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            );
           }
         },
       ),

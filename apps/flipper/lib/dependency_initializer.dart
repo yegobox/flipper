@@ -18,7 +18,6 @@ import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -45,7 +44,7 @@ Future<void> _configureAmplify() async {
   try {
     await apmplify.Amplify.configure(amplifyconfig);
   } catch (e) {
-    talker.info(e);
+    debugPrint(e.toString());
   }
 }
 
@@ -65,10 +64,10 @@ class MyHttpOverrides extends HttpOverrides {
 Future<void> _initializeCriticalDependencies() async {
   // Configure HTTP overrides for SSL/TLS connections
   if (!foundation.kIsWeb) {
-    
     HttpOverrides.global = MyHttpOverrides();
-    talker.info('HTTP overrides configured for secure connections');
+    debugPrint('HTTP overrides configured for secure connections');
     ByteData data =
+        // echo | openssl s_client -connect apihub.yegobox.com:443 | openssl x509 > apihub.yegobox.pem
         await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
     SecurityContext.defaultContext
         .setTrustedCertificatesBytes(data.buffer.asUint8List());
@@ -112,7 +111,7 @@ Future<void> _optimizeForAndroid() async {
     statusBarColor: Colors.transparent,
   ));
   if (foundation.kDebugMode) {
-    talker.info('Applying Android-specific optimizations to reduce EGL issues');
+    debugPrint('Applying Android-specific optimizations to reduce EGL issues');
   }
 }
 
@@ -161,19 +160,19 @@ Future<void> initializeDependencies() async {
     if (!foundation.kIsWeb) {
       if (Platform.isAndroid) {
         _optimizeForAndroid()
-            .catchError((e) => talker.info('Android optimization error: $e'));
+            .catchError((e) => debugPrint('Android optimization error: $e'));
       }
     }
 
     _initializeSecondaryDependencies()
-        .catchError((e) => talker.info('Error in secondary init: $e'));
+        .catchError((e) => debugPrint('Error in secondary init: $e'));
 
     await _initializeNonCriticalDependencies();
     await _configureErrorHandling();
     await _configurePlatformServices();
   } catch (e, stackTrace) {
-    talker.info('Error during dependency initialization: $e');
-    talker.info(stackTrace);
+    debugPrint('Error during dependency initialization: $e');
+    debugPrint(stackTrace.toString());
     try {
       if (Firebase.apps.isNotEmpty) {
         FirebaseCrashlytics.instance.recordError(e, stackTrace);
