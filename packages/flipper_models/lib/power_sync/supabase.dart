@@ -9,9 +9,6 @@ bool isTestEnvironment() {
 
 Future<void> loadSupabase() async {
   try {
-    talker.info('Initializing Supabase with:');
-    talker.info('  URL: ${AppSecrets.superbaseurl}');
-    talker.info('  Anon Key: ${AppSecrets.supabaseAnonKey}');
     debugPrint('Initializing Supabase with:');
     debugPrint('  URL: ${AppSecrets.superbaseurl}');
     debugPrint('  Anon Key: ${AppSecrets.supabaseAnonKey}');
@@ -32,7 +29,7 @@ Future<void> loadSupabase() async {
   } catch (e, s) {
     debugPrint('Error initializing Supabase: $e');
     debugPrint('Error initializing Supabase: $s');
-    talker.error(s);
+
     // In test environment, we'll continue even if Supabase fails
     if (!isTestEnvironment()) {
       rethrow;
