@@ -19,7 +19,7 @@ command:
 
 # Global dependency overrides for consistent versions across packages
 dependency_overrides:
-  archive: ^4.0.2
+  archive: ^4.0.7
   flutter_native_splash: ^2.4.6
 
 scripts:

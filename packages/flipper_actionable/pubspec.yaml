@@ -21,7 +21,7 @@ dependency_overrides:
   json_annotation: ^4.9.0
   sqlite3: ^2.7.6
   device_info_plus: ^11.2.2
-  archive: ^4.0.2
+  archive: ^4.0.7
   excel: ^4.0.6
   
   

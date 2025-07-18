@@ -1,6 +1,6 @@
 # Dependency overrides for the entire workspace
 # This ensures consistent versions across all packages
 dependency_overrides:
-  archive: ^4.0.2
+  archive: ^4.0.7
   flutter_native_splash: ^2.4.6
   # Add any other problematic dependencies here
