@@ -431,9 +431,7 @@ jobs:
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v1
         with:
-          files: apps/flipper/build/app/outputs/bundle/release/*.aab
-          tag_name: ${{ github.ref_name }}
-          name: Debug Release ${{ steps.get_version.outputs.version }}
+          name: Android AAB Release - ${{ github.ref_name }}
           body: |
             Debug Release for QA
         env:
