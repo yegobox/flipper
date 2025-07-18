@@ -433,7 +433,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: Android AAB Release - ${{ github.ref_name }}
-          tag_name: ${{ steps.get_version }}
+          tag_name: ${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
