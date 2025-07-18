@@ -44,8 +44,8 @@ $formattedStack
         message: message,
         type: type ?? 'exception',
         businessId: logBusinessId,
-        tags: tags,
-        extra: null,
+        // tags: tags,
+        // extra: null,
       );
 
       // Save to database
@@ -80,8 +80,8 @@ $formattedStack
         message: message,
         type: type ?? 'message',
         businessId: logBusinessId,
-        tags: tags,
-        extra: null,
+        // tags: tags,
+        // extra: null,
       );
 
       // Save to database
@@ -97,10 +97,10 @@ $formattedStack
     try {
       // Use the strategy to save the log
       log.createdAt = DateTime.now();
-      log.tags = {
-        'type': log.type ?? 'unknown',
-        'businessId': log.businessId?.toString() ?? 'unknown',
-      };
+      // log.tags = {
+      //   'type': log.type ?? 'unknown',
+      //   'businessId': log.businessId?.toString() ?? 'unknown',
+      // };
       await ProxyService.strategy.saveLog(log);
     } catch (e, st) {
       talker.error('LogService failed to save log: $e', st);

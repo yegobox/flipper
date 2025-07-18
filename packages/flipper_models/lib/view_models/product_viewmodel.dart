@@ -246,7 +246,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
 
   void deleteVariant({required String id}) async {
     Variant? variant = (await ProxyService.strategy
-            .variants(variantId: id, branchId: ProxyService.box.getBranchId()!))
+            .variants(variantId: id, branchId: ProxyService.box.getBranchId()!,
+            taxTyCds: ProxyService.box.vatEnabled()
+                ? ['A', 'B', 'C']
+                : ['D']))
         .firstOrNull;
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
@@ -306,6 +309,9 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         id: productId,
         branchId: ProxyService.box.getBranchId()!);
     List<Variant> variants = await ProxyService.strategy.variants(
+      taxTyCds: ProxyService.box.vatEnabled()
+          ? ['A', 'B', 'C']
+          : ['D'],
         branchId: ProxyService.box.getBranchId()!, productId: productId);
 
     if (supplyPrice != null) {
@@ -356,7 +362,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       //get variants->delete
       int branchId = ProxyService.box.getBranchId()!;
       List<Variant> variations = await ProxyService.strategy
-          .variants(branchId: branchId, productId: productId);
+          .variants(branchId: branchId, productId: productId,
+          taxTyCds: ProxyService.box.vatEnabled()
+              ? ['A', 'B', 'C']
+              : ['D']);
       for (Variant variation in variations) {
         //get stock->delete
         /// deleting variant is supposed to cascade delete stock

@@ -128,4 +128,16 @@ mixin CapellaProductMixin implements ProductInterface {
   Future<void> hydrateDate({required String branchId}) async {
     throw UnimplementedError('hydrateDate needs to be implemented for Capella');
   }
+
+  @override
+  Future<void> hydrateCodes({required int branchId}) {
+    // TODO: implement hydrateCodes
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> hydrateSars({required int branchId}) {
+    // TODO: implement hydrateSars
+    throw UnimplementedError();
+  }
 }

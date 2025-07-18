@@ -79,7 +79,7 @@ final SupabaseInterface _supa = getIt<SupabaseInterface>();
 final Crash _crash = getIt<Crash>();
 
 abstract class ProxyService {
-  static final SyncStrategy _strategy =
+  static late final SyncStrategy _strategy =
       getIt<SyncStrategy>(instanceName: 'strategy');
 
   static DatabaseSyncInterface get strategy => _strategy.current;

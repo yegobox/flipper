@@ -15,6 +15,9 @@ Future<List<Variant>> variant(
 }) async {
   print('Fetching variants for branchId: $branchId');
   final variants = await ProxyService.strategy.variants(
+    taxTyCds: ProxyService.box.vatEnabled()
+        ? ['A', 'B', 'C']
+        : ['D'],
     name: key,
     branchId: branchId,
     forImportScreen: forImportScreen,
@@ -32,6 +35,9 @@ Future<List<Variant>> purchaseVariant(
 }) async {
   print('Fetching variants for branchId: $branchId');
   final variants = await ProxyService.strategy.variants(
+    taxTyCds: ProxyService.box.vatEnabled()
+        ? ['A', 'B', 'C']
+        : ['D'],
     purchaseId: purchaseId,
     branchId: branchId,
   );

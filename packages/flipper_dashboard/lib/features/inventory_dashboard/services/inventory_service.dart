@@ -154,6 +154,9 @@ class InventoryService {
       // Get all variants with stock for this branch
       final variants = await ProxyService.strategy.variants(
         branchId: activeBranchId,
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D'],
       );
 
       // Count total items (variants with stock)
@@ -238,6 +241,9 @@ class InventoryService {
       // Get variants with low stock for this branch
       final variants = await ProxyService.strategy.variants(
         branchId: activeBranchId,
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D'],
       );
 
       // Filter variants with low stock (stock below threshold)

@@ -16,7 +16,7 @@ dependencies:
   mime: ^1.0.5
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  pubnub: ^4.3.1
+  pubnub: ^5.2.0
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   # image_picker: ^1.1.2
@@ -39,7 +39,7 @@ dependencies:
   url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^3.13.0
+  firebase_core: ^3.15.1
   cupertino_icons: ^1.0.4
   flipper_services: any
 
@@ -112,13 +112,14 @@ dependencies:
   flipper_mocks: any
   excel: ^4.0.6
   supabase_models: any
-  supabase_flutter: ^2.9.0
+  supabase_flutter: ^2.9.1
   uuid: ^4.5.1
   fl_chart: ^0.70.2
   flutter_typeahead: ^5.2.0
   desktop_drop: ^0.5.0
   email_validator: ^2.1.17
   pasteboard: ^0.4.0
+  # speech_to_text: ^7.1.0
   
   
 
@@ -129,7 +130,8 @@ dependency_overrides:
   json_annotation: ^4.9.0
   sqlite3: ^2.7.6
   device_info_plus: ^11.2.2
-  archive: ^3.1.0
+  archive: ^3.6.1
+  excel: ^4.0.6
   
 
 flutter:
@@ -155,6 +157,6 @@ dev_dependencies:
     sdk: flutter
   path_provider_platform_interface: ^2.0.0
   sqflite_common_ffi: ^2.3.0
-  firebase_core_platform_interface: ^5.0.0
+  firebase_core_platform_interface: ^6.0.0
   firebase_crashlytics_platform_interface: ^3.0.0
   firebase_crashlytics: ^4.0.0

@@ -17,28 +17,28 @@ class OrdersApp extends StatefulHookConsumerWidget {
 class _OrdersAppState extends ConsumerState<OrdersApp> {
   @override
   Widget build(BuildContext context) {
-    final selectedStatus =
-        ref.watch(oldImplementationOfRiverpod.orderStatusProvider);
+    // final selectedStatus =
+    //     ref.watch(oldImplementationOfRiverpod.orderStatusProvider);
     return Padding(
       padding: const EdgeInsets.only(top: 30.0),
       child: Column(
         children: [
-          OrderStatusSelector(
-            selectedStatus: selectedStatus,
-            onStatusChanged: (newStatus) {
-              ref
-                  .read(
-                      oldImplementationOfRiverpod.orderStatusProvider.notifier)
-                  .state = newStatus;
-              ref
-                      .read(oldImplementationOfRiverpod
-                          .requestStatusProvider.notifier)
-                      .state =
-                  newStatus == OrderStatus.approved
-                      ? RequestStatus.approved
-                      : RequestStatus.pending;
-            },
-          ),
+          // OrderStatusSelector(
+          //   selectedStatus: selectedStatus,
+          //   onStatusChanged: (newStatus) {
+          //     ref
+          //         .read(
+          //             oldImplementationOfRiverpod.orderStatusProvider.notifier)
+          //         .state = newStatus;
+          //     ref
+          //             .read(oldImplementationOfRiverpod
+          //                 .requestStatusProvider.notifier)
+          //             .state =
+          //         newStatus == OrderStatus.approved
+          //             ? RequestStatus.approved
+          //             : RequestStatus.pending;
+          //   },
+          // ),
           const SizedBox(height: 20),
           Flexible(
             child: SingleChildScrollView(

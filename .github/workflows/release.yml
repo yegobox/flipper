@@ -52,7 +52,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5"
+          flutter-version: "3.32.6"
           channel: "stable"
       - run: |
           git submodule update --init
@@ -97,7 +97,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: "3.32.6" # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -169,7 +169,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5"
+          flutter-version: "3.32.6"
           channel: stable
       - run: flutter doctor -v
 
@@ -219,7 +219,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5"
+          flutter-version: "3.32.6"
           channel: stable
           cache: true
 
@@ -281,7 +281,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5"
+          flutter-version: "3.32.6"
           channel: stable
           cache: true
 
@@ -346,7 +346,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.5" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.32.6" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
@@ -431,9 +431,7 @@ jobs:
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v1
         with:
-          files: apps/flipper/build/app/outputs/bundle/release/*.aab
-          tag_name: ${{ github.ref_name }}
-          name: Debug Release ${{ steps.get_version.outputs.version }}
+          name: Android AAB Release - ${{ github.ref_name }}
           body: |
             Debug Release for QA
         env:
@@ -442,7 +440,7 @@ jobs:
 
   slackNotification:
     name: Slack Notification
-    needs: [fastlane-deploy, build-and-release-windows-debug, build-and-release-windows-prod,build_web_deploy_firebase]
+    needs: [build-and-release-windows-debug, build-and-release-windows-prod,build_web_deploy_firebase]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3

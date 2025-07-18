@@ -38,7 +38,10 @@ class VariantSelectionDropdown extends HookConsumerWidget {
 
     return variantAsyncValue.when(
       data: (variants) {
-        if (variants.isEmpty) {
+        // Exclude variants where itemTyCd == 3 i.e service, as service can't be assigned to have Qty.
+        final filteredVariants =
+            variants.where((v) => v.itemTyCd != '3').toList();
+        if (filteredVariants.isEmpty) {
           return const Tooltip(
             message:
                 "No variants available to select. Please create variants first.",
@@ -49,16 +52,16 @@ class VariantSelectionDropdown extends HookConsumerWidget {
         // Determine the currently selected variant for the dropdown based on ID.
         Variant? currentlySelectedVariant;
         if (initialSelectedVariantId != null &&
-            variants.any((v) => v.id == initialSelectedVariantId)) {
-          currentlySelectedVariant =
-              variants.firstWhere((v) => v.id == initialSelectedVariantId);
+            filteredVariants.any((v) => v.id == initialSelectedVariantId)) {
+          currentlySelectedVariant = filteredVariants
+              .firstWhere((v) => v.id == initialSelectedVariantId);
         }
 
         return DropdownButton<String>(
           value: currentlySelectedVariant?.id,
           hint: const Text('Select Variant'),
           isExpanded: true, // Allow dropdown to use available horizontal space
-          items: variants.map((variant) {
+          items: filteredVariants.map((variant) {
             return DropdownMenuItem<String>(
               value: variant.id,
               child: Text(variant.name),
@@ -67,7 +70,7 @@ class VariantSelectionDropdown extends HookConsumerWidget {
           onChanged: (value) {
             if (value != null) {
               final selectedVariant =
-                  variants.firstWhere((variant) => variant.id == value);
+                  filteredVariants.firstWhere((variant) => variant.id == value);
               onVariantSelected(selectedVariant);
             } else {
               onVariantSelected(null);

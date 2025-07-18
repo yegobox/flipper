@@ -212,6 +212,7 @@ mixin TenantMixin implements TenantInterface {
 
         for (IBusiness business in jTenant.businesses ?? []) {
           Business biz = Business(
+              phoneNumber: business.phoneNumber!,
               serverId: business.serverId,
               userId: int.parse(business.userId),
               name: business.name,

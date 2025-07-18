@@ -160,7 +160,7 @@ Stream<ITransaction> pendingTransactionStream(Ref ref,
     transactionType:
         isExpense ? TransactionType.purchase : TransactionType.sale,
     isExpense: isExpense,
-    branchId: branchId!,
+    branchId: branchId ?? 0,
   );
 }
 

@@ -8,6 +8,8 @@ const String PAYMENT_UPDATE_REQUIRED =
 const String PAYMENT_REACTIVATION_REQUIRED =
     "Payment failed. Please re-activate your payment method";
 
+const int dbVersion = 37;
+
 // Enums
 enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS, CR, CP, PR, TR }
 

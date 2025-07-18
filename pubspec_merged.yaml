@@ -8,7 +8,7 @@ environment:
 dependencies:
   intl: ^0.20.2
   injectable: ^2.5.0
-  get_it: ^7.7.0
+  get_it: ^8.0.3
   stacked: ^3.4.3
   # maybe it is time to move all constants to its own package
   flipper_services: any
@@ -24,7 +24,7 @@ dependencies:
   mime: ^1.0.5
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  pubnub: ^4.3.1
+  pubnub: ^5.2.0
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   # image_picker: ^1.1.2
@@ -61,7 +61,7 @@ dependencies:
   #   path: packages/flutter_form_bloc
   
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^3.13.0
+  firebase_core: ^3.15.1
   # firebase_core_desktop: ^1.0.2-dev
   
   # The following adds the Cupertino Icons font to your application.
@@ -163,11 +163,11 @@ dependencies:
   firebase_remote_config: ^5.4.0
   share_plus: ^10.1.4
   firebase_messaging: ^15.2.2
-  image: ^4.0.17
-  firebase_auth: ^5.5.3
+  image: ^4.5.4
+  firebase_auth: ^5.6.2
   geolocator: ^13.0.2
   geocode: ^1.0.3
-  firebase_analytics: ^11.4.4
+  firebase_analytics: ^11.5.2
   firebase_crashlytics: ^4.3.4
   location: ^8.0.0
   google_sign_in: ^6.2.2
@@ -181,7 +181,7 @@ dependencies:
   flutter_statusbarcolor_ns: ^0.5.0-flipper
   
   shared_preferences: ^2.5.2
-  newrelic_mobile: ^1.1.7
+  # newrelic_mobile: ^1.1.12
   flutter_local_notifications: ^19.1.0
   
   window_manager: ^0.4.0
@@ -290,7 +290,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.3
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.16.8
+  msix: ^3.16.9
   nock: ^1.2.3
   integration_test:
     sdk: flutter

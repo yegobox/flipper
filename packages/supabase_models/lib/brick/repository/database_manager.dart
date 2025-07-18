@@ -8,13 +8,11 @@ import 'package:logging/logging.dart';
 export 'package:brick_core/query.dart'
     show And, Or, Query, QueryAction, Where, WherePhrase, Compare, OrderBy;
 
-import 'backup_manager.dart';
 import 'connection_manager.dart';
 
 /// Manages database operations, configuration, and integrity
 class DatabaseManager {
   static final _logger = Logger('DatabaseManager');
-  final BackupManager backupManager;
   final String dbFileName;
   ConnectionManager? _connectionManager;
 
@@ -25,8 +23,7 @@ class DatabaseManager {
 
   DatabaseManager({
     required this.dbFileName,
-    BackupManager? backupManager,
-  }) : backupManager = backupManager ?? BackupManager();
+  });
 
   /// Get the connection manager, creating it if needed
   ConnectionManager _getConnectionManager(DatabaseFactory dbFactory) {
@@ -91,46 +88,10 @@ class DatabaseManager {
       );
 
       // If we get here, the database is likely valid
-      // Create a backup for safety
-      await backupManager.createVersionedBackup(dbPath);
-      _logger.info('Database integrity verified, created backup');
+      _logger.info('Database integrity verified');
       return true;
     } catch (e) {
       _logger.warning('Database integrity check failed: $e');
-      return false;
-    }
-  }
-
-  /// Attempt to restore database from backup if corrupted
-  Future<bool> restoreIfCorrupted(
-      String directory, String dbPath, DatabaseFactory dbFactory) async {
-    try {
-      if (await verifyDatabaseIntegrity(dbPath, dbFactory)) {
-        return false; // Database is fine, no need to restore
-      }
-
-      _logger.warning('Database corruption detected, attempting restoration');
-
-      // Close any existing connections before restoration
-      final connectionManager = _getConnectionManager(dbFactory);
-      await connectionManager.closeConnection(dbPath);
-
-      // Database is corrupted, try to restore from backup
-      final restored =
-          await backupManager.restoreLatestBackup(directory, dbPath, dbFactory);
-      if (restored) {
-        _logger.info('Successfully restored database from backup');
-      } else {
-        _logger.severe('Failed to restore database from any backup');
-        // If restore fails, delete corrupted database to start fresh
-        if (await File(dbPath).exists()) {
-          await File(dbPath).delete();
-          _logger.info('Deleted corrupted database to start fresh');
-        }
-      }
-      return restored;
-    } catch (e) {
-      _logger.severe('Error during database restore process: $e');
       return false;
     }
   }

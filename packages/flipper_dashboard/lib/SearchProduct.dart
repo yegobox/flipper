@@ -49,6 +49,9 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     return;
                   }
                   List<Variant> variants = await ProxyService.strategy.variants(
+                    taxTyCds: ProxyService.box.vatEnabled()
+                        ? ['A', 'B', 'C']
+                        : ['D'],
                     name: searchKey,
                     branchId: ProxyService.box.getBranchId()!,
                   );

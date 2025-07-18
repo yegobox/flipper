@@ -211,7 +211,7 @@ User Query: $userPrompt
       return await ref.read(geminiResponseProvider(inputData).future);
     } catch (e) {
       // Provide a fallback response if the API call fails
-      return "I'm having trouble analyzing your data right now. Please try again in a moment. Error: ${e.toString().split('Exception:').last}";
+      return "I'm sorry, I couldn't process your request at the moment. Please try again later.";
     }
   }
 }

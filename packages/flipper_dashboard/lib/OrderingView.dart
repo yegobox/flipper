@@ -1,6 +1,9 @@
 // OrderingView
 import 'dart:io';
 
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
+
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -24,6 +27,8 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
 
 class OrderingView extends StatefulHookConsumerWidget {
   const OrderingView(this.transaction, {Key? key}) : super(key: key);
@@ -330,6 +335,17 @@ class ProductListScreenState extends ConsumerState<OrderingView>
 
   Future<void> _handlePreviewCart(WidgetRef ref, int orderCount,
       ITransaction transaction, bool isOrdering) async {
+    if (ref.read(selectedSupplierProvider)!.serverId! ==
+        ProxyService.box.getBranchId()!) {
+      final dialogService = locator<DialogService>();
+      dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description: 'You can not order from yourself.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return;
+    }
     if (orderCount > 0) {
       final isPreviewing = ref.read(previewingCart.notifier).state;
       if (!isPreviewing) {

@@ -20,6 +20,7 @@ class AppService with ListenableServiceMixin {
 
   final _business = ReactiveValue<Business>(Business(
     serverId: randomNumber(),
+    phoneNumber: "",
     isDefault: false,
     encryptionKey: "11",
   ));
@@ -144,7 +145,8 @@ class AppService with ListenableServiceMixin {
     // After successful business/branch selection, check for active shift
     final userId = ProxyService.box.getUserId();
     if (userId != null) {
-      final currentShift = await ProxyService.strategy.getCurrentShift(userId: userId);
+      final currentShift =
+          await ProxyService.strategy.getCurrentShift(userId: userId);
       if (currentShift == null) {
         // No active shift, show dialog to start one
         final dialogService = locator<DialogService>();
@@ -154,7 +156,8 @@ class AppService with ListenableServiceMixin {
         );
         if (response?.confirmed != true) {
           // User cancelled starting shift, prevent proceeding
-          throw Exception('Shift not started. Please start a shift to proceed.');
+          throw Exception(
+              'Shift not started. Please start a shift to proceed.');
         }
       }
     } else {

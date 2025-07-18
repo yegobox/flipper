@@ -18,7 +18,7 @@
 </div>
 
 <div align="center">
-  [Discord](https://discord.gg/z2YVKkycX3)
+  [WhatsApp]()
 </div>
 
 

@@ -41,7 +41,9 @@ abstract class TaxApi implements NoticeInterface {
       required double totalAmount,
       required String remark,
       required DateTime ocrnDt,
-      required String URI});
+      /// when doing sale we send it as invoice no otherwise for import and purchase we send 
+      String? sarNo,
+      required String URI, num? invoiceNumber, num? approvedQty});
   Future<RwApiResponse> saveCustomer({required ICustomer customer, required String URI});
   Future<BusinessInfo> initApi(
       {required String tinNumber,

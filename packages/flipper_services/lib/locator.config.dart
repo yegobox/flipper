@@ -62,7 +62,6 @@ extension GetItInjectableX on _i174.GetIt {
       environmentFilter,
     );
     final servicesModule = _$ServicesModule();
-    gh.factory<_i290.SettingsService>(() => servicesModule.settingsService);
     gh.factory<bool>(() => servicesModule.isTestEnvironment());
     gh.singleton<_i141.FirebaseCrashlytics>(() => servicesModule.crashlytics);
     gh.lazySingleton<_i163.SupabaseInterface>(() => servicesModule.supa);
@@ -85,6 +84,8 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i97.TaxApi>(() => servicesModule.taxApiService);
     gh.lazySingleton<_i445.LNotification>(() => servicesModule.notification);
     gh.lazySingleton<_i299.FlipperLocation>(() => servicesModule.location);
+    gh.lazySingleton<_i290.SettingsService>(
+        () => servicesModule.settingsService);
     gh.lazySingleton<_i106.AiStrategy>(
         () => servicesModule.provideAiStrategy());
     await gh.lazySingletonAsync<_i164.LocalStorage>(
@@ -131,9 +132,6 @@ extension GetItInjectableX on _i174.GetIt {
 }
 
 class _$ServicesModule extends _i205.ServicesModule {
-  @override
-  _i290.SettingsService get settingsService => _i290.SettingsService();
-
   @override
   _i150.KeyPadService get keypadService => _i150.KeyPadService();
 }

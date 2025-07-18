@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
@@ -28,6 +29,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/DeviceType.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -104,6 +106,13 @@ class RowItem extends StatefulHookConsumerWidget {
 class _RowItemState extends ConsumerState<RowItem>
     with Refresh, CoreMiscellaneous, SnackBarMixin {
   final _routerService = locator<RouterService>();
+
+  String _truncateString(String text, int maxLength) {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return text.substring(0, maxLength) + '...';
+  }
 
   // Constants for consistent styling
   static const double cardBorderRadius = 12.0;
@@ -218,20 +227,20 @@ class _RowItemState extends ConsumerState<RowItem>
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primaryContainer.withOpacity(0.15)
+                ? colorScheme.primaryContainer.withValues(alpha: 0.15)
                 : Colors.white,
             borderRadius: BorderRadius.circular(cardBorderRadius),
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary
-                  : Colors.grey.withOpacity(0.12),
+                  ? colorScheme.primary.withValues(alpha: 0.12)
+                  : Colors.grey.withValues(alpha: 0.12),
               width: isSelected ? 2.0 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: isSelected
-                    ? colorScheme.primary.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.04),
+                    ? colorScheme.primary.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.04),
                 blurRadius: isSelected ? 8.0 : 4.0,
                 spreadRadius: isSelected ? 1.0 : 0.0,
                 offset: const Offset(0, 2),
@@ -344,11 +353,13 @@ class _RowItemState extends ConsumerState<RowItem>
   // New compact product info section specifically designed to avoid overflow
   Widget _buildCompactProductInfo(TextTheme textTheme) {
     // Get appropriate display names with safe fallbacks
-    final String displayProductName =
-        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product";
+    final String displayProductName = _truncateString(
+        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product",
+        20);
 
-    final String displayVariantName =
-        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant";
+    final String displayVariantName = _truncateString(
+        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant",
+        20);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -360,7 +371,7 @@ class _RowItemState extends ConsumerState<RowItem>
           style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
-            fontSize: 12, // Smaller font size
+            fontSize: 11, // Smaller font size
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -372,7 +383,7 @@ class _RowItemState extends ConsumerState<RowItem>
             displayVariantName,
             style: textTheme.bodyMedium?.copyWith(
               color: Colors.grey[600],
-              fontSize: 10, // Smaller font size
+              fontSize: 9, // Smaller font size
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -448,13 +459,15 @@ class _RowItemState extends ConsumerState<RowItem>
               children: [
                 // Product name
                 Text(
-                  widget.productName.isNotEmpty
-                      ? widget.productName
-                      : "Unnamed Product",
+                  _truncateString(
+                      widget.productName.isNotEmpty
+                          ? widget.productName
+                          : "Unnamed Product",
+                      20),
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
-                    fontSize: 13, // Smaller font size
+                    fontSize: 12, // Smaller font size
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -466,10 +479,10 @@ class _RowItemState extends ConsumerState<RowItem>
                 if (widget.variantName != widget.productName &&
                     widget.variantName.isNotEmpty)
                   Text(
-                    widget.variantName,
+                    _truncateString(widget.variantName, 20),
                     style: textTheme.bodyMedium?.copyWith(
                       color: Colors.grey[600],
-                      fontSize: 11, // Smaller font size
+                      fontSize: 10, // Smaller font size
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -521,7 +534,7 @@ class _RowItemState extends ConsumerState<RowItem>
           borderRadius: BorderRadius.circular(imageBorderRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -573,7 +586,7 @@ class _RowItemState extends ConsumerState<RowItem>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -1025,7 +1038,13 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock = await CacheManager()
                     .getStockByVariantId(widget.variant!.id);
                 if (stock != null && stock.currentStock != 0) {
-                  toast('Cannot delete a variant with stock.');
+                  final dialogService = locator<DialogService>();
+                  dialogService.showCustomDialog(
+                    variant: DialogType.info,
+                    title: 'Error',
+                    description: 'Cannot delete a variant with stock.',
+                    data: {'status': InfoDialogStatus.error},
+                  );
                   return;
                 }
                 widget.delete(widget.variant!.productId!, 'product');

@@ -130,8 +130,9 @@ class _RefundState extends ConsumerState<Refund> {
                           await proceed(receiptType: "NR");
                         }
                       }
-                    } catch (e) {
+                    } catch (e,s) {
                       toast(e.toString());
+                      talker.error(s);
                     }
                   },
                 ),

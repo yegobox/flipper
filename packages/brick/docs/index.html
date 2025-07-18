@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Brick Docs</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Data management for Flutter and Dart">
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0, user-scalable=1" />
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+
+  <style type="text/css">
+    :root {
+      --theme-color: #9A3536;
+      --code-inline-color: #9A3536;
+      --cover-background-color: #fff;
+      --code-font-size: 0.9rem;
+      --code-inline-background: #f8f8f8;
+    }
+
+    .cover {
+      background: none !important;
+    }
+
+    .app-name {
+      padding: 0 20px;
+    }
+
+    .markdown-section code {
+      color: var(--theme-color);
+    }
+
+    .sidebar-nav>ul>li>a {
+      padding-left: 0 !important;
+      background-image: none !important;
+    }
+
+    .markdown-section {
+      max-width: 820px;
+      font-size: 18px;
+    }
+
+    .markdown-section h1 {
+      font-size: 2.5em;
+    }
+
+    .markdown-section h3 {
+      margin: 30px 0 0.6rem;
+    }
+
+    .markdown-section h2 code,
+    .markdown-section h3 code {
+      font-size: .75em;
+    }
+
+    .token.keyword,
+    .token.function {
+      color: #619c3c;
+    }
+
+    .token.string {
+      color: #42b983;
+      color: var(--theme-color, #42b983);
+    }
+
+    code .token {
+      color: #3c7cc2;
+    }
+
+
+    .markdown-section pre>code {
+      color: #525252;
+    }
+
+    .markdown-section> :not(h1):not(h2):not(h3):not(h4):not(h5):not(h6) code {
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      name: 'Brick Documentation',
+      repo: 'https://github.com/GetDutchie/brick',
+      auto2top: true,
+      loadSidebar: true,
+      maxLevel: 3,
+      subMaxLevel: 2,
+      homepage: 'home.md',
+      logo: 'logo.svg',
+      coverpage: true,
+    }
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-dart.min.js"></script>
+  <script src="//unpkg.com/prismjs/components/prism-yaml.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+</body>

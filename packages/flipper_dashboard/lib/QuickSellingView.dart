@@ -182,36 +182,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: _buildCompactAppBar(isOrdering),
       body: _buildScrollableContent(isOrdering, transactionAsyncValue, model),
       bottomNavigationBar: _buildBottomActionBar(transactionAsyncValue, model),
-    );
-  }
-
-  PreferredSizeWidget _buildCompactAppBar(bool isOrdering) {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      foregroundColor: Theme.of(context).colorScheme.onSurface,
-      title: Text(
-        isOrdering ? 'New Order' : 'Point of Sale',
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-      actions: [
-        if (!isOrdering)
-          IconButton(
-            icon: Icon(Icons.receipt_long_outlined),
-            onPressed: () => _showTransactionHistory(),
-            tooltip: 'Transaction History',
-          ),
-        IconButton(
-          icon: Icon(Icons.more_vert),
-          onPressed: () => _showOptionsMenu(),
-          tooltip: 'More Options',
-        ),
-      ],
     );
   }
 
@@ -310,17 +282,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       color: Theme.of(context)
                           .colorScheme
                           .onPrimaryContainer
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                     ),
               ),
               Text(
-                '#${transactionAsyncValue.value?.id?.substring(0, 8) ?? "--------"}',
+                '#${transactionAsyncValue.value?.id.substring(0, 8) ?? "--------"}',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontFamily: 'monospace',
                       color: Theme.of(context)
                           .colorScheme
                           .onPrimaryContainer
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                     ),
               ),
             ],
@@ -354,29 +326,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
-    return StreamBuilder<List<TransactionItem>>(
-      stream: ref.watch(transactionItemsStreamProvider(
-              transactionId: transactionAsyncValue.value?.id ?? "")
-          .stream),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return SliverToBoxAdapter(
-            child: _buildErrorCard(
-                'Failed to load items', snapshot.error.toString()),
-          );
-        }
-
-        if (!snapshot.hasData) {
-          return SliverToBoxAdapter(
-            child: Container(
-              height: 100,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-
-        final items = snapshot.data!;
-
+    final transactionItemsAsync = ref.watch(transactionItemsStreamProvider(
+        transactionId: transactionAsyncValue.value?.id ?? ""));
+    return transactionItemsAsync.when(
+      data: (items) {
         if (items.isEmpty) {
           return SliverToBoxAdapter(
             child: _buildEmptyStateCard(
@@ -386,7 +339,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ),
           );
         }
-
         return SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) =>
@@ -395,6 +347,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
         );
       },
+      loading: () => SliverToBoxAdapter(
+        child: Container(
+          height: 100,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => SliverToBoxAdapter(
+        child: _buildErrorCard('Failed to load items', error.toString()),
+      ),
     );
   }
 
@@ -792,15 +753,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         );
       },
     );
-  }
-
-// Helper methods that would need implementation
-  void _showTransactionHistory() {
-    // Implementation for showing transaction history
-  }
-
-  void _showOptionsMenu() {
-    // Implementation for showing options menu
   }
 
   void _showDeleteConfirmation(

@@ -37,6 +37,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -179,8 +180,6 @@ class CoreSync extends AiStrategyImpl
 
   @override
   SendPort? sendPort;
-
-
 
   @override
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units}) async {
@@ -1245,40 +1244,17 @@ class CoreSync extends AiStrategyImpl
     String filter = RequestStatus.pending,
     String? search,
   }) {
-    final whereConditions = <brick.Where>[
-      brick.Where('mainBranchId').isExactly(branchId),
-    ];
-
-    if (filter == RequestStatus.approved) {
-      whereConditions
-          .add(brick.Where('status').isExactly(RequestStatus.approved));
-    } else {
-      whereConditions.addAll([
-        brick.Where('status').isExactly(RequestStatus.pending),
-        brick.Or('status').isExactly(RequestStatus.partiallyApproved),
-      ]);
-    }
-
-    if (search != null && search.isNotEmpty) {
-      whereConditions.add(brick.Or('id')
-          .contains(search)
-          // .or('deliveryNote')
-          .contains(search)
-          // .or('orderNote')
-          .contains(search));
-    }
-
-    final buildQuery = brick.Query(where: whereConditions);
-
-    return repository
-        .subscribe<InventoryRequest>(
+    final request = repository.subscribeToRealtime<InventoryRequest>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
-      query: buildQuery,
-    )
-        .asyncMap((requests) async {
+      query: brick.Query(where: [
+        brick.Where('mainBranchId').isExactly(branchId),
+        brick.Where('status').isExactly(filter),
+      ]),
+    );
+    return request.asyncMap((requests) async {
       if (requests.isEmpty) return requests;
       return Future.wait(requests.map(_hydrateSingleRequest));
-    });
+    }).asBroadcastStream();
   }
 
   Future<InventoryRequest> _hydrateSingleRequest(InventoryRequest req) async {
@@ -1307,10 +1283,13 @@ class CoreSync extends AiStrategyImpl
         financingToUse = financingList.first;
       }
     }
+    List<TransactionItem> items =
+        await transactionItems(requestId: req.id, fetchRemote: true);
 
     return await req.copyWith(
       branch: hydratedBranch,
       financing: financingToUse,
+      transactionItems: items,
     );
   }
 
@@ -1902,8 +1881,9 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  void updateCounters(
-      {required List<Counter> counters, RwApiResponse? receiptSignature}) {
+  Future<void> updateCounters(
+      {required List<Counter> counters,
+      RwApiResponse? receiptSignature}) async {
     // build brick Counter to pass in to upsert
     for (Counter counter in counters) {
       final upCounter = models.Counter(
@@ -1919,7 +1899,21 @@ class CoreSync extends AiStrategyImpl
         receiptType: counter.receiptType,
       );
       counter.invcNo = counter.invcNo! + 1;
-      repository.upsert(upCounter);
+      await repository.upsert(upCounter);
+
+      /// also update sar
+      // get the sar
+      final sar = await getSar(branchId: counter.branchId!);
+      if (sar != null) {
+        sar.sarNo = sar.sarNo + 1;
+        await repository.upsert(sar);
+      } else {
+        final sar = Sar(
+          sarNo: counter.totRcptNo!,
+          branchId: counter.branchId!,
+        );
+        await repository.upsert(sar);
+      }
       // in erference https://github.com/GetDutchie/brick/issues/580#issuecomment-2845610769
       // Repository().sqliteProvider.upsert<Counter>(upCounter);
     }
@@ -1995,6 +1989,7 @@ class CoreSync extends AiStrategyImpl
         //     paymentTypes.firstWhere((element) => element == 'CASH')) {
         final userId = ProxyService.box.getUserId();
         if (userId != null) {
+          transaction.customerChangeDue = cashReceived - transaction.subTotal!;
           final currentShift = await getCurrentShift(userId: userId);
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
@@ -2703,10 +2698,33 @@ class CoreSync extends AiStrategyImpl
       final String? bhfId = await ProxyService.box.bhfId();
       final int? tinNumber = ProxyService.box.tin();
 
+      FinanceProvider? provider;
+      if (financingId != null) {
+        // get financing
+        provider = (await repository.get<FinanceProvider>(
+                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+                query: brick.Query(where: [
+                  brick.Where('id').isExactly(financingId),
+                ])))
+            .firstOrNull;
+      }
+      final financing = Financing(
+        id: provider?.id,
+        provider: provider,
+        requested: true,
+        amount: items.fold(
+            0, (previousValue, element) => previousValue! + element.price),
+        status: 'pending',
+        financeProviderId: provider?.id,
+        approvalDate: DateTime.now().toUtc(),
+      );
+      await repository.upsert(financing);
+
       final InventoryRequest request = InventoryRequest(
         id: requestId,
         mainBranchId: mainBranchId,
         subBranchId: subBranchId,
+        financing: financing,
         createdAt: DateTime.now().toUtc(),
         status: RequestStatus.pending,
         deliveryNote: deliveryNote,
@@ -3316,8 +3334,10 @@ class CoreSync extends AiStrategyImpl
   Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
     try {
       final data = await repository.get<BusinessAnalytic>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
+        policy: OfflineFirstGetPolicy.awaitRemote,
         query: brick.Query(
+          // limit: 100,
           where: [brick.Where('branchId').isExactly(branchId)],
           orderBy: [OrderBy('date', ascending: false)],
         ),
