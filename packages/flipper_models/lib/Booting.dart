@@ -165,7 +165,7 @@ mixin Booting {
         serverId: business.serverId,
         name: business.name,
         currency: business.currency,
-        categoryId: business.categoryId,
+        categoryId: business.categoryId.toString(),
         latitude: business.latitude,
         longitude: business.longitude,
         timeZone: business.timeZone,
