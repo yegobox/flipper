@@ -98,8 +98,8 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       }
 
       // Perform additional logout operations
-      ProxyService.strategy.whoAmI();
-      await ProxyService.strategy.amplifyLogout();
+      // ProxyService.strategy.whoAmI();
+      // await ProxyService.strategy.amplifyLogout();
 
       // Unset default for all businesses and branches
       final userId = ProxyService.box.getUserId();
