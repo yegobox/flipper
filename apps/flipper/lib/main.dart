@@ -51,6 +51,7 @@ Future<void> _initializeSupabase() async {
   }
 }
 
+bool skipDependencyInitialization = false;
 // net info: billers
 //1.1.14
 Future<void> main() async {
@@ -62,13 +63,15 @@ Future<void> main() async {
 
   // Centralized initialization function
   Future<void> initializeApp() async {
-    await _initializeFirebase();
-    await initializeDependencies();
-    await _initializeSupabase();
-    loc.setupLocator(stackedRouter: stackedRouter);
-    setupDialogUi();
-    setupBottomSheetUi();
-    await initDependencies();
+    if (skipDependencyInitialization = false) {
+      await _initializeFirebase();
+      await initializeDependencies();
+      await _initializeSupabase();
+      loc.setupLocator(stackedRouter: stackedRouter);
+      setupDialogUi();
+      setupBottomSheetUi();
+      await initDependencies();
+    }
   }
 
   // Run the app within Sentry's guarded zone
