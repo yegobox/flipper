@@ -3,13 +3,16 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/base_cart_mixin.dart';
-import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, BaseCartMixin<T> {
@@ -36,9 +39,16 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     if (items.isEmpty || ref.read(previewingCart)) return;
 
     final deliveryNote = deliveryNoteCotroller.text;
-    final dateRange = ref.watch(dateRangeProvider);
-    final startDate = dateRange.startDate;
-
+    if (ref.read(selectedSupplierProvider)!.serverId! ==
+        ProxyService.box.getBranchId()!) {
+      final dialogService = locator<DialogService>();
+      dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description: 'You can not order from yourself.',
+        data: {'status': InfoDialogStatus.error},
+      );
+    }
     await ProxyService.strategy.createStockRequest(
       items,
       mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,

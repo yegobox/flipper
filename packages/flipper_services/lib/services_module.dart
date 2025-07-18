@@ -427,7 +427,10 @@ abstract class ServicesModule {
     return ProductService();
   }
 
-  SettingsService get settingsService;
+  @LazySingleton()
+  SettingsService get settingsService {
+    return SettingsService();
+  }
 
   @LazySingleton()
   CronService cron() {
@@ -444,3 +447,4 @@ abstract class ServicesModule {
     return BillingService();
   }
 }
+//

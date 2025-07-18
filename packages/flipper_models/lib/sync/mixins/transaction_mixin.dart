@@ -4,6 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helperModels/random.dart';
@@ -435,6 +436,19 @@ mixin TransactionMixin implements TransactionInterface {
 
       await repository.upsert<ITransaction>(transaction);
 
+      // Re-fetch the transaction to ensure it has its brick_id populated
+      final committedTransaction = (await repository.get<ITransaction>(
+        query: Query(where: [Where('id').isExactly(transaction.id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      ))
+          .firstOrNull;
+
+      if (committedTransaction == null) {
+        throw Exception(
+            'Failed to retrieve committed ITransaction after upsert.');
+      }
+      transaction = committedTransaction; // Use the committed version
+
       _isProcessingTransactionMap[branchId] =
           false; // Unlock processing for this branch
     }
@@ -469,7 +483,7 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<void> assignTransaction({
+  Future<ITransaction> assignTransaction({
     required Variant variant,
     required ITransaction pendingTransaction,
     required Business business,
@@ -505,7 +519,7 @@ mixin TransactionMixin implements TransactionInterface {
       );
 
       // Update the transaction status to PARKED
-      await _parkTransaction(
+      return await _parkTransaction(
         purchase: purchase,
         invoiceNumber: invoiceNumber,
         pendingTransaction: pendingTransaction,
@@ -523,7 +537,7 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   ///Parks the transaction
-  Future<void> _parkTransaction({
+  Future<ITransaction> _parkTransaction({
     required ITransaction pendingTransaction,
     required Variant variant,
     required dynamic business,
@@ -538,7 +552,7 @@ mixin TransactionMixin implements TransactionInterface {
           'Both purchase and invoiceNumber cannot be provided at the same time.');
     }
 
-    await updateTransaction(
+    final transaction = await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
       taxAmount: pendingTransaction.taxAmount ?? 0,
@@ -551,7 +565,7 @@ mixin TransactionMixin implements TransactionInterface {
       sarTyCd: sarTyCd,
       receiptNumber: randomNumber,
       reference: randomNumber.toString(),
-      invoiceNumber: invoiceNumber ?? randomNumber,
+      invoiceNumber: invoiceNumber,
       receiptType: TransactionType.adjustment,
       customerTin: pendingTransaction.customerTin,
       customerBhfId: await ProxyService.box.bhfId() ?? "00",
@@ -563,6 +577,7 @@ mixin TransactionMixin implements TransactionInterface {
           : (variant.retailPrice! * (updatableQty ?? 1))),
       customerName: business.name,
     );
+    return transaction;
   }
 
   @override
@@ -576,6 +591,7 @@ mixin TransactionMixin implements TransactionInterface {
       bool useTransactionItemForQty = false,
       required bool partOfComposite,
       required bool doneWithTransaction,
+      int? invoiceNumber,
       TransactionItem? item,
       double? updatableQty,
       String? sarTyCd,
@@ -776,7 +792,7 @@ mixin TransactionMixin implements TransactionInterface {
   /// meaning it is neither income nor expense. This helps avoid incorrect computations
   /// on the dashboard.
   @override
-  FutureOr<void> updateTransaction({
+  FutureOr<ITransaction> updateTransaction({
     ITransaction? transaction,
     num taxAmount = 0.0,
     String? receiptType,
@@ -813,15 +829,13 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
-        print(
-            "Error: Transaction and transactionId are both null in updateTransaction.");
-        return; // Exit if transaction is null.
+        throw ArgumentError(
+            "Transaction and transactionId are both null in updateTransaction."); // Exit if transaction is null.
       }
       transaction = await getTransaction(
           id: transactionId, branchId: ProxyService.box.getBranchId()!);
       if (transaction == null) {
-        print("Error: Could not retrieve transaction with ID: $transactionId.");
-        return;
+        throw ArgumentError("Transaction with ID $transactionId not found.");
       }
     }
 
@@ -861,7 +875,8 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
 
-    await repository.upsert<ITransaction>(transaction);
+    final result = await repository.upsert<ITransaction>(transaction);
+    return result;
   }
 
   @override
@@ -1018,6 +1033,18 @@ mixin TransactionMixin implements TransactionInterface {
         Where('transactionType').isExactly(transactionType),
         Where('status').isExactly(PENDING),
         if (branchId != null) Where('branchId').isExactly(branchId),
+      ]),
+    ))
+        .firstOrNull;
+  }
+
+  @override
+  Future<Sar?> getSar({required int branchId}) async {
+    return (await repository.get<Sar>(
+      query: Query(orderBy: [
+        const OrderBy('createdAt', ascending: false)
+      ], where: [
+        Where('branchId').isExactly(branchId),
       ]),
     ))
         .firstOrNull;

@@ -6,7 +6,6 @@ import 'package:flipper_login/LoadingDialog.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/all_routes.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
@@ -27,9 +26,7 @@ class _LoginState extends State<Login> {
   /// Checks network availability and updates LoginInfo accordingly
   /// This is called during widget initialization
   Future<void> checkNetworkAvailability() async {
-    if (!areDependenciesInitialized) {
-      await initDependencies();
-    }
+    // await initDependencies();
 
     if (!(await ProxyService.app.isLoggedIn())) {
       final connectivityResult = await Connectivity().checkConnectivity();
@@ -42,9 +39,7 @@ class _LoginState extends State<Login> {
 
   /// Initializes required configurations and remote settings
   Future<void> initializeConfigurations() async {
-    if (!areDependenciesInitialized) {
-      await initDependencies();
-    }
+    // await initDependencies();
 
     // Setup remote configurations
     final remoteConfig = ProxyService.remoteConfig;

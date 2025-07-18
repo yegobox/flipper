@@ -37,7 +37,7 @@ review-my-changes.sh
 **/apps/main_app/build/
 
 # Web related
-*.sql
+# *.sql
 # Symbolication related
 app.*.symbols
 
@@ -87,7 +87,6 @@ trained_models/
 back/
 coverage/
 
-*.sql
 .qodo
 
 # GEMINI.md

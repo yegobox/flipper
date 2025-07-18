@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import '../theme/ai_theme.dart';
+import 'package:intl/intl.dart';
 
-/// Widget that displays a list of AI conversations with their latest messages.
-/// Supports selecting, deleting, and creating new conversations.
+/// Widget that displays a list of AI conversations with a modern, clean design.
 class ConversationList extends StatelessWidget {
   final Map<String, List<Message>> conversations;
   final String currentConversationId;
@@ -27,9 +27,10 @@ class ConversationList extends StatelessWidget {
       color: AiTheme.surfaceColor,
       child: Column(
         children: [
-          _buildHeader(),
+          _buildHeader(context),
           Expanded(
             child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               itemCount: conversations.length,
               itemBuilder: (context, index) {
                 final conversationId = conversations.keys.elementAt(index);
@@ -37,6 +38,7 @@ class ConversationList extends StatelessWidget {
                 final lastMessage = messages.isNotEmpty ? messages.first : null;
 
                 return _buildConversationTile(
+                  context: context,
                   conversationId: conversationId,
                   lastMessage: lastMessage,
                 );
@@ -48,13 +50,11 @@ class ConversationList extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!),
-        ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AiTheme.borderColor, width: 1)),
       ),
       child: Row(
         children: [
@@ -62,14 +62,22 @@ class ConversationList extends StatelessWidget {
             'Conversations',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
+              color: AiTheme.textColor,
             ),
           ),
           const Spacer(),
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add_rounded, color: AiTheme.primaryColor),
             onPressed: onNewConversation,
             tooltip: 'New Conversation',
+            splashRadius: 20,
+            style: IconButton.styleFrom(
+              backgroundColor: AiTheme.primaryColor.withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
           ),
         ],
       ),
@@ -77,6 +85,7 @@ class ConversationList extends StatelessWidget {
   }
 
   Widget _buildConversationTile({
+    required BuildContext context,
     required String conversationId,
     Message? lastMessage,
   }) {
@@ -84,25 +93,62 @@ class ConversationList extends StatelessWidget {
     final title = lastMessage?.text.split('\n').first ?? 'New Conversation';
     final timestamp = lastMessage?.timestamp ?? DateTime.now();
 
-    return ListTile(
-      selected: isSelected,
-      selectedTileColor: AiTheme.inputBackgroundColor,
-      title: Text(
-        title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onConversationSelected(conversationId),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AiTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: isSelected ? AiTheme.primaryColor : AiTheme.secondaryColor,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: AiTheme.textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTimestamp(timestamp),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AiTheme.hintColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                color: AiTheme.secondaryColor,
+                onPressed: () => onDeleteConversation(conversationId),
+                tooltip: 'Delete Conversation',
+                splashRadius: 20,
+              ),
+            ],
+          ),
+        ),
       ),
-      subtitle: Text(
-        _formatTimestamp(timestamp),
-        style: const TextStyle(fontSize: 12),
-      ),
-      leading: const Icon(Icons.chat_bubble_outline),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        onPressed: () => onDeleteConversation(conversationId),
-        tooltip: 'Delete Conversation',
-      ),
-      onTap: () => onConversationSelected(conversationId),
     );
   }
 
@@ -111,7 +157,7 @@ class ConversationList extends StatelessWidget {
     final difference = now.difference(timestamp);
 
     if (difference.inDays > 7) {
-      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+      return DateFormat('MMM d').format(timestamp);
     } else if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
@@ -119,7 +165,7 @@ class ConversationList extends StatelessWidget {
     } else if (difference.inMinutes > 0) {
       return '${difference.inMinutes}m ago';
     } else {
-      return 'just now';
+      return 'Just now';
     }
   }
 }

@@ -26,6 +26,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     bool forPurchaseScreen = false,
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
+    List<String>? taxTyCds,
   }) async {
     throw UnimplementedError('variants needs to be implemented for Capella');
   }
@@ -56,6 +57,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       {required List<Variant> updatables,
       String? color,
       String? taxTyCd,
+      Purchase? purchase,
+      num? approvedQty,
+      num? invoiceNumber,
       bool updateIo = true,
       String? variantId,
       double? newRetailPrice,

@@ -1,0 +1,1 @@
+enum InfoDialogStatus { error, info, warning, success }

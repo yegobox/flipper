@@ -137,10 +137,13 @@ class _AdminControlState extends State<AdminControl> {
 
   Future<void> toggleForceUPSERT(bool value) async {
     try {
+      final isVatEnabled = ProxyService.box.vatEnabled();
       ProxyService.strategy
           .migrateToNewDateTime(branchId: ProxyService.box.getBranchId()!);
       await ProxyService.strategy.variants(
-          branchId: ProxyService.box.getBranchId()!, fetchRemote: true);
+          taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
+          branchId: ProxyService.box.getBranchId()!,
+          fetchRemote: true);
       await ProxyService.box.writeBool(
           key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
 

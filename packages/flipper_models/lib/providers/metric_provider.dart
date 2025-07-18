@@ -10,7 +10,10 @@ part 'metric_provider.g.dart';
 Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
   // Fetch necessary data
   final stocks = await ProxyService.strategy.stocks(branchId: branchId);
-  final variants = await ProxyService.strategy.variants(branchId: branchId);
+  final variants = await ProxyService.strategy.variants(branchId: branchId,
+      taxTyCds: ProxyService.box.vatEnabled()
+          ? ['A', 'B', 'C']
+          : ['D']);
   final transactionItems = await ProxyService.strategy.transactionItems(
       branchId: (await ProxyService.strategy.activeBranch()).id);
 

@@ -5,12 +5,10 @@ import 'package:brick_supabase/brick_supabase.dart' hide Supabase;
 import 'package:supabase_flutter/supabase_flutter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:logging/logging.dart';
-import 'package:path/path.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_models/brick/db/schema.g.dart';
 
 import '../brick.g.dart';
-import 'backup_manager.dart';
 import 'database_manager.dart';
 import 'queue_manager.dart';
 import 'platform_helpers.dart';
@@ -19,7 +17,6 @@ import 'platform_helpers.dart';
 /// Handles database operations, backup, and offline request queue
 class RepositoryImpl extends OfflineFirstWithSupabaseRepository {
   static final _logger = Logger('RepositoryImpl');
-  final BackupManager _backupManager;
   final DatabaseManager _databaseManager;
   final QueueManager _queueManager;
   final String _dbPath;
@@ -29,12 +26,10 @@ class RepositoryImpl extends OfflineFirstWithSupabaseRepository {
     required super.sqliteProvider,
     required super.migrations,
     required super.offlineRequestQueue,
-    required BackupManager backupManager,
     required DatabaseManager databaseManager,
     required String dbPath,
     super.memoryCacheProvider,
-  })  : _backupManager = backupManager,
-        _databaseManager = databaseManager,
+  })  : _databaseManager = databaseManager,
         _queueManager = QueueManager(offlineRequestQueue),
         _dbPath = dbPath;
 
@@ -61,7 +56,6 @@ class RepositoryImpl extends OfflineFirstWithSupabaseRepository {
       onRequestException: (_, __) {},
     );
 
-    final backupManager = BackupManager();
     final databaseManager = DatabaseManager(dbFileName: dbFileName);
 
     return RepositoryImpl._(
@@ -70,7 +64,6 @@ class RepositoryImpl extends OfflineFirstWithSupabaseRepository {
       migrations: migrations,
       offlineRequestQueue: dummyQueue,
       memoryCacheProvider: MemoryCacheProvider(),
-      backupManager: backupManager,
       databaseManager: databaseManager,
       dbPath: PlatformHelpers.getInMemoryDatabasePath(),
     );
@@ -88,54 +81,6 @@ class RepositoryImpl extends OfflineFirstWithSupabaseRepository {
       _logger.info('Database configured for better crash resilience');
     } catch (e) {
       _logger.warning('Error during database configuration: $e');
-    }
-  }
-
-  /// Create a backup of the database
-  Future<void> backupDatabase() async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
-      return;
-    }
-
-    try {
-      await _backupManager.createVersionedBackup(_dbPath);
-      _logger.info('Database backup created successfully');
-    } catch (e) {
-      _logger.warning('Error during database backup: $e');
-    }
-  }
-
-  /// Perform a periodic backup if enough time has passed since the last backup
-  /// Returns true if a backup was performed, false otherwise
-  Future<bool> performPeriodicBackup(
-      {Duration minInterval = const Duration(minutes: 20)}) async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
-      return false;
-    }
-
-    try {
-      final result = await _backupManager.performPeriodicBackup(_dbPath,
-          minInterval: minInterval);
-      return result;
-    } catch (e) {
-      _logger.warning('Error during periodic database backup: $e');
-      return false;
-    }
-  }
-
-  /// Restore the database from backup if needed
-  Future<bool> restoreFromBackupIfNeeded() async {
-    if (kIsWeb || PlatformHelpers.isTestEnvironment()) {
-      return false;
-    }
-
-    try {
-      final directory = dirname(_dbPath);
-      return await _databaseManager.restoreIfCorrupted(
-          directory, _dbPath, PlatformHelpers.getDatabaseFactory());
-    } catch (e) {
-      _logger.severe('Error during database restore process: $e');
-      return false;
     }
   }
 

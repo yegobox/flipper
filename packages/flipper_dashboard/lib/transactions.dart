@@ -29,8 +29,6 @@ class TransactionsState extends ConsumerState<Transactions>
   bool defaultTransactions = true;
   int displayedTransactionType = 0;
   List<String> transactionTypeOptions = ["All", "Sales", "Purchases"];
-  List<Widget> list = [];
-  List<Widget> zlist = [];
 
   @override
   void initState() {
@@ -38,7 +36,7 @@ class TransactionsState extends ConsumerState<Transactions>
   }
 
   List<Widget> _zTransactions() {
-    zlist = []; // Clear existing items
+    List<Widget> zlist = []; // Use local variable
     zlist.add(
       Card(
         margin: const EdgeInsets.all(16.0),
@@ -135,7 +133,8 @@ class TransactionsState extends ConsumerState<Transactions>
 
   List<Widget> _normalTransactions(
       {required List<ITransaction> completedTransaction}) {
-    list.clear(); // Clear existing items
+    List<Widget> list = []; // Use local variable
+    lastSeen = ""; // Reset lastSeen for each call
     for (ITransaction transaction in completedTransaction) {
       if (displayedTransactionType == 1 &&
           transaction.transactionType == TransactionType.cashOut) {
@@ -237,11 +236,6 @@ class TransactionsState extends ConsumerState<Transactions>
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
-      onViewModelReady: (model) async {
-        setState(() {
-          zlist = _zTransactions();
-        });
-      },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Scaffold(
@@ -261,7 +255,6 @@ class TransactionsState extends ConsumerState<Transactions>
                             buttonLabels: transactionTypeOptions,
                             onChanged: (newPeriod) {
                               setState(() {
-                                list = [];
                                 displayedTransactionType = newPeriod;
                               });
                             },
@@ -277,7 +270,7 @@ class TransactionsState extends ConsumerState<Transactions>
                     ),
                   ],
                 )
-              : zlist.isEmpty
+              : _zTransactions().isEmpty
                   ? Center(
                       child: Text(
                         "No Z Report",
@@ -289,8 +282,8 @@ class TransactionsState extends ConsumerState<Transactions>
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: () async => setState(() {}),
-                      child: ListView(children: zlist),
+                      onRefresh: () async => ref.invalidate(dashboardTransactionsProvider),
+                      child: ListView(children: _zTransactions()),
                     ),
         );
       },
@@ -303,7 +296,7 @@ class TransactionsState extends ConsumerState<Transactions>
       data: (value) {
         final transactions = _normalTransactions(completedTransaction: value);
         return RefreshIndicator(
-          onRefresh: () async => setState(() {}),
+          onRefresh: () async => ref.invalidate(dashboardTransactionsProvider),
           child: ListView(
             children: transactions,
           ),

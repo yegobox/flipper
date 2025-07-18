@@ -28,16 +28,16 @@ class LoginData {
       responseChannel; // Optional channel for sending login status back to mobile device
 
   factory LoginData.fromMap(Map<String, dynamic> json) => LoginData(
-        channel: json["channel"],
-        userId: json["userId"],
-        businessId: json["businessId"],
-        branchId: json["branchId"],
-        phone: json["phone"],
-        linkingCode: json["linkingCode"],
-        defaultApp: json["defaultApp"],
-        deviceName: json["deviceName"],
-        deviceVersion: json["deviceVersion"],
-        tokenUid: json["tokenUid"],
+        channel: json["channel"] ?? '',
+        userId: json["userId"] ?? 0,
+        businessId: json["businessId"] ?? 0,
+        branchId: json["branchId"] ?? 0,
+        phone: json["phone"] ?? '',
+        linkingCode: json["linkingCode"] ?? '',
+        defaultApp: json["defaultApp"] ?? '',
+        deviceName: json["deviceName"] ?? '',
+        deviceVersion: json["deviceVersion"] ?? '',
+        tokenUid: json["tokenUid"] ?? '',
         responseChannel: json["responseChannel"],
       );
 

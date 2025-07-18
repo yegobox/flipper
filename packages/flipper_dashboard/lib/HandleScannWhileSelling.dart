@@ -54,9 +54,13 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
         }
 
         try {
+          final isVatEnabled = ProxyService.box.vatEnabled();
           // First try to find locally
           List<Variant> variants = await ProxyService.strategy
-              .variants(bcd: value, branchId: ProxyService.box.getBranchId()!)
+              .variants(
+                  name: value,
+                  branchId: ProxyService.box.getBranchId()!,
+                  taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
               .timeout(
             const Duration(seconds: 5),
             onTimeout: () {
@@ -90,8 +94,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
             // Try to fetch from remote with fetchRemote flag set to true
             variants = await ProxyService.strategy
                 .variants(
-                    bcd: value,
+                    name: value,
                     branchId: ProxyService.box.getBranchId()!,
+                    taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
                     fetchRemote: true)
                 .timeout(
               const Duration(seconds: 10),
@@ -150,9 +155,13 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       // Not in scanning mode, but we should still search remotely if local search returns no results
       if (value.isNotEmpty) {
         try {
+          final isVatEnabled = ProxyService.box.vatEnabled();
           // First try to find locally
           List<Variant> variants = await ProxyService.strategy
-              .variants(name: value, branchId: ProxyService.box.getBranchId()!)
+              .variants(
+                  name: value,
+                  branchId: ProxyService.box.getBranchId()!,
+                  taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
               .timeout(
             const Duration(seconds: 5),
             onTimeout: () {
@@ -168,6 +177,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                 .variants(
                     name: value,
                     branchId: ProxyService.box.getBranchId()!,
+                    taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
                     fetchRemote: true)
                 .timeout(
               const Duration(seconds: 10),

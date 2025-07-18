@@ -100,6 +100,8 @@ Future<Business> _$BusinessFromSupabase(
         data['encryption_key'] == null
             ? null
             : data['encryption_key'] as String?,
+    phoneNumber:
+        data['phone_number'] == null ? null : data['phone_number'] as String?,
   );
 }
 
@@ -153,6 +155,7 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
+    'phone_number': instance.phoneNumber,
   };
 }
 
@@ -252,6 +255,8 @@ Future<Business> _$BusinessFromSqlite(
         data['encryption_key'] == null
             ? null
             : data['encryption_key'] as String?,
+    phoneNumber:
+        data['phone_number'] == null ? null : data['phone_number'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -312,6 +317,7 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
+    'phone_number': instance.phoneNumber,
   };
 }
 
@@ -496,6 +502,10 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'encryptionKey': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'encryption_key',
+    ),
+    'phoneNumber': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'phone_number',
     ),
   };
   @override
@@ -765,6 +775,12 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'encryptionKey': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'encryption_key',
+      iterable: false,
+      type: String,
+    ),
+    'phoneNumber': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'phone_number',
       iterable: false,
       type: String,
     ),

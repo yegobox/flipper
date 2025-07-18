@@ -19,56 +19,75 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: _buildAppBar(context, theme),
+      appBar: _buildAppBar(context, viewModel, theme),
       body: viewModel.isBusy
           ? _buildLoadingState()
-          : viewModel.data == null || viewModel.data!.isEmpty
-              ? _buildEmptyState()
+          : viewModel.filteredShifts.isEmpty
+              ? _buildEmptyState(viewModel.searchQuery.isNotEmpty ||
+                  viewModel.selectedStatus != null ||
+                  viewModel.startDate != null ||
+                  viewModel.endDate != null)
               : _buildShiftList(viewModel, currencySymbol, theme),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, ThemeData theme) {
+  PreferredSizeWidget _buildAppBar(
+      BuildContext context, ShiftHistoryViewModel viewModel, ThemeData theme) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
       foregroundColor: const Color(0xFF2C3E50),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0078D4).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+      title: viewModel.searchQuery.isEmpty
+          ? Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0078D4).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.history,
+                    color: Color(0xFF0078D4),
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Shift History',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
+              ],
+            )
+          : TextField(
+              onChanged: viewModel.setSearchQuery,
+              decoration: InputDecoration(
+                hintText: 'Search shifts...',
+                border: InputBorder.none,
+                hintStyle: TextStyle(color: Colors.grey[400]),
+              ),
+              autofocus: true,
             ),
-            child: const Icon(
-              Icons.history,
-              color: Color(0xFF0078D4),
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Text(
-            'Shift History',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF2C3E50),
-            ),
-          ),
-        ],
-      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.filter_list_outlined),
-          onPressed: () {
-            // Add filter functionality
-          },
+          onPressed: () => _showFilterOptions(context, viewModel),
         ),
         IconButton(
-          icon: const Icon(Icons.search_outlined),
+          icon: Icon(viewModel.searchQuery.isEmpty
+              ? Icons.search_outlined
+              : Icons.close),
           onPressed: () {
-            // Add search functionality
+            if (viewModel.searchQuery.isNotEmpty) {
+              viewModel.setSearchQuery('');
+            } else {
+              // This will trigger a rebuild and show the search field
+              viewModel.setSearchQuery(' '); // Set to non-empty to show field
+            }
           },
         ),
         const SizedBox(width: 8),
@@ -97,7 +116,7 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isFiltered) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -105,33 +124,43 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF0078D4).withValues(alpha: 0.1),
+              color: const Color(0xFF0078D4).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.history_outlined,
+            child: Icon(
+              isFiltered ? Icons.filter_alt_off : Icons.history_outlined,
               size: 48,
-              color: Color(0xFF0078D4),
+              color: const Color(0xFF0078D4),
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'No shifts found',
-            style: TextStyle(
+          Text(
+            isFiltered ? 'No matching shifts' : 'No shifts found',
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
               color: Color(0xFF2C3E50),
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Shift records will appear here once you\nstart managing your shifts.',
+          Text(
+            isFiltered
+                ? 'Try adjusting your filters or search query.'
+                : 'Shift records will appear here once you\nstart managing your shifts.',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Color(0xFF6C757D),
               fontSize: 14,
             ),
           ),
+          if (isFiltered)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: TextButton(
+                onPressed: () {},
+                child: const Text('Clear Filters'),
+              ),
+            ),
         ],
       ),
     );
@@ -144,9 +173,9 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
   ) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: viewModel.data!.length,
+      itemCount: viewModel.filteredShifts.length,
       itemBuilder: (context, index) {
-        final shift = viewModel.data![index];
+        final shift = viewModel.filteredShifts[index];
         return _buildShiftCard(shift, currencySymbol, theme);
       },
     );
@@ -164,13 +193,13 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.1),
+          color: Colors.grey.withOpacity(0.1),
           width: 1,
         ),
       ),
@@ -194,7 +223,7 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0078D4).withValues(alpha: 0.1),
+                          color: const Color(0xFF0078D4).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -291,13 +320,13 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: cashDifference > 0
-                          ? const Color(0xFF28A745).withValues(alpha: 0.1)
-                          : const Color(0xFFDC3545).withValues(alpha: 0.1),
+                          ? const Color(0xFF28A745).withOpacity(0.1)
+                          : const Color(0xFFDC3545).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: cashDifference > 0
-                            ? const Color(0xFF28A745).withValues(alpha: 0.3)
-                            : const Color(0xFFDC3545).withValues(alpha: 0.3),
+                            ? const Color(0xFF28A745).withOpacity(0.3)
+                            : const Color(0xFFDC3545).withOpacity(0.3),
                       ),
                     ),
                     child: Row(
@@ -391,10 +420,10 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withValues(alpha: 0.3),
+          color: color.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -433,6 +462,176 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     final minutes = duration.inMinutes % 60;
 
     return 'Duration: ${hours}h ${minutes}m';
+  }
+
+  Future<void> _showFilterOptions(
+      BuildContext context, ShiftHistoryViewModel viewModel) async {
+    final selectedStatus = viewModel.selectedStatus;
+    final startDate = viewModel.startDate;
+    final endDate = viewModel.endDate;
+
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        ShiftStatus? tempSelectedStatus = selectedStatus;
+        DateTime? tempStartDate = startDate;
+        DateTime? tempEndDate = endDate;
+
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Filter Shifts',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Shift Status',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  Wrap(
+                    spacing: 10,
+                    children: ShiftStatus.values.map((status) {
+                      return ChoiceChip(
+                        label: Text(status.name),
+                        selected: tempSelectedStatus == status,
+                        onSelected: (selected) {
+                          setModalState(() {
+                            tempSelectedStatus = selected ? status : null;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Date Range',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateInput(
+                          context,
+                          'Start Date',
+                          tempStartDate,
+                          (date) => setModalState(() => tempStartDate = date),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildDateInput(
+                          context,
+                          'End Date',
+                          tempEndDate,
+                          (date) => setModalState(() => tempEndDate = date),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setModalState(() {
+                              tempSelectedStatus = null;
+                              tempStartDate = null;
+                              tempEndDate = null;
+                            });
+                            viewModel.clearFilters();
+                            Navigator.pop(context);
+                          },
+                          child: const Text('Clear All'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context, {
+                              'status': tempSelectedStatus,
+                              'startDate': tempStartDate,
+                              'endDate': tempEndDate,
+                            });
+                          },
+                          child: const Text('Apply Filters'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null) {
+      viewModel.setSelectedStatus(result['status']);
+      viewModel.setStartDate(result['startDate']);
+      viewModel.setEndDate(result['endDate']);
+    }
+  }
+
+  Widget _buildDateInput(BuildContext context, String label, DateTime? date,
+      ValueChanged<DateTime?> onChanged) {
+    return InkWell(
+      onTap: () async {
+        final selectedDate = await showDatePicker(
+          context: context,
+          initialDate: date ?? DateTime.now(),
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+        );
+        onChanged(selectedDate);
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+          suffixIcon: date != null
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () => onChanged(null),
+                )
+              : const Icon(Icons.calendar_today),
+        ),
+        child: Text(
+          date == null ? 'Select Date' : DateFormat('MMM dd, yyyy').format(date),
+          style: const TextStyle(fontSize: 16),
+        ),
+      ),
+    );
   }
 
   @override

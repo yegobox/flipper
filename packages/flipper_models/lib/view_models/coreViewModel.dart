@@ -430,15 +430,19 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<List<Variant>> getVariants({required String productId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    _variants = await ProxyService.strategy
-        .variants(branchId: branchId, productId: productId);
+    _variants = await ProxyService.strategy.variants(
+        branchId: branchId,
+        productId: productId,
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
     notifyListeners();
     return _variants;
   }
 
   Future<Variant?> getVariant({required String variantId}) async {
     return (await ProxyService.strategy.variants(
-            variantId: variantId, branchId: ProxyService.box.getBranchId()!))
+            taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+            variantId: variantId,
+            branchId: ProxyService.box.getBranchId()!))
         .firstOrNull;
   }
 
@@ -976,7 +980,11 @@ class CoreViewModel extends FlipperBaseModel
           );
           variant.ebmSynced = false;
           variant.pchsSttsCd = pchsSttsCd;
-          await ProxyService.strategy.updateVariant(updatables: [variant]);
+          await ProxyService.strategy.updateVariant(
+              updatables: [variant],
+              purchase: purchase,
+              approvedQty: variant.stock?.currentStock,
+              invoiceNumber: purchase.spplrInvcNo);
         }
       }
 
@@ -1015,7 +1023,11 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.strategy
               .updateVariant(updatables: [variantFromPurchase]);
 
-          await ProxyService.strategy.updateVariant(updatables: [variant]);
+          await ProxyService.strategy.updateVariant(
+              updatables: [variant],
+              purchase: purchase,
+              approvedQty: variantFromPurchase.stock?.currentStock,
+              invoiceNumber: purchase.spplrInvcNo);
         }
       });
       isLoading = false;
@@ -1087,8 +1099,10 @@ class CoreViewModel extends FlipperBaseModel
         incomingImportVariant.assigned = true;
         await ProxyService.strategy
             .updateVariant(updatables: [incomingImportVariant]);
-        await ProxyService.strategy
-            .updateVariant(updatables: [existingVariantToUpdate]);
+        await ProxyService.strategy.updateVariant(
+          updatables: [existingVariantToUpdate],
+          approvedQty: incomingImportVariant.stock?.currentStock,
+        );
       }
     } else {
       existingVariantToUpdate = incomingImportVariant;
@@ -1102,7 +1116,10 @@ class CoreViewModel extends FlipperBaseModel
       existingVariantToUpdate.imptItemSttsCd = "3";
       existingVariantToUpdate.assigned = false;
 
-      await _updateVariant(existingVariantToUpdate);
+      await _updateVariant(
+        existingVariantToUpdate,
+        approvedQty: incomingImportVariant.stock?.currentStock,
+      );
       // get freshly updated Variant with its updated stock.
       existingVariantToUpdate = await ProxyService.strategy
               .getVariant(id: existingVariantToUpdate.id) ??
@@ -1127,8 +1144,11 @@ class CoreViewModel extends FlipperBaseModel
         value: item.stock!.currentStock! * item.retailPrice!);
   }
 
-  Future<void> _updateVariant(Variant variant) async {
-    await ProxyService.strategy.updateVariant(updatables: [variant]);
+  Future<void> _updateVariant(Variant variant, {double? approvedQty}) async {
+    await ProxyService.strategy.updateVariant(
+      updatables: [variant],
+      approvedQty: approvedQty,
+    );
   }
 
   Future<void> rejectImportItem(Variant item) async {

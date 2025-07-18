@@ -2,7 +2,6 @@
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';

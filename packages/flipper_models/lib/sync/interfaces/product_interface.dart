@@ -81,4 +81,6 @@ abstract class ProductInterface {
   });
 
   Future<void> hydrateDate({required String branchId});
+  Future<void> hydrateCodes({required int branchId});
+  Future<void> hydrateSars({required int branchId});
 }

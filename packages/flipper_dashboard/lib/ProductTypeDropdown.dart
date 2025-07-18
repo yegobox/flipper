@@ -35,14 +35,7 @@ class _ProductTypeDropdownState extends State<ProductTypeDropdown> {
         ),
         child: DropdownButton<String>(
           value: widget.selectedValue,
-          onChanged: widget.isEditMode
-              ? (value) {
-                  // In edit mode, only change if user explicitly selects a value
-                  if (value != null) {
-                    widget.onChanged(value);
-                  }
-                }
-              : widget.onChanged,
+          onChanged: widget.isEditMode ? null : widget.onChanged,
           items: options.map((option) {
             return DropdownMenuItem<String>(
               value: option['value'],

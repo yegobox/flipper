@@ -1,3 +1,6 @@
+import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_dashboard/QuantityCell.dart';
 import 'package:flipper_dashboard/TaxDropdown.dart';
 import 'package:flipper_dashboard/UnitOfMeasureDropdown.dart';
@@ -5,6 +8,7 @@ import 'package:flipper_dashboard/UniversalProductDropdown.dart';
 import 'package:flipper_dashboard/_showEditQuantityDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,7 +33,9 @@ class TableVariants extends StatelessWidget {
     required this.unversalProducts,
     required this.units,
     required this.onDateChanged,
+    this.isEditMode = false,
   }) : super(key: key);
+  final bool isEditMode;
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +139,19 @@ class TableVariants extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () => model.removeVariant(id: variant.id),
+              onPressed: () {
+                if (variant.stock?.currentStock != 0) {
+                  final dialogService = locator<DialogService>();
+                  dialogService.showCustomDialog(
+                    variant: DialogType.info,
+                    title: 'Error',
+                    description: 'Cannot delete variant with stock remaining.',
+                    data: {'status': InfoDialogStatus.error},
+                  );
+                } else {
+                  model.removeVariant(id: variant.id);
+                }
+              },
             ),
           ],
         ),
@@ -146,17 +164,19 @@ class TableVariants extends StatelessWidget {
                     'Quantity',
                     QuantityCell(
                       quantity: variant.stock?.currentStock,
-                      onEdit: () {
-                        showEditQuantityDialog(
-                          context,
-                          variant,
-                          model,
-                          () {
-                            FocusScope.of(context)
-                                .requestFocus(scannedInputFocusNode);
-                          },
-                        );
-                      },
+                      onEdit: isEditMode
+                          ? () {}
+                          : () {
+                              showEditQuantityDialog(
+                                context,
+                                variant,
+                                model,
+                                () {
+                                  FocusScope.of(context)
+                                      .requestFocus(scannedInputFocusNode);
+                                },
+                              );
+                            },
                     )),
                 _buildMobileInfoRow('Tax',
                     Consumer(builder: (context, ref, child) {
@@ -170,6 +190,7 @@ class TableVariants extends StatelessWidget {
                           ? variant.taxTyCd
                           : "B";
                       return TaxDropdown(
+                        isEditMode: isEditMode,
                         selectedValue: currentValue,
                         options: options,
                         onChanged: (newValue) =>
@@ -325,16 +346,19 @@ class TableVariants extends StatelessWidget {
         DataCell(
           QuantityCell(
             quantity: variant.stock?.currentStock,
-            onEdit: () {
-              showEditQuantityDialog(
-                context,
-                variant,
-                model,
-                () {
-                  FocusScope.of(context).requestFocus(scannedInputFocusNode);
-                },
-              );
-            },
+            onEdit: isEditMode
+                ? () {}
+                : () {
+                    showEditQuantityDialog(
+                      context,
+                      variant,
+                      model,
+                      () {
+                        FocusScope.of(context)
+                            .requestFocus(scannedInputFocusNode);
+                      },
+                    );
+                  },
           ),
         ),
         DataCell(Consumer(builder: (context, ref, child) {
@@ -349,17 +373,20 @@ class TableVariants extends StatelessWidget {
               return TaxDropdown(
                 selectedValue: currentValue,
                 options: options,
+                isEditMode: isEditMode,
                 onChanged: (newValue) => model.updateTax(variant, newValue),
               );
             },
             loading: () => TaxDropdown(
               selectedValue: variant.taxTyCd,
               options: ["A", "B", "C", "D"],
+              isEditMode: isEditMode,
               onChanged: (newValue) => model.updateTax(variant, newValue),
             ),
             error: (_, __) => TaxDropdown(
               selectedValue: variant.taxTyCd,
               options: ["A", "B", "C", "D"],
+              isEditMode: isEditMode,
               onChanged: (newValue) => model.updateTax(variant, newValue),
             ),
           );
@@ -418,7 +445,19 @@ class TableVariants extends StatelessWidget {
         DataCell(
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: () => model.removeVariant(id: variant.id),
+            onPressed: () {
+              if (variant.stock?.currentStock != 0) {
+                final dialogService = locator<DialogService>();
+                dialogService.showCustomDialog(
+                  variant: DialogType.info,
+                  title: 'Error',
+                  description: 'Cannot delete variant with stock remaining.',
+                  data: {'status': InfoDialogStatus.error},
+                );
+              } else {
+                model.removeVariant(id: variant.id);
+              }
+            },
           ),
         ),
       ],

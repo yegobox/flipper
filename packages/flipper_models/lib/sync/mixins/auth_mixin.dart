@@ -82,12 +82,12 @@ mixin AuthMixin implements AuthInterface {
     } else if (e is LoginChoicesException) {
       if (responseChannel != null) {
         try {
-          await ProxyService.event.publish(loginDetails: {
-            'channel': responseChannel,
-            'status':
-                'choices_needed', // Special status for business/branch selection
-            'message': 'Please select a business and branch',
-          });
+          // await ProxyService.event.publish(loginDetails: {
+          //   'channel': responseChannel,
+          //   'status':
+          //       'choices_needed', // Special status for business/branch selection
+          //   'message': 'Please select a business and branch',
+          // });
         } catch (responseError) {
           talker.error('Failed to send login response: $responseError');
         }
@@ -114,11 +114,11 @@ mixin AuthMixin implements AuthInterface {
     // This is used for QR code login to notify the mobile device of login failure
     if (responseChannel != null) {
       try {
-        await ProxyService.event.publish(loginDetails: {
-          'channel': responseChannel,
-          'status': 'failure',
-          'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
-        });
+        // await ProxyService.event.publish(loginDetails: {
+        //   'channel': responseChannel,
+        //   'status': 'failure',
+        //   'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
+        // });
         talker
             .debug("Sent login failure response to channel: $responseChannel");
       } catch (responseError) {
@@ -542,6 +542,7 @@ mixin AuthMixin implements AuthInterface {
     // get userId of the user that is trying to log in
     final savedLocalPinForThis = await ProxyService.strategy
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
+    uid ??= savedLocalPinForThis?.uid;
     final tenants = await ProxyService.strategy
         .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
 
@@ -604,9 +605,11 @@ mixin AuthMixin implements AuthInterface {
       }
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(uid != null
-            ? <String, String?>{'phoneNumber': phoneNumber, 'uid': uid}
-            : <String, String?>{'phoneNumber': phoneNumber}),
+        body: jsonEncode(<String, String?>{
+          'phoneNumber': phoneNumber,
+          // TODO: fix this on api level so it works, currently not accepting uuid.
+          // if (uid != null && uid.isNotEmpty) 'uid': uid
+        }),
       );
 
       // Check for 401 Unauthorized response
@@ -622,6 +625,7 @@ mixin AuthMixin implements AuthInterface {
         throw Exception(
             "Authentication failed with status code ${response.statusCode}");
       }
+      //
 
       // Validate response body
       if (response.body.isEmpty) {
@@ -679,6 +683,9 @@ mixin AuthMixin implements AuthInterface {
             final iBusiness = IBusiness.fromJson(businessData);
             // Convert IBusiness to Business (from supabase_models)
             final business = Business(
+              phoneNumber: businessData['phoneNumber'] as String? ??
+                  iBusiness.phoneNumber ??
+                  '',
               id: iBusiness.id,
               serverId: iBusiness.serverId,
               name: iBusiness.name,
@@ -818,8 +825,7 @@ mixin AuthMixin implements AuthInterface {
           .writeString(key: 'business_${e.serverId}_uuid', value: e.id);
 
       return IBusiness(
-        // For id, we need to use serverId for backward compatibility
-        // since IBusiness.id expects an int
+        phoneNumber: e.phoneNumber,
         id: e.id,
         serverId: e.serverId,
         name: e.name ?? '',

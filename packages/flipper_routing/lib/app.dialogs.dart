@@ -7,6 +7,8 @@
 import 'package:stacked_services/stacked_services.dart';
 
 import 'app.locator.dart';
+import 'package:flipper_dashboard/info_dialog.dart';
+import 'package:flipper_dashboard/items_dialog.dart';
 import 'package:flipper_dashboard/logout/logout.dart';
 import 'package:flipper_socials/ui/dialogs/app_center/app_center.dart';
 import 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';
@@ -22,6 +24,8 @@ enum DialogType {
   startShift,
   closeShift,
   appChoice,
+  info,
+  items,
 }
 
 void setupDialogUi() {
@@ -40,6 +44,10 @@ void setupDialogUi() {
         CloseShiftDialog(request: request, completer: completer),
     DialogType.appChoice: (context, request, completer) =>
         AppChoiceDialog(request: request, completer: completer),
+    DialogType.info: (context, request, completer) =>
+        InfoDialog(request: request, completer: completer),
+    DialogType.items: (context, request, completer) =>
+        ItemsDialog(request: request, completer: completer),
   };
 
   dialogService.registerCustomDialogBuilders(builders);

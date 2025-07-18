@@ -20,7 +20,6 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? longitude;
   int? userId;
   String? timeZone;
-  // List<String>? channels;
   String? country;
   String? businessUrl;
   String? hexColor;
@@ -59,6 +58,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   DateTime? deletedAt;
 
   String? encryptionKey;
+  String? phoneNumber;
 
   Business({
     String? id,
@@ -104,6 +104,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.lastTouched,
     this.deletedAt,
     this.encryptionKey,
+    this.phoneNumber,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -151,6 +152,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     DateTime? lastTouched,
     DateTime? deletedAt,
     String? encryptionKey,
+    String? phoneNumber,
   }) {
     return Business(
       id: id ?? this.id,
@@ -183,6 +185,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded ??
           this.isLastSubscriptionPaymentSucceeded,
       backupFileId: backupFileId ?? this.backupFileId,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
     );
   }
 
@@ -238,8 +241,8 @@ class Business extends OfflineFirstWithSupabaseModel {
       deletedAt: map['deletedAt'] == null
           ? null
           : DateTime.tryParse(map['deletedAt'].toString()),
-      encryptionKey:
-          map['encryptionKey'] as String?, // Changed from encryption_key
+      encryptionKey: map['encryptionKey'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
     );
   }
   // to json
@@ -287,6 +290,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       'lastTouched': lastTouched,
       'deletedAt': deletedAt,
       'encryptionKey': encryptionKey,
+      'phoneNumber': phoneNumber,
     };
   }
 }

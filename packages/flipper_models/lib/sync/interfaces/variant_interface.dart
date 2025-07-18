@@ -9,9 +9,8 @@ abstract class VariantInterface {
     String? productId,
     int? page,
     String? variantId,
-    String? name,
+    String? name, // Can be a name or a barcode
     String? pchsSttsCd,
-    String? bcd,
     String? purchaseId,
     int? itemsPerPage,
     String? imptItemSttsCd,
@@ -20,6 +19,7 @@ abstract class VariantInterface {
     bool fetchRemote = false,
     bool forImportScreen = false,
     bool? stockSynchronized,
+    required List<String> taxTyCds,
   });
   Future<Variant?> getVariant({required String id});
 
@@ -51,11 +51,14 @@ abstract class VariantInterface {
       bool? ebmSynced,
       String? categoryId,
       double? dcRt,
+      Purchase? purchase,
 
       /// this is used when we need to update variant without updating IO
       /// case of Normal refund as this might have been updated before
       bool updateIo = true,
       double? prc,
+      num? approvedQty,
+      num? invoiceNumber,
       double? dftPrc});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});

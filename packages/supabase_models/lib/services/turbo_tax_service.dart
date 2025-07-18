@@ -3,6 +3,7 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -54,6 +55,9 @@ class TurboTaxService {
     required String serverUrl,
     ITransaction? transaction,
     String? sarTyCd,
+    required int invoiceNumber,
+    num? approvedQty,
+    Purchase? purchase,
   }) async {
     if (await TurboTaxService.handleProformaOrTrainingMode()) {
       return true;
@@ -128,6 +132,9 @@ class TurboTaxService {
       serverUrl: serverUrl,
       variant: variant,
       sarTyCd: sarTyCd,
+      invoiceNumber: invoiceNumber,
+      approvedQty: approvedQty,
+      purchase: purchase,
     );
   }
 
@@ -182,6 +189,9 @@ class TurboTaxService {
     required String serverUrl,
     Variant? variant,
     String? sarTyCd,
+    required int invoiceNumber,
+    num? approvedQty,
+    Purchase? purchase,
   }) async {
     // Get business and transaction
     final business = await ProxyService.strategy
@@ -196,10 +206,11 @@ class TurboTaxService {
         status: PENDING,
         branchId: ProxyService.box.getBranchId()!,
       );
-      await ProxyService.strategy.assignTransaction(
+      transaction = await ProxyService.strategy.assignTransaction(
         variant: variant,
+        purchase: purchase,
         doneWithTransaction: true,
-        invoiceNumber: 0,
+        invoiceNumber: invoiceNumber,
         updatableQty: variant.stock?.currentStock,
         pendingTransaction: pendingTransaction!,
         business: business!,
@@ -250,7 +261,10 @@ class TurboTaxService {
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         customerName: null,
         custTin: null,
+        invoiceNumber: invoiceNumber,
+        approvedQty: approvedQty,
         regTyCd: "A",
+        sarNo: transaction?.invoiceNumber.toString(),
         sarTyCd: sarTyCd ?? pendingTransaction.sarTyCd!,
         custBhfId: pendingTransaction.customerBhfId,
         totalSupplyPrice: pendingTransaction.subTotal!,
@@ -313,8 +327,13 @@ class TurboTaxService {
 
       // Variant variant = Variant.copyFromTransactionItem(item);
       // get transaction items
-      await stockIo(
-          serverUrl: serverUrl, transaction: instance, sarTyCd: sarTyCd);
+      if (instance.invoiceNumber != null) {
+        await stockIo(
+            invoiceNumber: instance.invoiceNumber!,
+            serverUrl: serverUrl,
+            transaction: instance,
+            sarTyCd: sarTyCd);
+      }
 
       talker
           .info("Successfully synced all items for transaction ${instance.id}");

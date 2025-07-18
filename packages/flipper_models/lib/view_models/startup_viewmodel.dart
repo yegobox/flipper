@@ -46,8 +46,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // --- DB Migration Step for folder rename (_db -> .db) ---
       try {
         final appDir = await getApplicationDocumentsDirectory();
-        await migrateOldDbFiles(appDir: appDir.path, talker: talker);
-        // Always attempt to hide .db folder on Windows
         await hideDbDirectoryIfWindows(appDir: appDir.path, talker: talker);
       } catch (e) {
         talker.warning("DB migration step failed: $e");

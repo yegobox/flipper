@@ -44,6 +44,7 @@ import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 import '../brick/models/itemCode.model.dart';
 import '../brick/models/import_purchase_dates.model.dart';
 import '../brick/models/stock.model.dart';
+import '../brick/models/sars.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/retryable.model.dart';
 import '../brick/models/category.model.dart';
@@ -100,6 +101,7 @@ import '../brick/models/plans.model.dart';
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
 part 'adapters/stock_adapter.g.dart';
+part 'adapters/sar_adapter.g.dart';
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/retryable_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
@@ -158,6 +160,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   ItemCode: ItemCodeAdapter(),
   ImportPurchaseDates: ImportPurchaseDatesAdapter(),
   Stock: StockAdapter(),
+  Sar: SarAdapter(),
   Counter: CounterAdapter(),
   Retryable: RetryableAdapter(),
   Category: CategoryAdapter(),
@@ -218,6 +221,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   ItemCode: ItemCodeAdapter(),
   ImportPurchaseDates: ImportPurchaseDatesAdapter(),
   Stock: StockAdapter(),
+  Sar: SarAdapter(),
   Counter: CounterAdapter(),
   Retryable: RetryableAdapter(),
   Category: CategoryAdapter(),

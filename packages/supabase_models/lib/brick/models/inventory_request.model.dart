@@ -59,7 +59,7 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
     this.branch,
     this.deliveryDate,
     this.deliveryNote,
-    required this.financingId,
+    this.financingId,
     this.orderNote,
     this.customerReceivedOrder,
     this.driverRequestDeliveryConfirmation,
@@ -70,7 +70,9 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   }) : id = id ?? const Uuid().v4();
 
   Future<InventoryRequest> copyWith(
-      {Branch? branch, Financing? financing}) async {
+      {Branch? branch,
+      Financing? financing,
+      List<TransactionItem>? transactionItems}) async {
     return InventoryRequest(
       id: id,
       mainBranchId: mainBranchId,
@@ -85,13 +87,13 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
       customerReceivedOrder: customerReceivedOrder,
       driverRequestDeliveryConfirmation: driverRequestDeliveryConfirmation,
       driverId: driverId,
-      transactionItems: transactionItems,
+      transactionItems: transactionItems ?? this.transactionItems,
       updatedAt: updatedAt,
       itemCounts: itemCounts,
       bhfId: bhfId,
       tinNumber: tinNumber,
-      financing: financing,
-      branch: branch,
+      financing: financing ?? this.financing,
+      branch: branch ?? this.branch,
     );
   }
 }

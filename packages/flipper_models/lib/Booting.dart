@@ -157,6 +157,7 @@ mixin Booting {
     for (IBusiness business in businesses) {
       await ProxyService.strategy.addBusiness(
         id: business.id,
+        phoneNumber: business.phoneNumber!,
         userId: business.userId is String
             ? int.parse(business.userId)
             : business.userId,
@@ -164,7 +165,7 @@ mixin Booting {
         serverId: business.serverId,
         name: business.name,
         currency: business.currency,
-        categoryId: business.categoryId,
+        categoryId: business.categoryId.toString(),
         latitude: business.latitude,
         longitude: business.longitude,
         timeZone: business.timeZone,

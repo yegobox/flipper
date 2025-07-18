@@ -15,15 +15,11 @@ class Log extends OfflineFirstWithSupabaseModel {
   String? type;
   int? businessId;
   DateTime? createdAt;
-  Map<String, String>? tags;
-  Map<String, String>? extra;
   Log({
     String? id,
     this.message,
     this.type,
     this.businessId,
     this.createdAt,
-    this.tags,
-    this.extra,
   }) : id = id ?? const Uuid().v4();
 }

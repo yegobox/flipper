@@ -13,6 +13,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         buttonIndexProvider,
         selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
@@ -80,7 +81,7 @@ class IconRow extends StatefulHookConsumerWidget {
 
 class IconRowState extends ConsumerState<IconRow>
     with CoreMiscellaneous, BranchSelectionMixin {
-  final List<bool> _isSelected = [true, false, false, false, false];
+  final List<bool> _isSelected = [true, false, false, false, false, false];
   String? _loadingItemId; // Add this
   bool _isLoading = false;
 
@@ -119,6 +120,13 @@ class IconRowState extends ConsumerState<IconRow>
               } else {
                 _showBranchPerformance(context);
               }
+            }),
+            _buildIconText(context, Icons.inventory_2_outlined, 'Items', 5,
+                const Key('items_desktop'), () {
+              final dialogService = locator<DialogService>();
+              dialogService.showCustomDialog(
+                variant: DialogType.items,
+              );
             }),
           ],
           onPressed: _onTogglePressed,

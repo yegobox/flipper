@@ -13,6 +13,9 @@ class AdminSettingsService {
   static Future<void> toggleForceUPSERT() async {
     try {
       await ProxyService.strategy.variants(
+        taxTyCds: ProxyService.box.vatEnabled()
+            ? ['A', 'B', 'C']
+            : ['D'],
         branchId: ProxyService.box.getBranchId()!,
         fetchRemote: true,
       );

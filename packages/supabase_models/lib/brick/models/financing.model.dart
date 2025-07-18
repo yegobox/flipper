@@ -27,4 +27,24 @@ class Financing extends OfflineFirstWithSupabaseModel {
     this.amount,
     required this.approvalDate,
   }) : id = id ?? const Uuid().v4();
+  //copyWith
+  Financing copyWith({
+    String? id,
+    bool? requested,
+    String? status,
+    FinanceProvider? provider,
+    String? financeProviderId,
+    num? amount,
+    DateTime? approvalDate,
+  }) {
+    return Financing(
+      id: id ?? this.id,
+      requested: requested ?? this.requested,
+      status: status ?? this.status,
+      provider: provider ?? this.provider,
+      financeProviderId: financeProviderId ?? this.financeProviderId,
+      amount: amount ?? this.amount,
+      approvalDate: approvalDate ?? this.approvalDate,
+    );
+  }
 }

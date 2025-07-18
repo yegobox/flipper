@@ -57,6 +57,7 @@ abstract class BusinessInterface {
       bool? isDefault,
       int? businessTypeId,
       DateTime? lastTouched,
+      required String phoneNumber,
       DateTime? deletedAt,
       required String encryptionKey});
   Future<void> updateBusiness(

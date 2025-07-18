@@ -26,7 +26,7 @@ Future<void> showVariantEditDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Edit Item'),
+        title: const Text('Assign Variant'),
         content: SizedBox(
           width: 400,
           child: Column(
