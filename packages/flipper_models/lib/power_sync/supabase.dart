@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flutter/foundation.dart';
@@ -24,8 +25,10 @@ Future<void> loadSupabase() async {
     }
 
     await Repository().initialize();
-  } catch (e) {
+  } catch (e, s) {
     debugPrint('Error initializing Supabase: $e');
+    debugPrint('Error initializing Supabase: $s');
+    talker.error(s);
     // In test environment, we'll continue even if Supabase fails
     if (!isTestEnvironment()) {
       rethrow;
