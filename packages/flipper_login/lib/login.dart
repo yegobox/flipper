@@ -6,7 +6,6 @@ import 'package:flipper_login/LoadingDialog.dart';
 import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/all_routes.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
