@@ -63,7 +63,7 @@ Future<void> main() async {
 
   // Centralized initialization function
   Future<void> initializeApp() async {
-    if (skipDependencyInitialization = false) {
+    if (!skipDependencyInitialization) {
       await _initializeFirebase();
       await initializeDependencies();
       await _initializeSupabase();
