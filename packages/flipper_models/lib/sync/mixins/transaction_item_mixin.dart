@@ -39,17 +39,30 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       // Defensive check: Ensure the parent transaction exists in the repository
       // This helps prevent foreign key constraint errors if the transaction
       // hasn't been fully committed yet, or if there's a timing issue.
-      final existingTransaction = await repository.get<ITransaction>(
+      ITransaction? committedTransaction = (await repository.get<ITransaction>(
         query: Query(where: [Where('id').isExactly(transaction.id)]),
         policy: OfflineFirstGetPolicy.localOnly,
-      );
+      ))
+          .firstOrNull;
 
-      if (existingTransaction.isEmpty) {
-        talker.warning(
-            'Parent transaction with ID ${transaction.id} not found in repository. Cannot add item.');
-        throw Exception(
-            'Parent transaction not found for item insertion. Ensure the transaction is saved before adding items.');
+      if (committedTransaction == null) {
+        // If not found, try to upsert it to ensure it exists and is committed
+        await repository.upsert<ITransaction>(transaction);
+        committedTransaction = (await repository.get<ITransaction>(
+          query: Query(where: [Where('id').isExactly(transaction.id)]),
+          policy: OfflineFirstGetPolicy.localOnly,
+        ))
+            .firstOrNull;
+
+        if (committedTransaction == null) {
+          talker.warning(
+              'Parent transaction with ID ${transaction.id} could not be committed or found. Cannot add item.');
+          throw Exception(
+              'Parent transaction not found or could not be committed for item insertion.');
+        }
       }
+      // Use the committedTransaction for further operations
+      transaction = committedTransaction;
 
       TransactionItem transactionItem;
       num taxAmt = 0;

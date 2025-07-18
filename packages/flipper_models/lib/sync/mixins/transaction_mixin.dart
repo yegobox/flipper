@@ -436,6 +436,19 @@ mixin TransactionMixin implements TransactionInterface {
 
       await repository.upsert<ITransaction>(transaction);
 
+      // Re-fetch the transaction to ensure it has its brick_id populated
+      final committedTransaction = (await repository.get<ITransaction>(
+        query: Query(where: [Where('id').isExactly(transaction.id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      ))
+          .firstOrNull;
+
+      if (committedTransaction == null) {
+        throw Exception(
+            'Failed to retrieve committed ITransaction after upsert.');
+      }
+      transaction = committedTransaction; // Use the committed version
+
       _isProcessingTransactionMap[branchId] =
           false; // Unlock processing for this branch
     }
