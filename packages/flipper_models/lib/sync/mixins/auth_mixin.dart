@@ -82,12 +82,12 @@ mixin AuthMixin implements AuthInterface {
     } else if (e is LoginChoicesException) {
       if (responseChannel != null) {
         try {
-          await ProxyService.event.publish(loginDetails: {
-            'channel': responseChannel,
-            'status':
-                'choices_needed', // Special status for business/branch selection
-            'message': 'Please select a business and branch',
-          });
+          // await ProxyService.event.publish(loginDetails: {
+          //   'channel': responseChannel,
+          //   'status':
+          //       'choices_needed', // Special status for business/branch selection
+          //   'message': 'Please select a business and branch',
+          // });
         } catch (responseError) {
           talker.error('Failed to send login response: $responseError');
         }
@@ -114,11 +114,11 @@ mixin AuthMixin implements AuthInterface {
     // This is used for QR code login to notify the mobile device of login failure
     if (responseChannel != null) {
       try {
-        await ProxyService.event.publish(loginDetails: {
-          'channel': responseChannel,
-          'status': 'failure',
-          'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
-        });
+        // await ProxyService.event.publish(loginDetails: {
+        //   'channel': responseChannel,
+        //   'status': 'failure',
+        //   'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
+        // });
         talker
             .debug("Sent login failure response to channel: $responseChannel");
       } catch (responseError) {

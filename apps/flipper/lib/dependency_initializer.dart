@@ -65,6 +65,7 @@ class MyHttpOverrides extends HttpOverrides {
 Future<void> _initializeCriticalDependencies() async {
   // Configure HTTP overrides for SSL/TLS connections
   if (!foundation.kIsWeb) {
+    
     HttpOverrides.global = MyHttpOverrides();
     talker.info('HTTP overrides configured for secure connections');
     ByteData data =
