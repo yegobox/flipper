@@ -4,7 +4,6 @@ import 'package:injectable/injectable.dart';
 import 'locator.config.dart';
 
 final GetIt getIt = GetIt.instance;
-bool _dependenciesInitialized = false;
 
 @InjectableInit(
   preferRelativeImports: true,
@@ -20,17 +19,12 @@ Future<void> initDependencies({
     environmentFilter: environmentFilter,
     environment: env,
   );
-  _dependenciesInitialized = true; // Set flag after initialization
 }
 
 // Add the reset method
 Future<void> resetDependencies({bool dispose = true}) async {
   await getIt.reset(dispose: dispose);
-  _dependenciesInitialized = false; // Reset flag after reset
 }
-
-// Getter to access _dependenciesInitialized
-bool get areDependenciesInitialized => _dependenciesInitialized;
 
 // New method to push a new scope
 void pushNewScope() {
