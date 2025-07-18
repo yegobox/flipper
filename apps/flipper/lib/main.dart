@@ -72,7 +72,7 @@ Future<void> main() async {
       setupDialogUi();
       setupBottomSheetUi();
       await initDependencies();
-      initializeNonCriticalDependencies();
+      await initializeDependencies();
     }
   }
 
