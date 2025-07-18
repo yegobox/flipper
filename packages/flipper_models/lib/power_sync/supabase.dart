@@ -9,15 +9,19 @@ bool isTestEnvironment() {
 
 Future<void> loadSupabase() async {
   try {
+    talker.info('Initializing Supabase with:');
+    talker.info('  URL: ${AppSecrets.superbaseurl}');
+    talker.info('  Anon Key: ${AppSecrets.supabaseAnonKey}');
+    debugPrint('Initializing Supabase with:');
+    debugPrint('  URL: ${AppSecrets.superbaseurl}');
+    debugPrint('  Anon Key: ${AppSecrets.supabaseAnonKey}');
+
     if (isTestEnvironment()) {
       await Repository.initializeSupabaseAndConfigure(
-        // supabaseUrl: 'mock://supabase',
-        // supabaseAnonKey: 'test-key',
         supabaseUrl: AppSecrets.superbaseurl,
         supabaseAnonKey: AppSecrets.supabaseAnonKey,
       );
     } else {
-      //   // Production initialization
       await Repository.initializeSupabaseAndConfigure(
         supabaseUrl: AppSecrets.superbaseurl,
         supabaseAnonKey: AppSecrets.supabaseAnonKey,
