@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223234454+1752825846
+version: 1.170.4252223234455+1752826573
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -20,7 +20,7 @@ dependencies:
   flutter_local_notifications: ^19.1.0
   intl: ^0.20.2
   injectable: ^2.5.0
-  get_it: ^7.7.0
+  get_it: ^8.0.3
   stacked: ^3.4.3
   meta: "^1.7.0"
   get: ^4.6.1
@@ -182,12 +182,12 @@ dependency_overrides:
   firebase_ui_auth: ^1.16.1
   firebase_dynamic_links: ^6.1.5
   archive: ^3.6.1
-  
+  get_it: ^8.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  msix: ^3.16.8
+  msix: ^3.16.9
   patrol: ^3.14.0
   # Java interop code generation
   jnigen: ^0.14.1
@@ -224,7 +224,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.4604.0
+  msix_version: 1.170.4605.0
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"

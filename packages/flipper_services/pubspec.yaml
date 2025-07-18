@@ -37,7 +37,7 @@ dependencies:
   timezone: ^0.10.0
   connectivity_plus: ^6.0.5
   flutter_statusbarcolor_ns: ^0.5.0-flipper
-  get_it: ^7.7.0
+  get_it: ^8.0.3
   injectable: ^2.5.0
   flipper_routing: ^1.0.0
   flipper_models: any
