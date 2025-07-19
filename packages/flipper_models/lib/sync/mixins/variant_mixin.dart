@@ -55,24 +55,20 @@ mixin VariantMixin implements VariantInterface {
       }
 
       if (forImportScreen) {
-        conditions.addAll([
+        conditions.add(WherePhrase([
           Where('imptItemSttsCd').isExactly("2"),
           Or('imptItemSttsCd').isExactly("3"),
           Or('imptItemSttsCd').isExactly("4"),
           Or('dclDe').isNot(null),
-        ]);
+        ]));
       } else if (forPurchaseScreen) {
-        conditions.addAll([
-          Where('pchsSttsCd').isExactly("01"),
-          Or('pchsSttsCd').isExactly("02"),
-          Or('pchsSttsCd').isExactly("04"),
-        ]);
+        conditions.add(Where('pchsSttsCd').isIn(["01", "02", "04"]));
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
         conditions.add(
           WherePhrase([
-            Or('name').contains(name),
+            Where('name').contains(name),
             Or('bcd').isExactly(name),
           ]),
         );
@@ -120,12 +116,22 @@ mixin VariantMixin implements VariantInterface {
         orderBy: [const OrderBy('lastTouched', ascending: false)],
       );
 
+      /// when fetching remotely, fetch all variants and sort them by lastTouched
       List<Variant> fetchedVariants = await repository.get<Variant>(
-        query: query,
+        query: fetchRemote
+            ? Query(
+                where: [Where('branchId').isExactly(branchId)],
+                orderBy: [const OrderBy('lastTouched', ascending: false)],
+              )
+            : query,
         policy: fetchRemote
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,
       );
+
+      // Defensively filter by branchId in case the query is not restrictive enough.
+      fetchedVariants =
+          fetchedVariants.where((v) => v.branchId == branchId).toList();
 
       // Post-query filtering with taxTyCds validation
       if (!forImportScreen && !forPurchaseScreen) {
@@ -178,10 +184,14 @@ mixin VariantMixin implements VariantInterface {
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
         if (offset >= fetchedVariants.length) return [];
-        return fetchedVariants.skip(offset).take(itemsPerPage).toList();
+        return fetchedVariants
+            .skip(offset)
+            .take(itemsPerPage)
+            .where((v) => v.branchId == branchId)
+            .toList();
       }
 
-      return fetchedVariants;
+      return fetchedVariants.where((v) => v.branchId == branchId).toList();
     } catch (e, s) {
       talker.error(s);
       rethrow;
