@@ -13,6 +13,7 @@ mixin CapellaVariantMixin implements VariantInterface {
   Future<List<Variant>> variants({
     required int branchId,
     String? productId,
+    bool scanMode = false,
     int? page,
     bool? stockSynchronized,
     bool forImportScreen = false,

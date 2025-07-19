@@ -23,6 +23,7 @@ class OuterVariants extends _$OuterVariants {
 
   @override
   FutureOr<List<Variant>> build(int branchId, {fetchRemote = false}) async {
+    final searchString = ref.watch(searchStringProvider);
     // Reset state when the provider is rebuilt (e.g., branchId changes)
     _currentPage = 0;
     _hasMore = true;
@@ -32,7 +33,8 @@ class OuterVariants extends _$OuterVariants {
     await _initializeCacheManager();
 
     // Load initial variants
-    return await _loadVariants(branchId, fetchRemote: fetchRemote);
+    return await _loadVariants(branchId,
+        fetchRemote: fetchRemote, searchString: searchString);
   }
 
   /// Initialize the cache manager
@@ -64,20 +66,29 @@ class OuterVariants extends _$OuterVariants {
   }
 
   Future<List<Variant>> _loadVariants(int branchId,
-      {bool fetchRemote = false}) async {
+      {bool fetchRemote = false, required String searchString}) async {
     if (_isLoading || !_hasMore) return [];
 
     _isLoading = true;
 
     try {
-      final searchString = ref.watch(searchStringProvider);
       final isVatEnabled = ProxyService.box.vatEnabled();
 
       // Determine the tax codes to filter by at the database level.
       final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
+      List<Variant> variants = [];
 
+      /// first filter on state
+      variants = state.value?.where((v) {
+            return v.name.toLowerCase().contains(searchString.toLowerCase());
+          }).toList() ??
+          [];
+
+      if (variants.isNotEmpty) {
+        return variants;
+      }
       // First, try to fetch variants locally with the tax filter.
-      List<Variant> variants = await ProxyService.strategy.variants(
+      variants = await ProxyService.strategy.variants(
         name: searchString,
         fetchRemote: false, // Start with local
         branchId: branchId,
@@ -87,7 +98,7 @@ class OuterVariants extends _$OuterVariants {
       );
 
       // If no variants were found locally, try fetching from remote.
-      if (variants.isEmpty) {
+      if (variants.isEmpty && searchString.isNotEmpty) {
         try {
           variants = await ProxyService.strategy.variants(
             name: searchString,
@@ -128,9 +139,11 @@ class OuterVariants extends _$OuterVariants {
 
   Future<void> loadMore(int branchId) async {
     if (_isLoading || !_hasMore) return;
+    final searchString = ref.read(searchStringProvider);
 
     // Load more variants
-    final newVariants = await _loadVariants(branchId);
+    final newVariants =
+        await _loadVariants(branchId, searchString: searchString);
 
     // Update the state with the new variants
     state = AsyncValue.data([...state.value ?? [], ...newVariants]);

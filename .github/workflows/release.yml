@@ -253,7 +253,7 @@ jobs:
         id: get_version
         shell: powershell
         run: |
-          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
+          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "version=$MSIX_VERSION" >> $env:GITHUB_OUTPUT
 
       - name: Create Debug Release
         uses: softprops/action-gh-release@v1
@@ -323,7 +323,7 @@ jobs:
         id: get_version
         shell: powershell
         run: |
-          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
+          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "version=$MSIX_VERSION" >> $env:GITHUB_OUTPUT
 
       - name: Create Production Release
         uses: softprops/action-gh-release@v1
@@ -392,9 +392,17 @@ jobs:
       - run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
+      
+      # Get version from pubspec.yaml
+      - name: Get version from pubspec.yaml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version:' apps/flipper/pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+        
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
-        id: get_version
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
@@ -433,12 +441,11 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: Android AAB Release - ${{ github.ref_name }}
-          tag_name: ${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
   slackNotification:
     name: Slack Notification
