@@ -670,7 +670,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         !ref.watch(isCompositeProvider)
                             ? TableVariants(
                                 isEbmEnabled:
-                                    ref.watch(ebmVatEnabledProvider).value!,
+                                    ref.watch(ebmVatEnabledProvider).value??false,
                                 isEditMode: widget.productId != null,
                                 onDateChanged:
                                     (String variantId, DateTime date) {
