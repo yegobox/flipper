@@ -34,8 +34,10 @@ class TableVariants extends StatelessWidget {
     required this.units,
     required this.onDateChanged,
     this.isEditMode = false,
+    required this.isEbmEnabled,
   }) : super(key: key);
   final bool isEditMode;
+  final bool isEbmEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -346,7 +348,7 @@ class TableVariants extends StatelessWidget {
         DataCell(
           QuantityCell(
             quantity: variant.stock?.currentStock,
-            onEdit: isEditMode
+            onEdit: isEbmEnabled
                 ? () {}
                 : () {
                     showEditQuantityDialog(

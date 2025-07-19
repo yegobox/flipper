@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
@@ -668,6 +669,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                         !ref.watch(isCompositeProvider)
                             ? TableVariants(
+                                isEbmEnabled:
+                                    ref.watch(ebmVatEnabledProvider).value!,
                                 isEditMode: widget.productId != null,
                                 onDateChanged:
                                     (String variantId, DateTime date) {
