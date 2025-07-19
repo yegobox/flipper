@@ -394,6 +394,7 @@ jobs:
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
+        id: get_version
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
@@ -432,6 +433,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: Android AAB Release - ${{ github.ref_name }}
+          tag_name: ${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
         env:
