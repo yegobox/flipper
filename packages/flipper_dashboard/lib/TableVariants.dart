@@ -348,7 +348,7 @@ class TableVariants extends StatelessWidget {
         DataCell(
           QuantityCell(
             quantity: variant.stock?.currentStock,
-            onEdit: isEbmEnabled
+            onEdit: isEbmEnabled && isEditMode
                 ? () {}
                 : () {
                     showEditQuantityDialog(
