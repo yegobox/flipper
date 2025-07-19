@@ -20,6 +20,7 @@ abstract class VariantInterface {
     bool forImportScreen = false,
     bool? stockSynchronized,
     required List<String> taxTyCds,
+    bool scanMode = false,
   });
   Future<Variant?> getVariant({required String id});
 

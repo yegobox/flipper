@@ -1661,6 +1661,7 @@ class Capella extends AiStrategyImpl
   Future<List<brick.Variant>> variants({
     required int branchId,
     String? productId,
+    bool scanMode = false,
     int? page,
     List<String>? taxTyCds,
     bool? stockSynchronized,

@@ -42,6 +42,7 @@ mixin VariantMixin implements VariantInterface {
     bool forImportScreen = false,
     bool? stockSynchronized,
     List<String>? taxTyCds,
+    bool scanMode = false,
   }) async {
     try {
       final List<WhereCondition> conditions = [
@@ -66,12 +67,16 @@ mixin VariantMixin implements VariantInterface {
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
-        conditions.add(
-          WherePhrase([
-            Where('name').contains(name),
-            Or('bcd').isExactly(name),
-          ]),
-        );
+        if (scanMode) {
+          conditions.add(Where('bcd').isExactly(name));
+        } else {
+          conditions.add(
+            WherePhrase([
+              Where('name').contains(name),
+              Or('bcd').isExactly(name),
+            ]),
+          );
+        }
       } else if (bcd != null) {
         conditions.add(Where('bcd').isExactly(bcd));
       } else if (stockSynchronized != null) {

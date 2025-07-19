@@ -60,6 +60,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               .variants(
                   name: value,
                   branchId: ProxyService.box.getBranchId()!,
+                  scanMode: true,
                   taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
               .timeout(
             const Duration(seconds: 5),
@@ -96,6 +97,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                 .variants(
                     name: value,
                     branchId: ProxyService.box.getBranchId()!,
+                    scanMode: true,
                     taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
                     fetchRemote: true)
                 .timeout(
@@ -161,6 +163,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               .variants(
                   name: value,
                   branchId: ProxyService.box.getBranchId()!,
+                  scanMode: false,
                   taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
               .timeout(
             const Duration(seconds: 5),
@@ -177,6 +180,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
                 .variants(
                     name: value,
                     branchId: ProxyService.box.getBranchId()!,
+                    scanMode: false,
                     taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
                     fetchRemote: true)
                 .timeout(
