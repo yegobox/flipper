@@ -47,7 +47,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       builder: (context, model, child) {
         return Scaffold(
           appBar: _buildAppBar(),
-          body: _buildBody(model),
+          body: SafeArea(child: _buildBody(model)),
         );
       },
     );

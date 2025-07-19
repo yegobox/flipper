@@ -122,11 +122,11 @@ extension StringExtensions on String {
 }
 
 extension CurrencyFormatExtension on num {
-  String toCurrencyFormatted({String? symbol}) {
+  String toCurrencyFormatted({String? symbol,int decimalDigits = 2}) {
     final numberFormat = NumberFormat.currency(
       locale: 'en',
       symbol: symbol ?? 'RWF ',
-      decimalDigits: 2,
+      decimalDigits: decimalDigits,
     );
 
     // Check if the number is 0 or 0.0
