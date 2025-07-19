@@ -16,187 +16,140 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
   Future<void> processDebouncedValue(String value, CoreViewModel model,
       TextEditingController controller) async {
-    ref.read(searchStringProvider.notifier).emitString(value: value);
-    focusNode.requestFocus();
-
-    await handleScanningMode(value, model, controller);
+    final isScanningModeEnabled = ref.read(toggleProvider.notifier).state;
+    if (isScanningModeEnabled) {
+      focusNode.requestFocus();
+      await handleScanningMode(value, model, controller);
+    } else {
+      ref.read(searchStringProvider.notifier).emitString(value: value);
+    }
   }
 
   Future<void> handleScanningMode(String value, CoreViewModel model,
       TextEditingController controller) async {
-    final isScanningModeEnabled = ref.read(toggleProvider.notifier).state;
-
-    if (isScanningModeEnabled) {
-      // Only clear controller and set hasText if in scanning mode
-      controller.clear();
-      hasText = false;
-      if (value.isNotEmpty) {
-        // Show loading indicator immediately to give feedback to the user
-        // This helps with perceived performance, especially on Windows
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 10),
-                  Text('Searching...'),
-                ],
-              ),
-              duration: Duration(milliseconds: 500),
-              behavior: SnackBarBehavior.floating,
+    // Only clear controller and set hasText if in scanning mode
+    controller.clear();
+    hasText = false;
+    if (value.isNotEmpty) {
+      // Show loading indicator immediately to give feedback to the user
+      // This helps with perceived performance, especially on Windows
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                SizedBox(width: 10),
+                Text('Searching...'),
+              ],
             ),
-          );
-        }
+            duration: Duration(milliseconds: 500),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
 
-        try {
-          final isVatEnabled = ProxyService.box.vatEnabled();
-          // First try to find locally
-          List<Variant> variants = await ProxyService.strategy
+      try {
+        final isVatEnabled = ProxyService.box.vatEnabled();
+        // First try to find locally
+        List<Variant> variants = await ProxyService.strategy
+            .variants(
+                name: value,
+                branchId: ProxyService.box.getBranchId()!,
+                scanMode: true,
+                taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
+            .timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            // Return empty list on timeout
+            return [];
+          },
+        );
+
+        // If no variants found locally, try to fetch from remote
+        if (variants.isEmpty) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 10),
+                    Text('Searching from remote...'),
+                  ],
+                ),
+                duration: Duration(milliseconds: 1000),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+
+          // Try to fetch from remote with fetchRemote flag set to true
+          variants = await ProxyService.strategy
               .variants(
                   name: value,
                   branchId: ProxyService.box.getBranchId()!,
-                  taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
+                  scanMode: true,
+                  taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
+                  fetchRemote: true)
               .timeout(
-            const Duration(seconds: 5),
+            const Duration(seconds: 10),
             onTimeout: () {
               // Return empty list on timeout
               return [];
             },
           );
+        }
 
-          // If no variants found locally, try to fetch from remote
-          if (variants.isEmpty) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      SizedBox(width: 10),
-                      Text('Searching from remote...'),
-                    ],
-                  ),
-                  duration: Duration(milliseconds: 1000),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            }
+        // Dismiss the loading indicator if it's still showing
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        }
 
-            // Try to fetch from remote with fetchRemote flag set to true
-            variants = await ProxyService.strategy
-                .variants(
-                    name: value,
-                    branchId: ProxyService.box.getBranchId()!,
-                    taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
-                    fetchRemote: true)
-                .timeout(
-              const Duration(seconds: 10),
-              onTimeout: () {
-                // Return empty list on timeout
-                return [];
-              },
-            );
-          }
-
-          // Dismiss the loading indicator if it's still showing
-          if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          }
-
-          if (variants.isNotEmpty) {
-            if (variants.length == 1) {
-              // If only one variant is found, proceed directly
-              Variant variant = variants.first;
-              await _processTransaction(variant, model);
-            } else {
-              // If multiple variants are found, prompt the user to select one
-              Variant? selectedVariant =
-                  await _showVariantSelectionDialog(variants);
-              if (selectedVariant != null) {
-                await _processTransaction(selectedVariant, model);
-              }
-            }
+        if (variants.isNotEmpty) {
+          if (variants.length == 1) {
+            // If only one variant is found, proceed directly
+            Variant variant = variants.first;
+            await _processTransaction(variant, model);
           } else {
-            // Show a message when no variants are found
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No variants found for "$value"'),
-                  duration: const Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+            // If multiple variants are found, prompt the user to select one
+            Variant? selectedVariant =
+                await _showVariantSelectionDialog(variants);
+            if (selectedVariant != null) {
+              await _processTransaction(selectedVariant, model);
             }
           }
-        } catch (e) {
-          // Handle errors during search
+        } else {
+          // Show a message when no variants are found
           if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error searching for variants: ${e.toString()}'),
+                content: Text('No variants found for "$value"'),
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
         }
-      }
-    } else {
-      // Not in scanning mode, but we should still search remotely if local search returns no results
-      if (value.isNotEmpty) {
-        try {
-          final isVatEnabled = ProxyService.box.vatEnabled();
-          // First try to find locally
-          List<Variant> variants = await ProxyService.strategy
-              .variants(
-                  name: value,
-                  branchId: ProxyService.box.getBranchId()!,
-                  taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
-              .timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              // Return empty list on timeout
-              return [];
-            },
+      } catch (e) {
+        // Handle errors during search
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error searching for variants: ${e.toString()}'),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
           );
-
-          // If no variants found locally, try to fetch from remote
-          if (variants.isEmpty) {
-            // Try to fetch from remote with fetchRemote flag set to true
-            variants = await ProxyService.strategy
-                .variants(
-                    name: value,
-                    branchId: ProxyService.box.getBranchId()!,
-                    taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
-                    fetchRemote: true)
-                .timeout(
-              const Duration(seconds: 10),
-              onTimeout: () {
-                // Return empty list on timeout
-                return [];
-              },
-            );
-
-            // Update the UI with the results from remote
-            if (variants.isNotEmpty && mounted) {
-              // Refresh the search results by updating the search string provider
-              ref.read(searchStringProvider.notifier).emitString(value: value);
-            }
-          }
-        } catch (e) {
-          // Silently handle errors in non-scanning mode
-          print(
-              'Error searching for variants in non-scanning mode: ${e.toString()}');
         }
       }
     }
