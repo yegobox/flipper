@@ -161,6 +161,7 @@ async function processPendingSMS() {
 
         // Process each message
         for (const record of data) {
+            let branchUuid: string | null = null; // Declare branchUuid here
             console.log(`Processing message ID: ${record.id}`);
 
             // Check if phone number is valid
@@ -217,16 +218,17 @@ async function processPendingSMS() {
                     successCount++;
                 }
             } else {
-                console.error(`Failed to send SMS for message ID: ${record.id}`, result.error);
+                console.error(`Failed to send SMS for message ID: ${record.id}`, result.error, record.phone_number);
                 errors.push(`Message ${record.id}: ${result.error || 'Unknown API error'}`);
                 if (result.details) {
                     errors.push(`API details: ${JSON.stringify(result.details)}`);
                 }
                 failedCount++;
                 // Refund credits if SMS sending failed
-                // get branch uuid
-                const branchUuid = await getBranchUuid(branchServerId);
-                await refundCredits(branchUuid, SMS_CREDIT_COST);
+                branchUuid = await getBranchUuid(branchServerId);
+                if (branchUuid) {
+                    await refundCredits(branchUuid, SMS_CREDIT_COST);
+                }
             }
         }
 
