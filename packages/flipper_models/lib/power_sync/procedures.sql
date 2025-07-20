@@ -19,6 +19,31 @@ END;
 $$;
 
 
+-- 
+CREATE OR REPLACE FUNCTION public.add_credits(branch_id_param UUID, amount_param INT)
+RETURNS VOID AS $$
+DECLARE
+  _row_exists BOOLEAN;
+BEGIN
+  -- Lock the credits row. Fail fast if it does not exist.
+  SELECT TRUE INTO _row_exists
+  FROM public.credits
+  WHERE branch_id = branch_id_param
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No credits row for branch %', branch_id_param;
+  END IF;
+
+  -- Update the credits by adding amount_param
+  IF amount_param <= 0 THEN
+    RAISE EXCEPTION 'amount_param must be positive, got %', amount_param;
+  END IF;
+      UPDATE public.credits
+      SET credits = credits + amount_param
+      WHERE branch_id = branch_id_param;
+END;
+$$ LANGUAGE plpgsql;
 -- Scripts useful
 
 SELECT *

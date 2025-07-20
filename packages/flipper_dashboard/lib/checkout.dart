@@ -246,6 +246,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     return QuickSellingView(
       deliveryNoteCotroller: deliveryNoteCotroller,
       formKey: formKey,
+      countryCodeController: countryCodeController,
       discountController: discountController,
       receivedAmountController: receivedAmountController,
       customerPhoneNumberController: customerPhoneNumberController,

@@ -412,6 +412,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ITransaction updatedTransaction =
             await ProxyService.strategy.collectPayment(
           cashReceived: cashReceived,
+          countryCode: "N/A",
           branchId: ProxyService.box.getBranchId()!,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
           isProformaMode: ProxyService.box.isProformaMode(),

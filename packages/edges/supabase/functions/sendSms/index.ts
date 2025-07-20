@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import { createClient } from '@supabase/supabase-js';
-
+// supabase functions deploy sendSms
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const yegoboxBearerToken = Deno.env.get('YEGOBOX_BEARER_TOKEN')!;
@@ -13,13 +13,19 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 const SMS_API_URL = "https://apihub.yegobox.com/v2/api/sms-broadcast";
-const SMS_CREDIT_COST = 30; // Define the cost of sending one SMS
+const SMS_CREDIT_COST = 10; // Define the cost of sending one SMS
 
 async function sendSMS(text, phoneNumber) {
     try {
         // Ensure phone number has the + prefix for international format
         const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
         console.log(`Attempting to send SMS to ${formattedNumber}: "${text}"`);
+        const username = Deno.env.get('SMS_API_USERNAME');
+        const password = Deno.env.get('SMS_API_PASSWORD');
+
+        if (!username || !password) {
+            return { success: false, error: 'SMS API credentials not configured' };
+        }
 
         const smsBody = {
             text: text,
@@ -30,7 +36,7 @@ async function sendSMS(text, phoneNumber) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${yegoboxBearerToken}`
+                "Authorization": `Basic ${btoa(`${username}:${password}`)}`
             },
             body: JSON.stringify(smsBody)
         });
@@ -63,23 +69,65 @@ async function sendSMS(text, phoneNumber) {
     }
 }
 
-async function deductCredits(branch_server_id: number, creditsToDeduct: number) { // Changed to number
+async function getBranchUuid(branchServerId: number): Promise<string | null> {
     try {
-        // Call the PostgreSQL function using supabase.rpc
+        const { data, error } = await supabase
+            .from('branches')
+            .select('id')
+            .eq('server_id', branchServerId)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching branch UUID for server_id ${branchServerId}:`, error);
+            return null;
+        }
+
+        if (data) {
+            return data.id;
+        }
+        return null;
+    } catch (error) {
+        console.error(`Exception fetching branch UUID for server_id ${branchServerId}:`, error);
+        return null;
+    }
+}
+
+async function deductCredits(branch_id: number, creditsToDeduct: number) {
+    try {
         const { error: updateError } = await supabase.rpc('deduct_credits', {
-            branch_id: branch_server_id,
+            branch_id: branch_id,
             amount: creditsToDeduct
         });
 
         if (updateError) {
-            console.error(`Failed to deduct credits for branch ${branch_server_id}:`, updateError);
+            console.error(`Failed to deduct credits for branch ${branch_id}:`, updateError);
             return { success: false, error: `Failed to deduct credits: ${updateError.message}` };
         }
 
-        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_server_id}.`);
-        return { success: true }; // No need to return balance since the function does the update
+        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_id}.`);
+        return { success: true };
     } catch (error) {
         console.error("Error during credit deduction:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function refundCredits(branch_uuid: string, creditsToRefund: number) {
+    try {
+        const { error: updateError } = await supabase.rpc('add_credits', {
+            branch_id_param: branch_uuid,
+            amount_param: creditsToRefund
+        });
+
+        if (updateError) {
+            console.error(`Failed to refund credits for branch ${branch_uuid}:`, updateError);
+            return { success: false, error: `Failed to refund credits: ${updateError.message}` };
+        }
+
+        console.log(`Successfully refunded ${creditsToRefund} credits for branch ${branch_uuid}.`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error during credit refund:", error);
         return { success: false, error: error.message };
     }
 }
@@ -113,6 +161,7 @@ async function processPendingSMS() {
 
         // Process each message
         for (const record of data) {
+            let branchUuid: string | null = null; // Declare branchUuid here
             console.log(`Processing message ID: ${record.id}`);
 
             // Check if phone number is valid
@@ -139,23 +188,15 @@ async function processPendingSMS() {
                 continue;
             }
 
-            // Make sure the branch_id is a number
-            const branchId = Number(record.branch_id);
-            if (isNaN(branchId)) {
-                console.error(`Invalid branch_id (not a number) for message ID: ${record.id}`);
-                errors.push(`Message ${record.id}: Invalid branch_id (not a number)`);
+            const branchServerId = record.branch_id; // This is the INT branch_id from messages table
+
+            const creditDeductionResult = await deductCredits(branchServerId, SMS_CREDIT_COST);
+            if (!creditDeductionResult.success) {
+                console.warn(`Skipping message ${record.id} due to credit issues: ${creditDeductionResult.error}`);
+                errors.push(`Message ${record.id}: ${creditDeductionResult.error}`);
                 failedCount++;
                 continue;
             }
-
-            const creditCheckResult = await deductCredits(branchId, SMS_CREDIT_COST); // Call deductCredits for each message
-            if (!creditCheckResult.success) {
-                console.warn(`Skipping message ${record.id} due to credit issues: ${creditCheckResult.error}`);
-                errors.push(`Message ${record.id}: ${creditCheckResult.error}`);
-                failedCount++;
-                continue;
-            }
-
 
             const result = await sendSMS(record.text, record.phone_number);
 
@@ -170,17 +211,26 @@ async function processPendingSMS() {
                     console.error(`Failed to update message ${record.id} status:`, updateError);
                     errors.push(`Message ${record.id}: Database update failed - ${updateError.message}`);
                     failedCount++;
+                    // If update fails, refund credits as SMS was sent but not marked delivered
+                    // Get branch UUID
+                    const branchUuid = await getBranchUuid(branchServerId);
+                    await refundCredits(branchUuid, SMS_CREDIT_COST);
                 } else {
                     console.log(`Successfully delivered and updated message ID: ${record.id}`);
                     successCount++;
                 }
             } else {
-                console.error(`Failed to send SMS for message ID: ${record.id}`, result.error);
+                console.error(`Failed to send SMS for message ID: ${record.id}`, result.error, record.phone_number);
                 errors.push(`Message ${record.id}: ${result.error || 'Unknown API error'}`);
                 if (result.details) {
                     errors.push(`API details: ${JSON.stringify(result.details)}`);
                 }
                 failedCount++;
+                // Refund credits if SMS sending failed
+                const branchUuid = await getBranchUuid(branchServerId);
+                if (branchUuid) {
+                    await refundCredits(branchUuid, SMS_CREDIT_COST);
+                }
             }
         }
 
@@ -207,7 +257,9 @@ function checkEnvironmentVariables() {
     const vars = {
         'SUPABASE_URL': Deno.env.get('SUPABASE_URL'),
         'SUPABASE_ANON_KEY': Deno.env.get('SUPABASE_ANON_KEY'),
-        'YEGOBOX_BEARER_TOKEN': Deno.env.get('YEGOBOX_BEARER_TOKEN')
+        'YEGOBOX_BEARER_TOKEN': Deno.env.get('YEGOBOX_BEARER_TOKEN'),
+        'SMS_API_USERNAME': Deno.env.get('SMS_API_USERNAME'),
+        'SMS_API_PASSWORD': Deno.env.get('SMS_API_PASSWORD')
     };
 
     const missingVars = Object.entries(vars)

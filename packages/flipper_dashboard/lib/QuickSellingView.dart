@@ -22,6 +22,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:stacked/stacked.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -31,6 +32,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
   final TextEditingController customerPhoneNumberController;
   final TextEditingController customerNameController;
   final TextEditingController paymentTypeController;
+  final TextEditingController countryCodeController;
 
   const QuickSellingView({
     Key? key,
@@ -41,6 +43,7 @@ class QuickSellingView extends StatefulHookConsumerWidget {
     required this.customerPhoneNumberController,
     required this.customerNameController,
     required this.paymentTypeController,
+    required this.countryCodeController,
   }) : super(key: key);
 
   @override
@@ -64,6 +67,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   void initState() {
     super.initState();
+    final initialCode = CountryCode.fromCountryCode("RW");
+    widget.countryCodeController.text = initialCode.dialCode!;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         updatePaymentAmounts(transactionId: "");
@@ -871,6 +876,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           SizedBox(height: 6.0),
           Row(
             children: [
+              CountryCodePicker(
+                onChanged: (countryCode) {
+                  widget.countryCodeController.text = countryCode.dialCode!;
+                },
+                initialSelection: 'RW',
+                favorite: ['+250', 'RW'],
+                showCountryOnly: false,
+                showOnlyCountryWhenClosed: false,
+                alignLeft: false,
+              ),
               if (!isOrdering) Expanded(child: _buildCustomerPhoneField()),
               SizedBox(width: 16.0),
               Expanded(
