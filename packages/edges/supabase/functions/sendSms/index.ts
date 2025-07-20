@@ -69,23 +69,22 @@ async function sendSMS(text, phoneNumber) {
     }
 }
 
-async function deductCredits(branch_server_id: number, creditsToDeduct: number) { // Changed to number
+async function refundCredits(branch_server_id: number, creditsToRefund: number) {
     try {
-        // Call the PostgreSQL function using supabase.rpc
-        const { error: updateError } = await supabase.rpc('deduct_credits', {
+        const { error: updateError } = await supabase.rpc('add_credits', {
             branch_id: branch_server_id,
-            amount: creditsToDeduct
+            amount: creditsToRefund
         });
 
         if (updateError) {
-            console.error(`Failed to deduct credits for branch ${branch_server_id}:`, updateError);
-            return { success: false, error: `Failed to deduct credits: ${updateError.message}` };
+            console.error(`Failed to refund credits for branch ${branch_server_id}:`, updateError);
+            return { success: false, error: `Failed to refund credits: ${updateError.message}` };
         }
 
-        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_server_id}.`);
-        return { success: true }; // No need to return balance since the function does the update
+        console.log(`Successfully refunded ${creditsToRefund} credits for branch ${branch_server_id}.`);
+        return { success: true };
     } catch (error) {
-        console.error("Error during credit deduction:", error);
+        console.error("Error during credit refund:", error);
         return { success: false, error: error.message };
     }
 }
@@ -154,17 +153,17 @@ async function processPendingSMS() {
                 continue;
             }
 
+            const creditDeductionResult = await deductCredits(branchId, SMS_CREDIT_COST);
+            if (!creditDeductionResult.success) {
+                console.warn(`Skipping message ${record.id} due to credit issues: ${creditDeductionResult.error}`);
+                errors.push(`Message ${record.id}: ${creditDeductionResult.error}`);
+                failedCount++;
+                continue;
+            }
+
             const result = await sendSMS(record.text, record.phone_number);
 
             if (result.success) {
-                const creditDeductionResult = await deductCredits(branchId, SMS_CREDIT_COST);
-                if (!creditDeductionResult.success) {
-                    console.error(`Failed to deduct credits after successful SMS send for message ID: ${record.id}. Error: ${creditDeductionResult.error}`);
-                    errors.push(`Message ${record.id}: Credit deduction failed after send - ${creditDeductionResult.error}`);
-                    failedCount++;
-                    continue; // Continue to next message, but this one is problematic
-                }
-
                 // Update message status in database
                 const { error: updateError } = await supabase
                     .from('messages')
@@ -175,6 +174,8 @@ async function processPendingSMS() {
                     console.error(`Failed to update message ${record.id} status:`, updateError);
                     errors.push(`Message ${record.id}: Database update failed - ${updateError.message}`);
                     failedCount++;
+                    // If update fails, refund credits as SMS was sent but not marked delivered
+                    await refundCredits(branchId, SMS_CREDIT_COST);
                 } else {
                     console.log(`Successfully delivered and updated message ID: ${record.id}`);
                     successCount++;
@@ -186,6 +187,8 @@ async function processPendingSMS() {
                     errors.push(`API details: ${JSON.stringify(result.details)}`);
                 }
                 failedCount++;
+                // Refund credits if SMS sending failed
+                await refundCredits(branchId, SMS_CREDIT_COST);
             }
         }
 
