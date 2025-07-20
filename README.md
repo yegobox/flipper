@@ -53,35 +53,78 @@ This monorepo contains our complete ecosystem, including:
 
 This repository is a monorepo managed with [Melos](https://melos.invertase.dev/).
 
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yegobox/flipper.git
-    cd flipper
-    ```
+This section aligns local development with our CI/CD (`release.yml`). **If you cloned the repository before these steps, please repeat them.**
 
-2.  **Activate Melos**:
-    ```bash
-    dart pub global activate melos 6.3.2
-    ```
+### 1. Prerequisites & Toolchain Versions
 
-3.  **Bootstrap the project**:
-    This command links all local packages and installs dependencies.
-    ```bash
-    melos bootstrap
-    ```
+| Tool               | Required Version        | Notes                                                                |
+| ------------------ | ----------------------- | -------------------------------------------------------------------- |
+| Flutter            | **3.32.6** (stable)     | Match CI to avoid build/test drift. (Update here *first* before CI.) |
+| Dart               | Bundled with Flutter    | Ensure `dart --version` matches Flutter SDK.                         |
+| Java JDK           | **17** (Zulu / Temurin) | Required for Android and some tooling.                               |
+| Ruby               | **3.0.x**               | For Fastlane (Android release lanes).                                |
+| Node.js            | **20.x LTS**            | Used for Firebase Hosting deploy and scripts.                        |
+| Melos              | **6.3.2**               | Monorepo orchestration (pinned version).                             |
+| Git                | >= 2.40                 | Needed for submodules and hooks.                                     |
+| Android SDK / NDK  | Latest stable           | Required for Android builds.                                         |
+| PowerShell 7 (Win) | Optional                | For advanced scripting.                                              |
 
-4.  **Enable repo git hooks**:
-    ```bash
-    git config core.hooksPath hooks
-    ```
+> **Why pin versions?** Divergent build artifacts and flaky tests occur when contributors use unverified toolchains. Always upgrade deliberately.
 
-### Manual Configuration
+### 2. Clone With Submodules
+
+```bash
+git clone --recurse-submodules https://github.com/yegobox/flipper.git
+cd flipper
+
+# If already cloned without submodules
+git submodule update --init --recursive
+```
+
+### 3. Activate Melos (Pinned Version)
+
+```bash
+dart pub global activate melos 6.3.2
+```
+
+### 4. Bootstrap the Monorepo
+
+```bash
+melos bootstrap
+```
+
+If dependencies fail to resolve:
+
+```bash
+melos clean
+melos bootstrap
+```
+
+### 5. Git Hooks
+
+```bash
+git config core.hooksPath hooks
+```
+
+### 6. Code Generation
+
+```bash
+melos run build
+# Or:
+melos exec -- "dart run build_runner build --delete-conflicting-outputs"
+```
+
+### 7. Configure Local Secrets & Config
 
 For security reasons, some configuration files containing sensitive information are not included in the repository. You will need to create them manually.
 
 1.  **Secret Files**:
     -   `packages/flipper_models/lib/secrets.dart`: Contains the `AppSecrets` class with API keys and endpoints.
     -   `apps/flipper/lib/firebase_options.dart`: Contains the `DefaultFirebaseOptions` class with Firebase configuration.
+    -   `apps/flipper/lib/config.dart`: Stores local configuration variables and environment-specific settings.
+    -   `apps/flipper/lib/amplifyconfiguration.dart`: Holds AWS Amplify configuration for authentication and cloud services.
+    -   `apps/flipper/lib/team-provider-info.json`: Tracks team environment settings for Amplify deployments.
+    -   `apps/flipper/web/index.html`: May require embedded secrets or environment variables for web builds.
 
 2.  **API Keys**:
     You'll need to obtain and configure your own API keys for services like Payment gateways (PayStack), Cloud storage, Analytics, Firebase, Sentry, and Supabase.
@@ -121,3 +164,69 @@ This project is source-available. The source code is public on GitHub to promote
 
 Usage of this source code is subject to specific terms. You may use, modify, and distribute the code only if you have a valid agreement with YEGOBOX LTD, or if you are an acknowledged investor, contributor, or partner. Unauthorized use is strictly prohibited. For licensing inquiries, please contact `info@yegobox.com`.
 
+## 🧪 UI / UX Test Report *(Current Observations)*
+
+### VERIFIED ASPECT
+1. **Very Responsive**: According to screen resolution
+
+### Key Issues & Recommendations
+
+1. **Navigation & Controls**: Add *Back* and *Cancel* buttons in multi-step flows.
+2. **Transaction Feedback**: Introduce optimistic UI states and server idempotency keys.
+3. **Irreversible Actions**: Implement confirmation steps and undo options.
+4. **API Performance**: Reduce coupling, batch requests, and add caching.
+
+### Roadmap Priorities
+
+1. Implement reversal and escape controls.
+2. Optimize transaction latency and feedback.
+3. Standardize API error handling and timeouts.
+4. Add instrumentation and performance metrics.
+5. Improve accessibility and UX consistency.
+
+
+## Missing Steps (Gap Analysis)
+
+Below are key setup and workflow steps present in `release.yml` but missing or incomplete in the current README:
+
+- **Git Submodules:**  
+  All jobs use `submodules: recursive` and run `git submodule update --init`. The README only shows a plain `git clone` and does not mention using `--recurse-submodules` or updating submodules after cloning.
+
+- **Toolchain Versions:**  
+  The workflow specifies Flutter `3.32.6`, Java JDK `17`, Node `20` (for Firebase deploy), and Ruby `3.0` (for Fastlane). The README does not provide version guidance, which can lead to local version mismatch issues.
+
+- **Melos Bootstrap Sequence:**  
+  The workflow always runs `dart pub global activate melos 6.3.2` followed by `melos bootstrap`. The README shows activation but does not stress the required version or the need to repeat this per clean build.
+
+- **Secrets / Generated Config Files:**  
+  The workflow configures missing files by echoing secrets into multiple paths: `config.dart`, `secrets.dart`, `firebase_options.dart`, `amplifyconfiguration.dart`, `team-provider-info.json`, and `web/index.html`. The README only mentions two files (`secrets.dart`, `firebase_options.dart`), with others missing and no placeholder instructions.
+
+- **Amplify Support Files:**  
+  Files like `amplify/team-provider-info.json` and `amplifyconfiguration.dart` are handled in the workflow but not mentioned in the README.
+
+- **Web Index Injection:**  
+  The workflow creates `apps/flipper/web/index.html` from a secret `$INDEX`, which is not documented in the README.
+
+- **Code Generation:**  
+  Packages use tools like `build_runner`, `freezed`, and `dart_mappable` for code generation before tests/builds. The README does not show the code generation command.
+
+- **Running Tests:**  
+  The workflow runs tests with `flutter test --dart-define=FLUTTER_TEST_ENV=true` for dashboard and integration tests. The README lacks a section on running tests or using the `--dart-define` flag.
+
+- **Integration Tests (Windows):**  
+  The workflow uses `integration_test/smoke_windows_test.dart` on the Windows runner, which is not documented in the README.
+
+- **Windows Packaging:**  
+  The workflow runs `dart run msix:create` (for debug and store), extracts version info, and installs certificates. The README does not include instructions for building Windows MSIX packages or installing certificates.
+
+- **Fastlane / Android Release Lanes:**  
+  The workflow supports lane choices like `beta`, `promote_to_production`, and `production`, with `internal` as default elsewhere. The README does not provide guidance on lanes or required keystore/service JSON placeholders.
+
+- **Firebase Hosting Deploy:**  
+  The workflow uses the Firebase action after building the web app, requiring Node and a service account secret. The README does not mention web deployment requirements.
+
+- **Environment Variables / Secrets Naming:**  
+  The workflow uses variables such as INDEX, CONFIGDART, SECRETS, FIREBASEOPTIONS, AMPLIFY_CONFIG, AMPLIFY_TEAM_PROVIDER, POSTHOG_API_KEY, DB_URL, DB_PASSWORD, etc. The README only lists “API keys” in general terms.
+
+- **Branch Naming Conventions:**  
+  Workflow triggers on branches named `feature-*`, `hotfix-*`, `bugfix-*`, `request-enhancment`, `shifts`, as well as `dev` and `main`. This is not documented in the README and would be helpful for contributors
