@@ -36,6 +36,9 @@ BEGIN
   END IF;
 
   -- Update the balance by adding amount_param
+  IF amount_param <= 0 THEN
+    RAISE EXCEPTION 'amount_param must be positive, got %', amount_param;
+  END IF;
   UPDATE public.business_credits
   SET balance = balance + amount_param
   WHERE branch_id = branch_id_param;
