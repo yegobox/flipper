@@ -151,7 +151,7 @@ Our next funding round will accelerate:
 -   Expansion of AI-powered business intelligence tools
 -   Global compliance and certification programs
 
-## 📜 License & Terms of Use
+## 📜 License & Terms of Use 
 
 This project is source-available. The source code is public on GitHub to promote transparency and build trust with our users and partners. However, it is not "open source" in the conventional sense.
 

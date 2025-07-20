@@ -62,5 +62,6 @@ Below are key setup and workflow steps present in `release.yml` but missing or i
 - **Environment Variables / Secrets Naming:**  
   The workflow uses variables such as INDEX, CONFIGDART, SECRETS, FIREBASEOPTIONS, AMPLIFY_CONFIG, AMPLIFY_TEAM_PROVIDER, POSTHOG_API_KEY, DB_URL, DB_PASSWORD, etc. The README only lists “API keys” in general terms.
 
-- **Branch Naming Conventions:**  
+- **Branch Naming Conventions:** 
+ 
   Workflow triggers on branches named `feature-*`, `hotfix-*`, `bugfix-*`, `request-enhancment`, `shifts`, as well as `dev` and `main`. This is not documented in the README and would be helpful for contributors
