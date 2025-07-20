@@ -143,13 +143,18 @@ abstract class OfflineFirstRepository<TRepositoryModel extends OfflineFirstModel
   }
 
   Future<int> _deleteLocal<TModel extends TRepositoryModel>(TModel instance, {Query? query}) async {
-    final rowsDeleted = await sqliteProvider.delete<TModel>(
-      instance,
-      query: query,
-      repository: this,
-    );
-    memoryCacheProvider.delete<TModel>(instance, query: query);
-    return rowsDeleted;
+    try {
+      final rowsDeleted = await sqliteProvider.delete<TModel>(
+        instance,
+        query: query,
+        repository: this,
+      );
+      memoryCacheProvider.delete<TModel>(instance, query: query);
+      return rowsDeleted;
+    } on ArgumentError {
+      // If the record doesn't exist in SQLite, simply return 0 rows deleted
+      return 0;
+    }
   }
 
   /// Check if a [TModel] is accessible locally.
