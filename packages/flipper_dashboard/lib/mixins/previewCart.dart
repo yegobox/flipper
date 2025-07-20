@@ -441,6 +441,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       } else {
         await finalizePayment(
           formKey: formKey,
+          countryCodeController: countryCodeController,
           customerNameController: customerNameController,
           context: context,
           paymentType: paymentType,
@@ -527,6 +528,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           return BlocProvider(
             create: (context) => PurchaseCodeFormBloc(
               formKey: formKey,
+              countryCodeController: countryCodeController,
               onComplete: onComplete,
               customerNameController: customerNameController,
               amount: amount,

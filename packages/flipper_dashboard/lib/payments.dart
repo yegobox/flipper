@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 
 class Payments extends StatefulHookConsumerWidget {
   Payments({
@@ -44,6 +45,8 @@ class PaymentsState extends ConsumerState<Payments> {
   final TextEditingController _cash = TextEditingController();
   final TextEditingController _discount = TextEditingController();
   final TextEditingController _customer = TextEditingController();
+  final TextEditingController _countryCodeController =
+      TextEditingController(text: '+250');
 
   bool _busy = false;
   final TextEditingController _controller = TextEditingController();
@@ -268,46 +271,62 @@ class PaymentsState extends ConsumerState<Payments> {
       width: 280,
       child: Form(
         key: _customerKey,
-        child: TextFormField(
-          keyboardType: TextInputType.number,
-          controller: _customer,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter Phone number without 0 e.g 783054874';
-            }
-            if (value.length > 9) {
-              return 'Please enter Phone number without 0 e.g 783054874';
-            }
-            if (value.length < 9) {
-              return 'Please enter Phone number without 0 e.g 783054874';
-            }
-            return null;
-          },
-          onFieldSubmitted: (value) {
-            _customer.text = value;
-            ProxyService.box.writeString(
-                key: 'currentSaleCustomerPhoneNumber', value: value);
-          },
-          onChanged: (value) {
-            ProxyService.box.writeString(
-                key: 'currentSaleCustomerPhoneNumber', value: value);
-          },
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey.shade400,
-                width: 1.0,
-              ),
-              borderRadius: BorderRadius.circular(4.0),
+        child: Row(
+          children: [
+            CountryCodePicker(
+              onChanged: (countryCode) {
+                _countryCodeController.text = countryCode.dialCode!;
+              },
+              initialSelection: 'RW',
+              favorite: ['+250', 'RW'],
+              showCountryOnly: false,
+              showOnlyCountryWhenClosed: false,
+              alignLeft: false,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.black.withOpacity(0.1),
-                width: 0.5,
+            Expanded(
+              child: TextFormField(
+                keyboardType: TextInputType.number,
+                controller: _customer,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter Phone number without 0 e.g 783054874';
+                  }
+                  if (value.length > 9) {
+                    return 'Please enter Phone number without 0 e.g 783054874';
+                  }
+                  if (value.length < 9) {
+                    return 'Please enter Phone number without 0 e.g 783054874';
+                  }
+                  return null;
+                },
+                onFieldSubmitted: (value) {
+                  _customer.text = value;
+                  ProxyService.box.writeString(
+                      key: 'currentSaleCustomerPhoneNumber', value: value);
+                },
+                onChanged: (value) {
+                  ProxyService.box.writeString(
+                      key: 'currentSaleCustomerPhoneNumber', value: value);
+                },
+                decoration: InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade400,
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.black.withOpacity(0.1),
+                      width: 0.5,
+                    ),
+                  ),
+                  hintText: 'Customer Phone Number',
+                ),
               ),
             ),
-            hintText: 'Customer Phone Number',
-          ),
+          ],
         ),
       ),
     );
@@ -539,7 +558,10 @@ class PaymentsState extends ConsumerState<Payments> {
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
 
+    final customerPhoneNumber = _countryCodeController.text + _customer.text;
+
     ProxyService.strategy.collectPayment(
+      countryCode: "N/A",
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),
@@ -552,6 +574,7 @@ class PaymentsState extends ConsumerState<Payments> {
       paymentType: paymentType!,
       discount: discount,
       directlyHandleReceipt: true,
+      customerPhone: customerPhoneNumber,
     );
 
     await handleReceiptGeneration();

@@ -262,7 +262,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _handleSaveTransaction(model),
+                    onPressed: () => _handleSaveTransaction(model, "N/A"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
@@ -284,7 +284,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     model.notifyListeners();
   }
 
-  Future<void> _handleSaveTransaction(CoreViewModel model) async {
+  Future<void> _handleSaveTransaction(
+      CoreViewModel model, String countryCode) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -302,6 +303,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       talker.info("Transaction type: $transactionType, isIncome: $isIncome");
 
       await _saveTransaction(
+        countryCode: countryCode,
         model: model,
         paymentType: ProxyService.box.paymentType() ?? "Cash",
         cashReceived: amount,
@@ -340,6 +342,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required int discount,
     required bool isIncome,
     required String transactionType,
+    required String countryCode,
   }) async {
     // This implementation exactly matches HandleTransactionFromCashBook in KeyPadView
     try {
@@ -392,6 +395,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         ITransaction updatedTransaction =
             await ProxyService.strategy.collectPayment(
           cashReceived: cashReceived,
+          countryCode: countryCode,
           branchId: ProxyService.box.getBranchId()!,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
           isProformaMode: ProxyService.box.isProformaMode(),

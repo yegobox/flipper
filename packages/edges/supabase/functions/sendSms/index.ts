@@ -1,7 +1,7 @@
 // @ts-nocheck
 
 import { createClient } from '@supabase/supabase-js';
-
+// supabase functions deploy sendSms
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 const yegoboxBearerToken = Deno.env.get('YEGOBOX_BEARER_TOKEN')!;
@@ -13,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 const SMS_API_URL = "https://apihub.yegobox.com/v2/api/sms-broadcast";
-const SMS_CREDIT_COST = 30; // Define the cost of sending one SMS
+const SMS_CREDIT_COST = 10; // Define the cost of sending one SMS
 
 async function sendSMS(text, phoneNumber) {
     try {
@@ -30,7 +30,7 @@ async function sendSMS(text, phoneNumber) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${yegoboxBearerToken}`
+                "Authorization": `Basic ${btoa(`${Deno.env.get('SMS_API_USERNAME')}:${Deno.env.get('SMS_API_PASSWORD')}`)}`
             },
             body: JSON.stringify(smsBody)
         });

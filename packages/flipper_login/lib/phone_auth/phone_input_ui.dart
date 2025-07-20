@@ -108,7 +108,7 @@ class PhoneInputUI extends StatelessWidget {
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.10),
+                  color: Colors.black.withValues(alpha: 0.10),
                   blurRadius: 32,
                   spreadRadius: 0,
                   offset: const Offset(0, 8),
@@ -123,7 +123,7 @@ class PhoneInputUI extends StatelessWidget {
                   Material(
                     elevation: 2,
                     borderRadius: BorderRadius.circular(16),
-                    color: Colors.grey.shade50,
+                    color: Colors.grey.withValues(alpha: 0.5),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: CountryCodePicker(
@@ -148,7 +148,7 @@ class PhoneInputUI extends StatelessWidget {
                   Container(
                     height: 32,
                     width: 1.4,
-                    color: Colors.grey.withOpacity(0.18),
+                    color: Colors.grey.withValues(alpha: 0.18),
                   ),
                   // Phone number field
                   Expanded(
@@ -167,7 +167,7 @@ class PhoneInputUI extends StatelessWidget {
                             labelText: 'Phone Number',
                             hintText: '783054874 (without leading 0)',
                             hintStyle: GoogleFonts.poppins(
-                              color: Colors.grey.withOpacity(0.5),
+                              color: Colors.grey.withValues(alpha: 0.5),
                               fontSize: 15,
                             ),
                             labelStyle: GoogleFonts.poppins(
@@ -182,7 +182,7 @@ class PhoneInputUI extends StatelessWidget {
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide(
-                                color: Colors.grey.withOpacity(0.18),
+                                color: Colors.grey.withValues(alpha: 0.18),
                                 width: 1.2,
                               ),
                             ),
@@ -219,7 +219,7 @@ class PhoneInputUI extends StatelessWidget {
             style: ButtonStyle(
               backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
                 if (states.contains(WidgetState.disabled)) {
-                  return colorScheme.primary.withOpacity(0.5);
+                  return colorScheme.primary.withValues(alpha: 0.5);
                 }
                 return colorScheme.primary;
               }),
@@ -230,7 +230,7 @@ class PhoneInputUI extends StatelessWidget {
                 ),
               ),
               overlayColor: WidgetStateProperty.all(
-                  colorScheme.primary.withOpacity(0.08)),
+                  colorScheme.primary.withValues(alpha: 0.08)),
               foregroundColor: WidgetStateProperty.all(Colors.white),
             ),
             onPressed: state.isLoading

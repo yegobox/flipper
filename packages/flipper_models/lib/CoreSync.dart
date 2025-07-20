@@ -1972,6 +1972,7 @@ class CoreSync extends AiStrategyImpl
     required double discount,
     required int branchId,
     required String bhfId,
+    required String countryCode,
     required bool isProformaMode,
     required bool isTrainingMode,
     required String transactionType,
@@ -1984,11 +1985,9 @@ class CoreSync extends AiStrategyImpl
   }) async {
     if (transaction != null) {
       try {
-        // Update shift details for cash transactions
-        // if (paymentType ==
-        //     paymentTypes.firstWhere((element) => element == 'CASH')) {
         final userId = ProxyService.box.getUserId();
         if (userId != null) {
+          transaction.customerTin = customerTin;
           transaction.customerChangeDue = cashReceived - transaction.subTotal!;
           final currentShift = await getCurrentShift(userId: userId);
           if (currentShift != null) {
@@ -2008,7 +2007,15 @@ class CoreSync extends AiStrategyImpl
             await repository.upsert<Shift>(updatedShift);
           }
         }
-        // }
+        if (countryCode != "N/A" && countryCode != "") {
+          transaction.currentSaleCustomerPhoneNumber = countryCode +
+              (customerPhone ??
+                  ProxyService.box.currentSaleCustomerPhoneNumber())!;
+        }
+        transaction.customerPhone =
+            customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+        transaction.customerName =
+            customerName ?? ProxyService.box.customerName();
         // Fetch transaction items
 
         // Update numberOfItems before completing the sale
@@ -2019,10 +2026,6 @@ class CoreSync extends AiStrategyImpl
             transaction.items!.fold(0, (a, b) => a! + b.dcAmt!);
         transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
         transaction.customerTin = customerTin;
-        transaction.customerName =
-            customerName ?? ProxyService.box.customerName();
-        transaction.customerPhone =
-            customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
 
         if (isIncome) {
           // Update transaction details
