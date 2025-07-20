@@ -69,19 +69,62 @@ async function sendSMS(text, phoneNumber) {
     }
 }
 
-async function refundCredits(branch_server_id: number, creditsToRefund: number) {
+async function getBranchUuid(branchServerId: number): Promise<string | null> {
     try {
-        const { error: updateError } = await supabase.rpc('add_credits', {
-            branch_id: branch_server_id,
-            amount: creditsToRefund
+        const { data, error } = await supabase
+            .from('branches')
+            .select('id')
+            .eq('server_id', branchServerId)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching branch UUID for server_id ${branchServerId}:`, error);
+            return null;
+        }
+
+        if (data) {
+            return data.id;
+        }
+        return null;
+    } catch (error) {
+        console.error(`Exception fetching branch UUID for server_id ${branchServerId}:`, error);
+        return null;
+    }
+}
+
+async function deductCredits(branch_id: number, creditsToDeduct: number) {
+    try {
+        const { error: updateError } = await supabase.rpc('deduct_credits', {
+            branch_id: branch_id,
+            amount: creditsToDeduct
         });
 
         if (updateError) {
-            console.error(`Failed to refund credits for branch ${branch_server_id}:`, updateError);
+            console.error(`Failed to deduct credits for branch ${branch_id}:`, updateError);
+            return { success: false, error: `Failed to deduct credits: ${updateError.message}` };
+        }
+
+        console.log(`Successfully deducted ${creditsToDeduct} credits for branch ${branch_id}.`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error during credit deduction:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+async function refundCredits(branch_uuid: string, creditsToRefund: number) {
+    try {
+        const { error: updateError } = await supabase.rpc('add_credits', {
+            branch_id_param: branch_uuid,
+            amount_param: creditsToRefund
+        });
+
+        if (updateError) {
+            console.error(`Failed to refund credits for branch ${branch_uuid}:`, updateError);
             return { success: false, error: `Failed to refund credits: ${updateError.message}` };
         }
 
-        console.log(`Successfully refunded ${creditsToRefund} credits for branch ${branch_server_id}.`);
+        console.log(`Successfully refunded ${creditsToRefund} credits for branch ${branch_uuid}.`);
         return { success: true };
     } catch (error) {
         console.error("Error during credit refund:", error);
@@ -144,16 +187,9 @@ async function processPendingSMS() {
                 continue;
             }
 
-            // Make sure the branch_id is a number
-            const branchId = Number(record.branch_id);
-            if (isNaN(branchId)) {
-                console.error(`Invalid branch_id (not a number) for message ID: ${record.id}`);
-                errors.push(`Message ${record.id}: Invalid branch_id (not a number)`);
-                failedCount++;
-                continue;
-            }
+            const branchServerId = record.branch_id; // This is the INT branch_id from messages table
 
-            const creditDeductionResult = await refundCredits(branchId, SMS_CREDIT_COST);
+            const creditDeductionResult = await deductCredits(branchServerId, SMS_CREDIT_COST);
             if (!creditDeductionResult.success) {
                 console.warn(`Skipping message ${record.id} due to credit issues: ${creditDeductionResult.error}`);
                 errors.push(`Message ${record.id}: ${creditDeductionResult.error}`);
@@ -175,7 +211,7 @@ async function processPendingSMS() {
                     errors.push(`Message ${record.id}: Database update failed - ${updateError.message}`);
                     failedCount++;
                     // If update fails, refund credits as SMS was sent but not marked delivered
-                    await refundCredits(branchId, SMS_CREDIT_COST);
+                    await refundCredits(branchServerId, SMS_CREDIT_COST);
                 } else {
                     console.log(`Successfully delivered and updated message ID: ${record.id}`);
                     successCount++;
@@ -188,7 +224,9 @@ async function processPendingSMS() {
                 }
                 failedCount++;
                 // Refund credits if SMS sending failed
-                await refundCredits(branchId, SMS_CREDIT_COST);
+                // get branch uuid
+                const branchUuid = await getBranchUuid(branchServerId);
+                await refundCredits(branchUuid, SMS_CREDIT_COST);
             }
         }
 
