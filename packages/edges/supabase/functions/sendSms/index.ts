@@ -148,18 +148,17 @@ async function processPendingSMS() {
                 continue;
             }
 
-            const creditCheckResult = await deductCredits(branchId, SMS_CREDIT_COST); // Call deductCredits for each message
-            if (!creditCheckResult.success) {
-                console.warn(`Skipping message ${record.id} due to credit issues: ${creditCheckResult.error}`);
-                errors.push(`Message ${record.id}: ${creditCheckResult.error}`);
-                failedCount++;
-                continue;
-            }
-
-
             const result = await sendSMS(record.text, record.phone_number);
 
             if (result.success) {
+                const creditDeductionResult = await deductCredits(branchId, SMS_CREDIT_COST);
+                if (!creditDeductionResult.success) {
+                    console.error(`Failed to deduct credits after successful SMS send for message ID: ${record.id}. Error: ${creditDeductionResult.error}`);
+                    errors.push(`Message ${record.id}: Credit deduction failed after send - ${creditDeductionResult.error}`);
+                    failedCount++;
+                    continue; // Continue to next message, but this one is problematic
+                }
+
                 // Update message status in database
                 const { error: updateError } = await supabase
                     .from('messages')
