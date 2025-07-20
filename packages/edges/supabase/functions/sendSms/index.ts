@@ -212,7 +212,9 @@ async function processPendingSMS() {
                     errors.push(`Message ${record.id}: Database update failed - ${updateError.message}`);
                     failedCount++;
                     // If update fails, refund credits as SMS was sent but not marked delivered
-                    await refundCredits(branchServerId, SMS_CREDIT_COST);
+                    // Get branch UUID
+                    const branchUuid = await getBranchUuid(branchServerId);
+                    await refundCredits(branchUuid, SMS_CREDIT_COST);
                 } else {
                     console.log(`Successfully delivered and updated message ID: ${record.id}`);
                     successCount++;
