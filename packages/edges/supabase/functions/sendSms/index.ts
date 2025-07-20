@@ -227,7 +227,7 @@ async function processPendingSMS() {
                 }
                 failedCount++;
                 // Refund credits if SMS sending failed
-                branchUuid = await getBranchUuid(branchServerId);
+                const branchUuid = await getBranchUuid(branchServerId);
                 if (branchUuid) {
                     await refundCredits(branchUuid, SMS_CREDIT_COST);
                 }
