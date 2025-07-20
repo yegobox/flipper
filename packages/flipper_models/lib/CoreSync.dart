@@ -2019,18 +2019,18 @@ class CoreSync extends AiStrategyImpl
         // Fetch transaction items
 
         // Update numberOfItems before completing the sale
-        transaction.numberOfItems = transaction.items!.length;
+        transaction.numberOfItems = transaction.items?.length ?? 0;
 
         // sum up all discount found on item then save them on a transaction
         transaction.discountAmount =
-            transaction.items!.fold(0, (a, b) => a! + b.dcAmt!);
+            transaction.items?.fold(0, (a, b) => a! + b.dcAmt!);
         transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
         transaction.customerTin = customerTin;
 
         if (isIncome) {
           // Update transaction details
-          transaction.items!
-              .fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
+          transaction.items
+              ?.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           // Update stock and transaction items
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
