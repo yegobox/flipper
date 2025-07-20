@@ -827,3 +827,5 @@ class App {}
 // https://getstream.io/
 
 //Enable repo git hooks git config core.hooksPath hooks
+// Changes to submit in brick in future package: brick_offline_first
+// offline_first_repository.dart

@@ -19,11 +19,13 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
   final ITransaction transaction;
   final BuildContext context;
   final TextEditingController customerNameController;
+  final TextEditingController countryCodeController;
   final GlobalKey<FormState> formKey;
   Function onComplete;
 
   PurchaseCodeFormBloc({
     required this.customerNameController,
+    required this.countryCodeController,
     required this.formKey,
     required this.amount,
     required this.discount,
@@ -41,6 +43,7 @@ class PurchaseCodeFormBloc extends FormBloc<String, String>
       final response = await finalizePayment(
         onComplete: onComplete,
         formKey: formKey,
+        countryCodeController: countryCodeController,
         customerNameController: customerNameController,
         transactionType: TransactionType.sale,
         context: context,

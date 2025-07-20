@@ -188,11 +188,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? customerName,
     String? customerTin,
     String? customerPhone,
+    required String countryCode,
   });
 
   Future<Setting?> getSetting({required int businessId});
 
- 
   FutureOr<void> assignCustomerToTransaction(
       {required String customerId, String? transactionId});
   FutureOr<void> removeCustomerFromTransaction(

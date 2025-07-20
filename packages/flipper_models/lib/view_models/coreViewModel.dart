@@ -466,6 +466,7 @@ class CoreViewModel extends FlipperBaseModel
         isExpense: false);
 
     await ProxyService.strategy.collectPayment(
+        countryCode: "N/A",
         branchId: ProxyService.box.getBranchId()!,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),

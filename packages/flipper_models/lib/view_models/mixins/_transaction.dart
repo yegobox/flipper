@@ -32,6 +32,7 @@ mixin TransactionMixinOld {
       required GlobalKey<FormState> formKey,
       required TextEditingController customerNameController,
       required Function onComplete,
+      required TextEditingController countryCodeController,
       required double discount}) async {
     try {
       final taxExanbled = await ProxyService.strategy
@@ -59,7 +60,8 @@ mixin TransactionMixinOld {
 
         // Collect payment and complete transaction details before generating receipt
         await _completeTransactionAfterTaxValidation(transaction,
-            customerName: customerNameController.text);
+            customerName: customerNameController.text,
+            countryCode: countryCodeController.text);
 
         response = await handleReceiptGeneration(
           formKey: formKey,
@@ -72,8 +74,11 @@ mixin TransactionMixinOld {
         }
       } else {
         // For non-tax enabled scenarios, complete the transaction here
-        await _completeTransactionAfterTaxValidation(transaction,
-            customerName: customerNameController.text);
+        await _completeTransactionAfterTaxValidation(
+          transaction,
+          customerName: customerNameController.text,
+          countryCode: countryCodeController.text,
+        );
       }
 
       if (response == null) {
@@ -196,7 +201,7 @@ mixin TransactionMixinOld {
   /// This ensures we only mark the transaction as complete after we've received
   /// a successful response from the tax service
   Future<void> _completeTransactionAfterTaxValidation(ITransaction transaction,
-      {required String customerName}) async {
+      {required String customerName, required String countryCode}) async {
     try {
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
       final amount = double.tryParse(
@@ -208,13 +213,15 @@ mixin TransactionMixinOld {
       final paymentType = ProxyService.box.paymentType() ?? "CASH";
       final transactionType = transaction.receiptType ?? TransactionType.sale;
       Customer? customer = (await ProxyService.strategy.customers(
-              id: transaction.customerId,))
+        id: transaction.customerId,
+      ))
           .firstOrNull;
       // First collect the payment
       ProxyService.strategy.collectPayment(
         branchId: ProxyService.box.getBranchId()!,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
+        countryCode: countryCode,
         bhfId: bhfId,
         customerName: customer == null
             ? ProxyService.box.customerName() ?? "N/A"

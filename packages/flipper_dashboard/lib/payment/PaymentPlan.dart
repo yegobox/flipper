@@ -571,6 +571,14 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isCheckingPayment) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

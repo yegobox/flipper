@@ -594,6 +594,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         child: _i2.QuickSellingView(
           key: args.key,
           formKey: args.formKey,
+          countryCodeController: args.countryCodeController,
           discountController: args.discountController,
           receivedAmountController: args.receivedAmountController,
           deliveryNoteCotroller: args.deliveryNoteCotroller,
@@ -2294,6 +2295,7 @@ class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
     required _i5.TextEditingController customerPhoneNumberController,
     required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
+    required _i5.TextEditingController countryCodeController,
   }) : super(
           QuickSellingViewRoute.name,
           path: '/quick-selling-view',
@@ -2306,6 +2308,7 @@ class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
             customerPhoneNumberController: customerPhoneNumberController,
             customerNameController: customerNameController,
             paymentTypeController: paymentTypeController,
+            countryCodeController: countryCodeController,
           ),
         );
 
@@ -2322,6 +2325,7 @@ class QuickSellingViewArgs {
     required this.customerPhoneNumberController,
     required this.customerNameController,
     required this.paymentTypeController,
+    required this.countryCodeController,
   });
 
   final _i5.Key? key;
@@ -2329,6 +2333,7 @@ class QuickSellingViewArgs {
   final _i5.GlobalKey<_i5.FormState> formKey;
 
   final _i5.TextEditingController discountController;
+  final _i5.TextEditingController countryCodeController;
 
   final _i5.TextEditingController receivedAmountController;
 
@@ -3079,6 +3084,7 @@ extension RouterStateExtension on _i3.RouterService {
     required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
     void Function(_i4.NavigationFailure)? onFailure,
+    required _i5.TextEditingController countryCodeController,
   }) async {
     return navigateTo(
       QuickSellingViewRoute(
@@ -3090,6 +3096,7 @@ extension RouterStateExtension on _i3.RouterService {
         customerPhoneNumberController: customerPhoneNumberController,
         customerNameController: customerNameController,
         paymentTypeController: paymentTypeController,
+        countryCodeController: countryCodeController,
       ),
       onFailure: onFailure,
     );
@@ -3786,6 +3793,7 @@ extension RouterStateExtension on _i3.RouterService {
     required _i5.TextEditingController customerNameController,
     required _i5.TextEditingController paymentTypeController,
     void Function(_i4.NavigationFailure)? onFailure,
+    required _i5.TextEditingController countryCodeController,
   }) async {
     return replaceWith(
       QuickSellingViewRoute(
@@ -3797,6 +3805,7 @@ extension RouterStateExtension on _i3.RouterService {
         customerPhoneNumberController: customerPhoneNumberController,
         customerNameController: customerNameController,
         paymentTypeController: paymentTypeController,
+        countryCodeController: countryCodeController,
       ),
       onFailure: onFailure,
     );
