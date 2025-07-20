@@ -255,7 +255,7 @@ class PaymentsState extends ConsumerState<Payments> {
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 width: 0.5,
               ),
             ),
@@ -271,62 +271,67 @@ class PaymentsState extends ConsumerState<Payments> {
       width: 280,
       child: Form(
         key: _customerKey,
-        child: Row(
-          children: [
-            CountryCodePicker(
-              onChanged: (countryCode) {
-                _countryCodeController.text = countryCode.dialCode!;
-              },
-              initialSelection: 'RW',
-              favorite: ['+250', 'RW'],
-              showCountryOnly: false,
-              showOnlyCountryWhenClosed: false,
-              alignLeft: false,
-            ),
-            Expanded(
-              child: TextFormField(
-                keyboardType: TextInputType.number,
-                controller: _customer,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter Phone number without 0 e.g 783054874';
-                  }
-                  if (value.length > 9) {
-                    return 'Please enter Phone number without 0 e.g 783054874';
-                  }
-                  if (value.length < 9) {
-                    return 'Please enter Phone number without 0 e.g 783054874';
-                  }
-                  return null;
-                },
-                onFieldSubmitted: (value) {
-                  _customer.text = value;
-                  ProxyService.box.writeString(
-                      key: 'currentSaleCustomerPhoneNumber', value: value);
-                },
-                onChanged: (value) {
-                  ProxyService.box.writeString(
-                      key: 'currentSaleCustomerPhoneNumber', value: value);
-                },
-                decoration: InputDecoration(
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade400,
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(4.0),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.black.withOpacity(0.1),
-                      width: 0.5,
-                    ),
-                  ),
-                  hintText: 'Customer Phone Number',
+        child: IntrinsicHeight(
+          child: Row(
+            children: [
+              Flexible(
+                flex: 2,
+                child: CountryCodePicker(
+                  onChanged: (countryCode) {
+                    _countryCodeController.text = countryCode.dialCode!;
+                  },
+                  initialSelection: 'RW',
+                  favorite: ['+250', 'RW'],
+                  showCountryOnly: false,
+                  showOnlyCountryWhenClosed: false,
+                  alignLeft: false,
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                child: TextFormField(
+                  keyboardType: TextInputType.number,
+                  controller: _customer,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter Phone number without 0 e.g 783054874';
+                    }
+                    if (value.length > 9) {
+                      return 'Please enter Phone number without 0 e.g 783054874';
+                    }
+                    if (value.length < 9) {
+                      return 'Please enter Phone number without 0 e.g 783054874';
+                    }
+                    return null;
+                  },
+                  onFieldSubmitted: (value) {
+                    _customer.text = value;
+                    ProxyService.box.writeString(
+                        key: 'currentSaleCustomerPhoneNumber', value: value);
+                  },
+                  onChanged: (value) {
+                    ProxyService.box.writeString(
+                        key: 'currentSaleCustomerPhoneNumber', value: value);
+                  },
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.grey.shade400,
+                        width: 1.0,
+                      ),
+                      borderRadius: BorderRadius.circular(4.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.black.withOpacity(0.1),
+                        width: 0.5,
+                      ),
+                    ),
+                    hintText: 'Customer Phone Number',
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -561,7 +566,7 @@ class PaymentsState extends ConsumerState<Payments> {
     final customerPhoneNumber = _countryCodeController.text + _customer.text;
 
     ProxyService.strategy.collectPayment(
-      countryCode: "N/A",
+      countryCode: _countryCodeController.text.replaceAll('+', ''),
       branchId: ProxyService.box.getBranchId()!,
       isProformaMode: ProxyService.box.isProformaMode(),
       isTrainingMode: ProxyService.box.isTrainingMode(),

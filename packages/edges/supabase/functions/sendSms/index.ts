@@ -20,6 +20,12 @@ async function sendSMS(text, phoneNumber) {
         // Ensure phone number has the + prefix for international format
         const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
         console.log(`Attempting to send SMS to ${formattedNumber}: "${text}"`);
+        const username = Deno.env.get('SMS_API_USERNAME');
+        const password = Deno.env.get('SMS_API_PASSWORD');
+
+        if (!username || !password) {
+            return { success: false, error: 'SMS API credentials not configured' };
+        }
 
         const smsBody = {
             text: text,
@@ -30,7 +36,7 @@ async function sendSMS(text, phoneNumber) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Basic ${btoa(`${Deno.env.get('SMS_API_USERNAME')}:${Deno.env.get('SMS_API_PASSWORD')}`)}`
+                "Authorization": `Basic ${btoa(`${username}:${password}`)}`
             },
             body: JSON.stringify(smsBody)
         });
@@ -206,7 +212,9 @@ function checkEnvironmentVariables() {
     const vars = {
         'SUPABASE_URL': Deno.env.get('SUPABASE_URL'),
         'SUPABASE_ANON_KEY': Deno.env.get('SUPABASE_ANON_KEY'),
-        'YEGOBOX_BEARER_TOKEN': Deno.env.get('YEGOBOX_BEARER_TOKEN')
+        'YEGOBOX_BEARER_TOKEN': Deno.env.get('YEGOBOX_BEARER_TOKEN'),
+        'SMS_API_USERNAME': Deno.env.get('SMS_API_USERNAME'),
+        'SMS_API_PASSWORD': Deno.env.get('SMS_API_PASSWORD')
     };
 
     const missingVars = Object.entries(vars)
