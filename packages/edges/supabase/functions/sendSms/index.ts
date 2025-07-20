@@ -153,7 +153,7 @@ async function processPendingSMS() {
                 continue;
             }
 
-            const creditDeductionResult = await deductCredits(branchId, SMS_CREDIT_COST);
+            const creditDeductionResult = await refundCredits(branchId, SMS_CREDIT_COST);
             if (!creditDeductionResult.success) {
                 console.warn(`Skipping message ${record.id} due to credit issues: ${creditDeductionResult.error}`);
                 errors.push(`Message ${record.id}: ${creditDeductionResult.error}`);

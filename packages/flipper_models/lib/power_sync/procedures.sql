@@ -19,6 +19,16 @@ END;
 $$;
 
 
+-- 
+ CREATE OR REPLACE FUNCTION add_credits(branch_id_param INT, amount_param INT)
+    RETURNS VOID AS $$
+    BEGIN
+      UPDATE public.business_credits
+      SET balance = balance + amount_param
+      WHERE branch_id = branch_id_param;
+    END;
+    $$ LANGUAGE plpgsql;
+
 -- Scripts useful
 
 SELECT *
