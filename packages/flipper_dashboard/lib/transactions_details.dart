@@ -8,7 +8,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'customappbar.dart';
 import 'widgets/transaction_status_widget.dart';
 import 'package:intl/intl.dart';
 
