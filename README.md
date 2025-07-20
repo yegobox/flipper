@@ -2,7 +2,7 @@
 
 <img src=".github/assets/flipper_logo.png" width="200" alt="Flipper Logo"/>
 
-# Flipper
+# Flipper    
 
 ### Enterprise-Grade Business Software with Military-Level Encryption
 
@@ -53,72 +53,48 @@ This monorepo contains our complete ecosystem, including:
 
 This repository is a monorepo managed with [Melos](https://melos.invertase.dev/).
 
-This section aligns local development with our CI/CD (`release.yml`). **If you cloned the repository before these steps, please repeat them.**
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/yegobox/flipper.git
 
-### 1. Prerequisites & Toolchain Versions
+    # Clone With Submodules:
+        git clone --recurse-submodules https://github.com/yegobox/flipper.git
 
-| Tool               | Required Version        | Notes                                                                |
-| ------------------ | ----------------------- | -------------------------------------------------------------------- |
-| Flutter            | **3.32.6** (stable)     | Match CI to avoid build/test drift. (Update here *first* before CI.) |
-| Dart               | Bundled with Flutter    | Ensure `dart --version` matches Flutter SDK.                         |
-| Java JDK           | **17** (Zulu / Temurin) | Required for Android and some tooling.                               |
-| Ruby               | **3.0.x**               | For Fastlane (Android release lanes).                                |
-| Node.js            | **20.x LTS**            | Used for Firebase Hosting deploy and scripts.                        |
-| Melos              | **6.3.2**               | Monorepo orchestration (pinned version).                             |
-| Git                | >= 2.40                 | Needed for submodules and hooks.                                     |
-| Android SDK / NDK  | Latest stable           | Required for Android builds.                                         |
-| PowerShell 7 (Win) | Optional                | For advanced scripting.                                              |
+    # If already cloned without submodules
+        git submodule update --init --recursive
 
-> **Why pin versions?** Divergent build artifacts and flaky tests occur when contributors use unverified toolchains. Always upgrade deliberately.
+    cd flipper
+    ```
 
-### 2. Clone With Submodules
+2.  **Activate Melos**:
+    ```bash
+    dart pub global activate melos 6.3.2
+    ```
 
-```bash
-git clone --recurse-submodules https://github.com/yegobox/flipper.git
-cd flipper
+3.  **Bootstrap the project**:
+    This command links all local packages and installs dependencies.
+    ```bash
+    melos bootstrap
 
-# If already cloned without submodules
-git submodule update --init --recursive
+    If dependencies fail to resolve:
+    melos clean
+    melos bootstrap
 ```
+    ```
 
-### 3. Activate Melos (Pinned Version)
+4.  **Enable repo git hooks**:
+    ```bash
+    git config core.hooksPath hooks
+    ```
 
-```bash
-dart pub global activate melos 6.3.2
-```
-
-### 4. Bootstrap the Monorepo
-
-```bash
-melos bootstrap
-```
-
-If dependencies fail to resolve:
-
-```bash
-melos clean
-melos bootstrap
-```
-
-### 5. Git Hooks
-
-```bash
-git config core.hooksPath hooks
-```
-
-### 6. Code Generation
-
-```bash
-melos run build
-```
-
-### 7. Configure Local Secrets & Config
+### Manual Configuration
 
 For security reasons, some configuration files containing sensitive information are not included in the repository. You will need to create them manually.
 
 1.  **Secret Files**:
     -   `packages/flipper_models/lib/secrets.dart`: Contains the `AppSecrets` class with API keys and endpoints.
     -   `apps/flipper/lib/firebase_options.dart`: Contains the `DefaultFirebaseOptions` class with Firebase configuration.
+
 2.  **API Keys**:
     You'll need to obtain and configure your own API keys for services like Payment gateways (PayStack), Cloud storage, Analytics, Firebase, Sentry, and Supabase.
 
@@ -151,7 +127,7 @@ Our next funding round will accelerate:
 -   Expansion of AI-powered business intelligence tools
 -   Global compliance and certification programs
 
-## 📜 License & Terms of Use 
+## 📜 License & Terms of Use
 
 This project is source-available. The source code is public on GitHub to promote transparency and build trust with our users and partners. However, it is not "open source" in the conventional sense.
 
