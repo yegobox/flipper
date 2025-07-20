@@ -20,15 +20,27 @@ $$;
 
 
 -- 
- CREATE OR REPLACE FUNCTION add_credits(branch_id_param INT, amount_param INT)
-    RETURNS VOID AS $$
-    BEGIN
-      UPDATE public.business_credits
-      SET balance = balance + amount_param
-      WHERE branch_id = branch_id_param;
-    END;
-    $$ LANGUAGE plpgsql;
+CREATE OR REPLACE FUNCTION public.add_credits(branch_id_param INT, amount_param INT)
+RETURNS VOID AS $$
+DECLARE
+  _row_exists BOOLEAN;
+BEGIN
+  -- Lock the credits row. Fail fast if it does not exist.
+  SELECT TRUE INTO _row_exists
+  FROM public.business_credits
+  WHERE branch_id = branch_id_param
+  FOR UPDATE;
 
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'No business_credits row for branch %', branch_id_param;
+  END IF;
+
+  -- Update the balance by adding amount_param
+  UPDATE public.business_credits
+  SET balance = balance + amount_param
+  WHERE branch_id = branch_id_param;
+END;
+$$ LANGUAGE plpgsql;
 -- Scripts useful
 
 SELECT *
