@@ -33,6 +33,57 @@ class TransactionsState extends ConsumerState<Transactions>
     super.initState();
   }
 
+  Widget _buildTransactionFilterButtons() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.filter_list_alt,
+                color: const Color(0xFF0077C5), // QuickBooks blue
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Filter Transactions',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A1A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          RadioButtons(
+            buttonLabels: transactionTypeOptions,
+            onChanged: (newPeriod) {
+              setState(() {
+                displayedTransactionType = newPeriod;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
@@ -45,25 +96,7 @@ class TransactionsState extends ConsumerState<Transactions>
           ),
           body: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 13.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    RadioButtons(
-                      buttonLabels: transactionTypeOptions,
-                      onChanged: (newPeriod) {
-                        setState(() {
-                          displayedTransactionType = newPeriod;
-                        });
-                      },
-                    ),
-                    const Divider(
-                      color: Colors.grey,
-                    ),
-                  ],
-                ),
-              ),
+              _buildTransactionFilterButtons(),
               Expanded(
                 child: _buildTransactionContent(context),
               ),
@@ -153,55 +186,6 @@ Widget _buildModernTransactionList({
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // QuickBooks-style header
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7F9FC),
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade200),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.receipt_long_outlined,
-                color: const Color(0xFF0077C5), // QuickBooks blue
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Recent Transactions',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A1A1A),
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0077C5).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  '${transactions.length}',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF0077C5),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
         // Transaction list
         Expanded(
           child: ListView.builder(
@@ -267,7 +251,7 @@ Widget _buildModernTransactionItem({
                   color: (isIncome
                           ? const Color(0xFF10B981)
                           : const Color(0xFFEF4444))
-                      .withOpacity(0.2),
+                      .withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -365,61 +349,6 @@ Widget _buildModernTransactionItem({
   );
 }
 
-// Duolingo-inspired colorful empty state
-Widget _buildEmptyState(BuildContext context) {
-  return Container(
-    padding: const EdgeInsets.all(32),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF58CC02), Color(0xFF89E219)], // Duolingo green
-            ),
-            borderRadius: BorderRadius.circular(60),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF58CC02).withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.analytics_outlined,
-            size: 60,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Ready to start tracking!',
-          style: GoogleFonts.nunito(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF4B4B4B),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Your transactions will appear here once you start adding them.',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFF777777),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
 Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
   return Container(
     padding: const EdgeInsets.all(32),
@@ -438,7 +367,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
             borderRadius: BorderRadius.circular(50),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFFF9500).withOpacity(0.3),
+                color: const Color(0xFFFF9500).withValues(alpha: 0.3),
                 blurRadius: 16,
                 offset: const Offset(0, 8),
               ),
@@ -520,7 +449,7 @@ Widget _buildErrorState(BuildContext context, String error) {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF4444).withOpacity(0.1),
+            color: const Color(0xFFFF4444).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(40),
           ),
           child: const Icon(
