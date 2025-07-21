@@ -55,14 +55,8 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
 
 1.  **Clone the repository**:
     ```bash
-    git clone https://github.com/yegobox/flipper.git
-
     # Clone With Submodules:
         git clone --recurse-submodules https://github.com/yegobox/flipper.git
-
-    # If already cloned without submodules
-        git submodule update --init --recursive
-
     cd flipper
     ```
 
@@ -75,11 +69,6 @@ This repository is a monorepo managed with [Melos](https://melos.invertase.dev/)
     This command links all local packages and installs dependencies.
     ```bash
     melos bootstrap
-
-    If dependencies fail to resolve:
-    melos clean
-    melos bootstrap
-```
     ```
 
 4.  **Enable repo git hooks**:
