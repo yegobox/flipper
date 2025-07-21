@@ -576,11 +576,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           );
           throw exception;
         }
-
-        // Update transaction and item statuses
-        updateTransactionAndItems(transaction, items, receiptCodes['rcptTyCd'],
-            counter: counter);
-
         if (sarTyCd != null) {
           final ebmSyncService = TurboTaxService(repository);
           // record stock Out sarTyCd = StockInOutType.sale
@@ -961,15 +956,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     // print(json);
     return json;
-  }
-
-  /// Helper function to update transaction and item statuses
-  Future<void> updateTransactionAndItems(ITransaction transaction,
-      List<TransactionItem> items, String? receiptType,
-      {required odm.Counter counter}) async {
-    transaction.sarNo = counter.invcNo.toString();
-    // transaction.orgSarNo = counter.invcNo.toString();
-    await repository.upsert(transaction);
   }
 
   // Define these constants at the top level of your file

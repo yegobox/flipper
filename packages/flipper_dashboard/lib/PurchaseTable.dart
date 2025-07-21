@@ -368,6 +368,44 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                               ),
                                             ),
                                           ),
+                                          SizedBox(width: 8),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.red.withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: TextButton.icon(
+                                              icon: Icon(Icons.cancel_outlined,
+                                                  size: 16, color: Colors.red),
+                                              label: Text(
+                                                'Decline All',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.red[700],
+                                                ),
+                                              ),
+                                              onPressed: () async {
+                                                await widget.acceptPurchases(
+                                                  purchases: [purchase],
+                                                  pchsSttsCd:
+                                                      '04', // status code for declined
+                                                  purchase: purchase,
+                                                  clickedVariant: null,
+                                                );
+                                              },
+                                              style: TextButton.styleFrom(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 8, vertical: 4),
+                                                tapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                minimumSize: Size.zero,
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       IconButton(
