@@ -111,6 +111,7 @@ class TaxController<OBJ> {
             receiptType: TransactionReceptType.CS,
             salesSttsCd: SalesSttsCd.approved,
             transaction: transaction,
+            originalInvoiceNumber: transaction.invoiceNumber,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           );
         } catch (e) {
@@ -166,6 +167,7 @@ class TaxController<OBJ> {
           purchaseCode: purchaseCode,
           sarTyCd: sarTyCd,
         );
+        // fetch same transaction
 
         if (responses.resultCd == "000") {
           Business? business = await ProxyService.strategy
@@ -250,6 +252,7 @@ class TaxController<OBJ> {
             totalTaxC: calculateTotalTax(totalC, taxConfigTaxC!),
             totalTaxD: calculateTotalTax(totalD, taxConfigTaxD!),
             currencySymbol: "RW",
+            originalInvoiceNumber: originalInvoiceNumber,
             transaction: transaction,
 
             /// TODO: for totalTax we are not accounting other taxes only B
@@ -365,10 +368,7 @@ class TaxController<OBJ> {
 
         /// update transaction with receipt number and total receipt number
 
-        if (receiptType == "CR" ||
-            receiptType == "NR" ||
-            receiptType == "TR" ||
-            receiptType == "CS") {
+        if (receiptType == "CR" || receiptType == "NR" || receiptType == "TR") {
           final newTransaction = ITransaction(
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
@@ -448,9 +448,10 @@ class TaxController<OBJ> {
           ProxyService.strategy.updateTransaction(
             transaction: transaction,
             receiptType: receiptType,
+            sarNo: counter.invcNo.toString(),
             receiptNumber: counter.invcNo,
             totalReceiptNumber: counter.totRcptNo,
-            invoiceNumber: counter.invcNo,
+            invoiceNumber: transaction.invoiceNumber ?? counter.invcNo,
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
           );

@@ -968,8 +968,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       List<TransactionItem> items, String? receiptType,
       {required odm.Counter counter}) async {
     transaction.sarNo = counter.invcNo.toString();
-    transaction.invoiceNumber = counter.invcNo;
-    transaction.orgSarNo = counter.invcNo.toString();
+    // transaction.orgSarNo = counter.invcNo.toString();
     await repository.upsert(transaction);
   }
 

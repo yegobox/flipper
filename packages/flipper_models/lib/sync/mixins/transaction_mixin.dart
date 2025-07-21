@@ -860,7 +860,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
     transaction.sarNo = sarNo ?? transaction.sarNo;
     transaction.orgSarNo = orgSarNo ?? transaction.orgSarNo;
-    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    if (receiptType != "NR" && receiptType != "CR" && receiptType != "TR") {
+      transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    }
     transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
     transaction.totalReceiptNumber =
         totalReceiptNumber ?? transaction.totalReceiptNumber;
