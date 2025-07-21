@@ -930,48 +930,37 @@ class CoreViewModel extends FlipperBaseModel
 
       talker.warning("salesListLenghts" + salesList.length.toString());
 
-      List<Variant> variantsToProcess = [];
-      if (clickedVariant != null) {
-        variantsToProcess.add(clickedVariant);
-      } else {
-        // If no specific variant is clicked, process all variants in the first purchase
-        // This assumes that if clickedVariant is null, we are processing a batch.
-        // The original code iterated through `purchases` and then `purchase.variants`.
-        // For batch processing, we'll assume `purchases` contains the relevant purchase(es)
-        // and we'll iterate through their variants.
-        // For simplicity, I'm assuming if clickedVariant is null, we process all variants
-        // of the *first* purchase in the list. If the intent is to process all variants
-        // across *all* purchases in the list, the outer loop `for (Purchase purchase in purchases)`
-        // should remain. For now, I'll keep it focused on the single purchase passed in the parameter.
-        variantsToProcess.addAll(purchase.variants ?? []);
-      }
+      // Set status code and default retail price for all variants before processing
+      // for (Variant variant in purchase.variants??[]) {
+      //   variant.pchsSttsCd = pchsSttsCd;
+      //   variant.retailPrice ??= variant.prc;
+      // }
 
-      for (Variant variant in variantsToProcess) {
-        variant.retailPrice ??= variant.prc;
+      final business = (await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()));
+
+      // Call savePurchases ONCE with all variants to be processed
+      // ignore: unused_local_variable
+      final RwApiResponse rwApiResponse = await ProxyService.tax.savePurchases(
+        item: purchase,
+        business: business!,
+        variants: purchase.variants!,
+        bhfId: (await ProxyService.box.bhfId()) ?? "00",
+        rcptTyCd: "P",
+        URI: await ProxyService.box.getServerUrl() ?? "",
+        pchsSttsCd: pchsSttsCd,
+      );
+
+      for (Variant variant in purchase.variants ?? []) {
         talker.warning(
-            "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
-
-        talker.warning("Variant ${variant.id}");
-
-        final business = (await ProxyService.strategy
-            .getBusiness(businessId: ProxyService.box.getBusinessId()));
-
-        variant.pchsSttsCd = pchsSttsCd;
-        await ProxyService.tax.savePurchases(
-          item: purchase,
-          business: business!,
-          variants: [variant],
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          rcptTyCd: "P",
-          URI: await ProxyService.box.getServerUrl() ?? "",
-          pchsSttsCd: pchsSttsCd,
-        );
+            "Processing variant in our DB: ${variant.name} - ${variant.id}");
 
         final isVariantMapped =
             itemMapper?.values.any((v) => v.id == variant.id) ?? false;
+        variant.pchsSttsCd = pchsSttsCd;
 
-        if (!isVariantMapped) {
-          // Generate new itemCode for new item
+        if (!isVariantMapped && pchsSttsCd != "04") {
+          // This is a new item, not mapped to an existing one.
           variant.itemCd = await ProxyService.strategy.itemCode(
             countryCode: "RW",
             productType: "2",
@@ -980,13 +969,14 @@ class CoreViewModel extends FlipperBaseModel
             branchId: ProxyService.box.getBranchId()!,
           );
           variant.ebmSynced = false;
-          variant.pchsSttsCd = pchsSttsCd;
-          await ProxyService.strategy.updateVariant(
-              updatables: [variant],
-              purchase: purchase,
-              approvedQty: variant.stock?.currentStock,
-              invoiceNumber: purchase.spplrInvcNo);
         }
+
+        await ProxyService.strategy.updateVariant(
+          updatables: [variant],
+          purchase: purchase,
+          approvedQty: variant.stock?.currentStock,
+          invoiceNumber: purchase.spplrInvcNo,
+        );
       }
 
       /// when a user want to make incoming item to existing item

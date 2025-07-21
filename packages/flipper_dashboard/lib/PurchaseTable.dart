@@ -371,8 +371,8 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           SizedBox(width: 8),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color:
-                                                  Colors.red.withValues(alpha: 0.1),
+                                              color: Colors.red
+                                                  .withValues(alpha: 0.1),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                             ),
@@ -480,8 +480,6 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                       _editedSupplyPrices,
                                       talker,
                                       () => setState(() {}),
-                                      widget.acceptPurchases,
-                                      purchase,
                                     );
                                     return Padding(
                                       padding: EdgeInsets.symmetric(
