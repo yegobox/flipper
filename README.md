@@ -53,10 +53,10 @@ This monorepo contains our complete ecosystem, including:
 
 This repository is a monorepo managed with [Melos](https://melos.invertase.dev/).
 
-1.  **Clone the repository**:
+1.  **Clone the repository with submodules**:
     ```bash
-    # Clone With Submodules:
-        git clone --recurse-submodules https://github.com/yegobox/flipper.git
+    git clone --recurse-submodules https://github.com/yegobox/flipper.git
+    
     cd flipper
     ```
 
