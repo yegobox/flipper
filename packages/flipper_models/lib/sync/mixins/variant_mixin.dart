@@ -63,7 +63,7 @@ mixin VariantMixin implements VariantInterface {
           Or('dclDe').isNot(null),
         ]));
       } else if (forPurchaseScreen) {
-        conditions.add(Where('pchsSttsCd').isIn(["01", "02", "04"]));
+        conditions.add(Where('pchsSttsCd').isIn(["01", "02", "04", "03"]));
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
