@@ -87,14 +87,9 @@ class SearchFieldState extends ConsumerState<SearchField>
   @override
   Widget build(BuildContext context) {
     final stringValue = ref.watch(searchStringProvider);
-    final orders = ref.watch(stockRequestsProvider(
-        status: RequestStatus.pending,
-        search: stringValue.isNotEmpty ? stringValue : null));
-    final notice = ref.watch(noticesProvider);
 
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
-    final deviceType = _getDeviceType(context);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: padding),
@@ -155,26 +150,50 @@ class SearchFieldState extends ConsumerState<SearchField>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   toggleSearch(),
-                  notices(notice: notice.value ?? []),
-                  orders.when(
-                    data: (orders) => widget.showOrderButton
-                        ? orderButton(orders.length).shouldSeeTheApp(ref,
-                            featureName: AppFeature.Orders)
-                        : const SizedBox.shrink(),
-                    loading: () => widget.showOrderButton
-                        ? orderButton(0).shouldSeeTheApp(ref,
-                            featureName: AppFeature.Orders)
-                        : const SizedBox.shrink(),
-                    error: (err, stack) => Text('Error: $err'),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final notice = ref.watch(noticesProvider);
+                      return notices(notice: notice.value ?? []);
+                    },
                   ),
-                  if (widget.showIncomingButton &&
-                      deviceType != 'Phone' &&
-                      deviceType != 'Phablet' &&
-                      ref.watch(appModeProvider))
-                    incomingButton(),
-                  if (widget.showAddButton && ref.watch(appModeProvider))
-                    addButton().eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-                  // Remove the date picker that was unintentionally added
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final orders = ref.watch(stockRequestsProvider(
+                          status: RequestStatus.pending,
+                          search: stringValue.isNotEmpty ? stringValue : null));
+                      return orders.when(
+                        data: (orders) => widget.showOrderButton
+                            ? orderButton(orders.length).shouldSeeTheApp(ref,
+                                featureName: AppFeature.Orders)
+                            : const SizedBox.shrink(),
+                        loading: () => widget.showOrderButton
+                            ? orderButton(0).shouldSeeTheApp(ref,
+                                featureName: AppFeature.Orders)
+                            : const SizedBox.shrink(),
+                        error: (err, stack) => Text('Error: $err'),
+                      );
+                    },
+                  ),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final appMode = ref.watch(appModeProvider);
+                      final deviceType = _getDeviceType(context);
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.showIncomingButton &&
+                              deviceType != 'Phone' &&
+                              deviceType != 'Phablet' &&
+                              appMode)
+                            incomingButton(),
+                          if (widget.showAddButton && appMode)
+                            addButton()
+                                .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+                        ],
+                      );
+                    },
+                  ),
+                  SizedBox(width: 12),
                 ],
               ),
             ),

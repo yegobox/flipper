@@ -956,10 +956,11 @@ class CoreViewModel extends FlipperBaseModel
 
       final business = await _getBusiness();
       await _reportPurchaseToTaxService(purchase, business, pchsSttsCd);
-      await _processPurchaseVariants(purchase, pchsSttsCd, itemMapper);
 
       if (_shouldProcessMappings(pchsSttsCd, itemMapper)) {
         await _handleVariantMappings(itemMapper!, purchase);
+      } else {
+        await _processPurchaseVariants(purchase, pchsSttsCd, itemMapper);
       }
 
       _setLoading(false);
@@ -1044,6 +1045,9 @@ class CoreViewModel extends FlipperBaseModel
       if (!isVariantMapped && pchsSttsCd == "02") {
         await _processNewVariant(purchaseVariant, purchase, updateIo: true);
       } else if (pchsSttsCd == "04") {
+        /// for lack of another property I can use because we do not want to endp syncing
+        /// item we also mark it as assigned so it will be ignore
+        purchaseVariant.assigned = true;
         await ProxyService.strategy.updateVariant(
           updatables: [purchaseVariant],
           updateIo: false,
@@ -1119,13 +1123,14 @@ class CoreViewModel extends FlipperBaseModel
     Variant purchaseVariant,
     Purchase purchase,
   ) async {
+    // When mapping, the item from the purchase should be marked as assigned.
+    purchaseVariant.assigned = true;
     await _updateVariantStock(
       item: purchaseVariant,
       existingVariantToUpdate: existingVariant,
     );
 
     purchaseVariant.pchsSttsCd = "03"; // Mapped status
-    purchaseVariant.assigned = true;
 
     await ProxyService.strategy.updateVariant(
       updatables: [purchaseVariant],

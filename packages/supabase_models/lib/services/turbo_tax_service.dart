@@ -75,7 +75,8 @@ class TurboTaxService {
               "1" || // unsent, item that has been mapped to another item after import of purchase.
           variant.imptItemSttsCd == "4" ||
           variant.imptItemSttsCd == "2" ||
-          variant.itemCd == "3") {
+          variant.itemCd == "3" ||
+          variant.assigned == true) {
         /// save it anyway so we do not miss things
         talker.info("Syncing service called but skipped ${variant.itemCd}");
         variant.ebmSynced = true;
@@ -103,7 +104,7 @@ class TurboTaxService {
       }
 
       final saveStockMasterResponse = await ProxyService.tax
-          .saveStockMaster(variant: variant, URI: serverUrl);
+          .saveStockMaster(variant: variant, URI: serverUrl,approvedQty: approvedQty);
 
       if (saveStockMasterResponse.resultCd != "000") {
         await _handleFailedSync(
@@ -317,29 +318,31 @@ class TurboTaxService {
   Future<bool> syncTransactionWithEbm(
       {required ITransaction instance,
       required String serverUrl,
-      required String sarTyCd}) async {
-    if (instance.status == COMPLETE) {
-      if (instance.customerName == null || instance.sarNo == null) {
-        return false;
-      }
-      talker.info("Syncing transaction with ${instance.items?.length} items");
+      String? sarTyCd,
+      int? invoiceNumber}) async {
+    try {
+      if (instance.status == COMPLETE) {
+        // if (instance.customerName == null || instance.sarNo == null) {
+        //   return false;
+        // }
+        talker.info("Syncing transaction with ${instance.items?.length} items");
 
-      // Variant variant = Variant.copyFromTransactionItem(item);
-      // get transaction items
-      if (instance.invoiceNumber != null) {
         await stockIo(
-            invoiceNumber: instance.invoiceNumber!,
+            invoiceNumber: (invoiceNumber ?? instance.invoiceNumber)!,
             serverUrl: serverUrl,
             transaction: instance,
             sarTyCd: sarTyCd);
+
+        talker.info(
+            "Successfully synced all items for transaction ${instance.id}");
+
+        return true;
       }
-
-      talker
-          .info("Successfully synced all items for transaction ${instance.id}");
-
       return true;
+    } catch (e, s) {
+      talker.error(e, s);
+      return false;
     }
-    return true;
   }
 
   /// Synchronizes customer information with the EBM system.

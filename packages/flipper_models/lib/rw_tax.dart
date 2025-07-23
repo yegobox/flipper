@@ -201,7 +201,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": sarNo ?? transaction.sarNo,
+        "sarNo": invoiceNumber.toString() ?? sar.toString(),
         "orgSarNo": invoiceNumber ?? transaction.orgSarNo,
         "itemList": itemsList
       };
@@ -258,7 +258,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<RwApiResponse> saveStockMaster(
-      {required Variant variant, required String URI}) async {
+      {required Variant variant, required String URI, num? approvedQty}) async {
     try {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
@@ -294,6 +294,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       variant.rsdQty =
           double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
+      variant.qty = variant.qty ?? approvedQty?.toDouble();
       talker.warning("RSD QTY: ${variant.toFlipperJson()}");
       // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
       if (variant.itemTyCd == '3') {
@@ -576,30 +577,31 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           );
           throw exception;
         }
-        if (sarTyCd != null) {
-          final ebmSyncService = TurboTaxService(repository);
-          // record stock Out sarTyCd = StockInOutType.sale
-          await ebmSyncService.syncTransactionWithEbm(
-            instance: transaction,
-            serverUrl: (await ProxyService.box.getServerUrl())!,
-            sarTyCd: sarTyCd,
-          );
-          // if (sarTyCd == StockInOutType.sale) {
-          //   await ebmSyncService.syncTransactionWithEbm(
-          //     instance: transaction,
-          //     serverUrl: (await ProxyService.box.getServerUrl())!,
-          //     sarTyCd: StockInOutType.processingOut,
-          //   );
-          // }
-          // record stock In sarTyCd = StockInOutType.adjustmentOut
-          // if (sarTyCd == StockInOutType.returnIn) {
-          //   await ebmSyncService.syncTransactionWithEbm(
-          //     instance: transaction,
-          //     serverUrl: (await ProxyService.box.getServerUrl())!,
-          //     sarTyCd: StockInOutType.returnOut,
-          //   );
-          // }
-        }
+        // if (sarTyCd != null) {
+        final ebmSyncService = TurboTaxService(repository);
+        // record stock Out sarTyCd = StockInOutType.sale
+        await ebmSyncService.syncTransactionWithEbm(
+          instance: transaction,
+          serverUrl: (await ProxyService.box.getServerUrl())!,
+          sarTyCd: sarTyCd,
+          invoiceNumber: counter.invcNo!,
+        );
+        // if (sarTyCd == StockInOutType.sale) {
+        //   await ebmSyncService.syncTransactionWithEbm(
+        //     instance: transaction,
+        //     serverUrl: (await ProxyService.box.getServerUrl())!,
+        //     sarTyCd: StockInOutType.processingOut,
+        //   );
+        // }
+        // record stock In sarTyCd = StockInOutType.adjustmentOut
+        // if (sarTyCd == StockInOutType.returnIn) {
+        //   await ebmSyncService.syncTransactionWithEbm(
+        //     instance: transaction,
+        //     serverUrl: (await ProxyService.box.getServerUrl())!,
+        //     sarTyCd: StockInOutType.returnOut,
+        //   );
+        // }
+        // }
         // mark item involved as need sync
 
         return data;
