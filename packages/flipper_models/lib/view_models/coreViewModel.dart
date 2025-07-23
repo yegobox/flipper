@@ -1042,10 +1042,11 @@ class CoreViewModel extends FlipperBaseModel
       _updateVariantStatus(purchaseVariant, pchsSttsCd);
 
       if (!isVariantMapped && pchsSttsCd == "02") {
-        await _processNewVariant(purchaseVariant, purchase);
+        await _processNewVariant(purchaseVariant, purchase, updateIo: true);
       } else if (pchsSttsCd == "04") {
         await ProxyService.strategy.updateVariant(
           updatables: [purchaseVariant],
+          updateIo: false,
         );
       }
     }
@@ -1059,7 +1060,8 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  Future<void> _processNewVariant(Variant variant, Purchase purchase) async {
+  Future<void> _processNewVariant(Variant variant, Purchase purchase,
+      {required bool updateIo}) async {
     variant.itemCd = await ProxyService.strategy.itemCode(
       countryCode: PurchaseConstants.countryCode,
       productType: PurchaseConstants.productType,
@@ -1075,6 +1077,7 @@ class CoreViewModel extends FlipperBaseModel
       purchase: purchase,
       approvedQty: variant.stock?.currentStock,
       invoiceNumber: purchase.spplrInvcNo,
+      updateIo: updateIo,
     );
   }
 
@@ -1140,6 +1143,7 @@ class CoreViewModel extends FlipperBaseModel
         purchase: purchase,
         approvedQty: purchaseVariant.stock?.currentStock,
         invoiceNumber: purchase.spplrInvcNo,
+        updateIo: true,
       );
     }
   }

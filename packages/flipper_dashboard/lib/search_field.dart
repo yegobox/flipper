@@ -26,6 +26,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_models/providers/notice_provider.dart';
+import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 
 import 'package:supabase_models/brick/models/notice.model.dart';
 
@@ -168,9 +169,10 @@ class SearchFieldState extends ConsumerState<SearchField>
                   ),
                   if (widget.showIncomingButton &&
                       deviceType != 'Phone' &&
-                      deviceType != 'Phablet')
+                      deviceType != 'Phablet' &&
+                      ref.watch(appModeProvider))
                     incomingButton(),
-                  if (widget.showAddButton)
+                  if (widget.showAddButton && ref.watch(appModeProvider))
                     addButton().eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
                   // Remove the date picker that was unintentionally added
                 ],

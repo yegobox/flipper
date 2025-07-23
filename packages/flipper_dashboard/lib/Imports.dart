@@ -270,9 +270,26 @@ class ImportsState extends ConsumerState<Imports> {
                 },
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: _buildDataGrid(),
-              ),
+              if (filteredItemList.isEmpty && _selectedFilterStatus != null)
+                const Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off, size: 48, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No matches found for the selected filter.',
+                          style: TextStyle(color: Colors.grey, fontSize: 18),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: _buildDataGrid(),
+                ),
             ],
           ),
         );

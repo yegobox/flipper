@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 // import 'package:flipper_services/proxy.dart';
@@ -434,10 +435,28 @@ class SharedPreferenceStorage implements LocalStorage {
     return _cache[key] as bool?;
   }
 
+  final StreamController<bool> _proformaModeController =
+      StreamController<bool>.broadcast();
+  final StreamController<bool> _trainingModeController =
+      StreamController<bool>.broadcast();
+
+  @override
+  Stream<bool> get onProformaModeChanged => _proformaModeController.stream;
+
+  @override
+  Stream<bool> get onTrainingModeChanged => _trainingModeController.stream;
+
   @override
   Future<void> writeBool({required String key, required bool value}) async {
     if (!_isKeyAllowed(key)) return;
     _cache[key] = value;
+
+    if (key == 'isProformaMode') {
+      _proformaModeController.add(value);
+    } else if (key == 'isTrainingMode') {
+      _trainingModeController.add(value);
+    }
+
     if (kIsWeb) {
       if (_webPrefs != null) {
         await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
@@ -457,6 +476,14 @@ class SharedPreferenceStorage implements LocalStorage {
     } else {
       await _savePreferences();
     }
+    // Also clear the stream controllers
+    _proformaModeController.add(false);
+    _trainingModeController.add(false);
+  }
+
+  void dispose() {
+    _proformaModeController.close();
+    _trainingModeController.close();
   }
 
   @override

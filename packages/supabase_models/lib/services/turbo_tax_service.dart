@@ -3,7 +3,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';

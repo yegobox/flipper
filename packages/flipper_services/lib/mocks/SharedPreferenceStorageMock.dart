@@ -427,4 +427,12 @@ class SharedPreferenceStorageMock implements LocalStorage {
   bool vatEnabled() {
     return true;
   }
+
+  @override
+  // TODO: implement onProformaModeChanged
+  Stream<bool> get onProformaModeChanged => Stream.value(true);
+
+  @override
+  // TODO: implement onTrainingModeChanged
+  Stream<bool> get onTrainingModeChanged => Stream.value(true);
 }
