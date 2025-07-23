@@ -415,6 +415,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                 purchase: purchase,
                 clickedVariant: clickedVariant,
               );
+              itemMapper.clear();
             } catch (e) {
               talker.error('Error accepting purchase: $e');
               rethrow;

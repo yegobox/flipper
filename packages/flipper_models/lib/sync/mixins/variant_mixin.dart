@@ -405,7 +405,7 @@ mixin VariantMixin implements VariantInterface {
             .getSar(branchId: ProxyService.box.getBranchId()!);
         await ebmSyncService.stockIo(
           approvedQty: approvedQty,
-          invoiceNumber: invoiceNumber?.toInt() ?? sar?.sarNo ?? 1,
+          invoiceNumber: sar?.sarNo ?? 1,
           variant: updated,
           purchase: purchase,
           serverUrl: (await ProxyService.box.getServerUrl())!,

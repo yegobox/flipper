@@ -959,9 +959,8 @@ class CoreViewModel extends FlipperBaseModel
 
       if (_shouldProcessMappings(pchsSttsCd, itemMapper)) {
         await _handleVariantMappings(itemMapper!, purchase);
-      } else {
-        await _processPurchaseVariants(purchase, pchsSttsCd, itemMapper);
       }
+      await _processPurchaseVariants(purchase, pchsSttsCd, itemMapper);
 
       _setLoading(false);
       talker.info("Successfully processed purchase ${purchase.id}");
@@ -1033,16 +1032,23 @@ class CoreViewModel extends FlipperBaseModel
     if (purchase.variants == null) return;
 
     for (final purchaseVariant in purchase.variants!) {
+      final isVariantMapped =
+          itemMapper?.values.any((v) => v.id == purchaseVariant.id) ?? false;
+
+      if (isVariantMapped ||
+          purchaseVariant.pchsSttsCd == "02" ||
+          purchaseVariant.pchsSttsCd == "04") {
+        talker.debug(
+            "Skipping variant in _processPurchaseVariants: ${purchaseVariant.name}");
+        continue;
+      }
+
       talker.debug(
           "Processing variant: ${purchaseVariant.name} - ${purchaseVariant.id}");
 
-      final isVariantMapped = itemMapper?.values
-              .any((element) => element.id == purchaseVariant.id) ??
-          false;
-
       _updateVariantStatus(purchaseVariant, pchsSttsCd);
 
-      if (!isVariantMapped && pchsSttsCd == "02") {
+      if (pchsSttsCd == "02") {
         purchaseVariant.pchsSttsCd = "02";
         await _processNewVariant(purchaseVariant, purchase, updateIo: true);
       } else if (pchsSttsCd == "04") {
@@ -1210,8 +1216,6 @@ class CoreViewModel extends FlipperBaseModel
         /// syncing it again.
         // item.imptItemSttsCd = "3";
         incomingImportVariant.ebmSynced = true;
-        incomingImportVariant.assigned = false;
-
         incomingImportVariant.imptItemSttsCd = "3";
         existingVariantToUpdate.ebmSynced = true;
         incomingImportVariant.assigned = true;
