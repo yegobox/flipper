@@ -1105,6 +1105,7 @@ class CoreViewModel extends FlipperBaseModel
     for (final entry in itemMapper.entries) {
       final existingVariantId = entry.key;
       final variantFromPurchase = entry.value;
+      // variantFromPurchase.assi
 
       if (existingVariantId == variantFromPurchase.id) {
         talker.debug(

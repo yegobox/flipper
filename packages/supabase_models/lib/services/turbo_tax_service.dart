@@ -103,8 +103,8 @@ class TurboTaxService {
         }
       }
 
-      final saveStockMasterResponse = await ProxyService.tax
-          .saveStockMaster(variant: variant, URI: serverUrl,approvedQty: approvedQty);
+      final saveStockMasterResponse = await ProxyService.tax.saveStockMaster(
+          variant: variant, URI: serverUrl, approvedQty: approvedQty);
 
       if (saveStockMasterResponse.resultCd != "000") {
         await _handleFailedSync(
@@ -322,9 +322,6 @@ class TurboTaxService {
       int? invoiceNumber}) async {
     try {
       if (instance.status == COMPLETE) {
-        // if (instance.customerName == null || instance.sarNo == null) {
-        //   return false;
-        // }
         talker.info("Syncing transaction with ${instance.items?.length} items");
 
         await stockIo(
