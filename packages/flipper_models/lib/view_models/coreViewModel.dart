@@ -1043,11 +1043,13 @@ class CoreViewModel extends FlipperBaseModel
       _updateVariantStatus(purchaseVariant, pchsSttsCd);
 
       if (!isVariantMapped && pchsSttsCd == "02") {
+        purchaseVariant.pchsSttsCd = "02";
         await _processNewVariant(purchaseVariant, purchase, updateIo: true);
       } else if (pchsSttsCd == "04") {
         /// for lack of another property I can use because we do not want to endp syncing
         /// item we also mark it as assigned so it will be ignore
         purchaseVariant.assigned = true;
+        purchaseVariant.pchsSttsCd = "04";
         await ProxyService.strategy.updateVariant(
           updatables: [purchaseVariant],
           updateIo: false,
