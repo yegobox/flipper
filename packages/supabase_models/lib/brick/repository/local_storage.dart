@@ -449,6 +449,14 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> writeBool({required String key, required bool value}) async {
     if (!_isKeyAllowed(key)) return;
+
+    // Check if the value is actually changing before updating and emitting
+    final bool? currentValue = _cache[key] as bool?;
+    if (currentValue == value) {
+      // Value is the same, no need to update or emit
+      return;
+    }
+
     _cache[key] = value;
 
     if (key == 'isProformaMode') {

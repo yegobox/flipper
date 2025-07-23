@@ -29,7 +29,10 @@ class AppModeNotifier extends StateNotifier<bool> {
   /// Updates the app mode. This method should be called whenever
   /// ProxyService.box.isProformaMode() or ProxyService.box.isTrainingMode() changes.
   void updateMode() {
-    state = _calculateCurrentMode();
+    final newMode = _calculateCurrentMode();
+    if (state != newMode) {
+      state = newMode;
+    }
   }
 
   @override

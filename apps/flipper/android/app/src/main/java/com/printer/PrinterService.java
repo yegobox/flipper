@@ -555,7 +555,7 @@ public class PrinterService {
                         sum += Color.red(pixels[wy * width + wx]);
                         count++;
                     }
-                }prin
+                }
 
                 int average = sum / count;
 
