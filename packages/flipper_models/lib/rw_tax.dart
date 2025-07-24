@@ -585,8 +585,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           sarTyCd: sarTyCd,
           invoiceNumber: counter.invcNo!,
         );
-       
-
         return data;
       } else {
         throw Exception(
@@ -1127,6 +1125,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required String bhfId,
       required String URI,
       required String lastReqDt}) async {
+    print("selectTrnsPurchaseSales ${ProxyService.box.enableDebug()}");
     if (ProxyService.box.enableDebug() ?? false) {
       final String jsonString = await rootBundle
           .loadString('packages/flipper_models/jsons/purchase.json');

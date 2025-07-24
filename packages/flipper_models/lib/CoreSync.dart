@@ -2215,6 +2215,18 @@ class CoreSync extends AiStrategyImpl
         await repository.upsert<VariantBranch>(data);
         return data as T;
       }
+      if (data is Business) {
+        await repository.upsert<Business>(data);
+        return data as T;
+      }
+      if (data is Branch) {
+        await repository.upsert<Branch>(data);
+        return data as T;
+      }
+      if (data is Purchase) {
+        await repository.upsert<Purchase>(data);
+        return data as T;
+      }
 
       return null; // Still return null if none of the above conditions match
     } catch (e) {

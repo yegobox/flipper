@@ -14,7 +14,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:http/http.dart' as http show Request;
 import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
@@ -248,11 +248,13 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     final mock = SupabaseMockServer(modelDictionary: supabaseModelDictionary);
 
     if (DatabasePath.isTestEnvironment()) {
+      debugPrint('Using mocked Supabase client in test environment');
       // Use the mocked client in a test environment
       await mock.setUp();
       supabaseClient =
           SupabaseClient(mock.serverUrl, mock.apiKey, httpClient: client);
     } else {
+      debugPrint('Using real Supabase client in non-test environment');
       // Initialize the real Supabase client in a non-test environment
       supabaseClient = (await Supabase.initialize(
         url: supabaseUrl,

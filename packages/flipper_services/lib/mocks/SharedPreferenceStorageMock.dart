@@ -9,7 +9,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   bool? enableDebug() {
-    return false;
+    return true;
   }
 
   @override
@@ -59,7 +59,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   int? getBusinessId() {
-    return 100; // Sample business ID
+    return 1;
   }
 
   @override
@@ -79,7 +79,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   Future<String?> getServerUrl() async {
-    return "https://example.com"; // Sample server URL
+    return "https://turbo.yegobox.com/"; // Sample server URL
   }
 
   @override
@@ -190,12 +190,12 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   Future<String> bhfId() async {
-    return "sample_bhf_id"; // Sample BHF ID
+    return "00"; // Sample BHF ID
   }
 
   @override
   int tin() {
-    return 1234567890; // Sample TIN
+    return 999909695; // Sample TIN
   }
 
   @override

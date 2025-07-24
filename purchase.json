@@ -137,6 +137,25 @@
                         "taxblAmt": 1000,
                         "taxAmt": 0,
                         "totAmt": 1000
+                    },
+                    {
+                        "itemSeq": 3,
+                        "itemCd": "RW2NTBA000095",
+                        "itemClsCd": "94",
+                        "itemNm": "DATA ENTERY",
+                        "bcd": null,
+                        "pkgUnitCd": "NT",
+                        "pkg": 1,
+                        "qtyUnitCd": "NO",
+                        "qty": 3,
+                        "prc": 1000,
+                        "splyAmt": 1000,
+                        "dcRt": 0,
+                        "dcAmt": 0,
+                        "taxTyCd": "A",
+                        "taxblAmt": 1000,
+                        "taxAmt": 0,
+                        "totAmt": 1000
                     }
                 ]
             },

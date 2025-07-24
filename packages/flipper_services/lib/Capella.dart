@@ -2388,4 +2388,10 @@ class Capella extends AiStrategyImpl
     // TODO: implement hydrateSars
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> updateIoFunc({required brick.Variant variant, brick.Purchase? purchase, double? approvedQty}) {
+    // TODO: implement updateIoFunc
+    throw UnimplementedError();
+  }
 }

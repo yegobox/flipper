@@ -71,17 +71,19 @@ class TurboTaxService {
       if (variant.itemCd == null ||
           variant.itemCd?.isEmpty == true ||
           variant.pchsSttsCd == "01" ||
-          variant.pchsSttsCd ==
-              "1" || // unsent, item that has been mapped to another item after import of purchase.
+          variant.pchsSttsCd == "03" ||
+          variant.pchsSttsCd == "04" ||
+          variant.pchsSttsCd == "1" ||
           variant.imptItemSttsCd == "4" ||
           variant.imptItemSttsCd == "2" ||
           variant.itemCd == "3" ||
           variant.assigned == true) {
         /// save it anyway so we do not miss things
-        talker.info("Syncing service called but skipped ${variant.itemCd}");
+        talker.info("Skipped: ${variant.name}:${variant.itemCd}");
         variant.ebmSynced = true;
         return true;
       }
+      talker.debug("Syncing variant: ${variant.name}:${variant.itemCd}");
       final saveItemResponse =
           await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
       if (saveItemResponse.resultCd != "000") {

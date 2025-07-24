@@ -287,7 +287,6 @@ class ProductListScreenState extends ConsumerState<OrderingView>
       discountController: discountController,
       receivedAmountController: receivedAmountController,
       customerPhoneNumberController: customerPhoneNumberController,
-      customerNameController: customerNameController,
       paymentTypeController: paymentTypeController,
       countryCodeController: countryCodeController,
     );
