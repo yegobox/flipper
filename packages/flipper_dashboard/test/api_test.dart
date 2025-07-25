@@ -125,6 +125,9 @@ void main() {
       expect(variants.first.id, "variant_d");
     });
 
+    // Tests that acceptPurchase correctly approves a purchase and updates the variant status.
+    // - Verifies that the tax API's savePurchases is called with correct details.
+    // - Ensures that the variant's purchase status code (pchsSttsCd) is updated to '02' (approved).
     test(
         '#acceptPurchase should approve the purchase and update variant status',
         () async {
@@ -191,6 +194,9 @@ void main() {
       expect(updatedVariant.pchsSttsCd, "02");
     });
 
+    // Tests that acceptPurchase correctly handles variant mappings.
+    // - Verifies that getVariant is called to retrieve the existing variant.
+    // - Ensures that updateStock is called to merge the stock of the incoming variant with the existing mapped variant.
     test('#acceptPurchase should handle variant mappings', () async {
       final incomingVariant = _createTestVariant();
       final testPurchase = _createTestPurchase(variants: [incomingVariant]);
@@ -270,6 +276,9 @@ void main() {
     });
 
     // Add more test cases here following the same pattern
+    // Tests that acceptPurchase correctly handles an empty variant list.
+    // - Verifies that the tax API's savePurchases is never called.
+    // - Ensures that no variant updates are attempted.
     test('#acceptPurchase should handle empty variant list', () async {
       // Create a purchase with empty variants list
       final emptyPurchase = _createTestPurchase(variants: []);
@@ -307,6 +316,9 @@ void main() {
           ));
     });
 
+    // Tests that acceptPurchase correctly handles tax service failure and rolls back changes.
+    // - Verifies that a PurchaseAcceptanceException is thrown when the tax service fails.
+    // - Ensures that no database updates are made if the tax service reporting fails.
     test(
         '#acceptPurchase should handle tax service failure and rollback changes',
         () async {
