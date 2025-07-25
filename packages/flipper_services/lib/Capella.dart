@@ -1334,7 +1334,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<String> itemCode(
+  Future<String> itemCode(
       {required String countryCode,
       required String productType,
       required packagingUnit,
@@ -2388,9 +2388,12 @@ class Capella extends AiStrategyImpl
     // TODO: implement hydrateSars
     throw UnimplementedError();
   }
-  
+
   @override
-  Future<void> updateIoFunc({required brick.Variant variant, brick.Purchase? purchase, double? approvedQty}) {
+  Future<void> updateIoFunc(
+      {required brick.Variant variant,
+      brick.Purchase? purchase,
+      double? approvedQty}) {
     // TODO: implement updateIoFunc
     throw UnimplementedError();
   }

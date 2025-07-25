@@ -31,7 +31,7 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  FutureOr<String> itemCode({
+  Future<String> itemCode({
     required String countryCode,
     required String productType,
     required packagingUnit,

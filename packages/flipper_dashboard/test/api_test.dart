@@ -104,6 +104,15 @@ void main() {
 
       // Stub the SyncStrategy to return our mock DatabaseSyncInterface
       when(() => mockSyncStrategy.current).thenReturn(mockDbSync);
+
+      // Stub itemCode for all tests that might call it
+      when(() => mockDbSync.itemCode(
+            countryCode: any(named: 'countryCode'),
+            productType: any(named: 'productType'),
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).thenAnswer((_) async => "ITEM123");
     });
 
     tearDown(() {
@@ -249,18 +258,6 @@ void main() {
             approvedQty: any(named: 'approvedQty'),
           )).thenAnswer((_) async => 1);
 
-      when(() => mockDbSync.getVariant(id: any(named: 'id')))
-          .thenAnswer((invocation) async {
-        final id = invocation.namedArguments[#id];
-        if (id == "incoming_variant_1") {
-          // Simulate the variant being updated in the DB
-          return incomingVariant
-            ..pchsSttsCd = "02"
-            ..itemCd = "ITEM123";
-        }
-        return null;
-      });
-
       // Act: Call the method to approve the purchase.
       await coreViewModel.acceptPurchase(
           pchsSttsCd: "02", // "02" means approved
@@ -307,14 +304,187 @@ void main() {
             purchase: any(named: 'purchase'),
             approvedQty: any(named: 'approvedQty'),
           )).called(1);
+    });
+    test('#acceptPurchase should handle variant mappings', () async {
+      final incomingVariant = Variant(
+        id: "incoming_variant_1",
+        name: "New Arriving Variant",
+        pchsSttsCd: "01", // Initial status from source
+        branchId: 1,
+        stock: Stock(id: "incoming_stock_1", currentStock: 15.0, branchId: 1),
+        retailPrice: 150.0,
+        supplyPrice: 120.0,
+        // Added missing parameter
+      );
 
-      // Verify that getVariant was called to confirm the update
-      // fake it for now this is not real name
-      verifyNever(() => mockDbSync.getVariant(id: "1")).called(0);
+      final purchase = Purchase(
+        id: "1",
+        createdAt: DateTime.now(),
+        totTaxAmt: 1,
+        totAmt: 1,
+        totTaxblAmt: 1,
+        spplrTin: "1",
+        spplrNm: "Test Supplier",
+        spplrBhfId: "00",
+        rcptTyCd: "P",
+        pmtTyCd: "C",
+        cfmDt: DateTime.now().toIso8601String(),
+        salesDt: DateTime.now().toIso8601String(),
+        totItemCnt: 1,
+        taxblAmtA: 0.0, // Added missing parameter
+        taxblAmtB: 0.0, // Added missing parameter
+        taxblAmtC: 0.0, // Added missing parameter
+        taxblAmtD: 0.0, // Added missing parameter
+        taxRtA: 0.0, // Added missing parameter
+        taxRtB: 0.0, // Added missing parameter
+        taxRtC: 0.0, // Added missing parameter
+        taxRtD: 0.0, // Added missing parameter
+        taxAmtA: 0.0, // Added missing parameter
+        taxAmtB: 0.0, // Added missing parameter
+        taxAmtC: 0.0, // Added missing parameter
+        taxAmtD: 0.0, // Added missing parameter
+        spplrInvcNo: 1, // Changed to String as per common practice
+        branchId: 1,
+        variants: [incomingVariant],
+      );
+      final coreViewModel = CoreViewModel();
+      // Setup with itemMapper containing mappings
+      final itemMapper = {
+        "existing_variant_1": Variant(
+            id: "incoming_variant_1",
+            branchId: 1,
+            name: "Existing Variant",
+            retailPrice: 150.0,
+            supplyPrice: 120.0,
+            stock:
+                Stock(id: "incoming_stock_1", currentStock: 15.0, branchId: 1))
+      };
+
+      // Stub getVariant
+      when(() => mockDbSync.getVariant(id: any(named: 'id'))).thenAnswer(
+          (_) async => Variant(
+              id: "existing_variant_1",
+              branchId: 1,
+              name: "Existing Variant",
+              retailPrice: 150.0,
+              supplyPrice: 120.0,
+              stock: Stock(
+                  id: "existing_stock_1", currentStock: 15.0, branchId: 1)));
+
+      when(() => mockDbSync.updateStock(
+            stockId: any(named: 'stockId'),
+            appending: any(named: 'appending'),
+            rsdQty: any(named: 'rsdQty'),
+            initialStock: any(named: 'initialStock'),
+            currentStock: any(named: 'currentStock'),
+            value: any(named: 'value'),
+          )).thenAnswer((_) async {});
+      // Stub necessary calls on mocks
+      when(() => mockBox.getBusinessId()).thenReturn(1);
+      when(() => mockBox.getBranchId()).thenReturn(1);
+      when(() => mockBox.bhfId()).thenAnswer((_) async => "00");
+      when(() => mockBox.getServerUrl())
+          .thenAnswer((_) async => "https://test.flipper.rw");
+
+      when(() => mockDbSync.getBusiness(businessId: any(named: 'businessId')))
+          .thenAnswer((_) async => Business(
+              id: "1",
+              name: "Test Business",
+              tinNumber: 123456789,
+              serverId: 1));
+
+      when(() => mockDbSync.ebm(branchId: any(named: 'branchId'))).thenAnswer(
+          (_) async => Ebm(
+              bhfId: "00",
+              tinNumber: 111,
+              dvcSrlNo: "111",
+              userId: 111,
+              taxServerUrl: "https://test.flipper.rw",
+              businessId: 1,
+              branchId: 1));
+
+      when(() => mockTaxApi.savePurchases(
+                item: any(named: 'item'),
+                business: any(named: 'business'),
+                variants: any(named: 'variants'),
+                bhfId: any(named: 'bhfId'),
+                rcptTyCd: any(named: 'rcptTyCd'),
+                URI: any(named: 'URI'),
+                pchsSttsCd: any(named: 'pchsSttsCd'),
+              ))
+          .thenAnswer((_) async =>
+              RwApiResponse(resultCd: "000", resultMsg: "Success"));
+
+      when(() => mockDbSync.itemCode(
+            countryCode: any(named: 'countryCode'),
+            productType: any(named: 'productType'),
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).thenAnswer((_) async => "ITEM123");
+
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase', that: isNotNull),
+            approvedQty: any(named: 'approvedQty', that: isNotNull),
+            invoiceNumber: any(named: 'invoiceNumber', that: isNotNull),
+            updateIo: any(named: 'updateIo'),
+          )).thenAnswer((_) async => 1);
+
+      when(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+          )).thenAnswer((_) async => 1);
+
+      await coreViewModel.acceptPurchase(
+        pchsSttsCd: "02",
+        purchases: [],
+        purchase: purchase,
+        itemMapper: itemMapper,
+      );
+
+      verify(() => mockDbSync.getVariant(id: "existing_variant_1")).called(1);
     });
 
     test('#addCustomer should call strategy with correct customer data',
         () async {
+      when(() => mockBox.getBusinessId())
+          .thenReturn(1); // Ensure this is mocked
+      when(() => mockBox.getBranchId()).thenReturn(1);
+      when(() => mockBox.bhfId()).thenAnswer((_) async => "00");
+      when(() => mockBox.getServerUrl())
+          .thenAnswer((_) async => "https://test.flipper.rw");
+
+      when(() => mockDbSync.getBusiness(businessId: any(named: 'businessId')))
+          .thenAnswer((_) async => Business(
+              id: "1",
+              name: "Test Business",
+              tinNumber: 123456789,
+              serverId: 1));
+
+      // Stub the ebm method to return a mock Ebm object
+      when(() => mockDbSync.ebm(branchId: any(named: 'branchId'))).thenAnswer(
+          (_) async => Ebm(
+              bhfId: "00",
+              tinNumber: 111,
+              dvcSrlNo: "111",
+              userId: 111,
+              taxServerUrl: "https://test.flipper.rw",
+              businessId: 1,
+              branchId: 1));
+
+      when(() => mockTaxApi.savePurchases(
+                item: any(named: 'item'),
+                business: any(named: 'business'),
+                variants: any(named: 'variants'),
+                bhfId: any(named: 'bhfId'),
+                rcptTyCd: any(named: 'rcptTyCd'),
+                URI: any(named: 'URI'),
+                pchsSttsCd: any(named: 'pchsSttsCd'),
+              ))
+          .thenAnswer((_) async =>
+              RwApiResponse(resultCd: "000", resultMsg: "Success"));
       // Arrange
       final coreViewModel = CoreViewModel();
 

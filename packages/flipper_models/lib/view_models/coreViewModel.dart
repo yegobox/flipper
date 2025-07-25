@@ -466,13 +466,13 @@ class CoreViewModel extends FlipperBaseModel
     return _variants;
   }
 
-  Future<Variant?> getVariant({required String variantId}) async {
-    return (await ProxyService.strategy.variants(
-            taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-            variantId: variantId,
-            branchId: ProxyService.box.getBranchId()!))
-        .firstOrNull;
-  }
+  // Future<Variant?> getVariant({required String variantId}) async {
+  //   return (await ProxyService.strategy.variants(
+  //           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+  //           variantId: variantId,
+  //           branchId: ProxyService.box.getBranchId()!))
+  //       .firstOrNull;
+  // }
 
   void toggleCheckbox({required String variantId}) {
     keypad.toggleCheckbox(variantId: variantId);
