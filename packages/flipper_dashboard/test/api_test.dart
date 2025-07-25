@@ -375,5 +375,44 @@ void main() {
             updateIo: any(named: 'updateIo'),
           ));
     });
+
+    test('#updateVariant should call strategy with correct variant data',
+        () async {
+      final testVariant =
+          _createTestVariant(id: "variant_to_update", name: "Updated Variant");
+
+      // Stub updateVariant
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).thenAnswer((_) async => 1);
+
+      // Act
+      await ProxyService.strategy.updateVariant(
+        updatables: [testVariant],
+        purchase: null,
+        approvedQty: null,
+        invoiceNumber: null,
+        updateIo: false,
+      );
+
+      // Assert
+      final verification = verify(() => mockDbSync.updateVariant(
+            updatables: captureAny(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          ));
+      verification.called(1);
+
+      final capturedUpdatables = verification.captured.first as List<Variant>;
+      expect(capturedUpdatables.length, 1);
+      expect(capturedUpdatables.first.id, "variant_to_update");
+      expect(capturedUpdatables.first.name, "Updated Variant");
+    });
   });
 }
