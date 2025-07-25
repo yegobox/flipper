@@ -153,21 +153,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false));
 
-    Future.microtask(() {
-      ref.refresh(pendingTransactionStreamProvider(
-          isExpense: ProxyService.box.isOrdering() ?? false));
-    });
-
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           if (transactionAsyncValue.hasValue &&
               transactionAsyncValue.value != null) {
             final transactionId = transactionAsyncValue.value!.id;
-            Future.microtask(() {
-              ref.refresh(
-                  transactionItemsStreamProvider(transactionId: transactionId));
-            });
             final transactionItemsAsync = ref.watch(
                 transactionItemsStreamProvider(transactionId: transactionId));
             internalTransactionItems = transactionItemsAsync.value ?? [];
@@ -866,7 +857,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildSharedView(AsyncValue<ITransaction> transactionAsyncValue,
       bool isSmallDevice, bool isOrdering) {
-    return Padding(
+    return SingleChildScrollView(
+        child: Padding(
       padding: const EdgeInsets.all(2.0),
       child: Column(
         children: [
@@ -893,7 +885,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           _buildFooter(transactionAsyncValue),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildForm(bool isOrdering, {required String transactionId}) {

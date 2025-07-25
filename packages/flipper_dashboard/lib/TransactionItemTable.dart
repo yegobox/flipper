@@ -139,7 +139,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
     for (final item in internalTransactionItems) {
       if (item.compositePrice != 0) {
-        compositeTotal = item.compositePrice!;
+        compositeTotal = item.compositePrice ?? 0.0;
         compositeCount++;
       } else {
         total += item.price * item.qty;

@@ -3,6 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,11 +46,10 @@ class TestApp extends StatelessWidget {
     return ProviderScope(
       overrides: [
         // Mock the pendingTransactionStreamProvider
-        pendingTransactionStreamProvider(isExpense: any(named: 'isExpense'))
+        pendingTransactionStreamProvider(isExpense: false)
             .overrideWith((ref) => Stream.value(mockTransaction)),
         // Mock the transactionItemsStreamProvider
-        transactionItemsStreamProvider(
-                transactionId: any(named: 'transactionId'))
+        transactionItemsStreamProvider(transactionId: "test_transaction_id")
             .overrideWith((ref) => Stream.value(mockTransactionItems)),
         // Mock activeBranchProvider
         activeBranchProvider.overrideWith((ref) => Stream.value(mockBranch)),
@@ -76,6 +76,7 @@ void main() {
   late GlobalKey<FormState> formKey;
 
   setUpAll(() async {
+    await initializeDependenciesForTest();
     registerFallbackValue(MockITransaction());
     registerFallbackValue(MockTransactionItem());
     registerFallbackValue(MockBranch());
