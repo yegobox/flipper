@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -26,7 +27,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FutureBuilder<Variant?>(
-                      future: model.getVariant(variantId: variant.id),
+                      future: ProxyService.strategy.getVariant(id: variant.id),
                       builder: (context, snapshot) {
                         return snapshot.hasData
                             ? Expanded(

@@ -6,7 +6,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 abstract class TaxApi implements NoticeInterface {
   Future<RwApiResponse> saveStockMaster(
-      {required Variant variant, required String URI});
+      {required Variant variant, required String URI, num? approvedQty});
 
   Future<bool> stockIn(
       {required Map<String, Object?> json,

@@ -5,10 +5,11 @@ import 'package:flipper_dashboard/features/kitchen_display/providers/transaction
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
-class OrderCard extends ConsumerStatefulWidget {
+class OrderCard extends HookConsumerWidget {
   final ITransaction order;
   final Color borderColor;
   final OrderStatus status;
@@ -23,62 +24,37 @@ class OrderCard extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   @override
-  ConsumerState<OrderCard> createState() => _OrderCardState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isExpanded = useState(false);
+    final minutesRemaining = useState<int?>(null);
 
-class _OrderCardState extends ConsumerState<OrderCard> {
-  bool _isExpanded = false;
-  int? _minutesRemaining;
-  Timer? _timer;
+    // Timer setup using useEffect
+    useEffect(() {
+      Timer? timer;
 
-  @override
-  void initState() {
-    super.initState();
-    _setupTimer();
-  }
-
-  void _setupTimer() {
-    _updateMinutesRemaining();
-    _timer?.cancel();
-    if (widget.order.dueDate != null && widget.status != OrderStatus.incoming) {
-      _timer = Timer.periodic(const Duration(minutes: 1), (_) {
-        if (mounted) {
-          setState(_updateMinutesRemaining);
+      void updateMinutesRemaining() {
+        if (order.dueDate != null) {
+          final now = DateTime.now().toUtc();
+          final diff = order.dueDate!.toLocal().difference(now.toLocal());
+          minutesRemaining.value = diff.inMinutes;
+        } else {
+          minutesRemaining.value = null;
         }
-      });
-    }
-  }
+      }
 
-  void _updateMinutesRemaining() {
-    if (widget.order.dueDate != null) {
-      final now = DateTime.now().toUtc();
-      final diff = widget.order.dueDate!.toLocal().difference(now.toLocal());
-      _minutesRemaining = diff.inMinutes;
-    } else {
-      _minutesRemaining = null;
-    }
-  }
+      void setupTimer() {
+        updateMinutesRemaining();
+        timer?.cancel();
+        if (order.dueDate != null && status != OrderStatus.incoming) {
+          timer = Timer.periodic(const Duration(minutes: 1), (_) {
+            updateMinutesRemaining();
+          });
+        }
+      }
 
-  @override
-  void didUpdateWidget(covariant OrderCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.order.dueDate != widget.order.dueDate ||
-        oldWidget.status != widget.status) {
-      _setupTimer();
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final order = widget.order;
-    final borderColor = widget.borderColor;
-    final OrderStatus status = widget.status;
+      setupTimer();
+      return () => timer?.cancel();
+    }, [order.dueDate, status]);
 
     // Format created time
     String createdAt = 'Unknown';
@@ -109,11 +85,9 @@ class _OrderCardState extends ConsumerState<OrderCard> {
       ),
       child: InkWell(
         onTap: () {
-          setState(() {
-            _isExpanded = !_isExpanded;
-          });
-          if (widget.onTap != null) {
-            widget.onTap!();
+          isExpanded.value = !isExpanded.value;
+          if (onTap != null) {
+            onTap!();
           }
         },
         borderRadius: BorderRadius.circular(8),
@@ -151,11 +125,11 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                         avatar: const Icon(Icons.timer,
                             size: 16, color: Colors.deepPurple),
                         label: Text(
-                          _minutesRemaining == null
+                          minutesRemaining.value == null
                               ? ''
-                              : _minutesRemaining! < 0
+                              : minutesRemaining.value! < 0
                                   ? 'Overdue'
-                                  : '${_minutesRemaining!} min left',
+                                  : '${minutesRemaining.value!} min left',
                           style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 13,
@@ -181,7 +155,8 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                           final picked = await showDialog<Duration>(
                             context: context,
                             builder: (context) {
-                              Duration selected = const Duration(minutes: 30);
+                              final selected =
+                                  useState(const Duration(minutes: 30));
                               return AlertDialog(
                                 content: StatefulBuilder(
                                   builder: (context, setState) {
@@ -189,21 +164,22 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Slider(
-                                          value: selected.inMinutes.toDouble(),
+                                          value: selected.value.inMinutes
+                                              .toDouble(),
                                           min: 5,
                                           max: 240,
                                           divisions: 47,
                                           label:
-                                              '${selected.inMinutes} minutes',
+                                              '${selected.value.inMinutes} minutes',
                                           onChanged: (val) {
                                             setState(() {
-                                              selected = Duration(
+                                              selected.value = Duration(
                                                   minutes: val.round());
                                             });
                                           },
                                         ),
                                         Text(
-                                            'Due in ${selected.inMinutes} minutes'),
+                                            'Due in ${selected.value.inMinutes} minutes'),
                                       ],
                                     );
                                   },
@@ -215,8 +191,8 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                                     child: const Text('Cancel'),
                                   ),
                                   ElevatedButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(selected),
+                                    onPressed: () => Navigator.of(context)
+                                        .pop(selected.value),
                                     child: const Text('Set'),
                                   ),
                                 ],
@@ -224,10 +200,11 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                             },
                           );
                           if (picked != null) {
-                            setState(() {
-                              widget.order.dueDate =
-                                  DateTime.now().toUtc().add(picked);
-                            });
+                            order.dueDate = DateTime.now().toUtc().add(picked);
+                            // Force a rebuild to show the new due date
+                            // This is a bit of a hack, but it works for now
+                            // ignore: invalid_use_of_protected_member
+                            (context as Element).reassemble();
                           }
                         },
                       ),
@@ -346,20 +323,18 @@ class _OrderCardState extends ConsumerState<OrderCard> {
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     icon: Icon(
-                      _isExpanded ? Icons.expand_less : Icons.expand_more,
+                      isExpanded.value ? Icons.expand_less : Icons.expand_more,
                       color: Colors.grey[700],
                     ),
                     onPressed: () {
-                      setState(() {
-                        _isExpanded = !_isExpanded;
-                      });
+                      isExpanded.value = !isExpanded.value;
                     },
                   ),
                 ],
               ),
 
               // Expanded section with transaction items
-              if (_isExpanded)
+              if (isExpanded.value)
                 transactionItemsAsync.when(
                   data: (items) {
                     if (items.isEmpty) {

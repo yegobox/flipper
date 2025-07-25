@@ -37,93 +37,54 @@ import 'locator.dart';
 import 'product_service.dart';
 import 'package:flipper_models/tax_api.dart';
 
-final Api _apiService = getIt<Api>();
-final DynamicLink _dynamicLink = getIt<DynamicLink>();
-final Shareable _share = getIt<Shareable>();
-final FlipperLocation _location = getIt<FlipperLocation>();
-final LocalStorage _box = getIt<LocalStorage>();
-final UploadT _upload = getIt<UploadT>();
-final AppService _app = getIt<AppService>();
-final ProductService _productService = getIt<ProductService>();
-final KeyPadService _keypad = getIt<KeyPadService>();
-final Language _locale = getIt<Language>();
-// RemoteService
-final Remote _remoteConfig = getIt<Remote>();
-final Country _country = getIt<Country>();
-final SettingsService _settings = getIt<SettingsService>();
-final CronService _reportService = getIt<CronService>();
-final Printer _printService = getIt<Printer>();
-final Analytic _analytics = getIt<Analytic>();
-final ForceDataEntryService _forceDataEntry = getIt<ForceDataEntryService>();
-
-final LNotification _notification = getIt<LNotification>();
-final Review _review = getIt<Review>();
-final Sync _syncApi = getIt<Sync>();
-final SystemTime _systemTime = getIt<SystemTime>();
-final EventInterface _event = getIt<EventInterface>();
-final BillingService _billingService = getIt<BillingService>();
-
-final TaxApi _tax = getIt<TaxApi>();
-final WhatsApp _whatsApp = getIt<WhatsApp>();
-final Messaging _messaging = getIt<Messaging>();
-final Status _status = getIt<Status>();
-final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
-final Device _device = getIt<Device>();
-
-final PayStackServiceInterface _payStack = getIt<PayStackServiceInterface>();
-final HttpClientInterface _http = getIt<HttpClientInterface>();
-final HttpApiInterface _ht = getIt<HttpApiInterface>();
-final HttpApiInterface _httpApi = getIt<HttpApiInterface>();
-
-final SupabaseInterface _supa = getIt<SupabaseInterface>();
-final Crash _crash = getIt<Crash>();
-
 abstract class ProxyService {
-  static late final SyncStrategy _strategy =
+  /// A settable link to the sync strategy implementation.
+  /// In production, this is initialized with the real `SyncStrategy` from `getIt`.
+  /// In tests, this can be replaced with a mock `SyncStrategy`.
+  static SyncStrategy strategyLink =
       getIt<SyncStrategy>(instanceName: 'strategy');
 
-  static DatabaseSyncInterface get strategy => _strategy.current;
-  static void setStrategy(Strategy strategy) => _strategy.setStrategy(strategy);
+  /// Provides access to the current database implementation (e.g., Isar, Realm).
+  static DatabaseSyncInterface get strategy => strategyLink.current;
 
-  static Crash get crash => _crash;
-  static SupabaseInterface get supa => _supa;
+  /// Sets the desired database strategy (e.g., Isar, Realm).
+  static void setStrategy(Strategy strategy) =>
+      strategyLink.setStrategy(strategy);
 
-  static LocalStorage get box => _box;
-  static HttpClientInterface get http => _http;
-  static HttpApiInterface get ht => _ht;
-  static Api get api => _apiService;
-  static TaxApi get tax => _tax;
-
-  static EventInterface get event => _event;
-
-  static Shareable get share => _share;
-  static DynamicLink get dynamicLink => _dynamicLink;
-  static FlipperLocation get location => _location;
-
-  static AppService get app => _app;
-  static ProductService get productService => _productService;
-  static UploadT get upload => _upload;
-  static KeyPadService get keypad => _keypad;
-  static Country get country => _country;
-  static Language get locale => _locale;
-  static Remote get remoteConfig => _remoteConfig;
-  static Analytic get analytics => _analytics;
-  static SettingsService get settings => _settings;
-  static CronService get cron => _reportService;
-  static Printer get printer => _printService;
-  static ForceDataEntryService get forceDateEntry => _forceDataEntry;
-  static LNotification get notification => _notification;
-  static Review get review => _review;
-  static Sync get sync => _syncApi;
-  static SystemTime get systemTime => _systemTime;
-  static BillingService get billing => _billingService;
-  static WhatsApp get whatsApp => _whatsApp;
-  static Messaging get messaging => _messaging;
-  static Status get status => _status;
-  static SentryServiceInterface get sentry => _sentry;
-  static Device get device => _device;
-  static NotificationStream get notie => NotificationStream();
-
-  static PayStackServiceInterface get payStack => _payStack;
-  static HttpApiInterface get httpApi => _httpApi;
+  static Crash crash = getIt<Crash>();
+  static SupabaseInterface supa = getIt<SupabaseInterface>();
+  static LocalStorage box = getIt<LocalStorage>();
+  static HttpClientInterface http = getIt<HttpClientInterface>();
+  static HttpApiInterface ht = getIt<HttpApiInterface>();
+  static Api api = getIt<Api>();
+  static TaxApi tax = getIt<TaxApi>();
+  static EventInterface event = getIt<EventInterface>();
+  static Shareable share = getIt<Shareable>();
+  static DynamicLink dynamicLink = getIt<DynamicLink>();
+  static FlipperLocation location = getIt<FlipperLocation>();
+  static AppService app = getIt<AppService>();
+  static ProductService productService = getIt<ProductService>();
+  static UploadT upload = getIt<UploadT>();
+  static KeyPadService keypad = getIt<KeyPadService>();
+  static Country country = getIt<Country>();
+  static Language locale = getIt<Language>();
+  static Remote remoteConfig = getIt<Remote>();
+  static Analytic analytics = getIt<Analytic>();
+  static SettingsService settings = getIt<SettingsService>();
+  static CronService cron = getIt<CronService>();
+  static Printer printer = getIt<Printer>();
+  static ForceDataEntryService forceDateEntry = getIt<ForceDataEntryService>();
+  static LNotification notification = getIt<LNotification>();
+  static Review review = getIt<Review>();
+  static Sync sync = getIt<Sync>();
+  static SystemTime systemTime = getIt<SystemTime>();
+  static BillingService billing = getIt<BillingService>();
+  static WhatsApp whatsApp = getIt<WhatsApp>();
+  static Messaging messaging = getIt<Messaging>();
+  static Status status = getIt<Status>();
+  static SentryServiceInterface sentry = getIt<SentryServiceInterface>();
+  static Device device = getIt<Device>();
+  static NotificationStream notie = NotificationStream();
+  static PayStackServiceInterface payStack = getIt<PayStackServiceInterface>();
+  static HttpApiInterface httpApi = getIt<HttpApiInterface>();
 }

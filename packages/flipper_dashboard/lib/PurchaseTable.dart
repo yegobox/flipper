@@ -55,12 +55,13 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   final Map<String, double> _editedSupplyPrices = {};
   final Talker talker = TalkerFlutter.init();
   final Map<String, bool> _expandedPurchases = {};
+  final Map<String, String?> _loadingAction = {};
 
   // Pagination state
   int _currentPage = 0;
   static const int _itemsPerPage = 10;
 
-  late PurchaseDataSource _dataSource;
+  PurchaseDataSource? _dataSource;
 
   @override
   void initState() {
@@ -69,7 +70,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
 
   @override
   void dispose() {
-    _dataSource.dispose();
+    _dataSource?.dispose();
     super.dispose();
   }
 
@@ -130,12 +131,17 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
         final List<Purchase> displayablePurchases =
             widget.purchases.where((purchase) {
           // Rule 1: Purchase must have variants relevant to the purchase screen.
-          // purchase.variants is populated by PurchaseMixin with items having pchsSttsCd '01', '02', or '04'.
+          // purchase.variants is populated by PurchaseMixin with items having pchsSttsCd '01', '02', '03', or '04'.
           if (purchase.variants == null || purchase.variants!.isEmpty) {
             return false;
           }
           // Rule 2: If a specific status filter is active, purchase must have variants matching that status.
           if (_selectedStatusFilter != null) {
+            if (_selectedStatusFilter == '02') {
+              // Handle both 'Approved' statuses
+              return purchase.variants!
+                  .any((v) => v.pchsSttsCd == '02' || v.pchsSttsCd == '03');
+            }
             return purchase.variants!
                 .any((v) => v.pchsSttsCd == _selectedStatusFilter);
           }
@@ -336,37 +342,109 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                             ),
-                                            child: TextButton.icon(
-                                              icon: Icon(
-                                                  Icons.check_circle_outline,
-                                                  size: 16,
-                                                  color: Colors.green),
-                                              label: Text(
-                                                'Accept All',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.green[700],
-                                                ),
-                                              ),
-                                              onPressed: () async {
-                                                await widget.acceptPurchases(
-                                                  purchases: [purchase],
-                                                  pchsSttsCd:
-                                                      '02', // Assuming '02' is the status code for accepted
-                                                  purchase: purchase,
-                                                  clickedVariant: null,
-                                                );
-                                              },
-                                              style: TextButton.styleFrom(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 8, vertical: 4),
-                                                tapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                                minimumSize: Size.zero,
-                                              ),
+                                            child: _loadingAction[
+                                                        purchase.id] ==
+                                                    'accept'
+                                                ? CircularProgressIndicator()
+                                                : TextButton.icon(
+                                                    icon: Icon(
+                                                        Icons
+                                                            .check_circle_outline,
+                                                        size: 16,
+                                                        color: Colors.green),
+                                                    label: Text(
+                                                      'Accept All',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color:
+                                                            Colors.green[700],
+                                                      ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      setState(() {
+                                                        _loadingAction[purchase
+                                                            .id] = 'accept';
+                                                      });
+                                                      await widget
+                                                          .acceptPurchases(
+                                                        purchases: [purchase],
+                                                        pchsSttsCd: '02',
+                                                        purchase: purchase,
+                                                        clickedVariant: null,
+                                                      );
+                                                      setState(() {
+                                                        _loadingAction[
+                                                            purchase.id] = null;
+                                                      });
+                                                    },
+                                                    style: TextButton.styleFrom(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4),
+                                                      tapTargetSize:
+                                                          MaterialTapTargetSize
+                                                              .shrinkWrap,
+                                                      minimumSize: Size.zero,
+                                                    ),
+                                                  ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.red
+                                                  .withValues(alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
                                             ),
+                                            child: _loadingAction[
+                                                        purchase.id] ==
+                                                    'decline'
+                                                ? CircularProgressIndicator()
+                                                : TextButton.icon(
+                                                    icon: Icon(
+                                                        Icons.cancel_outlined,
+                                                        size: 16,
+                                                        color: Colors.red),
+                                                    label: Text(
+                                                      'Decline All',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.red[700],
+                                                      ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      setState(() {
+                                                        _loadingAction[purchase
+                                                            .id] = 'decline';
+                                                      });
+                                                      await widget
+                                                          .acceptPurchases(
+                                                        purchases: [purchase],
+                                                        pchsSttsCd: '04',
+                                                        purchase: purchase,
+                                                        clickedVariant: null,
+                                                      );
+                                                      setState(() {
+                                                        _loadingAction[
+                                                            purchase.id] = null;
+                                                      });
+                                                    },
+                                                    style: TextButton.styleFrom(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4),
+                                                      tapTargetSize:
+                                                          MaterialTapTargetSize
+                                                              .shrinkWrap,
+                                                      minimumSize: Size.zero,
+                                                    ),
+                                                  ),
                                           ),
                                         ],
                                       ),
@@ -405,12 +483,21 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                       filteredPurchaseVariants =
                                           purchaseVariants;
                                     } else {
-                                      filteredPurchaseVariants =
-                                          purchaseVariants
-                                              .where((v) =>
-                                                  v.pchsSttsCd ==
-                                                  _selectedStatusFilter)
-                                              .toList();
+                                      if (_selectedStatusFilter == '02') {
+                                        filteredPurchaseVariants =
+                                            purchaseVariants
+                                                .where((v) =>
+                                                    v.pchsSttsCd == '02' ||
+                                                    v.pchsSttsCd == '03')
+                                                .toList();
+                                      } else {
+                                        filteredPurchaseVariants =
+                                            purchaseVariants
+                                                .where((v) =>
+                                                    v.pchsSttsCd ==
+                                                    _selectedStatusFilter)
+                                                .toList();
+                                      }
                                     }
 
                                     if (filteredPurchaseVariants.isEmpty) {
@@ -442,8 +529,6 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                       _editedSupplyPrices,
                                       talker,
                                       () => setState(() {}),
-                                      widget.acceptPurchases,
-                                      purchase,
                                     );
                                     return Padding(
                                       padding: EdgeInsets.symmetric(
@@ -467,7 +552,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                 child: SfDataGrid(
                                                   key:
                                                       UniqueKey(), // Add a key to force a rebuild when data changes
-                                                  source: _dataSource,
+                                                  source: _dataSource!,
                                                   columns:
                                                       buildPurchaseColumns(),
                                                   columnWidthMode:

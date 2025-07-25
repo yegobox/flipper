@@ -23,7 +23,7 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
   return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
     try {
       final url =
-          await ProxyService.box.getServerUrl() ?? "https://example.com";
+          await ProxyService.box.getServerUrl() ?? "https://turbo.yegobox.com/";
       final response = await http.get(Uri.parse(url));
 
       print('Connectivity check!: ${response.statusCode == 200}');
@@ -155,11 +155,10 @@ class PaginatedVariantsNotifier
 
   Future<List<Variant>> fetchVariants(String productId) async {
     final branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.strategy
-        .variants(branchId: branchId, productId: productId,
-        taxTyCds: ProxyService.box.vatEnabled()
-            ? ['A', 'B', 'C']
-            : ['D']);
+    return await ProxyService.strategy.variants(
+        branchId: branchId,
+        productId: productId,
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
   }
 }
 
@@ -272,10 +271,9 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, String>((ref, productId) async {
   final data = await ProxyService.strategy.variants(
-    taxTyCds: ProxyService.box.vatEnabled()
-        ? ['A', 'B', 'C']
-        : ['D'],
-      productId: productId, branchId: ProxyService.box.getBranchId()!);
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+      productId: productId,
+      branchId: ProxyService.box.getBranchId()!);
   return AsyncData(data);
 });
 
@@ -680,10 +678,9 @@ final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, ({int branchId})>((ref, params) async {
   final (:branchId) = params;
 
-  return await ProxyService.strategy.variants(branchId: branchId,
-      taxTyCds: ProxyService.box.vatEnabled()
-          ? ['A', 'B', 'C']
-          : ['D']);
+  return await ProxyService.strategy.variants(
+      branchId: branchId,
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
 });
 
 class Payment {
