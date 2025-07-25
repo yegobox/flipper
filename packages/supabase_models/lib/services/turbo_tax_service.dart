@@ -92,6 +92,7 @@ class TurboTaxService {
           entityTable: "variants",
           failureReason: saveItemResponse.resultMsg,
         );
+        return false; // Return false immediately on failure
       } else if (saveItemResponse.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
         // get retryable
@@ -114,6 +115,7 @@ class TurboTaxService {
           entityTable: "variants",
           failureReason: saveStockMasterResponse.resultMsg,
         );
+        return false; // Return false immediately on failure
       } else if (saveStockMasterResponse.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
         // get retryable

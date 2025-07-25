@@ -27,3 +27,7 @@ To enhance code quality and prevent runtime errors, we will adopt the principles
     *   **Why:** This allows for the creation of clean, linear data processing pipelines. If any step in the chain fails, the entire operation short-circuits and returns the failure, avoiding complex and deeply nested error-handling logic.
 
 By adhering to these principles, we will build a more robust, predictable, and maintainable codebase.
+
+## Migration Strategy
+
+We will migrate to `df_safer_dart` on new features. Existing code will be refactored as time permits, but the priority is to use these principles for all new development.
