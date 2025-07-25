@@ -56,7 +56,6 @@ void main() {
     late MockSelectSale mockSelectSale;
     late List<Variant> mockVariants;
     late List<Purchase> mockPurchases;
-    late MockTalker mockTalker;
 
     setUpAll(() async {
       await initializeDependenciesForTest();
@@ -69,7 +68,6 @@ void main() {
       mockSaveItemName = MockSaveItemName();
       mockAcceptPurchases = MockAcceptPurchases();
       mockSelectSale = MockSelectSale();
-      mockTalker = MockTalker();
 
       mockVariants = [
         _createMockVariant(

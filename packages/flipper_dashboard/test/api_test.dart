@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -14,7 +11,6 @@ void main() {
   group('Purchase with Variants', () {
     late TestEnvironment env;
     late MockDatabaseSync mockDbSync;
-    late MockBox mockBox;
     late MockTaxApi mockTaxApi;
     late CoreViewModel coreViewModel;
 
@@ -87,7 +83,6 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
       mockDbSync = env.mockDbSync;
-      mockBox = env.mockBox;
       mockTaxApi = env.mockTaxApi;
       coreViewModel = CoreViewModel();
     });

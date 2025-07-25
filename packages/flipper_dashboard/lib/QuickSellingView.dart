@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 import 'dart:async';
-import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
