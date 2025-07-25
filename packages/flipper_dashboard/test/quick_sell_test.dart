@@ -119,12 +119,6 @@ void main() {
   });
 
   tearDown(() {
-    discountController.dispose();
-    deliveryNoteController.dispose();
-    receivedAmountController.dispose();
-    customerPhoneNumberController.dispose();
-    paymentTypeController.dispose();
-    countryCodeController.dispose();
   });
 
   group('QuickSellingView Tests', () {
@@ -158,8 +152,7 @@ void main() {
           mockBranch: mockBranch,
         ),
       );
-
-      // Initial pump to build the widget
+      await tester.pump(); // Allow Riverpod to update
       await tester.pumpAndSettle();
 
       // Verify key elements are displayed
