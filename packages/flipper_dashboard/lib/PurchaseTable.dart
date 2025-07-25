@@ -61,7 +61,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   int _currentPage = 0;
   static const int _itemsPerPage = 10;
 
-  late PurchaseDataSource _dataSource;
+  PurchaseDataSource? _dataSource;
 
   @override
   void initState() {
@@ -70,7 +70,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
 
   @override
   void dispose() {
-    _dataSource.dispose();
+    _dataSource?.dispose();
     super.dispose();
   }
 
@@ -552,7 +552,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                 child: SfDataGrid(
                                                   key:
                                                       UniqueKey(), // Add a key to force a rebuild when data changes
-                                                  source: _dataSource,
+                                                  source: _dataSource!,
                                                   columns:
                                                       buildPurchaseColumns(),
                                                   columnWidthMode:
