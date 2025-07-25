@@ -3,15 +3,12 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
-
-import 'test_helpers/setup.dart';
 
 // Mocks
 class MockBoxService extends Mock implements LocalStorage {}
@@ -77,13 +74,8 @@ void main() {
   late TextEditingController paymentTypeController;
   late TextEditingController countryCodeController;
   late GlobalKey<FormState> formKey;
-  late TestEnvironment env;
 
   setUpAll(() async {
-    // Register fallbacks for any() calls
-    await initializeDependenciesForTest();
-    env = TestEnvironment();
-
     registerFallbackValue(MockITransaction());
     registerFallbackValue(MockTransactionItem());
     registerFallbackValue(MockBranch());
@@ -92,7 +84,6 @@ void main() {
   });
 
   setUp(() {
-    env.injectMocks();
     mockBoxService = MockBoxService();
     mockTransaction = MockITransaction();
     mockBranch = MockBranch();
@@ -105,13 +96,13 @@ void main() {
     when(() => mockBoxService.customerTin()).thenReturn(null);
     when(() => mockBoxService.writeString(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenReturn(Future.value(null));
+        value: any(named: 'value'))).thenAnswer((_) async => null);
     when(() => mockBoxService.writeDouble(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenReturn(Future.value(null));
+        value: any(named: 'value'))).thenAnswer((_) async => null);
     when(() => mockBoxService.writeBool(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenReturn(Future.value(null));
+        value: any(named: 'value'))).thenAnswer((_) async => null);
     when(() => mockBoxService.paymentMethodCode(any()))
         .thenReturn("01"); // Default for CASH
 
