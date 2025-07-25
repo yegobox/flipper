@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 
+// flutter test test/api_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('Purchase with Variants', () {
     late TestEnvironment env;
@@ -456,6 +457,288 @@ void main() {
             variant: testVariant,
             purchase: testPurchase,
             approvedQty: testVariant.stock?.currentStock,
+          )).called(1);
+    });
+
+    // Tests that acceptPurchase correctly handles service items with code 3 after country code
+    // - Verifies that service items (code 3) are processed without stock assignment
+    // - Ensures a new itemCd is generated for service items
+    // - Works with any two-character country code
+    test('#acceptPurchase should handle service items with code 3 correctly',
+        () async {
+      // Create a service variant with itemCd starting with any two-character country code followed by 3
+      final serviceVariant = _createTestVariant(
+        id: "service_variant",
+        name: "Service Item",
+        currentStock: 0.0, // Services don't have stock
+      );
+      serviceVariant.itemCd =
+          "KE3NTNO0001776"; // Service item code with different country code
+
+      final testPurchase = _createTestPurchase(variants: [serviceVariant]);
+
+      // Stub itemCode to verify it's called for service items
+      when(() => mockDbSync.itemCode(
+            countryCode: any(named: 'countryCode'),
+            productType: any(named: 'productType'),
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).thenAnswer((_) async => "KE3NTNO0001777"); // New itemCd
+
+      // Stub other required methods
+      when(() => mockTaxApi.savePurchases(
+                item: any(named: 'item'),
+                business: any(named: 'business'),
+                variants: any(named: 'variants'),
+                bhfId: any(named: 'bhfId'),
+                rcptTyCd: any(named: 'rcptTyCd'),
+                URI: any(named: 'URI'),
+                pchsSttsCd: any(named: 'pchsSttsCd'),
+              ))
+          .thenAnswer((_) async =>
+              RwApiResponse(resultCd: "000", resultMsg: "Success"));
+
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).thenAnswer((_) async => 1);
+
+      when(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+          )).thenAnswer((_) async => 1);
+
+      // Act
+      await coreViewModel.acceptPurchase(
+        pchsSttsCd: "02",
+        purchases: [],
+        purchase: testPurchase,
+        itemMapper: {},
+      );
+
+      // Assert
+      verify(() => mockTaxApi.savePurchases(
+            item: testPurchase,
+            business: any(named: 'business'),
+            variants: [serviceVariant],
+            bhfId: "00",
+            rcptTyCd: "P",
+            URI: "https://test.flipper.rw",
+            pchsSttsCd: "02",
+          )).called(1);
+
+      // Verify itemCode was called to generate a new itemCd for the service item
+      verify(() => mockDbSync.itemCode(
+            countryCode: "KE",
+            productType: "3",
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).called(1);
+
+      // Verify updateVariant was called with null approvedQty for the service item
+      verify(() => mockDbSync.updateVariant(
+            updatables: [serviceVariant],
+            purchase: testPurchase,
+            approvedQty: null, // Key assertion: no stock assignment for services
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).called(1);
+
+      // Verify updateIoFunc was called with null approvedQty
+      verify(() => mockDbSync.updateIoFunc(
+            variant: serviceVariant,
+            purchase: testPurchase,
+            approvedQty: null, // Key assertion: no stock assignment for services
+          )).called(1);
+
+      // Verify the itemCd was updated
+      expect(serviceVariant.itemCd, "KE3NTNO0001777");
+    });
+
+    // Tests that acceptPurchase correctly handles service items with different country codes
+    test(
+        '#acceptPurchase should handle service items with different country codes',
+        () async {
+      // Create two service variants with different country codes
+      final rwServiceVariant = _createTestVariant(
+        id: "rw_service_variant",
+        name: "RW Service Item",
+        currentStock: 0.0,
+      );
+      rwServiceVariant.itemCd = "RW3NTNO0001776";
+
+      final ugServiceVariant = _createTestVariant(
+        id: "ug_service_variant",
+        name: "UG Service Item",
+        currentStock: 0.0,
+      );
+      ugServiceVariant.itemCd = "UG3NTNO0001777";
+
+      final testPurchase =
+          _createTestPurchase(variants: [rwServiceVariant, ugServiceVariant]);
+
+      // Stub itemCode to verify it's called for service items with different country codes
+      when(() => mockDbSync.itemCode(
+            countryCode: "RW",
+            productType: "3",
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).thenAnswer((_) async => "RW3NTNO0001778");
+
+      when(() => mockDbSync.itemCode(
+            countryCode: "UG",
+            productType: "3",
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).thenAnswer((_) async => "UG3NTNO0001779");
+
+      // Stub other required methods
+      when(() => mockTaxApi.savePurchases(
+                item: any(named: 'item'),
+                business: any(named: 'business'),
+                variants: any(named: 'variants'),
+                bhfId: any(named: 'bhfId'),
+                rcptTyCd: any(named: 'rcptTyCd'),
+                URI: any(named: 'URI'),
+                pchsSttsCd: any(named: 'pchsSttsCd'),
+              ))
+          .thenAnswer((_) async =>
+              RwApiResponse(resultCd: "000", resultMsg: "Success"));
+
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).thenAnswer((_) async => 1);
+
+      when(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+          )).thenAnswer((_) async => 1);
+
+      // Act
+      await coreViewModel.acceptPurchase(
+        pchsSttsCd: "02",
+        purchases: [],
+        purchase: testPurchase,
+        itemMapper: {},
+      );
+
+      // Verify itemCode was called for both service variants with their respective country codes
+      verify(() => mockDbSync.itemCode(
+            countryCode: "RW",
+            productType: "3",
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).called(1);
+
+      verify(() => mockDbSync.itemCode(
+            countryCode: "UG",
+            productType: "3",
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).called(1);
+
+      // Verify both service variants were processed with 0 approvedQty
+      verify(() => mockDbSync.updateVariant(
+            updatables: [rwServiceVariant],
+            purchase: testPurchase,
+            approvedQty: null,
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).called(1);
+
+      verify(() => mockDbSync.updateVariant(
+            updatables: [ugServiceVariant],
+            purchase: testPurchase,
+            approvedQty: null,
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).called(1);
+
+      // Verify the itemCds were updated
+      expect(rwServiceVariant.itemCd, "RW3NTNO0001778");
+      expect(ugServiceVariant.itemCd, "UG3NTNO0001779");
+    });
+
+    // Tests that acceptPurchase correctly extracts all components from itemCd
+    test(
+        '#acceptPurchase should extract all components from itemCd for new variants',
+        () async {
+      // Create a variant with a complete itemCd format
+      final variant = _createTestVariant(
+        id: "test_variant_with_complete_itemcd",
+        name: "Test Variant with Complete ItemCd",
+      );
+      variant.itemCd =
+          "UG2NTBA0000123"; // Country: UG, Type: 2, Packaging: NT, Quantity: BA
+
+      final testPurchase = _createTestPurchase(variants: [variant]);
+
+      // Mock itemCode to verify extracted components are passed correctly
+      when(() => mockDbSync.itemCode(
+            countryCode: any(named: 'countryCode'),
+            productType: any(named: 'productType'),
+            packagingUnit: any(named: 'packagingUnit'),
+            quantityUnit: any(named: 'quantityUnit'),
+            branchId: any(named: 'branchId'),
+          )).thenAnswer((_) async => "UG2NTBA0000124");
+
+      // Stub other required methods
+      when(() => mockTaxApi.savePurchases(
+                item: any(named: 'item'),
+                business: any(named: 'business'),
+                variants: any(named: 'variants'),
+                bhfId: any(named: 'bhfId'),
+                rcptTyCd: any(named: 'rcptTyCd'),
+                URI: any(named: 'URI'),
+                pchsSttsCd: any(named: 'pchsSttsCd'),
+              ))
+          .thenAnswer((_) async =>
+              RwApiResponse(resultCd: "000", resultMsg: "Success"));
+
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).thenAnswer((_) async => 1);
+
+      when(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+          )).thenAnswer((_) async => 1);
+
+      // Act
+      await coreViewModel.acceptPurchase(
+        pchsSttsCd: "02",
+        purchases: [],
+        purchase: testPurchase,
+        itemMapper: {},
+      );
+
+      // Verify itemCode was called with the extracted components
+      verify(() => mockDbSync.itemCode(
+            countryCode: "UG", // Extracted from UG2NTBA0000123
+            productType: "2", // Extracted from UG2NTBA0000123
+            packagingUnit: "NT", // Extracted from UG2NTBA0000123
+            quantityUnit: "BA", // Extracted from UG2NTBA0000123
+            branchId: any(named: 'branchId'),
           )).called(1);
     });
   });

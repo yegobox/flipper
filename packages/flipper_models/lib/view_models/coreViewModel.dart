@@ -1031,29 +1031,102 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _processNewVariant(Variant variant, Purchase purchase,
       {required bool updateIo}) async {
+    // Default values in case we can't extract from itemCd
+    String countryCode = PurchaseConstants.countryCode;
+    String productType = PurchaseConstants.productType;
+    String packagingUnit = PurchaseConstants.packagingUnit;
+    String quantityUnit = PurchaseConstants.quantityUnit;
+    bool isService = false;
+
+    // Check if the variant already has an itemCd (not assigned to any existing variant)
+    if (variant.itemCd != null && variant.itemCd!.isNotEmpty) {
+      final String itemCd = variant.itemCd!;
+
+      // Extract components from itemCd (format: XX0YYYY0000000)
+      // XX: Country code (2 chars)
+      // 0: Product type (1 digit)
+      // YY: Packaging unit (2 chars)
+      // YY: Quantity unit (2 chars)
+      // 0000000: Sequence number
+
+      // Extract country code (first 2 characters)
+      if (itemCd.length >= 2) {
+        countryCode = itemCd.substring(0, 2);
+        talker.debug("Extracted country code from itemCd: $countryCode");
+      }
+
+      // Extract product type (3rd character)
+      if (itemCd.length >= 3) {
+        productType = itemCd.substring(2, 3);
+        // Check if it's a service (product type "3")
+        isService = productType == "3";
+        talker.debug(
+            "Extracted product type from itemCd: $productType (isService: $isService)");
+      }
+
+      // Extract packaging unit (4th and 5th characters)
+      if (itemCd.length >= 5) {
+        packagingUnit = itemCd.substring(3, 5);
+        talker.debug("Extracted packaging unit from itemCd: $packagingUnit");
+      }
+
+      // Extract quantity unit (6th and 7th characters)
+      if (itemCd.length >= 7) {
+        quantityUnit = itemCd.substring(5, 7);
+        talker.debug("Extracted quantity unit from itemCd: $quantityUnit");
+      }
+
+      // Remember if it's a service for later use
+      // We'll still generate a new itemCd for services
+    }
+
+    // Generate new itemCd using extracted components for ALL variants (including services)
     variant.itemCd = await ProxyService.strategy.itemCode(
-      countryCode: PurchaseConstants.countryCode,
-      productType: PurchaseConstants.productType,
-      packagingUnit: PurchaseConstants.packagingUnit,
-      quantityUnit: PurchaseConstants.quantityUnit,
+      countryCode: countryCode,
+      productType: productType,
+      packagingUnit: packagingUnit,
+      quantityUnit: quantityUnit,
       branchId: ProxyService.box.getBranchId()!,
     );
 
     variant.ebmSynced = false;
 
-    await ProxyService.strategy.updateVariant(
-      updatables: [variant],
-      purchase: purchase,
-      approvedQty: variant.stock?.currentStock,
-      invoiceNumber: purchase.spplrInvcNo,
-      updateIo: updateIo,
-    );
-    // update io
-    await ProxyService.strategy.updateIoFunc(
-      variant: variant,
-      purchase: purchase,
-      approvedQty: variant.stock?.currentStock,
-    );
+    // Special handling for services (no stock assignment)
+    if (isService) {
+      talker.debug(
+          "Item ${variant.id} is a service (code 3), no stock assignment needed");
+
+      await ProxyService.strategy.updateVariant(
+        updatables: [variant],
+        purchase: purchase,
+        approvedQty: null, // No stock for services
+        invoiceNumber: purchase.spplrInvcNo,
+        updateIo: updateIo,
+      );
+
+      // Still update IO but with null approvedQty for services
+      await ProxyService.strategy.updateIoFunc(
+        variant: variant,
+        purchase: purchase,
+        approvedQty: null,
+      );
+    } else {
+      // Normal handling for non-service items
+      await ProxyService.strategy.updateVariant(
+        updatables: [variant],
+        purchase: purchase,
+        approvedQty: variant.stock?.currentStock,
+        invoiceNumber: purchase.spplrInvcNo,
+        updateIo: updateIo,
+      );
+
+      // update io
+      await ProxyService.strategy.updateIoFunc(
+        variant: variant,
+        purchase: purchase,
+        approvedQty: variant.stock?.currentStock,
+      );
+    }
   }
 
   bool _shouldProcessMappings(
