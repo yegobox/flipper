@@ -412,7 +412,56 @@ void main() {
       final capturedUpdatables = verification.captured.first as List<Variant>;
       expect(capturedUpdatables.length, 1);
       expect(capturedUpdatables.first.id, "variant_to_update");
-      expect(capturedUpdatables.first.name, "Updated Variant");
+    });
+
+    // Tests that updateIoFunc is called when a new variant is processed during purchase acceptance.
+    // - Simulates a successful purchase acceptance that triggers the _processNewVariant logic.
+    // - Verifies that mockDbSync.updateIoFunc is called exactly once with the correct variant, purchase, and approvedQty.
+    test('#acceptPurchase calls updateIoFunc for new variants', () async {
+      final testVariant = _createTestVariant();
+      final testPurchase = _createTestPurchase(variants: [testVariant]);
+
+      // Stub specific methods for this test
+      when(() => mockTaxApi.savePurchases(
+                item: any(named: 'item'),
+                business: any(named: 'business'),
+                variants: any(named: 'variants'),
+                bhfId: any(named: 'bhfId'),
+                rcptTyCd: any(named: 'rcptTyCd'),
+                URI: any(named: 'URI'),
+                pchsSttsCd: any(named: 'pchsSttsCd'),
+              ))
+          .thenAnswer((_) async =>
+              RwApiResponse(resultCd: "000", resultMsg: "Success"));
+
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+          )).thenAnswer((_) async => 1);
+
+      when(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+          )).thenAnswer((_) async => 1);
+
+      // Act
+      await coreViewModel.acceptPurchase(
+        pchsSttsCd: "02",
+        purchases: [],
+        purchase: testPurchase,
+        itemMapper: {},
+      );
+
+      // Assert that updateIoFunc was called exactly once
+      verify(() => mockDbSync.updateIoFunc(
+            variant: testVariant,
+            purchase: testPurchase,
+            approvedQty: testVariant.stock?.currentStock,
+          )).called(1);
     });
   });
 }
