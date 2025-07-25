@@ -22,6 +22,9 @@ abstract class LocalStorage {
   int? currentOrderId();
   bool isProformaMode();
   bool isTrainingMode();
+
+  Stream<bool> get onProformaModeChanged;
+  Stream<bool> get onTrainingModeChanged;
   bool isAnonymous();
   bool isAutoPrintEnabled();
   bool isAutoBackupEnabled();

@@ -1,10 +1,15 @@
+import 'dart:async';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 class PaymentFinalize extends StatefulWidget {
   @override
@@ -15,14 +20,61 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   String selectedCountry = 'Other';
   String selectedPaymentMethod = 'Card';
   bool isLoading = false;
-  bool v1Active = true;
   bool useCustomPhoneNumber = false;
   TextEditingController phoneNumberController = TextEditingController();
+
+  StreamSubscription<List<models.Plan>>? _subscription;
+  bool _mounted = true;
 
   // Define theme colors
   final Color primaryBlue = const Color(0xFF2196F3);
   final Color lightBlue = const Color(0xFFE3F2FD);
   final Color darkBlue = const Color(0xFF1565C0);
+
+  @override
+  void initState() {
+    super.initState();
+    _setupPlanSubscription();
+  }
+
+  @override
+  void dispose() {
+    _mounted = false;
+    _subscription?.cancel();
+    phoneNumberController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _setupPlanSubscription() async {
+    try {
+      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      if (businessId == null) throw Exception('No active business');
+
+      // Set up real-time subscription
+      _subscription = Repository()
+          .subscribeToRealtime<models.Plan>(
+        query: Query(
+          where: [const Where('businessId').isExactly(businessId)],
+        ),
+      )
+          .listen((updatedPlans) {
+        if (updatedPlans.isNotEmpty) {
+          final updatedPlan = updatedPlans.first;
+          if (!_mounted) return;
+
+          // Check if payment was completed
+          if (updatedPlan.paymentCompletedByUser == true) {
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+          }
+        }
+      });
+    } catch (e) {
+      if (!_mounted || !context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error setting up listener: $e')),
+      );
+    }
+  }
 
   String? _getPhoneNumberError(String value) {
     String digitsOnly = value.replaceAll(' ', '');
@@ -206,7 +258,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                             const SizedBox(height: 16),
                             Container(
                               decoration: BoxDecoration(
-                                color: lightBlue.withValues(alpha: 0.3),
+                                color: lightBlue.withOpacity(0.3),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: SwitchListTile(
@@ -220,7 +272,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                 subtitle: Text(
                                   'Toggle to specify a different number for payment',
                                   style: TextStyle(
-                                      color: darkBlue.withValues(alpha: 0.7)),
+                                      color: darkBlue.withOpacity(0.7)),
                                 ),
                                 value: useCustomPhoneNumber,
                                 onChanged: (bool value) {
@@ -407,6 +459,11 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
       if (selectedPaymentMethod == "Card") {
         toast("Card Payment is temporarily unavailable");
+        if (_mounted) {
+          setState(() {
+            isLoading = false;
+          });
+        }
         await cardPayment(finalPrice, paymentPlan, selectedPaymentMethod,
             plan: paymentPlan);
       } else {
@@ -415,10 +472,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     } catch (e, s) {
       talker.warning(e.toString());
       talker.error(s.toString());
-      setState(() {
-        isLoading = false;
-      });
-      rethrow;
+      if (_mounted) {
+        setState(() {
+          isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to initiate payment: $e')));
+      }
     }
   }
 }

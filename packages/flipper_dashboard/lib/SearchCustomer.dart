@@ -13,6 +13,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
+import 'package:flipper_dashboard/providers/customer_provider.dart';
 
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
@@ -236,7 +237,9 @@ class _SearchInputWithDropdownState
 
   void _addCustomerToTransaction(
       Customer customer, ITransaction transaction) async {
+    final customerNameController = ref.read(customerNameControllerProvider);
     try {
+      customerNameController.text = customer.custNm!;
       await ProxyService.strategy.assignCustomerToTransaction(
         customerId: customer.id,
         transactionId: transaction.id,
@@ -286,7 +289,6 @@ class _SearchInputWithDropdownState
   Widget build(BuildContext context) {
     final transaction = ref.watch(pendingTransactionStreamProvider(
       isExpense: false,
-      
     ));
 
     final attachedCustomerFuture = ref.watch(
