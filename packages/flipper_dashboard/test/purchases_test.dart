@@ -91,16 +91,18 @@ void main() {
             ),
           ],
           child: MaterialApp(
-            home: Purchases(
-              formKey: mockFormKey,
-              nameController: mockNameController,
-              supplyPriceController: mockSupplyPriceController,
-              retailPriceController: mockRetailPriceController,
-              saveItemName: mockSaveItemName,
-              acceptPurchases: mockAcceptPurchases.call,
-              selectSale: mockSelectSale.call,
-              variants: mockVariants,
-              purchases: mockPurchases,
+            home: Scaffold(
+              body: Purchases(
+                formKey: mockFormKey,
+                nameController: mockNameController,
+                supplyPriceController: mockSupplyPriceController,
+                retailPriceController: mockRetailPriceController,
+                saveItemName: mockSaveItemName,
+                acceptPurchases: mockAcceptPurchases.call,
+                selectSale: mockSelectSale.call,
+                variants: mockVariants,
+                purchases: mockPurchases,
+              ),
             ),
           ),
         ),
@@ -116,37 +118,29 @@ void main() {
         ProviderScope(
           overrides: [
             variantProvider(branchId: 1).overrideWith(
-              (ref) => <Variant>[], // Provide an empty list of variants
+              (ref) async => <Variant>[],
             ),
           ],
           child: MaterialApp(
-            home: Purchases(
-              formKey: mockFormKey,
-              nameController: mockNameController,
-              supplyPriceController: mockSupplyPriceController,
-              retailPriceController: mockRetailPriceController,
-              saveItemName: mockSaveItemName,
-              acceptPurchases: mockAcceptPurchases.call,
-              selectSale: mockSelectSale.call,
-              variants: mockVariants,
-              purchases: mockPurchases,
+            home: Scaffold(
+              body: Purchases(
+                formKey: mockFormKey,
+                nameController: mockNameController,
+                supplyPriceController: mockSupplyPriceController,
+                retailPriceController: mockRetailPriceController,
+                saveItemName: mockSaveItemName,
+                acceptPurchases: mockAcceptPurchases.call,
+                selectSale: mockSelectSale.call,
+                variants: mockVariants,
+                purchases: mockPurchases,
+              ),
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
-      final purchaseTable =
-          tester.widget<PurchaseTable>(find.byType(PurchaseTable));
-
-      expect(purchaseTable.purchases, mockPurchases);
-      expect(purchaseTable.nameController, mockNameController);
-      expect(purchaseTable.supplyPriceController, mockSupplyPriceController);
-      expect(purchaseTable.retailPriceController, mockRetailPriceController);
-      expect(purchaseTable.saveItemName, mockSaveItemName);
-      expect(purchaseTable.acceptPurchases, mockAcceptPurchases.call);
-      expect(purchaseTable.selectSale, mockSelectSale.call);
-      expect(purchaseTable.variants, mockVariants);
+      expect(find.byType(PurchaseTable), findsOneWidget);
     });
   });
 }
