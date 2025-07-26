@@ -6,6 +6,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
 /// Inspired by Microsoft Fluent Design, QuickBooks clarity, and Duolingo engagement
@@ -13,7 +14,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   // === CORE DATA ===
   List<TransactionItem> internalTransactionItems = [];
-  final Map<String, num> _localQuantities = {};
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, FocusNode> _quantityFocusNodes = {};
   final Map<String, TextEditingController> _priceControllers = {};
@@ -25,10 +25,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, String> _itemErrors = {};
   String? _expandedItemId;
 
+  // Debouncing for text fields
+  final Map<String, Timer?> _debounceTimers = {};
+  static const Duration _debounceDuration = Duration(milliseconds: 800);
+
   @override
   void initState() {
     super.initState();
-    _updateLocalQuantities();
     for (var item in internalTransactionItems) {
       _initController(item);
     }
@@ -37,43 +40,33 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   void _initController(TransactionItem item) {
     final id = item.id;
     final qty = item.qty;
-
-    // Initialize quantity controller with Microsoft-style precision
-    if (!_quantityControllers.containsKey(id)) {
-      _quantityControllers[id] = TextEditingController(text: qty.toString());
-    } else {
-      final focusNode = _quantityFocusNodes[id];
-      if ((focusNode == null || !focusNode.hasFocus) &&
-          _quantityControllers[id]!.text != qty.toString()) {
-        _quantityControllers[id]!.text = qty.toString();
-      }
-    }
-
-    if (!_quantityFocusNodes.containsKey(id)) {
-      _quantityFocusNodes[id] = FocusNode();
-    }
-
-    // Initialize price controller with QuickBooks-style formatting
     final price = item.price;
-    if (!_priceControllers.containsKey(id)) {
-      _priceControllers[id] =
-          TextEditingController(text: price.toStringAsFixed(2));
-    } else {
-      final focusNode = _priceFocusNodes[id];
-      if ((focusNode == null || !focusNode.hasFocus) &&
-          _priceControllers[id]!.text != price.toStringAsFixed(2)) {
-        _priceControllers[id]!.text = price.toStringAsFixed(2);
-      }
-    }
 
-    if (!_priceFocusNodes.containsKey(id)) {
-      _priceFocusNodes[id] = FocusNode();
+    // Quantity Controller
+    _quantityControllers.putIfAbsent(
+        id, () => TextEditingController(text: qty.toString()));
+    _quantityFocusNodes.putIfAbsent(id, () => FocusNode());
+
+    // Price Controller
+    _priceControllers.putIfAbsent(
+        id, () => TextEditingController(text: price.toStringAsFixed(2)));
+    _priceFocusNodes.putIfAbsent(id, () => FocusNode());
+
+    // Update controller text only if not focused to avoid input issues
+    // and if the backend value is different (e.g., after a refresh)
+    if (!_quantityFocusNodes[id]!.hasFocus &&
+        _quantityControllers[id]!.text != qty.toString()) {
+      _quantityControllers[id]!.text = qty.toString();
+    }
+    if (!_priceFocusNodes[id]!.hasFocus &&
+        _priceControllers[id]!.text != price.toStringAsFixed(2)) {
+      _priceControllers[id]!.text = price.toStringAsFixed(2);
     }
 
     // Initialize UI state
     _isItemSaving[id] ??= false;
     _hasItemChanged[id] ??= false;
-    _itemErrors.remove(id);
+    _itemErrors.remove(id); // Clear errors on init/update
   }
 
   void _removeUnusedControllers() {
@@ -91,10 +84,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _priceFocusNodes[id]?.dispose();
       _priceFocusNodes.remove(id);
 
-      // Clean up modern UX state
+      // Clean up modern UX state and debounce timers
       _isItemSaving.remove(id);
       _hasItemChanged.remove(id);
       _itemErrors.remove(id);
+      _debounceTimers[id]?.cancel();
+      _debounceTimers.remove(id);
     }
   }
 
@@ -112,23 +107,19 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     for (final f in _priceFocusNodes.values) {
       f.dispose();
     }
+    for (final timer in _debounceTimers.values) {
+      timer?.cancel();
+    }
     super.dispose();
   }
 
   @override
   void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _updateLocalQuantities();
     for (var item in internalTransactionItems) {
       _initController(item);
     }
     _removeUnusedControllers();
-  }
-
-  void _updateLocalQuantities() {
-    for (var item in internalTransactionItems) {
-      _localQuantities[item.id] = item.qty;
-    }
   }
 
   // === MODERN CALCULATIONS WITH QUICKBOOKS PRECISION ===
@@ -159,7 +150,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -167,7 +158,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       ),
       child: Column(
         children: [
-          // _buildModernHeader(),
           if (internalTransactionItems.isEmpty)
             _buildEmptyState()
           else
@@ -312,7 +302,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         // Price display
         Expanded(
           child: Text(
-            '${item.price.toStringAsFixed(2)}',
+            item.price.toStringAsFixed(2),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -325,7 +315,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         // Total
         Expanded(
           child: Text(
-            '${_getItemTotal(item)}',
+            _getItemTotal(item),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -367,14 +357,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               border: Border.all(color: Colors.grey[300]!),
             ),
             child: Text(
-              item.qty.toString(),
+              item.qty.toStringAsFixed(
+                  item.qty.truncateToDouble() == item.qty ? 0 : 2),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[800],
               ),
-              textAlign:
-                  TextAlign.center, // Center the text within the expanded space
+              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -407,9 +397,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           color: enabled ? color : Colors.grey[300],
           borderRadius: BorderRadius.circular(8),
           boxShadow: enabled
-              ? [ 
+              ? [
                   BoxShadow(
-                    color: color.withValues(alpha: 0.3),
+                    color: color.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -433,16 +423,19 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         // Expand/Edit button
         Expanded(
           child: IconButton(
-            onPressed: () {
-              setState(() {
-                _expandedItemId = _expandedItemId == item.id ? null : item.id;
-              });
-            },
+            onPressed: isSaving
+                ? null
+                : () {
+                    setState(() {
+                      _expandedItemId =
+                          _expandedItemId == item.id ? null : item.id;
+                    });
+                  },
             icon: Icon(
               _expandedItemId == item.id
                   ? Icons.expand_less
                   : Icons.expand_more,
-              color: const Color(0xFF0078D4),
+              color: isSaving ? Colors.grey[400] : const Color(0xFF0078D4),
             ),
             tooltip: 'Edit details',
           ),
@@ -567,8 +560,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       onChanged: (value) {
         setState(() {
           _hasItemChanged[item.id] = true;
+          _itemErrors.remove(item.id);
         });
-        _updateQuantity(item, value, isOrdering);
+        _debounceTimers[item.id]?.cancel();
+        _debounceTimers[item.id] = Timer(_debounceDuration, () {
+          _updateQuantityFromTextField(item, value, isOrdering);
+        });
+      },
+      onFieldSubmitted: (value) {
+        _debounceTimers[item.id]?.cancel();
+        _updateQuantityFromTextField(item, value, isOrdering);
       },
       validator: (value) {
         if (value == null || value.isEmpty) return 'Enter quantity';
@@ -612,8 +613,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       onChanged: (value) {
         setState(() {
           _hasItemChanged[item.id] = true;
+          _itemErrors.remove(item.id);
         });
-        _updatePrice(item, value, isOrdering);
+        _debounceTimers[item.id]?.cancel();
+        _debounceTimers[item.id] = Timer(_debounceDuration, () {
+          _updatePriceFromTextField(item, value, isOrdering);
+        });
+      },
+      onFieldSubmitted: (value) {
+        _debounceTimers[item.id]?.cancel();
+        _updatePriceFromTextField(item, value, isOrdering);
       },
       validator: (value) {
         if (value == null || value.isEmpty) return 'Enter price';
@@ -646,7 +655,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ),
           ),
           Text(
-            '${grandTotal.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+            grandTotal.toCurrencyFormatted(
+                symbol: ProxyService.box.defaultCurrency()),
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -700,21 +710,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   String _getItemTotal(TransactionItem item) {
-    return (item.price * item.qty).toStringAsFixed(0);
+    return (item.price * item.qty).toStringAsFixed(2);
   }
 
-  num _getCurrentQuantity(TransactionItem item) {
-    _localQuantities[item.id] = item.qty;
-    return _localQuantities[item.id] ?? item.qty;
-  }
-
-  Future<void> _updateQuantityBoth(
-      TransactionItem item, num newQty, bool isOrdering) async {
+  Future<void> _updateTransactionItemInDb(TransactionItem item,
+      {double? qty,
+      double? price,
+      bool isIncrement = false,
+      bool isOrdering = false}) async {
     if (item.partOfComposite!) return;
 
     setState(() {
-      _localQuantities[item.id] = newQty;
-      item.qty = newQty;
       _isItemSaving[item.id] = true;
       _itemErrors.remove(item.id);
     });
@@ -722,22 +728,29 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     try {
       await ProxyService.strategy.updateTransactionItem(
         transactionItemId: item.id,
-        qty: newQty.toDouble(),
+        // Only pass the specific parameter that is intended to be changed.
+        // If qty is null, it means we are updating price. If price is null, we are updating qty.
+        // If isIncrement is true, we pass null for qty and let the backend handle the increment.
+        qty: isIncrement ? null : qty,
+        price: price,
+        incrementQty: isIncrement,
         ignoreForReport: false,
-        incrementQty: false,
-        quantityRequested: newQty.toInt(),
+        quantityRequested:
+            isIncrement ? null : qty?.toInt(), // Only if setting exact quantity
       );
+      // After successful update, refresh the provider to update the UI
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
-
       setState(() {
         _hasItemChanged[item.id] = false;
       });
     } catch (e) {
       setState(() {
-        _localQuantities[item.id] = item.qty;
-        _itemErrors[item.id] = 'Failed to update quantity';
+        _itemErrors[item.id] = 'Failed to update item';
+        // Revert controller text to original if update fails
+        _quantityControllers[item.id]?.text = item.qty.toString();
+        _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
       });
-      talker.error(e);
+      talker.error('Failed to update transaction item: $e');
     } finally {
       setState(() {
         _isItemSaving[item.id] = false;
@@ -746,117 +759,120 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (!item.partOfComposite!) {
-      final newQty = _getCurrentQuantity(item) + 1;
-      await _updateQuantityBoth(item, newQty, isOrdering);
-    }
+    if (item.partOfComposite!) return;
+    // Update controller immediately for visual feedback
+    // We don't need to read current quantity from controller here, as we are telling backend to increment
+    // For visual feedback, you could temporarily update the controller here or just wait for refresh.
+    // For accuracy, waiting for refresh is better. If we want immediate visual feedback *before* DB,
+    // we would need to manually increment item.qty and then revert on error.
+    // For now, let's keep it simple and just trigger the DB update.
+    await _updateTransactionItemInDb(item,
+        isIncrement: true, isOrdering: isOrdering);
   }
 
   Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (!item.partOfComposite!) {
-      final currentQty = _getCurrentQuantity(item);
-      if (currentQty > 0) {
-        await _updateQuantityBoth(item, currentQty - 1, isOrdering);
-      }
+    if (item.partOfComposite!) return;
+    if (item.qty > 0) {
+      // Ensure quantity doesn't go below 0
+      // We can't use incrementQty: true for decrement.
+      // So, for decrement, we must calculate the new quantity locally.
+      final currentQty = double.tryParse(
+              _quantityControllers[item.id]?.text ?? item.qty.toString()) ??
+          item.qty;
+      final newQty = currentQty - 1;
+      // Update controller immediately for visual feedback
+      _quantityControllers[item.id]?.text = newQty.toString();
+      setState(() {
+        _hasItemChanged[item.id] = true;
+      });
+      await _updateTransactionItemInDb(item,
+          qty: newQty.toDouble(),
+          price: item.price.toDouble(),
+          isOrdering: isOrdering);
     }
   }
 
-  Future<void> _updateQuantity(
+  Future<void> _updateQuantityFromTextField(
       TransactionItem item, String value, bool isOrdering) async {
-    if (!item.partOfComposite!) {
-      final trimmedValue = value.trim();
-      final doubleValue = double.tryParse(trimmedValue);
-      if (doubleValue != null && doubleValue >= 0) {
-        await _updateQuantityBoth(item, doubleValue, isOrdering);
-      }
+    if (item.partOfComposite!) return;
+
+    final trimmedValue = value.trim();
+    final doubleValue = double.tryParse(trimmedValue);
+
+    if (doubleValue != null && doubleValue >= 0) {
+      // Pass only 'qty' to updateTransactionItemInDb
+      await _updateTransactionItemInDb(item,
+          qty: doubleValue, isOrdering: isOrdering);
+    } else {
+      setState(() {
+        _itemErrors[item.id] = 'Invalid quantity';
+        _quantityControllers[item.id]?.text = item.qty.toString();
+        _hasItemChanged[item.id] = false;
+      });
     }
   }
 
-  Future<void> _updatePrice(
+  Future<void> _updatePriceFromTextField(
       TransactionItem item, String value, bool isOrdering) async {
-    if (!item.partOfComposite!) {
-      final trimmedValue = value.trim();
-      final doubleValue = double.tryParse(trimmedValue);
-      if (doubleValue != null && doubleValue >= 0) {
-        setState(() {
-          item.price = doubleValue;
-          _isItemSaving[item.id] = true;
-          _itemErrors.remove(item.id);
-        });
+    if (item.partOfComposite!) return;
 
-        try {
-          await ProxyService.strategy.updateTransactionItem(
-            transactionItemId: item.id,
-            price: doubleValue,
-            ignoreForReport: false,
-            qty: item.qty.toDouble(),
-          );
-          _refreshTransactionItems(isOrdering,
-              transactionId: item.transactionId!);
+    final trimmedValue = value.trim();
+    final doubleValue = double.tryParse(trimmedValue);
 
-          setState(() {
-            _hasItemChanged[item.id] = false;
-          });
-        } catch (e) {
-          setState(() {
-            _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
-            _itemErrors[item.id] = 'Failed to update price';
-          });
-          talker.error('Failed to update price: $e');
-        } finally {
-          setState(() {
-            _isItemSaving[item.id] = false;
-          });
-        }
-      }
+    if (doubleValue != null && doubleValue >= 0) {
+      // Pass only 'price' to updateTransactionItemInDb
+      await _updateTransactionItemInDb(item,
+          price: doubleValue, isOrdering: isOrdering);
+    } else {
+      setState(() {
+        _itemErrors[item.id] = 'Invalid price';
+        _priceControllers[item.id]?.text = item.price.toStringAsFixed(2);
+        _hasItemChanged[item.id] = false;
+      });
     }
   }
 
   Future<void> _deleteItem(TransactionItem item, bool isOrdering) async {
-    if (!item.partOfComposite!) {
-      await _deleteSingleItem(item, isOrdering);
-      ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
-    } else {
-      await _deleteCompositeItems(item, isOrdering);
-      ref.refresh(transactionItemsProvider(transactionId: item.transactionId));
-    }
-  }
-
-  Future<void> _deleteSingleItem(TransactionItem item, bool isOrdering) async {
+    setState(() {
+      _isItemSaving[item.id] = true;
+    });
     try {
-      await ProxyService.strategy
-          .flipperDelete(id: item.id, endPoint: 'transactionItem');
-      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
-    } catch (e) {
-      talker.error(e);
-    }
-  }
+      if (!item.partOfComposite!) {
+        await ProxyService.strategy
+            .flipperDelete(id: item.id, endPoint: 'transactionItem');
+      } else {
+        Variant? variant = (await ProxyService.strategy.variants(
+          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+          variantId: item.variantId!,
+          branchId: ProxyService.box.getBranchId()!,
+        ))
+            .firstOrNull;
 
-  Future<void> _deleteCompositeItems(
-      TransactionItem item, bool isOrdering) async {
-    try {
-      Variant? variant = (await ProxyService.strategy.variants(
-        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-        variantId: item.variantId!,
-        branchId: ProxyService.box.getBranchId()!,
-      ))
-          .firstOrNull;
+        if (variant != null) {
+          final composites = await ProxyService.strategy
+              .composites(productId: variant.productId!);
 
-      final composites = await ProxyService.strategy
-          .composites(productId: variant!.productId!);
-
-      for (final composite in composites) {
-        final deletableItem = await ProxyService.strategy
-            .getTransactionItem(variantId: composite.variantId!);
-        if (deletableItem != null) {
-          ProxyService.strategy
-              .flipperDelete(id: deletableItem.id, endPoint: 'transactionItem');
+          for (final composite in composites) {
+            final deletableItem = await ProxyService.strategy
+                .getTransactionItem(variantId: composite.variantId!);
+            if (deletableItem != null) {
+              await ProxyService.strategy.flipperDelete(
+                  id: deletableItem.id, endPoint: 'transactionItem');
+            }
+          }
         }
       }
+      _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
     } catch (e) {
-      // Handle error silently as in original
+      talker.error('Error deleting item: $e');
+      setState(() {
+        _itemErrors[item.id] = 'Failed to delete item';
+      });
+    } finally {
+      setState(() {
+        _isItemSaving[item.id] = false;
+      });
     }
-    _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
   }
 
   void _refreshTransactionItems(bool isOrdering,
