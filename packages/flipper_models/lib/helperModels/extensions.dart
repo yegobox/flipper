@@ -391,8 +391,7 @@ extension DeviceTypeExtension on BuildContext {
   }
 
   bool get isSmallDevice {
-    return MediaQuery.of(this).size.width <
-        600; // Using 600 as a common breakpoint for small devices
+    return MediaQuery.of(this).size.width < 600;
   }
 }
 

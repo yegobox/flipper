@@ -193,7 +193,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
         // Items Section
         SliverToBoxAdapter(
-          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined, key: Key('items-section')),
+          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined,
+              key: Key('items-section')),
         ),
 
         _buildItemsList(transactionAsyncValue),
@@ -357,6 +358,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildModernItemCard(
       TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
     return Container(
+      key: Key('item-card-${item.id}'), // Add a key to the item card
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -389,6 +391,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                 ),
                 IconButton(
+                  key: Key('delete-item-${item.id}'), // Add this key
                   icon: Icon(Icons.delete_outline, size: 20),
                   onPressed: () =>
                       _showDeleteConfirmation(item, transactionAsyncValue),
@@ -446,6 +449,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
+                        key: Key('quantity-remove-${item.id}'),
                         icon: Icon(Icons.remove, size: 16),
                         onPressed: item.qty > 1
                             ? () => _updateQuantity(item,
@@ -466,9 +470,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         ),
                       ),
                       IconButton(
+                        key: Key('quantity-add-${item.id}'),
                         icon: Icon(Icons.add, size: 16),
-                        onPressed: () => _updateQuantity(item,
-                            (item.qty + 1).toInt(), transactionAsyncValue),
+                        onPressed: () {
+                          _updateQuantity(item, (item.qty + 1).toInt(),
+                              transactionAsyncValue);
+                        },
                         style: IconButton.styleFrom(
                           minimumSize: Size(32, 32),
                         ),
@@ -1009,6 +1016,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         keyboardType: TextInputType.number,
         maxLines: 1,
         minLines: 1,
+        key: const Key('received-amount-field'), // Add this line
         suffixIcon: Text(ProxyService.box.defaultCurrency(),
             style: const TextStyle(color: Colors.blue)),
         onChanged: (value) => setState(() {
