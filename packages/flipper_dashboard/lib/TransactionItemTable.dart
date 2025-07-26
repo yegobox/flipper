@@ -355,7 +355,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           color: Colors.red[400]!,
           onTap: () => _decrementQuantity(item, isOrdering),
           enabled: item.qty > 0,
-          id: item.id,
+          id: '${item.id}-remove',
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -384,7 +384,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           color: Colors.blue[400]!,
           onTap: () => _incrementQuantity(item, isOrdering),
           enabled: true,
-          id: item.id,
+          id: '${item.id}-add',
         ),
       ],
     );
@@ -407,7 +407,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           color: enabled ? color : Colors.grey[300],
           borderRadius: BorderRadius.circular(8),
           boxShadow: enabled
-              ? [
+              ? [ 
                   BoxShadow(
                     color: color.withValues(alpha: 0.3),
                     blurRadius: 8,
