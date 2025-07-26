@@ -337,7 +337,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
         // Actions
         const SizedBox(width: 12),
-        _buildItemActions(item, isOrdering, isSaving),
+        Expanded(
+          flex: 1,
+          child: _buildItemActions(item, isOrdering, isSaving),
+        ),
       ],
     );
   }
@@ -354,19 +357,22 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           enabled: item.qty > 0,
         ),
         const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Text(
-            item.qty.toString(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Text(
+              item.qty.toString(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+              textAlign: TextAlign.center, // Center the text within the expanded space
             ),
           ),
         ),
@@ -420,28 +426,35 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       mainAxisSize: MainAxisSize.min,
       children: [
         // Expand/Edit button
-        IconButton(
-          onPressed: () {
-            setState(() {
-              _expandedItemId = _expandedItemId == item.id ? null : item.id;
-            });
-          },
-          icon: Icon(
-            _expandedItemId == item.id ? Icons.expand_less : Icons.expand_more,
-            color: const Color(0xFF0078D4),
+        Expanded(
+          child: IconButton(
+            onPressed: () {
+              setState(() {
+                _expandedItemId = _expandedItemId == item.id ? null : item.id;
+              });
+            },
+            icon: Icon(
+              _expandedItemId == item.id
+                  ? Icons.expand_less
+                  : Icons.expand_more,
+              color: const Color(0xFF0078D4),
+            ),
+            tooltip: 'Edit details',
           ),
-          tooltip: 'Edit details',
         ),
 
         // Delete button
-        IconButton(
-          onPressed:
-              isSaving ? null : () => _showDeleteConfirmation(item, isOrdering),
-          icon: Icon(
-            Icons.delete_outline,
-            color: isSaving ? Colors.grey[400] : Colors.red[400],
+        Expanded(
+          child: IconButton(
+            onPressed: isSaving
+                ? null
+                : () => _showDeleteConfirmation(item, isOrdering),
+            icon: Icon(
+              Icons.delete_outline,
+              color: isSaving ? Colors.grey[400] : Colors.red[400],
+            ),
+            tooltip: 'Delete item',
           ),
-          tooltip: 'Delete item',
         ),
 
         // Saving indicator

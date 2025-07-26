@@ -193,7 +193,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
         // Items Section
         SliverToBoxAdapter(
-          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined),
+          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined, key: Key('items-section')),
         ),
 
         _buildItemsList(transactionAsyncValue),
@@ -294,19 +294,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, IconData icon, {Key? key}) {
     return Container(
+      key: key, // Add this
       padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
       child: Row(
         children: [
           Icon(
             icon,
+            key: Key('${title.toLowerCase()}-section-icon'), // Add key to icon
             size: 20,
             color: Theme.of(context).colorScheme.primary,
           ),
           SizedBox(width: 8),
           Text(
             title,
+            key: Key('${title.toLowerCase()}-section-text'), // Add key to text
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary,

@@ -391,14 +391,8 @@ extension DeviceTypeExtension on BuildContext {
   }
 
   bool get isSmallDevice {
-    final deviceType = getDeviceType();
-    return (deviceType == "Phone" ||
-            deviceType == "Phablet" ||
-            deviceType == "Tablet") &&
-        !(Platform.isMacOS ||
-            Platform.isWindows ||
-            Platform.isLinux ||
-            Platform.isFuchsia);
+    return MediaQuery.of(this).size.width <
+        600; // Using 600 as a common breakpoint for small devices
   }
 }
 
