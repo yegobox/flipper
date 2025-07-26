@@ -355,6 +355,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           color: Colors.red[400]!,
           onTap: () => _decrementQuantity(item, isOrdering),
           enabled: item.qty > 0,
+          id: item.id,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -372,7 +373,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[800],
               ),
-              textAlign: TextAlign.center, // Center the text within the expanded space
+              textAlign:
+                  TextAlign.center, // Center the text within the expanded space
             ),
           ),
         ),
@@ -382,6 +384,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           color: Colors.blue[400]!,
           onTap: () => _incrementQuantity(item, isOrdering),
           enabled: true,
+          id: item.id,
         ),
       ],
     );
@@ -392,8 +395,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     required Color color,
     required VoidCallback onTap,
     required bool enabled,
+    required String id,
   }) {
     return GestureDetector(
+      key: Key('quantity-button-$id'),
       onTap: enabled ? onTap : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),

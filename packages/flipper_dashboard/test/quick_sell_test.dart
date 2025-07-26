@@ -6,7 +6,6 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
@@ -172,153 +171,282 @@ void main() {
       expect(find.text('Total Amount'), findsOneWidget);
     });
 
-    // testWidgets('handles item quantity update', (tester) async {
-    //   // Setup mocks
-    //   when(() => mockTransaction.id).thenReturn("test_transaction_id");
-    //   when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
-    //   when(() => mockBranch.id).thenReturn("1");
+    testWidgets('handles item quantity update', (tester) async {
+      // Setup device size for a large device
+      tester.view.physicalSize = const Size(1000, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
-    //   final mockItem = MockTransactionItem();
-    //   when(() => mockItem.id).thenReturn("1");
-    //   when(() => mockItem.name).thenReturn("Test Item");
-    //   when(() => mockItem.price).thenReturn(100.0);
-    //   when(() => mockItem.qty).thenReturn(1.0);
+      // Setup mocks
+      when(() => mockTransaction.id).thenReturn("test_transaction_id");
+      when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
+      when(() => mockBranch.id).thenReturn("1");
 
-    //   await tester.pumpWidget(
-    //     MediaQuery.fromView(
-    //       view: tester.view,
-    //       child: TestApp(
-    //         child: QuickSellingView(
-    //           formKey: formKey,
-    //           discountController: discountController,
-    //           receivedAmountController: receivedAmountController,
-    //           deliveryNoteCotroller: deliveryNoteController,
-    //           customerPhoneNumberController: customerPhoneNumberController,
-    //           paymentTypeController: paymentTypeController,
-    //           countryCodeController: countryCodeController,
-    //         ),
-    //         mockBoxService: mockBoxService,
-    //         mockTransaction: mockTransaction,
-    //         mockTransactionItems: [mockItem],
-    //         mockBranch: mockBranch,
-    //       ),
-    //     ),
-    //   );
+      final mockItem = MockTransactionItem();
+      when(() => mockItem.id).thenReturn("1");
+      when(() => mockItem.name).thenReturn("Test Item");
+      when(() => mockItem.price).thenReturn(100.0);
+      when(() => mockItem.qty).thenReturn(1.0);
 
-    //   await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        MediaQuery.fromView(
+          view: tester.view,
+          child: TestApp(
+            child: QuickSellingView(
+              formKey: formKey,
+              discountController: discountController,
+              receivedAmountController: receivedAmountController,
+              deliveryNoteCotroller: deliveryNoteController,
+              customerPhoneNumberController: customerPhoneNumberController,
+              paymentTypeController: paymentTypeController,
+              countryCodeController: countryCodeController,
+            ),
+            mockBoxService: mockBoxService,
+            mockTransaction: mockTransaction,
+            mockTransactionItems: [mockItem],
+            mockBranch: mockBranch,
+          ),
+        ),
+      );
 
-    //   // Tap the add quantity button
-    //   await tester.tap(find.byKey(const Key('quantity-add-1')));
-    //   await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    //   // Verify update was called
-    //   verify(() => ProxyService.strategy.updateTransactionItem(
-    //         transactionItemId: "1",
-    //         ignoreForReport: false,
-    //         qty: 2.0,
-    //         active: any(named: 'active'),
-    //       )).called(1);
-    // });
+      // Verify the item card is displayed (for large device layout)
+      expect(find.byKey(const Key('item-card-1')), findsOneWidget);
 
-    // testWidgets('handles item deletion', (tester) async {
-    //   // Setup mocks
-    //   when(() => mockTransaction.id).thenReturn("test_transaction_id");
-    //   when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
-    //   when(() => mockBranch.id).thenReturn("1");
+      // Tap the add quantity button
+      await tester.tap(find.byKey(const Key('quantity-add-1')));
+      await tester.pumpAndSettle();
 
-    //   final mockItem = MockTransactionItem();
-    //   when(() => mockItem.id).thenReturn("1");
-    //   when(() => mockItem.name).thenReturn("Test Item");
-    //   when(() => mockItem.price).thenReturn(100.0);
-    //   when(() => mockItem.qty).thenReturn(1.0);
+      // Verify update was called
+      verify(() => ProxyService.strategy.updateTransactionItem(
+            transactionItemId: "1",
+            ignoreForReport: false,
+            qty: 2.0,
+            active: any(named: 'active'),
+          )).called(1);
+    });
 
-    //   await tester.pumpWidget(
-    //     MediaQuery.fromView(
-    //       view: tester.view,
-    //       child: TestApp(
-    //         child: QuickSellingView(
-    //           formKey: formKey,
-    //           discountController: discountController,
-    //           receivedAmountController: receivedAmountController,
-    //           deliveryNoteCotroller: deliveryNoteController,
-    //           customerPhoneNumberController: customerPhoneNumberController,
-    //           paymentTypeController: paymentTypeController,
-    //           countryCodeController: countryCodeController,
-    //         ),
-    //         mockBoxService: mockBoxService,
-    //         mockTransaction: mockTransaction,
-    //         mockTransactionItems: [mockItem],
-    //         mockBranch: mockBranch,
-    //       ),
-    //     ),
-    //   );
+    testWidgets('handles item deletion', (tester) async {
+      // Setup device size for a small device
+      tester.view.physicalSize = const Size(500, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
-    //   await tester.pumpAndSettle();
+      // Setup mocks
+      when(() => mockTransaction.id).thenReturn("test_transaction_id");
+      when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
+      when(() => mockBranch.id).thenReturn("1");
 
-    //   // Tap delete button
-    //   await tester.tap(find.byKey(const Key('delete-item-1')));
-    //   await tester.pumpAndSettle();
+      final mockItem = MockTransactionItem();
+      when(() => mockItem.id).thenReturn("1");
+      when(() => mockItem.name).thenReturn("Test Item");
+      when(() => mockItem.price).thenReturn(100.0);
+      when(() => mockItem.qty).thenReturn(1.0);
 
-    //   // Verify confirmation dialog
-    //   expect(find.text('Remove Item'), findsOneWidget);
-    //   expect(find.text('Are you sure you want to remove "Test Item"'),
-    //       findsOneWidget);
+      await tester.pumpWidget(
+        MediaQuery.fromView(
+          view: tester.view,
+          child: TestApp(
+            child: QuickSellingView(
+              formKey: formKey,
+              discountController: discountController,
+              receivedAmountController: receivedAmountController,
+              deliveryNoteCotroller: deliveryNoteController,
+              customerPhoneNumberController: customerPhoneNumberController,
+              paymentTypeController: paymentTypeController,
+              countryCodeController: countryCodeController,
+            ),
+            mockBoxService: mockBoxService,
+            mockTransaction: mockTransaction,
+            mockTransactionItems: [mockItem],
+            mockBranch: mockBranch,
+          ),
+        ),
+      );
 
-    //   // Confirm deletion
-    //   await tester.tap(find.text('Remove'));
-    //   await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-    //   // Verify update was called
-    //   verify(() => ProxyService.strategy.updateTransactionItem(
-    //         transactionItemId: "1",
-    //         active: false,
-    //         ignoreForReport: false,
-    //         qty: any(named: 'qty'),
-    //       )).called(1);
-    // });
+      // Tap delete button
+      await tester.tap(find.byKey(const Key('delete-item-1')));
+      await tester.pumpAndSettle();
 
-    // testWidgets('handles received amount input', (tester) async {
-    //   // Setup mocks
-    //   when(() => mockTransaction.id).thenReturn("test_transaction_id");
-    //   when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
-    //   when(() => mockBranch.id).thenReturn("1");
+      // Verify confirmation dialog
+      expect(find.text('Remove Item'), findsOneWidget);
+      expect(find.text('Are you sure you want to remove "Test Item"'),
+          findsOneWidget);
 
-    //   final mockItem = MockTransactionItem();
-    //   when(() => mockItem.id).thenReturn("1");
-    //   when(() => mockItem.name).thenReturn("Test Item");
-    //   when(() => mockItem.price).thenReturn(100.0);
-    //   when(() => mockItem.qty).thenReturn(1.0);
+      // Confirm deletion
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
 
-    //   await tester.pumpWidget(
-    //     TestApp(
-    //       child: QuickSellingView(
-    //         discountController: discountController,
-    //         receivedAmountController: receivedAmountController,
-    //         deliveryNoteCotroller: deliveryNoteController,
-    //         customerPhoneNumberController: customerPhoneNumberController,
-    //         paymentTypeController: paymentTypeController,
-    //         countryCodeController: countryCodeController,
-    //         formKey: formKey,
-    //       ),
-    //       mockBoxService: mockBoxService,
-    //       mockTransaction: mockTransaction,
-    //       mockTransactionItems: [mockItem],
-    //       mockBranch: mockBranch,
-    //     ),
-    //   );
+      // Verify update was called
+      verify(() => ProxyService.strategy.updateTransactionItem(
+            transactionItemId: "1",
+            active: false,
+            ignoreForReport: false,
+            qty: any(named: 'qty'),
+          )).called(1);
+    });
 
-    //   await tester.pumpAndSettle();
+    testWidgets('handles received amount input', (tester) async {
+      // Setup device size for a small device
+      tester.view.physicalSize = const Size(500, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
-    //   // Enter amount
-    //   await tester.enterText(
-    //       find.byKey(const Key('received-amount-field')), '150.0');
-    //   await tester.pumpAndSettle();
+      // Setup mocks
+      when(() => mockTransaction.id).thenReturn("test_transaction_id");
+      when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
+      when(() => mockBranch.id).thenReturn("1");
 
-    //   // Verify write was called
-    //   verify(() => mockBoxService.writeDouble(
-    //         key: 'getCashReceived',
-    //         value: 150.0,
-    //       )).called(1);
-    // });
+      final mockItem = MockTransactionItem();
+      when(() => mockItem.id).thenReturn("1");
+      when(() => mockItem.name).thenReturn("Test Item");
+      when(() => mockItem.price).thenReturn(100.0);
+      when(() => mockItem.qty).thenReturn(1.0);
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuickSellingView(
+            discountController: discountController,
+            receivedAmountController: receivedAmountController,
+            deliveryNoteCotroller: deliveryNoteController,
+            customerPhoneNumberController: customerPhoneNumberController,
+            paymentTypeController: paymentTypeController,
+            countryCodeController: countryCodeController,
+            formKey: formKey,
+          ),
+          mockBoxService: mockBoxService,
+          mockTransaction: mockTransaction,
+          mockTransactionItems: [mockItem],
+          mockBranch: mockBranch,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Enter amount
+      await tester.enterText(
+          find.byKey(const Key('received-amount-field')), '150.0');
+      await tester.pumpAndSettle();
+
+      // Verify write was called
+      verify(() => mockBoxService.writeDouble(
+            key: 'getCashReceived',
+            value: 150.0,
+          )).called(1);
+    });
+
+    testWidgets('handles item deletion', (tester) async {
+      // Setup device size for a small device
+      tester.view.physicalSize = const Size(500, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Setup mocks
+      when(() => mockTransaction.id).thenReturn("test_transaction_id");
+      when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
+      when(() => mockBranch.id).thenReturn("1");
+
+      final mockItem = MockTransactionItem();
+      when(() => mockItem.id).thenReturn("1");
+      when(() => mockItem.name).thenReturn("Test Item");
+      when(() => mockItem.price).thenReturn(100.0);
+      when(() => mockItem.qty).thenReturn(1.0);
+
+      await tester.pumpWidget(
+        MediaQuery.fromView(
+          view: tester.view,
+          child: TestApp(
+            child: QuickSellingView(
+              formKey: formKey,
+              discountController: discountController,
+              receivedAmountController: receivedAmountController,
+              deliveryNoteCotroller: deliveryNoteController,
+              customerPhoneNumberController: customerPhoneNumberController,
+              paymentTypeController: paymentTypeController,
+              countryCodeController: countryCodeController,
+            ),
+            mockBoxService: mockBoxService,
+            mockTransaction: mockTransaction,
+            mockTransactionItems: [mockItem],
+            mockBranch: mockBranch,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Tap delete button
+      await tester.tap(find.byKey(const Key('delete-item-1')));
+      await tester.pumpAndSettle();
+
+      // Verify confirmation dialog
+      expect(find.text('Remove Item'), findsOneWidget);
+      expect(find.text('Are you sure you want to remove "Test Item"'),
+          findsOneWidget);
+
+      // Confirm deletion
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      // Verify update was called
+      verify(() => ProxyService.strategy.updateTransactionItem(
+            transactionItemId: "1",
+            active: false,
+            ignoreForReport: false,
+            qty: any(named: 'qty'),
+          )).called(1);
+    });
+
+    testWidgets('handles received amount input', (tester) async {
+      // Setup device size for a small device
+      tester.view.physicalSize = const Size(500, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      // Setup mocks
+      when(() => mockTransaction.id).thenReturn("test_transaction_id");
+      when(() => mockTransaction.createdAt).thenReturn(DateTime.now());
+      when(() => mockBranch.id).thenReturn("1");
+
+      final mockItem = MockTransactionItem();
+      when(() => mockItem.id).thenReturn("1");
+      when(() => mockItem.name).thenReturn("Test Item");
+      when(() => mockItem.price).thenReturn(100.0);
+      when(() => mockItem.qty).thenReturn(1.0);
+
+      await tester.pumpWidget(
+        TestApp(
+          child: QuickSellingView(
+            discountController: discountController,
+            receivedAmountController: receivedAmountController,
+            deliveryNoteCotroller: deliveryNoteController,
+            customerPhoneNumberController: customerPhoneNumberController,
+            paymentTypeController: paymentTypeController,
+            countryCodeController: countryCodeController,
+            formKey: formKey,
+          ),
+          mockBoxService: mockBoxService,
+          mockTransaction: mockTransaction,
+          mockTransactionItems: [mockItem],
+          mockBranch: mockBranch,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Enter amount
+      await tester.enterText(
+          find.byKey(const Key('received-amount-field')), '150.0');
+      await tester.pumpAndSettle();
+
+      // Verify write was called
+      verify(() => mockBoxService.writeDouble(
+            key: 'getCashReceived',
+            value: 150.0,
+          )).called(1);
+    });
   });
 }
