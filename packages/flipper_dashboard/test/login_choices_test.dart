@@ -27,9 +27,6 @@ void main() {
     late MockDatabaseSync mockDbSync;
     late MockBox mockBox;
 
-    late StreamController<List<Business>> businessesController;
-    late StreamController<List<Branch>> branchesController;
-
     late Business business;
     late Branch branch1;
     late Branch branch2;
@@ -37,8 +34,17 @@ void main() {
     setUpAll(() async {
       env = TestEnvironment();
       await env.init();
+    });
+
+    tearDownAll(() {
+      env.restore();
+    });
+
+    setUp(() {
       mockRouterService = MockRouterService();
       mockStartupViewModel = MockStartupViewModel();
+      mockDbSync = MockDatabaseSync();
+      mockBox = MockBox();
 
       // Register fallbacks
       registerFallbackValue(FakePageRouteInfo());
@@ -54,14 +60,6 @@ void main() {
       // Register your mock services
       GetIt.I.registerSingleton<RouterService>(mockRouterService);
       GetIt.I.registerSingleton<StartupViewModel>(mockStartupViewModel);
-    });
-
-    setUp(() {
-      mockDbSync = MockDatabaseSync();
-      mockBox = MockBox();
-
-      businessesController = StreamController<List<Business>>();
-      branchesController = StreamController<List<Branch>>();
 
       // Define test data
       business = Business(
@@ -88,8 +86,6 @@ void main() {
           key: any(named: 'key'),
           value: any(named: 'value'))).thenAnswer((_) async {});
 
-      // Configure mocks for business and branch data streams
-
       // Reset mocks for a clean state in each test
       reset(mockRouterService);
       reset(mockStartupViewModel);
@@ -97,24 +93,20 @@ void main() {
       reset(mockBox);
     });
 
-    tearDown(() {
-      businessesController.close();
-      branchesController.close();
-      env.restore();
-    });
-
     testWidgets('renders correctly and shows business choices',
         (WidgetTester tester) async {
       // Arrange
+      when(() => mockDbSync.businesses(userId: 1))
+          .thenAnswer((_) async => [business]);
+      when(() => mockDbSync.branches(businessId: 1))
+          .thenAnswer((_) async => []);
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            businessesProvider.overrideWith(
-              (ref) => mockDbSync.businesses(userId: 1),
-            ),
-            branchesProvider(businessId: 1).overrideWith(
-              (ref) => mockDbSync.branches(businessId: 1),
-            ),
+            businessesProvider.overrideWith((ref) => Future.value([business])),
+            branchesProvider(businessId: 1)
+                .overrideWith((ref) => Future.value([])),
           ],
           child: const TestApp(
             child: Scaffold(
@@ -124,8 +116,6 @@ void main() {
         ),
       );
 
-      businessesController
-          .add([business]); // Emit business data after widget is pumped
       await tester.pumpAndSettle();
 
       expect(find.text('Choose a Business'), findsOneWidget);
@@ -136,20 +126,19 @@ void main() {
         'navigates to branch selection when a business with multiple branches is tapped',
         (WidgetTester tester) async {
       // Arrange
-      when(() => mockDbSync.branches(
-              businessId: any(named: 'businessId'),
-              active: any(named: 'active')))
+      when(() => mockDbSync.businesses(userId: 1))
+          .thenAnswer((_) async => [business]);
+      when(() => mockDbSync.branches(businessId: 1, active: false))
+          .thenAnswer((_) async => [branch1, branch2]);
+      when(() => mockDbSync.branches(businessId: 1))
           .thenAnswer((_) async => [branch1, branch2]);
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            businessesProvider.overrideWith(
-              (ref) => mockDbSync.businesses(userId: 1),
-            ),
-            branchesProvider(businessId: 1).overrideWith(
-              (ref) => mockDbSync.branches(businessId: 1),
-            ),
+            businessesProvider.overrideWith((ref) => Future.value([business])),
+            branchesProvider(businessId: 1)
+                .overrideWith((ref) => Future.value([branch1, branch2])),
           ],
           child: const TestApp(
             child: Scaffold(
@@ -159,14 +148,9 @@ void main() {
         ),
       );
 
-      businessesController.add([business]); // Emit business data
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Test Business'));
-      await tester.pumpAndSettle();
-
-      // After tapping business, branches should be loaded
-      branchesController.add([branch1, branch2]);
       await tester.pumpAndSettle();
 
       expect(find.text('Choose a Branch'), findsOneWidget);
@@ -178,9 +162,12 @@ void main() {
         'completes login flow when a business with a single branch is tapped',
         (WidgetTester tester) async {
       // Arrange
-      when(() => mockDbSync.branches(
-          businessId: any(named: 'businessId'),
-          active: any(named: 'active'))).thenAnswer((_) async => [branch1]);
+      when(() => mockDbSync.businesses(userId: 1))
+          .thenAnswer((_) async => [business]);
+      when(() => mockDbSync.branches(businessId: 1, active: false))
+          .thenAnswer((_) async => [branch1]);
+      when(() => mockDbSync.branches(businessId: 1))
+          .thenAnswer((_) async => [branch1]);
 
       when(() => mockStartupViewModel.hasActiveSubscription())
           .thenAnswer((_) async => true);
@@ -190,12 +177,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            businessesProvider.overrideWith(
-              (ref) => mockDbSync.businesses(userId: 1),
-            ),
-            branchesProvider(businessId: 1).overrideWith(
-              (ref) => mockDbSync.branches(businessId: 1),
-            ),
+            businessesProvider.overrideWith((ref) => Future.value([business])),
+            branchesProvider(businessId: 1)
+                .overrideWith((ref) => Future.value([branch1])),
           ],
           child: const TestApp(
             child: Scaffold(
@@ -205,14 +189,9 @@ void main() {
         ),
       );
 
-      businessesController.add([business]); // Emit business data
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Test Business'));
-      await tester.pumpAndSettle();
-
-      // After tapping business, branches should be loaded
-      branchesController.add([branch1]);
       await tester.pumpAndSettle();
 
       verify(() => mockRouterService.navigateTo(any())).called(1);
