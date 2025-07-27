@@ -871,5 +871,31 @@ void main() {
 
       verifyNever(() => mockRepository.delete<Plan>(any()));
     });
+
+    test('loads plan for a given business', () async {
+      final businessId = 'test_business_id';
+      final expectedPlan = _createPlan(
+        id: 'plan_for_business',
+        isPaid: true,
+        createdAt: DateTime.now(),
+      );
+      expectedPlan.businessId = businessId;
+
+      final mockRepository = MockRepository();
+      when(() => mockRepository.get<Plan>(query: any(named: 'query')))
+          .thenAnswer((_) async => [expectedPlan]);
+
+      final mockBox = MockBox();
+      when(() => mockBox.getBusinessId()).thenReturn(1); // Mock a business ID for ProxyService.box
+
+      final coreSync = CoreSync();
+      coreSync.repository = mockRepository;
+
+      final result = await coreSync.getPaymentPlan(businessId: businessId);
+
+      expect(result, isA<Plan>());
+      expect(result?.id, expectedPlan.id);
+      expect(result?.businessId, expectedPlan.businessId);
+    });
   });
 }

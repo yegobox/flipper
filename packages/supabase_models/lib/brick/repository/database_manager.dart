@@ -43,12 +43,12 @@ class DatabaseManager {
           try {
             // Platform-specific PRAGMA configuration
             if (Platform.isWindows) {
-              await db.execute('PRAGMA journal_mode = WAL');
-              await db.execute('PRAGMA synchronous = NORMAL');
-              await db.execute('PRAGMA cache_size = -2000'); // ~2MB cache
+              await db.execute('PRAGMA journal_mode=WAL;');
+              await db.execute('PRAGMA synchronous=FULL;');
+              await db.execute('PRAGMA cache_size = -8192;'); // ~8MB cache
             } else if (Platform.isAndroid) {
-              await db.execute('PRAGMA journal_mode = WAL');
-              await db.execute('PRAGMA synchronous = FULL');
+              await db.execute('PRAGMA journal_mode=WAL;');
+              await db.execute('PRAGMA synchronous=FULL;');
             }
             // Integrity check (all platforms)
             final integrityResult = await db.rawQuery('PRAGMA integrity_check');

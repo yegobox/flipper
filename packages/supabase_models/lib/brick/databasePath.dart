@@ -13,26 +13,25 @@ mixin DatabasePath {
       if (!await testDir.exists()) {
         await testDir.create(recursive: true);
       }
-      return '.db';
+      return testDir.path;
     }
 
     String dbPath;
+
     if (Platform.isAndroid) {
-      // Use the dedicated databases directory on Android
       dbPath = await getDatabasesPath();
     } else {
-      // For all desktop platforms (Windows, macOS, Linux) and iOS
-      final appDir = await getApplicationDocumentsDirectory();
-      dbPath = join(appDir.path, 'Flipper');
+      // iOS, macOS, Windows, Linux
+      final supportDir = await getApplicationSupportDirectory();
+      dbPath = join(supportDir.path, 'Flipper');
     }
 
-    // Ensure the directory exists
     final dbDir = Directory(dbPath);
     if (!await dbDir.exists()) {
       await dbDir.create(recursive: true);
     }
 
-    return dbPath;
+    return dbDir.path;
   }
 
   static bool isTestEnvironment() {
