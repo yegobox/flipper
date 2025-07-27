@@ -545,7 +545,8 @@ void main() {
       verify(() => mockDbSync.updateVariant(
             updatables: [serviceVariant],
             purchase: testPurchase,
-            approvedQty: null, // Key assertion: no stock assignment for services
+            approvedQty:
+                null, // Key assertion: no stock assignment for services
             invoiceNumber: any(named: 'invoiceNumber'),
             updateIo: any(named: 'updateIo'),
           )).called(1);
@@ -554,7 +555,8 @@ void main() {
       verify(() => mockDbSync.updateIoFunc(
             variant: serviceVariant,
             purchase: testPurchase,
-            approvedQty: null, // Key assertion: no stock assignment for services
+            approvedQty:
+                null, // Key assertion: no stock assignment for services
           )).called(1);
 
       // Verify the itemCd was updated
