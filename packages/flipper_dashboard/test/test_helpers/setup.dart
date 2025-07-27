@@ -73,6 +73,7 @@ class TestEnvironment {
         taxServerUrl: "https://test.flipper.rw",
         businessId: 1,
         branchId: 1));
+    registerFallbackValue(Plan());
   }
 
   void injectMocks() {

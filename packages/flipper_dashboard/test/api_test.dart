@@ -1,3 +1,4 @@
+import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:test/test.dart';
@@ -6,11 +7,17 @@ import 'package:flipper_services/proxy.dart';
 
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
+import 'test_helpers/turbo_tax_test_environment.dart';
 
 // flutter test test/api_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 void main() {
+  late TestEnvironment env;
+
+  setUpAll(() async {
+    env = TestEnvironment();
+    await env.init();
+  });
   group('Purchase with Variants', () {
-    late TestEnvironment env;
     late MockDatabaseSync mockDbSync;
     late MockTaxApi mockTaxApi;
     late CoreViewModel coreViewModel;
@@ -74,11 +81,6 @@ void main() {
         variants: variants,
       );
     }
-
-    setUpAll(() async {
-      env = TestEnvironment();
-      await env.init();
-    });
 
     setUp(() {
       env.injectMocks();
@@ -742,6 +744,132 @@ void main() {
             quantityUnit: "BA", // Extracted from UG2NTBA0000123
             branchId: any(named: 'branchId'),
           )).called(1);
+    });
+  });
+
+  group('Plan Management', () {
+    setUp(() {
+      env.injectMocks();
+      env.stubCommonMethods();
+    });
+
+    tearDown(() {
+      env.restore();
+    });
+
+    Plan _createPlan({
+      required String id,
+      required bool isPaid,
+      required DateTime createdAt,
+    }) {
+      return Plan(
+        id: id,
+        businessId: '1',
+        paymentCompletedByUser: isPaid,
+        createdAt: createdAt,
+      );
+    }
+
+    test('keeps most recent paid plan when multiple plans exist', () async {
+      final paidPlanRecent = _createPlan(
+        id: 'paid_recent',
+        isPaid: true,
+        createdAt: DateTime.now(),
+      );
+      final paidPlanOld = _createPlan(
+        id: 'paid_old',
+        isPaid: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+      );
+      final unpaidPlan = _createPlan(
+        id: 'unpaid',
+        isPaid: false,
+        createdAt: DateTime.now(),
+      );
+
+      final mockRepository = MockRepository();
+      when(() => mockRepository.get<Plan>(query: any(named: 'query')))
+          .thenAnswer((_) async => [paidPlanRecent, paidPlanOld, unpaidPlan]);
+      when(() => mockRepository.delete<Plan>(any()))
+          .thenAnswer((_) async => true);
+
+      final coreSync = CoreSync();
+      // Replace the real repository with our mock
+      coreSync.repository = mockRepository;
+
+      await coreSync.cleanDuplicatePlans();
+
+      final captured = verify(() => mockRepository.delete<Plan>(captureAny()))
+          .captured
+          .cast<Plan>();
+
+      expect(captured.length, 2);
+      expect(captured.any((p) => p.id == 'paid_old'), isTrue);
+      expect(captured.any((p) => p.id == 'unpaid'), isTrue);
+    });
+
+    test('keeps most recent unpaid plan when only unpaid plans exist',
+        () async {
+      final unpaidPlanRecent = _createPlan(
+        id: 'unpaid_recent',
+        isPaid: false,
+        createdAt: DateTime.now(),
+      );
+      final unpaidPlanOld = _createPlan(
+        id: 'unpaid_old',
+        isPaid: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+      );
+
+      final mockRepository = MockRepository();
+      when(() => mockRepository.get<Plan>(query: any(named: 'query')))
+          .thenAnswer((_) async => [unpaidPlanRecent, unpaidPlanOld]);
+      when(() => mockRepository.delete<Plan>(any()))
+          .thenAnswer((_) async => true);
+
+      final coreSync = CoreSync();
+      coreSync.repository = mockRepository;
+
+      await coreSync.cleanDuplicatePlans();
+
+      final captured = verify(() => mockRepository.delete<Plan>(captureAny()))
+          .captured
+          .cast<Plan>();
+
+      expect(captured.length, 1);
+      expect(captured.first.id, 'unpaid_old');
+    });
+
+    test('does nothing when only one plan exists', () async {
+      final singlePlan = _createPlan(
+        id: 'single',
+        isPaid: true,
+        createdAt: DateTime.now(),
+      );
+      final mockRepository = MockRepository();
+
+      when(() => mockRepository.get<Plan>(query: any(named: 'query')))
+          .thenAnswer((_) async => [singlePlan]);
+
+      final coreSync = CoreSync();
+      coreSync.repository = mockRepository;
+
+      await coreSync.cleanDuplicatePlans();
+
+      verifyNever(() => mockRepository.delete<Plan>(any()));
+    });
+
+    test('does nothing when no plans exist', () async {
+      final mockRepository = MockRepository();
+      when(() => mockRepository.get<Plan>(query: any(named: 'query')))
+          .thenAnswer((_) async => []);
+
+      final coreSync = CoreSync();
+      coreSync.repository = mockRepository;
+
+      await coreSync.cleanDuplicatePlans();
+
+      verifyNever(() => mockRepository.delete<Plan>(any()));
     });
   });
 }

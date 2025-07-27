@@ -91,7 +91,7 @@ class CoreSync extends AiStrategyImpl
 
   bool offlineLogin = false;
 
-  final Repository repository = Repository();
+  Repository repository = Repository();
 
   CoreSync();
   bool isInIsolate() {
@@ -3496,27 +3496,47 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> cleanDuplicatePlans() async {
-    final businessId = (await ProxyService.strategy.activeBusiness())!.id;
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) return;
 
-    // Get all plans for the current business
     List<Plan> plans = await repository.get<Plan>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(where: [Where('businessId').isExactly(businessId)]),
+      query:
+          brick.Query(where: [brick.Where('businessId').isExactly(businessId)]),
     );
 
-    // If there's only one or zero plans, nothing to clean
     if (plans.length < 2) return;
 
-    // Find a completed plan, or default to the first plan if none completed
-    final planToKeep = plans.firstWhere(
-      (plan) => plan.paymentCompletedByUser ?? false,
-      orElse: () => plans.first,
-    );
+    // Separate paid and unpaid plans
+    final paidPlans =
+        plans.where((p) => p.paymentCompletedByUser ?? false).toList();
+    final unpaidPlans =
+        plans.where((p) => !(p.paymentCompletedByUser ?? false)).toList();
 
-    // Delete all other plans
-    for (final plan in plans) {
-      if (plan.id != planToKeep.id) {
-        await repository.delete<Plan>(plan);
+    Plan? planToKeep;
+
+    if (paidPlans.isNotEmpty) {
+      // If there are paid plans, keep the most recent one
+      paidPlans.sort((a, b) =>
+          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      planToKeep = paidPlans.first;
+
+      // Delete all other paid plans and all unpaid plans
+      for (final plan in plans) {
+        if (plan.id != planToKeep.id) {
+          await repository.delete<Plan>(plan);
+        }
+      }
+    } else if (unpaidPlans.isNotEmpty) {
+      // If there are only unpaid plans, keep the most recent one
+      unpaidPlans.sort((a, b) =>
+          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      planToKeep = unpaidPlans.first;
+
+      // Delete all other unpaid plans
+      for (final plan in unpaidPlans) {
+        if (plan.id != planToKeep.id) {
+          await repository.delete<Plan>(plan);
+        }
       }
     }
   }
