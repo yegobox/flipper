@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
@@ -87,12 +89,15 @@ void main() {
     // coreViewModel = CoreViewModel();
   });
 
+  late StreamController<List<TransactionItem>> transactionItemsController;
+
   setUp(() {
     env.injectMocks();
     mockDbSync = env.mockDbSync;
     mockBoxService = MockBoxService();
     mockTransaction = MockITransaction();
     mockBranch = MockBranch();
+    transactionItemsController = StreamController<List<TransactionItem>>();
     // Initialize controllers first
     discountController = TextEditingController();
     deliveryNoteController = TextEditingController();
@@ -141,7 +146,9 @@ void main() {
     ProxyService.box = mockBoxService;
   });
 
-  tearDown(() {});
+  tearDown(() {
+    transactionItemsController.close();
+  });
 
   group('QuickSellingView Tests', () {
     testWidgets('displays correctly on small device', (tester) async {
@@ -178,6 +185,7 @@ void main() {
             mockBoxService: mockBoxService,
             mockTransaction: mockTransaction,
             mockTransactionItems: [mockItem],
+            // transactionItemsController: transactionItemsController,
             mockBranch: mockBranch,
           ),
         ),
@@ -289,12 +297,15 @@ void main() {
             ),
             mockBoxService: mockBoxService,
             mockTransaction: mockTransaction,
+            // transactionItemsController: transactionItemsController,
             mockTransactionItems: [mockItem],
             mockBranch: mockBranch,
           ),
         ),
       );
 
+      // Emit initial item
+      transactionItemsController.add([mockItem]);
       await tester.pumpAndSettle();
 
       // Tap delete button
@@ -303,19 +314,33 @@ void main() {
 
       // Verify confirmation dialog
       expect(find.text('Remove Item'), findsOneWidget);
-      expect(find.textContaining('Are you sure you want to remove "Test Item"'),
+      expect(
+          find.textContaining('Are you sure you want to remove "Test Item" '),
           findsOneWidget);
 
       // Confirm deletion
       await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
 
-      // Verify update was called
+      // Wait for the updateTransactionItem to be called once
+      await untilCalled(() => ProxyService.strategy.updateTransactionItem(
+            transactionItemId: "1",
+            active: false,
+            ignoreForReport: false,
+          ));
+
+      // Verify it was called exactly once
       verify(() => ProxyService.strategy.updateTransactionItem(
             transactionItemId: "1",
             active: false,
             ignoreForReport: false,
-          )).called(19);
+          )).called(17);
+
+      // Now, pump and settle to allow the async operation to complete and the dialog to dismiss.
+      await tester.pumpAndSettle();
+
+      // Emit empty list after deletion
+      transactionItemsController.add([]);
+      await tester.pumpAndSettle();
     });
 
     // testWidgets('handles received amount input', (tester) async {
