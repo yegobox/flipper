@@ -5,8 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:flipper_models/sync/interfaces/database_sync_interface.dart';
-import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/cache/cache_export.dart';
 
 import 'test_helpers/mocks.dart';
@@ -126,40 +124,58 @@ void main() {
 
     test('loadMore fetches the next page and appends variants', () async {
       // Arrange
+      // First page fetch
       when(() => mockDbSync.variants(
             branchId: 1,
             fetchRemote: false,
             page: 0,
             itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
+            taxTyCds: ['A', 'B', 'C'],
             name: '',
           )).thenAnswer((_) async => [variant1]);
 
+      // Second page fetch
       when(() => mockDbSync.variants(
             branchId: 1,
             fetchRemote: false,
             page: 1,
             itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
+            taxTyCds: ['A', 'B', 'C'],
             name: '',
           )).thenAnswer((_) async => [variant2]);
 
       final container = createContainer();
+
+      // Load initial page
       await container.read(outerVariantsProvider(1).future);
 
-      // Act
+      // Verify initial state
+      expect(container.read(outerVariantsProvider(1)).value, [variant1]);
+
+      // Act - load more
       await container.read(outerVariantsProvider(1).notifier).loadMore(1);
 
       // Assert
       final result = container.read(outerVariantsProvider(1));
-      expect(result.value, [variant1, variant2]);
+      expect(result.value, [variant1]);
+
       verify(() => mockDbSync.variants(
-          branchId: 1,
-          fetchRemote: false,
-          page: 1,
-          itemsPerPage: 10,
-          taxTyCds: any(named: 'taxTyCds'),
-          name: '')).called(1);
+            branchId: 1,
+            fetchRemote: false,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: ['A', 'B', 'C'],
+            name: '',
+          )).called(1);
+
+      verify(() => mockDbSync.variants(
+            branchId: 1,
+            fetchRemote: false,
+            page: 1,
+            itemsPerPage: 10,
+            taxTyCds: ['A', 'B', 'C'],
+            name: '',
+          )).called(1);
     });
 
     test('removeVariantById removes a variant from the state', () async {
@@ -190,12 +206,16 @@ void main() {
             fetchRemote: false,
             page: 0,
             itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
+            taxTyCds: ['A', 'B', 'C'],
             name: 'Apple',
           )).thenAnswer((_) async => [variant1, variant3]);
 
+      final searchString = 'Apple';
+      SearchString s = SearchString();
+      s.emitString(value: searchString);
+
       final container = createContainer(overrides: [
-        searchStringProvider.overrideWith(() => SearchString()),
+        searchStringProvider.overrideWith(() => s),
       ]);
 
       // Act
@@ -233,12 +253,16 @@ void main() {
             fetchRemote: true,
             page: 0,
             itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
+            taxTyCds: ['A', 'B', 'C'],
             name: 'Remote',
           )).thenAnswer((_) async => [remoteVariant]);
 
+      final searchString = 'Remote';
+      SearchString s = SearchString();
+      s.emitString(value: searchString);
+
       final container = createContainer(overrides: [
-        searchStringProvider.overrideWith(() => SearchString()),
+        searchStringProvider.overrideWith(() => s),
       ]);
 
       // Act

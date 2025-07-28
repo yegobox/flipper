@@ -85,11 +85,10 @@ class OuterVariants extends _$OuterVariants {
       if (searchString.isNotEmpty) {
         final lowerSearch = searchString.toLowerCase();
         variants = state.value?.where((v) {
-              final matchesSearch = v.name.toLowerCase().contains(lowerSearch);
-              final matchesTax = taxTyCds.contains(v.taxTyCd);
-              return matchesSearch && matchesTax;
-            }).toList() ??
-            [];
+          final matchesSearch = v.name.toLowerCase().contains(lowerSearch);
+          final matchesTax = taxTyCds.contains(v.taxTyCd);
+          return matchesSearch && matchesTax;
+        }).toList() ?? [];
 
         if (variants.isNotEmpty) {
           _currentPage++;
