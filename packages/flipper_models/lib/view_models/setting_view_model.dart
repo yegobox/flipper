@@ -3,7 +3,6 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flutter/material.dart';
 
 class SettingViewModel extends CoreViewModel {

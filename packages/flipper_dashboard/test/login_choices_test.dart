@@ -23,6 +23,8 @@ class FakePageRouteInfo extends Fake implements PageRouteInfo {}
 
 class MockDialogService extends Mock implements DialogService {}
 
+// flutter test test/login_choices_test.dart --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
+
 void main() {
   group('LoginChoices', () {
     late MockRouterService mockRouterService;
@@ -176,6 +178,11 @@ void main() {
             isDefault: true,
           )).thenAnswer((_) async {});
 
+      when(() => mockDbSync.getPaymentPlan(
+            businessId: business.id,
+            fetchOnline: true,
+          )).thenAnswer((_) async => null);
+
       // Mock storage writes
       when(() => mockBox.writeInt(key: 'businessId', value: business.serverId))
           .thenAnswer((_) async => 0);
@@ -252,6 +259,11 @@ void main() {
             active: true,
             isDefault: true,
           )).thenAnswer((_) async {});
+
+      when(() => mockDbSync.getPaymentPlan(
+            businessId: businessWithSingleBranch.id,
+            fetchOnline: true,
+          )).thenAnswer((_) async => null);
 
       when(() => mockDbSync.updateBranch(
             branchId: any(named: 'branchId'),
@@ -353,6 +365,11 @@ void main() {
       await tester.tap(find.text('Business with Single Branch'));
 
       await tester.pumpAndSettle();
+
+      verify(() => mockDbSync.getPaymentPlan(
+            businessId: businessWithSingleBranch.id,
+            fetchOnline: true,
+          )).called(1);
 
       verify(() =>
               mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>())))

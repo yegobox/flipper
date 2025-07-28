@@ -206,6 +206,11 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await ProxyService.box
           .writeInt(key: 'businessId', value: business.serverId);
       await _setDefaultBusiness(business);
+      // Get the latest payment plan online.
+      await ProxyService.strategy.getPaymentPlan(
+        businessId: business.id,
+        fetchOnline: true,
+      );
       final branches = await ProxyService.strategy.branches(
         businessId: business.serverId,
         active: false,

@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -78,15 +79,25 @@ class OuterVariants extends _$OuterVariants {
       final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
       List<Variant> variants = [];
 
-      /// first filter on state
-      variants = state.value?.where((v) {
-            return v.name.toLowerCase().contains(searchString.toLowerCase());
-          }).toList() ??
-          [];
+      talker.info("taxTyCds: $taxTyCds");
 
-      if (variants.isNotEmpty) {
-        return variants;
+      /// first filter on state
+      if (searchString.isNotEmpty) {
+        final lowerSearch = searchString.toLowerCase();
+        variants = state.value?.where((v) {
+              final matchesSearch = v.name.toLowerCase().contains(lowerSearch);
+              final matchesTax = taxTyCds.contains(v.taxTyCd);
+              return matchesSearch && matchesTax;
+            }).toList() ??
+            [];
+
+        if (variants.isNotEmpty) {
+          _currentPage++;
+          _hasMore = variants.length == _itemsPerPage;
+          return variants;
+        }
       }
+
       // First, try to fetch variants locally with the tax filter.
       variants = await ProxyService.strategy.variants(
         name: searchString,

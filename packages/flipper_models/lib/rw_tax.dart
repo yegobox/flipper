@@ -577,14 +577,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           );
           throw exception;
         }
-        final ebmSyncService = TurboTaxService(repository);
-        // record stock Out sarTyCd = StockInOutType.sale
-        await ebmSyncService.syncTransactionWithEbm(
-          instance: transaction,
-          serverUrl: (await ProxyService.box.getServerUrl())!,
-          sarTyCd: sarTyCd,
-          invoiceNumber: counter.invcNo!,
-        );
+        if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
+          final ebmSyncService = TurboTaxService(repository);
+          // record stock Out sarTyCd = StockInOutType.sale
+          await ebmSyncService.syncTransactionWithEbm(
+            instance: transaction,
+            serverUrl: (await ProxyService.box.getServerUrl())!,
+            sarTyCd: sarTyCd,
+            invoiceNumber: counter.invcNo!,
+          );
+        }
         return data;
       } else {
         throw Exception(

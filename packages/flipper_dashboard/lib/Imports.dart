@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class Imports extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;
@@ -595,9 +596,10 @@ class VariantDataSource extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'date',
-          value: variant.lastTouched != null
-              ? '${variant.lastTouched!.year}-${variant.lastTouched!.month.toString().padLeft(2, '0')}-${variant.lastTouched!.day.toString().padLeft(2, '0')}'
-              : 'N/A',
+          value: timeago.format(
+            variant.lastTouched!,
+            clock: DateTime.now(),
+          ),
         ),
         DataGridCell<Widget>(
           columnName: 'actions',

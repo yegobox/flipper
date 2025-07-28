@@ -1138,6 +1138,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
+    bool? fetchOnline,
   }) async {
     try {
       final repository = brick.Repository();
@@ -1149,7 +1150,7 @@ class CoreSync extends AiStrategyImpl
       ]);
       final result = await repository.get<models.Plan>(
           query: query,
-          policy: isOnline
+          policy: (fetchOnline == true && isOnline)
               ? OfflineFirstGetPolicy.alwaysHydrate
               : OfflineFirstGetPolicy.localOnly);
       return result.firstOrNull;

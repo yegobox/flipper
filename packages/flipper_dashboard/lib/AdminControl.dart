@@ -7,7 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-
+import 'package:flutter/foundation.dart';
 import 'modals/_isBranchEnableForPayment.dart';
 
 class AdminControl extends StatefulWidget {
@@ -504,14 +504,15 @@ class _AdminControlState extends State<AdminControl> {
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
           children: [
-            SwitchSettingsCard(
-              title: 'Debug Mode',
-              subtitle: 'Enable debugging features',
-              icon: Icons.bug_report,
-              value: enableDebug,
-              onChanged: enableDebugFunc,
-              color: Colors.orange,
-            ),
+            if (kDebugMode)
+              SwitchSettingsCard(
+                title: 'Debug Mode',
+                subtitle: 'Enable debugging features',
+                icon: Icons.bug_report,
+                value: enableDebug,
+                onChanged: enableDebugFunc,
+                color: Colors.orange,
+              ),
             SwitchSettingsCard(
               title: 'EBM',
               subtitle: 'Re-initialize',

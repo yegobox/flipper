@@ -569,7 +569,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<models.Plan?> getPaymentPlan(
-      {required String businessId, bool fetchRemote = false}) {
+      {required String businessId, bool? fetchOnline}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }

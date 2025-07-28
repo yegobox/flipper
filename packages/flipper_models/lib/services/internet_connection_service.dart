@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:http/http.dart' as http;
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';

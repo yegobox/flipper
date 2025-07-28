@@ -1,7 +1,4 @@
 library flipper_models;
-
-import 'dart:developer';
-
 // import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/talker.dart';
