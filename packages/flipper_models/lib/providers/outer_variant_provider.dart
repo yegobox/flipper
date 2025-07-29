@@ -138,7 +138,7 @@ class OuterVariants extends _$OuterVariants {
     } on TimeoutException {
       talker.info('Timeout: Variants loading took too long');
       rethrow; // Let the caller (build or loadMore) handle the error state
-    } catch (error, stackTrace) {
+    } catch (error) {
       talker.info('Error loading variants: $error');
       rethrow; // Let the caller handle the error state
     } finally {

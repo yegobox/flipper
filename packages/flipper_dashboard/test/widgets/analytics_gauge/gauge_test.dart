@@ -92,7 +92,7 @@ void main() {
       expect(profitText.style?.color, Colors.green);
 
       // Verify the bottom value columns are visible and correct
-      expect(find.text('Total Sales'), findsOneWidget);
+      expect(find.text('Gross Profit'), findsOneWidget);
       expect(
           find.byWidgetPredicate(
             (widget) =>
