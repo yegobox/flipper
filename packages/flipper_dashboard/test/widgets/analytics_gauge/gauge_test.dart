@@ -214,13 +214,32 @@ void main() {
         profitType: 'Gross Profit',
       );
 
-      // Verify the main value is the gross profit itself, not the difference
-      expect(find.text('${NumberFormat('#,###').format(1500)} RWF'),
-          findsNWidgets(2));
-      expect(find.text('Gross Profit'), findsNWidgets(2));
+      // Verify the main value (1500 RWF) appears twice:
+      // once as the large gauge value, and once as the column value.
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data == '${NumberFormat('#,###').format(1500)} RWF' &&
+              (widget.style?.fontSize == 28.0 || widget.style?.fontSize == 16.0),
+        ),
+        findsNWidgets(2),
+      );
+
+      // Verify the main label is "Gross Profit" (this is the text below the main value)
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data == 'Gross Profit' &&
+              widget.style?.fontSize == 16.0, // The label below the main value has this font size
+        ),
+        findsOneWidget,
+      );
 
       // Verify the bottom value columns use the correct labels
-      expect(find.text('Gross Profit'), findsNWidgets(2));
+      expect(find.text('Total Sales'), findsOneWidget);
+      expect(find.text('Expenses'), findsOneWidget);
     });
   });
 }
