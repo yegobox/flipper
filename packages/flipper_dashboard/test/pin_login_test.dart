@@ -124,7 +124,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
 
       expect(find.text('PIN is required'), findsOneWidget);
@@ -141,7 +141,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '123');
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
 
       expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
@@ -182,7 +182,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '1234');
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
 
       verify(() => mockBox.writeBool(key: 'pinLogin', value: true)).called(1);
@@ -223,7 +223,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), 'wrongpin');
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
 
       expect(find.text('Invalid PIN. Please try again.'), findsOneWidget);
@@ -240,7 +240,7 @@ void main() {
       );
 
       await tester.enterText(find.byType(TextFormField), '123');
-      await tester.tap(find.text('Sign In'));
+      await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
 
       expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
