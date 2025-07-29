@@ -51,6 +51,20 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     super.dispose();
   }
 
+  String _formatNumber(double number) {
+    if (number.abs() >= 1000000000000) {
+      return '${(number / 1000000000000).toStringAsFixed(1)}T';
+    } else if (number.abs() >= 1000000000) {
+      return '${(number / 1000000000).toStringAsFixed(1)}B';
+    } else if (number.abs() >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number.abs() >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    } else {
+      return NumberFormat('#,###').format(number);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -77,9 +91,8 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     final (resultText, profitOrLoss, color) = _calculateResults();
 
     // Determine font size based on length
-    String profitOrLossStr = profitOrLoss
-        .abs()
-        .toStringAsFixed(0); // Remove decimals for length check
+    String profitOrLossStr =
+        _formatNumber(profitOrLoss); // Use formatted string for length check
     int numberLength = profitOrLossStr.length;
     double fontSize = 28; // Default font size
 
@@ -124,7 +137,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          NumberFormat('#,###').format(profitOrLoss) + ' RWF',
+                          _formatNumber(profitOrLoss) + ' RWF',
                           style: GoogleFonts.poppins(
                             fontSize: fontSize,
                             color: color,
@@ -183,7 +196,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     return Column(
       children: [
         Text(
-          NumberFormat('#,###').format(amount) + " RWF",
+          _formatNumber(amount) + " RWF",
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: Colors.black87,

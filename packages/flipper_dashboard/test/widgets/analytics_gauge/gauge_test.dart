@@ -46,7 +46,6 @@ void main() {
       );
 
       // Verify the main profit value and label within the CustomPaint area
-      final profitValue = 1000 - 500;
       final gaugeFinder = find.byType(CustomPaint);
 
       // Find the main profit value text (larger font size)
@@ -56,7 +55,8 @@ void main() {
           matching: find.byWidgetPredicate(
             (widget) =>
                 widget is Text &&
-                widget.data == '${NumberFormat('#,###').format(profitValue)} RWF' &&
+                widget.data ==
+                    '500 RWF' && // Corrected: No .0 for numbers < 1000
                 widget.style?.fontSize == 28.0, // Main value font size
           ),
         ),
@@ -84,7 +84,8 @@ void main() {
           matching: find.byWidgetPredicate(
             (widget) =>
                 widget is Text &&
-                widget.data == '${NumberFormat('#,###').format(profitValue)} RWF' &&
+                widget.data ==
+                    '500 RWF' && // Corrected: No .0 for numbers < 1000
                 widget.style?.fontSize == 28.0,
           ),
         ),
@@ -97,7 +98,7 @@ void main() {
           find.byWidgetPredicate(
             (widget) =>
                 widget is Text &&
-                widget.data == '${NumberFormat('#,###').format(1000)} RWF' &&
+                widget.data == '1.0K RWF' && // Expect summarized format
                 widget.style?.fontSize == 16.0, // Column value font size
           ),
           findsOneWidget);
@@ -106,7 +107,8 @@ void main() {
           find.byWidgetPredicate(
             (widget) =>
                 widget is Text &&
-                widget.data == '${NumberFormat('#,###').format(500)} RWF' &&
+                widget.data ==
+                    '500 RWF' && // Corrected: No .0 for numbers < 1000
                 widget.style?.fontSize == 16.0, // Column value font size
           ),
           findsOneWidget);
@@ -122,14 +124,13 @@ void main() {
       );
 
       // Verify the main loss value and label
-      final lossValue = 1200 - 500;
-      expect(find.text('${NumberFormat('#,###').format(lossValue)} RWF'),
-          findsOneWidget);
+      expect(find.text('700 RWF'),
+          findsOneWidget); // Corrected: No .0 for numbers < 1000
       expect(find.text('Loss'), findsOneWidget);
 
       // Verify the color of the loss text is red
       final lossText = tester.widget<Text>(
-          find.text('${NumberFormat('#,###').format(lossValue)} RWF'));
+          find.text('700 RWF')); // Corrected: No .0 for numbers < 1000
       expect(lossText.style?.color, Colors.red);
     });
 
@@ -196,7 +197,8 @@ void main() {
       );
 
       // Verify the main profit value is still there
-      expect(find.text('500 RWF'), findsOneWidget);
+      expect(find.text('500 RWF'),
+          findsOneWidget); // Corrected: No .0 for numbers < 1000
 
       // Verify the bottom value columns are NOT visible
       expect(find.text('Total Sales'), findsNothing);
@@ -220,8 +222,9 @@ void main() {
         find.byWidgetPredicate(
           (widget) =>
               widget is Text &&
-              widget.data == '${NumberFormat('#,###').format(1500)} RWF' &&
-              (widget.style?.fontSize == 28.0 || widget.style?.fontSize == 16.0),
+              widget.data == '1.5K RWF' && // Expect summarized format
+              (widget.style?.fontSize == 28.0 ||
+                  widget.style?.fontSize == 16.0),
         ),
         findsNWidgets(2),
       );
@@ -232,7 +235,8 @@ void main() {
           (widget) =>
               widget is Text &&
               widget.data == 'Gross Profit' &&
-              widget.style?.fontSize == 16.0, // The label below the main value has this font size
+              widget.style?.fontSize ==
+                  16.0, // The label below the main value has this font size
         ),
         findsOneWidget,
       );
@@ -240,6 +244,38 @@ void main() {
       // Verify the bottom value columns use the correct labels
       expect(find.text('Total Sales'), findsOneWidget);
       expect(find.text('Expenses'), findsOneWidget);
+    });
+
+    testWidgets('formats large numbers correctly', (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 1234567890123,
+        dataOnRedSide: 1000000000000,
+        profitType: 'Net Profit',
+      );
+
+      // Expect the main value to be formatted as Trillions
+      expect(find.text('234.6B RWF'), findsOneWidget);
+
+      // Expect the column values to be formatted as Trillions
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data == '1.2T RWF' &&
+              widget.style?.fontSize == 16.0,
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data == '1.0T RWF' &&
+              widget.style?.fontSize == 16.0,
+        ),
+        findsOneWidget,
+      );
     });
   });
 }
