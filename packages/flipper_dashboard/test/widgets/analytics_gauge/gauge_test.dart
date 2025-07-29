@@ -1,0 +1,207 @@
+import 'package:flipper_dashboard/widgets/analytics_gauge/gauge.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+
+import '../../TestApp.dart';
+// flutter test test/widgets/analytics_gauge/gauge_test.dart --dart-define=FLUTTER_TEST_ENV=true
+
+void main() {
+  group('SemiCircleGauge', () {
+    // Helper function to pump the widget with a consistent app wrapper
+    Future<void> pumpGauge(
+      WidgetTester tester, {
+      required double dataOnGreenSide,
+      required double dataOnRedSide,
+      required String profitType,
+      bool areValueColumnsVisible = true,
+    }) async {
+      await tester.pumpWidget(
+        TestApp(
+          child: Scaffold(
+            body: SingleChildScrollView(
+              child: Center(
+                child: SemiCircleGauge(
+                  dataOnGreenSide: dataOnGreenSide,
+                  dataOnRedSide: dataOnRedSide,
+                  profitType: profitType,
+                  areValueColumnsVisible: areValueColumnsVisible,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      // Wait for the animation to complete
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('displays profit correctly when green side is larger',
+        (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 1000,
+        dataOnRedSide: 500,
+        profitType: 'Net Profit',
+      );
+
+      // Verify the main profit value and label within the CustomPaint area
+      final profitValue = 1000 - 500;
+      final gaugeFinder = find.byType(CustomPaint);
+
+      // Find the main profit value text (larger font size)
+      expect(
+        find.descendant(
+          of: gaugeFinder,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                widget.data == '${NumberFormat('#,###').format(profitValue)} RWF' &&
+                widget.style?.fontSize == 28.0, // Main value font size
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // Find the profit type text (smaller font size)
+      expect(
+        find.descendant(
+          of: gaugeFinder,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                widget.data == 'Net Profit' &&
+                widget.style?.fontSize == 16.0, // Profit type font size
+          ),
+        ),
+        findsOneWidget,
+      );
+
+      // Verify the color of the main profit text is green
+      final profitText = tester.widget<Text>(
+        find.descendant(
+          of: gaugeFinder,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                widget.data == '${NumberFormat('#,###').format(profitValue)} RWF' &&
+                widget.style?.fontSize == 28.0,
+          ),
+        ),
+      );
+      expect(profitText.style?.color, Colors.green);
+
+      // Verify the bottom value columns are visible and correct
+      expect(find.text('Total Sales'), findsOneWidget);
+      expect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                widget.data == '${NumberFormat('#,###').format(1000)} RWF' &&
+                widget.style?.fontSize == 16.0, // Column value font size
+          ),
+          findsOneWidget);
+      expect(find.text('Expenses'), findsOneWidget);
+      expect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is Text &&
+                widget.data == '${NumberFormat('#,###').format(500)} RWF' &&
+                widget.style?.fontSize == 16.0, // Column value font size
+          ),
+          findsOneWidget);
+    });
+
+    testWidgets('displays loss correctly when red side is larger',
+        (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 500,
+        dataOnRedSide: 1200,
+        profitType: 'Net Profit',
+      );
+
+      // Verify the main loss value and label
+      final lossValue = 1200 - 500;
+      expect(find.text('${NumberFormat('#,###').format(lossValue)} RWF'),
+          findsOneWidget);
+      expect(find.text('Loss'), findsOneWidget);
+
+      // Verify the color of the loss text is red
+      final lossText = tester.widget<Text>(
+          find.text('${NumberFormat('#,###').format(lossValue)} RWF'));
+      expect(lossText.style?.color, Colors.red);
+    });
+
+    testWidgets('displays balanced state correctly when sides are equal',
+        (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 750,
+        dataOnRedSide: 750,
+        profitType: 'Net Profit',
+      );
+
+      // Verify the main value and label
+      expect(find.text('0 RWF'), findsOneWidget);
+      expect(find.text('Balanced'), findsOneWidget);
+
+      // Verify the color of the text is grey
+      final balancedText = tester.widget<Text>(find.text('0 RWF'));
+      expect(balancedText.style?.color, Colors.grey);
+    });
+
+    testWidgets('displays no transactions state correctly when data is zero',
+        (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 0,
+        dataOnRedSide: 0,
+        profitType: 'Net Profit',
+      );
+
+      // Verify the main value and label
+      expect(find.text('0 RWF'), findsOneWidget);
+      expect(find.text('No transactions'), findsOneWidget);
+    });
+
+    testWidgets(
+        'does not display value columns when areValueColumnsVisible is false',
+        (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 1000,
+        dataOnRedSide: 500,
+        profitType: 'Net Profit',
+        areValueColumnsVisible: false,
+      );
+
+      // Verify the main profit value is still there
+      expect(find.text('500 RWF'), findsOneWidget);
+
+      // Verify the bottom value columns are NOT visible
+      expect(find.text('Total Sales'), findsNothing);
+      expect(find.text('Expenses'), findsNothing);
+      expect(find.byType(Divider), findsNothing);
+    });
+
+    testWidgets(
+        'displays gross profit correctly when profitType is "Gross Profit"',
+        (WidgetTester tester) async {
+      await pumpGauge(
+        tester,
+        dataOnGreenSide: 1500,
+        dataOnRedSide: 500,
+        profitType: 'Gross Profit',
+      );
+
+      // Verify the main value is the gross profit itself, not the difference
+      expect(find.text('${NumberFormat('#,###').format(1500)} RWF'),
+          findsNWidgets(2));
+      expect(find.text('Gross Profit'), findsNWidgets(2));
+
+      // Verify the bottom value columns use the correct labels
+      expect(find.text('Gross Profit'), findsNWidgets(2));
+    });
+  });
+}
