@@ -23,7 +23,7 @@ mixin DatabasePath {
       dbPath = await getDatabasesPath();
     } else {
       // iOS, macOS, Windows, Linux
-      final supportDir = await getApplicationDocumentsDirectory();
+      final supportDir = await getApplicationSupportDirectory();
       if (Platform.isMacOS || Platform.isIOS) {
         dbPath = supportDir.path;
       } else {
@@ -43,3 +43,4 @@ mixin DatabasePath {
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 }
+

@@ -70,7 +70,7 @@ mixin VariantMixin implements VariantInterface {
         if (scanMode) {
           conditions.add(Where('bcd').isExactly(name));
         } else {
-          conditions.add(Where('name').isExactly(name));
+          conditions.add(Where('name').contains(name));
         }
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
