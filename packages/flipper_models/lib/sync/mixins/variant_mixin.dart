@@ -51,7 +51,9 @@ mixin VariantMixin implements VariantInterface {
       ];
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
-      if (taxTyCds != null && taxTyCds.isNotEmpty) {
+      if (taxTyCds != null &&
+          taxTyCds.isNotEmpty &&
+          (name != null && name.isNotEmpty)) {
         conditions.add(Where('taxTyCd').isIn(taxTyCds));
       }
 

@@ -152,7 +152,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadInitialProducts() {
-    ref.read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
+    ref.read(
+        outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
   }
 
   @override

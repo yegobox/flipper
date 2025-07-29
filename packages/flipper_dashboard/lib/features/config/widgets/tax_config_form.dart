@@ -110,7 +110,9 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                       // Invalidate the outerVariantsProvider to refresh the variants list
                       final branchId = ProxyService.box.getBranchId();
                       if (branchId != null) {
-                        ref.refresh(outerVariantsProvider(branchId));
+                        ref
+                            .read(outerVariantsProvider(branchId).notifier)
+                            .resetForVatChange();
                       }
                     },
                   ),

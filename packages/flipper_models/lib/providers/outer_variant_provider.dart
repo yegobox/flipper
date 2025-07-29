@@ -79,29 +79,34 @@ class OuterVariants extends _$OuterVariants {
     // Cancel any previous debounce timer.
     _debounce?.cancel();
 
-    // If search string is empty, return all loaded variants.
-    if (searchString.isEmpty) {
-      return _allLoadedVariants;
-    }
-
-    // Immediately filter the current list for a responsive UI.
+    // Always filter by taxTyCds and search string
     final filteredList = _filterInMemory(searchString);
 
-    // Trigger a debounced background search for more results.
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      if (!_isDisposed) {
-        _backgroundSearch(branchId, searchString);
-      }
-    });
+    // Trigger a debounced background search for more results if there's a search string
+    if (searchString.isNotEmpty) {
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        if (!_isDisposed) {
+          _backgroundSearch(branchId, searchString);
+        }
+      });
+    }
 
     return filteredList;
   }
 
-  /// Filters the currently loaded variants based on the search string.
+  /// Filters the currently loaded variants based on the search string and taxTyCds.
   List<Variant> _filterInMemory(String searchString) {
-    if (searchString.isEmpty) return _allLoadedVariants;
+    final taxTyCds = ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'];
+
+    // First filter by allowed tax codes
+    var filteredVariants =
+        _allLoadedVariants.where((v) => taxTyCds.contains(v.taxTyCd)).toList();
+
+    // Then filter by search string if provided
+    if (searchString.isEmpty) return filteredVariants;
+
     final lowerCaseSearchString = searchString.toLowerCase();
-    return _allLoadedVariants
+    return filteredVariants
         .where((v) =>
             (v.productName?.toLowerCase().contains(lowerCaseSearchString) ??
                 false) ||
@@ -129,9 +134,9 @@ class OuterVariants extends _$OuterVariants {
 
       if (uniqueNewVariants.isNotEmpty) {
         _allLoadedVariants.addAll(uniqueNewVariants);
-        // Update the state with the new combined list, which will be re-filtered.
+        // Force rebuild of the provider to get the updated filtered results
         if (!_isDisposed) {
-          state = AsyncValue.data(_allLoadedVariants);
+          ref.invalidateSelf();
         }
       }
     } catch (e) {
@@ -210,7 +215,10 @@ class OuterVariants extends _$OuterVariants {
       if (newVariants.isNotEmpty) {
         _allLoadedVariants.addAll(newVariants);
         if (!_isDisposed) {
-          state = AsyncValue.data(_allLoadedVariants);
+          // Use _filterInMemory to ensure proper taxTyCd filtering when updating state
+          final currentSearchString = ref.read(searchStringProvider);
+          final filteredVariants = _filterInMemory(currentSearchString);
+          state = AsyncValue.data(filteredVariants);
         }
       }
     } catch (e) {
@@ -220,11 +228,23 @@ class OuterVariants extends _$OuterVariants {
     }
   }
 
+  /// Method to be called when VAT settings change to force a full refresh.
+  void resetForVatChange() {
+    _allLoadedVariants.clear();
+    _currentPage = 0;
+    _hasMore = true;
+    _isLoading = false;
+    ref.invalidateSelf();
+  }
+
   /// Removes a variant from the state.
   void removeVariantById(String variantId) {
     _allLoadedVariants.removeWhere((v) => v.id == variantId);
     if (!_isDisposed) {
-      state = AsyncValue.data(List.from(_allLoadedVariants));
+      // Use _filterInMemory to ensure proper taxTyCd filtering when updating state
+      final currentSearchString = ref.read(searchStringProvider);
+      final filteredVariants = _filterInMemory(currentSearchString);
+      state = AsyncValue.data(filteredVariants);
     }
   }
 
