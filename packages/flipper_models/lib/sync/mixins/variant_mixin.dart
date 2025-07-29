@@ -52,16 +52,16 @@ mixin VariantMixin implements VariantInterface {
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
-        // conditions.add(Where('taxTyCd').isIn(taxTyCds));
+        conditions.add(Where('taxTyCd').isIn(taxTyCds));
       }
 
       if (forImportScreen) {
-        conditions.add(WherePhrase([
+        conditions.addAll([
           Where('imptItemSttsCd').isExactly("2"),
           Or('imptItemSttsCd').isExactly("3"),
           Or('imptItemSttsCd').isExactly("4"),
           Or('dclDe').isNot(null),
-        ]));
+        ]);
       } else if (forPurchaseScreen) {
         conditions.add(Where('pchsSttsCd').isIn(["01", "02", "04", "03"]));
       } else if (variantId != null) {
@@ -70,15 +70,8 @@ mixin VariantMixin implements VariantInterface {
         if (scanMode) {
           conditions.add(Where('bcd').isExactly(name));
         } else {
-          conditions.add(
-            WherePhrase([
-              Where('name').contains(name.toLowerCase()),
-              Or('bcd').isExactly(name.toLowerCase()),
-            ]),
-          );
+          conditions.add(Where('name').isExactly(name));
         }
-      } else if (bcd != null) {
-        conditions.add(Where('bcd').isExactly(bcd));
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
       } else if (purchaseId != null) {
