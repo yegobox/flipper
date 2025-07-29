@@ -1,3 +1,4 @@
+import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart'; // Make sure this is correctly imported
@@ -5,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:supabase_models/cache/cache_export.dart';
 
 import 'test_helpers/mocks.dart';
@@ -396,6 +398,48 @@ void main() {
       // Optionally, check listener values to ensure it transitioned to error state
       expect(listener.values.last, isA<AsyncError>());
       expect((listener.values.last as AsyncError).error, equals(exception));
+    });
+  });
+
+  group('OuterVariants Provider - VAT Disabled (Tax Type D)', () {
+    late MockBox isolatedMockBox;
+    late MockDatabaseSync isolatedMockDbSync;
+    late MockCacheManager isolatedMockCacheManager;
+
+    setUp(() {
+      // Create fresh mocks for this group
+      isolatedMockBox = MockBox();
+      isolatedMockDbSync = MockDatabaseSync();
+      isolatedMockCacheManager = MockCacheManager();
+
+      // Clear and re-register with fresh mocks
+      GetIt.I.reset();
+      GetIt.I.registerSingleton<LocalStorage>(isolatedMockBox);
+      GetIt.I.registerSingleton<DatabaseSyncInterface>(isolatedMockDbSync);
+      GetIt.I.registerSingleton<CacheManager>(isolatedMockCacheManager);
+
+      // Set up default behaviors for VAT disabled scenario
+      when(() => isolatedMockBox.vatEnabled())
+          .thenReturn(false); // VAT disabled
+      when(() => isolatedMockBox.itemPerPage()).thenReturn(10);
+      when(() => isolatedMockCacheManager.initialize())
+          .thenAnswer((_) async => true);
+      when(() => isolatedMockCacheManager.saveStocksForVariants(any()))
+          .thenAnswer((_) async {});
+
+      // Default behavior for variant fetching with tax type D
+      when(() => isolatedMockDbSync.variants(
+            branchId: any(named: 'branchId'),
+            name: any(named: 'name'),
+            fetchRemote: any(named: 'fetchRemote'),
+            page: any(named: 'page'),
+            itemsPerPage: any(named: 'itemsPerPage'),
+            taxTyCds: ['D'], // Only tax type D
+          )).thenAnswer((_) async => []);
+    });
+
+    tearDown(() {
+      GetIt.I.reset();
     });
   });
 }
