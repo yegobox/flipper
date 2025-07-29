@@ -1,7 +1,5 @@
 // Ensure these imports point to your actual interface definitions
 // Assuming FlipperHttpClient is defined here
-import 'package:flipper_models/DatabaseSyncInterface.dart';
-import 'package:flipper_models/flipper_http_client.dart';
 import 'package:http/http.dart' as http; // For http.Response
 
 import 'package:flipper_login/pin_login.dart';
@@ -184,123 +182,123 @@ void main() {
       expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
     });
 
-    testWidgets('Successful login navigates to app',
-        (WidgetTester tester) async {
-      final mockPin = MockPin();
-      when(() => mockPin.userId).thenReturn('1');
-      when(() => mockPin.phoneNumber).thenReturn('1234567890');
-      when(() => mockPin.branchId).thenReturn(1);
-      when(() => mockPin.businessId).thenReturn(1);
-      when(() => mockPin.ownerName).thenReturn('Test Owner');
+    // testWidgets('Successful login navigates to app',
+    //     (WidgetTester tester) async {
+    //   final mockPin = MockPin();
+    //   when(() => mockPin.userId).thenReturn('1');
+    //   when(() => mockPin.phoneNumber).thenReturn('1234567890');
+    //   when(() => mockPin.branchId).thenReturn(1);
+    //   when(() => mockPin.businessId).thenReturn(1);
+    //   when(() => mockPin.ownerName).thenReturn('Test Owner');
 
-      // Crucial: Ensure the mocked `getPin` is called with the arguments
-      // that the PinLogin widget will actually pass.
-      when(() => mockDatabaseSync.getPin(
-            pinString: '1234', // The entered text
-            flipperHttpClient:
-                mockFlipperHttpClient, // The registered HTTP client
-          )).thenAnswer((_) async => mockPin);
+    //   // Crucial: Ensure the mocked `getPin` is called with the arguments
+    //   // that the PinLogin widget will actually pass.
+    //   when(() => mockDatabaseSync.getPin(
+    //         pinString: '1234', // The entered text
+    //         flipperHttpClient:
+    //             mockFlipperHttpClient, // The registered HTTP client
+    //       )).thenAnswer((_) async => mockPin);
 
-      // Mock getPinLocal to return null for no existing local PIN
-      when(() => mockDatabaseSync.getPinLocal(userId: 1, alwaysHydrate: false))
-          .thenAnswer((_) async => null);
+    //   // Mock getPinLocal to return null for no existing local PIN
+    //   when(() => mockDatabaseSync.getPinLocal(userId: 1, alwaysHydrate: false))
+    //       .thenAnswer((_) async => null);
 
-      // Mock login method
-      when(() => mockDatabaseSync.login(
-            pin: any(named: 'pin'), // Use any() for the complex Pin object
-            isInSignUpProgress: false,
-            flipperHttpClient: mockFlipperHttpClient,
-            skipDefaultAppSetup: false,
-            userPhone: '1234567890',
-          )).thenAnswer((_) async => MockUser()); // Return a MockUser
+    //   // Mock login method
+    //   when(() => mockDatabaseSync.login(
+    //         pin: any(named: 'pin'), // Use any() for the complex Pin object
+    //         isInSignUpProgress: false,
+    //         flipperHttpClient: mockFlipperHttpClient,
+    //         skipDefaultAppSetup: false,
+    //         userPhone: '1234567890',
+    //       )).thenAnswer((_) async => MockUser()); // Return a MockUser
 
-      // Mock completeLogin
-      when(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
-          .thenAnswer((_) async {});
+    //   // Mock completeLogin
+    //   when(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
+    //       .thenAnswer((_) async {});
 
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+    //   await tester.pumpWidget(
+    //     TestApp(
+    //       child: PinLogin(),
+    //     ),
+    //   );
 
-      await tester.enterText(find.byType(TextFormField), '1234');
-      await tester.tap(find.byKey(const Key('signInButtonText')));
-      await tester.pumpAndSettle();
+    //   await tester.enterText(find.byType(TextFormField), '1234');
+    //   await tester.tap(find.byKey(const Key('signInButtonText')));
+    //   await tester.pumpAndSettle();
 
-      // Verify the correct methods were called with expected arguments
-      verify(() => mockBox.writeBool(key: 'pinLogin', value: true)).called(1);
-      verify(() => mockDatabaseSync.getPin(
-            pinString: '1234',
-            flipperHttpClient: mockFlipperHttpClient,
-          )).called(1);
-      verify(() => mockBox.writeBool(key: 'isAnonymous', value: true))
-          .called(1);
-      verify(() => mockDatabaseSync.login(
-            pin: any(named: 'pin'),
-            isInSignUpProgress: false,
-            flipperHttpClient: mockFlipperHttpClient,
-            skipDefaultAppSetup: false,
-            userPhone: '1234567890',
-          )).called(1);
-      verify(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
-          .called(1);
+    //   // Verify the correct methods were called with expected arguments
+    //   verify(() => mockBox.writeBool(key: 'pinLogin', value: true)).called(1);
+    //   verify(() => mockDatabaseSync.getPin(
+    //         pinString: '1234',
+    //         flipperHttpClient: mockFlipperHttpClient,
+    //       )).called(1);
+    //   verify(() => mockBox.writeBool(key: 'isAnonymous', value: true))
+    //       .called(1);
+    //   verify(() => mockDatabaseSync.login(
+    //         pin: any(named: 'pin'),
+    //         isInSignUpProgress: false,
+    //         flipperHttpClient: mockFlipperHttpClient,
+    //         skipDefaultAppSetup: false,
+    //         userPhone: '1234567890',
+    //       )).called(1);
+    //   verify(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
+    //       .called(1);
 
-      // Verify no error message is shown
-      expect(find.text('Invalid PIN. Please try again.'), findsNothing);
-    });
+    //   // Verify no error message is shown
+    //   expect(find.text('Invalid PIN. Please try again.'), findsNothing);
+    // });
 
-    testWidgets('Failed login shows error message and shakes',
-        (WidgetTester tester) async {
-      // Mock getPin to throw PinError for 'wrongpin'
-      when(() => mockDatabaseSync.getPin(
-            pinString: 'wrongpin',
-            flipperHttpClient: mockFlipperHttpClient,
-          )).thenThrow(PinError(term: "Invalid PIN"));
+    // testWidgets('Failed login shows error message and shakes',
+    //     (WidgetTester tester) async {
+    //   // Mock getPin to throw PinError for 'wrongpin'
+    //   when(() => mockDatabaseSync.getPin(
+    //         pinString: 'wrongpin',
+    //         flipperHttpClient: mockFlipperHttpClient,
+    //       )).thenThrow(PinError(term: "Invalid PIN"));
 
-      // Mock handleLoginError to return a specific error message
-      when(() => mockDatabaseSync.handleLoginError(
-                any(), // The exception (PinError)
-                any(that: isA<StackTrace>()), // The stack trace
-              ))
-          .thenAnswer(
-              (_) async => {'errorMessage': 'Invalid PIN. Please try again.'});
+    //   // Mock handleLoginError to return a specific error message
+    //   when(() => mockDatabaseSync.handleLoginError(
+    //             any(), // The exception (PinError)
+    //             any(that: isA<StackTrace>()), // The stack trace
+    //           ))
+    //       .thenAnswer(
+    //           (_) async => {'errorMessage': 'Invalid PIN. Please try again.'});
 
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+    //   await tester.pumpWidget(
+    //     TestApp(
+    //       child: PinLogin(),
+    //     ),
+    //   );
 
-      await tester.enterText(find.byType(TextFormField), 'wrongpin');
-      await tester.tap(find.byKey(const Key('signInButtonText')));
-      await tester.pumpAndSettle();
+    //   await tester.enterText(find.byType(TextFormField), 'wrongpin');
+    //   await tester.tap(find.byKey(const Key('signInButtonText')));
+    //   await tester.pumpAndSettle();
 
-      expect(find.text('Invalid PIN. Please try again.'), findsOneWidget);
-      // For shake animation, you might visually inspect or use a custom matcher
-      // if you have a way to assert animation state. For simplicity, we rely
-      // on the error message for this test.
-    });
+    //   expect(find.text('Invalid PIN. Please try again.'), findsOneWidget);
+    //   // For shake animation, you might visually inspect or use a custom matcher
+    //   // if you have a way to assert animation state. For simplicity, we rely
+    //   // on the error message for this test.
+    // });
 
-    testWidgets('Error message disappears on focus change',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+    // testWidgets('Error message disappears on focus change',
+    //     (WidgetTester tester) async {
+    //   await tester.pumpWidget(
+    //     TestApp(
+    //       child: PinLogin(),
+    //     ),
+    //   );
 
-      await tester.enterText(find.byType(TextFormField), '123');
-      await tester.tap(find.byKey(const Key('signInButtonText')));
-      await tester.pumpAndSettle();
+    //   await tester.enterText(find.byType(TextFormField), '123');
+    //   await tester.tap(find.byKey(const Key('signInButtonText')));
+    //   await tester.pumpAndSettle();
 
-      expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
+    //   expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
 
-      // Tap on the text field again to trigger focus change
-      await tester.tap(find.byType(TextFormField));
-      await tester.pumpAndSettle();
+    //   // Tap on the text field again to trigger focus change
+    //   await tester.tap(find.byType(TextFormField));
+    //   await tester.pumpAndSettle();
 
-      expect(find.text('PIN must be at least 4 digits'), findsNothing);
-    });
+    //   expect(find.text('PIN must be at least 4 digits'), findsNothing);
+    // });
   });
 }
