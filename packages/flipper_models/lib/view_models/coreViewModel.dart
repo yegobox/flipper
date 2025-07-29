@@ -1090,6 +1090,7 @@ class CoreViewModel extends FlipperBaseModel
     );
 
     variant.ebmSynced = false;
+    variant.itemTyCd = productType;
 
     // Special handling for services (no stock assignment)
     if (isService) {
