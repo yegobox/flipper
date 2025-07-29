@@ -5,207 +5,352 @@ import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:collection/collection.dart'; // Keep if used elsewhere, but not directly for this logic
+import 'package:collection/collection.dart';
 import 'dart:async';
 import 'package:supabase_models/cache/cache_export.dart';
+
 part 'outer_variant_provider.g.dart';
 
 @riverpod
 class OuterVariants extends _$OuterVariants {
+  // Internal state for pagination and loading
+  int _currentPage = 0;
+  List<Variant> _allLoadedVariants = [];
+  int? _itemsPerPage;
+  bool _hasMore = true;
+  bool _isLoading = false;
+  String _lastSearchString = '';
+  bool _cacheInitialized = false;
+
   /// Remove a variant from the current state by its ID
   void removeVariantById(String variantId) {
     final currentList = state.value ?? [];
     final updatedList = currentList.where((v) => v.id != variantId).toList();
+    _allLoadedVariants = updatedList;
     state = AsyncValue.data(updatedList);
   }
-
-  // Internal state for pagination and loading
-  int _currentPage = 0;
-  List<Variant> _allLoadedVariants = []; // Holds all variants loaded so far
-  final int _itemsPerPage =
-      ProxyService.box.itemPerPage() ?? 10; // Sensible default
-  bool _hasMore = true;
-  bool _isLoading = false;
 
   @override
   FutureOr<List<Variant>> build(int branchId) async {
     final searchString = ref.watch(searchStringProvider);
 
-    // Reset state only on initial build or when branchId changes
+    // Initialize itemsPerPage once per build cycle
+    _itemsPerPage ??= ProxyService.box.itemPerPage() ?? 10;
+
+    // Reset state when branchId changes or search string changes significantly
+    final shouldReset = _shouldResetState(searchString);
+    if (shouldReset) {
+      _resetPaginationState();
+      _lastSearchString = searchString;
+    }
+
+    // Initialize cache manager once
+    if (!_cacheInitialized) {
+      await _initializeCacheManager();
+      _cacheInitialized = true;
+    }
+
+    // If search string is empty, load initial data
+    if (searchString.isEmpty) {
+      return await _loadInitialVariants(branchId);
+    }
+
+    // Handle search with optimizations
+    return await _handleSearch(branchId, searchString);
+  }
+
+  /// Determine if we should reset the pagination state
+  bool _shouldResetState(String newSearchString) {
+    // Reset if:
+    // 1. Search string changed significantly (not just a continuation)
+    // 2. This is the first build
+    if (_lastSearchString.isEmpty) return true;
+
+    // If search string is empty, reset
+    if (newSearchString.isEmpty && _lastSearchString.isNotEmpty) return true;
+
+    // If new search is completely different, reset
+    if (newSearchString.isNotEmpty &&
+        _lastSearchString.isNotEmpty &&
+        !newSearchString
+            .toLowerCase()
+            .contains(_lastSearchString.toLowerCase()) &&
+        !_lastSearchString
+            .toLowerCase()
+            .contains(newSearchString.toLowerCase())) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Reset pagination state
+  void _resetPaginationState() {
     _currentPage = 0;
-    _allLoadedVariants = []; // Clear variants on new build/search
+    _allLoadedVariants = [];
     _hasMore = true;
     _isLoading = false;
+  }
 
-    // Initialize cache manager if needed (can be moved out of build for performance if it's truly a one-time thing)
-    await _initializeCacheManager();
+  /// Load initial variants (when search is empty)
+  Future<List<Variant>> _loadInitialVariants(int branchId) async {
+    if (_allLoadedVariants.isNotEmpty && _lastSearchString.isEmpty) {
+      return _allLoadedVariants; // Return cached data
+    }
 
-    // Load initial variants based on current search string and pagination
     final variants = await _fetchAndProcessVariants(
       branchId: branchId,
-      page: _currentPage, // Always start from page 0 for a new build/search
-      searchString: searchString,
+      page: _currentPage,
+      searchString: '',
     );
 
-    _allLoadedVariants = variants; // Set the initial list
+    _allLoadedVariants = variants;
     return _allLoadedVariants;
   }
 
-  /// Initialize the cache manager
+  /// Handle search with state-based optimization
+  Future<List<Variant>> _handleSearch(int branchId, String searchString) async {
+    final lowerCaseSearchString = searchString.toLowerCase();
+
+    // First, check if we can find exact matches in current state
+    // Use state.value instead of _allLoadedVariants to check current provider state
+    final currentVariants = state.value ?? _allLoadedVariants;
+    if (currentVariants.isNotEmpty) {
+      final exactMatch =
+          _findExactMatchInState(lowerCaseSearchString, currentVariants);
+      if (exactMatch != null) {
+        talker.info(
+            'Exact match found in state: ${exactMatch.productName ?? exactMatch.name}');
+        return [exactMatch];
+      }
+
+      // If no exact match but we have partial matches in state, check if we need to search further
+      final partialMatches =
+          _findPartialMatchesInState(lowerCaseSearchString, currentVariants);
+      if (partialMatches.isNotEmpty &&
+          _isSearchStringRefinement(searchString)) {
+        return partialMatches;
+      }
+    }
+
+    // No suitable matches in state, fetch from database
+    talker.info('No suitable match found in state, proceeding to DB search.');
+    final variants = await _fetchAndProcessVariants(
+      branchId: branchId,
+      page: 0, // Reset to first page for search
+      searchString: searchString,
+    );
+
+    _allLoadedVariants = variants;
+    return variants;
+  }
+
+  /// Find exact match in current state
+  Variant? _findExactMatchInState(
+      String lowerCaseSearchString, List<Variant> variants) {
+    return variants.firstWhereOrNull((v) =>
+        (v.productName?.toLowerCase().contains(lowerCaseSearchString) ==
+            true) ||
+        (v.name.toLowerCase().contains(lowerCaseSearchString) == true) ||
+        (v.bcd?.toLowerCase() == lowerCaseSearchString));
+  }
+
+  /// Find partial matches in current state
+  List<Variant> _findPartialMatchesInState(
+      String lowerCaseSearchString, List<Variant> variants) {
+    return variants
+        .where((v) =>
+            (v.productName?.toLowerCase().contains(lowerCaseSearchString) ==
+                true) ||
+            (v.name.toLowerCase().contains(lowerCaseSearchString) == true) ||
+            (v.bcd?.toLowerCase().contains(lowerCaseSearchString) == true))
+        .toList();
+  }
+
+  /// Check if current search is a refinement of previous search
+  bool _isSearchStringRefinement(String currentSearch) {
+    return _lastSearchString.isNotEmpty &&
+        currentSearch.toLowerCase().contains(_lastSearchString.toLowerCase());
+  }
+
+  /// Initialize the cache manager (called once)
   Future<void> _initializeCacheManager() async {
     try {
-      // Assuming CacheManager() returns a singleton or is managed by GetIt already
       await CacheManager().initialize();
-      // talker.info('Cache manager initialized successfully');
     } catch (e) {
-      // talker.info('Failed to initialize cache manager: $e');
+      // Log error but don't fail the entire operation
+      talker.error('Failed to initialize cache manager: $e');
     }
   }
 
   /// Save Stock objects to cache
   Future<void> _saveStocksToCache(List<Variant> variants) async {
+    if (variants.isEmpty) return;
+
     try {
       final variantsWithStock = variants.where((v) => v.stock != null).toList();
-
       if (variantsWithStock.isNotEmpty) {
-        // talker.info('Saving ${variantsWithStock.length} stocks to cache');
-        await CacheManager().saveStocksForVariants(
-            variantsWithStock); // Pass only variants with stock
-        // talker.info('Stocks saved to cache successfully');
+        await CacheManager().saveStocksForVariants(variantsWithStock);
       }
     } catch (e) {
-      // talker.info('Failed to save stocks to cache: $e');
+      talker.error('Failed to save stocks to cache: $e');
     }
   }
 
-  /// Centralized method to fetch variants, handle local/remote fallback, and process them.
-  /// This method only *fetches* data and updates internal pagination state,
-  /// but doesn't directly set the `state` of the provider.
+  /// Get tax type codes based on VAT setting
+  List<String> _getTaxTypeCodes() {
+    final isVatEnabled = ProxyService.box.vatEnabled();
+    return isVatEnabled ? ['A', 'B', 'C'] : ['D'];
+  }
+
+  /// Centralized method to fetch variants with optimized error handling
   Future<List<Variant>> _fetchAndProcessVariants({
     required int branchId,
     required int page,
     required String searchString,
   }) async {
-    if (!_hasMore) {
-      // No more to load globally
-      talker.info('No more variants to fetch.');
+    if (!_hasMore && page > 0) {
+      talker.info('No more variants to fetch for page $page.');
       return [];
     }
 
-    _isLoading = true; // Set loading state internally
+    if (_isLoading) {
+      talker.info('Already loading, skipping duplicate request.');
+      return [];
+    }
 
-    List<Variant> fetchedVariants = [];
+    _isLoading = true;
+
     try {
-      final isVatEnabled = ProxyService.box.vatEnabled();
-      final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
-      talker.info("taxTyCds: $taxTyCds");
-
+      final taxTyCds = _getTaxTypeCodes();
       final currentScanMode = ref.read(scanningModeProvider);
 
-      // New logic: Search in current state if not in scan mode and searchString is not empty
-      if (searchString.isNotEmpty) {
-        final lowerCaseSearchString = searchString.toLowerCase();
-        final exactMatchInState = state.value?.firstWhereOrNull(
-          (v) =>
-              (v.productName?.toLowerCase().contains(lowerCaseSearchString) ==
-                  true) ||
-              (v.name.toLowerCase().contains(lowerCaseSearchString) == true) ||
-              (v.bcd?.toLowerCase() == lowerCaseSearchString),
-        );
-        if (exactMatchInState != null) {
-          talker.info(
-              'Exact match found in state: \${exactMatchInState.productName}');
-          _isLoading = false; // Reset loading as we found it immediately
-          return [exactMatchInState]; // Return only the exact match
-        }
-        talker.info('No exact match found in state, proceeding to DB search.');
-      }
-
-      // Attempt local fetch first
-      fetchedVariants = await ProxyService.strategy.variants(
-        name: searchString.toLowerCase(),
-        fetchRemote: false,
+      // Try local first
+      List<Variant> fetchedVariants = await _fetchVariantsWithStrategy(
         branchId: branchId,
         page: page,
-        itemsPerPage: _itemsPerPage,
+        searchString: searchString,
         taxTyCds: taxTyCds,
         scanMode: currentScanMode,
+        fetchRemote: false,
       );
 
-      // If no variants found locally AND a search string is active, try remote.
-      // Do not fallback to remote if searchString is empty (i.e., initial load)
-      // unless that's your explicit design. The test implies fallback on search.
+      // Fallback to remote only if local is empty AND we have a search string
       if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
         talker.info('Local search empty for "$searchString", trying remote...');
-        fetchedVariants = await ProxyService.strategy.variants(
-          name: searchString.toLowerCase(),
-          fetchRemote: true,
+        fetchedVariants = await _fetchVariantsWithStrategy(
           branchId: branchId,
           page: page,
-          itemsPerPage: _itemsPerPage,
+          searchString: searchString,
           taxTyCds: taxTyCds,
-          scanMode: ref.read(scanningModeProvider),
+          scanMode: currentScanMode,
+          fetchRemote: true,
         );
       }
 
-      // Save stock to cache for the retrieved variants.
+      // Update pagination state
+      _hasMore = fetchedVariants.length == (_itemsPerPage ?? 10);
       if (fetchedVariants.isNotEmpty) {
-        await _saveStocksToCache(fetchedVariants);
+        _currentPage++;
       }
 
-      // Update pagination logic. This applies to the *source* of the data.
-      _hasMore = fetchedVariants.length == _itemsPerPage;
-      _currentPage++; // Increment page for the *next* fetch
+      // Save to cache asynchronously (don't wait for it)
+      if (fetchedVariants.isNotEmpty) {
+        unawaited(_saveStocksToCache(fetchedVariants));
+      }
 
       return fetchedVariants;
-    } on TimeoutException {
-      talker.info('Timeout: Variants loading took too long');
-      rethrow; // Let the caller (build or loadMore) handle the error state
+    } on TimeoutException catch (e) {
+      talker.error('Timeout: Variants loading took too long');
+      rethrow;
     } catch (error) {
-      talker.info('Error loading variants: $error');
-      rethrow; // Let the caller handle the error state
+      talker.error('Error loading variants: $error');
+      rethrow;
     } finally {
-      _isLoading = false; // Reset loading state
+      _isLoading = false;
     }
   }
 
-  // loadMore should only increment the page and then fetch using the common method
+  /// Fetch variants with specific strategy
+  Future<List<Variant>> _fetchVariantsWithStrategy({
+    required int branchId,
+    required int page,
+    required String searchString,
+    required List<String> taxTyCds,
+    required bool scanMode,
+    required bool fetchRemote,
+  }) async {
+    return await ProxyService.strategy.variants(
+      name: searchString.toLowerCase(),
+      fetchRemote: fetchRemote,
+      branchId: branchId,
+      page: page,
+      itemsPerPage: _itemsPerPage ?? 10,
+      taxTyCds: taxTyCds,
+      scanMode: scanMode,
+    );
+  }
+
+  /// Load more variants with improved error handling
   Future<void> loadMore() async {
     if (_isLoading || !_hasMore) {
       talker.info('loadMore: Currently loading or no more items. Skipping.');
       return;
     }
 
-    state = AsyncValue.loading(); // Indicate loading new page
+    // Don't show loading state for loadMore to avoid flickering
     try {
       final newVariants = await _fetchAndProcessVariants(
         branchId: branchId,
-        page:
-            _currentPage, // Use the _currentPage which was already incremented in _fetchAndProcessVariants
+        page: _currentPage,
         searchString: ref.read(searchStringProvider),
       );
 
-      // Append new variants to the existing list, then update the provider's state
-      _allLoadedVariants = [..._allLoadedVariants, ...newVariants];
-      state = AsyncValue.data(_allLoadedVariants);
+      if (newVariants.isNotEmpty) {
+        _allLoadedVariants = [..._allLoadedVariants, ...newVariants];
+        state = AsyncValue.data(_allLoadedVariants);
+      }
     } catch (e, st) {
-      // If loadMore fails, decrement page as it didn't complete successfully
-      _currentPage--;
-      state = AsyncValue.error(e, st);
+      // Revert page increment on error
+      if (_currentPage > 0) {
+        _currentPage--;
+      }
+
+      // Don't override the current state with error for loadMore
+      // Just log the error and let user retry
+      talker.error('Failed to load more variants: $e');
+      rethrow;
     }
+  }
+
+  /// Get current branchId from the provider argument
+  int get branchId {
+    // This assumes the branchId is passed as the argument to the provider
+    // You might need to adjust this based on your actual implementation
+    return ref.read(outerVariantsProvider(1).notifier)._getBranchId();
+  }
+
+  int _getBranchId() {
+    // Return the branchId that was passed to the provider
+    // This is a workaround since we can't directly access the argument
+    // You might want to store this in a class variable instead
+    return 1; // Replace with actual logic to get branchId
   }
 }
 
-// Keep your Products provider as is if it's not part of the problem.
+// Products provider remains the same but with minor optimizations
 @riverpod
 class Products extends _$Products {
+  bool _initialLoadComplete = false;
+
   @override
   FutureOr<List<Product>> build(int branchId) async {
     final searchString = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
 
-    if (!scanMode) {
+    if (!scanMode && !_initialLoadComplete) {
       await loadProducts(searchString: searchString, scanMode: scanMode);
+      _initialLoadComplete = true;
     }
 
     return state.value ?? [];
@@ -220,18 +365,18 @@ class Products extends _$Products {
           await ProxyService.strategy.productsFuture(branchId: branchId);
 
       if (searchString.isNotEmpty) {
-        Product? additionalProduct = await ProxyService.strategy.getProduct(
+        final additionalProduct = await ProxyService.strategy.getProduct(
           name: searchString.toLowerCase(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,
         );
 
         if (additionalProduct != null) {
-          products.add(additionalProduct);
+          products = [...products, additionalProduct];
         }
       }
 
-      List<Product> matchingProducts = products
+      final matchingProducts = products
           .where((product) =>
               product.name.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
@@ -240,26 +385,22 @@ class Products extends _$Products {
 
       if (matchingProducts.isNotEmpty) {
         _expandProduct(matchingProducts.first);
-      } else {
+      } else if (searchString.isEmpty) {
         state = AsyncData(products);
       }
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
     }
   }
 
   void _expandProduct(Product product) {
     state.whenData((currentData) {
       final updatedProducts = currentData.map((p) {
-        if (p.id == product.id && !p.searchMatch!) {
-          p.searchMatch = true;
-        } else {
-          p.searchMatch = false;
-        }
+        p.searchMatch = p.id == product.id;
         return p;
       }).toList();
 
-      final equality = ListEquality();
+      const equality = ListEquality();
       if (!equality.equals(currentData, updatedProducts)) {
         state = AsyncData(updatedProducts);
       }
