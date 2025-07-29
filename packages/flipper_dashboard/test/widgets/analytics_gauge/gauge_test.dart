@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/widgets/analytics_gauge/gauge.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 
 import '../../TestApp.dart';
 // flutter test test/widgets/analytics_gauge/gauge_test.dart --dart-define=FLUTTER_TEST_ENV=true
