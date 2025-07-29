@@ -13,6 +13,7 @@ class TestEnvironment {
   late MockSyncStrategy mockSyncStrategy;
   late MockDatabaseSync mockDbSync;
   late MockBox mockBox;
+  late MockFlipperHttpClient mockFlipperHttpClient;
   late MockTaxApi mockTaxApi;
 
   late SyncStrategy originalStrategyLink;
@@ -25,6 +26,7 @@ class TestEnvironment {
     mockSyncStrategy = MockSyncStrategy();
     mockDbSync = MockDatabaseSync();
     mockBox = MockBox();
+    mockFlipperHttpClient = MockFlipperHttpClient();
     mockTaxApi = MockTaxApi();
 
     // Register fallback values once
