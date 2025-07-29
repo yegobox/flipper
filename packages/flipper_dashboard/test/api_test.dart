@@ -4,7 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flipper_services/proxy.dart';
-
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 import 'test_helpers/turbo_tax_test_environment.dart';
@@ -16,6 +16,8 @@ void main() {
   setUpAll(() async {
     env = TestEnvironment();
     await env.init();
+    registerFallbackValue(OfflineFirstGetPolicy.localOnly);
+    registerFallbackValue(Query(where: []));
   });
   group('Purchase with Variants', () {
     late MockDatabaseSync mockDbSync;
@@ -882,11 +884,14 @@ void main() {
       expectedPlan.businessId = businessId;
 
       final mockRepository = MockRepository();
-      when(() => mockRepository.get<Plan>(query: any(named: 'query')))
+      when(() => mockRepository.get<Plan>(
+              query: Query.where('businessId', businessId),
+              policy: any(named: 'policy')))
           .thenAnswer((_) async => [expectedPlan]);
 
       final mockBox = MockBox();
-      when(() => mockBox.getBusinessId()).thenReturn(1); // Mock a business ID for ProxyService.box
+      when(() => mockBox.getBusinessId())
+          .thenReturn(1); // Mock a business ID for ProxyService.box
 
       final coreSync = CoreSync();
       coreSync.repository = mockRepository;

@@ -1141,7 +1141,6 @@ class CoreSync extends AiStrategyImpl
     bool? fetchOnline,
   }) async {
     try {
-      final repository = brick.Repository();
       final isOnline =
           await _internetConnectionService.isOnline(deepCheck: true);
 
