@@ -81,7 +81,7 @@ void main() {
       expect(find.byKey(const Key('PinLogin')), findsOneWidget);
       expect(find.text('Welcome back!'), findsOneWidget);
       expect(find.text('Enter your PIN'), findsOneWidget);
-      expect(find.text('Sign In'), findsOneWidget);
+      expect(find.byKey(const Key('signInButtonText')), findsOneWidget);
     });
 
     testWidgets('PIN input and visibility toggle works',

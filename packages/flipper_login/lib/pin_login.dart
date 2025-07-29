@@ -695,6 +695,7 @@ class _PinLoginState extends State<PinLogin>
                       SizedBox(width: isSmallScreen ? 6 : 8),
                       Text(
                         'Sign In',
+                        key: Key('signInButtonText'),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: isSmallScreen ? 14 : 16,
