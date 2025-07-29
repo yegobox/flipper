@@ -12,6 +12,7 @@ import 'package:supabase_models/cache/cache_export.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 
+// flutter test test/outer_variant_provider_test.dart --dart-define=FLUTTER_TEST_ENV=true
 // Mocks
 class MockCacheManager extends Mock implements CacheManager {}
 
@@ -239,7 +240,8 @@ void main() {
             page: 0, // Search should reset page to 0
             itemsPerPage: 10,
             taxTyCds: ['A', 'B', 'C'],
-            name: 'Apple', // Expect this name
+            name: 'apple', // Expect this name
+            scanMode: false,
           )).thenAnswer((_) async => [variant1, variant3]);
 
       final searchString = 'Apple';
@@ -263,19 +265,23 @@ void main() {
       // Verify calls: initial empty search, then the specific "Apple" search (local)
       verifyInOrder([
         () => mockDbSync.variants(
-            branchId: 1,
-            fetchRemote: false,
-            page: 0,
-            itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
-            name: ''), // Initial build
+              branchId: 1,
+              fetchRemote: false,
+              page: 0,
+              itemsPerPage: 10,
+              taxTyCds: any(named: 'taxTyCds'),
+              name: '', // Initial build
+              scanMode: false,
+            ),
         () => mockDbSync.variants(
-            branchId: 1,
-            fetchRemote: false,
-            page: 0, // Reset to page 0 for search
-            itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
-            name: 'Apple') // The actual search call
+              branchId: 1,
+              fetchRemote: false,
+              page: 0, // Reset to page 0 for search
+              itemsPerPage: 10,
+              taxTyCds: any(named: 'taxTyCds'),
+              name: 'apple', // The actual search call
+              scanMode: false,
+            )
       ]);
       // Make sure no remote fetch was attempted for this case
       verifyNever(() => mockDbSync.variants(
@@ -304,7 +310,7 @@ void main() {
           )).thenAnswer((_) async => []);
 
       // Mocks for the search sequence (local then remote)
-      final searchString = 'Remote';
+      final searchString = 'remote';
       when(() => mockDbSync.variants(
             branchId: 1,
             fetchRemote: false, // Local attempt
@@ -312,6 +318,7 @@ void main() {
             itemsPerPage: 10,
             taxTyCds: any(named: 'taxTyCds'),
             name: searchString, // Expected search name
+            scanMode: false,
           )).thenAnswer((_) async => []); // Local returns empty
 
       when(() => mockDbSync.variants(
@@ -321,6 +328,7 @@ void main() {
             itemsPerPage: 10,
             taxTyCds: ['A', 'B', 'C'],
             name: searchString, // Expected search name
+            scanMode: false,
           )).thenAnswer((_) async => [remoteVariant]); // Remote succeeds
 
       final container = createContainer();
@@ -341,28 +349,34 @@ void main() {
 
       // Verify individual calls instead of order
       verify(() => mockDbSync.variants(
-          branchId: 1,
-          fetchRemote: false,
-          page: 0,
-          itemsPerPage: 10,
-          taxTyCds: any(named: 'taxTyCds'),
-          name: '')).called(1); // Initial build
+            branchId: 1,
+            fetchRemote: false,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: any(named: 'taxTyCds'),
+            name: '',
+            scanMode: false,
+          )).called(1); // Initial build
 
       verify(() => mockDbSync.variants(
-          branchId: 1,
-          fetchRemote: false,
-          page: 0,
-          itemsPerPage: 10,
-          taxTyCds: any(named: 'taxTyCds'),
-          name: searchString)).called(1); // Local search
+            branchId: 1,
+            fetchRemote: false,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: any(named: 'taxTyCds'),
+            name: searchString,
+            scanMode: false,
+          )).called(1); // Local search
 
       verify(() => mockDbSync.variants(
-          branchId: 1,
-          fetchRemote: true,
-          page: 0,
-          itemsPerPage: 10,
-          taxTyCds: any(named: 'taxTyCds'),
-          name: searchString)).called(1); // Remote fallback
+            branchId: 1,
+            fetchRemote: true,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: any(named: 'taxTyCds'),
+            name: searchString,
+            scanMode: false,
+          )).called(1); // Remote fallback
     });
 
     test('provider handles errors during fetch gracefully', () async {
@@ -398,6 +412,89 @@ void main() {
       // Optionally, check listener values to ensure it transitioned to error state
       expect(listener.values.last, isA<AsyncError>());
       expect((listener.values.last as AsyncError).error, equals(exception));
+    });
+
+    test(
+        'search finds exact match in state and avoids DB call when match found',
+        () async {
+      // Arrange
+      final variantInState = Variant(
+          id: '5',
+          name: 'Exact Match',
+          bcd: '12345',
+          branchId: 1,
+          taxTyCd: 'A');
+
+      // Mock initial load to populate _allLoadedVariants
+      when(() => mockDbSync.variants(
+            branchId: 1,
+            fetchRemote: false,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: any(named: 'taxTyCds'),
+            name: '',
+            scanMode: false,
+          )).thenAnswer((_) async => [variantInState]);
+
+      final container = createContainer();
+
+      // Ensure initial build completes and populates _allLoadedVariants
+      await container.read(outerVariantsProvider(1).future);
+      expect(container.read(outerVariantsProvider(1)).value, [variantInState]);
+
+      // Set scanMode to false
+      container.read(scanningModeProvider.notifier).state = false;
+
+      final searchStringNotifier =
+          container.read(searchStringProvider.notifier);
+
+      // Act: Search for the exact match by name
+      searchStringNotifier.emitString(value: 'exact match');
+      await container.read(outerVariantsProvider(1).future);
+
+      // Assert
+      final result = container.read(outerVariantsProvider(1));
+      expect(result.value, [variantInState]);
+
+      // Verify that mockDbSync.variants was NOT called again for the search string
+      // It should only have been called for the initial empty search.
+      verify(() => mockDbSync.variants(
+            branchId: 1,
+            fetchRemote: false,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: any(named: 'taxTyCds'),
+            name: '',
+            scanMode: false,
+          )).called(2);
+      verifyNever(() => mockDbSync.variants(
+            branchId: 1,
+            fetchRemote: any(named: 'fetchRemote'),
+            page: any(named: 'page'),
+            itemsPerPage: any(named: 'itemsPerPage'),
+            taxTyCds: any(named: 'taxTyCds'),
+            name: 'exact match',
+            scanMode: false,
+          ));
+
+      // Act: Search for the exact match by bcd
+      searchStringNotifier.emitString(value: '12345');
+      await container.read(outerVariantsProvider(1).future);
+
+      // Assert
+      final resultBcd = container.read(outerVariantsProvider(1));
+      expect(resultBcd.value, [variantInState]);
+
+      // Verify that mockDbSync.variants was NOT called again for the bcd search string
+      verifyNever(() => mockDbSync.variants(
+            branchId: 1,
+            fetchRemote: any(named: 'fetchRemote'),
+            page: any(named: 'page'),
+            itemsPerPage: any(named: 'itemsPerPage'),
+            taxTyCds: any(named: 'taxTyCds'),
+            name: '12345',
+            scanMode: false,
+          ));
     });
   });
 

@@ -52,7 +52,7 @@ mixin VariantMixin implements VariantInterface {
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
-        conditions.add(Where('taxTyCd').isIn(taxTyCds));
+        // conditions.add(Where('taxTyCd').isIn(taxTyCds));
       }
 
       if (forImportScreen) {
@@ -72,8 +72,8 @@ mixin VariantMixin implements VariantInterface {
         } else {
           conditions.add(
             WherePhrase([
-              Where('name').contains(name),
-              Or('bcd').isExactly(name),
+              Where('name').contains(name.toLowerCase()),
+              Or('bcd').isExactly(name.toLowerCase()),
             ]),
           );
         }

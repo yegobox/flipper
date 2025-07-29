@@ -100,14 +100,35 @@ class OuterVariants extends _$OuterVariants {
       final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
       talker.info("taxTyCds: $taxTyCds");
 
+      final currentScanMode = ref.read(scanningModeProvider);
+
+      // New logic: Search in current state if not in scan mode and searchString is not empty
+      if (searchString.isNotEmpty) {
+        final lowerCaseSearchString = searchString.toLowerCase();
+        final exactMatchInState = state.value?.firstWhereOrNull(
+          (v) =>
+              v.productName?.toLowerCase() == lowerCaseSearchString ||
+              v.name.toLowerCase() == lowerCaseSearchString ||
+              v.bcd?.toLowerCase() == lowerCaseSearchString,
+        );
+        if (exactMatchInState != null) {
+          talker.info(
+              'Exact match found in state: \${exactMatchInState.productName}');
+          _isLoading = false; // Reset loading as we found it immediately
+          return [exactMatchInState]; // Return only the exact match
+        }
+        talker.info('No exact match found in state, proceeding to DB search.');
+      }
+
       // Attempt local fetch first
       fetchedVariants = await ProxyService.strategy.variants(
-        name: searchString,
+        name: searchString.toLowerCase(),
         fetchRemote: false,
         branchId: branchId,
         page: page,
         itemsPerPage: _itemsPerPage,
         taxTyCds: taxTyCds,
+        scanMode: currentScanMode,
       );
 
       // If no variants found locally AND a search string is active, try remote.
@@ -116,12 +137,13 @@ class OuterVariants extends _$OuterVariants {
       if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
         talker.info('Local search empty for "$searchString", trying remote...');
         fetchedVariants = await ProxyService.strategy.variants(
-          name: searchString,
+          name: searchString.toLowerCase(),
           fetchRemote: true,
           branchId: branchId,
           page: page,
           itemsPerPage: _itemsPerPage,
           taxTyCds: taxTyCds,
+          scanMode: ref.read(scanningModeProvider),
         );
       }
 
@@ -156,7 +178,7 @@ class OuterVariants extends _$OuterVariants {
     state = AsyncValue.loading(); // Indicate loading new page
     try {
       final newVariants = await _fetchAndProcessVariants(
-        branchId: branchId, 
+        branchId: branchId,
         page:
             _currentPage, // Use the _currentPage which was already incremented in _fetchAndProcessVariants
         searchString: ref.read(searchStringProvider),
@@ -198,7 +220,7 @@ class Products extends _$Products {
 
       if (searchString.isNotEmpty) {
         Product? additionalProduct = await ProxyService.strategy.getProduct(
-          name: searchString,
+          name: searchString.toLowerCase(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,
         );

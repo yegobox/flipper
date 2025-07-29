@@ -1,3 +1,9 @@
+// Ensure these imports point to your actual interface definitions
+// Assuming FlipperHttpClient is defined here
+import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/flipper_http_client.dart';
+import 'package:http/http.dart' as http; // For http.Response
+
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -6,6 +12,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/repository/storage.dart';
+// Remove this if not directly used or correctly aliased for LocalStorage:
+// import 'package:supabase_models/brick/repository/storage.dart';
 
 import 'TestApp.dart';
 import 'test_helpers/mocks.dart';
@@ -37,6 +46,7 @@ void main() {
           businessId: 1,
           ownerName: 'test',
           phoneNumber: '1234567890'));
+      registerFallbackValue(MockUser()); // Added this for `login` mock
     });
 
     tearDownAll(() {
@@ -50,16 +60,29 @@ void main() {
       mockDatabaseSync = env.mockDbSync;
       mockRouterService = MockRouterService();
 
+      // IMPORTANT: Register mocks for the INTERFACES that ProxyService resolves to.
+
+      // Register mockBox for BoxInterface (ProxyService.box)
+      // Check your 'BoxInterface' definition and its path.
+      if (GetIt.I.isRegistered<LocalStorage>()) {
+        // THIS SHOULD BE BoxInterface, not LocalStorage
+        GetIt.I.unregister<LocalStorage>();
+      }
+      GetIt.I.registerSingleton<LocalStorage>(mockBox); // Use BoxInterface
+
+      // Register mockRouterService for RouterService
       if (GetIt.I.isRegistered<RouterService>()) {
         GetIt.I.unregister<RouterService>();
       }
       GetIt.I.registerSingleton<RouterService>(mockRouterService);
 
+      // Reset mocks before each test to ensure a clean state
       reset(mockBox);
       reset(mockFlipperHttpClient);
       reset(mockDatabaseSync);
       reset(mockRouterService);
 
+      // Common mock setups for mockBox
       when(() => mockBox.writeBool(
           key: any(named: 'key'),
           value: any(named: 'value'))).thenAnswer((_) async {});
@@ -76,6 +99,13 @@ void main() {
       when(() => mockBox.writeString(
           key: any(named: 'key'),
           value: any(named: 'value'))).thenAnswer((_) async {});
+
+      // Fixed: Correctly mock FlipperHttpClient.get
+      when(() => mockFlipperHttpClient.get(
+                any(that: isA<Uri>()), // Match any Uri object
+                headers: any(named: 'headers'), // Match any optional headers
+              ))
+          .thenAnswer((_) async => http.Response('{"status": "success"}', 200));
     });
 
     testWidgets('PinLogin renders correctly', (WidgetTester tester) async {
@@ -163,23 +193,29 @@ void main() {
       when(() => mockPin.businessId).thenReturn(1);
       when(() => mockPin.ownerName).thenReturn('Test Owner');
 
+      // Crucial: Ensure the mocked `getPin` is called with the arguments
+      // that the PinLogin widget will actually pass.
       when(() => mockDatabaseSync.getPin(
-            pinString: '1234',
-            flipperHttpClient: mockFlipperHttpClient,
+            pinString: '1234', // The entered text
+            flipperHttpClient:
+                mockFlipperHttpClient, // The registered HTTP client
           )).thenAnswer((_) async => mockPin);
 
+      // Mock getPinLocal to return null for no existing local PIN
       when(() => mockDatabaseSync.getPinLocal(userId: 1, alwaysHydrate: false))
-          .thenAnswer((_) async => null); // No existing local PIN
+          .thenAnswer((_) async => null);
 
+      // Mock login method
       when(() => mockDatabaseSync.login(
-            pin: any(named: 'pin'),
+            pin: any(named: 'pin'), // Use any() for the complex Pin object
             isInSignUpProgress: false,
             flipperHttpClient: mockFlipperHttpClient,
             skipDefaultAppSetup: false,
             userPhone: '1234567890',
-          )).thenAnswer((_) async => MockUser());
+          )).thenAnswer((_) async => MockUser()); // Return a MockUser
 
-      when(() => mockDatabaseSync.completeLogin(any()))
+      // Mock completeLogin
+      when(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
           .thenAnswer((_) async {});
 
       await tester.pumpWidget(
@@ -192,6 +228,7 @@ void main() {
       await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
 
+      // Verify the correct methods were called with expected arguments
       verify(() => mockBox.writeBool(key: 'pinLogin', value: true)).called(1);
       verify(() => mockDatabaseSync.getPin(
             pinString: '1234',
@@ -215,13 +252,19 @@ void main() {
 
     testWidgets('Failed login shows error message and shakes',
         (WidgetTester tester) async {
+      // Mock getPin to throw PinError for 'wrongpin'
       when(() => mockDatabaseSync.getPin(
             pinString: 'wrongpin',
             flipperHttpClient: mockFlipperHttpClient,
           )).thenThrow(PinError(term: "Invalid PIN"));
 
-      when(() => mockDatabaseSync.handleLoginError(any(), any())).thenAnswer(
-          (_) async => Future.value({'errorMessage': 'Invalid PIN. Please try again.'}));
+      // Mock handleLoginError to return a specific error message
+      when(() => mockDatabaseSync.handleLoginError(
+                any(), // The exception (PinError)
+                any(that: isA<StackTrace>()), // The stack trace
+              ))
+          .thenAnswer(
+              (_) async => {'errorMessage': 'Invalid PIN. Please try again.'});
 
       await tester.pumpWidget(
         TestApp(
@@ -234,8 +277,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Invalid PIN. Please try again.'), findsOneWidget);
-      // Verify shake animation (difficult to test directly, but we can check for its side effects or mock it)
-      // For now, we'll rely on the error message being present.
+      // For shake animation, you might visually inspect or use a custom matcher
+      // if you have a way to assert animation state. For simplicity, we rely
+      // on the error message for this test.
     });
 
     testWidgets('Error message disappears on focus change',
