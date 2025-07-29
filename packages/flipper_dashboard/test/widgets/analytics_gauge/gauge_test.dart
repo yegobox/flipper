@@ -160,9 +160,28 @@ void main() {
         profitType: 'Net Profit',
       );
 
-      // Verify the main value and label
-      expect(find.text('0 RWF'), findsOneWidget);
+      // Verify the main value (0 RWF with larger font size) and label
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data == '0 RWF' &&
+              widget.style?.fontSize == 28.0, // Main value font size
+        ),
+        findsOneWidget,
+      );
       expect(find.text('No transactions'), findsOneWidget);
+
+      // Verify the column values (0 RWF with smaller font size)
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Text &&
+              widget.data == '0 RWF' &&
+              widget.style?.fontSize == 16.0, // Column value font size
+        ),
+        findsNWidgets(2), // Expect two such widgets (Gross Profit and Expenses)
+      );
     });
 
     testWidgets(
