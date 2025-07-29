@@ -107,52 +107,52 @@ void main() {
           )).called(1);
     });
 
-    // test('subsequent search refines in-memory list without remote fetch',
-    //     () async {
-    //   // Arrange
-    //   when(() => mockDbSync.variants(
-    //             branchId: 1,
-    //             fetchRemote: true,
-    //             page: 0,
-    //             itemsPerPage: 10,
-    //             taxTyCds: any(named: 'taxTyCds'),
-    //             name: '',
-    //             scanMode: false,
-    //           ))
-    //       .thenAnswer(
-    //           (_) async => [variant1, variant2, variant3, remoteVariant]);
+    test('subsequent search refines in-memory list without remote fetch',
+        () async {
+      // Arrange
+      when(() => mockDbSync.variants(
+                branchId: 1,
+                fetchRemote: true,
+                page: 0,
+                itemsPerPage: 10,
+                taxTyCds: any(named: 'taxTyCds'),
+                name: '',
+                scanMode: false,
+              ))
+          .thenAnswer(
+              (_) async => [variant1, variant2, variant3, remoteVariant]);
 
-    //   final container = createContainer();
-    //   await container.read(outerVariantsProvider(1).future);
+      final container = createContainer();
+      await container.read(outerVariantsProvider(1).future);
 
-    //   // Act: First search
-    //   container.read(searchStringProvider.notifier).emitString(value: 'Apple');
-    //   await Future.delayed(
-    //       const Duration(milliseconds: 350)); // Allow debounce to trigger
+      // Act: First search
+      container.read(searchStringProvider.notifier).emitString(value: 'Apple');
+      await Future.delayed(
+          const Duration(milliseconds: 350)); // Allow debounce to trigger
 
-    //   // Assert: First search results
-    //   expect(container.read(outerVariantsProvider(1)).value,
-    //       containsAll([variant1, variant3, remoteVariant]));
+      // Assert: First search results
+      expect(container.read(outerVariantsProvider(1)).value,
+          containsAll([variant1, variant3, remoteVariant]));
 
-    //   // Act: Refine search
-    //   container
-    //       .read(searchStringProvider.notifier)
-    //       .emitString(value: 'Apple J');
-    //   await Future.delayed(const Duration(milliseconds: 350));
+      // Act: Refine search
+      container
+          .read(searchStringProvider.notifier)
+          .emitString(value: 'Apple J');
+      await Future.delayed(const Duration(milliseconds: 350));
 
-    //   // Assert: Refined search results
-    //   expect(container.read(outerVariantsProvider(1)).value, [variant3]);
+      // Assert: Refined search results
+      expect(container.read(outerVariantsProvider(1)).value, [variant3]);
 
-    //   // Verify that the remote fetch was only called for the initial search, not the refinement
-    //   verify(() => mockDbSync.variants(
-    //         branchId: 1,
-    //         fetchRemote: true,
-    //         page: 0,
-    //         itemsPerPage: 10,
-    //         taxTyCds: any(named: 'taxTyCds'),
-    //         name: '',
-    //         scanMode: false,
-    //       )).called(1);
-    // });
+      // Verify that the remote fetch was only called for the initial search, not the refinement
+      verify(() => mockDbSync.variants(
+            branchId: 1,
+            fetchRemote: true,
+            page: 0,
+            itemsPerPage: 10,
+            taxTyCds: any(named: 'taxTyCds'),
+            name: '',
+            scanMode: false,
+          )).called(1);
+    });
   });
 }
