@@ -68,6 +68,7 @@ class TestEnvironment {
     registerFallbackValue(<Variant>[]);
     registerFallbackValue(RwApiResponse(resultCd: "000", resultMsg: "Success"));
     registerFallbackValue(Ebm(
+        mrc: "123",
         bhfId: "00",
         tinNumber: 111,
         dvcSrlNo: "111",
@@ -113,6 +114,7 @@ class TestEnvironment {
 
     when(() => mockDbSync.ebm(branchId: any(named: 'branchId'))).thenAnswer(
       (_) async => Ebm(
+          mrc: "123",
           bhfId: "00",
           tinNumber: 111,
           dvcSrlNo: "111",

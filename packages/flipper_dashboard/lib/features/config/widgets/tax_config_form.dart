@@ -38,7 +38,7 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
 
     final bhFId = ebm?.bhfId ?? (await ProxyService.box.bhfId()) ?? "";
     _branchController.text = bhFId;
-    String? mrc = ProxyService.box.mrc();
+    String? mrc = ebm?.mrc ?? ProxyService.box.mrc();
     _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
 
     // Load VAT enabled status
@@ -260,7 +260,8 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
           branchId: ProxyService.box.getBranchId()!,
           severUrl: _serverUrlController.text,
           bhFId: _branchController.text,
-          vatEnabled: _vatEnabled);
+          vatEnabled: _vatEnabled,
+          mrc: newMrc);
 
       // Save to local storage
       await Future.wait([

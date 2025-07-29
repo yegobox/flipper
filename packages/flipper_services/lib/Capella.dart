@@ -1194,6 +1194,7 @@ class Capella extends AiStrategyImpl
       {required int branchId,
       required String severUrl,
       required String bhFId,
+      required String mrc,
       bool vatEnabled = false}) {
     // TODO: implement saveEbm
     throw UnimplementedError();
