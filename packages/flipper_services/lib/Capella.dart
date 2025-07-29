@@ -1084,7 +1084,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Business?> getBusinessById({required int businessId}) {
+  FutureOr<Business?> getBusinessById(
+      {required int businessId, bool fetchOnline = false}) {
     // TODO: implement getBusinessById
     throw UnimplementedError();
   }
@@ -1099,15 +1100,6 @@ class Capella extends AiStrategyImpl
   FutureOr<List<TransactionPaymentRecord>> getPaymentType(
       {required String transactionId}) {
     // TODO: implement getPaymentType
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId}) {
-    // TODO: implement manageCashInOutTransaction
     throw UnimplementedError();
   }
 

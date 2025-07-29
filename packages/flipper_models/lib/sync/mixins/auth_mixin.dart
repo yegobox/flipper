@@ -682,53 +682,9 @@ mixin AuthMixin implements AuthInterface {
           for (var businessData in tenant['businesses']) {
             final iBusiness = IBusiness.fromJson(businessData);
             // Convert IBusiness to Business (from supabase_models)
-            final business = Business(
-              phoneNumber: businessData['phoneNumber'] as String? ??
-                  iBusiness.phoneNumber ??
-                  '',
-              id: iBusiness.id,
-              serverId: iBusiness.serverId,
-              name: iBusiness.name,
-              currency: iBusiness.currency,
-              categoryId: iBusiness.categoryId,
-              latitude: iBusiness.latitude,
-              longitude: iBusiness.longitude,
-              userId: iBusiness.userId,
-              timeZone: iBusiness.timeZone,
-              country: iBusiness.country,
-              businessUrl: iBusiness.businessUrl,
-              hexColor: iBusiness.hexColor,
-              imageUrl: iBusiness.imageUrl,
-              type: iBusiness.type,
-              createdAt: iBusiness.createdAt,
-              metadata: iBusiness.metadata,
-              role: iBusiness.role,
-              lastSeen: iBusiness.lastSeen,
-              firstName: iBusiness.firstName,
-              lastName: iBusiness.lastName,
-              deviceToken: iBusiness.deviceToken,
-              chatUid: iBusiness.chatUid,
-              backUpEnabled: iBusiness.backUpEnabled,
-              subscriptionPlan: iBusiness.subscriptionPlan,
-              nextBillingDate: iBusiness.nextBillingDate,
-              previousBillingDate: iBusiness.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  iBusiness.isLastSubscriptionPaymentSucceeded,
-              backupFileId: iBusiness.backupFileId,
-              email: iBusiness.email,
-              lastDbBackup: iBusiness.lastDbBackup,
-              fullName: iBusiness.fullName,
-              tinNumber: iBusiness.tinNumber,
-              dvcSrlNo: iBusiness.dvcSrlNo,
-              bhfId: iBusiness.bhfId,
-              adrs: iBusiness.adrs,
-              taxEnabled: iBusiness.taxEnabled,
-              isDefault: iBusiness.isDefault,
-              businessTypeId: iBusiness.businessTypeId,
-              encryptionKey: iBusiness.encryptionKey,
-            );
-            await repository.upsert<Business>(business);
-            talker.debug("Saved business locally: ${business.name}");
+            /// get this business locally.
+            await ProxyService.strategy.getBusinessById(
+                businessId: iBusiness.serverId, fetchOnline: true);
           }
         }
 
