@@ -107,9 +107,10 @@ class OuterVariants extends _$OuterVariants {
         final lowerCaseSearchString = searchString.toLowerCase();
         final exactMatchInState = state.value?.firstWhereOrNull(
           (v) =>
-              v.productName?.toLowerCase().contains(lowerCaseSearchString) ??
-              v.name.toLowerCase().contains(lowerCaseSearchString) ||
-                  v.bcd?.toLowerCase() == lowerCaseSearchString,
+              (v.productName?.toLowerCase().contains(lowerCaseSearchString) ==
+                  true) ||
+              (v.name.toLowerCase().contains(lowerCaseSearchString) == true) ||
+              (v.bcd?.toLowerCase() == lowerCaseSearchString),
         );
         if (exactMatchInState != null) {
           talker.info(
@@ -120,62 +121,31 @@ class OuterVariants extends _$OuterVariants {
         talker.info('No exact match found in state, proceeding to DB search.');
       }
 
-      // Determine fetch strategy
-      bool shouldFetchRemoteFirst =
-          (page == 0 && searchString.isEmpty); // Initial load without search
+      // Attempt local fetch first
+      fetchedVariants = await ProxyService.strategy.variants(
+        name: searchString.toLowerCase(),
+        fetchRemote: false,
+        branchId: branchId,
+        page: page,
+        itemsPerPage: _itemsPerPage,
+        taxTyCds: taxTyCds,
+        scanMode: currentScanMode,
+      );
 
-      if (shouldFetchRemoteFirst) {
-        talker.info(
-            'Initial load without search: Attempting remote fetch first.');
+      // If no variants found locally AND a search string is active, try remote.
+      // Do not fallback to remote if searchString is empty (i.e., initial load)
+      // unless that's your explicit design. The test implies fallback on search.
+      if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
+        talker.info('Local search empty for "$searchString", trying remote...');
         fetchedVariants = await ProxyService.strategy.variants(
           name: searchString.toLowerCase(),
-          fetchRemote: true, // Prioritize remote for initial load
+          fetchRemote: true,
           branchId: branchId,
           page: page,
           itemsPerPage: _itemsPerPage,
           taxTyCds: taxTyCds,
-          scanMode: currentScanMode,
+          scanMode: ref.read(scanningModeProvider),
         );
-
-        if (fetchedVariants.isEmpty) {
-          talker.info('Remote fetch empty, trying local for initial load.');
-          fetchedVariants = await ProxyService.strategy.variants(
-            name: searchString.toLowerCase(),
-            fetchRemote: false, // Fallback to local
-            branchId: branchId,
-            page: page,
-            itemsPerPage: _itemsPerPage,
-            taxTyCds: taxTyCds,
-            scanMode: currentScanMode,
-          );
-        }
-      } else {
-        // Existing logic for subsequent loads or loads with a search string
-        // Attempt local fetch first
-        fetchedVariants = await ProxyService.strategy.variants(
-          name: searchString.toLowerCase(),
-          fetchRemote: false,
-          branchId: branchId,
-          page: page,
-          itemsPerPage: _itemsPerPage,
-          taxTyCds: taxTyCds,
-          scanMode: currentScanMode,
-        );
-
-        // If no variants found locally AND a search string is active, try remote.
-        if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
-          talker
-              .info('Local search empty for "$searchString", trying remote...');
-          fetchedVariants = await ProxyService.strategy.variants(
-            name: searchString.toLowerCase(),
-            fetchRemote: true,
-            branchId: branchId,
-            page: page,
-            itemsPerPage: _itemsPerPage,
-            taxTyCds: taxTyCds,
-            scanMode: ref.read(scanningModeProvider),
-          );
-        }
       }
 
       // Save stock to cache for the retrieved variants.
