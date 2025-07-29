@@ -30,6 +30,13 @@ void main() {
       registerFallbackValue(DialogRequest());
       registerFallbackValue(DialogResponse());
       registerFallbackValue(Uri.parse('http://localhost'));
+      registerFallbackValue(Pin(
+          id: "1",
+          userId: 1,
+          branchId: 1,
+          businessId: 1,
+          ownerName: 'test',
+          phoneNumber: '1234567890'));
     });
 
     tearDownAll(() {
@@ -172,7 +179,7 @@ void main() {
             userPhone: '1234567890',
           )).thenAnswer((_) async => MockUser());
 
-      when(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
+      when(() => mockDatabaseSync.completeLogin(any()))
           .thenAnswer((_) async {});
 
       await tester.pumpWidget(
@@ -214,7 +221,7 @@ void main() {
           )).thenThrow(PinError(term: "Invalid PIN"));
 
       when(() => mockDatabaseSync.handleLoginError(any(), any())).thenAnswer(
-          (_) async => {'errorMessage': 'Invalid PIN. Please try again.'});
+          (_) async => Future.value({'errorMessage': 'Invalid PIN. Please try again.'}));
 
       await tester.pumpWidget(
         TestApp(
