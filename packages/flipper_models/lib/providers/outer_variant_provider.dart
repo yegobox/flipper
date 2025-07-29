@@ -1,9 +1,11 @@
+// flipper_models/providers/outer_variant_provider.dart
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:collection/collection.dart';
+import 'package:collection/collection.dart'; // Keep if used elsewhere, but not directly for this logic
 import 'dart:async';
 import 'package:supabase_models/cache/cache_export.dart';
 part 'outer_variant_provider.g.dart';
@@ -17,149 +19,161 @@ class OuterVariants extends _$OuterVariants {
     state = AsyncValue.data(updatedList);
   }
 
+  // Internal state for pagination and loading
   int _currentPage = 0;
-  final int _itemsPerPage = ProxyService.box.itemPerPage() ?? 1000;
+  List<Variant> _allLoadedVariants = []; // Holds all variants loaded so far
+  final int _itemsPerPage =
+      ProxyService.box.itemPerPage() ?? 10; // Sensible default
   bool _hasMore = true;
   bool _isLoading = false;
 
   @override
-  FutureOr<List<Variant>> build(int branchId, {fetchRemote = false}) async {
+  FutureOr<List<Variant>> build(int branchId) async {
     final searchString = ref.watch(searchStringProvider);
-    // Reset state when the provider is rebuilt (e.g., branchId changes)
+
+    // Reset state only on initial build or when branchId changes
     _currentPage = 0;
+    _allLoadedVariants = []; // Clear variants on new build/search
     _hasMore = true;
     _isLoading = false;
 
-    // Initialize cache manager if needed
+    // Initialize cache manager if needed (can be moved out of build for performance if it's truly a one-time thing)
     await _initializeCacheManager();
 
-    // Load initial variants
-    return await _loadVariants(branchId,
-        fetchRemote: fetchRemote, searchString: searchString);
+    // Load initial variants based on current search string and pagination
+    final variants = await _fetchAndProcessVariants(
+      branchId: branchId,
+      page: _currentPage, // Always start from page 0 for a new build/search
+      searchString: searchString,
+    );
+
+    _allLoadedVariants = variants; // Set the initial list
+    return _allLoadedVariants;
   }
 
   /// Initialize the cache manager
   Future<void> _initializeCacheManager() async {
     try {
+      // Assuming CacheManager() returns a singleton or is managed by GetIt already
       await CacheManager().initialize();
-      print('Cache manager initialized successfully');
+      // talker.info('Cache manager initialized successfully');
     } catch (e) {
-      print('Failed to initialize cache manager: $e');
+      // talker.info('Failed to initialize cache manager: $e');
     }
   }
 
   /// Save Stock objects to cache
   Future<void> _saveStocksToCache(List<Variant> variants) async {
     try {
-      // Filter variants with stock information
       final variantsWithStock = variants.where((v) => v.stock != null).toList();
 
       if (variantsWithStock.isNotEmpty) {
-        print('Saving ${variantsWithStock.length} stocks to cache');
-
-        // Save stocks to cache
-        await CacheManager().saveStocksForVariants(variants);
-        print('Stocks saved to cache successfully');
+        // talker.info('Saving ${variantsWithStock.length} stocks to cache');
+        await CacheManager().saveStocksForVariants(
+            variantsWithStock); // Pass only variants with stock
+        // talker.info('Stocks saved to cache successfully');
       }
     } catch (e) {
-      print('Failed to save stocks to cache: $e');
+      // talker.info('Failed to save stocks to cache: $e');
     }
   }
 
-  Future<List<Variant>> _loadVariants(int branchId,
-      {bool fetchRemote = false, required String searchString}) async {
-    if (_isLoading || !_hasMore) return [];
+  /// Centralized method to fetch variants, handle local/remote fallback, and process them.
+  /// This method only *fetches* data and updates internal pagination state,
+  /// but doesn't directly set the `state` of the provider.
+  Future<List<Variant>> _fetchAndProcessVariants({
+    required int branchId,
+    required int page,
+    required String searchString,
+  }) async {
+    if (!_hasMore) {
+      // No more to load globally
+      talker.info('No more variants to fetch.');
+      return [];
+    }
 
-    _isLoading = true;
+    _isLoading = true; // Set loading state internally
 
+    List<Variant> fetchedVariants = [];
     try {
       final isVatEnabled = ProxyService.box.vatEnabled();
-
-      // Determine the tax codes to filter by at the database level.
       final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
-      List<Variant> variants = [];
-
       talker.info("taxTyCds: $taxTyCds");
 
-      /// first filter on state
-      if (searchString.isNotEmpty) {
-        final lowerSearch = searchString.toLowerCase();
-        variants = state.value?.where((v) {
-          final matchesSearch = v.name.toLowerCase().contains(lowerSearch);
-          final matchesTax = taxTyCds.contains(v.taxTyCd);
-          return matchesSearch && matchesTax;
-        }).toList() ?? [];
-
-        if (variants.isNotEmpty) {
-          _currentPage++;
-          _hasMore = variants.length == _itemsPerPage;
-          return variants;
-        }
-      }
-
-      // First, try to fetch variants locally with the tax filter.
-      variants = await ProxyService.strategy.variants(
+      // Attempt local fetch first
+      fetchedVariants = await ProxyService.strategy.variants(
         name: searchString,
-        fetchRemote: false, // Start with local
+        fetchRemote: false,
         branchId: branchId,
-        page: _currentPage,
+        page: page,
         itemsPerPage: _itemsPerPage,
         taxTyCds: taxTyCds,
       );
 
-      // If no variants were found locally, try fetching from remote.
-      if (variants.isEmpty && searchString.isNotEmpty) {
-        try {
-          variants = await ProxyService.strategy.variants(
-            name: searchString,
-            fetchRemote: true, // Fetch remote as a fallback
-            branchId: branchId,
-            page: _currentPage,
-            itemsPerPage: _itemsPerPage,
-            taxTyCds: taxTyCds, // Apply the same tax filter to the remote query
-          );
-        } catch (e) {
-          print('Remote variant fetch failed: $e');
-        }
+      // If no variants found locally AND a search string is active, try remote.
+      // Do not fallback to remote if searchString is empty (i.e., initial load)
+      // unless that's your explicit design. The test implies fallback on search.
+      if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
+        talker.info('Local search empty for "$searchString", trying remote...');
+        fetchedVariants = await ProxyService.strategy.variants(
+          name: searchString,
+          fetchRemote: true,
+          branchId: branchId,
+          page: page,
+          itemsPerPage: _itemsPerPage,
+          taxTyCds: taxTyCds,
+        );
       }
 
       // Save stock to cache for the retrieved variants.
-      if (variants.isNotEmpty) {
-        _saveStocksToCache(variants);
+      if (fetchedVariants.isNotEmpty) {
+        await _saveStocksToCache(fetchedVariants);
       }
 
-      // Update pagination state.
-      _currentPage++;
-      _hasMore = variants.length == _itemsPerPage;
+      // Update pagination logic. This applies to the *source* of the data.
+      _hasMore = fetchedVariants.length == _itemsPerPage;
+      _currentPage++; // Increment page for the *next* fetch
 
-      return variants;
+      return fetchedVariants;
     } on TimeoutException {
-      print('Timeout: Variants loading took too long');
-      state = AsyncValue.error(
-          'Timeout: Variants loading took too long', StackTrace.current);
-      return [];
+      talker.info('Timeout: Variants loading took too long');
+      rethrow; // Let the caller (build or loadMore) handle the error state
     } catch (error, stackTrace) {
-      print('Error loading variants: $error');
-      state = AsyncValue.error(error, stackTrace);
-      return [];
+      talker.info('Error loading variants: $error');
+      rethrow; // Let the caller handle the error state
     } finally {
-      _isLoading = false;
+      _isLoading = false; // Reset loading state
     }
   }
 
-  Future<void> loadMore(int branchId) async {
-    if (_isLoading || !_hasMore) return;
-    final searchString = ref.read(searchStringProvider);
+  // loadMore should only increment the page and then fetch using the common method
+  Future<void> loadMore() async {
+    if (_isLoading || !_hasMore) {
+      talker.info('loadMore: Currently loading or no more items. Skipping.');
+      return;
+    }
 
-    // Load more variants
-    final newVariants =
-        await _loadVariants(branchId, searchString: searchString);
+    state = AsyncValue.loading(); // Indicate loading new page
+    try {
+      final newVariants = await _fetchAndProcessVariants(
+        branchId: branchId, 
+        page:
+            _currentPage, // Use the _currentPage which was already incremented in _fetchAndProcessVariants
+        searchString: ref.read(searchStringProvider),
+      );
 
-    // Update the state with the new variants
-    state = AsyncValue.data([...state.value ?? [], ...newVariants]);
+      // Append new variants to the existing list, then update the provider's state
+      _allLoadedVariants = [..._allLoadedVariants, ...newVariants];
+      state = AsyncValue.data(_allLoadedVariants);
+    } catch (e, st) {
+      // If loadMore fails, decrement page as it didn't complete successfully
+      _currentPage--;
+      state = AsyncValue.error(e, st);
+    }
   }
 }
 
+// Keep your Products provider as is if it's not part of the problem.
 @riverpod
 class Products extends _$Products {
   @override
