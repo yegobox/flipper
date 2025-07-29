@@ -13,6 +13,7 @@ import 'test_helpers/setup.dart';
 
 class MockPin extends Mock implements IPin {}
 
+// flutter test test/pin_login_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('PinLogin', () {
     late TestEnvironment env;
@@ -52,8 +53,9 @@ void main() {
       reset(mockDatabaseSync);
       reset(mockRouterService);
 
-      when(() => mockBox.writeBool(key: any(named: 'key'), value: any(named: 'value')))
-          .thenAnswer((_) async {});
+      when(() => mockBox.writeBool(
+          key: any(named: 'key'),
+          value: any(named: 'value'))).thenAnswer((_) async {});
       when(() => mockBox.readBool(key: any(named: 'key'))).thenReturn(false);
       when(() => mockBox.readString(key: any(named: 'key'))).thenReturn(null);
       when(() => mockBox.readInt(key: any(named: 'key'))).thenReturn(null);
@@ -61,15 +63,17 @@ void main() {
       when(() => mockBox.getUserId()).thenReturn(1);
       when(() => mockBox.getDefaultApp()).thenReturn('POS');
       when(() => mockBox.bhfId()).thenAnswer((_) async => '00');
-      when(() => mockBox.writeInt(key: any(named: 'key'), value: any(named: 'value')))
-          .thenAnswer((_) async => 0);
-      when(() => mockBox.writeString(key: any(named: 'key'), value: any(named: 'value')))
-          .thenAnswer((_) async {});
+      when(() => mockBox.writeInt(
+          key: any(named: 'key'),
+          value: any(named: 'value'))).thenAnswer((_) async => 0);
+      when(() => mockBox.writeString(
+          key: any(named: 'key'),
+          value: any(named: 'value'))).thenAnswer((_) async {});
     });
 
     testWidgets('PinLogin renders correctly', (WidgetTester tester) async {
       await tester.pumpWidget(
-         TestApp(
+        TestApp(
           child: PinLogin(),
         ),
       );
@@ -80,7 +84,8 @@ void main() {
       expect(find.text('Sign In'), findsOneWidget);
     });
 
-    testWidgets('PIN input and visibility toggle works', (WidgetTester tester) async {
+    testWidgets('PIN input and visibility toggle works',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
         TestApp(
           child: PinLogin(),
@@ -90,22 +95,26 @@ void main() {
       final pinField = find.byType(TextFormField);
       expect(pinField, findsOneWidget);
 
+      final textField =
+          find.descendant(of: pinField, matching: find.byType(TextField));
+      expect(textField, findsOneWidget);
+
       // Initially obscured
-      expect(tester.widget<TextFormField>(pinField).obscureText, isTrue);
+      expect(tester.widget<TextField>(textField).obscureText, isTrue);
 
       // Enter PIN
       await tester.enterText(pinField, '1234');
-      expect(tester.widget<TextFormField>(pinField).controller!.text, '1234');
+      expect(tester.widget<TextField>(textField).controller!.text, '1234');
 
       // Toggle visibility
       await tester.tap(find.byIcon(Icons.visibility_outlined));
       await tester.pump();
-      expect(tester.widget<TextFormField>(pinField).obscureText, isFalse);
+      expect(tester.widget<TextField>(textField).obscureText, isFalse);
 
       // Toggle back
       await tester.tap(find.byIcon(Icons.visibility_off_outlined));
       await tester.pump();
-      expect(tester.widget<TextFormField>(pinField).obscureText, isTrue);
+      expect(tester.widget<TextField>(textField).obscureText, isTrue);
     });
 
     testWidgets('Shows error for empty PIN', (WidgetTester tester) async {
@@ -119,12 +128,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('PIN is required'), findsOneWidget);
-      expect(find.text('Invalid PIN. Please try again.'), findsNothing); // Should not show generic error yet
+      expect(find.text('Invalid PIN. Please try again.'),
+          findsNothing); // Should not show generic error yet
     });
 
-    testWidgets('Shows error for PIN less than 4 digits', (WidgetTester tester) async {
+    testWidgets('Shows error for PIN less than 4 digits',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
-        const TestApp(
+        TestApp(
           child: PinLogin(),
         ),
       );
@@ -136,7 +147,8 @@ void main() {
       expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
     });
 
-    testWidgets('Successful login navigates to app', (WidgetTester tester) async {
+    testWidgets('Successful login navigates to app',
+        (WidgetTester tester) async {
       final mockPin = MockPin();
       when(() => mockPin.userId).thenReturn('1');
       when(() => mockPin.phoneNumber).thenReturn('1234567890');
@@ -158,13 +170,13 @@ void main() {
             flipperHttpClient: mockFlipperHttpClient,
             skipDefaultAppSetup: false,
             userPhone: '1234567890',
-          )).thenAnswer((_) async {});
+          )).thenAnswer((_) async => MockUser());
 
       when(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
           .thenAnswer((_) async {});
 
       await tester.pumpWidget(
-         TestApp(
+        TestApp(
           child: PinLogin(),
         ),
       );
@@ -178,7 +190,8 @@ void main() {
             pinString: '1234',
             flipperHttpClient: mockFlipperHttpClient,
           )).called(1);
-      verify(() => mockBox.writeBool(key: 'isAnonymous', value: true)).called(1);
+      verify(() => mockBox.writeBool(key: 'isAnonymous', value: true))
+          .called(1);
       verify(() => mockDatabaseSync.login(
             pin: any(named: 'pin'),
             isInSignUpProgress: false,
@@ -186,23 +199,25 @@ void main() {
             skipDefaultAppSetup: false,
             userPhone: '1234567890',
           )).called(1);
-      verify(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>()))).called(1);
+      verify(() => mockDatabaseSync.completeLogin(any(that: isA<Pin>())))
+          .called(1);
 
       // Verify no error message is shown
       expect(find.text('Invalid PIN. Please try again.'), findsNothing);
     });
 
-    testWidgets('Failed login shows error message and shakes', (WidgetTester tester) async {
+    testWidgets('Failed login shows error message and shakes',
+        (WidgetTester tester) async {
       when(() => mockDatabaseSync.getPin(
             pinString: 'wrongpin',
             flipperHttpClient: mockFlipperHttpClient,
           )).thenThrow(PinError(term: "Invalid PIN"));
 
-      when(() => mockDatabaseSync.handleLoginError(any(), any()))
-          .thenAnswer((_) async => {'errorMessage': 'Invalid PIN. Please try again.'});
+      when(() => mockDatabaseSync.handleLoginError(any(), any())).thenAnswer(
+          (_) async => {'errorMessage': 'Invalid PIN. Please try again.'});
 
       await tester.pumpWidget(
-         TestApp(
+        TestApp(
           child: PinLogin(),
         ),
       );
@@ -216,9 +231,10 @@ void main() {
       // For now, we'll rely on the error message being present.
     });
 
-    testWidgets('Error message disappears on focus change', (WidgetTester tester) async {
+    testWidgets('Error message disappears on focus change',
+        (WidgetTester tester) async {
       await tester.pumpWidget(
-         TestApp(
+        TestApp(
           child: PinLogin(),
         ),
       );
