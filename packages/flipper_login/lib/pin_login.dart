@@ -103,6 +103,8 @@ class _PinLoginState extends State<PinLogin>
     _shakeController.dispose();
     _pinFocusNode.dispose();
     _otpFocusNode.dispose();
+    _pinController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
@@ -126,6 +128,7 @@ class _PinLoginState extends State<PinLogin>
           if (response['requiresOtp']) {
             setState(() {
               _showOtpField = true;
+              _otpFocusNode.requestFocus();
             });
           } else {
             // Handle login without OTP
@@ -138,6 +141,11 @@ class _PinLoginState extends State<PinLogin>
           _isProcessing = false;
         });
       }
+    } else {
+      // Trigger shake animation on validation failure
+      _shakeController.reset();
+      _shakeController.forward();
+      HapticFeedback.heavyImpact();
     }
   }
 
@@ -170,7 +178,7 @@ class _PinLoginState extends State<PinLogin>
       _hasError = true;
       _errorMessage = errorMessage.isNotEmpty
           ? errorMessage
-          : 'Invalid PIN. Please try again.';
+          : 'Invalid PIN or OTP. Please try again.';
     });
   }
 
@@ -204,54 +212,53 @@ class _PinLoginState extends State<PinLogin>
 
                 // Adjust card padding based on screen size
                 final cardPadding =
-                    screenWidth < 400 ? EdgeInsets.all(24) : EdgeInsets.all(40);
+                    screenWidth < 400 ? EdgeInsets.all(16) : EdgeInsets.all(24);
 
                 return Column(
                   children: [
                     // App bar with back button
                     _buildAppBar(context, isDark, screenHeight),
-
                     Expanded(
                       child: SingleChildScrollView(
                         physics: BouncingScrollPhysics(),
                         padding: contentPadding,
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 100,
+                            minHeight: constraints.maxHeight -
+                                contentPadding.vertical -
+                                60, // Adjust for app bar
                           ),
-                          child: IntrinsicHeight(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                FadeTransition(
-                                  opacity: _fadeAnimation,
-                                  child: SlideTransition(
-                                    position: _slideAnimation,
-                                    child: AnimatedBuilder(
-                                      animation: _shakeAnimation,
-                                      builder: (context, child) {
-                                        return Transform.translate(
-                                          offset: Offset(
-                                            _shakeAnimation.value *
-                                                8 *
-                                                (1 - _shakeAnimation.value),
-                                            0,
-                                          ),
-                                          child: _buildLoginCard(
-                                            context,
-                                            model,
-                                            isDark,
-                                            cardPadding,
-                                            screenWidth,
-                                            screenHeight,
-                                          ),
-                                        );
-                                      },
-                                    ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              FadeTransition(
+                                opacity: _fadeAnimation,
+                                child: SlideTransition(
+                                  position: _slideAnimation,
+                                  child: AnimatedBuilder(
+                                    animation: _shakeAnimation,
+                                    builder: (context, child) {
+                                      return Transform.translate(
+                                        offset: Offset(
+                                          _shakeAnimation.value *
+                                              8 *
+                                              (1 - _shakeAnimation.value),
+                                          0,
+                                        ),
+                                        child: _buildLoginCard(
+                                          context,
+                                          model,
+                                          isDark,
+                                          cardPadding,
+                                          screenWidth,
+                                          screenHeight,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -307,8 +314,8 @@ class _PinLoginState extends State<PinLogin>
         : (screenWidth > 800 ? 400.0 : double.infinity);
 
     final cardMargin = screenWidth < 400
-        ? EdgeInsets.symmetric(horizontal: 12)
-        : EdgeInsets.symmetric(horizontal: 24);
+        ? EdgeInsets.symmetric(horizontal: 8)
+        : EdgeInsets.symmetric(horizontal: 16);
 
     return Container(
       width: cardWidth,
@@ -316,7 +323,7 @@ class _PinLoginState extends State<PinLogin>
       padding: cardPadding,
       decoration: BoxDecoration(
         color: isDark ? Color(0xFF2D2D2D) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? Color(0xFF3a3a3a) : Color(0xFFE5E7EB),
           width: 1,
@@ -326,16 +333,9 @@ class _PinLoginState extends State<PinLogin>
             color: isDark
                 ? Colors.black.withValues(alpha: 0.4)
                 : Colors.black.withValues(alpha: 0.06),
-            blurRadius: 32,
-            offset: Offset(0, 16),
+            blurRadius: 16,
+            offset: Offset(0, 8),
             spreadRadius: -4,
-          ),
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -346,18 +346,21 @@ class _PinLoginState extends State<PinLogin>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildWelcomeSection(isDark, screenHeight),
-            SizedBox(height: screenHeight < 600 ? 24 : 40),
+            SizedBox(height: screenHeight < 600 ? 16 : 24),
             _buildPinField(isDark, screenHeight),
-            if (_showOtpField) _buildOtpField(isDark, screenHeight),
-            if (_hasError) ...[
+            if (_showOtpField) ...[
               SizedBox(height: screenHeight < 600 ? 12 : 16),
+              _buildOtpField(isDark, screenHeight),
+            ],
+            if (_hasError) ...[
+              SizedBox(height: screenHeight < 600 ? 8 : 12),
               _buildErrorMessage(isDark),
             ],
-            SizedBox(height: screenHeight < 600 ? 24 : 40),
-            _buildLoginButton(model, isDark, screenHeight),
             SizedBox(height: screenHeight < 600 ? 16 : 24),
-            _buildHelpText(isDark, screenHeight),
+            _buildLoginButton(model, isDark, screenHeight),
             SizedBox(height: screenHeight < 600 ? 12 : 16),
+            _buildHelpText(isDark, screenHeight),
+            SizedBox(height: screenHeight < 600 ? 8 : 12),
             _buildSecurityNote(isDark, screenHeight),
           ],
         ),
@@ -374,29 +377,29 @@ class _PinLoginState extends State<PinLogin>
         Row(
           children: [
             Container(
-              padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+              padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF4285F4), Color(0xFF34A853)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFF4285F4).withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: Offset(0, 8),
+                    color: Color(0xFF4285F4).withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
               child: Icon(
                 Icons.lock_person_outlined,
                 color: Colors.white,
-                size: isSmallScreen ? 24 : 32,
+                size: isSmallScreen ? 20 : 24,
               ),
             ),
-            SizedBox(width: isSmallScreen ? 12 : 16),
+            SizedBox(width: isSmallScreen ? 8 : 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,7 +407,7 @@ class _PinLoginState extends State<PinLogin>
                   Text(
                     'Secure Access',
                     style: TextStyle(
-                      fontSize: isSmallScreen ? 14 : 16,
+                      fontSize: isSmallScreen ? 13 : 14,
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Color(0xFF374151),
                     ),
@@ -413,7 +416,7 @@ class _PinLoginState extends State<PinLogin>
                   Text(
                     'Your data is protected',
                     style: TextStyle(
-                      fontSize: isSmallScreen ? 12 : 14,
+                      fontSize: isSmallScreen ? 11 : 12,
                       color: isDark ? Colors.white60 : Color(0xFF6B7280),
                     ),
                   ),
@@ -422,25 +425,23 @@ class _PinLoginState extends State<PinLogin>
             ),
           ],
         ),
-        SizedBox(height: isSmallScreen ? 16 : 32),
+        SizedBox(height: isSmallScreen ? 12 : 16),
         Text(
           'Welcome back!',
           style: TextStyle(
-            fontSize: isSmallScreen ? 24 : 32,
+            fontSize: isSmallScreen ? 20 : 24,
             fontWeight: FontWeight.w700,
             color: isDark ? Colors.white : Color(0xFF1a1a1a),
-            letterSpacing: -1,
-            height: 1.1,
+            letterSpacing: -0.5,
           ),
         ),
-        SizedBox(height: isSmallScreen ? 8 : 12),
+        SizedBox(height: isSmallScreen ? 6 : 8),
         Text(
           'Enter your PIN to access your account securely',
           style: TextStyle(
-            fontSize: isSmallScreen ? 14 : 16,
+            fontSize: isSmallScreen ? 12 : 14,
             color: isDark ? Colors.white70 : Color(0xFF6B7280),
             fontWeight: FontWeight.w400,
-            height: 1.5,
           ),
         ),
       ],
@@ -456,126 +457,115 @@ class _PinLoginState extends State<PinLogin>
         Text(
           'PIN',
           style: TextStyle(
-            fontSize: isSmallScreen ? 14 : 15,
+            fontSize: isSmallScreen ? 13 : 14,
             fontWeight: FontWeight.w600,
             color: isDark ? Colors.white : Color(0xFF374151),
           ),
         ),
-        SizedBox(height: isSmallScreen ? 8 : 10),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Color(0xFF000000).withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-            ],
+        SizedBox(height: isSmallScreen ? 6 : 8),
+        TextFormField(
+          controller: _pinController,
+          focusNode: _pinFocusNode,
+          obscureText: _isObscure,
+          keyboardType: TextInputType.number,
+          textInputAction:
+              _showOtpField ? TextInputAction.next : TextInputAction.done,
+          onFieldSubmitted: (_) =>
+              _showOtpField ? _otpFocusNode.requestFocus() : _handleLogin(),
+          style: TextStyle(
+            fontSize: isSmallScreen ? 14 : 15,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : Color(0xFF1a1a1a),
+            letterSpacing: _isObscure ? 3 : 0,
           ),
-          child: TextFormField(
-            controller: _pinController,
-            focusNode: _pinFocusNode,
-            obscureText: _isObscure,
-            keyboardType: TextInputType.number,
-            textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) => _handleLogin(),
-            style: TextStyle(
-              fontSize: isSmallScreen ? 15 : 16,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white : Color(0xFF1a1a1a),
-              letterSpacing: _isObscure ? 4 : 0,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
+            hintText: 'Enter your PIN',
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w400,
             ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
-              hintText: 'Enter your PIN',
-              hintStyle: TextStyle(
-                color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w400,
-                letterSpacing: 0,
+            prefixIcon: Container(
+              margin: EdgeInsets.all(isSmallScreen ? 6 : 8),
+              padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
+              decoration: BoxDecoration(
+                color: Color(0xFF4285F4).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
               ),
-              prefixIcon: Container(
-                margin: EdgeInsets.all(isSmallScreen ? 8 : 12),
-                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
-                decoration: BoxDecoration(
-                  color: Color(0xFF4285F4).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.pin_outlined,
-                  color: Color(0xFF4285F4),
-                  size: isSmallScreen ? 18 : 20,
-                ),
-              ),
-              suffixIcon: Container(
-                margin: EdgeInsets.only(right: isSmallScreen ? 4 : 8),
-                child: IconButton(
-                  icon: Icon(
-                    _isObscure
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: isDark ? Colors.white54 : Color(0xFF6B7280),
-                    size: isSmallScreen ? 20 : 24,
-                  ),
-                  onPressed: _togglePasswordVisibility,
-                ),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _hasError
-                      ? Color(0xFFEF4444)
-                      : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                  width: 1.5,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _hasError
-                      ? Color(0xFFEF4444)
-                      : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
-                  width: 2,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: Color(0xFFEF4444),
-                  width: 2,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: Color(0xFFEF4444),
-                  width: 2,
-                ),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: isSmallScreen ? 16 : 20,
-                vertical: isSmallScreen ? 14 : 18,
+              child: Icon(
+                Icons.pin_outlined,
+                color: Color(0xFF4285F4),
+                size: isSmallScreen ? 16 : 18,
               ),
             ),
-            validator: (text) {
-              if (text == null || text.isEmpty) {
-                return "PIN is required";
-              }
-              if (text.length < 4) {
-                return "PIN must be at least 4 digits";
-              }
-              return null;
-            },
+            suffixIcon: IconButton(
+              icon: Icon(
+                _isObscure
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: isDark ? Colors.white54 : Color(0xFF6B7280),
+                size: isSmallScreen ? 18 : 20,
+              ),
+              onPressed: _togglePasswordVisibility,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _hasError
+                    ? Color(0xFFEF4444)
+                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _hasError
+                    ? Color(0xFFEF4444)
+                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
+                width: 1.5,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 12 : 16,
+              vertical: isSmallScreen ? 12 : 14,
+            ),
+            errorStyle: TextStyle(
+              fontSize: isSmallScreen ? 10 : 11,
+              height: 1.2,
+            ),
           ),
+          validator: (text) {
+            if (text == null || text.isEmpty) {
+              return "PIN is required";
+            }
+            if (text.length < 4) {
+              return "PIN must be at least 4 digits";
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -590,107 +580,98 @@ class _PinLoginState extends State<PinLogin>
         Text(
           'OTP',
           style: TextStyle(
-            fontSize: isSmallScreen ? 14 : 15,
+            fontSize: isSmallScreen ? 13 : 14,
             fontWeight: FontWeight.w600,
             color: isDark ? Colors.white : Color(0xFF374151),
           ),
         ),
-        SizedBox(height: isSmallScreen ? 8 : 10),
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              if (!isDark)
-                BoxShadow(
-                  color: Color(0xFF000000).withValues(alpha: 0.02),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-            ],
+        SizedBox(height: isSmallScreen ? 6 : 8),
+        TextFormField(
+          controller: _otpController,
+          focusNode: _otpFocusNode,
+          keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (_) => _handleLogin(),
+          style: TextStyle(
+            fontSize: isSmallScreen ? 14 : 15,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : Color(0xFF1a1a1a),
           ),
-          child: TextFormField(
-            controller: _otpController,
-            focusNode: _otpFocusNode,
-            keyboardType: TextInputType.number,
-            textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) => _handleLogin(),
-            style: TextStyle(
-              fontSize: isSmallScreen ? 15 : 16,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white : Color(0xFF1a1a1a),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
+            hintText: 'Enter your OTP',
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
+              fontWeight: FontWeight.w400,
             ),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
-              hintText: 'Enter your OTP',
-              hintStyle: TextStyle(
-                color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
-                fontWeight: FontWeight.w400,
+            prefixIcon: Container(
+              margin: EdgeInsets.all(isSmallScreen ? 6 : 8),
+              padding: EdgeInsets.all(isSmallScreen ? 4 : 6),
+              decoration: BoxDecoration(
+                color: Color(0xFF4285F4).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
               ),
-              prefixIcon: Container(
-                margin: EdgeInsets.all(isSmallScreen ? 8 : 12),
-                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
-                decoration: BoxDecoration(
-                  color: Color(0xFF4285F4).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.sms_outlined,
-                  color: Color(0xFF4285F4),
-                  size: isSmallScreen ? 18 : 20,
-                ),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _hasError
-                      ? Color(0xFFEF4444)
-                      : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                  width: 1.5,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _hasError
-                      ? Color(0xFFEF4444)
-                      : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
-                  width: 2,
-                ),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: Color(0xFFEF4444),
-                  width: 2,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: Color(0xFFEF4444),
-                  width: 2,
-                ),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: isSmallScreen ? 16 : 20,
-                vertical: isSmallScreen ? 14 : 18,
+              child: Icon(
+                Icons.sms_outlined,
+                color: Color(0xFF4285F4),
+                size: isSmallScreen ? 16 : 18,
               ),
             ),
-            validator: (text) {
-              if (text == null || text.isEmpty) {
-                return "OTP is required";
-              }
-              return null;
-            },
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _hasError
+                    ? Color(0xFFEF4444)
+                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _hasError
+                    ? Color(0xFFEF4444)
+                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
+                width: 1.5,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
+            ),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 12 : 16,
+              vertical: isSmallScreen ? 12 : 14,
+            ),
+            errorStyle: TextStyle(
+              fontSize: isSmallScreen ? 10 : 11,
+              height: 1.2,
+            ),
           ),
+          validator: (text) {
+            if (text == null || text.isEmpty) {
+              return "OTP is required";
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -698,9 +679,9 @@ class _PinLoginState extends State<PinLogin>
 
   Widget _buildErrorMessage(bool isDark) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Color(0xFFEF4444).withValues(alpha: 0.1),
+        color: Color(0xFFEF4444).withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -708,15 +689,15 @@ class _PinLoginState extends State<PinLogin>
           Icon(
             Icons.error_outline,
             color: Color(0xFFEF4444),
-            size: 18,
+            size: 16,
           ),
-          SizedBox(width: 8),
+          SizedBox(width: 6),
           Expanded(
             child: Text(
               _errorMessage,
               style: TextStyle(
                 color: Color(0xFFEF4444),
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -732,9 +713,9 @@ class _PinLoginState extends State<PinLogin>
 
     return Container(
       width: double.infinity,
-      height: isSmallScreen ? 48 : 54,
+      height: isSmallScreen ? 44 : 48,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         gradient: LinearGradient(
           colors: [Color(0xFF4285F4), Color(0xFF1976D2)],
           begin: Alignment.topLeft,
@@ -742,9 +723,9 @@ class _PinLoginState extends State<PinLogin>
         ),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF4285F4).withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: Offset(0, 8),
+            color: Color(0xFF4285F4).withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -752,28 +733,28 @@ class _PinLoginState extends State<PinLogin>
         color: Colors.transparent,
         child: InkWell(
           onTap: _isProcessing ? null : _handleLogin,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16),
+            padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
             child: _isProcessing
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        height: isSmallScreen ? 16 : 20,
-                        width: isSmallScreen ? 16 : 20,
+                        height: isSmallScreen ? 14 : 16,
+                        width: isSmallScreen ? 14 : 16,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor:
                               AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       ),
-                      SizedBox(width: isSmallScreen ? 8 : 12),
+                      SizedBox(width: isSmallScreen ? 6 : 8),
                       Text(
                         'Signing in...',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: isSmallScreen ? 14 : 16,
+                          fontSize: isSmallScreen ? 13 : 14,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
                         ),
@@ -786,15 +767,15 @@ class _PinLoginState extends State<PinLogin>
                       Icon(
                         Icons.lock_open_outlined,
                         color: Colors.white,
-                        size: isSmallScreen ? 18 : 20,
+                        size: isSmallScreen ? 16 : 18,
                       ),
-                      SizedBox(width: isSmallScreen ? 6 : 8),
+                      SizedBox(width: isSmallScreen ? 4 : 6),
                       Text(
                         'Sign In',
                         key: Key('signInButtonText'),
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: isSmallScreen ? 14 : 16,
+                          fontSize: isSmallScreen ? 13 : 14,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
                         ),
@@ -819,14 +800,14 @@ class _PinLoginState extends State<PinLogin>
           },
           icon: Icon(
             Icons.help_outline,
-            size: isSmallScreen ? 16 : 18,
+            size: isSmallScreen ? 14 : 16,
             color: Color(0xFF4285F4),
           ),
           label: Text(
             'Forgot PIN?',
             style: TextStyle(
               color: Color(0xFF4285F4),
-              fontSize: isSmallScreen ? 12 : 14,
+              fontSize: isSmallScreen ? 11 : 12,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -837,14 +818,14 @@ class _PinLoginState extends State<PinLogin>
           },
           icon: Icon(
             Icons.support_agent_outlined,
-            size: isSmallScreen ? 16 : 18,
+            size: isSmallScreen ? 14 : 16,
             color: isDark ? Colors.white60 : Color(0xFF6B7280),
           ),
           label: Text(
             'Need help?',
             style: TextStyle(
               color: isDark ? Colors.white60 : Color(0xFF6B7280),
-              fontSize: isSmallScreen ? 12 : 14,
+              fontSize: isSmallScreen ? 11 : 12,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -857,12 +838,12 @@ class _PinLoginState extends State<PinLogin>
     final isSmallScreen = screenHeight < 600;
 
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+      padding: EdgeInsets.all(isSmallScreen ? 8 : 12),
       decoration: BoxDecoration(
         color: isDark
-            ? Color(0xFF1a4d3a).withValues(alpha: 0.3)
+            ? Color(0xFF10B981).withValues(alpha: 0.2)
             : Color(0xFF10B981).withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isDark
               ? Color(0xFF10B981).withValues(alpha: 0.3)
@@ -874,15 +855,15 @@ class _PinLoginState extends State<PinLogin>
           Icon(
             Icons.verified_user_outlined,
             color: Color(0xFF10B981),
-            size: isSmallScreen ? 18 : 20,
+            size: isSmallScreen ? 16 : 18,
           ),
-          SizedBox(width: isSmallScreen ? 8 : 12),
+          SizedBox(width: isSmallScreen ? 6 : 8),
           Expanded(
             child: Text(
-              'Your PIN is encrypted and stored securely. We never share your data.',
+              'Your PIN is encrypted and stored securely.',
               style: TextStyle(
                 color: isDark ? Colors.white70 : Color(0xFF065F46),
-                fontSize: isSmallScreen ? 12 : 13,
+                fontSize: isSmallScreen ? 11 : 12,
                 fontWeight: FontWeight.w500,
               ),
             ),

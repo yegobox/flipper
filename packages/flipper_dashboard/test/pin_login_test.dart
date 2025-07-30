@@ -310,7 +310,7 @@ void main() {
           });
 
       // Mock the verifyOtpAndLogin call
-      when(() => mockDatabaseSync.verifyOtpAndLogin(any(), pin: any()))
+      when(() => mockDatabaseSync.verifyOtpAndLogin(any(), pin: any(named: 'pin')))
           .thenAnswer((_) async => MockUser());
 
       await tester.pumpWidget(
