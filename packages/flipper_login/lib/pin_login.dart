@@ -142,7 +142,6 @@ class _PinLoginState extends State<PinLogin>
         });
       }
     } else {
-      // Trigger shake animation on validation failure
       _shakeController.reset();
       _shakeController.forward();
       HapticFeedback.heavyImpact();
@@ -205,18 +204,15 @@ class _PinLoginState extends State<PinLogin>
           body: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                // Adjust padding based on screen size
                 final contentPadding = screenHeight < 600
                     ? EdgeInsets.symmetric(horizontal: 16, vertical: 8)
                     : EdgeInsets.symmetric(horizontal: 24, vertical: 16);
 
-                // Adjust card padding based on screen size
                 final cardPadding =
                     screenWidth < 400 ? EdgeInsets.all(16) : EdgeInsets.all(24);
 
                 return Column(
                   children: [
-                    // App bar with back button
                     _buildAppBar(context, isDark, screenHeight),
                     Expanded(
                       child: SingleChildScrollView(
@@ -226,7 +222,7 @@ class _PinLoginState extends State<PinLogin>
                           constraints: BoxConstraints(
                             minHeight: constraints.maxHeight -
                                 contentPadding.vertical -
-                                60, // Adjust for app bar
+                                60,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -308,7 +304,6 @@ class _PinLoginState extends State<PinLogin>
     double screenWidth,
     double screenHeight,
   ) {
-    // Adjust card width and margins based on screen size
     final cardWidth = screenWidth > 1200
         ? 480.0
         : (screenWidth > 800 ? 400.0 : double.infinity);
@@ -464,6 +459,7 @@ class _PinLoginState extends State<PinLogin>
         ),
         SizedBox(height: isSmallScreen ? 6 : 8),
         TextFormField(
+          key: Key('pinField'), // Added for testability
           controller: _pinController,
           focusNode: _pinFocusNode,
           obscureText: _isObscure,
@@ -587,6 +583,7 @@ class _PinLoginState extends State<PinLogin>
         ),
         SizedBox(height: isSmallScreen ? 6 : 8),
         TextFormField(
+          key: Key('otpField'), // Added key for testability
           controller: _otpController,
           focusNode: _otpFocusNode,
           keyboardType: TextInputType.number,
@@ -681,7 +678,7 @@ class _PinLoginState extends State<PinLogin>
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Color(0xFFEF4444).withOpacity(0.1),
+        color: Color(0xFFEF4444).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

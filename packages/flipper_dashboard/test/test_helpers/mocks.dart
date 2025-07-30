@@ -32,6 +32,8 @@ class MockDatabaseSync extends Mock implements DatabaseSyncInterface {
 
   @override
   Future<void> completeLogin(Pin thePin) => Future.value();
+
+  
 }
 
 class MockBox extends Mock implements LocalStorage {}
