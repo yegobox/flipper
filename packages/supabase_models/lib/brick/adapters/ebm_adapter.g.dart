@@ -17,6 +17,7 @@ Future<Ebm> _$EbmFromSupabase(
     branchId: data['branch_id'] as int,
     vatEnabled:
         data['vat_enabled'] == null ? null : data['vat_enabled'] as bool?,
+    mrc: data['mrc'] as String,
   );
 }
 
@@ -35,6 +36,7 @@ Future<Map<String, dynamic>> _$EbmToSupabase(
     'business_id': instance.businessId,
     'branch_id': instance.branchId,
     'vat_enabled': instance.vatEnabled,
+    'mrc': instance.mrc,
   };
 }
 
@@ -53,6 +55,7 @@ Future<Ebm> _$EbmFromSqlite(
     businessId: data['business_id'] as int,
     branchId: data['branch_id'] as int,
     vatEnabled: data['vat_enabled'] == null ? null : data['vat_enabled'] == 1,
+    mrc: data['mrc'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -72,6 +75,7 @@ Future<Map<String, dynamic>> _$EbmToSqlite(
     'branch_id': instance.branchId,
     'vat_enabled':
         instance.vatEnabled == null ? null : (instance.vatEnabled! ? 1 : 0),
+    'mrc': instance.mrc,
   };
 }
 
@@ -120,6 +124,10 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'vatEnabled': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'vat_enabled',
+    ),
+    'mrc': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'mrc',
     ),
   };
   @override
@@ -187,6 +195,12 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       columnName: 'vat_enabled',
       iterable: false,
       type: bool,
+    ),
+    'mrc': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'mrc',
+      iterable: false,
+      type: String,
     ),
   };
   @override

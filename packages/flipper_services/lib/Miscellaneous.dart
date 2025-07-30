@@ -23,7 +23,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
   Future<bool> isServerUp() async {
     try {
       final url =
-          await ProxyService.box.getServerUrl() ?? "https://example.com";
+          await ProxyService.box.getServerUrl() ?? "https://turbo.yegobox.com/";
       final response = await http.get(Uri.parse(url));
       return response.statusCode ==
           200; // changed from 404 because 200 is typical for a server being up

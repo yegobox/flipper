@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:flipper_dashboard/IncomingOrders.dart' hide OrderStatusSelector;
+import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
 import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
@@ -251,7 +251,6 @@ class CheckOutState extends ConsumerState<CheckOut>
       receivedAmountController: receivedAmountController,
       customerPhoneNumberController: customerPhoneNumberController,
       paymentTypeController: paymentTypeController,
-      customerNameController: customerNameController,
     );
   }
 
@@ -296,10 +295,10 @@ class CheckOutState extends ConsumerState<CheckOut>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: true);
 
-    if (customerNameController.text.isEmpty) {
-      ProxyService.box.remove(key: 'customerName');
-      ProxyService.box.remove(key: 'getRefundReason');
-    }
+    // if (customerNameController.text.isEmpty) {
+    //   ProxyService.box.remove(key: 'customerName');
+    //   ProxyService.box.remove(key: 'getRefundReason');
+    // }
     if (discountController.text.isEmpty) {
       ProxyService.box.remove(key: 'discountRate');
     }

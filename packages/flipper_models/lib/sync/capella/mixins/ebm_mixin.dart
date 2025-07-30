@@ -20,6 +20,7 @@ mixin CapellaEbmMixin implements EbmInterface {
 
   @override
   Future<void> saveEbm({
+    required String mrc,
     required int branchId,
     required String severUrl,
     required String bhFId,

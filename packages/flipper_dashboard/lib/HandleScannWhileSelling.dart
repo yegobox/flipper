@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -181,22 +182,23 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
         // Show a loading indicator to provide feedback to the user
         if (mounted) {
+          talker.info("Adding item to cart..");
           // showCustomSnackBar(context, );
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              margin: const EdgeInsets.only(
-                left: 350.0,
-                right: 350.0,
-                bottom: 20.0,
-              ),
-              content: Text('Adding item to cart..'),
-              backgroundColor: Colors.black,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(
+          //     margin: const EdgeInsets.only(
+          //       left: 350.0,
+          //       right: 350.0,
+          //       bottom: 20.0,
+          //     ),
+          //     content: Text('Adding item to cart..'),
+          //     backgroundColor: Colors.black,
+          //     behavior: SnackBarBehavior.floating,
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(8),
+          //     ),
+          //   ),
+          // );
         }
 
         // STEP 1: Save the transaction item directly using the strategy
@@ -224,33 +226,24 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
         ref.refresh(
             transactionItemsStreamProvider(transactionId: transactionId));
 
-        // STEP 4: Use a global notification to force UI updates
-        // ProxyService.strategy.notify(
-        //   notification: AppNotification(
-        //     identifier: ProxyService.box.getBranchId(),
-        //     type: "transaction_update",
-        //     completed: true,
-        //     message: "Transaction item added: ${variant.name}",
-        //   ),
-        // );
-
         // STEP 5: Show a success message
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              margin: const EdgeInsets.only(
-                left: 350.0,
-                right: 350.0,
-                bottom: 20.0,
-              ),
-              content: Text('Added ${variant.name} to cart'),
-              backgroundColor: Colors.black,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
+          talker.info("Added ${variant.name} to cart");
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(
+          //     margin: const EdgeInsets.only(
+          //       left: 350.0,
+          //       right: 350.0,
+          //       bottom: 20.0,
+          //     ),
+          //     content: Text('Added ${variant.name} to cart'),
+          //     backgroundColor: Colors.black,
+          //     behavior: SnackBarBehavior.floating,
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(8),
+          //     ),
+          //   ),
+          // );
         }
       } else {
         // Handle case where there's no pending transaction

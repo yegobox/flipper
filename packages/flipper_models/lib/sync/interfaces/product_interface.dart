@@ -17,7 +17,7 @@ abstract class ProductInterface {
   Stream<List<Product>> productStreams({String? prodIndex});
   Future<double> totalStock({String? productId, String? variantId});
   Stream<double> wholeStockValue({required int branchId});
-  FutureOr<String> itemCode({
+  Future<String> itemCode({
     required int branchId,
     required String countryCode, // e.g., "RW"
     required String productType, // e.g., "2"

@@ -155,7 +155,6 @@ class SettingViewModel extends CoreViewModel {
   set isProformaModeEnabled(bool value) {
     if (!ProxyService.box.isTrainingMode()) {
       ProxyService.box.writeBool(key: 'isProformaMode', value: value);
-      notifyListeners();
     }
   }
 
@@ -175,7 +174,7 @@ class SettingViewModel extends CoreViewModel {
   set isTrainingModeEnabled(bool value) {
     if (!ProxyService.box.isProformaMode()) {
       ProxyService.box.writeBool(key: 'isTrainingMode', value: value);
-      notifyListeners();
+      // Notify appModeProvider about the change
     }
   }
 

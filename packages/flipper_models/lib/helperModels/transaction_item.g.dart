@@ -62,6 +62,7 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
           TransactionItem._dateTimeFromJson(json['lastTouched'] as String?),
       deletedAt:
           TransactionItem._dateTimeFromJson(json['deletedAt'] as String?),
+      supplyPriceAtSale: (json['supplyPriceAtSale'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
@@ -114,6 +115,7 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'regrNm': instance.regrNm,
       'modrId': instance.modrId,
       'modrNm': instance.modrNm,
+      'supplyPriceAtSale': instance.supplyPriceAtSale,
       'lastTouched': TransactionItem._dateTimeToJson(instance.lastTouched),
       'deletedAt': TransactionItem._dateTimeToJson(instance.deletedAt),
       'action': instance.action,

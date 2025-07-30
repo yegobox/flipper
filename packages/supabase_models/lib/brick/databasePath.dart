@@ -1,6 +1,7 @@
 // ignore: file_names
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart'
     if (dart.library.io) 'package:path_provider/path_provider.dart'; // Conditional import
@@ -13,26 +14,29 @@ mixin DatabasePath {
       if (!await testDir.exists()) {
         await testDir.create(recursive: true);
       }
-      return '.db';
+      return testDir.path;
     }
 
     String dbPath;
+
     if (Platform.isAndroid) {
-      // Use the dedicated databases directory on Android
       dbPath = await getDatabasesPath();
     } else {
-      // For all desktop platforms (Windows, macOS, Linux) and iOS
-      final appDir = await getApplicationDocumentsDirectory();
-      dbPath = join(appDir.path, 'Flipper');
+      // iOS, macOS, Windows, Linux
+      final supportDir = await getApplicationDocumentsDirectory();
+      if (Platform.isMacOS || Platform.isIOS) {
+        dbPath = supportDir.path;
+      } else {
+        dbPath = join(supportDir.path, 'rw.flipper');
+      }
     }
-
-    // Ensure the directory exists
+    debugPrint('Database path: $dbPath');
     final dbDir = Directory(dbPath);
     if (!await dbDir.exists()) {
       await dbDir.create(recursive: true);
     }
 
-    return dbPath;
+    return dbDir.path;
   }
 
   static bool isTestEnvironment() {

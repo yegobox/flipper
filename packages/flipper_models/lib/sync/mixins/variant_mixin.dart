@@ -51,34 +51,29 @@ mixin VariantMixin implements VariantInterface {
       ];
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
-      if (taxTyCds != null && taxTyCds.isNotEmpty) {
+      if (taxTyCds != null &&
+          taxTyCds.isNotEmpty &&
+          (name != null && name.isNotEmpty)) {
         conditions.add(Where('taxTyCd').isIn(taxTyCds));
       }
 
       if (forImportScreen) {
-        conditions.add(WherePhrase([
+        conditions.addAll([
           Where('imptItemSttsCd').isExactly("2"),
           Or('imptItemSttsCd').isExactly("3"),
           Or('imptItemSttsCd').isExactly("4"),
           Or('dclDe').isNot(null),
-        ]));
+        ]);
       } else if (forPurchaseScreen) {
-        conditions.add(Where('pchsSttsCd').isIn(["01", "02", "04"]));
+        conditions.add(Where('pchsSttsCd').isIn(["01", "02", "04", "03"]));
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
         if (scanMode) {
           conditions.add(Where('bcd').isExactly(name));
         } else {
-          conditions.add(
-            WherePhrase([
-              Where('name').contains(name),
-              Or('bcd').isExactly(name),
-            ]),
-          );
+          conditions.add(Where('name').contains(name));
         }
-      } else if (bcd != null) {
-        conditions.add(Where('bcd').isExactly(bcd));
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
       } else if (purchaseId != null) {
@@ -342,79 +337,95 @@ mixin VariantMixin implements VariantInterface {
       }
       return;
     }
-    Category? category =
-        await ProxyService.strategy.category(id: categoryId ?? "");
-    // loop through all variants and update all with retailPrice and supplyPrice
+    try {
+      Category? category =
+          await ProxyService.strategy.category(id: categoryId ?? "");
+      // loop through all variants and update all with retailPrice and supplyPrice
 
-    for (var i = 0; i < updatables.length; i++) {
-      final name = (productName ?? updatables[i].productName)!;
-      updatables[i].productName = name;
-      if (updatables[i].stock == null) {
-        await addStockToVariant(variant: updatables[i]);
+      for (var i = 0; i < updatables.length; i++) {
+        final name = (productName ?? updatables[i].productName)!;
+        updatables[i].productName = name;
+        if (updatables[i].stock == null) {
+          await addStockToVariant(variant: updatables[i]);
+        }
+
+        updatables[i].name = name;
+        updatables[i].categoryId = category?.id ?? updatables[i].categoryId;
+        updatables[i].categoryName =
+            category?.name ?? updatables[i].categoryName;
+        updatables[i].itemStdNm = name;
+        updatables[i].spplrItemNm = name;
+        updatables[i].prc =
+            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        updatables[i].dftPrc =
+            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        if (color != null) {
+          updatables[i].color = color;
+        }
+        updatables[i].bhfId = updatables[i].bhfId ?? "00";
+        updatables[i].itemNm = name;
+        updatables[i].expirationDate = expirationDate;
+        if (dcRt != null) {
+          updatables[i].dcRt = dcRt;
+        }
+        updatables[i].ebmSynced = ebmSynced ?? false;
+        updatables[i].retailPrice =
+            newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
+        if (selectedProductType != null) {
+          updatables[i].itemTyCd = selectedProductType;
+        }
+
+        updatables[i].expirationDate = dates?[updatables[i].id] == null
+            ? null
+            : DateTime.tryParse(dates![updatables[i].id]!);
+
+        if (retailPrice != null) {
+          updatables[i].retailPrice = retailPrice;
+        }
+        if (supplyPrice != 0 && supplyPrice != null) {
+          updatables[i].supplyPrice = supplyPrice;
+        }
+
+        updatables[i].lastTouched = DateTime.now().toUtc();
+        updatables[i].qty =
+            (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
+
+        await CacheManager().saveStocks([updatables[i].stock!]);
+        final updated = await repository.upsert<Variant>(updatables[i]);
+
+        /// still experimenting bellow.
+        if (updateIo == true) {
+          await updateIoFunc(
+              variant: updated,
+              purchase: purchase,
+              approvedQty: approvedQty?.toDouble());
+        }
       }
-
-      updatables[i].name = name;
-      updatables[i].categoryId = category?.id ?? updatables[i].categoryId;
-      updatables[i].categoryName = category?.name ?? updatables[i].categoryName;
-      updatables[i].itemStdNm = name;
-      updatables[i].spplrItemNm = name;
-      updatables[i].prc =
-          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      updatables[i].dftPrc =
-          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      if (color != null) {
-        updatables[i].color = color;
-      }
-      updatables[i].bhfId = updatables[i].bhfId ?? "00";
-      updatables[i].itemNm = name;
-      updatables[i].expirationDate = expirationDate;
-      if (dcRt != null) {
-        updatables[i].dcRt = dcRt;
-      }
-      updatables[i].ebmSynced = ebmSynced ?? false;
-      updatables[i].retailPrice =
-          newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
-      if (selectedProductType != null) {
-        updatables[i].itemTyCd = selectedProductType;
-      }
-
-      updatables[i].expirationDate = dates?[updatables[i].id] == null
-          ? null
-          : DateTime.tryParse(dates![updatables[i].id]!);
-
-      if (retailPrice != null) {
-        updatables[i].retailPrice = retailPrice;
-      }
-      if (supplyPrice != 0 && supplyPrice != null) {
-        updatables[i].supplyPrice = supplyPrice;
-      }
-
-      updatables[i].lastTouched = DateTime.now().toUtc();
-      updatables[i].qty =
-          (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
-
-      await CacheManager().saveStocks([updatables[i].stock!]);
-      final updated = await repository.upsert<Variant>(updatables[i]);
-
-      final ebmSyncService = TurboTaxService(repository);
-
-      /// still experimenting bellow.
-      if (updatables[i].assigned == false && updateIo == true) {
-        // get sar
-        final sar = await ProxyService.strategy
-            .getSar(branchId: ProxyService.box.getBranchId()!);
-        await ebmSyncService.stockIo(
-          approvedQty: approvedQty,
-          invoiceNumber: invoiceNumber?.toInt() ?? sar?.sarNo ?? 1,
-          variant: updated,
-          purchase: purchase,
-          serverUrl: (await ProxyService.box.getServerUrl())!,
-        );
-        // increament sar and save
-        sar!.sarNo = sar.sarNo + 1;
-        await repository.upsert<Sar>(sar);
-      }
+    } catch (e, stackTrace) {
+      talker.error('Error updating variant', e, stackTrace);
+      rethrow;
     }
+  }
+
+  @override
+  Future<void> updateIoFunc(
+      {required Variant variant,
+      Purchase? purchase,
+      double? approvedQty}) async {
+    final ebmSyncService = TurboTaxService(repository);
+
+    final sar = await ProxyService.strategy
+        .getSar(branchId: ProxyService.box.getBranchId()!);
+    await ebmSyncService.stockIo(
+      approvedQty: approvedQty,
+      invoiceNumber: sar?.sarNo ?? 1,
+      variant: variant,
+      purchase: purchase,
+      serverUrl: (await ProxyService.box.getServerUrl())!,
+    );
+    // increament sar and save
+    sar!.sarNo = sar.sarNo + 1;
+    await repository.upsert<Sar>(sar);
   }
 
   @override

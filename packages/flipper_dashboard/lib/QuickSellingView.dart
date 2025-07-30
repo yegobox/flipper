@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 import 'dart:async';
-import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -24,13 +23,14 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 
+import 'package:flipper_dashboard/providers/customer_provider.dart';
+
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController discountController;
   final TextEditingController deliveryNoteCotroller;
   final TextEditingController receivedAmountController;
   final TextEditingController customerPhoneNumberController;
-  final TextEditingController customerNameController;
   final TextEditingController paymentTypeController;
   final TextEditingController countryCodeController;
 
@@ -41,7 +41,6 @@ class QuickSellingView extends StatefulHookConsumerWidget {
     required this.receivedAmountController,
     required this.deliveryNoteCotroller,
     required this.customerPhoneNumberController,
-    required this.customerNameController,
     required this.paymentTypeController,
     required this.countryCodeController,
   }) : super(key: key);
@@ -154,21 +153,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false));
 
-    Future.microtask(() {
-      ref.refresh(pendingTransactionStreamProvider(
-          isExpense: ProxyService.box.isOrdering() ?? false));
-    });
-
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           if (transactionAsyncValue.hasValue &&
               transactionAsyncValue.value != null) {
             final transactionId = transactionAsyncValue.value!.id;
-            Future.microtask(() {
-              ref.refresh(
-                  transactionItemsStreamProvider(transactionId: transactionId));
-            });
             final transactionItemsAsync = ref.watch(
                 transactionItemsStreamProvider(transactionId: transactionId));
             internalTransactionItems = transactionItemsAsync.value ?? [];
@@ -203,7 +193,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
         // Items Section
         SliverToBoxAdapter(
-          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined),
+          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined,
+              key: Key('items-section')),
         ),
 
         _buildItemsList(transactionAsyncValue),
@@ -212,9 +203,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         if (!isOrdering) ...[
           SliverToBoxAdapter(
             child: _buildSectionHeader('Customer', Icons.person_outline),
-          ),
-          SliverToBoxAdapter(
-            child: _buildCustomerSection(),
           ),
           SliverToBoxAdapter(
             child: _buildSectionHeader('Payment', Icons.payment_outlined),
@@ -307,19 +295,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, IconData icon, {Key? key}) {
     return Container(
+      key: key, // Add this
       padding: EdgeInsets.fromLTRB(16, 24, 16, 12),
       child: Row(
         children: [
           Icon(
             icon,
+            key: Key('${title.toLowerCase()}-section-icon'), // Add key to icon
             size: 20,
             color: Theme.of(context).colorScheme.primary,
           ),
           SizedBox(width: 8),
           Text(
             title,
+            key: Key('${title.toLowerCase()}-section-text'), // Add key to text
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary,
@@ -367,6 +358,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildModernItemCard(
       TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
     return Container(
+      key: Key('item-card-${item.id}'), // Add a key to the item card
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -399,6 +391,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                 ),
                 IconButton(
+                  key: Key('delete-item-${item.id}'), // Add this key
                   icon: Icon(Icons.delete_outline, size: 20),
                   onPressed: () =>
                       _showDeleteConfirmation(item, transactionAsyncValue),
@@ -456,6 +449,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
+                        key: Key('quantity-remove-${item.id}'),
                         icon: Icon(Icons.remove, size: 16),
                         onPressed: item.qty > 1
                             ? () => _updateQuantity(item,
@@ -476,9 +470,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         ),
                       ),
                       IconButton(
+                        key: Key('quantity-add-${item.id}'),
                         icon: Icon(Icons.add, size: 16),
-                        onPressed: () => _updateQuantity(item,
-                            (item.qty + 1).toInt(), transactionAsyncValue),
+                        onPressed: () {
+                          _updateQuantity(item, (item.qty + 1).toInt(),
+                              transactionAsyncValue);
+                        },
                         style: IconButton.styleFrom(
                           minimumSize: Size(32, 32),
                         ),
@@ -526,27 +523,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildCustomerSection() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Column(
-        children: [
-          _customerNameField(),
-          SizedBox(height: 16),
-          _buildCustomerPhoneField(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildPaymentSection(AsyncValue<ITransaction> transactionAsyncValue) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -559,12 +535,93 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildReceivedAmountField(
-              transactionId: transactionAsyncValue.value?.id ?? ""),
+          // Customer Phone Number Field
+          Text(
+            'Customer Phone number',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          SizedBox(height: 8),
+
+          // Payment Methods Header
+          Text(
+            'Payment Methods',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
+          ),
           SizedBox(height: 16),
-          _buildPaymentMethodField(
-              transactionId: transactionAsyncValue.value?.id ?? ""),
+
+          // Payment Methods List
+          if (ref.read(paymentMethodsProvider).isNotEmpty)
+            Column(
+              children: [
+                // Header Row
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        'Payment Method',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        'Amount',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+
+                // Payment Method Rows
+                for (int i = 0;
+                    i < ref.read(paymentMethodsProvider).length;
+                    i++)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: _buildPaymentMethodRow(i,
+                        transactionId: transactionAsyncValue.value?.id ?? ""),
+                  ),
+              ],
+            ),
+
+          // Add Payment Method Button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _addPaymentMethod(
+                  transactionId: transactionAsyncValue.value?.id ?? ""),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Payment Method'),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -810,13 +867,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildSharedView(AsyncValue<ITransaction> transactionAsyncValue,
       bool isSmallDevice, bool isOrdering) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return SingleChildScrollView(
+        child: Padding(
+      padding: const EdgeInsets.all(2.0),
       child: Column(
         children: [
-          buildTransactionItemsTable(isOrdering),
           SizedBox(height: 20),
-          _buildTotalRow(),
+          buildTransactionItemsTable(isOrdering),
           SizedBox(height: 20),
           if (!isOrdering)
             _buildForm(isOrdering,
@@ -838,19 +895,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           _buildFooter(transactionAsyncValue),
         ],
       ),
-    );
-  }
-
-  Widget _buildTotalRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Text(
-          'Grand Total: ${grandTotal.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
+    ));
   }
 
   Widget _buildForm(bool isOrdering, {required String transactionId}) {
@@ -858,43 +903,39 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       key: widget.formKey,
       child: Column(
         children: [
-          Row(
-            children: [
-              if (!isOrdering) ...[
+          // Customer Information Section (only shown when not ordering)
+          if (!isOrdering) ...[
+            _buildReceivedAmountField(transactionId: transactionId),
+            const SizedBox(height: 6.0),
+            _customerNameField(),
+            const SizedBox(height: 6.0),
+          ],
+          IntrinsicWidth(
+            child: Row(
+              children: [
+                const SizedBox(height: 6.0),
                 Expanded(
-                    child: _buildReceivedAmountField(
-                        transactionId: transactionId)),
+                    child: SizedBox(
+                        width: 850, child: _buildCustomerPhoneField())),
               ],
-            ],
+            ),
           ),
-          SizedBox(height: 6.0),
-          Row(
-            children: [
-              if (!isOrdering) Expanded(child: _customerNameField()),
-            ],
-          ),
-          SizedBox(height: 6.0),
-          Row(
-            children: [
-              CountryCodePicker(
-                onChanged: (countryCode) {
-                  widget.countryCodeController.text = countryCode.dialCode!;
-                },
-                initialSelection: 'RW',
-                favorite: ['+250', 'RW'],
-                showCountryOnly: false,
-                showOnlyCountryWhenClosed: false,
-                alignLeft: false,
-              ),
-              if (!isOrdering) Expanded(child: _buildCustomerPhoneField()),
-              SizedBox(width: 16.0),
-              Expanded(
-                  child:
-                      _buildPaymentMethodField(transactionId: transactionId)),
-            ],
-          ),
+          const SizedBox(height: 6.0),
+          _buildPaymentRow(isOrdering, transactionId),
         ],
       ),
+    );
+  }
+
+// Payment row with country code, phone field, and payment method
+  Widget _buildPaymentRow(bool isOrdering, String transactionId) {
+    return Row(
+      children: [
+        // Payment Method Field
+        Expanded(
+          child: _buildPaymentMethodField(transactionId: transactionId),
+        ),
+      ],
     );
   }
 
@@ -969,13 +1010,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildReceivedAmountField({required String transactionId}) {
     return StyledTextFormField.create(
         context: context,
-        labelText: 'Received Amount',
+        labelText: null,
         hintText: 'Received Amount',
         controller: widget.receivedAmountController,
         keyboardType: TextInputType.number,
-        maxLines: 3,
+        maxLines: 1,
         minLines: 1,
-        suffixIcon: Icon(FeatherIcons.dollarSign, color: Colors.blue),
+        key: const Key('received-amount-field'), // Add this line
+        suffixIcon: Text(ProxyService.box.defaultCurrency(),
+            style: const TextStyle(color: Colors.blue)),
         onChanged: (value) => setState(() {
               final receivedAmount = double.tryParse(value);
               ProxyService.box.writeDouble(
@@ -1020,15 +1063,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _customerNameField() {
+    final customerNameController = ref.watch(customerNameControllerProvider);
     return StyledTextFormField.create(
       context: context,
       labelText: 'Customer  Name',
       hintText: 'Customer  Name',
-      controller: widget.customerNameController,
+      controller: customerNameController,
       keyboardType: TextInputType.text,
       maxLines: 3,
       minLines: 1,
       suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
+      validator: (String? value) {
+        if (value == null || value.isEmpty) {
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          return 'Please enter customer name';
+        }
+        return null;
+      },
       onChanged: (value) {
         // Store the customer name with the exact key expected by rw_tax.dart
         ProxyService.box.writeString(key: 'customerName', value: value);
@@ -1040,165 +1091,479 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildCustomerPhoneField() {
-    return StyledTextFormField.create(
-      context: context,
-      labelText: 'Customer Phone number',
-      hintText: 'Customer Phone number',
-      controller: widget.customerPhoneNumberController,
-      keyboardType: TextInputType.number,
-      maxLines: 3,
-      minLines: 1,
-      suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
-      onChanged: (value) {
-        ProxyService.box
-            .writeString(key: 'currentSaleCustomerPhoneNumber', value: value);
-        // Only update customerTin if it's not already set
-        if (ProxyService.box.customerTin() == null) {
-          ProxyService.box.writeString(key: 'customerTin', value: value);
-        }
-      },
-      validator: (String? value) {
-        final customerTin = ProxyService.box.customerTin();
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+        ),
+        borderRadius: BorderRadius.circular(6),
+        color: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
+      ),
+      child: Row(
+        children: [
+          // Country code picker with consistent padding and height
+          Container(
+            height: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(6),
+                bottomLeft: Radius.circular(6),
+              ),
+            ),
+            child: Center(
+              child: CountryCodePicker(
+                onChanged: (countryCode) {
+                  widget.countryCodeController.text = countryCode.dialCode!;
+                },
+                initialSelection: 'RW',
+                favorite: ['+250', 'RW'],
+                showCountryOnly: false,
+                showOnlyCountryWhenClosed: false,
+                alignLeft: false,
+                padding: EdgeInsets.zero,
+                textStyle: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
 
-        // If customer TIN is not set, phone number becomes mandatory
-        if ((customerTin == null || customerTin.isEmpty) &&
-            (value == null || value.isEmpty)) {
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Phone number is required when customer TIN is not available';
-        }
+          // No divider — we make it feel seamless
+          Expanded(
+            child: StyledTextFormField.create(
+              context: context,
+              labelText: null,
+              hintText: 'Phone number',
+              controller: widget.customerPhoneNumberController,
+              keyboardType: TextInputType.number,
+              maxLines: 1,
+              minLines: 1,
+              suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
+              onChanged: (value) {
+                ProxyService.box.writeString(
+                  key: 'currentSaleCustomerPhoneNumber',
+                  value: value,
+                );
+                if (ProxyService.box.customerTin() == null) {
+                  ProxyService.box
+                      .writeString(key: 'customerTin', value: value);
+                }
+              },
+              validator: (String? value) {
+                final customerTin = ProxyService.box.customerTin();
 
-        // If phone number is provided, validate its format
-        if (value != null && value.isNotEmpty) {
-          final phoneExp = RegExp(r'^[1-9]\d{8}$');
-          if (!phoneExp.hasMatch(value)) {
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'Please enter a valid 9-digit phone number without a leading zero';
-          }
-        }
+                if ((customerTin == null || customerTin.isEmpty) &&
+                    (value == null || value.isEmpty)) {
+                  ref.read(payButtonStateProvider.notifier).stopLoading();
+                  return 'Phone number is required when customer TIN is not available';
+                }
 
-        return null;
-      },
+                if (value != null && value.isEmpty) {
+                  final phoneExp = RegExp(r'^[1-9]\d{8}$');
+                  if (!phoneExp.hasMatch(value)) {
+                    ref.read(payButtonStateProvider.notifier).stopLoading();
+                    return 'Please enter a valid 9-digit phone number without a leading zero';
+                  }
+                }
+
+                return null;
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildPaymentMethodField({required String transactionId}) {
-    return Column(
-      children: [
-        for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
-          _buildPaymentMethodRow(i, transactionId: transactionId),
-        SizedBox(height: 10),
-        FlipperButton(
-          height: 30,
-          onPressed: () => _addPaymentMethod(transactionId: transactionId),
-          textColor: Colors.black,
-          text: 'Add Payment Method',
-        ),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+      ),
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header section
+          Row(
+            children: [
+              Icon(
+                Icons.payment,
+                color: Colors.blue[600],
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Payment Methods',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              Spacer(),
+              // Summary badge
+              if (ref.read(paymentMethodsProvider).isNotEmpty)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          if (ref.read(paymentMethodsProvider).isNotEmpty) ...[
+            SizedBox(height: 16),
+            // Payment methods list
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[200]!, width: 1),
+              ),
+              child: Column(
+                children: [
+                  // Header row
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Payment Method',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            'Amount',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 48), // Space for action button
+                      ],
+                    ),
+                  ),
+                  // Payment method rows
+                  for (int i = 0;
+                      i < ref.read(paymentMethodsProvider).length;
+                      i++)
+                    _buildPaymentMethodRow(i, transactionId: transactionId),
+                ],
+              ),
+            ),
+          ],
+
+          SizedBox(height: 16),
+
+          // Add button
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: () => _addPaymentMethod(transactionId: transactionId),
+              icon: Icon(
+                Icons.add,
+                size: 18,
+                color: Colors.blue[600],
+              ),
+              label: Text(
+                'Add Payment Method',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue[600],
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                backgroundColor: Colors.blue[50],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildPaymentMethodRow(int index, {required String transactionId}) {
-    return Column(
-      children: [
-        Row(
+    final isLast = index == ref.read(paymentMethodsProvider).length - 1;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: isLast
+              ? BorderSide.none
+              : BorderSide(color: Colors.grey[200]!, width: 0.5),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Payment method dropdown
             Expanded(
               flex: 2,
-              child: ClipRect(
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: ref.read(paymentMethodsProvider)[index].method,
-                    items: paymentTypes.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          overflow: TextOverflow.ellipsis,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!, width: 1),
+                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.white,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: ref.read(paymentMethodsProvider)[index].method,
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey[600],
+                          size: 20,
                         ),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) {
-                        setState(() {
-                          final payment =
-                              ref.read(paymentMethodsProvider)[index];
-                          payment.method = newValue;
-                          ref
-                              .read(paymentMethodsProvider.notifier)
-                              .updatePaymentMethod(
-                                  index,
-                                  Payment(
-                                    amount: payment.amount,
-                                    method: newValue,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[800],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        items: paymentTypes.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Row(
+                              children: [
+                                _getPaymentMethodIcon(value),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    value,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 14),
                                   ),
-                                  transactionId: transactionId);
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              final payment =
+                                  ref.read(paymentMethodsProvider)[index];
+                              payment.method = newValue;
+                              ref
+                                  .read(paymentMethodsProvider.notifier)
+                                  .updatePaymentMethod(
+                                      index,
+                                      Payment(
+                                        amount: payment.amount,
+                                        method: newValue,
+                                      ),
+                                      transactionId: transactionId);
 
-                          // Save the payment method in ProxyService.box
-                          ProxyService.box
-                              .writeString(key: 'paymentType', value: newValue);
+                              // Save the payment method in ProxyService.box
+                              ProxyService.box.writeString(
+                                  key: 'paymentType', value: newValue);
 
-                          // Map payment methods to their corresponding codes for reference:
-                          // Cash: 01
-                          // Credit Card: 02
-                          // CASH/CREDIT: 03
-                          // BANK CHECK: 04
-                          // DEBIT&CREDIT CARD: 05
-                          // MOBILE MONEY: 06
-                          // OTHER: 07
-                          final paymentMethodCode =
-                              ProxyService.box.paymentMethodCode(newValue);
-                          ProxyService.box.writeString(
-                              key: 'pmtTyCd', value: paymentMethodCode);
-                        });
-                      }
-                    },
+                              // Map payment methods to their corresponding codes for reference:
+                              // Cash: 01
+                              // Credit Card: 02
+                              // CASH/CREDIT: 03
+                              // BANK CHECK: 04
+                              // DEBIT&CREDIT CARD: 05
+                              // MOBILE MONEY: 06
+                              // OTHER: 07
+                              final paymentMethodCode =
+                                  ProxyService.box.paymentMethodCode(newValue);
+                              ProxyService.box.writeString(
+                                  key: 'pmtTyCd', value: paymentMethodCode);
+                            });
+                          }
+                        },
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-            SizedBox(width: 10, height: 5),
+
+            SizedBox(width: 16),
+
+            // Amount field
             Expanded(
               flex: 3,
-              child: StyledTextFormField.create(
-                context: context,
-                labelText: 'Amount',
-                hintText: 'Enter Amount',
-                controller: ref.read(paymentMethodsProvider)[index].controller,
-                keyboardType: TextInputType.multiline,
-                maxLines: 3,
-                minLines: 1,
-                onChanged: (value) {
-                  final amount = double.tryParse(value) ?? 0.0;
-                  ref.read(paymentMethodsProvider)[index].amount = amount;
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!, width: 1),
+                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.white,
+                    ),
+                    child: TextFormField(
+                      controller:
+                          ref.read(paymentMethodsProvider)[index].controller,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[800],
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter amount',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        ),
+                        prefix: Text(
+                          '${ProxyService.box.defaultCurrency()} ',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        final amount = double.tryParse(value) ?? 0.0;
+                        ref.read(paymentMethodsProvider)[index].amount = amount;
 
-                  // Only update other amounts if this isn't the last payment method
-                  if (index < ref.read(paymentMethodsProvider).length - 1) {
-                    updatePaymentAmounts(transactionId: transactionId);
-                  }
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
+                        if (index <
+                            ref.read(paymentMethodsProvider).length - 1) {
+                          updatePaymentAmounts(transactionId: transactionId);
+                        }
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter an amount';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.remove_circle_outline),
-              onPressed: index == 0
-                  ? null
-                  : () =>
-                      _removePaymentMethod(index, transactionId: transactionId),
+
+            SizedBox(width: 12),
+
+            // Remove button
+            Container(
+              width: 36,
+              height: 36,
+              child: index == 0
+                  ? SizedBox() // Empty space for first item
+                  : Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => _removePaymentMethod(index,
+                            transactionId: transactionId),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.red[300]!, width: 1),
+                            borderRadius: BorderRadius.circular(18),
+                            color: Colors.red[50],
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.red[600],
+                          ),
+                        ),
+                      ),
+                    ),
             ),
           ],
         ),
-        SizedBox(height: 10),
-      ],
+      ),
+    );
+  }
+
+// Helper method to get payment method icons
+  Widget _getPaymentMethodIcon(String paymentMethod) {
+    IconData icon;
+    Color color;
+
+    switch (paymentMethod.toUpperCase()) {
+      case 'CASH':
+        icon = Icons.money;
+        color = Colors.green[600]!;
+        break;
+      case 'CREDIT CARD':
+        icon = Icons.credit_card;
+        color = Colors.blue[600]!;
+        break;
+      case 'DEBIT&CREDIT CARD':
+        icon = Icons.payment;
+        color = Colors.purple[600]!;
+        break;
+      case 'MOBILE MONEY':
+        icon = Icons.phone_android;
+        color = Colors.orange[600]!;
+        break;
+      case 'BANK CHECK':
+        icon = Icons.account_balance;
+        color = Colors.indigo[600]!;
+        break;
+      default:
+        icon = Icons.payment;
+        color = Colors.grey[600]!;
+    }
+
+    return Icon(
+      icon,
+      size: 16,
+      color: color,
     );
   }
 
@@ -1237,47 +1602,167 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final displayId =
         (transaction != null) ? transaction.id.toString() : 'Invalid';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Wrap(
-        alignment: WrapAlignment.end,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 8.0,
-        children: [
-          Text(
-            'Total - Discount: ${totalAfterDiscountAndShipping.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            softWrap: true,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.08),
+            offset: const Offset(0, 2),
+            blurRadius: 8.0,
+            spreadRadius: 0,
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(Icons.copy),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: displayId));
-                  ProxyService.strategy.notify(
-                    notification: AppNotification(
-                      identifier: ProxyService.box.getBranchId(),
-                      type: "internal",
-                      completed: false,
-                      message: "TransactionId copied to keypad",
-                    ),
-                  );
-                },
-                constraints: BoxConstraints.tightFor(width: 40),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Total Amount Section
+          Container(
+            padding:
+                const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .primaryContainer
+                  .withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.2),
+                width: 1.0,
               ),
-              Flexible(
-                child: Text(
-                  "ID: $displayId",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Net Total',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
-              ),
-            ],
+                Text(
+                  totalAfterDiscountAndShipping.toCurrencyFormatted(
+                    symbol: ProxyService.box.defaultCurrency(),
+                  ),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 12.0),
+
+          // Transaction ID Section
+          Container(
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.receipt_outlined,
+                  size: 18.0,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8.0),
+                Text(
+                  'Transaction ID',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+                const SizedBox(width: 12.0),
+                Expanded(
+                  child: Text(
+                    displayId,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontFamily: 'monospace',
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8.0),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: displayId));
+                      ProxyService.strategy.notify(
+                        notification: AppNotification(
+                          identifier: ProxyService.box.getBranchId(),
+                          type: "internal",
+                          completed: false,
+                          message: "Transaction ID copied to clipboard",
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(6.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6.0),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withValues(alpha: 0.3),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.content_copy_outlined,
+                            size: 16.0,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            'Copy',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

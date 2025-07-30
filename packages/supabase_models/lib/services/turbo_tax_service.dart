@@ -3,7 +3,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -72,16 +71,19 @@ class TurboTaxService {
       if (variant.itemCd == null ||
           variant.itemCd?.isEmpty == true ||
           variant.pchsSttsCd == "01" ||
-          variant.pchsSttsCd ==
-              "1" || // unsent, item that has been mapped to another item after import of purchase.
+          variant.pchsSttsCd == "03" ||
+          variant.pchsSttsCd == "04" ||
+          variant.pchsSttsCd == "1" ||
           variant.imptItemSttsCd == "4" ||
           variant.imptItemSttsCd == "2" ||
-          variant.itemCd == "3") {
+          variant.itemCd == "3" ||
+          variant.assigned == true) {
         /// save it anyway so we do not miss things
-        talker.info("Syncing service called but skipped ${variant.itemCd}");
+        talker.info("Skipped: ${variant.name}:${variant.itemCd}");
         variant.ebmSynced = true;
         return true;
       }
+      talker.debug("Syncing variant: ${variant.name}:${variant.itemCd}");
       final saveItemResponse =
           await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
       if (saveItemResponse.resultCd != "000") {
@@ -90,6 +92,7 @@ class TurboTaxService {
           entityTable: "variants",
           failureReason: saveItemResponse.resultMsg,
         );
+        return false; // Return false immediately on failure
       } else if (saveItemResponse.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
         // get retryable
@@ -103,8 +106,8 @@ class TurboTaxService {
         }
       }
 
-      final saveStockMasterResponse = await ProxyService.tax
-          .saveStockMaster(variant: variant, URI: serverUrl);
+      final saveStockMasterResponse = await ProxyService.tax.saveStockMaster(
+          variant: variant, URI: serverUrl, approvedQty: approvedQty);
 
       if (saveStockMasterResponse.resultCd != "000") {
         await _handleFailedSync(
@@ -112,6 +115,7 @@ class TurboTaxService {
           entityTable: "variants",
           failureReason: saveStockMasterResponse.resultMsg,
         );
+        return false; // Return false immediately on failure
       } else if (saveStockMasterResponse.resultCd == "000") {
         // delete retryable if exist with same entity id and entity table
         // get retryable
@@ -318,29 +322,28 @@ class TurboTaxService {
   Future<bool> syncTransactionWithEbm(
       {required ITransaction instance,
       required String serverUrl,
-      required String sarTyCd}) async {
-    if (instance.status == COMPLETE) {
-      if (instance.customerName == null || instance.sarNo == null) {
-        return false;
-      }
-      talker.info("Syncing transaction with ${instance.items?.length} items");
+      String? sarTyCd,
+      int? invoiceNumber}) async {
+    try {
+      if (instance.status == COMPLETE) {
+        talker.info("Syncing transaction with ${instance.items?.length} items");
 
-      // Variant variant = Variant.copyFromTransactionItem(item);
-      // get transaction items
-      if (instance.invoiceNumber != null) {
         await stockIo(
-            invoiceNumber: instance.invoiceNumber!,
+            invoiceNumber: (invoiceNumber ?? instance.invoiceNumber)!,
             serverUrl: serverUrl,
             transaction: instance,
             sarTyCd: sarTyCd);
+
+        talker.info(
+            "Successfully synced all items for transaction ${instance.id}");
+
+        return true;
       }
-
-      talker
-          .info("Successfully synced all items for transaction ${instance.id}");
-
       return true;
+    } catch (e, s) {
+      talker.error(e, s);
+      return false;
     }
-    return true;
   }
 
   /// Synchronizes customer information with the EBM system.

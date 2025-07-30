@@ -91,7 +91,7 @@ class CoreSync extends AiStrategyImpl
 
   bool offlineLogin = false;
 
-  final Repository repository = Repository();
+  Repository repository = Repository();
 
   CoreSync();
   bool isInIsolate() {
@@ -1138,9 +1138,9 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
+    bool? fetchOnline,
   }) async {
     try {
-      final repository = brick.Repository();
       final isOnline =
           await _internetConnectionService.isOnline(deepCheck: true);
 
@@ -1149,7 +1149,7 @@ class CoreSync extends AiStrategyImpl
       ]);
       final result = await repository.get<models.Plan>(
           query: query,
-          policy: isOnline
+          policy: (fetchOnline == true && isOnline)
               ? OfflineFirstGetPolicy.alwaysHydrate
               : OfflineFirstGetPolicy.localOnly);
       return result.firstOrNull;
@@ -2019,18 +2019,18 @@ class CoreSync extends AiStrategyImpl
         // Fetch transaction items
 
         // Update numberOfItems before completing the sale
-        transaction.numberOfItems = transaction.items!.length;
+        transaction.numberOfItems = transaction.items?.length ?? 0;
 
         // sum up all discount found on item then save them on a transaction
         transaction.discountAmount =
-            transaction.items!.fold(0, (a, b) => a! + b.dcAmt!);
+            transaction.items?.fold(0, (a, b) => a! + b.dcAmt!);
         transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
         transaction.customerTin = customerTin;
 
         if (isIncome) {
           // Update transaction details
-          transaction.items!
-              .fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
+          transaction.items
+              ?.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
           // Update stock and transaction items
 
           /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
@@ -2213,6 +2213,18 @@ class CoreSync extends AiStrategyImpl
 
       if (data is VariantBranch) {
         await repository.upsert<VariantBranch>(data);
+        return data as T;
+      }
+      if (data is Business) {
+        await repository.upsert<Business>(data);
+        return data as T;
+      }
+      if (data is Branch) {
+        await repository.upsert<Branch>(data);
+        return data as T;
+      }
+      if (data is Purchase) {
+        await repository.upsert<Purchase>(data);
         return data as T;
       }
 
@@ -3484,27 +3496,47 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> cleanDuplicatePlans() async {
-    final businessId = (await ProxyService.strategy.activeBusiness())!.id;
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) return;
 
-    // Get all plans for the current business
     List<Plan> plans = await repository.get<Plan>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(where: [Where('businessId').isExactly(businessId)]),
+      query:
+          brick.Query(where: [brick.Where('businessId').isExactly(businessId)]),
     );
 
-    // If there's only one or zero plans, nothing to clean
     if (plans.length < 2) return;
 
-    // Find a completed plan, or default to the first plan if none completed
-    final planToKeep = plans.firstWhere(
-      (plan) => plan.paymentCompletedByUser ?? false,
-      orElse: () => plans.first,
-    );
+    // Separate paid and unpaid plans
+    final paidPlans =
+        plans.where((p) => p.paymentCompletedByUser ?? false).toList();
+    final unpaidPlans =
+        plans.where((p) => !(p.paymentCompletedByUser ?? false)).toList();
 
-    // Delete all other plans
-    for (final plan in plans) {
-      if (plan.id != planToKeep.id) {
-        await repository.delete<Plan>(plan);
+    Plan? planToKeep;
+
+    if (paidPlans.isNotEmpty) {
+      // If there are paid plans, keep the most recent one
+      paidPlans.sort((a, b) =>
+          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      planToKeep = paidPlans.first;
+
+      // Delete all other paid plans and all unpaid plans
+      for (final plan in plans) {
+        if (plan.id != planToKeep.id) {
+          await repository.delete<Plan>(plan);
+        }
+      }
+    } else if (unpaidPlans.isNotEmpty) {
+      // If there are only unpaid plans, keep the most recent one
+      unpaidPlans.sort((a, b) =>
+          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      planToKeep = unpaidPlans.first;
+
+      // Delete all other unpaid plans
+      for (final plan in unpaidPlans) {
+        if (plan.id != planToKeep.id) {
+          await repository.delete<Plan>(plan);
+        }
       }
     }
   }

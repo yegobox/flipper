@@ -19,6 +19,34 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/db_model_export.dart' as brick;
 import 'mixins/all.dart';
 
+// Constants for magic values
+class PurchaseConstants {
+  static const String purchaseReceiptType = "P";
+  static const String countryCode = "RW";
+  static const String productType = "2";
+  static const String packagingUnit = "CT";
+  static const String quantityUnit = "BJ";
+  static const String defaultBranchId = "00";
+}
+
+// Custom exceptions
+class PurchaseAcceptanceException implements Exception {
+  final String message;
+  final Exception? originalException;
+
+  PurchaseAcceptanceException(this.message, [this.originalException]);
+
+  @override
+  String toString() => originalException != null
+      ? 'PurchaseAcceptanceException: $message (Original: ${originalException})'
+      : 'PurchaseAcceptanceException: $message';
+}
+
+class TaxReportingException extends PurchaseAcceptanceException {
+  TaxReportingException(String message, [Exception? originalException])
+      : super(message, originalException);
+}
+
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixinOld {
   bool handlingConfirm = false;
@@ -438,13 +466,13 @@ class CoreViewModel extends FlipperBaseModel
     return _variants;
   }
 
-  Future<Variant?> getVariant({required String variantId}) async {
-    return (await ProxyService.strategy.variants(
-            taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-            variantId: variantId,
-            branchId: ProxyService.box.getBranchId()!))
-        .firstOrNull;
-  }
+  // Future<Variant?> getVariant({required String variantId}) async {
+  //   return (await ProxyService.strategy.variants(
+  //           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+  //           variantId: variantId,
+  //           branchId: ProxyService.box.getBranchId()!))
+  //       .firstOrNull;
+  // }
 
   void toggleCheckbox({required String variantId}) {
     keypad.toggleCheckbox(variantId: variantId);
@@ -915,132 +943,317 @@ class CoreViewModel extends FlipperBaseModel
     return rwResponse.data?.saleList ?? [];
   }
 
-  Future<void> acceptPurchase(
-      {required List<Purchase> purchases,
-      required String pchsSttsCd,
-
-      ///item mapper contain id of existing variant and variant being mapped (purchase variant)
-      /// id => purchaseVariant
-      Map<String, Variant>? itemMapper,
-      required Purchase purchase,
-      Variant? clickedVariant}) async {
+  Future<void> acceptPurchase({
+    @deprecated required List<Purchase> purchases,
+    required String pchsSttsCd,
+    Map<String, Variant>? itemMapper,
+    required Purchase purchase,
+    Variant? clickedVariant,
+  }) async {
     try {
-      isLoading = true;
-      notifyListeners();
+      _setLoading(true);
+      talker.debug("Starting purchase acceptance for ${purchase.id}");
 
-      talker.warning("salesListLenghts" + salesList.length.toString());
+      final business = await _getBusiness();
+      await _reportPurchaseToTaxService(purchase, business, pchsSttsCd);
 
-      List<Variant> variantsToProcess = [];
-      if (clickedVariant != null) {
-        variantsToProcess.add(clickedVariant);
-      } else {
-        // If no specific variant is clicked, process all variants in the first purchase
-        // This assumes that if clickedVariant is null, we are processing a batch.
-        // The original code iterated through `purchases` and then `purchase.variants`.
-        // For batch processing, we'll assume `purchases` contains the relevant purchase(es)
-        // and we'll iterate through their variants.
-        // For simplicity, I'm assuming if clickedVariant is null, we process all variants
-        // of the *first* purchase in the list. If the intent is to process all variants
-        // across *all* purchases in the list, the outer loop `for (Purchase purchase in purchases)`
-        // should remain. For now, I'll keep it focused on the single purchase passed in the parameter.
-        variantsToProcess.addAll(purchase.variants ?? []);
+      if (_shouldProcessMappings(pchsSttsCd, itemMapper)) {
+        await _handleVariantMappings(itemMapper!, purchase);
       }
+      await _processPurchaseVariants(
+          purchase: purchase, pchsSttsCd: pchsSttsCd, itemMapper: itemMapper);
 
-      for (Variant variant in variantsToProcess) {
-        variant.retailPrice ??= variant.prc;
-        talker.warning(
-            "Retail Prices while saving item in our DB:: ${variant.retailPrice}");
-
-        talker.warning("Variant ${variant.id}");
-
-        final business = (await ProxyService.strategy
-            .getBusiness(businessId: ProxyService.box.getBusinessId()));
-
-        variant.pchsSttsCd = pchsSttsCd;
-        await ProxyService.tax.savePurchases(
-          item: purchase,
-          business: business!,
-          variants: [variant],
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          rcptTyCd: "P",
-          URI: await ProxyService.box.getServerUrl() ?? "",
-          pchsSttsCd: pchsSttsCd,
-        );
-
-        final isVariantMapped =
-            itemMapper?.values.any((v) => v.id == variant.id) ?? false;
-
-        if (!isVariantMapped) {
-          // Generate new itemCode for new item
-          variant.itemCd = await ProxyService.strategy.itemCode(
-            countryCode: "RW",
-            productType: "2",
-            packagingUnit: "CT",
-            quantityUnit: "BJ",
-            branchId: ProxyService.box.getBranchId()!,
-          );
-          variant.ebmSynced = false;
-          variant.pchsSttsCd = pchsSttsCd;
-          await ProxyService.strategy.updateVariant(
-              updatables: [variant],
-              purchase: purchase,
-              approvedQty: variant.stock?.currentStock,
-              invoiceNumber: purchase.spplrInvcNo);
-        }
-      }
-
-      /// when a user want to make incoming item to existing item
-      /// we map then we delete incoming item to avoid duplicates
-      /// and item that is taking db space for no reason
-      itemMapper
-          ?.forEach((String itemToAssignId, Variant variantFromPurchase) async {
-        if (itemToAssignId == variantFromPurchase.id) {
-          talker.warning(
-              "Skipping self-mapping for variant ID: ${variantFromPurchase.id}");
-          return; // Skip if the item is mapped to itself
-        }
-        Variant? variant =
-            await ProxyService.strategy.getVariant(id: itemToAssignId);
-
-        /// update the relevant stock
-        if (variant != null) {
-          await _updateVariantStock(
-              item: variantFromPurchase, existingVariantToUpdate: variant);
-
-          /// we are setting to 1 just to not have it on dashboard
-          /// this is not part 4.11. Transaction Progress rather my own way knowing
-          /// something has been assigned to another item while approving.
-          /// delete this??
-          variantFromPurchase.pchsSttsCd = "3";
-          // deleting it is not an option because at the end we need to be able to
-          // show those approved, rejected etc...
-          // await ProxyService.strategy
-          //     .flipperDelete(endPoint: 'variant', id: variantFromPurchase.id);
-          ///re-fetch for updated variant's stock.
-          variant = await ProxyService.strategy.getVariant(id: itemToAssignId);
-          variant!.ebmSynced = false;
-          //this help us to not show it on dashboard as it has been assigned to another item
-          variantFromPurchase.assigned = true;
-          await ProxyService.strategy
-              .updateVariant(updatables: [variantFromPurchase]);
-
-          await ProxyService.strategy.updateVariant(
-              updatables: [variant],
-              purchase: purchase,
-              approvedQty: variantFromPurchase.stock?.currentStock,
-              invoiceNumber: purchase.spplrInvcNo);
-        }
-      });
-      isLoading = false;
-      notifyListeners();
-      return Future.value();
+      _setLoading(false);
+      talker.info("Successfully processed purchase ${purchase.id}");
     } catch (e, s) {
-      talker.error(e);
-      talker.error(s);
-      isLoading = false;
-      notifyListeners();
-      throw Exception("Internal error, could not save purchases");
+      _handlePurchaseError(e, s);
+      throw PurchaseAcceptanceException("Failed to accept purchase",
+          e is Exception ? e : Exception(e.toString()));
     }
+  }
+
+  Future<void> _processPurchaseVariants({
+    required Purchase purchase,
+    required String pchsSttsCd,
+    required Map<String, Variant>? itemMapper,
+  }) async {
+    for (final purchaseVariant in purchase.variants!) {
+      final originalStatus = purchaseVariant.pchsSttsCd;
+      final isMapped =
+          itemMapper?.values.any((v) => v.id == purchaseVariant.id) ?? false;
+
+      // Skip already handled variants
+      if (originalStatus == "02" ||
+          originalStatus == "03" ||
+          originalStatus == "04") {
+        talker.debug(
+            "Skipping already-processed variant: ${purchaseVariant.name} (status: $originalStatus)");
+        continue;
+      }
+
+      talker.debug(
+          "Processing variant: ${purchaseVariant.name} (${purchaseVariant.id})");
+      talker.debug(
+          " - Incoming status: $pchsSttsCd, Original status: $originalStatus, isMapped: $isMapped");
+
+      bool shouldPersist = false;
+
+      if (pchsSttsCd == "02" && !isMapped) {
+        // Treat as new variant
+        purchaseVariant.assigned = false;
+        purchaseVariant.pchsSttsCd = "02";
+
+        await _processNewVariant(purchaseVariant, purchase, updateIo: false);
+
+        // No need to call updateVariant here because _processNewVariant does it
+      } else if (pchsSttsCd == "04") {
+        // Reject variant
+        purchaseVariant.assigned = true;
+        purchaseVariant.pchsSttsCd = "04";
+        shouldPersist = true;
+      } else {
+        // Other status updates not handled by _processNewVariant
+        purchaseVariant.pchsSttsCd = pchsSttsCd;
+        shouldPersist = true;
+      }
+
+      // Persist updates if not handled by _processNewVariant
+      if (shouldPersist) {
+        await ProxyService.strategy.updateVariant(
+          updatables: [purchaseVariant],
+          updateIo: false,
+        );
+      }
+
+      // Optionally update local UI or memory-only state
+    }
+  }
+
+  Future<void> _processNewVariant(Variant variant, Purchase purchase,
+      {required bool updateIo}) async {
+    // Default values in case we can't extract from itemCd
+    String countryCode = PurchaseConstants.countryCode;
+    String productType = PurchaseConstants.productType;
+    String packagingUnit = PurchaseConstants.packagingUnit;
+    String quantityUnit = PurchaseConstants.quantityUnit;
+    bool isService = false;
+
+    // Check if the variant already has an itemCd (not assigned to any existing variant)
+    if (variant.itemCd != null && variant.itemCd!.isNotEmpty) {
+      final String itemCd = variant.itemCd!;
+
+      // Extract components from itemCd (format: XX0YYYY0000000)
+      // XX: Country code (2 chars)
+      // 0: Product type (1 digit)
+      // YY: Packaging unit (2 chars)
+      // YY: Quantity unit (2 chars)
+      // 0000000: Sequence number
+
+      // Extract country code (first 2 characters)
+      if (itemCd.length >= 2) {
+        countryCode = itemCd.substring(0, 2);
+        talker.debug("Extracted country code from itemCd: $countryCode");
+      }
+
+      // Extract product type (3rd character)
+      if (itemCd.length >= 3) {
+        productType = itemCd.substring(2, 3);
+        // Check if it's a service (product type "3")
+        isService = productType == "3";
+        talker.debug(
+            "Extracted product type from itemCd: $productType (isService: $isService)");
+      }
+
+      // Extract packaging unit (4th and 5th characters)
+      if (itemCd.length >= 5) {
+        packagingUnit = itemCd.substring(3, 5);
+        talker.debug("Extracted packaging unit from itemCd: $packagingUnit");
+      }
+
+      // Extract quantity unit (6th and 7th characters)
+      if (itemCd.length >= 7) {
+        quantityUnit = itemCd.substring(5, 7);
+        talker.debug("Extracted quantity unit from itemCd: $quantityUnit");
+      }
+
+      // Remember if it's a service for later use
+      // We'll still generate a new itemCd for services
+    }
+
+    // Generate new itemCd using extracted components for ALL variants (including services)
+    variant.itemCd = await ProxyService.strategy.itemCode(
+      countryCode: countryCode,
+      productType: productType,
+      packagingUnit: packagingUnit,
+      quantityUnit: quantityUnit,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+
+    variant.ebmSynced = false;
+    variant.itemTyCd = productType;
+
+    // Special handling for services (no stock assignment)
+    if (isService) {
+      talker.debug(
+          "Item ${variant.id} is a service (code 3), no stock assignment needed");
+
+      await ProxyService.strategy.updateVariant(
+        updatables: [variant],
+        purchase: purchase,
+        approvedQty: null, // No stock for services
+        invoiceNumber: purchase.spplrInvcNo,
+        updateIo: updateIo,
+      );
+
+      // Still update IO but with null approvedQty for services
+      await ProxyService.strategy.updateIoFunc(
+        variant: variant,
+        purchase: purchase,
+        approvedQty: null,
+      );
+    } else {
+      // Normal handling for non-service items
+      await ProxyService.strategy.updateVariant(
+        updatables: [variant],
+        purchase: purchase,
+        approvedQty: variant.stock?.currentStock,
+        invoiceNumber: purchase.spplrInvcNo,
+        updateIo: updateIo,
+      );
+
+      // update io
+      await ProxyService.strategy.updateIoFunc(
+        variant: variant,
+        purchase: purchase,
+        approvedQty: variant.stock?.currentStock,
+      );
+    }
+  }
+
+  bool _shouldProcessMappings(
+      String pchsSttsCd, Map<String, Variant>? itemMapper) {
+    return itemMapper != null && pchsSttsCd == "02" && itemMapper.isNotEmpty;
+  }
+
+  Future<void> _handleVariantMappings(
+    Map<String, Variant> itemMapper,
+    Purchase purchase,
+  ) async {
+    for (final entry in itemMapper.entries) {
+      final existingVariantId = entry.key;
+      final variantFromPurchase = entry.value;
+      // variantFromPurchase.assi
+
+      if (existingVariantId == variantFromPurchase.id) {
+        talker.debug(
+            "Skipping self-mapping for variant ID: ${variantFromPurchase.id}");
+        continue;
+      }
+
+      final existingVariant = await ProxyService.strategy.getVariant(
+        id: existingVariantId,
+      );
+
+      if (existingVariant != null && variantFromPurchase.pchsSttsCd != "03") {
+        await _updateMappedVariant(
+          existingVariant: existingVariant,
+          purchaseVariant: variantFromPurchase,
+          purchase: purchase,
+        );
+      }
+    }
+  }
+
+  Future<void> _updateMappedVariant({
+    required Variant existingVariant,
+    required Variant purchaseVariant,
+    required Purchase purchase,
+  }) async {
+    // When mapping, the item from the purchase should be marked as assigned.
+    purchaseVariant.assigned = true;
+    await _updateVariantStock(
+      item: purchaseVariant,
+      existingVariantToUpdate: existingVariant,
+    );
+
+    purchaseVariant.pchsSttsCd = "03"; // Mapped status
+
+    await ProxyService.strategy.updateVariant(
+      updatables: [purchaseVariant],
+    );
+
+    existingVariant.ebmSynced = false;
+    await ProxyService.strategy.updateVariant(
+      updatables: [existingVariant],
+      purchase: purchase,
+      approvedQty: purchaseVariant.stock?.currentStock,
+      invoiceNumber: purchase.spplrInvcNo,
+      updateIo: false,
+    );
+    // update io
+    await ProxyService.strategy.updateIoFunc(
+      variant: existingVariant,
+      purchase: purchase,
+      approvedQty: purchaseVariant.stock?.currentStock,
+    );
+  }
+
+// Private helper methods
+
+  void _setLoading(bool loading) {
+    isLoading = loading;
+    notifyListeners();
+  }
+
+  Future<Business> _getBusiness() async {
+    final businessId = ProxyService.box.getBusinessId();
+    final business =
+        await ProxyService.strategy.getBusiness(businessId: businessId);
+
+    if (business == null) {
+      throw PurchaseAcceptanceException(
+          "Business not found for ID: $businessId");
+    }
+
+    return business;
+  }
+
+  Future<void> _reportPurchaseToTaxService(
+    Purchase purchase,
+    Business business,
+    String pchsSttsCd,
+  ) async {
+    if (purchase.variants == null || purchase.variants!.isEmpty) {
+      talker.warning("Purchase ${purchase.id} has no variants");
+      return;
+    }
+
+    final bhfId = (await ProxyService.strategy
+                .ebm(branchId: ProxyService.box.getBranchId()!))
+            ?.bhfId ??
+        await ProxyService.box.bhfId();
+    final serverUrl = await ProxyService.box.getServerUrl() ?? "";
+
+    final rwApiResponse = await ProxyService.tax.savePurchases(
+      item: purchase,
+      business: business,
+      variants: purchase.variants!,
+      bhfId: bhfId!,
+      rcptTyCd: PurchaseConstants.purchaseReceiptType,
+      URI: serverUrl,
+      pchsSttsCd: pchsSttsCd,
+    );
+
+    if (rwApiResponse.resultCd != "000") {
+      throw TaxReportingException(
+        "Tax service reported error: ${rwApiResponse.resultMsg}",
+      );
+    }
+  }
+
+  void _handlePurchaseError(Object error, StackTrace stackTrace) {
+    talker.error("Purchase acceptance failed", error, stackTrace);
+    _setLoading(false);
   }
 
   Future<void> approveAllImportItems(List<Variant> importItems,
@@ -1093,8 +1306,6 @@ class CoreViewModel extends FlipperBaseModel
         /// syncing it again.
         // item.imptItemSttsCd = "3";
         incomingImportVariant.ebmSynced = true;
-        incomingImportVariant.assigned = false;
-
         incomingImportVariant.imptItemSttsCd = "3";
         existingVariantToUpdate.ebmSynced = true;
         incomingImportVariant.assigned = true;

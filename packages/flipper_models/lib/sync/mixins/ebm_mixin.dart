@@ -14,6 +14,7 @@ mixin EbmMixin implements EbmInterface {
   Future<void> saveEbm({
     required int branchId,
     required String severUrl,
+    required String mrc,
     required String bhFId,
     bool vatEnabled = false,
   }) async {
@@ -38,6 +39,7 @@ mixin EbmMixin implements EbmInterface {
 
     final updatedEbm = existingEbm ??
         Ebm(
+          mrc: mrc,
           bhfId: bhFId,
           tinNumber: business.tinNumber!,
           dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",

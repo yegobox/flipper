@@ -152,7 +152,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadInitialProducts() {
-    ref.read(productsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
+    ref.read(
+        outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
   }
 
   @override
@@ -174,13 +175,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Add padding around the segmented button for better visual appearance
-        if (defaultTargetPlatform == TargetPlatform.macOS ||
-            defaultTargetPlatform == TargetPlatform.windows ||
-            defaultTargetPlatform == TargetPlatform.linux)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: _buildSegmentedButton(context, ref),
-          ),
+        // if (defaultTargetPlatform == TargetPlatform.macOS ||
+        //     defaultTargetPlatform == TargetPlatform.windows ||
+        //     defaultTargetPlatform == TargetPlatform.linux)
+        //   Padding(
+        //     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        //     child: _buildSegmentedButton(context, ref),
+        //   ),
         // Expanded to make the variant list fill the remaining space
         Expanded(
           child: _buildVariantList(context, model),

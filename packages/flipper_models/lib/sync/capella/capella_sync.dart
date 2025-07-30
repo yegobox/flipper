@@ -2,13 +2,16 @@ import 'dart:async';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/helperModels/purchase.dart' hide Purchase;
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:supabase_models/brick/models/purchase.model.dart';
 import 'package:supabase_models/brick/models/tenant.model.dart';
+import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
@@ -183,6 +186,13 @@ class CapellaSync extends CapellaSyncBase
       bool forceRealData = true,
       required bool isExpense}) {
     // TODO: implement pendingTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateIoFunc(
+      {required Variant variant, Purchase? purchase, double? approvedQty}) {
+    // TODO: implement updateIoFunc
     throw UnimplementedError();
   }
 }

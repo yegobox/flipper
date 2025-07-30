@@ -17,8 +17,6 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/finance_provider.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/inventory_request.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:flipper_services/proxy.dart';

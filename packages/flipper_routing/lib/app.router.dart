@@ -599,7 +599,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           receivedAmountController: args.receivedAmountController,
           deliveryNoteCotroller: args.deliveryNoteCotroller,
           customerPhoneNumberController: args.customerPhoneNumberController,
-          customerNameController: args.customerNameController,
           paymentTypeController: args.paymentTypeController,
         ),
         opaque: true,
