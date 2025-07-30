@@ -18,12 +18,15 @@ class _PinLoginState extends State<PinLogin>
     with CoreMiscellaneous, TickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
+  final FocusNode _otpFocusNode = FocusNode();
 
   bool _isProcessing = false;
   bool _isObscure = true;
   bool _hasError = false;
   String _errorMessage = '';
+  bool _showOtpField = false;
 
   late AnimationController _slideController;
   late AnimationController _fadeController;
@@ -99,6 +102,7 @@ class _PinLoginState extends State<PinLogin>
     _fadeController.dispose();
     _shakeController.dispose();
     _pinFocusNode.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
@@ -112,45 +116,21 @@ class _PinLoginState extends State<PinLogin>
       HapticFeedback.lightImpact();
 
       try {
-        await ProxyService.box.writeBool(key: 'pinLogin', value: true);
-
-        final pin = await _getPin();
-        if (pin == null) throw PinError(term: "Not found");
-
-        await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-
-        final userId = int.tryParse(pin.userId);
-        final existingPin = await ProxyService.strategy
-            .getPinLocal(userId: userId!, alwaysHydrate: false);
-
-        Pin thePin;
-        if (existingPin != null) {
-          thePin = existingPin;
-          thePin.phoneNumber = pin.phoneNumber;
-          thePin.branchId = pin.branchId;
-          thePin.businessId = pin.businessId;
-          thePin.ownerName = pin.ownerName;
+        if (_showOtpField) {
+          final pin = await _getPin();
+          await ProxyService.strategy
+              .verifyOtpAndLogin(_otpController.text, pin: pin);
         } else {
-          thePin = Pin(
-            userId: userId,
-            pin: userId,
-            branchId: pin.branchId,
-            businessId: pin.businessId,
-            ownerName: pin.ownerName,
-            phoneNumber: pin.phoneNumber,
-          );
+          final response =
+              await ProxyService.strategy.requestOtp(_pinController.text);
+          if (response['requiresOtp']) {
+            setState(() {
+              _showOtpField = true;
+            });
+          } else {
+            // Handle login without OTP
+          }
         }
-
-        await ProxyService.strategy.login(
-          pin: thePin,
-          isInSignUpProgress: false,
-          flipperHttpClient: ProxyService.http,
-          skipDefaultAppSetup: false,
-          userPhone: pin.phoneNumber,
-        );
-        await ProxyService.strategy.completeLogin(thePin);
-
-        HapticFeedback.mediumImpact();
       } catch (e, s) {
         await _handleLoginError(e, s);
       } finally {
@@ -368,6 +348,7 @@ class _PinLoginState extends State<PinLogin>
             _buildWelcomeSection(isDark, screenHeight),
             SizedBox(height: screenHeight < 600 ? 24 : 40),
             _buildPinField(isDark, screenHeight),
+            if (_showOtpField) _buildOtpField(isDark, screenHeight),
             if (_hasError) ...[
               SizedBox(height: screenHeight < 600 ? 12 : 16),
               _buildErrorMessage(isDark),
@@ -519,7 +500,7 @@ class _PinLoginState extends State<PinLogin>
                 margin: EdgeInsets.all(isSmallScreen ? 8 : 12),
                 padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
                 decoration: BoxDecoration(
-                  color: Color(0xFF4285F4).withValues(alpha: 0.1),
+                  color: Color(0xFF4285F4).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -591,6 +572,121 @@ class _PinLoginState extends State<PinLogin>
               }
               if (text.length < 4) {
                 return "PIN must be at least 4 digits";
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOtpField(bool isDark, double screenHeight) {
+    final isSmallScreen = screenHeight < 600;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'OTP',
+          style: TextStyle(
+            fontSize: isSmallScreen ? 14 : 15,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Color(0xFF374151),
+          ),
+        ),
+        SizedBox(height: isSmallScreen ? 8 : 10),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              if (!isDark)
+                BoxShadow(
+                  color: Color(0xFF000000).withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
+                ),
+            ],
+          ),
+          child: TextFormField(
+            controller: _otpController,
+            focusNode: _otpFocusNode,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => _handleLogin(),
+            style: TextStyle(
+              fontSize: isSmallScreen ? 15 : 16,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Color(0xFF1a1a1a),
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
+              hintText: 'Enter your OTP',
+              hintStyle: TextStyle(
+                color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
+                fontWeight: FontWeight.w400,
+              ),
+              prefixIcon: Container(
+                margin: EdgeInsets.all(isSmallScreen ? 8 : 12),
+                padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
+                decoration: BoxDecoration(
+                  color: Color(0xFF4285F4).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.sms_outlined,
+                  color: Color(0xFF4285F4),
+                  size: isSmallScreen ? 18 : 20,
+                ),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: _hasError
+                      ? Color(0xFFEF4444)
+                      : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+                  width: 1.5,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: _hasError
+                      ? Color(0xFFEF4444)
+                      : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+                  width: 1.5,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: _hasError ? Color(0xFFEF4444) : Color(0xFF4285F4),
+                  width: 2,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: Color(0xFFEF4444),
+                  width: 2,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(
+                  color: Color(0xFFEF4444),
+                  width: 2,
+                ),
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 16 : 20,
+                vertical: isSmallScreen ? 14 : 18,
+              ),
+            ),
+            validator: (text) {
+              if (text == null || text.isEmpty) {
+                return "OTP is required";
               }
               return null;
             },

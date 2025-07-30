@@ -7,6 +7,7 @@ import 'dart:typed_data';
 // import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flutter/src/material/date.dart';
@@ -2388,6 +2389,18 @@ class Capella extends AiStrategyImpl
       brick.Purchase? purchase,
       double? approvedQty}) {
     // TODO: implement updateIoFunc
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> requestOtp(String pin) {
+    // TODO: implement requestOtp
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) {
+    // TODO: implement verifyOtpAndLogin
     throw UnimplementedError();
   }
 }

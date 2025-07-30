@@ -300,5 +300,41 @@ void main() {
 
     //   expect(find.text('PIN must be at least 4 digits'), findsNothing);
     // });
+    testWidgets('Successful MFA login flow', (WidgetTester tester) async {
+      // Mock the requestOtp call
+      when(() => mockDatabaseSync.requestOtp(any())).thenAnswer((_) async => {
+            'success': true,
+            'message': 'OTP sent to your phone',
+            'phoneNumber': '250788123456',
+            'requiresOtp': true,
+          });
+
+      // Mock the verifyOtpAndLogin call
+      when(() => mockDatabaseSync.verifyOtpAndLogin(any(), pin: any()))
+          .thenAnswer((_) async => MockUser());
+
+      await tester.pumpWidget(
+        TestApp(
+          child: PinLogin(),
+        ),
+      );
+
+      // Enter PIN
+      await tester.enterText(find.byType(TextFormField), '1234');
+      await tester.tap(find.byKey(const Key('signInButtonText')));
+      await tester.pumpAndSettle();
+
+      // Verify that the OTP field is now visible
+      expect(find.text('Enter your OTP'), findsOneWidget);
+
+      // Enter OTP
+      await tester.enterText(find.byKey(const Key('otpField')), '123456');
+      await tester.tap(find.byKey(const Key('signInButtonText')));
+      await tester.pumpAndSettle();
+
+      // Verify that the login was successful
+      verify(() => mockDatabaseSync.verifyOtpAndLogin('1234', pin: any()))
+          .called(1);
+    });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -99,5 +100,16 @@ mixin CapellaAuthMixin implements AuthInterface {
   Future<void> supabaseAuth() {
     throw UnimplementedError(
         'supabaseAuth needs to be implemented for Capella');
+  }
+
+  @override
+  Future<Map<String, dynamic>> requestOtp(String pin) {
+    throw UnimplementedError('requestOtp needs to be implemented for Capella');
+  }
+
+  @override
+  Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) {
+    throw UnimplementedError(
+        'verifyOtpAndLogin needs to be implemented for Capella');
   }
 }

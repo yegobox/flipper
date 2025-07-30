@@ -53,6 +53,8 @@ abstract class HttpApiInterface {
     required Variant variant,
     required HttpClientInterface client,
   });
+  Future<int?> getBusinessId(
+      {required HttpClientInterface client, required String businessId});
 }
 
 class HttpApi implements HttpApiInterface {
@@ -492,6 +494,13 @@ class HttpApi implements HttpApiInterface {
       rethrow;
     }
   }
+
+  @override
+  Future<int?> getBusinessId(
+      {required HttpClientInterface client, required String businessId}) {
+    // TODO: implement getBusinessId
+    throw UnimplementedError();
+  }
 }
 
 class RealmViaHttpServiceMock implements HttpApiInterface {
@@ -592,5 +601,12 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
       "Title": "DomesticDetail",
       "Creator": "Microsoft Reporting Services 11.0.0.0"
     };
+  }
+
+  @override
+  Future<int?> getBusinessId(
+      {required HttpClientInterface client, required String businessId}) {
+    // TODO: implement getBusinessId
+    throw UnimplementedError();
   }
 }

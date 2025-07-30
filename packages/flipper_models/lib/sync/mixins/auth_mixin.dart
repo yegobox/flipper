@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -950,5 +951,64 @@ mixin AuthMixin implements AuthInterface {
     // Handle null expiresAt safely
     final expiresAt = session.expiresAt ?? 0;
     return expiresAt > (now + expirationBuffer);
+  }
+
+  @override
+  Future<Map<String, dynamic>> requestOtp(String pin) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/pin'),
+      body: jsonEncode({'pin': pin}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to request OTP');
+    }
+  }
+
+  @override
+  Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/verify-otp'),
+      body: jsonEncode({'pin': pin?.pin, 'otp': otp}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final token = responseData['token'];
+      final serverId = responseData['serverId'];
+      final phoneNumber = responseData['phoneNumber'];
+
+      // final business = ProxyService.strategy.getBusinessById(businessId: businessId);
+      final userId = responseData['userId'];
+
+      // Save the token and other details
+      await ProxyService.box.writeString(key: 'bearerToken', value: token);
+      await ProxyService.box.writeInt(key: 'userId', value: int.parse(userId));
+
+      // Fetch the user details using the new token
+      final user = await login(
+        userPhone:
+            pin!.phoneNumber, // Use the phone number from the OTP request
+        skipDefaultAppSetup: false,
+        pin: Pin(
+            userId: int.parse(userId),
+            pin: pin.pin,
+            businessId: serverId,
+            branchId: 0, // Will be determined in the login flow
+            ownerName: '', // Will be updated in the login flow
+            phoneNumber: phoneNumber),
+        isInSignUpProgress: false,
+        flipperHttpClient: ProxyService.http,
+      );
+
+      return user;
+    } else {
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Failed to verify OTP');
+    }
   }
 }
