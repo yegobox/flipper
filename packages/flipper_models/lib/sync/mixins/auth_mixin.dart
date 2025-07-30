@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -682,53 +683,9 @@ mixin AuthMixin implements AuthInterface {
           for (var businessData in tenant['businesses']) {
             final iBusiness = IBusiness.fromJson(businessData);
             // Convert IBusiness to Business (from supabase_models)
-            final business = Business(
-              phoneNumber: businessData['phoneNumber'] as String? ??
-                  iBusiness.phoneNumber ??
-                  '',
-              id: iBusiness.id,
-              serverId: iBusiness.serverId,
-              name: iBusiness.name,
-              currency: iBusiness.currency,
-              categoryId: iBusiness.categoryId,
-              latitude: iBusiness.latitude,
-              longitude: iBusiness.longitude,
-              userId: iBusiness.userId,
-              timeZone: iBusiness.timeZone,
-              country: iBusiness.country,
-              businessUrl: iBusiness.businessUrl,
-              hexColor: iBusiness.hexColor,
-              imageUrl: iBusiness.imageUrl,
-              type: iBusiness.type,
-              createdAt: iBusiness.createdAt,
-              metadata: iBusiness.metadata,
-              role: iBusiness.role,
-              lastSeen: iBusiness.lastSeen,
-              firstName: iBusiness.firstName,
-              lastName: iBusiness.lastName,
-              deviceToken: iBusiness.deviceToken,
-              chatUid: iBusiness.chatUid,
-              backUpEnabled: iBusiness.backUpEnabled,
-              subscriptionPlan: iBusiness.subscriptionPlan,
-              nextBillingDate: iBusiness.nextBillingDate,
-              previousBillingDate: iBusiness.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  iBusiness.isLastSubscriptionPaymentSucceeded,
-              backupFileId: iBusiness.backupFileId,
-              email: iBusiness.email,
-              lastDbBackup: iBusiness.lastDbBackup,
-              fullName: iBusiness.fullName,
-              tinNumber: iBusiness.tinNumber,
-              dvcSrlNo: iBusiness.dvcSrlNo,
-              bhfId: iBusiness.bhfId,
-              adrs: iBusiness.adrs,
-              taxEnabled: iBusiness.taxEnabled,
-              isDefault: iBusiness.isDefault,
-              businessTypeId: iBusiness.businessTypeId,
-              encryptionKey: iBusiness.encryptionKey,
-            );
-            await repository.upsert<Business>(business);
-            talker.debug("Saved business locally: ${business.name}");
+            /// get this business locally.
+            await ProxyService.strategy.getBusinessById(
+                businessId: iBusiness.serverId, fetchOnline: true);
           }
         }
 
@@ -994,5 +951,64 @@ mixin AuthMixin implements AuthInterface {
     // Handle null expiresAt safely
     final expiresAt = session.expiresAt ?? 0;
     return expiresAt > (now + expirationBuffer);
+  }
+
+  @override
+  Future<Map<String, dynamic>> requestOtp(String pin) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/pin'),
+      body: jsonEncode({'pin': pin}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to request OTP');
+    }
+  }
+
+  @override
+  Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/verify-otp'),
+      body: jsonEncode({'pin': pin?.pin, 'otp': otp}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final token = responseData['token'];
+      final serverId = responseData['serverId'];
+      final phoneNumber = responseData['phoneNumber'];
+
+      // final business = ProxyService.strategy.getBusinessById(businessId: businessId);
+      final userId = responseData['userId'];
+
+      // Save the token and other details
+      await ProxyService.box.writeString(key: 'bearerToken', value: token);
+      await ProxyService.box.writeInt(key: 'userId', value: int.parse(userId));
+
+      // Fetch the user details using the new token
+      final user = await login(
+        userPhone:
+            pin!.phoneNumber, // Use the phone number from the OTP request
+        skipDefaultAppSetup: false,
+        pin: Pin(
+            userId: int.parse(userId),
+            pin: pin.pin,
+            businessId: serverId,
+            branchId: 0, // Will be determined in the login flow
+            ownerName: '', // Will be updated in the login flow
+            phoneNumber: phoneNumber),
+        isInSignUpProgress: false,
+        flipperHttpClient: ProxyService.http,
+      );
+
+      return user;
+    } else {
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Failed to verify OTP');
+    }
   }
 }

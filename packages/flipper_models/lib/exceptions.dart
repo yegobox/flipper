@@ -121,3 +121,12 @@ class NoOpenDrawer implements Exception {
   final String message;
   NoOpenDrawer(this.message);
 }
+
+class FlipperException implements Exception {
+  final String message;
+
+  FlipperException(this.message);
+
+  @override
+  String toString() => 'FlipperException: $message';
+}

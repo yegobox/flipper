@@ -16,8 +16,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+// ignore: unnecessary_import
 import 'package:flipper_models/exceptions.dart'
     show FailedPaymentException, NoPaymentPlanFound;
+
+final selectedBusinessIdProvider = StateProvider<int?>((ref) => null);
 
 class LoginChoices extends StatefulHookConsumerWidget {
   const LoginChoices({Key? key}) : super(key: key);
@@ -29,12 +32,17 @@ class LoginChoices extends StatefulHookConsumerWidget {
 class _LoginChoicesState extends ConsumerState<LoginChoices>
     with BranchSelectionMixin {
   bool _isSelectingBranch = false;
-  Business? _selectedBusiness;
   bool _isLoading = false;
   String? _loadingItemId;
+  Timer? _navigationTimer;
 
   final _routerService = locator<RouterService>();
   final talker = Talker();
+  @override
+  void dispose() {
+    _navigationTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,8 +50,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, viewModel, child) {
         final businesses = ref.watch(businessesProvider);
-        final branches = ref.watch(
-            branchesProvider(businessId: ProxyService.box.getBusinessId()));
+        final selectedBusinessId = ref.watch(selectedBusinessIdProvider);
+        final branches =
+            ref.watch(branchesProvider(businessId: selectedBusinessId));
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -80,12 +89,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                           child: _isSelectingBranch
                               ? buildBranchList(
                                   // Use the mixin's method
-                                  branches: branches.value!,
+                                  branches: branches.value ?? [],
                                   loadingItemId: _loadingItemId,
                                   onBranchSelected: (branch, context) =>
                                       _handleBranchSelection(branch, context))
                               : _buildBusinessList(
-                                  businesses: businesses.value),
+                                  businesses: businesses.value,
+                                  selectedBusinessId: selectedBusinessId),
                         ),
                       ],
                     )
@@ -108,7 +118,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
   }
 
-  Widget _buildBusinessList({List<Business>? businesses}) {
+  Widget _buildBusinessList(
+      {List<Business>? businesses, int? selectedBusinessId}) {
     if (businesses == null) return const SizedBox();
     return ListView.separated(
       itemCount: businesses.length,
@@ -117,7 +128,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         final business = businesses[index];
         return _buildSelectionTile(
           title: business.name!,
-          isSelected: business == _selectedBusiness,
+          isSelected: business.serverId == selectedBusinessId,
           onTap: () => _handleBusinessSelection(business),
           icon: Icons.business,
           isLoading: _loadingItemId == (business.serverId.toString()),
@@ -140,9 +151,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         child: Container(
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.blue.withValues(alpha: .1)
-                : Colors.grey[100],
+            color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
             borderRadius: BorderRadius.circular(12.0),
             border: Border.all(
               color: isSelected ? Colors.blue : Colors.transparent,
@@ -151,8 +160,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: Colors.blue.withValues(alpha: 0.3),
-                        blurRadius: 8.0)
+                        color: Colors.blue.withOpacity(0.3), blurRadius: 8.0)
                   ]
                 : null,
           ),
@@ -192,11 +200,17 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     setState(() {
       _loadingItemId = business.serverId.toString();
     });
+    ref.read(selectedBusinessIdProvider.notifier).state = business.serverId;
     try {
       // Save business ID to local storage
       await ProxyService.box
           .writeInt(key: 'businessId', value: business.serverId);
       await _setDefaultBusiness(business);
+      // Get the latest payment plan online.
+      await ProxyService.strategy.getPaymentPlan(
+        businessId: business.id,
+        fetchOnline: true,
+      );
       final branches = await ProxyService.strategy.branches(
         businessId: business.serverId,
         active: false,
@@ -209,10 +223,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       } else {
         // If multiple branches, show branch selection
         setState(() {
-          _selectedBusiness = business;
           _isSelectingBranch = true;
         });
-        ref.refresh(branchesProvider(businessId: _selectedBusiness!.serverId));
       }
     } catch (e) {
       talker.error('Error handling business selection: $e');
@@ -472,8 +484,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _updateAllBranchesInactive() async {
+    final businessId = ref.read(selectedBusinessIdProvider);
+    if (businessId == null) return;
     final branches = await ProxyService.strategy
-        .branches(businessId: ProxyService.box.getBusinessId()!, active: true);
+        .branches(businessId: businessId, active: true);
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
           branchId: branch.serverId!, active: false, isDefault: false);
@@ -486,27 +500,29 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   void _completeAuthenticationFlow() {
-    // Track login event with PosthogService
+    final selectedBusinessId = ref.read(selectedBusinessIdProvider);
     PosthogService.instance.capture('login_success', properties: {
       'source': 'login_choices',
-      if (_selectedBusiness != null) 'business_id': _selectedBusiness!.serverId,
+      if (selectedBusinessId != null) 'business_id': selectedBusinessId,
     });
-
-    // Use pushReplacementNamed to completely replace the current screen
-    // This prevents the branch selection from reappearing momentarily
-    // Navigator.of(context).pushReplacementNamed(FlipperAppRoute().path);
 
     _routerService.navigateTo(FlipperAppRoute());
 
     // Clear the navigation flag after a delay
-    Future.delayed(const Duration(seconds: 2), () {
-      ProxyService.box
-          .writeBool(key: 'branch_navigation_in_progress', value: false);
+    _navigationTimer?.cancel();
+    _navigationTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        ProxyService.box
+            .writeBool(key: 'branch_navigation_in_progress', value: false);
+      }
     });
   }
 
   void _refreshBusinessAndBranchProviders() {
     ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+    final businessId = ref.read(selectedBusinessIdProvider);
+    if (businessId != null) {
+      ref.refresh(branchesProvider(businessId: businessId));
+    }
   }
 }

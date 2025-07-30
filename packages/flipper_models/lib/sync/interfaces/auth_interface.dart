@@ -1,4 +1,5 @@
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -48,4 +49,8 @@ abstract class AuthInterface {
       {String? responseChannel});
 
   Future<void> supabaseAuth();
+
+  Future<Map<String, dynamic>> requestOtp(String pin);
+
+  Future<IUser> verifyOtpAndLogin(String otp,{IPin? pin});
 }

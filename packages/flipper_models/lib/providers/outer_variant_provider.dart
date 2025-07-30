@@ -1,164 +1,279 @@
-import 'package:flipper_models/providers/scan_mode_provider.dart';
+// flipper_models/providers/outer_variant_provider.dart
+
+import 'dart:async';
+import 'package:collection/collection.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:collection/collection.dart';
-import 'dart:async';
 import 'package:supabase_models/cache/cache_export.dart';
+
 part 'outer_variant_provider.g.dart';
 
 @riverpod
 class OuterVariants extends _$OuterVariants {
-  /// Remove a variant from the current state by its ID
-  void removeVariantById(String variantId) {
-    final currentList = state.value ?? [];
-    final updatedList = currentList.where((v) => v.id != variantId).toList();
-    state = AsyncValue.data(updatedList);
-  }
-
+  // Internal state for pagination, loading, and search.
   int _currentPage = 0;
-  final int _itemsPerPage = ProxyService.box.itemPerPage() ?? 1000;
+  final List<Variant> _allLoadedVariants = [];
+  int? _itemsPerPage;
   bool _hasMore = true;
   bool _isLoading = false;
+  Timer? _debounce;
+  bool _isDisposed = false;
 
   @override
-  FutureOr<List<Variant>> build(int branchId, {fetchRemote = false}) async {
-    final searchString = ref.watch(searchStringProvider);
-    // Reset state when the provider is rebuilt (e.g., branchId changes)
-    _currentPage = 0;
-    _hasMore = true;
-    _isLoading = false;
+  FutureOr<List<Variant>> build(int branchId) async {
+    // Ensure the provider is not used after being disposed.
+    ref.onDispose(() {
+      _debounce?.cancel();
+      _isDisposed = true;
+    });
 
-    // Initialize cache manager if needed
+    // Initialize itemsPerPage once.
+    _itemsPerPage ??= ProxyService.box.itemPerPage() ?? 10;
+
+    // Initialize the cache manager once.
     await _initializeCacheManager();
 
-    // Load initial variants
-    return await _loadVariants(branchId,
-        fetchRemote: fetchRemote, searchString: searchString);
+    // Load initial variants.
+    await _loadInitialVariants(branchId);
+
+    // Watch for search string changes and react accordingly.
+    final searchString = ref.watch(searchStringProvider);
+    return _handleSearch(branchId, searchString);
   }
 
-  /// Initialize the cache manager
+  /// Initializes the cache manager.
   Future<void> _initializeCacheManager() async {
     try {
       await CacheManager().initialize();
-      print('Cache manager initialized successfully');
     } catch (e) {
-      print('Failed to initialize cache manager: $e');
+      talker.error('Failed to initialize cache manager: $e');
     }
   }
 
-  /// Save Stock objects to cache
-  Future<void> _saveStocksToCache(List<Variant> variants) async {
-    try {
-      // Filter variants with stock information
-      final variantsWithStock = variants.where((v) => v.stock != null).toList();
-
-      if (variantsWithStock.isNotEmpty) {
-        print('Saving ${variantsWithStock.length} stocks to cache');
-
-        // Save stocks to cache
-        await CacheManager().saveStocksForVariants(variants);
-        print('Stocks saved to cache successfully');
+  /// Loads the very first set of variants when the provider is initialized.
+  Future<void> _loadInitialVariants(int branchId) async {
+    if (_allLoadedVariants.isEmpty && !_isLoading) {
+      _isLoading = true;
+      try {
+        final variants = await _fetchVariants(
+          branchId: branchId,
+          page: 0,
+          searchString: '',
+        );
+        _allLoadedVariants.addAll(variants);
+      } catch (e) {
+        talker.error('Failed to load initial variants: $e');
+        // Propagate error to the initial state.
+        state = AsyncValue.error(e, StackTrace.current);
+      } finally {
+        _isLoading = false;
       }
-    } catch (e) {
-      print('Failed to save stocks to cache: $e');
     }
   }
 
-  Future<List<Variant>> _loadVariants(int branchId,
-      {bool fetchRemote = false, required String searchString}) async {
-    if (_isLoading || !_hasMore) return [];
+  /// Handles search logic by filtering in-memory and triggering debounced background searches.
+  List<Variant> _handleSearch(int branchId, String searchString) {
+    // Cancel any previous debounce timer.
+    _debounce?.cancel();
 
+    // Always filter by taxTyCds and search string
+    final filteredList = _filterInMemory(searchString);
+
+    // Trigger a debounced background search for more results if there's a search string
+    if (searchString.isNotEmpty) {
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        if (!_isDisposed) {
+          _backgroundSearch(branchId, searchString);
+        }
+      });
+    }
+
+    return filteredList;
+  }
+
+  /// Filters the currently loaded variants based on the search string and taxTyCds.
+  List<Variant> _filterInMemory(String searchString) {
+    final taxTyCds = ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'];
+
+    // First filter by allowed tax codes
+    var filteredVariants =
+        _allLoadedVariants.where((v) => taxTyCds.contains(v.taxTyCd)).toList();
+
+    // Then filter by search string if provided
+    if (searchString.isEmpty) return filteredVariants;
+
+    final lowerCaseSearchString = searchString.toLowerCase();
+    return filteredVariants
+        .where((v) =>
+            (v.productName?.toLowerCase().contains(lowerCaseSearchString) ??
+                false) ||
+            v.name.toLowerCase().contains(lowerCaseSearchString) ||
+            (v.bcd?.toLowerCase().contains(lowerCaseSearchString) ?? false))
+        .toList();
+  }
+
+  /// Performs a background search without setting a loading state.
+  Future<void> _backgroundSearch(int branchId, String searchString) async {
+    if (_isLoading) return;
     _isLoading = true;
 
     try {
-      final isVatEnabled = ProxyService.box.vatEnabled();
-
-      // Determine the tax codes to filter by at the database level.
-      final List<String> taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D'];
-      List<Variant> variants = [];
-
-      /// first filter on state
-      variants = state.value?.where((v) {
-            return v.name.toLowerCase().contains(searchString.toLowerCase());
-          }).toList() ??
-          [];
-
-      if (variants.isNotEmpty) {
-        return variants;
-      }
-      // First, try to fetch variants locally with the tax filter.
-      variants = await ProxyService.strategy.variants(
-        name: searchString,
-        fetchRemote: false, // Start with local
+      final newVariants = await _fetchVariants(
         branchId: branchId,
-        page: _currentPage,
-        itemsPerPage: _itemsPerPage,
-        taxTyCds: taxTyCds,
+        page: 0, // Always start search from the beginning.
+        searchString: searchString,
       );
 
-      // If no variants were found locally, try fetching from remote.
-      if (variants.isEmpty && searchString.isNotEmpty) {
-        try {
-          variants = await ProxyService.strategy.variants(
-            name: searchString,
-            fetchRemote: true, // Fetch remote as a fallback
-            branchId: branchId,
-            page: _currentPage,
-            itemsPerPage: _itemsPerPage,
-            taxTyCds: taxTyCds, // Apply the same tax filter to the remote query
-          );
-        } catch (e) {
-          print('Remote variant fetch failed: $e');
+      // Merge new unique variants into the main list.
+      final currentIds = _allLoadedVariants.map((v) => v.id).toSet();
+      final uniqueNewVariants =
+          newVariants.where((v) => !currentIds.contains(v.id)).toList();
+
+      if (uniqueNewVariants.isNotEmpty) {
+        _allLoadedVariants.addAll(uniqueNewVariants);
+        // Force rebuild of the provider to get the updated filtered results
+        if (!_isDisposed) {
+          ref.invalidateSelf();
         }
       }
-
-      // Save stock to cache for the retrieved variants.
-      if (variants.isNotEmpty) {
-        _saveStocksToCache(variants);
-      }
-
-      // Update pagination state.
-      _currentPage++;
-      _hasMore = variants.length == _itemsPerPage;
-
-      return variants;
-    } on TimeoutException {
-      print('Timeout: Variants loading took too long');
-      state = AsyncValue.error(
-          'Timeout: Variants loading took too long', StackTrace.current);
-      return [];
-    } catch (error, stackTrace) {
-      print('Error loading variants: $error');
-      state = AsyncValue.error(error, stackTrace);
-      return [];
+    } catch (e) {
+      talker.error('Background search failed: $e');
     } finally {
       _isLoading = false;
     }
   }
 
-  Future<void> loadMore(int branchId) async {
-    if (_isLoading || !_hasMore) return;
-    final searchString = ref.read(searchStringProvider);
+  /// Centralized method to fetch variants from the repository.
+  Future<List<Variant>> _fetchVariants({
+    required int branchId,
+    required int page,
+    required String searchString,
+  }) async {
+    final taxTyCds = ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'];
+    final currentScanMode = ref.read(scanningModeProvider);
 
-    // Load more variants
-    final newVariants =
-        await _loadVariants(branchId, searchString: searchString);
+    // Prioritize remote fetch for initial load, otherwise local-first.
+    bool fetchRemote = searchString.isEmpty && page == 0;
 
-    // Update the state with the new variants
-    state = AsyncValue.data([...state.value ?? [], ...newVariants]);
+    List<Variant> fetchedVariants = await ProxyService.strategy.variants(
+      name: searchString.toLowerCase(),
+      fetchRemote: fetchRemote,
+      branchId: branchId,
+      page: page,
+      itemsPerPage: _itemsPerPage!,
+      taxTyCds: taxTyCds,
+      scanMode: currentScanMode,
+    );
+
+    // Fallback logic.
+    if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
+      fetchedVariants = await ProxyService.strategy.variants(
+        name: searchString.toLowerCase(),
+        fetchRemote: !fetchRemote, // Try the other source.
+        branchId: branchId,
+        page: page,
+        itemsPerPage: _itemsPerPage!,
+        taxTyCds: taxTyCds,
+        scanMode: currentScanMode,
+      );
+    }
+
+    // Save to cache asynchronously.
+    if (fetchedVariants.isNotEmpty) {
+      unawaited(_saveStocksToCache(fetchedVariants));
+    }
+
+    // Update pagination state for non-search loads.
+    if (searchString.isEmpty) {
+      _hasMore = fetchedVariants.length == _itemsPerPage;
+      if (_hasMore) {
+        _currentPage++;
+      }
+    }
+
+    return fetchedVariants;
+  }
+
+  /// Loads the next page of variants for pagination.
+  Future<void> loadMore() async {
+    // Do not load more if a search is active.
+    if (_isLoading || !_hasMore || ref.read(searchStringProvider).isNotEmpty) {
+      return;
+    }
+
+    _isLoading = true;
+    try {
+      final newVariants = await _fetchVariants(
+        branchId: branchId,
+        page: _currentPage,
+        searchString: '',
+      );
+
+      if (newVariants.isNotEmpty) {
+        _allLoadedVariants.addAll(newVariants);
+        if (!_isDisposed) {
+          // Use _filterInMemory to ensure proper taxTyCd filtering when updating state
+          final currentSearchString = ref.read(searchStringProvider);
+          final filteredVariants = _filterInMemory(currentSearchString);
+          state = AsyncValue.data(filteredVariants);
+        }
+      }
+    } catch (e) {
+      talker.error('Failed to load more variants: $e');
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  /// Method to be called when VAT settings change to force a full refresh.
+  void resetForVatChange() {
+    _allLoadedVariants.clear();
+    _currentPage = 0;
+    _hasMore = true;
+    _isLoading = false;
+    ref.invalidateSelf();
+  }
+
+  /// Removes a variant from the state.
+  void removeVariantById(String variantId) {
+    _allLoadedVariants.removeWhere((v) => v.id == variantId);
+    if (!_isDisposed) {
+      // Use _filterInMemory to ensure proper taxTyCd filtering when updating state
+      final currentSearchString = ref.read(searchStringProvider);
+      final filteredVariants = _filterInMemory(currentSearchString);
+      state = AsyncValue.data(filteredVariants);
+    }
+  }
+
+  /// Saves stock data to cache.
+  Future<void> _saveStocksToCache(List<Variant> variants) async {
+    try {
+      final variantsWithStock = variants.where((v) => v.stock != null).toList();
+      if (variantsWithStock.isNotEmpty) {
+        await CacheManager().saveStocksForVariants(variantsWithStock);
+      }
+    } catch (e) {
+      talker.error('Failed to save stocks to cache: $e');
+    }
   }
 }
 
+// Products provider remains the same but with minor optimizations
 @riverpod
 class Products extends _$Products {
+  bool _initialLoadComplete = false;
+
   @override
   FutureOr<List<Product>> build(int branchId) async {
     final searchString = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
 
-    if (!scanMode) {
+    if (!scanMode && !_initialLoadComplete) {
       await loadProducts(searchString: searchString, scanMode: scanMode);
+      _initialLoadComplete = true;
     }
 
     return state.value ?? [];
@@ -173,18 +288,18 @@ class Products extends _$Products {
           await ProxyService.strategy.productsFuture(branchId: branchId);
 
       if (searchString.isNotEmpty) {
-        Product? additionalProduct = await ProxyService.strategy.getProduct(
-          name: searchString,
+        final additionalProduct = await ProxyService.strategy.getProduct(
+          name: searchString.toLowerCase(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,
         );
 
         if (additionalProduct != null) {
-          products.add(additionalProduct);
+          products = [...products, additionalProduct];
         }
       }
 
-      List<Product> matchingProducts = products
+      final matchingProducts = products
           .where((product) =>
               product.name.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
@@ -193,26 +308,22 @@ class Products extends _$Products {
 
       if (matchingProducts.isNotEmpty) {
         _expandProduct(matchingProducts.first);
-      } else {
+      } else if (searchString.isEmpty) {
         state = AsyncData(products);
       }
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
+    } catch (error, stackTrace) {
+      state = AsyncError(error, stackTrace);
     }
   }
 
   void _expandProduct(Product product) {
     state.whenData((currentData) {
       final updatedProducts = currentData.map((p) {
-        if (p.id == product.id && !p.searchMatch!) {
-          p.searchMatch = true;
-        } else {
-          p.searchMatch = false;
-        }
+        p.searchMatch = p.id == product.id;
         return p;
       }).toList();
 
-      final equality = ListEquality();
+      const equality = ListEquality();
       if (!equality.equals(currentData, updatedProducts)) {
         state = AsyncData(updatedProducts);
       }

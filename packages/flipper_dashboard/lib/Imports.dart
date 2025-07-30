@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class Imports extends StatefulHookConsumerWidget {
   final Future<List<Variant>>? futureResponse;
@@ -270,9 +271,26 @@ class ImportsState extends ConsumerState<Imports> {
                 },
               ),
               const SizedBox(height: 16),
-              Expanded(
-                child: _buildDataGrid(),
-              ),
+              if (filteredItemList.isEmpty && _selectedFilterStatus != null)
+                const Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search_off, size: 48, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text(
+                          'No matches found for the selected filter.',
+                          style: TextStyle(color: Colors.grey, fontSize: 18),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: _buildDataGrid(),
+                ),
             ],
           ),
         );
@@ -578,9 +596,10 @@ class VariantDataSource extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'date',
-          value: variant.lastTouched != null
-              ? '${variant.lastTouched!.year}-${variant.lastTouched!.month.toString().padLeft(2, '0')}-${variant.lastTouched!.day.toString().padLeft(2, '0')}'
-              : 'N/A',
+          value: timeago.format(
+            variant.lastTouched!,
+            clock: DateTime.now(),
+          ),
         ),
         DataGridCell<Widget>(
           columnName: 'actions',

@@ -67,11 +67,15 @@ mixin BusinessMixin implements BusinessInterface {
   }
 
   @override
-  FutureOr<Business?> getBusinessById({required int businessId}) async {
+  FutureOr<Business?> getBusinessById(
+      {required int businessId, bool fetchOnline = false}) async {
     final repository = Repository();
     final query = Query(where: [Where('serverId').isExactly(businessId)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.localOnly);
+        query: query,
+        policy: fetchOnline
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly);
     return result.firstOrNull;
   }
 

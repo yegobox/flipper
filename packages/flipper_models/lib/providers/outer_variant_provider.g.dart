@@ -6,7 +6,7 @@ part of 'outer_variant_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$outerVariantsHash() => r'2c709f9566ec29a0651345dd452839ca4031c2ed';
+String _$outerVariantsHash() => r'f934073b6667b08eca883dac930c2d3be3166780';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -32,12 +32,10 @@ class _SystemHash {
 abstract class _$OuterVariants
     extends BuildlessAutoDisposeAsyncNotifier<List<Variant>> {
   late final int branchId;
-  late final dynamic fetchRemote;
 
   FutureOr<List<Variant>> build(
-    int branchId, {
-    dynamic fetchRemote = false,
-  });
+    int branchId,
+  );
 }
 
 /// See also [OuterVariants].
@@ -51,12 +49,10 @@ class OuterVariantsFamily extends Family<AsyncValue<List<Variant>>> {
 
   /// See also [OuterVariants].
   OuterVariantsProvider call(
-    int branchId, {
-    dynamic fetchRemote = false,
-  }) {
+    int branchId,
+  ) {
     return OuterVariantsProvider(
       branchId,
-      fetchRemote: fetchRemote,
     );
   }
 
@@ -66,7 +62,6 @@ class OuterVariantsFamily extends Family<AsyncValue<List<Variant>>> {
   ) {
     return call(
       provider.branchId,
-      fetchRemote: provider.fetchRemote,
     );
   }
 
@@ -90,12 +85,9 @@ class OuterVariantsProvider
     extends AutoDisposeAsyncNotifierProviderImpl<OuterVariants, List<Variant>> {
   /// See also [OuterVariants].
   OuterVariantsProvider(
-    int branchId, {
-    dynamic fetchRemote = false,
-  }) : this._internal(
-          () => OuterVariants()
-            ..branchId = branchId
-            ..fetchRemote = fetchRemote,
+    int branchId,
+  ) : this._internal(
+          () => OuterVariants()..branchId = branchId,
           from: outerVariantsProvider,
           name: r'outerVariantsProvider',
           debugGetCreateSourceHash:
@@ -106,7 +98,6 @@ class OuterVariantsProvider
           allTransitiveDependencies:
               OuterVariantsFamily._allTransitiveDependencies,
           branchId: branchId,
-          fetchRemote: fetchRemote,
         );
 
   OuterVariantsProvider._internal(
@@ -117,11 +108,9 @@ class OuterVariantsProvider
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.branchId,
-    required this.fetchRemote,
   }) : super.internal();
 
   final int branchId;
-  final dynamic fetchRemote;
 
   @override
   FutureOr<List<Variant>> runNotifierBuild(
@@ -129,7 +118,6 @@ class OuterVariantsProvider
   ) {
     return notifier.build(
       branchId,
-      fetchRemote: fetchRemote,
     );
   }
 
@@ -138,16 +126,13 @@ class OuterVariantsProvider
     return ProviderOverride(
       origin: this,
       override: OuterVariantsProvider._internal(
-        () => create()
-          ..branchId = branchId
-          ..fetchRemote = fetchRemote,
+        () => create()..branchId = branchId,
         from: from,
         name: null,
         dependencies: null,
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         branchId: branchId,
-        fetchRemote: fetchRemote,
       ),
     );
   }
@@ -160,16 +145,13 @@ class OuterVariantsProvider
 
   @override
   bool operator ==(Object other) {
-    return other is OuterVariantsProvider &&
-        other.branchId == branchId &&
-        other.fetchRemote == fetchRemote;
+    return other is OuterVariantsProvider && other.branchId == branchId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
-    hash = _SystemHash.combine(hash, fetchRemote.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -180,9 +162,6 @@ class OuterVariantsProvider
 mixin OuterVariantsRef on AutoDisposeAsyncNotifierProviderRef<List<Variant>> {
   /// The parameter `branchId` of this provider.
   int get branchId;
-
-  /// The parameter `fetchRemote` of this provider.
-  dynamic get fetchRemote;
 }
 
 class _OuterVariantsProviderElement
@@ -192,11 +171,9 @@ class _OuterVariantsProviderElement
 
   @override
   int get branchId => (origin as OuterVariantsProvider).branchId;
-  @override
-  dynamic get fetchRemote => (origin as OuterVariantsProvider).fetchRemote;
 }
 
-String _$productsHash() => r'8b22654ea21af89c94e9bf4369d356c54f94bd0c';
+String _$productsHash() => r'48b3f55713014a116dfd34ad2342668f17108211';
 
 abstract class _$Products
     extends BuildlessAutoDisposeAsyncNotifier<List<Product>> {

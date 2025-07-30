@@ -73,7 +73,7 @@ class StatusAppBarForWindowsAndWeb
   Future<void> _checkTaxServerStatus() async {
     try {
       final url =
-          await ProxyService.box.getServerUrl() ?? "https://example.com";
+          await ProxyService.box.getServerUrl() ?? "https://turbo.yegobox.com/";
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode != 200) {

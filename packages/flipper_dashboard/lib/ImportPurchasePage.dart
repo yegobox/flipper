@@ -24,7 +24,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
   late Future<List<model.Variant>> _futureImportResponse;
-  late Future<List<model.Purchase>> _futurePurchases;
+  Future<List<model.Purchase>>? _futurePurchases;
   model.Variant? _selectedItem;
   model.Variant? _selectedPurchaseItem;
   final TextEditingController _nameController = TextEditingController();
@@ -415,6 +415,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
                 purchase: purchase,
                 clickedVariant: clickedVariant,
               );
+              itemMapper.clear();
             } catch (e) {
               talker.error('Error accepting purchase: $e');
               rethrow;

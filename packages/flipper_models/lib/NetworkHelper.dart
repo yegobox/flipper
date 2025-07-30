@@ -18,8 +18,8 @@ mixin NetworkHelper {
         data: json.encode(data),
         options: Options(
           headers: headers,
-          sendTimeout: const Duration(seconds: 25),
-          receiveTimeout: const Duration(seconds: 25),
+          sendTimeout: const Duration(seconds: 120),
+          receiveTimeout: const Duration(seconds: 120),
         ),
       );
       print('Response received: ${response.statusCode}');

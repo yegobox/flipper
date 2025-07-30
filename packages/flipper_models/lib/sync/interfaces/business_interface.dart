@@ -8,7 +8,7 @@ abstract class BusinessInterface {
   Future<Branch> activeBranch();
   Future<Business?> activeBusiness({int? userId});
   Future<Category?> activeCategory({required int branchId});
-  FutureOr<Business?> getBusinessById({required int businessId});
+  FutureOr<Business?> getBusinessById({required int businessId, bool fetchOnline = false});
   Future<List<Business>> businesses(
       {int? userId, bool fetchOnline = false, bool active = false});
   Future<List<BusinessType>> businessTypes();

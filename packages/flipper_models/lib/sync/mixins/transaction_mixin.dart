@@ -547,25 +547,19 @@ mixin TransactionMixin implements TransactionInterface {
     int? invoiceNumber,
     double? updatableQty,
   }) async {
-    if (purchase != null && invoiceNumber != null) {
-      throw ArgumentError(
-          'Both purchase and invoiceNumber cannot be provided at the same time.');
-    }
+    final effectiveInvoiceNumber = purchase?.spplrInvcNo ?? invoiceNumber;
 
     final transaction = await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
       taxAmount: pendingTransaction.taxAmount ?? 0,
-      sarNo: invoiceNumber != null
-          ? invoiceNumber.toString()
-          : purchase?.spplrInvcNo.toString(),
-      orgSarNo: invoiceNumber != null
-          ? invoiceNumber.toString()
-          : purchase?.spplrInvcNo.toString(),
+      sarNo: effectiveInvoiceNumber?.toString(),
+      orgSarNo: effectiveInvoiceNumber?.toString(),
       sarTyCd: sarTyCd,
       receiptNumber: randomNumber,
       reference: randomNumber.toString(),
-      invoiceNumber: invoiceNumber,
+      invoiceNumber:
+          invoiceNumber, // Optional: still pass the original int if needed
       receiptType: TransactionType.adjustment,
       customerTin: pendingTransaction.customerTin,
       customerBhfId: await ProxyService.box.bhfId() ?? "00",
@@ -577,6 +571,7 @@ mixin TransactionMixin implements TransactionInterface {
           : (variant.retailPrice! * (updatableQty ?? 1))),
       customerName: business.name,
     );
+
     return transaction;
   }
 
@@ -860,7 +855,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
     transaction.sarNo = sarNo ?? transaction.sarNo;
     transaction.orgSarNo = orgSarNo ?? transaction.orgSarNo;
-    transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    if (receiptType != "NR" && receiptType != "CR" && receiptType != "TR") {
+      transaction.invoiceNumber = invoiceNumber ?? transaction.invoiceNumber;
+    }
     transaction.receiptNumber = receiptNumber ?? transaction.receiptNumber;
     transaction.totalReceiptNumber =
         totalReceiptNumber ?? transaction.totalReceiptNumber;

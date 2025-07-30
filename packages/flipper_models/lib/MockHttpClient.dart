@@ -40,7 +40,7 @@ class MockHttpClient implements HttpClientInterface {
         persistentConnection: response.persistentConnection,
         reasonPhrase: response.reasonPhrase,
       );
-    } else if (requestUrl == 'https://example.com/endpoint2') {
+    } else if (requestUrl == 'https://turbo.yegobox.com//endpoint2') {
       final response = http.Response.bytes([], 200);
       streamedResponse = http.StreamedResponse(
         http.ByteStream.fromBytes(response.bodyBytes),

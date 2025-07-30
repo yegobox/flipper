@@ -122,16 +122,20 @@ extension StringExtensions on String {
 }
 
 extension CurrencyFormatExtension on num {
-  String toCurrencyFormatted({String? symbol,int decimalDigits = 2}) {
+  String toCurrencyFormatted({String? symbol, int decimalDigits = 2}) {
+    // Ensure symbol ends with a space
+    final cleanSymbol =
+        symbol?.endsWith(' ') == true ? symbol! : '${symbol ?? 'RWF'} ';
+
     final numberFormat = NumberFormat.currency(
       locale: 'en',
-      symbol: symbol ?? 'RWF ',
+      symbol: cleanSymbol,
       decimalDigits: decimalDigits,
     );
 
-    // Check if the number is 0 or 0.0
+    // Return just the symbol if the number is zero
     if (this == 0 || this == 0.0) {
-      return symbol ?? 'RWF';
+      return cleanSymbol.trim(); // Return "RWF" (without space) for zero
     }
 
     return numberFormat.format(this);
@@ -387,14 +391,7 @@ extension DeviceTypeExtension on BuildContext {
   }
 
   bool get isSmallDevice {
-    final deviceType = getDeviceType();
-    return (deviceType == "Phone" ||
-            deviceType == "Phablet" ||
-            deviceType == "Tablet") &&
-        !(Platform.isMacOS ||
-            Platform.isWindows ||
-            Platform.isLinux ||
-            Platform.isFuchsia);
+    return MediaQuery.of(this).size.width < 600;
   }
 }
 

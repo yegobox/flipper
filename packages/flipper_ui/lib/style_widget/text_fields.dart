@@ -107,8 +107,10 @@ class StyledTextFormField {
     Widget? suffixIcon,
     String? Function(String?)? validator,
     void Function(String)? onChanged,
+    Key? key, // Add optional Key parameter
   }) {
     return TextFormField(
+      key: key, // Pass the key to the TextFormField
       controller: controller,
       focusNode: focusNode, // Pass the optional focusNode
       keyboardType: keyboardType,

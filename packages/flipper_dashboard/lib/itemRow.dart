@@ -783,8 +783,10 @@ class _RowItemState extends ConsumerState<RowItem>
   }) async {
     try {
       // Show immediate visual feedback to indicate the item is being processed
-      showCustomSnackBar(context, 'Adding item to cart...',
-          backgroundColor: Colors.black);
+      if (mounted) {
+        showCustomSnackBar(context, 'Adding item to cart...',
+            backgroundColor: Colors.black);
+      }
 
       final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;
       w?.start();
@@ -799,7 +801,9 @@ class _RowItemState extends ConsumerState<RowItem>
           ref.read(pendingTransactionStreamProvider(isExpense: isOrdering));
 
       if (pendingTransaction.value == null) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        }
         toast("Error: No active transaction");
         return;
       }
@@ -830,14 +834,18 @@ class _RowItemState extends ConsumerState<RowItem>
             /// itemTyCd is 3 it is a service
             currentStock == null &&
             widget.variant?.itemTyCd != "3") {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
           toast("You do not have enough stock");
           return;
         }
         if (widget.variant?.taxTyCd != "D" &&
             (currentStock ?? 0) <= 0 &&
             widget.variant?.itemTyCd != "3") {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          }
           toast("You do not have enough stock");
           return;
         }
@@ -884,7 +892,9 @@ class _RowItemState extends ConsumerState<RowItem>
       });
 
       // Hide the loading indicator
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
 
       // Show success message
       // showCustomSnackBar(context, 'Item added to cart');
@@ -903,7 +913,9 @@ class _RowItemState extends ConsumerState<RowItem>
       w?.log("TapOnItemAndSaveTransaction");
     } catch (e, s) {
       // Hide the loading indicator if there was an error
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
 
       talker.warning("Error while clicking: $e");
       talker.error(s);

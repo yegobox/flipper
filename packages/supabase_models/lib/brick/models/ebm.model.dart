@@ -25,6 +25,8 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   final int branchId;
   @Supabase(name: "vat_enabled")
   bool? vatEnabled;
+  @Supabase(name: "mrc")
+  final String mrc;
 
   Ebm({
     String? id,
@@ -36,5 +38,6 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.businessId,
     required this.branchId,
     this.vatEnabled = false,
+    required this.mrc,
   }) : id = id ?? const Uuid().v4();
 }

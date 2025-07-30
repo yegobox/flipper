@@ -454,7 +454,7 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  FutureOr<String> itemCode(
+  Future<String> itemCode(
       {required String countryCode,
       required String productType,
       required packagingUnit,
@@ -462,6 +462,7 @@ mixin ProductMixin implements ProductInterface {
       required String quantityUnit}) async {
     final repository = Repository();
     final query = Query(
+      limit: 1,
       where: [
         Where('code').isNot(null),
         Where('branchId').isExactly(branchId),
@@ -496,6 +497,73 @@ mixin ProductMixin implements ProductInterface {
 
     return newItemCode;
   }
+
+//   @override
+// Future<String> itemCode({
+//   required String countryCode,
+//   required String productType,
+//   required packagingUnit,
+//   required int branchId,
+//   required String quantityUnit,
+// }) async {
+//   final repository = Repository();
+//   final query = Query(
+//     where: [
+//       Where('code').isNot(null),
+//       Where('branchId').isExactly(branchId),
+//     ],
+//     orderBy: [OrderBy('createdAt', ascending: false)],
+//   );
+
+//   final items = await repository.get<ItemCode>(
+//     query: query,
+//     policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+//   );
+
+//   // Create the prefix for the new code
+//   final prefix = '$countryCode$productType$packagingUnit$quantityUnit';
+
+//   int highestSequence = 0;
+
+//   if (items.isNotEmpty) {
+//     for (final item in items) {
+//       final code = item.code;
+
+//       // Check if this code matches our prefix
+//       if (code.startsWith(prefix) && code.length > prefix.length) {
+//         // Extract the sequence part (everything after the prefix)
+//         final sequencePart = code.substring(prefix.length);
+
+//         // Try to parse the sequence as an integer
+//         try {
+//           final sequence = int.parse(sequencePart);
+//           if (sequence > highestSequence) {
+//             highestSequence = sequence;
+//           }
+//         } catch (e) {
+//           // If parsing fails, skip this item
+//           continue;
+//         }
+//       }
+//     }
+//   }
+//   // Increment and format the new sequence (always use 7-digit padding)
+//   final newSequence = (highestSequence + 1).toString().padLeft(7, '0');
+
+//   // Construct the new item code
+//   final newItemCode = '$prefix$newSequence';
+
+//   // Save the new item code in the database
+//   final newItem = ItemCode(
+//     code: newItemCode,
+//     createdAt: DateTime.now().toUtc(),
+//     branchId: branchId,
+//   );
+
+//   await repository.upsert(newItem);
+
+//   return newItemCode;
+// }
 
   @override
   FutureOr<SKU> getSku({required int branchId, required int businessId}) async {

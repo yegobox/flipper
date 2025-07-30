@@ -7,6 +7,7 @@ import 'dart:typed_data';
 // import 'package:flipper_models/power_sync/schema.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flutter/src/material/date.dart';
@@ -569,7 +570,7 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<models.Plan?> getPaymentPlan(
-      {required String businessId, bool fetchRemote = false}) {
+      {required String businessId, bool? fetchOnline}) {
     // TODO: implement getPaymentPlan
     throw UnimplementedError();
   }
@@ -1084,7 +1085,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Business?> getBusinessById({required int businessId}) {
+  FutureOr<Business?> getBusinessById(
+      {required int businessId, bool fetchOnline = false}) {
     // TODO: implement getBusinessById
     throw UnimplementedError();
   }
@@ -1099,15 +1101,6 @@ class Capella extends AiStrategyImpl
   FutureOr<List<TransactionPaymentRecord>> getPaymentType(
       {required String transactionId}) {
     // TODO: implement getPaymentType
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType,
-      required bool isExpense,
-      required int branchId}) {
-    // TODO: implement manageCashInOutTransaction
     throw UnimplementedError();
   }
 
@@ -1194,6 +1187,7 @@ class Capella extends AiStrategyImpl
       {required int branchId,
       required String severUrl,
       required String bhFId,
+      required String mrc,
       bool vatEnabled = false}) {
     // TODO: implement saveEbm
     throw UnimplementedError();
@@ -1334,7 +1328,7 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  FutureOr<String> itemCode(
+  Future<String> itemCode(
       {required String countryCode,
       required String productType,
       required packagingUnit,
@@ -2386,6 +2380,27 @@ class Capella extends AiStrategyImpl
   @override
   Future<void> hydrateSars({required int branchId}) {
     // TODO: implement hydrateSars
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateIoFunc(
+      {required brick.Variant variant,
+      brick.Purchase? purchase,
+      double? approvedQty}) {
+    // TODO: implement updateIoFunc
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>> requestOtp(String pin) {
+    // TODO: implement requestOtp
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) {
+    // TODO: implement verifyOtpAndLogin
     throw UnimplementedError();
   }
 }

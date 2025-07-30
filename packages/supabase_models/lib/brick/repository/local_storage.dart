@@ -1,9 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 // import 'package:flipper_services/proxy.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite_common/sqflite.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 // ignore: depend_on_referenced_packages
@@ -434,10 +433,36 @@ class SharedPreferenceStorage implements LocalStorage {
     return _cache[key] as bool?;
   }
 
+  final StreamController<bool> _proformaModeController =
+      StreamController<bool>.broadcast();
+  final StreamController<bool> _trainingModeController =
+      StreamController<bool>.broadcast();
+
+  @override
+  Stream<bool> get onProformaModeChanged => _proformaModeController.stream;
+
+  @override
+  Stream<bool> get onTrainingModeChanged => _trainingModeController.stream;
+
   @override
   Future<void> writeBool({required String key, required bool value}) async {
     if (!_isKeyAllowed(key)) return;
+
+    // Check if the value is actually changing before updating and emitting
+    final bool? currentValue = _cache[key] as bool?;
+    if (currentValue == value) {
+      // Value is the same, no need to update or emit
+      return;
+    }
+
     _cache[key] = value;
+
+    if (key == 'isProformaMode') {
+      _proformaModeController.add(value);
+    } else if (key == 'isTrainingMode') {
+      _trainingModeController.add(value);
+    }
+
     if (kIsWeb) {
       if (_webPrefs != null) {
         await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
@@ -457,6 +482,14 @@ class SharedPreferenceStorage implements LocalStorage {
     } else {
       await _savePreferences();
     }
+    // Also clear the stream controllers
+    _proformaModeController.add(false);
+    _trainingModeController.add(false);
+  }
+
+  void dispose() {
+    _proformaModeController.close();
+    _trainingModeController.close();
   }
 
   @override
