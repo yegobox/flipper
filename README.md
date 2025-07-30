@@ -2,7 +2,7 @@
 
 <img src=".github/assets/flipper_logo.png" width="200" alt="Flipper Logo"/>
 
-# Flipper
+# Flipper    
 
 ### Enterprise-Grade Business Software with Military-Level Encryption
 
@@ -53,9 +53,10 @@ This monorepo contains our complete ecosystem, including:
 
 This repository is a monorepo managed with [Melos](https://melos.invertase.dev/).
 
-1.  **Clone the repository**:
+1.  **Clone the repository with submodules**:
     ```bash
-    git clone https://github.com/yegobox/flipper.git
+    git clone --recurse-submodules https://github.com/yegobox/flipper.git
+    
     cd flipper
     ```
 
@@ -120,4 +121,3 @@ Our next funding round will accelerate:
 This project is source-available. The source code is public on GitHub to promote transparency and build trust with our users and partners. However, it is not "open source" in the conventional sense.
 
 Usage of this source code is subject to specific terms. You may use, modify, and distribute the code only if you have a valid agreement with YEGOBOX LTD, or if you are an acknowledged investor, contributor, or partner. Unauthorized use is strictly prohibited. For licensing inquiries, please contact `info@yegobox.com`.
-
