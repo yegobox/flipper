@@ -17,3 +17,4 @@ export 'transaction_items_provider.dart';
 export 'transactions_provider.dart';
 export 'variants_provider.dart';
 export 'access_provider.dart';
+export 'credit_provider.dart';

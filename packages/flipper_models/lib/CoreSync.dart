@@ -3213,6 +3213,7 @@ class CoreSync extends AiStrategyImpl
   Stream<Credit?> credit({required String branchId}) {
     return repository
         .subscribe<Credit>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
             brick.Where('branchId').isExactly(branchId),
           ]),
