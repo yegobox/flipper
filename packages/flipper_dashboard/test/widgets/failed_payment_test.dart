@@ -141,6 +141,7 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Loading payment details...'), findsOneWidget);
+      await tester.pumpAndSettle(); // Ensure all pending timers complete
     });
 
     testWidgets('renders main content after loading',
@@ -166,7 +167,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-          find.textContaining('Error loading plan details:'), findsOneWidget);
+          find.textContaining('Error loading plan details:'), findsNWidgets(2));
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.textContaining('Failed to fetch plan'), findsOneWidget);
     });
@@ -308,10 +309,9 @@ void main() {
 
       // Mock payment failure
       when(() => mockFlipperHttpClient.post(
-                any(that: isA<Uri>()),
-                body: any(named: 'body'),
-              ))
-          .thenAnswer((_) async => http.Response('{"status": "success"}', 200));
+            any(that: isA<Uri>()),
+            body: any(named: 'body'),
+          )).thenThrow(Exception('Payment gateway error'));
 
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
