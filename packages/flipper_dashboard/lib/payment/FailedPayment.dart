@@ -26,6 +26,12 @@ class _FailedPaymentState extends State<FailedPayment>
   late Animation<double> _shakeAnimation;
   late Animation<double> _fadeAnimation;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Move error handling here if needed, or ensure _setupPlanSubscription defers SnackBar
+  }
+
   bool _isLoading = true;
   String? _errorMessage;
   models.Plan? _plan;
@@ -140,7 +146,6 @@ class _FailedPaymentState extends State<FailedPayment>
             _plan = updatedPlan;
           });
 
-          // Check if payment was completed - enhanced with success animation
           if (updatedPlan.paymentCompletedByUser == true) {
             _showSuccessAndNavigate();
           }
@@ -154,7 +159,12 @@ class _FailedPaymentState extends State<FailedPayment>
         _isLoading = false;
       });
 
-      _showErrorSnackBar(_errorMessage!);
+      // Defer SnackBar to ensure context is valid
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showErrorSnackBar(_errorMessage!);
+        }
+      });
     }
   }
 
