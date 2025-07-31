@@ -89,6 +89,7 @@ class GeminiResponse extends _$GeminiResponse {
         final content = decodedResponse['candidates'][0]['content'];
         final parts = content['parts'] as List<dynamic>;
         final text = parts.map((e) => e['text'] as String).join('\n');
+        talker.info('Gemini API response: $text');
         return text;
       } else {
         throw Exception(
