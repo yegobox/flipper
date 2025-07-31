@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:meta/meta.dart';
 import 'package:supabase_models/brick/models/plans.model.dart';
 
 /// Represents the different states of payment verification
@@ -186,4 +187,8 @@ class PaymentVerificationService {
     stopPeriodicVerification();
     onPaymentStatusChanged = null;
   }
+
+  /// Returns true if the periodic verification timer is currently active.
+  @visibleForTesting
+  bool get isTimerActive => _verificationTimer?.isActive ?? false;
 }

@@ -6,10 +6,16 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/models/pin.model.dart';
+import 'package:supabase_models/brick/models/plans.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
+
+class MockPlan extends Mock implements Plan {}
+
+class MockBusiness extends Mock implements Business {}
 
 class MockSyncStrategy extends Mock implements SyncStrategy {}
 
@@ -32,8 +38,6 @@ class MockDatabaseSync extends Mock implements DatabaseSyncInterface {
 
   @override
   Future<void> completeLogin(Pin thePin) => Future.value();
-
-  
 }
 
 class MockBox extends Mock implements LocalStorage {}
