@@ -1,10 +1,32 @@
 import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/plans.model.dart';
+
+/// Represents the different states of payment verification
+enum PaymentVerificationResult { active, noPlan, planExistsButInactive, error }
+
+/// Contains the result of payment verification with additional context
+class PaymentVerificationResponse {
+  final PaymentVerificationResult result;
+  final String? errorMessage;
+  final Plan? plan;
+  final Exception? exception;
+
+  const PaymentVerificationResponse({
+    required this.result,
+    this.errorMessage,
+    this.plan,
+    this.exception,
+  });
+
+  bool get isActive => result == PaymentVerificationResult.active;
+  bool get requiresPaymentSetup => result == PaymentVerificationResult.noPlan;
+  bool get requiresPaymentResolution =>
+      result == PaymentVerificationResult.planExistsButInactive;
+  bool get hasError => result == PaymentVerificationResult.error;
+}
 
 /// Exception thrown when a payment plan is not found.
 class NoPaymentPlanFoundException implements Exception {
@@ -25,11 +47,15 @@ class PaymentIncompleteException implements Exception {
 }
 
 /// Service responsible for verifying payment status throughout the app lifecycle.
+/// This service only handles verification logic - navigation is handled by callers.
 class PaymentVerificationService {
   static final PaymentVerificationService _instance =
       PaymentVerificationService._internal();
-  final _routerService = locator<RouterService>();
+
   Timer? _verificationTimer;
+
+  // Callback for when payment status changes
+  Function(PaymentVerificationResponse)? onPaymentStatusChanged;
 
   /// Singleton instance
   factory PaymentVerificationService() {
@@ -38,14 +64,23 @@ class PaymentVerificationService {
 
   PaymentVerificationService._internal();
 
+  /// Sets up a callback to be notified when payment status changes
+  void setPaymentStatusChangeCallback(
+      Function(PaymentVerificationResponse) callback) {
+    onPaymentStatusChanged = callback;
+  }
+
   /// Starts periodic payment verification
   /// [intervalMinutes] defines how often to check (defaults to 60 minutes)
-  void startPeriodicVerification({int intervalMinutes = 60}) {
+  void startPeriodicVerification({int intervalMinutes = 1}) {
     stopPeriodicVerification();
 
     _verificationTimer = Timer.periodic(
       Duration(minutes: intervalMinutes),
-      (_) => verifyPaymentStatus(),
+      (_) async {
+        final response = await verifyPaymentStatus();
+        onPaymentStatusChanged?.call(response);
+      },
     );
 
     talker.info(
@@ -58,42 +93,34 @@ class PaymentVerificationService {
     _verificationTimer = null;
   }
 
-  /// Verifies if the current business has an active subscription
-  /// Returns true if subscription is active, otherwise navigates to payment screen
-  /// and returns false
-  /// Flag to track if we're currently on a payment screen
-  bool _isOnPaymentScreen = false;
-
-  /// Set when navigating to a payment screen
-  void _setOnPaymentScreen() {
-    _isOnPaymentScreen = true;
-    talker.info('Payment screen flag set to true');
-  }
-
-  /// Set when navigating back to the main app
-  void _clearPaymentScreenFlag() {
-    _isOnPaymentScreen = false;
-    talker.info('Payment screen flag set to false');
-  }
-
-  Future<bool> verifyPaymentStatus() async {
+  /// Verifies the current business payment status
+  /// Returns a detailed response that callers can use to decide what action to take
+  Future<PaymentVerificationResponse> verifyPaymentStatus() async {
     talker.info('Verifying payment status');
 
     try {
-      final businessId = (await ProxyService.strategy.activeBusiness())!.id;
+      final business = await ProxyService.strategy.activeBusiness();
+      if (business?.id == null) {
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.error,
+          errorMessage: 'No active business found',
+        );
+      }
+
+      final businessId = business!.id;
 
       // First check if a payment plan exists at all
       final plan = await ProxyService.strategy.getPaymentPlan(
         businessId: businessId,
+        fetchOnline: true,
       );
 
       if (plan == null) {
-        // No payment plan exists, direct to payment plan screen
-        talker
-            .warning('No payment plan found, directing to payment plan screen');
-        _setOnPaymentScreen();
-        _routerService.navigateTo(PaymentPlanUIRoute());
-        return false;
+        talker.warning('No payment plan found for business: $businessId');
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.noPlan,
+          errorMessage: 'No payment plan exists for this business',
+        );
       }
 
       // A plan exists, now check if it's active
@@ -105,41 +132,58 @@ class PaymentVerificationService {
         );
 
         talker.info('Payment verification successful: Subscription is active');
-
-        // If we were on a payment screen, navigate back to the main app
-        if (_isOnPaymentScreen) {
-          talker.info(
-              'Returning to main app after successful payment verification');
-          _clearPaymentScreenFlag();
-          _routerService.navigateTo(FlipperAppRoute());
-        }
-
-        return true;
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.active,
+          plan: plan,
+        );
       } catch (subscriptionError) {
         // Plan exists but is not active (payment failed or expired)
         talker
             .error('Payment plan exists but is not active: $subscriptionError');
-        _setOnPaymentScreen();
-        _routerService.navigateTo(FailedPaymentRoute());
-        return false;
+
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.planExistsButInactive,
+          errorMessage: 'Payment plan exists but subscription is not active',
+          plan: plan,
+          exception: subscriptionError is Exception
+              ? subscriptionError
+              : Exception(subscriptionError.toString()),
+        );
       }
     } catch (e) {
       talker.error('Error during payment verification: $e');
-      _setOnPaymentScreen();
 
-      // For general errors, direct to payment plan screen
-      _routerService.navigateTo(PaymentPlanUIRoute());
-      return false;
+      return PaymentVerificationResponse(
+        result: PaymentVerificationResult.error,
+        errorMessage: 'Failed to verify payment status: ${e.toString()}',
+        exception: e is Exception ? e : Exception(e.toString()),
+      );
     }
   }
 
-  /// Force immediate payment verification and redirect to payment screen if needed
-  /// This can be called from any part of the app when payment verification is needed
-  Future<void> forcePaymentVerification() async {
-    final isActive = await verifyPaymentStatus();
-    if (!isActive) {
+  /// Force immediate payment verification
+  /// Returns the verification response for the caller to handle
+  Future<PaymentVerificationResponse> forcePaymentVerification() async {
+    final response = await verifyPaymentStatus();
+
+    if (!response.isActive) {
       talker.warning(
-          'Forced payment verification failed - redirecting to payment screen');
+          'Forced payment verification failed: ${response.errorMessage}');
     }
+
+    return response;
+  }
+
+  /// Helper method to check if payment is required
+  /// Useful for quick checks without full verification details
+  Future<bool> isPaymentRequired() async {
+    final response = await verifyPaymentStatus();
+    return !response.isActive;
+  }
+
+  /// Dispose method to clean up resources
+  void dispose() {
+    stopPeriodicVerification();
+    onPaymentStatusChanged = null;
   }
 }

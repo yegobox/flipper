@@ -33,6 +33,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   // Internet connection service instance
   final _internetConnectionService = InternetConnectionService();
 
+  // Flag to track if we're currently on a payment screen
+  bool _isOnPaymentScreen = false;
+
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
@@ -53,11 +56,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // ------------------------------------------------------
 
       // Ensure db is initialized before proceeding.
-
       await _allRequirementsMeets();
       talker.warning("StartupViewModel Below allRequirementsMeets");
-      // Ensure admin access for API/onboarded users
 
+      // Ensure admin access for API/onboarded users
       AppInitializer.initialize();
 
       // Initialize the EBM Sync Service to listen for customer updates.
@@ -70,7 +72,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       talker.warning("StartupViewModel Below AppInitializer.initialize()");
 
-      // Start periodic payment verification (check every 60 minutes)
+      // Set up payment verification callback and start periodic verification
+      _paymentVerificationService
+          .setPaymentStatusChangeCallback(_handlePaymentStatusChange);
       _paymentVerificationService.startPeriodicVerification();
 
       // Start periodic internet connection check (check every 6 hours)
@@ -79,23 +83,115 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
       await appService.appInit();
-      // Handle navigation based on user state and app settings.
-      _routerService.navigateTo(FlipperAppRoute());
-      talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");
-      // if (ProxyService.strategy.isDrawerOpen(
-      //     cashierId: ProxyService.box.getUserId()!,
-      //     branchId: ProxyService.box.getBranchId()!)) {
-      //   // Drawer should be open - handle data bootstrapping and navigation.
-      //   _handleDrawerOpen();
-      // } else {
-      //   // Drawer should be closed - handle data bootstrapping and navigation.
-      //   _handleDrawerClosed();
-      // }
+
+      // Check payment status before navigating to main app
+      await _handleInitialPaymentVerification();
+
+      talker.warning("StartupViewModel Below payment verification");
     } catch (e, stackTrace) {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
       await _handleStartupError(e, stackTrace);
     }
+  }
+
+  /// Handle payment status changes from periodic verification
+  void _handlePaymentStatusChange(PaymentVerificationResponse response) {
+    switch (response.result) {
+      case PaymentVerificationResult.active:
+        _handleActiveSubscription();
+        break;
+      case PaymentVerificationResult.noPlan:
+        _handleNoPlan();
+        break;
+      case PaymentVerificationResult.planExistsButInactive:
+        _handleInactivePlan(response);
+        break;
+      case PaymentVerificationResult.error:
+        _handleVerificationError(response);
+        break;
+    }
+  }
+
+  /// Handle initial payment verification during startup
+  Future<void> _handleInitialPaymentVerification() async {
+    try {
+      final response = await _paymentVerificationService.verifyPaymentStatus();
+      _handlePaymentStatusChange(response);
+    } catch (e) {
+      // If payment verification itself throws an exception, log and proceed
+      talker.error("Exception during initial payment verification: $e");
+      _routerService.navigateTo(FlipperAppRoute());
+    }
+  }
+
+  void _handleActiveSubscription() {
+    talker.info('Payment verification successful: Subscription is active');
+
+    // If we were on a payment screen, navigate back to the main app
+    if (_isOnPaymentScreen) {
+      talker
+          .info('Returning to main app after successful payment verification');
+      _clearPaymentScreenFlag();
+      _routerService.navigateTo(FlipperAppRoute());
+    } else {
+      // First time startup with active subscription
+      _routerService.navigateTo(FlipperAppRoute());
+      talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");
+    }
+  }
+
+  void _handleNoPlan() {
+    talker.warning('No payment plan found, directing to payment plan screen');
+    _setOnPaymentScreen();
+    _routerService.navigateTo(PaymentPlanUIRoute());
+  }
+
+  void _handleInactivePlan(PaymentVerificationResponse response) {
+    talker.error(
+        'Payment plan exists but is not active: ${response.errorMessage}');
+    _setOnPaymentScreen();
+    _routerService.navigateTo(FailedPaymentRoute());
+  }
+
+  void _handleVerificationError(PaymentVerificationResponse response) {
+    talker.error('Error during payment verification: ${response.errorMessage}');
+
+    // Handle specific error types
+    if (response.exception is NoPaymentPlanFoundException) {
+      _setOnPaymentScreen();
+      _routerService.navigateTo(PaymentPlanUIRoute());
+    } else if (response.exception is PaymentIncompleteException) {
+      _setOnPaymentScreen();
+      _routerService.navigateTo(FailedPaymentRoute());
+    } else {
+      // For other errors, still allow access to main app but log the issue
+      talker
+          .warning("Proceeding to main app despite payment verification error");
+      _routerService.navigateTo(FlipperAppRoute());
+    }
+  }
+
+  void _setOnPaymentScreen() {
+    _isOnPaymentScreen = true;
+    talker.info('Payment screen flag set to true');
+  }
+
+  void _clearPaymentScreenFlag() {
+    _isOnPaymentScreen = false;
+    talker.info('Payment screen flag set to false');
+  }
+
+  /// Force payment verification with navigation handling
+  Future<void> forcePaymentVerification() async {
+    final response =
+        await _paymentVerificationService.forcePaymentVerification();
+    _handlePaymentStatusChange(response);
+  }
+
+  /// Check if payment is required without navigation
+  Future<bool> isPaymentRequired() async {
+    return await _paymentVerificationService.isPaymentRequired();
   }
 
   /// Ensures the specified user has all required admin access for all features.
@@ -179,13 +275,6 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _routerService.clearStackAndShow(LoginRoute());
   }
 
-  Future<void> hasActiveSubscription() async {
-    await ProxyService.strategy.hasActiveSubscription(
-        fetchRemote: false,
-        businessId: (await ProxyService.strategy.activeBusiness())!.id,
-        flipperHttpClient: ProxyService.http);
-  }
-
   bool isTestEnvironment() {
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
@@ -226,5 +315,12 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.error("StartupViewModel _allRequirementsMeets ${e}");
       rethrow;
     }
+  }
+
+  /// Clean up resources when the view model is disposed
+  @override
+  void dispose() {
+    _paymentVerificationService.dispose();
+    super.dispose();
   }
 }
