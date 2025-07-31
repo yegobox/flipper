@@ -262,39 +262,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     try {
       await _setDefaultBranch(branch);
 
-      // Check for active subscription
-      try {
-        final startupViewModel = StartupViewModel();
-        await startupViewModel.hasActiveSubscription();
-      } on FailedPaymentException catch (e) {
-        talker.error('Payment failed: ${e.message}');
-        if (!mounted) return;
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('Payment failed: ${e.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        _routerService.navigateTo(FailedPaymentRoute());
-        return;
-      } on NoPaymentPlanFound catch (e) {
-        talker.error('No payment plan found: $e');
-        if (!mounted) return;
-        _routerService.navigateTo(PaymentPlanUIRoute());
-        return;
-      } catch (e, stackTrace) {
-        talker.error('Subscription check failed: $e', stackTrace);
-        if (!mounted) return;
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text('Error checking subscription: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() => _isLoading = false);
-        return;
-      }
-
       if (!isMobile) {
         // Choose default app if not set
         String? defaultApp = ProxyService.box.getDefaultApp();

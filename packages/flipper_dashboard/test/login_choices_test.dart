@@ -306,9 +306,6 @@ void main() {
           .thenReturn(businessWithSingleBranch.serverId);
       when(() => mockBox.getUserId()).thenReturn(1);
 
-      when(() => mockStartupViewModel.hasActiveSubscription())
-          .thenAnswer((_) async => true);
-
       when(() => mockRouterService.navigateTo(any()))
           .thenAnswer((invocation) async {
         final route = invocation.positionalArguments[0] as PageRouteInfo;

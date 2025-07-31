@@ -580,7 +580,7 @@ class _TenantProviderElement extends AutoDisposeFutureProviderElement<Tenant?>
   int get userId => (origin as TenantProvider).userId;
 }
 
-String _$featureAccessHash() => r'd264f7a28e48be93e323ebcc8fc95e4fcef8d45d';
+String _$featureAccessHash() => r'66b5f4e7cca3d8204de4cafecfb039b4413b2700';
 
 /// See also [featureAccess].
 @ProviderFor(featureAccess)

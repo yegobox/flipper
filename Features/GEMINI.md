@@ -31,3 +31,79 @@ By adhering to these principles, we will build a more robust, predictable, and m
 ## Migration Strategy
 
 We will migrate to `df_safer_dart` on new features. Existing code will be refactored as time permits, but the priority is to use these principles for all new development.
+
+## Test Setup Guidelines
+
+When writing tests, especially with `flutter_test` and `mocktail`, it's crucial to structure `setUpAll` and `setUp` correctly to ensure reliable and maintainable tests.
+
+### `setUpAll` vs. `setUp`
+
+-   **`setUpAll`**: Use `setUpAll` for one-time setup that applies to all tests in a `group`. This is ideal for:
+    -   Initializing `TestEnvironment` and its core mocks (e.g., `mockDbSync`, `mockBox`).
+    -   Registering fallback values for `mocktail`'s `any()` or `captureAny()`.
+    -   Performing any asynchronous setup that only needs to run once (e.g., `env.init()`).
+    -   `setUpAll` should be `async` if it contains `await` calls.
+
+-   **`setUp`**: Use `setUp` for setup that needs to run before *each* test within a `group`. This is ideal for:
+    -   Resetting mocks to a clean state before each test to prevent test pollution.
+    -   Stubbing common method calls on mocks that are consistent across most tests.
+    -   Ensuring `ProxyService` or other global dependencies point to the correct mock instances for the current test.
+
+### Recommended Structure
+
+```dart
+void main() {
+  late TestEnvironment env;
+  late MockDatabaseSync mockDbSync;
+  late MockBox mockBox;
+  // Declare other mocks here
+
+  setUpAll(() async {
+    // 1. Initialize TestEnvironment (if it has async setup)
+    env = TestEnvironment();
+    await env.init(); // Await if env.init() is async
+
+    // 2. Assign initialized mocks from TestEnvironment
+    mockDbSync = env.mockDbSync;
+    mockBox = env.mockBox;
+    // Assign other mocks from env as needed
+
+    // 3. Register fallback values for mocktail
+    registerFallbackValue(SomeComplexObject());
+    registerFallbackValue(Uri());
+    // ... other fallbacks
+  });
+
+  setUp(() {
+    // 1. Reset mocks before each test
+    reset(mockDbSync);
+    reset(mockBox);
+    // Reset other mocks
+
+    // 2. Inject mocks into ProxyService or other global singletons
+    env.injectMocks(); // Assuming this sets ProxyService.strategy, ProxyService.box etc.
+    env.stubCommonMethods(); // Stub common behaviors for mocks
+
+    // 3. Set up specific mock behaviors for the current test if needed
+    when(() => mockBox.getBranchId()).thenReturn(1);
+    // ... other specific stubs
+  });
+
+  tearDown(() {
+    // Clean up resources after each test if necessary
+    // e.g., service.dispose();
+  });
+
+  group('Your Test Group', () {
+    test('Your test case', () async {
+      // Test logic here
+    });
+  });
+}
+```
+
+### Common Pitfalls to Avoid
+
+-   **Re-initializing mocks in `setUp`**: Avoid `mockDbSync = MockDatabaseSync();` inside `setUp` if it's already initialized in `setUpAll`. This creates new mock instances for each test, which might not be what you intend and can lead to `LateInitializationError` if not handled carefully.
+-   **Missing `await` in `setUpAll`**: If `env.init()` or other setup in `setUpAll` is asynchronous, ensure you `await` it. Otherwise, subsequent lines might try to access uninitialized fields.
+-   **Incorrect `ProxyService` injection**: Ensure that `ProxyService` (or any other global service locator) is correctly pointed to your mock instances in `setUp` (or `setUpAll` if the mocks are truly global and don't need resetting per test).

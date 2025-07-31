@@ -6,7 +6,8 @@ part of 'ai_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$geminiResponseHash() => r'f5be35204f746cda1aa02f973fa696919afa51b9';
+String _$streamedBusinessAnalyticsHash() =>
+    r'50dfe5f380d2280d57f8190d0e478f37f1ac226c';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -28,6 +29,143 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [streamedBusinessAnalytics].
+@ProviderFor(streamedBusinessAnalytics)
+const streamedBusinessAnalyticsProvider = StreamedBusinessAnalyticsFamily();
+
+/// See also [streamedBusinessAnalytics].
+class StreamedBusinessAnalyticsFamily
+    extends Family<AsyncValue<List<BusinessAnalytic>>> {
+  /// See also [streamedBusinessAnalytics].
+  const StreamedBusinessAnalyticsFamily();
+
+  /// See also [streamedBusinessAnalytics].
+  StreamedBusinessAnalyticsProvider call(
+    int branchId,
+  ) {
+    return StreamedBusinessAnalyticsProvider(
+      branchId,
+    );
+  }
+
+  @override
+  StreamedBusinessAnalyticsProvider getProviderOverride(
+    covariant StreamedBusinessAnalyticsProvider provider,
+  ) {
+    return call(
+      provider.branchId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'streamedBusinessAnalyticsProvider';
+}
+
+/// See also [streamedBusinessAnalytics].
+class StreamedBusinessAnalyticsProvider
+    extends AutoDisposeStreamProvider<List<BusinessAnalytic>> {
+  /// See also [streamedBusinessAnalytics].
+  StreamedBusinessAnalyticsProvider(
+    int branchId,
+  ) : this._internal(
+          (ref) => streamedBusinessAnalytics(
+            ref as StreamedBusinessAnalyticsRef,
+            branchId,
+          ),
+          from: streamedBusinessAnalyticsProvider,
+          name: r'streamedBusinessAnalyticsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$streamedBusinessAnalyticsHash,
+          dependencies: StreamedBusinessAnalyticsFamily._dependencies,
+          allTransitiveDependencies:
+              StreamedBusinessAnalyticsFamily._allTransitiveDependencies,
+          branchId: branchId,
+        );
+
+  StreamedBusinessAnalyticsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.branchId,
+  }) : super.internal();
+
+  final int branchId;
+
+  @override
+  Override overrideWith(
+    Stream<List<BusinessAnalytic>> Function(
+            StreamedBusinessAnalyticsRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: StreamedBusinessAnalyticsProvider._internal(
+        (ref) => create(ref as StreamedBusinessAnalyticsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        branchId: branchId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<BusinessAnalytic>> createElement() {
+    return _StreamedBusinessAnalyticsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is StreamedBusinessAnalyticsProvider &&
+        other.branchId == branchId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin StreamedBusinessAnalyticsRef
+    on AutoDisposeStreamProviderRef<List<BusinessAnalytic>> {
+  /// The parameter `branchId` of this provider.
+  int get branchId;
+}
+
+class _StreamedBusinessAnalyticsProviderElement
+    extends AutoDisposeStreamProviderElement<List<BusinessAnalytic>>
+    with StreamedBusinessAnalyticsRef {
+  _StreamedBusinessAnalyticsProviderElement(super.provider);
+
+  @override
+  int get branchId => (origin as StreamedBusinessAnalyticsProvider).branchId;
+}
+
+String _$geminiResponseHash() => r'f5be35204f746cda1aa02f973fa696919afa51b9';
 
 abstract class _$GeminiResponse
     extends BuildlessAutoDisposeAsyncNotifier<String> {
