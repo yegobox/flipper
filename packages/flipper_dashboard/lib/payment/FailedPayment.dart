@@ -27,7 +27,6 @@ class _FailedPaymentState extends State<FailedPayment>
   late Animation<double> _fadeAnimation;
 
   bool _isLoading = true;
-  bool _isRetrying = false;
   String? _errorMessage;
   models.Plan? _plan;
   bool _usePhoneNumber = false;
@@ -799,8 +798,6 @@ class _FailedPaymentState extends State<FailedPayment>
           SnackBar(content: Text('Payment failed: ${e.toString()}')),
         );
       }
-    } finally {
-      isLoading = false;
     }
   }
 }
