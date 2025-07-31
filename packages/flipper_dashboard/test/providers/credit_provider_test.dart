@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
@@ -55,76 +57,94 @@ void main() {
         updatedAt: DateTime.now(),
       );
 
-      // Mock the stream from ProxyService.strategy.credit
+      // Create a StreamController to control the stream emissions
+      final controller = StreamController<Credit?>();
       when(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .thenAnswer((_) => Stream.value(expectedCredit));
+          .thenAnswer((_) => controller.stream);
 
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      final creditStream = container.read(creditStreamProvider(testBranchId));
+      final emittedCredits = <Credit?>[];
+      final sub = container.listen(
+        creditStreamProvider(testBranchId),
+        (previous, next) {
+          emittedCredits.add(next.value);
+        },
+      );
+      addTearDown(sub.close); // Close the subscription when the test ends
 
-      // Expect the loading state first
-      expect(creditStream.isLoading, true);
-
-      // Wait for the first emission
-      await container.pump(); // Advance time to allow stream to emit
+      // Emit the expected credit
+      controller.add(expectedCredit);
+      await container.pump(); // Process the stream emission
 
       // Verify the emitted data
-      expect(creditStream.value, expectedCredit);
+      expect(emittedCredits, [expectedCredit]);
 
       // Verify that the correct method was called on the mock
       verify(() => mockDbSync.credit(branchId: testBranchId.toString()))
           .called(1);
+
+      await controller.close(); // Close the controller
     });
 
     test('should emit null if ProxyService.strategy.credit emits null',
         () async {
       final testBranchId = 1;
 
-      // Mock the stream to emit null
+      final controller = StreamController<Credit?>();
       when(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .thenAnswer((_) => Stream.value(null));
+          .thenAnswer((_) => controller.stream);
 
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      final creditStream = container.read(creditStreamProvider(testBranchId));
+      final emittedCredits = <Credit?>[];
+      final sub = container.listen(
+        creditStreamProvider(testBranchId),
+        (previous, next) {
+          emittedCredits.add(next.value);
+        },
+      );
+      addTearDown(sub.close);
 
-      // Expect the loading state first
-      expect(creditStream.isLoading, true);
-
-      // Wait for the first emission
+      controller.add(null);
       await container.pump();
 
-      // Verify the emitted data is null
-      expect(creditStream.value, null);
+      expect(emittedCredits, [null]);
+
+      await controller.close();
     });
 
     test('should handle errors from ProxyService.strategy.credit', () async {
       final testBranchId = 1;
       final errorMessage = 'Failed to fetch credit';
 
-      // Mock the stream to emit an error
+      final controller = StreamController<Credit?>();
       when(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .thenAnswer((_) => Stream.error(Exception(errorMessage)));
+          .thenAnswer((_) => controller.stream);
 
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      final creditStream = container.read(creditStreamProvider(testBranchId));
+      Object? capturedError;
+      final sub = container.listen(
+        creditStreamProvider(testBranchId),
+        (previous, next) {
+          if (next.hasError) {
+            capturedError = next.error;
+          }
+        },
+      );
+      addTearDown(sub.close);
 
-      // Expect the loading state first
-      expect(creditStream.isLoading, true);
-
-      // Wait for the error to be emitted
+      controller.addError(Exception(errorMessage));
       await container.pump();
 
-      // Verify that an error state is emitted
-      expect(creditStream.hasError, true);
-      expect(creditStream.error, isA<Exception>());
-      expect(
-          (creditStream.error as Exception).toString(), contains(errorMessage));
+      expect(capturedError, isA<Exception>());
+      expect((capturedError as Exception).toString(), contains(errorMessage));
+
+      await controller.close();
     });
   });
 }
