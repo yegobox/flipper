@@ -1,4 +1,3 @@
-
 import 'package:flipper_dashboard/payment/FailedPayment.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -10,10 +9,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
-
+import 'package:http/http.dart' as http;
 import '../test_helpers/mocks.dart';
 import '../test_helpers/setup.dart';
 
+/// flutter test test/widgets/failed_payment_test.dart --dart-define=FLUTTER_TEST_ENV=true
 class MockPaymentVerificationService extends Mock
     implements PaymentVerificationService {}
 
@@ -30,7 +30,8 @@ void main() {
   late MockDatabaseSync mockDatabaseSync; // Added
   late MockFlipperHttpClient mockFlipperHttpClient; // Added
 
-  setUpAll(() async { // Changed to async
+  setUpAll(() async {
+    // Changed to async
     env = TestEnvironment();
     await env.init(); // Added await
 
@@ -49,13 +50,11 @@ void main() {
       result: PaymentVerificationResult.active,
       // isActive: true,
     ));
-
-    // Register mocks with getIt locator
-    locator.registerSingleton<RouterService>(mockRouterService);
-    locator.registerSingleton<Repository>(mockRepository);
   });
 
   setUp(() {
+    env.injectMocks();
+    env.stubCommonMethods();
     // Create a fresh service instance for each test
     service = PaymentVerificationService(); // Added
 
@@ -74,10 +73,12 @@ void main() {
 
     // Default mock for activeBusiness
     when(() => mockDatabaseSync.activeBusiness()) // Changed from env.mockDbSync
-        .thenAnswer((_) async => models.Business(id: '1', name: 'Test Business',serverId: 1));
+        .thenAnswer((_) async =>
+            models.Business(id: '1', name: 'Test Business', serverId: 1));
 
     // Default mock for getPaymentPlan
-    when(() => mockDatabaseSync.getPaymentPlan( // Changed from env.mockDbSync
+    when(() => mockDatabaseSync.getPaymentPlan(
+          // Changed from env.mockDbSync
           businessId: any(named: 'businessId'),
           fetchOnline: any(named: 'fetchOnline'),
         )).thenAnswer((_) async => models.Plan(
@@ -104,7 +105,8 @@ void main() {
         ]));
 
     // Default mock for box.read
-    when(() => ProxyService.box.readInt(key: any(named: 'key'))).thenReturn(null); // No custom phone number by default
+    when(() => ProxyService.box.readInt(key: any(named: 'key')))
+        .thenReturn(null); // No custom phone number by default
     when(() => ProxyService.box.defaultCurrency()).thenReturn('RWF');
   });
 
@@ -141,7 +143,8 @@ void main() {
       expect(find.text('Loading payment details...'), findsOneWidget);
     });
 
-    testWidgets('renders main content after loading', (WidgetTester tester) async {
+    testWidgets('renders main content after loading',
+        (WidgetTester tester) async {
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle(); // Wait for initial data loading
 
@@ -152,7 +155,8 @@ void main() {
       expect(find.text('Skip for Now'), findsOneWidget);
     });
 
-    testWidgets('displays error message when plan loading fails', (WidgetTester tester) async {
+    testWidgets('displays error message when plan loading fails',
+        (WidgetTester tester) async {
       when(() => env.mockDbSync.getPaymentPlan(
             businessId: any(named: 'businessId'),
             fetchOnline: any(named: 'fetchOnline'),
@@ -161,12 +165,14 @@ void main() {
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('Error loading plan details:'), findsOneWidget);
+      expect(
+          find.textContaining('Error loading plan details:'), findsOneWidget);
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.textContaining('Failed to fetch plan'), findsOneWidget);
     });
 
-    testWidgets('phone number input appears when "Use different phone number" is toggled',
+    testWidgets(
+        'phone number input appears when "Use different phone number" is toggled',
         (WidgetTester tester) async {
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
@@ -180,7 +186,8 @@ void main() {
       expect(find.text('MTN Phone Number'), findsOneWidget);
     });
 
-    testWidgets('phone number input formats correctly', (WidgetTester tester) async {
+    testWidgets('phone number input formats correctly',
+        (WidgetTester tester) async {
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
 
@@ -208,23 +215,29 @@ void main() {
 
       expect(find.text('Phone number must start with 250'), findsOneWidget);
 
-      await tester.enterText(phoneNumberField, '250771234567'); // Invalid MTN prefix
+      await tester.enterText(
+          phoneNumberField, '250771234567'); // Invalid MTN prefix
       await tester.pumpAndSettle();
 
-      expect(find.text('Invalid MTN number prefix (must start with 78 or 79)'), findsOneWidget);
+      expect(find.text('Invalid MTN number prefix (must start with 78 or 79)'),
+          findsOneWidget);
     });
 
-    testWidgets('tapping "Skip for Now" navigates to FlipperAppRoute', (WidgetTester tester) async {
+    testWidgets('tapping "Skip for Now" navigates to FlipperAppRoute',
+        (WidgetTester tester) async {
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Skip for Now'));
       await tester.pumpAndSettle();
 
-      verify(() => mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>()))).called(1);
+      verify(() =>
+              mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>())))
+          .called(1);
     });
 
-    testWidgets('tapping "Try Again" processes payment and shows loading', (WidgetTester tester) async {
+    testWidgets('tapping "Try Again" processes payment and shows loading',
+        (WidgetTester tester) async {
       // Mock the payment handler methods
       when(() => ProxyService.box.writeString(
             key: any(named: 'key'),
@@ -233,10 +246,11 @@ void main() {
       when(() => ProxyService.box.defaultCurrency()).thenReturn('RWF');
 
       // Mock the handleMomoPayment method
-      when(() => env.mockFlipperHttpClient.post(
-            uri: any(named: 'uri'),
-            body: any(named: 'body'),
-          )).thenAnswer((_) async => {'status': 'success'});
+      when(() => mockFlipperHttpClient.post(
+                any(that: isA<Uri>()), // Positional argument for Uri
+                body: any(named: 'body'),
+              ))
+          .thenAnswer((_) async => http.Response('{"status": "success"}', 200));
 
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
@@ -252,18 +266,22 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
       // Verify that handleMomoPayment was called
-      verify(() => env.mockFlipperHttpClient.post(
-            uri: any(named: 'uri'),
+      // Verify that handleMomoPayment was called
+      verify(() => mockFlipperHttpClient.post(
+            any(that: isA<Uri>()),
             body: any(named: 'body'),
           )).called(1);
 
       // Verify navigation to FlipperAppRoute on success
-      verify(() => mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>()))).called(1);
+      verify(() =>
+              mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>())))
+          .called(1);
     });
 
-    testWidgets('tapping "Try Again" shows error snackbar on payment failure', (WidgetTester tester) async {
-      when(() => env.mockDbSync.activeBusiness())
-          .thenAnswer((_) async => models.Business(id: '1', name: 'Test Business',serverId: 1));
+    testWidgets('tapping "Try Again" shows error snackbar on payment failure',
+        (WidgetTester tester) async {
+      when(() => env.mockDbSync.activeBusiness()).thenAnswer((_) async =>
+          models.Business(id: '1', name: 'Test Business', serverId: 1));
       when(() => env.mockDbSync.getPaymentPlan(
             businessId: any(named: 'businessId'),
             fetchOnline: any(named: 'fetchOnline'),
@@ -289,25 +307,33 @@ void main() {
           ]));
 
       // Mock payment failure
-      when(() => env.mockFlipperHttpClient.post(
-            uri: any(named: 'uri'),
-            body: any(named: 'body'),
-          )).thenThrow(Exception('Payment gateway error'));
+      when(() => mockFlipperHttpClient.post(
+                any(that: isA<Uri>()),
+                body: any(named: 'body'),
+              ))
+          .thenAnswer((_) async => http.Response('{"status": "success"}', 200));
 
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Try Again'));
       await tester.pump(); // Pump to show loading indicator
-      await tester.pumpAndSettle(); // Wait for error to propagate and snackbar to appear
+      await tester
+          .pumpAndSettle(); // Wait for error to propagate and snackbar to appear
 
       expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('Payment failed: Exception: Payment gateway error'), findsOneWidget);
-      expect(find.byType(CircularProgressIndicator), findsNothing); // Loading should be gone
-      expect(find.text('Try Again'), findsOneWidget); // Button should be re-enabled
+      expect(
+          find.textContaining(
+              'Payment failed: Exception: Payment gateway error'),
+          findsOneWidget);
+      expect(find.byType(CircularProgressIndicator),
+          findsNothing); // Loading should be gone
+      expect(find.text('Try Again'),
+          findsOneWidget); // Button should be re-enabled
     });
 
-    testWidgets('payment method "card" hides phone number section', (WidgetTester tester) async {
+    testWidgets('payment method "card" hides phone number section',
+        (WidgetTester tester) async {
       when(() => env.mockDbSync.getPaymentPlan(
             businessId: any(named: 'businessId'),
             fetchOnline: any(named: 'fetchOnline'),
