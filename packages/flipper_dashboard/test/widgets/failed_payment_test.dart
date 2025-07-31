@@ -182,18 +182,23 @@ void main() {
       await tester.pumpWidget(_wrapWithMaterialApp(const FailedPayment()));
       await tester.pumpAndSettle();
 
+      // Ensure SwitchListTile is visible and tap it
       await tester.ensureVisible(find.byType(SwitchListTile));
       await tester.pumpAndSettle();
       await tester.tap(find.byType(SwitchListTile), warnIfMissed: false);
       await tester.pumpAndSettle();
 
+      // Verify TextFormField is present
       final phoneNumberField = find.byType(TextFormField);
       expect(phoneNumberField, findsOneWidget);
 
+      // Enter text
       await tester.enterText(phoneNumberField, '250781234567');
       await tester.pumpAndSettle();
 
-      expect(find.text('250 78 123 4567'), findsOneWidget);
+      // Check the TextEditingController's text
+      final textField = tester.widget<TextFormField>(phoneNumberField);
+      expect(textField.controller?.text, '250 78 123 4567');
     });
 
     testWidgets('phone number input shows validation error for invalid number',
