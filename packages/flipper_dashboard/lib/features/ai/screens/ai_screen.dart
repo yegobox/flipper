@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flutter/material.dart';
-// ignore: avoid_web_libraries_in_flutter
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/business_analytic.model.dart';
@@ -30,50 +29,22 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   List<Message> _messages = [];
   bool _isLoading = false;
   StreamSubscription<List<Message>>? _subscription;
-  StreamSubscription<List<BusinessAnalytic>>? _analyticsSubscription;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _analyticsSubscribed = false;
 
   @override
   void initState() {
     super.initState();
     _loadAllConversations();
-    _subscribeToAnalytics();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _subscription?.cancel();
-    _analyticsSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _subscribeToAnalytics() async {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId == null) {
-      talker
-          .warning('Branch ID is null, cannot subscribe to analytics stream.');
-      return;
-    }
-    ref.listen(streamedBusinessAnalyticsProvider(branchId), (previous, next) {
-      next.when(
-        data: (data) {
-          talker.info('Received new analytics data: ${data.length} items');
-          // Process the data further, e.g., update a state variable
-          // for real-time insights or charts.
-        },
-        loading: () {
-          talker.info('Analytics data is loading...');
-          // Optionally handle loading state (e.g., show a loading indicator).
-        },
-        error: (error, stackTrace) {
-          talker.error('Error receiving analytics data: $error');
-          // Handle error state (e.g., show an error message).
-        },
-      );
-    });
   }
 
   Future<void> _loadAllConversations() async {
@@ -89,7 +60,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       if (!mounted) return;
 
       if (conversations.isEmpty) {
-        _startNewConversation();
+        await _startNewConversation();
         return;
       }
 
@@ -171,7 +142,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _messages = messages;
           _conversations[_currentConversationId] = messages;
         });
-        _scrollToBottom(); // Scroll to bottom when new messages arrive
+        _scrollToBottom();
       }
     });
   }
@@ -197,14 +168,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _scrollToBottom();
 
       final aiResponseText = await ref
-          .refresh(
-        geminiBusinessAnalyticsProvider(branchId, text).future,
-      )
+          .refresh(geminiBusinessAnalyticsProvider(branchId, text).future)
           .catchError((e) {
         if (e.toString().contains('RESOURCE_EXHAUSTED')) {
           return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
         }
-        throw e; // Re-throw other errors
+        throw e;
       });
 
       await ProxyService.strategy.saveMessage(
@@ -246,6 +215,28 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId != null && !_analyticsSubscribed) {
+      // Subscribe to analytics only once
+      _analyticsSubscribed = true;
+      ref.listen(
+        streamedBusinessAnalyticsProvider(branchId),
+        (previous, next) {
+          next.when(
+            data: (data) {
+              talker.info('Received new analytics data: ${data.length} items');
+            },
+            loading: () {
+              talker.info('Analytics data is loading...');
+            },
+            error: (error, stackTrace) {
+              talker.error('Error receiving analytics data: $error');
+            },
+          );
+        },
+      );
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       final isMobile = constraints.maxWidth < 600;
       return Scaffold(
@@ -283,7 +274,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             _messages = _conversations[id] ?? [];
           });
           _subscribeToCurrentConversation();
-          _scrollToBottom(); // Scroll to bottom after selecting conversation
+          _scrollToBottom();
           Navigator.of(context).pop();
         },
         onDeleteConversation: (id) => _deleteCurrentConversation(id),
@@ -320,7 +311,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               _messages = _conversations[id] ?? [];
             });
             _subscribeToCurrentConversation();
-            _scrollToBottom(); // Scroll to bottom after selecting conversation
+            _scrollToBottom();
           },
           onDeleteConversation: (id) => _deleteCurrentConversation(id),
           onNewConversation: _startNewConversation,
