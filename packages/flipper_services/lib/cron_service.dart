@@ -171,8 +171,8 @@ class CronService {
             // ProxyService.strategy
             //     .transactions(branchId: branchId, fetchRemote: true)
             //     .then((_) {}),
-            // ProxyService.strategy.access(
-            //     userId: ProxyService.box.getUserId()!, fetchRemote: false),
+            ProxyService.strategy.access(
+                userId: ProxyService.box.getUserId()!, fetchRemote: true),
             // Future.value(ProxyService.strategy.tenant(
             //     userId: ProxyService.box.getUserId()!, fetchRemote: true))
           ]);

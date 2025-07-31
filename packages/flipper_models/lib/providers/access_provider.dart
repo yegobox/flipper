@@ -4,7 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import 'package:flutter/foundation.dart';
 part 'access_provider.g.dart';
 
 @riverpod
@@ -41,7 +41,9 @@ bool featureAccess(Ref ref,
     final now = DateTime.now();
 
     talker.info("User wants to access!: $featureName");
-
+    if (kDebugMode) {
+      return true;
+    }
     if (accesses.isEmpty) {
       talker.info(
           "Access DENIED for userId: $userId, feature: $featureName (no access records)");

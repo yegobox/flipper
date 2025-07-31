@@ -1,6 +1,5 @@
 import 'package:flipper_dashboard/payment/FailedPayment.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
-import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
-import 'package:http/http.dart' as http;
 import '../test_helpers/mocks.dart';
 import '../test_helpers/setup.dart';
 

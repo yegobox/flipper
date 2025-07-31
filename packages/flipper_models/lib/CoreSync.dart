@@ -2513,11 +2513,12 @@ class CoreSync extends AiStrategyImpl
       {required int userId,
       String? featureName,
       required bool fetchRemote}) async {
-    return await repository.get<Access>(
+    final access = await repository.get<Access>(
       policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
           : OfflineFirstGetPolicy.localOnly,
       query: brick.Query(
+        limit: 20,
         where: [
           brick.Where('userId').isExactly(userId),
           if (featureName != null)
@@ -2526,6 +2527,7 @@ class CoreSync extends AiStrategyImpl
         orderBy: [brick.OrderBy('id', ascending: true)],
       ),
     );
+    return access;
   }
 
   @override
