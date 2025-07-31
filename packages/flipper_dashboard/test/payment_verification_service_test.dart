@@ -13,7 +13,7 @@ void main() {
     late MockFlipperHttpClient mockHttpClient;
     late TestEnvironment env;
 
-    setUp(() async {
+    setUpAll(() async {
       env = TestEnvironment();
       await env.init();
 
