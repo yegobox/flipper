@@ -126,34 +126,47 @@ class PaymentVerificationService {
 
       // A plan exists, now check if it's active
       try {
-        await ProxyService.strategy.hasActiveSubscription(
+        final isActive = await ProxyService.strategy.hasActiveSubscription(
           businessId: businessId,
           flipperHttpClient: ProxyService.http,
           fetchRemote: true,
         );
 
-        talker.info('Payment verification successful: Subscription is active');
-        return PaymentVerificationResponse(
-          result: PaymentVerificationResult.active,
-          plan: plan,
-        );
-      } catch (subscriptionError) {
-        // Plan exists but is not active (payment failed or expired)
-        talker
-            .error('Payment plan exists but is not active: $subscriptionError');
-
+        if (isActive) {
+          talker
+              .info('Payment verification successful: Subscription is active');
+          return PaymentVerificationResponse(
+            result: PaymentVerificationResult.active,
+            plan: plan,
+          );
+        } else {
+          talker.error('Payment plan exists but is not active');
+          return PaymentVerificationResponse(
+            result: PaymentVerificationResult.planExistsButInactive,
+            errorMessage: 'Payment plan exists but subscription is not active',
+            plan: plan,
+          );
+        }
+      } on PaymentIncompleteException catch (e) {
+        talker.error('Payment incomplete: $e');
         return PaymentVerificationResponse(
           result: PaymentVerificationResult.planExistsButInactive,
-          errorMessage: 'Payment plan exists but subscription is not active',
+          errorMessage: 'Payment incomplete: ${e.message}',
           plan: plan,
-          exception: subscriptionError is Exception
-              ? subscriptionError
-              : Exception(subscriptionError.toString()),
+          exception: e,
+        );
+      } catch (e) {
+        // For any other error during subscription check, still consider it as planExistsButInactive
+        talker.error('Error checking subscription status: $e');
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.planExistsButInactive,
+          errorMessage: 'Error checking subscription status: ${e.toString()}',
+          plan: plan,
+          exception: e is Exception ? e : Exception(e.toString()),
         );
       }
     } catch (e) {
       talker.error('Error during payment verification: $e');
-
       return PaymentVerificationResponse(
         result: PaymentVerificationResult.error,
         errorMessage: 'Failed to verify payment status: ${e.toString()}',
