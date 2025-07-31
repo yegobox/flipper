@@ -13,6 +13,8 @@ import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+class FakeHttpClient extends Fake implements HttpClientInterface {}
+
 class MockPlan extends Mock implements Plan {}
 
 class MockBusiness extends Mock implements Business {}

@@ -23,6 +23,7 @@ void main() {
 
       // Register fallback values for any() matchers
       registerFallbackValue(MockBusiness());
+      registerFallbackValue(FakeHttpClient());
       registerFallbackValue(Uri());
     });
 
