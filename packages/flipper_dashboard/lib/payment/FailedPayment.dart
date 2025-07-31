@@ -362,8 +362,7 @@ class _FailedPaymentState extends State<FailedPayment>
         paymentMethod == 'credit_card' ||
         paymentMethod == 'debit_card';
 
-    // Debug: Let's see what payment method we're getting
-    print(
+    talker.debug(
         'Payment method detected: $paymentMethod, isCardPayment: $isCardPayment');
 
     if (isCardPayment) {

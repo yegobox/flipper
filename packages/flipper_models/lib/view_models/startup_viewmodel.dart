@@ -119,9 +119,13 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       final response = await _paymentVerificationService.verifyPaymentStatus();
       _handlePaymentStatusChange(response);
     } catch (e) {
-      // If payment verification itself throws an exception, log and proceed
+      // If payment verification itself throws an exception, create a response and handle it
       talker.error("Exception during initial payment verification: $e");
-      _routerService.navigateTo(FlipperAppRoute());
+      _handleVerificationError(PaymentVerificationResponse(
+        result: PaymentVerificationResult.error,
+        errorMessage: 'Payment verification failed: $e',
+        exception: Exception(e),
+      ));
     }
   }
 
@@ -321,6 +325,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   @override
   void dispose() {
     _paymentVerificationService.dispose();
+    _internetConnectionService.stopPeriodicConnectionCheck();
     super.dispose();
   }
 }
