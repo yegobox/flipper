@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flutter/material.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/business_analytic.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 
@@ -28,6 +30,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   List<Message> _messages = [];
   bool _isLoading = false;
   StreamSubscription<List<Message>>? _subscription;
+  StreamSubscription<List<BusinessAnalytic>>? _analyticsSubscription;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -35,14 +38,42 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   void initState() {
     super.initState();
     _loadAllConversations();
+    _subscribeToAnalytics();
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _subscription?.cancel();
+    _analyticsSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _subscribeToAnalytics() async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      talker
+          .warning('Branch ID is null, cannot subscribe to analytics stream.');
+      return;
+    }
+    ref.listen(streamedBusinessAnalyticsProvider(branchId), (previous, next) {
+      next.when(
+        data: (data) {
+          talker.info('Received new analytics data: ${data.length} items');
+          // Process the data further, e.g., update a state variable
+          // for real-time insights or charts.
+        },
+        loading: () {
+          talker.info('Analytics data is loading...');
+          // Optionally handle loading state (e.g., show a loading indicator).
+        },
+        error: (error, stackTrace) {
+          talker.error('Error receiving analytics data: $error');
+          // Handle error state (e.g., show an error message).
+        },
+      );
+    });
   }
 
   Future<void> _loadAllConversations() async {

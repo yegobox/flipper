@@ -2403,4 +2403,11 @@ class Capella extends AiStrategyImpl
     // TODO: implement verifyOtpAndLogin
     throw UnimplementedError();
   }
+
+  @override
+  Stream<List<brick.BusinessAnalytic>> streamRemoteAnalytics(
+      {required int branchId}) {
+    // TODO: implement streamRemoteAnalytics
+    throw UnimplementedError();
+  }
 }

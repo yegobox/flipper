@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_models/brick/models/business_analytic.model.dart';
 
 part 'ai_provider.g.dart';
 
@@ -214,4 +216,10 @@ User Query: $userPrompt
       return "I'm sorry, I couldn't process your request at the moment. Please try again later.";
     }
   }
+}
+
+@riverpod
+Stream<List<BusinessAnalytic>> streamedBusinessAnalytics(
+    Ref ref, int branchId) {
+  return ProxyService.strategy.streamRemoteAnalytics(branchId: branchId);
 }

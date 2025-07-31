@@ -3352,7 +3352,7 @@ class CoreSync extends AiStrategyImpl
     try {
       final data = await repository.get<BusinessAnalytic>(
         /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
-        policy: OfflineFirstGetPolicy.awaitRemote,
+        policy: OfflineFirstGetPolicy.localOnly,
         query: brick.Query(
           // limit: 100,
           where: [brick.Where('branchId').isExactly(branchId)],
@@ -3541,5 +3541,17 @@ class CoreSync extends AiStrategyImpl
         }
       }
     }
+  }
+
+  @override
+  Stream<List<models.BusinessAnalytic>> streamRemoteAnalytics(
+      {required int branchId}) {
+    return repository.subscribeToRealtime<BusinessAnalytic>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: Query(
+        where: [Where('branchId').isExactly(branchId)],
+        orderBy: [OrderBy('date', ascending: false)],
+      ),
+    );
   }
 }

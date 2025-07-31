@@ -6,7 +6,7 @@ part of 'outer_variant_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$outerVariantsHash() => r'f934073b6667b08eca883dac930c2d3be3166780';
+String _$outerVariantsHash() => r'140655e4483e0fbdaa9e4c023258853423602fe3';
 
 /// Copied from Dart SDK
 class _SystemHash {
