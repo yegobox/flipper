@@ -9,9 +9,15 @@ import 'package:flipper_models/tax_api.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/models/pin.model.dart';
 import 'package:supabase_models/brick/models/plans.model.dart';
+import 'package:supabase_models/brick/models/retryable.model.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
+
+class MockRepository extends Mock implements Repository {}
+
+class MockRetryable extends Mock implements Retryable {}
 
 class FakeHttpClient extends Fake implements HttpClientInterface {}
 

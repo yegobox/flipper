@@ -7,14 +7,9 @@ import 'package:flipper_services/local_notification_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/models/retryable.model.dart';
-import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 
 import 'mocks.dart';
-
-class MockRepository extends Mock implements Repository {}
-
-class MockRetryable extends Mock implements Retryable {}
 
 class MockLocalNotificationService extends Mock
     implements LocalNotificationService {}
