@@ -784,8 +784,8 @@ class _RowItemState extends ConsumerState<RowItem>
     try {
       // Show immediate visual feedback to indicate the item is being processed
       if (mounted) {
-        showCustomSnackBar(context, 'Adding item to cart...',
-            backgroundColor: Colors.black);
+        // showCustomSnackBar(context, 'Adding item to cart...',
+        //     backgroundColor: Colors.black);
       }
 
       final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;

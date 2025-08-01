@@ -18,7 +18,9 @@ class ZReport {
       endDate: DateTime.now().toLocal(),
       skipOriginalTransactionCheck: true,
     );
-
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
     // Data processing - exclude refunded transactions
     final salesTransactions = transactions
         .where((t) => t.receiptType == 'NS' && t.isRefunded != true)
@@ -85,7 +87,12 @@ class ZReport {
     }
     document.template.bottom = footerTemplate;
 
-    _drawHeader(page, pageSize, business);
+    _drawHeader(
+      page,
+      pageSize,
+      business,
+      ebm: ebm,
+    );
     _drawContent(
       page,
       pageSize,
@@ -111,7 +118,8 @@ class ZReport {
     await _saveAndLaunchFile(bytes, 'ZReport.pdf');
   }
 
-  void _drawHeader(PdfPage page, Size pageSize, Business? business) {
+  void _drawHeader(PdfPage page, Size pageSize, Business? business,
+      {Ebm? ebm}) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont businessDetailsFont =
         PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
@@ -127,7 +135,7 @@ class ZReport {
 
     final businessName = business?.name ?? 'Demo';
     final tin = business?.tinNumber?.toString() ?? '933000005';
-    final mrc = 'WISO000001';
+    final mrc = ebm?.mrc ?? '';
     final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     // Draw blue rectangle for the header background
@@ -179,23 +187,22 @@ class ZReport {
   }
 
   void _drawContent(
-    PdfPage page,
-    Size pageSize,
-    double totalSales,
-    double totalRefunds,
-    int numSalesReceipts,
-    int numRefundReceipts,
-    int netSalesReceipts,
-    double salesCash,
-    double salesMobile,
-    double refundsCash,
-    double refundsMobile,
-    double taxRateSales,
-    double taxRateRefunds,
-    int totalItemsSold,
-    double totalDiscount, {
-    required List<ITransaction> transactions,
-  }) {
+      PdfPage page,
+      Size pageSize,
+      double totalSales,
+      double totalRefunds,
+      int numSalesReceipts,
+      int numRefundReceipts,
+      int netSalesReceipts,
+      double salesCash,
+      double salesMobile,
+      double refundsCash,
+      double refundsMobile,
+      double taxRateSales,
+      double taxRateRefunds,
+      int totalItemsSold,
+      double totalDiscount,
+      {required List<ITransaction> transactions}) {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 2);
 

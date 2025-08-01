@@ -1,10 +1,11 @@
-
 import 'dart:async';
 
 import 'package:flipper_dashboard/features/ai/screens/ai_screen.dart';
 import 'package:flipper_dashboard/features/ai/widgets/ai_input_field.dart';
 import 'package:flipper_dashboard/features/ai/widgets/welcome_view.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
+import 'package:flipper_routing/app.locator.dart' as loc;
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,11 +13,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:supabase_models/brick/models/ai_conversation.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
+
+/// flutter test test/features/ai/screens/ai_screen_test.dart --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 
 class MockRouterService extends Mock implements RouterService {}
 
@@ -71,15 +75,15 @@ void main() {
     registerFallbackValue(MockBusiness());
     registerFallbackValue(FakeHttpClient());
     registerFallbackValue(MockPlan());
-    registerFallbackValue(models.PaymentVerificationResponse(
-      result: models.PaymentVerificationResult.active,
-      isActive: true,
+    registerFallbackValue(PaymentVerificationResponse(
+      result: PaymentVerificationResult.active,
     ));
     registerFallbackValue(FlipperAppRoute());
 
     // Register mocks with getIt locator
-    locator.registerSingleton<RouterService>(mockRouterService);
-    locator.registerSingleton<Repository>(mockRepository);
+    loc.setupLocator(stackedRouter: stackedRouter);
+    loc.locator.registerSingleton<RouterService>(mockRouterService);
+    loc.locator.registerSingleton<Repository>(mockRepository);
   });
 
   setUp(() {
@@ -148,8 +152,10 @@ void main() {
     // Clean up after each test if necessary
   });
 
-  Widget _wrapWithMaterialApp(Widget widget) {
+  Widget _wrapWithMaterialApp(Widget widget,
+      {List<Override> overrides = const []}) {
     return ProviderScope(
+      overrides: overrides,
       child: MaterialApp(
         home: ScaffoldMessenger(
           child: widget,
@@ -197,11 +203,15 @@ void main() {
                 ]
               ]));
 
-      // Mock the AI response
-      when(() => geminiBusinessAnalyticsProvider(any(), any()).future)
-          .thenAnswer((_) async => 'AI response text');
-
-      await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(
+          const AiScreen(),
+          overrides: [
+            geminiBusinessAnalyticsProvider(any(), any())
+                .overrideWith(() => throw Exception('AI service unavailable')),
+          ],
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Enter text into the input field
@@ -238,11 +248,15 @@ void main() {
       when(() => mockDbSync.subscribeToMessages('existing_conversation'))
           .thenAnswer((_) => Stream.fromIterable([[]]));
 
-      // Mock AI response to throw an error
-      when(() => geminiBusinessAnalyticsProvider(any(), any()).future)
-          .thenThrow(Exception('AI service unavailable'));
-
-      await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(
+          const AiScreen(),
+          overrides: [
+            geminiBusinessAnalyticsProvider(any(), any())
+                .overrideWith(() => throw Exception('AI service unavailable')),
+          ],
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(AiInputField), 'Test message');
@@ -254,7 +268,8 @@ void main() {
           findsOneWidget);
     });
 
-    testWidgets('selects conversation from drawer', (WidgetTester tester) async {
+    testWidgets('selects conversation from drawer',
+        (WidgetTester tester) async {
       // Mock multiple conversations
       when(() => mockDbSync.getConversations(
             branchId: any(named: 'branchId'),
@@ -301,14 +316,14 @@ void main() {
               delivered: false,
             )
           ]);
-      when(() => mockDbSync.subscribeToMessages('conv1'))
+      when(() => mockDbSync.subscribeToMessages('existing_conversation'))
           .thenAnswer((_) => Stream.fromIterable([
                 [
                   models.Message(
-                    id: 'msg1',
-                    text: 'Message from Conv1',
+                    id: 'user_msg',
+                    text: 'Hello',
                     role: 'user',
-                    conversationId: 'conv1',
+                    conversationId: 'existing_conversation',
                     branchId: 1,
                     phoneNumber: '123',
                     delivered: false,
@@ -409,7 +424,8 @@ void main() {
       expect(branchId, isNotNull); // Ensure branchId is available for the test
 
       // Mock the streamRemoteAnalytics to return a controlled stream
-      final analyticsController = StreamController<List<models.BusinessAnalytic>>();
+      final analyticsController =
+          StreamController<List<models.BusinessAnalytic>>();
       when(() => mockDbSync.streamRemoteAnalytics(branchId: branchId!))
           .thenAnswer((_) => analyticsController.stream);
 
@@ -417,7 +433,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify that streamRemoteAnalytics was called
-      verify(() => mockDbSync.streamRemoteAnalytics(branchId: branchId!)).called(1);
+      verify(() => mockDbSync.streamRemoteAnalytics(branchId: branchId!))
+          .called(1);
 
       // Emit some data to the stream
       analyticsController.add([

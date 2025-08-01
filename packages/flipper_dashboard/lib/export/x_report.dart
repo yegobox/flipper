@@ -18,6 +18,9 @@ class XReport {
       skipOriginalTransactionCheck: true,
       endDate: DateTime.now().toLocal(),
     );
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
 
     // Data processing - exclude refunded transactions
     final salesTransactions = transactions
@@ -85,7 +88,7 @@ class XReport {
     }
     document.template.bottom = footerTemplate;
 
-    _drawHeader(page, pageSize, business);
+    _drawHeader(page, pageSize, business, ebm: ebm);
     _drawContent(
       page,
       pageSize,
@@ -111,7 +114,8 @@ class XReport {
     await _saveAndLaunchFile(bytes, 'XReport.pdf');
   }
 
-  void _drawHeader(PdfPage page, Size pageSize, Business? business) {
+  void _drawHeader(PdfPage page, Size pageSize, Business? business,
+      {Ebm? ebm}) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont businessDetailsFont =
         PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
@@ -127,7 +131,7 @@ class XReport {
 
     final businessName = business?.name ?? 'Demo';
     final tin = business?.tinNumber?.toString() ?? '933000005';
-    final mrc = 'WISO000001';
+    final mrc = ebm?.mrc ?? '';
     final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     // Draw blue rectangle for the header background
