@@ -35,6 +35,8 @@ void main() {
   late MockRepository mockRepository;
 
   setUpAll(() async {
+    // Reset the locator to ensure a clean state for each test suite
+    await loc.locator.reset();
     env = TestEnvironment();
     await env.init();
 
@@ -79,22 +81,19 @@ void main() {
       result: PaymentVerificationResult.active,
     ));
     registerFallbackValue(FlipperAppRoute());
-
-    // Register mocks with getIt locator
-    loc.setupLocator(stackedRouter: stackedRouter);
-    loc.locator.registerSingleton<RouterService>(mockRouterService);
-    loc.locator.registerSingleton<Repository>(mockRepository);
+  });
+  tearDownAll(() {
+    env.restore();
   });
 
   setUp(() {
+    env.injectMocks();
+    env.stubCommonMethods();
     reset(mockDbSync);
     reset(mockBox);
     reset(mockFlipperHttpClient);
     reset(mockRouterService);
     reset(mockRepository);
-
-    env.injectMocks();
-    env.stubCommonMethods();
 
     // Default mocks for ProxyService
     when(() => mockBox.getBranchId()).thenReturn(1);
