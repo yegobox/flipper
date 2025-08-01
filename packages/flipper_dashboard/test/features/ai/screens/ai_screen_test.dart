@@ -4,8 +4,8 @@ import 'package:flipper_dashboard/features/ai/screens/ai_screen.dart';
 import 'package:flipper_dashboard/features/ai/widgets/ai_input_field.dart';
 import 'package:flipper_dashboard/features/ai/widgets/welcome_view.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
+import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,9 +13,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
-import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:supabase_models/brick/models/ai_conversation.model.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
@@ -80,13 +78,18 @@ void main() {
     registerFallbackValue(PaymentVerificationResponse(
       result: PaymentVerificationResult.active,
     ));
-    registerFallbackValue(FlipperAppRoute());
   });
+
   tearDownAll(() {
     env.restore();
   });
 
   setUp(() {
+    // Force mobile screen size for consistent layout
+    TestWidgetsFlutterBinding.instance.window.physicalSizeTestValue =
+        const Size(360, 640);
+    TestWidgetsFlutterBinding.instance.window.devicePixelRatioTestValue = 1.0;
+
     env.injectMocks();
     env.stubCommonMethods();
     reset(mockDbSync);
@@ -141,14 +144,16 @@ void main() {
           delivered: false,
         ));
 
-    // Default mock for geminiBusinessAnalyticsProvider
-    when(() => mockRepository.subscribeToRealtime<models.BusinessAnalytic>(
-          query: any(named: 'query'),
-        )).thenAnswer((_) => Stream.fromIterable([[]]));
+    // Default mock for streamRemoteAnalytics
+    when(() =>
+            mockDbSync.streamRemoteAnalytics(branchId: any(named: 'branchId')))
+        .thenAnswer((_) => Stream.fromIterable([[]]));
   });
 
   tearDown(() {
-    // Clean up after each test if necessary
+    // Clean up screen size after each test
+    TestWidgetsFlutterBinding.instance.window.clearPhysicalSizeTestValue();
+    TestWidgetsFlutterBinding.instance.window.clearDevicePixelRatioTestValue();
   });
 
   Widget _wrapWithMaterialApp(Widget widget,
@@ -166,11 +171,24 @@ void main() {
   group('AiScreen Widget Tests', () {
     testWidgets('renders WelcomeView when no conversations exist',
         (WidgetTester tester) async {
+      // Ensure no conversations are returned and a new conversation is created
+      when(() => mockDbSync.getConversations(
+            branchId: any(named: 'branchId'),
+            limit: any(named: 'limit'),
+          )).thenAnswer((_) async => []);
+      when(() => mockDbSync.getMessagesForConversation(
+            conversationId: any(named: 'conversationId'),
+            limit: any(named: 'limit'),
+          )).thenAnswer((_) async => []);
+      when(() => mockDbSync.subscribeToMessages('new_conversation_id'))
+          .thenAnswer((_) => Stream.fromIterable([[]]));
+
       await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
       await tester.pumpAndSettle();
 
       expect(find.byType(WelcomeView), findsOneWidget);
-      expect(find.text('Start a new conversation'), findsOneWidget);
+      // Fix: Check for actual text in WelcomeView
+      expect(find.text('Your Business AI Assistant'), findsOneWidget);
     });
 
     testWidgets('sends message and displays AI response',
@@ -187,6 +205,20 @@ void main() {
               createdAt: DateTime.now(),
             )
           ]);
+      when(() => mockDbSync.getMessagesForConversation(
+            conversationId: 'existing_conversation',
+            limit: any(named: 'limit'),
+          )).thenAnswer((_) async => [
+            models.Message(
+              id: 'user_msg',
+              text: 'Hello',
+              role: 'user',
+              conversationId: 'existing_conversation',
+              branchId: 1,
+              phoneNumber: '123',
+              delivered: false,
+            )
+          ]);
       when(() => mockDbSync.subscribeToMessages('existing_conversation'))
           .thenAnswer((_) => Stream.fromIterable([
                 [
@@ -198,27 +230,73 @@ void main() {
                     branchId: 1,
                     phoneNumber: '123',
                     delivered: false,
-                  )
+                  ),
+                  models.Message(
+                    id: 'ai_message',
+                    text: 'AI response text',
+                    role: 'assistant',
+                    conversationId: 'existing_conversation',
+                    branchId: 1,
+                    phoneNumber: '123',
+                    delivered: false,
+                  ),
                 ]
               ]));
+      when(() => mockDbSync.saveMessage(
+            text: 'Hello AI',
+            phoneNumber: '123456789',
+            branchId: 1,
+            role: 'user',
+            conversationId: 'existing_conversation',
+            aiResponse: null,
+            aiContext: null,
+          )).thenAnswer((_) async => models.Message(
+            id: 'saved_message_id',
+            text: 'Hello AI',
+            role: 'user',
+            conversationId: 'existing_conversation',
+            branchId: 1,
+            phoneNumber: '123456789',
+            delivered: false,
+          ));
+      when(() => mockDbSync.saveMessage(
+            text: 'AI response text',
+            phoneNumber: '123456789',
+            branchId: 1,
+            role: 'assistant',
+            conversationId: 'existing_conversation',
+            aiResponse: 'AI response text',
+            aiContext: 'Hello AI',
+          )).thenAnswer((_) async => models.Message(
+            id: 'ai_message',
+            text: 'AI response text',
+            role: 'assistant',
+            conversationId: 'existing_conversation',
+            branchId: 1,
+            phoneNumber: '123456789',
+            delivered: false,
+          ));
 
       await tester.pumpWidget(
         _wrapWithMaterialApp(
           const AiScreen(),
           overrides: [
-            geminiBusinessAnalyticsProvider(any(), any())
+            geminiBusinessAnalyticsProvider(1, 'Hello AI')
                 .overrideWith(() => throw Exception('AI service unavailable')),
           ],
         ),
       );
       await tester.pumpAndSettle();
 
+      // Verify AiInputField is present
+      expect(find.byType(AiInputField), findsOneWidget);
+
       // Enter text into the input field
       await tester.enterText(find.byType(AiInputField), 'Hello AI');
       await tester.pumpAndSettle();
 
-      // Tap the send button
-      await tester.tap(find.byIcon(Icons.send));
+      // Fix: Use correct icon for send button
+      await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pump(); // Start loading
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
@@ -244,14 +322,35 @@ void main() {
               createdAt: DateTime.now(),
             )
           ]);
+      when(() => mockDbSync.getMessagesForConversation(
+            conversationId: 'existing_conversation',
+            limit: any(named: 'limit'),
+          )).thenAnswer((_) async => []);
       when(() => mockDbSync.subscribeToMessages('existing_conversation'))
           .thenAnswer((_) => Stream.fromIterable([[]]));
+      when(() => mockDbSync.saveMessage(
+            text: 'Test message',
+            phoneNumber: '123456789',
+            branchId: 1,
+            role: 'user',
+            conversationId: 'existing_conversation',
+            aiResponse: null,
+            aiContext: null,
+          )).thenAnswer((_) async => models.Message(
+            id: 'saved_message_id',
+            text: 'Test message',
+            role: 'user',
+            conversationId: 'existing_conversation',
+            branchId: 1,
+            phoneNumber: '123456789',
+            delivered: false,
+          ));
 
       await tester.pumpWidget(
         _wrapWithMaterialApp(
           const AiScreen(),
           overrides: [
-            geminiBusinessAnalyticsProvider(any(), any())
+            geminiBusinessAnalyticsProvider(1, 'Test message')
                 .overrideWith(() => throw Exception('AI service unavailable')),
           ],
         ),
@@ -259,11 +358,14 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(AiInputField), 'Test message');
-      await tester.tap(find.byIcon(Icons.send));
+      await tester.pumpAndSettle();
+
+      // Fix: Use correct icon for send button
+      await tester.tap(find.byIcon(Icons.send_rounded));
       await tester.pumpAndSettle();
 
       expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('Error: Exception: AI service unavailable'),
+      expect(find.text('Error: Exception: AI service unavailable'),
           findsOneWidget);
     });
 
@@ -299,6 +401,7 @@ void main() {
               branchId: 1,
               phoneNumber: '123',
               delivered: false,
+              timestamp: DateTime.now(),
             )
           ]);
       when(() => mockDbSync.getMessagesForConversation(
@@ -313,19 +416,21 @@ void main() {
               branchId: 1,
               phoneNumber: '123',
               delivered: false,
+              timestamp: DateTime.now(),
             )
           ]);
-      when(() => mockDbSync.subscribeToMessages('existing_conversation'))
+      when(() => mockDbSync.subscribeToMessages('conv1'))
           .thenAnswer((_) => Stream.fromIterable([
                 [
                   models.Message(
-                    id: 'user_msg',
-                    text: 'Hello',
+                    id: 'msg1',
+                    text: 'Message from Conv1',
                     role: 'user',
-                    conversationId: 'existing_conversation',
+                    conversationId: 'conv1',
                     branchId: 1,
                     phoneNumber: '123',
                     delivered: false,
+                    timestamp: DateTime.now(),
                   )
                 ]
               ]));
@@ -340,6 +445,7 @@ void main() {
                     branchId: 1,
                     phoneNumber: '123',
                     delivered: false,
+                    timestamp: DateTime.now(),
                   )
                 ]
               ]));
@@ -347,12 +453,15 @@ void main() {
       await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
       await tester.pumpAndSettle();
 
-      // Open the drawer
+      // Fix: Use correct icon for menu button
       await tester.tap(find.byIcon(Icons.menu_rounded));
       await tester.pumpAndSettle();
 
-      // Tap on 'Conversation 2'
-      await tester.tap(find.text('Conversation 2'));
+      // Verify drawer is open
+      expect(find.byType(Drawer), findsOneWidget);
+
+      // Tap on 'Conversation 2' (use the message text as the title)
+      await tester.tap(find.text('Message from Conv2'));
       await tester.pumpAndSettle();
 
       // Verify messages from Conversation 2 are displayed
@@ -397,16 +506,20 @@ void main() {
           ));
       when(() => mockDbSync.subscribeToMessages('new_conv_after_delete'))
           .thenAnswer((_) => Stream.fromIterable([[]]));
+      when(() => mockDbSync.getMessagesForConversation(
+            conversationId: 'new_conv_after_delete',
+            limit: any(named: 'limit'),
+          )).thenAnswer((_) async => []);
 
       await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
       await tester.pumpAndSettle();
 
-      // Open the drawer
+      // Fix: Use correct icon for menu button
       await tester.tap(find.byIcon(Icons.menu_rounded));
       await tester.pumpAndSettle();
 
       // Tap delete icon for the single conversation
-      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.tap(find.byIcon(Icons.delete_outline_rounded));
       await tester.pumpAndSettle();
 
       // Verify delete was called
@@ -414,7 +527,7 @@ void main() {
 
       // Verify WelcomeView is shown for the new conversation
       expect(find.byType(WelcomeView), findsOneWidget);
-      expect(find.text('Start a new conversation'), findsOneWidget);
+      expect(find.text('Your Business AI Assistant'), findsOneWidget);
     });
 
     testWidgets('analytics stream is subscribed on build',
@@ -450,9 +563,6 @@ void main() {
         )
       ]);
       await tester.pumpAndSettle(); // Allow stream listener to process
-
-      // You can add more specific assertions here if the UI reacts to analytics data
-      // For now, we just verify the subscription happened.
 
       await analyticsController.close();
     });
