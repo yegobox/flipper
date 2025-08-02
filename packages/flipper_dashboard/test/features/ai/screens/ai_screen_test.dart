@@ -18,6 +18,14 @@ import 'package:supabase_models/brick/models/ai_conversation.model.dart';
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
 
+class GeminiBusinessAnalyticsMock extends Mock
+    implements GeminiBusinessAnalytics {
+  @override
+  Future<String> build(int branchId, String userPrompt) async {
+    return 'Mocked response';
+  }
+}
+
 /// flutter test test/features/ai/screens/ai_screen_test.dart --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 
 class MockRouterService extends Mock implements RouterService {}
@@ -190,7 +198,6 @@ void main() {
       // Fix: Check for actual text in WelcomeView
       expect(find.text('Your Business AI Assistant'), findsOneWidget);
     });
-
     testWidgets('sends message and displays AI response',
         (WidgetTester tester) async {
       // Mock a non-empty conversation list to skip WelcomeView
@@ -219,29 +226,14 @@ void main() {
               delivered: false,
             )
           ]);
+
+      // Create a StreamController to control message updates
+      final messageStreamController =
+          StreamController<List<models.Message>>.broadcast();
       when(() => mockDbSync.subscribeToMessages('existing_conversation'))
-          .thenAnswer((_) => Stream.fromIterable([
-                [
-                  models.Message(
-                    id: 'user_msg',
-                    text: 'Hello',
-                    role: 'user',
-                    conversationId: 'existing_conversation',
-                    branchId: 1,
-                    phoneNumber: '123',
-                    delivered: false,
-                  ),
-                  models.Message(
-                    id: 'ai_message',
-                    text: 'AI response text',
-                    role: 'assistant',
-                    conversationId: 'existing_conversation',
-                    branchId: 1,
-                    phoneNumber: '123',
-                    delivered: false,
-                  ),
-                ]
-              ]));
+          .thenAnswer((_) => messageStreamController.stream);
+
+      // Mock saveMessage for user message
       when(() => mockDbSync.saveMessage(
             text: 'Hello AI',
             phoneNumber: '123456789',
@@ -250,15 +242,34 @@ void main() {
             conversationId: 'existing_conversation',
             aiResponse: null,
             aiContext: null,
-          )).thenAnswer((_) async => models.Message(
-            id: 'saved_message_id',
-            text: 'Hello AI',
+          )).thenAnswer((_) async {
+        await Future.delayed(Duration(milliseconds: 100));
+        final userMessage = models.Message(
+          id: 'saved_message_id',
+          text: 'Hello AI',
+          role: 'user',
+          conversationId: 'existing_conversation',
+          branchId: 1,
+          phoneNumber: '123456789',
+          delivered: false,
+        );
+        // Emit the updated message list with user message
+        messageStreamController.add([
+          models.Message(
+            id: 'user_msg',
+            text: 'Hello',
             role: 'user',
             conversationId: 'existing_conversation',
             branchId: 1,
-            phoneNumber: '123456789',
+            phoneNumber: '123',
             delivered: false,
-          ));
+          ),
+          userMessage,
+        ]);
+        return userMessage;
+      });
+
+      // Mock saveMessage for AI response
       when(() => mockDbSync.saveMessage(
             text: 'AI response text',
             phoneNumber: '123456789',
@@ -267,22 +278,54 @@ void main() {
             conversationId: 'existing_conversation',
             aiResponse: 'AI response text',
             aiContext: 'Hello AI',
-          )).thenAnswer((_) async => models.Message(
-            id: 'ai_message',
-            text: 'AI response text',
-            role: 'assistant',
+          )).thenAnswer((_) async {
+        await Future.delayed(Duration(milliseconds: 100));
+        final aiMessage = models.Message(
+          id: 'ai_message',
+          text: 'AI response text',
+          role: 'assistant',
+          conversationId: 'existing_conversation',
+          branchId: 1,
+          phoneNumber: '123456789',
+          delivered: false,
+        );
+        // Emit the updated message list with AI response
+        messageStreamController.add([
+          models.Message(
+            id: 'user_msg',
+            text: 'Hello',
+            role: 'user',
+            conversationId: 'existing_conversation',
+            branchId: 1,
+            phoneNumber: '123',
+            delivered: false,
+          ),
+          models.Message(
+            id: 'saved_message_id',
+            text: 'Hello AI',
+            role: 'user',
             conversationId: 'existing_conversation',
             branchId: 1,
             phoneNumber: '123456789',
             delivered: false,
-          ));
+          ),
+          aiMessage,
+        ]);
+        return aiMessage;
+      });
 
+      // Ensure GeminiBusinessAnalyticsMock returns the expected AI response
+      final mockAnalytics = GeminiBusinessAnalyticsMock();
+      when(() => mockAnalytics.build(1, 'Hello AI'))
+          .thenAnswer((_) async => 'AI response text');
+
+      // Pump the widget with the mocked provider
       await tester.pumpWidget(
         _wrapWithMaterialApp(
           const AiScreen(),
           overrides: [
             geminiBusinessAnalyticsProvider(1, 'Hello AI')
-                .overrideWith(() => throw Exception('AI service unavailable')),
+                .overrideWith(() => mockAnalytics),
           ],
         ),
       );
@@ -295,17 +338,28 @@ void main() {
       await tester.enterText(find.byType(AiInputField), 'Hello AI');
       await tester.pumpAndSettle();
 
-      // Fix: Use correct icon for send button
+      // Tap the send button
       await tester.tap(find.byIcon(Icons.send_rounded));
-      await tester.pump(); // Start loading
+      await tester.pump(Duration(milliseconds: 50)); // Trigger loading state
+
+      // Verify CircularProgressIndicator is present
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-      await tester.pumpAndSettle(); // End loading, show AI response
+      // Wait for async operations to complete
+      await tester
+          .pump(Duration(milliseconds: 500)); // Extended to cover all delays
+      await tester.pumpAndSettle(); // Complete UI updates
+
+      // Debug: Print widget tree to inspect UI
+      // debugDumpApp();
 
       // Verify user message and AI response are displayed
       expect(find.text('Hello AI'), findsOneWidget);
       expect(find.text('AI response text'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      // Clean up
+      await messageStreamController.close();
     });
 
     testWidgets('displays error snackbar on message send failure',
