@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flipper_services/local_notification_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -30,6 +31,14 @@ class MockBusiness extends Mock implements Business {}
 class MockSyncStrategy extends Mock implements SyncStrategy {}
 
 class MockFlipperHttpClient extends Mock implements FlipperHttpClient {}
+
+class GeminiBusinessAnalyticsMock extends Mock
+    implements GeminiBusinessAnalytics {
+  @override
+  Future<String> build(int branchId, String userPrompt) async {
+    return 'Mocked response';
+  }
+}
 
 class MockDatabaseSync extends Mock implements DatabaseSyncInterface {
   @override
