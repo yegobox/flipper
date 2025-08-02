@@ -363,7 +363,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Fix: Use correct icon for send button
-      await tester.tap(find.byIcon(Icons.send_rounded));
+      await tester.tap(find.byIcon(Icons.send));
       await tester.pumpAndSettle();
 
       expect(find.byType(SnackBar), findsOneWidget);

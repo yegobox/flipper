@@ -280,76 +280,86 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         // Main recording interface
         Row(
           children: [
-            // Slide to cancel text
+            // Delete/Cancel button (like WhatsApp)
             AnimatedOpacity(
-              opacity: _slideX < -30 ? 1.0 : 0.6,
+              opacity: _slideX < -30 ? 1.0 : 0.5,
               duration: const Duration(milliseconds: 100),
-              child: Container(
-                width: 100,
-                height: _micButtonSize,
-                alignment: Alignment.center,
-                child: Text(
-                  '< Slide to cancel',
-                  style: TextStyle(
+              child: GestureDetector(
+                onTap: () => _stopRecording(send: false),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: _slideX < -_cancelThreshold
+                        ? Colors.red.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Icon(
+                    Icons.delete_outline,
                     color: _slideX < -_cancelThreshold
                         ? Colors.red
                         : Colors.grey[600],
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+                    size: 24,
                   ),
                 ),
               ),
             ),
 
-            // Recording content
+            const SizedBox(width: 8),
+
+            // Recording content bubble
             Expanded(
-              child: Container(
-                height: _micButtonSize,
-                decoration: BoxDecoration(
-                  color: AiTheme.inputBackgroundColor,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 16),
+              child: Transform.translate(
+                offset: Offset(_slideX.clamp(-50.0, 0.0), 0),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 16),
 
-                    // Red recording dot
-                    AnimatedBuilder(
-                      animation: _pulseAnimation,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _pulseAnimation.value,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
+                      // Red recording dot
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _pulseAnimation.value,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    // Timer
-                    Text(
-                      _formatDuration(_recordingDuration),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                          );
+                        },
                       ),
-                    ),
 
-                    const SizedBox(width: 16),
+                      const SizedBox(width: 12),
 
-                    // Waveform
-                    Expanded(child: _buildWaveform()),
+                      // Timer
+                      Text(
+                        _formatDuration(_recordingDuration),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black87,
+                        ),
+                      ),
 
-                    const SizedBox(width: 16),
-                  ],
+                      const SizedBox(width: 16),
+
+                      // Waveform
+                      Expanded(child: _buildWaveform()),
+
+                      const SizedBox(width: 16),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -357,34 +367,43 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             const SizedBox(width: 8),
 
             // Mic button (recording)
-            _buildRecordingMicButton(),
+            Transform.translate(
+              offset:
+                  Offset(_slideX.clamp(-50.0, 0.0), _slideY.clamp(-50.0, 0.0)),
+              child: _buildRecordingMicButton(),
+            ),
           ],
         ),
 
         // Lock indicator (appears when sliding up)
         if (_slideY < -20 && !_isLocked)
           Positioned(
-            right: 20,
-            bottom: _micButtonSize + 10 - _slideY.abs().clamp(0, 60),
+            right: 24,
+            bottom: 60 - _slideY.abs().clamp(0, 40),
             child: AnimatedBuilder(
               animation: _lockSlideAnimation,
               builder: (context, child) {
-                return Transform.scale(
-                  scale: _lockSlideAnimation.value,
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Icon(
-                      Icons.lock,
-                      size: 20,
+                return Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _slideY < -_lockThreshold
+                        ? AiTheme.primaryColor.withValues(alpha: 0.1)
+                        : Colors.grey[300],
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
                       color: _slideY < -_lockThreshold
                           ? AiTheme.primaryColor
-                          : Colors.grey[600],
+                          : Colors.grey[400]!,
+                      width: 1,
                     ),
+                  ),
+                  child: Icon(
+                    Icons.lock,
+                    size: 16,
+                    color: _slideY < -_lockThreshold
+                        ? AiTheme.primaryColor
+                        : Colors.grey[600],
                   ),
                 );
               },
@@ -521,7 +540,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
               height: height * 20 + 4,
               margin: const EdgeInsets.symmetric(horizontal: 1),
               decoration: BoxDecoration(
-                color: AiTheme.primaryColor.withValues(alpha: 0.7),
+                color: AiTheme.primaryColor.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(1),
               ),
             );
