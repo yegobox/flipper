@@ -1,10 +1,11 @@
 import 'dart:async';
-
+import 'package:flutter/services.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flipper_services/local_notification_service.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -81,3 +82,18 @@ class MockStartupViewModel extends Mock implements StartupViewModel {}
 class MockUser extends Mock implements IUser {}
 
 class MockAudioRecorder extends Mock implements AudioRecorder {}
+void setupPathProviderMock() {
+  const MethodChannel channel = MethodChannel('plugins.flutter.io/path_provider');
+  
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case 'getTemporaryDirectory':
+        return '/tmp';
+      case 'getApplicationDocumentsDirectory':
+        return '/tmp/documents';
+      default:
+        return null;
+    }
+  });
+}
