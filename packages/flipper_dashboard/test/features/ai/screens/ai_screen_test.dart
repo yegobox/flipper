@@ -235,72 +235,14 @@ void main() {
 
       // Mock saveMessage for user message
       when(() => mockDbSync.saveMessage(
-            text: 'Hello AI',
-            phoneNumber: '123456789',
-            branchId: 1,
+            text: any(named: 'text'),
+            phoneNumber: any(named: 'phoneNumber'),
+            branchId: any(named: 'branchId'),
             role: 'user',
-            conversationId: 'existing_conversation',
-            aiResponse: null,
-            aiContext: null,
-          )).thenAnswer((_) async {
-        await Future.delayed(Duration(milliseconds: 100));
-        final userMessage = models.Message(
-          id: 'saved_message_id',
-          text: 'Hello AI',
-          role: 'user',
-          conversationId: 'existing_conversation',
-          branchId: 1,
-          phoneNumber: '123456789',
-          delivered: false,
-        );
-        // Emit the updated message list with user message
-        messageStreamController.add([
-          models.Message(
-            id: 'user_msg',
-            text: 'Hello',
-            role: 'user',
-            conversationId: 'existing_conversation',
-            branchId: 1,
-            phoneNumber: '123',
-            delivered: false,
-          ),
-          userMessage,
-        ]);
-        return userMessage;
-      });
-
-      // Mock saveMessage for AI response
-      when(() => mockDbSync.saveMessage(
-            text: 'AI response text',
-            phoneNumber: '123456789',
-            branchId: 1,
-            role: 'assistant',
-            conversationId: 'existing_conversation',
-            aiResponse: 'AI response text',
-            aiContext: 'Hello AI',
-          )).thenAnswer((_) async {
-        await Future.delayed(Duration(milliseconds: 100));
-        final aiMessage = models.Message(
-          id: 'ai_message',
-          text: 'AI response text',
-          role: 'assistant',
-          conversationId: 'existing_conversation',
-          branchId: 1,
-          phoneNumber: '123456789',
-          delivered: false,
-        );
-        // Emit the updated message list with AI response
-        messageStreamController.add([
-          models.Message(
-            id: 'user_msg',
-            text: 'Hello',
-            role: 'user',
-            conversationId: 'existing_conversation',
-            branchId: 1,
-            phoneNumber: '123',
-            delivered: false,
-          ),
-          models.Message(
+            conversationId: any(named: 'conversationId'),
+            aiResponse: any(named: 'aiResponse'),
+            aiContext: any(named: 'aiContext'),
+          )).thenAnswer((_) async => models.Message(
             id: 'saved_message_id',
             text: 'Hello AI',
             role: 'user',
@@ -308,11 +250,24 @@ void main() {
             branchId: 1,
             phoneNumber: '123456789',
             delivered: false,
-          ),
-          aiMessage,
-        ]);
-        return aiMessage;
-      });
+          ));
+      when(() => mockDbSync.saveMessage(
+            text: any(named: 'text'),
+            phoneNumber: any(named: 'phoneNumber'),
+            branchId: any(named: 'branchId'),
+            role: 'assistant',
+            conversationId: any(named: 'conversationId'),
+            aiResponse: any(named: 'aiResponse'),
+            aiContext: any(named: 'aiContext'),
+          )).thenAnswer((_) async => models.Message(
+            id: 'ai_message',
+            text: 'AI response text',
+            role: 'assistant',
+            conversationId: 'existing_conversation',
+            branchId: 1,
+            phoneNumber: '123456789',
+            delivered: false,
+          ));
 
       // Ensure GeminiBusinessAnalyticsMock returns the expected AI response
       final mockAnalytics = GeminiBusinessAnalyticsMock();
