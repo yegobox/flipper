@@ -217,8 +217,8 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
-    final Plan? plan =
-        await ProxyService.strategy.getPaymentPlan(businessId: businessId);
+    final Plan? plan = await ProxyService.strategy
+        .getPaymentPlan(businessId: businessId, fetchOnline: true);
 
     if (plan == null) {
       throw NoPaymentPlanFound(
@@ -430,43 +430,10 @@ mixin AuthMixin implements AuthInterface {
             );
           }
 
-          // Only throw LoginChoicesException if there are multiple businesses
-          // This ensures the login_choices.dart screen is shown only when necessary
-          if (businesses.length > 1) {
-            // Store a flag to indicate we're coming from login
-            await ProxyService.box.writeBool(key: 'from_login', value: true);
-            throw LoginChoicesException(term: 'business');
-          } else if (businesses.length == 1) {
-            // If there's only one business, check if there are multiple branches
-            final branches =
-                await this.branches(businessId: selectedBusiness!.serverId);
-
-            // Only go to login_choices if there are multiple branches
-            if (branches.length > 1) {
-              await ProxyService.box.writeBool(key: 'from_login', value: true);
-              throw LoginChoicesException(term: 'Business');
-            }
-
-            // If there's only one branch, set it as active and default
-            if (branches.length == 1) {
-              final branch = branches.first;
-              await ProxyService.strategy.updateBranch(
-                branchId: branch.serverId!,
-                active: true,
-                isDefault: true,
-              );
-
-              // Update branch ID in storage
-              await ProxyService.box
-                  .writeInt(key: 'branchId', value: branch.serverId!);
-              await ProxyService.box
-                  .writeString(key: 'branchIdString', value: branch.id);
-
-              // No need to throw exception - continue with login flow
-              talker
-                  .debug("Single business and branch - skipping login_choices");
-            }
-          }
+          // Always throw LoginChoicesException to simplify the flow
+          // The login_choices screen will handle the navigation
+          await ProxyService.box.writeBool(key: 'from_login', value: true);
+          throw LoginChoicesException(term: 'business');
         } catch (e) {
           if (e is LoginChoicesException) {
             // Re-throw this specific exception to ensure proper navigation

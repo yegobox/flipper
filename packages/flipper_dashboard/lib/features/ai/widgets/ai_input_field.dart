@@ -8,14 +8,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 import '../theme/ai_theme.dart';
 
-// Define the provider for the AudioRecorder
 final audioRecorderProvider = Provider<AudioRecorder>((ref) {
   final recorder = AudioRecorder();
   ref.onDispose(recorder.dispose);
   return recorder;
 });
 
-/// A 100% WhatsApp-style input field with voice recording
 class AiInputField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final bool isLoading;
@@ -41,17 +39,20 @@ class AiInputField extends ConsumerStatefulWidget {
 class _AiInputFieldState extends ConsumerState<AiInputField>
     with TickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode();
+  final GlobalKey _micButtonKey = GlobalKey();
 
   bool _hasText = false;
   bool _isRecording = false;
   bool _isLocked = false;
   bool _isProcessing = false;
   bool _showCancelHint = false;
+  bool _showLockHint = false;
   double _slideX = 0.0;
   double _slideY = 0.0;
   Timer? _recordingTimer;
   Timer? _waveformTimer;
   Timer? _cancelHintTimer;
+  Timer? _lockHintTimer;
   int _recordingDuration = 0;
   List<double> _waveformData = [];
   String? _currentRecordingPath;
@@ -63,19 +64,22 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   late AnimationController _slideController;
   late AnimationController _cancelController;
   late AnimationController _micScaleController;
+  late AnimationController _lockHintController;
 
   late Animation<double> _pulseAnimation;
   late Animation<double> _lockSlideAnimation;
   late Animation<double> _slideAnimation;
   late Animation<double> _cancelAnimation;
   late Animation<double> _micScaleAnimation;
+  late Animation<double> _lockHintAnimation;
 
-  // Layout constants (exactly matching WhatsApp)
+  // Layout constants
   static const double _cancelThreshold = 100.0;
   static const double _lockThreshold = 80.0;
   static const double _micButtonSize = 48.0;
   static const double _recordingBubbleHeight = 48.0;
   static const Duration _animationDuration = Duration(milliseconds: 150);
+  static const Duration _hintDisplayDuration = Duration(seconds: 2);
 
   @override
   void initState() {
@@ -83,11 +87,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     widget.controller.addListener(_handleTextChange);
     _hasText = widget.controller.text.isNotEmpty;
     _focusNode.onKeyEvent = _handleKeyEvent;
-
-    // Initialize all animations
     _initializeAnimations();
-
-    // Generate initial waveform data
     _generateWaveform();
   }
 
@@ -116,6 +116,10 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
+    _lockHintController = AnimationController(
+      duration: _animationDuration,
+      vsync: this,
+    );
 
     _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
@@ -132,6 +136,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     _micScaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _micScaleController, curve: Curves.elasticOut),
     );
+    _lockHintAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _lockHintController, curve: Curves.easeInOut),
+    );
   }
 
   @override
@@ -145,16 +152,17 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     _slideController.dispose();
     _cancelController.dispose();
     _micScaleController.dispose();
+    _lockHintController.dispose();
     _recordingTimer?.cancel();
     _waveformTimer?.cancel();
     _cancelHintTimer?.cancel();
+    _lockHintTimer?.cancel();
     super.dispose();
   }
 
   void _generateWaveform() {
     final random = math.Random();
     _waveformData = List.generate(25, (index) {
-      // Create more realistic waveform patterns
       final baseHeight = random.nextDouble() * 0.8 + 0.2;
       final variation = math.sin(index * 0.5) * 0.3;
       return (baseHeight + variation).clamp(0.1, 1.0);
@@ -163,18 +171,14 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
 
   void _updateWaveform() {
     if (!_isRecording) return;
-    setState(() {
-      _generateWaveform();
-    });
+    setState(() => _generateWaveform());
     _waveController.forward().then((_) => _waveController.reset());
   }
 
   void _handleTextChange() {
     final hasText = widget.controller.text.isNotEmpty;
     if (hasText != _hasText) {
-      setState(() {
-        _hasText = hasText;
-      });
+      setState(() => _hasText = hasText);
     }
   }
 
@@ -184,38 +188,30 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           HardwareKeyboard.instance.isMetaPressed;
 
       if (event.logicalKey == LogicalKeyboardKey.enter && !isModifierPressed) {
-        if (_canSend()) {
-          _handleSubmit(widget.controller.text);
-        }
+        if (_canSend()) _handleSubmit(widget.controller.text);
         return KeyEventResult.handled;
       }
     }
     return KeyEventResult.ignored;
   }
 
-  void _startRecording() async {
+  Future<void> _startRecording() async {
     if (_isProcessing || _isRecording || _hasText || widget.isLoading) return;
 
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
 
     final audioRecorder = ref.read(audioRecorderProvider);
     final hasPermission = await audioRecorder.hasPermission();
 
     if (!hasPermission) {
       _showPermissionDialog();
-      setState(() {
-        _isProcessing = false;
-      });
+      setState(() => _isProcessing = false);
       return;
     }
 
     try {
-      // Strong haptic feedback when starting
       HapticFeedback.heavyImpact();
 
-      // Use temporary directory for recording
       final tempDir = await getTemporaryDirectory();
       final extension = Platform.isIOS ? '.m4a' : '.aac';
       _currentRecordingPath =
@@ -238,72 +234,68 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         _slideY = 0.0;
         _isLocked = false;
         _showCancelHint = false;
+        _showLockHint = false;
       });
 
-      // Start all animations
       _pulseController.repeat(reverse: true);
       _slideController.forward();
       _micScaleController.forward().then((_) => _micScaleController.reverse());
 
-      // Start recording timer
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (!_isRecording) {
-          timer.cancel();
-          return;
-        }
-        setState(() {
-          _recordingDuration++;
-        });
+        if (!_isRecording) timer.cancel();
+        setState(() => _recordingDuration++);
       });
 
-      // Start waveform animation timer
       _waveformTimer =
           Timer.periodic(const Duration(milliseconds: 120), (timer) {
-        if (!_isRecording) {
-          timer.cancel();
-          return;
-        }
+        if (!_isRecording) timer.cancel();
         _updateWaveform();
       });
 
-      // Show cancel hint after 1 second
       _cancelHintTimer = Timer(const Duration(milliseconds: 1000), () {
         if (_isRecording && !_isLocked) {
-          setState(() {
-            _showCancelHint = true;
-          });
+          setState(() => _showCancelHint = true);
           _cancelController.forward();
+        }
+      });
+
+      _lockHintTimer = Timer(const Duration(milliseconds: 500), () {
+        if (_isRecording && !_isLocked) {
+          setState(() => _showLockHint = true);
+          _lockHintController.forward();
+          Future.delayed(_hintDisplayDuration, () {
+            if (_isRecording && !_isLocked && mounted) {
+              setState(() => _showLockHint = false);
+              _lockHintController.reverse();
+            }
+          });
         }
       });
     } catch (e) {
       _showErrorSnackBar('Failed to start recording: $e');
       _resetRecordingState();
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
-  void _stopRecording({bool send = true}) async {
+  Future<void> _stopRecording({bool send = true}) async {
     if (!_isRecording || _isProcessing) return;
 
-    setState(() {
-      _isProcessing = true;
-    });
+    setState(() => _isProcessing = true);
 
     try {
       final audioRecorder = ref.read(audioRecorderProvider);
 
-      // Cancel all timers
       _recordingTimer?.cancel();
       _waveformTimer?.cancel();
       _cancelHintTimer?.cancel();
+      _lockHintTimer?.cancel();
 
-      // Stop all animations
       _pulseController.stop();
       _slideController.reverse();
       _cancelController.reverse();
+      _lockHintController.reverse();
 
       final path = await audioRecorder.stop();
 
@@ -311,16 +303,12 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         if (send &&
             widget.onVoiceMessageSend != null &&
             _recordingDuration >= 1) {
-          // Light haptic feedback for successful send
           HapticFeedback.lightImpact();
           widget.onVoiceMessageSend!(path);
         } else {
-          // Delete the recording if not sending or too short
           HapticFeedback.lightImpact();
           final file = File(path);
-          if (await file.exists()) {
-            await file.delete();
-          }
+          if (await file.exists()) await file.delete();
 
           if (_recordingDuration < 1 && send) {
             _showErrorSnackBar('Recording too short');
@@ -333,9 +321,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       _showErrorSnackBar('Failed to stop recording: $e');
       _resetRecordingState();
     } finally {
-      setState(() {
-        _isProcessing = false;
-      });
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -348,21 +334,39 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       _slideX = 0.0;
       _slideY = 0.0;
       _showCancelHint = false;
+      _showLockHint = false;
     });
 
     _lockController.forward();
     _cancelController.reverse();
+    _lockHintController.reverse();
   }
 
-  void _resetRecordingState() {
+  void _unlockRecording() {
+    if (!_isLocked || !_isRecording) return;
+
+    HapticFeedback.mediumImpact();
     setState(() {
-      _isRecording = false;
       _isLocked = false;
       _slideX = 0.0;
       _slideY = 0.0;
-      _showCancelHint = false;
-      _recordingDuration = 0;
     });
+
+    _lockController.reverse();
+  }
+
+  void _resetRecordingState() {
+    if (mounted) {
+      setState(() {
+        _isRecording = false;
+        _isLocked = false;
+        _slideX = 0.0;
+        _slideY = 0.0;
+        _showCancelHint = false;
+        _showLockHint = false;
+        _recordingDuration = 0;
+      });
+    }
     _currentRecordingPath = null;
   }
 
@@ -445,6 +449,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             // Cancel hint
             if (_showCancelHint && _isRecording && !_isLocked)
               _buildCancelHint(),
+
+            // Lock hint
+            if (_showLockHint && _isRecording && !_isLocked) _buildLockHint(),
           ],
         ),
       ),
@@ -455,15 +462,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Attachment button or Delete when locked
         _buildAttachmentDeleteButton(),
-
-        // Input field
         Expanded(child: _buildInputField()),
-
         const SizedBox(width: 8),
-
-        // Mic/Send button
         _buildMicSendButton(),
       ],
     );
@@ -484,9 +485,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 height: 40,
                 margin: const EdgeInsets.only(right: 8, bottom: 4),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
                 child: const Icon(
                   Icons.delete_outline,
@@ -497,10 +498,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             )
           : GestureDetector(
               key: const ValueKey('attachment'),
-              onTap: () {
-                HapticFeedback.lightImpact();
-                // Add your attachment action here
-              },
+              onTap: () => HapticFeedback.lightImpact(),
               child: Container(
                 width: 40,
                 height: 40,
@@ -522,7 +520,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   Widget _buildRecordingInterface() {
     return Row(
       children: [
-        // Delete button (when not locked)
         if (!_isLocked)
           AnimatedScale(
             scale: _slideX < -_cancelThreshold * 0.7 ? 1.2 : 1.0,
@@ -548,10 +545,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
               ),
             ),
           ),
-
         if (!_isLocked) const SizedBox(width: 8),
-
-        // Recording bubble
         Expanded(
           child: Transform.translate(
             offset: Offset(_isLocked ? 0.0 : _slideX.clamp(-60.0, 0.0), 0),
@@ -574,10 +568,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             ),
           ),
         ),
-
         const SizedBox(width: 8),
-
-        // Mic or Send button
         _buildRecordingActionButton(),
       ],
     );
@@ -587,8 +578,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     return Row(
       children: [
         const SizedBox(width: 16),
-
-        // Pulsing red dot
         AnimatedBuilder(
           animation: _pulseAnimation,
           builder: (context, child) {
@@ -605,10 +594,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             );
           },
         ),
-
         const SizedBox(width: 12),
-
-        // Timer
         Text(
           _formatDuration(_recordingDuration),
           style: TextStyle(
@@ -618,12 +604,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             fontFeatures: const [FontFeature.tabularFigures()],
           ),
         ),
-
         const SizedBox(width: 16),
-
-        // Waveform
         Expanded(child: _buildWaveform()),
-
         const SizedBox(width: 16),
       ],
     );
@@ -736,7 +718,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.keyboard_arrow_left,
                       color: Colors.white,
                       size: 16,
@@ -749,6 +731,51 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLockHint() {
+    return Positioned(
+      right: 24,
+      bottom: 70,
+      child: AnimatedBuilder(
+        animation: _lockHintAnimation,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _lockHintAnimation.value * 0.7,
+            child: Transform.translate(
+              offset: Offset(0, 10 * (1 - _lockHintAnimation.value)),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Slide up to lock',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(
+                      Icons.keyboard_arrow_up,
+                      color: Colors.white,
+                      size: 16,
                     ),
                   ],
                 ),
@@ -821,12 +848,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 _slideY = newSlideY;
               });
 
-              // Check for lock (slide up)
               if (_slideY < -_lockThreshold) {
                 _lockRecording();
-              }
-              // Check for cancel (slide left)
-              else if (_slideX < -_cancelThreshold) {
+              } else if (_slideX < -_cancelThreshold) {
                 _stopRecording(send: false);
               }
             },
