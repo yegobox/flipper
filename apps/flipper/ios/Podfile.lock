@@ -322,6 +322,8 @@ PODS:
   - realm (20.1.1):
     - Flutter
   - RecaptchaInterop (101.0.0)
+  - record_ios (1.0.0):
+    - Flutter
   - SDWebImage (5.21.1):
     - SDWebImage/Core (= 5.21.1)
   - SDWebImage/Core (5.21.1)
@@ -407,6 +409,7 @@ DEPENDENCIES:
   - posthog_flutter (from `.symlinks/plugins/posthog_flutter/ios`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - realm (from `.symlinks/plugins/realm/ios`)
+  - record_ios (from `.symlinks/plugins/record_ios/ios`)
   - sentry_flutter (from `.symlinks/plugins/sentry_flutter/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -533,6 +536,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/printing/ios"
   realm:
     :path: ".symlinks/plugins/realm/ios"
+  record_ios:
+    :path: ".symlinks/plugins/record_ios/ios"
   sentry_flutter:
     :path: ".symlinks/plugins/sentry_flutter/ios"
   share_plus:
@@ -622,6 +627,7 @@ SPEC CHECKSUMS:
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   realm: 8c6c7f4f7e2a5c0d8ff669395ec9a9a68f07d660
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
+  record_ios: 1bbc430ab8406174d70332f23e06a3dc751239b4
   SDWebImage: f29024626962457f3470184232766516dee8dfea
   Sentry: da60d980b197a46db0b35ea12cb8f39af48d8854
   sentry_flutter: 2df8b0aab7e4aba81261c230cbea31c82a62dd1b

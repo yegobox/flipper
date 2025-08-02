@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:record/record.dart';
 import '../theme/ai_theme.dart';
 
+// Define the provider for the AudioRecorder
+final audioRecorderProvider = Provider<AudioRecorder>((ref) {
+  final recorder = AudioRecorder();
+  ref.onDispose(recorder.dispose);
+  return recorder;
+});
+
 /// A modern, animated input field for the AI chat.
-class AiInputField extends StatefulWidget {
+class AiInputField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final bool isLoading;
   final Function(String) onSend;
@@ -20,14 +29,15 @@ class AiInputField extends StatefulWidget {
   });
 
   @override
-  State<AiInputField> createState() => _AiInputFieldState();
+  ConsumerState<AiInputField> createState() => _AiInputFieldState();
 }
 
-class _AiInputFieldState extends State<AiInputField>
+class _AiInputFieldState extends ConsumerState<AiInputField>
     with TickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode();
 
   bool _hasText = false;
+  bool _isRecording = false;
 
   @override
   void initState() {
@@ -69,6 +79,23 @@ class _AiInputFieldState extends State<AiInputField>
     return KeyEventResult.ignored;
   }
 
+  Future<void> _toggleRecording() async {
+    final audioRecorder = ref.read(audioRecorderProvider);
+    if (await audioRecorder.hasPermission()) {
+      if (_isRecording) {
+        final path = await audioRecorder.stop();
+        if (path != null) {
+          // TODO: Handle the recorded audio file (e.g., send for transcription)
+          print('Recording stopped. File saved at: $path');
+        }
+        setState(() => _isRecording = false);
+      } else {
+        await audioRecorder.start(const RecordConfig(), path: 'audio.m4a');
+        setState(() => _isRecording = true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -77,7 +104,7 @@ class _AiInputFieldState extends State<AiInputField>
         color: AiTheme.surfaceColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withOpacity(0.08),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -146,14 +173,16 @@ class _AiInputFieldState extends State<AiInputField>
       width: 52,
       height: 52,
       child: Material(
-        color: hasText ? AiTheme.primaryColor : AiTheme.inputBackgroundColor,
+        color: _isRecording
+            ? Colors.red.shade400
+            : (hasText ? AiTheme.primaryColor : AiTheme.inputBackgroundColor),
         borderRadius: BorderRadius.circular(26),
-        elevation: hasText ? 2 : 0,
+        elevation: hasText || _isRecording ? 2 : 0,
         child: InkWell(
           borderRadius: BorderRadius.circular(26),
           onTap: hasText
               ? (canSend ? () => _handleSubmit(widget.controller.text) : null)
-              : () {/* TODO: Implement microphone action */},
+              : _toggleRecording,
           child: Center(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
@@ -171,9 +200,14 @@ class _AiInputFieldState extends State<AiInputField>
                       ),
                     )
                   : Icon(
-                      hasText ? Icons.send_rounded : Icons.mic,
-                      key: ValueKey(hasText ? 'send' : 'mic'),
-                      color: hasText ? Colors.white : AiTheme.secondaryColor,
+                      _isRecording
+                          ? Icons.stop
+                          : (hasText ? Icons.send_rounded : Icons.mic),
+                      key: ValueKey(
+                          _isRecording ? 'stop' : (hasText ? 'send' : 'mic')),
+                      color: _isRecording
+                          ? Colors.white
+                          : (hasText ? Colors.white : AiTheme.secondaryColor),
                       size: 24,
                     ),
             ),

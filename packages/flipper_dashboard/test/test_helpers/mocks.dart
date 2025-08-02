@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:record/record.dart';
 import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/models/pin.model.dart';
 import 'package:supabase_models/brick/models/plans.model.dart';
@@ -78,3 +79,5 @@ class MockRouterService extends Mock implements RouterService {}
 class MockStartupViewModel extends Mock implements StartupViewModel {}
 
 class MockUser extends Mock implements IUser {}
+
+class MockAudioRecorder extends Mock implements AudioRecorder {}

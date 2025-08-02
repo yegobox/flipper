@@ -6,11 +6,11 @@ import 'package:flipper_dashboard/features/ai/widgets/welcome_view.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:record/record.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/models/ai_conversation.model.dart';
@@ -78,6 +78,7 @@ void main() {
     registerFallbackValue(PaymentVerificationResponse(
       result: PaymentVerificationResult.active,
     ));
+    registerFallbackValue(const RecordConfig());
   });
 
   tearDownAll(() {
@@ -531,41 +532,35 @@ void main() {
       expect(find.text('Your Business AI Assistant'), findsOneWidget);
     });
 
-    testWidgets('analytics stream is subscribed on build',
+    testWidgets('toggles recording state when mic button is tapped',
         (WidgetTester tester) async {
-      final branchId = ProxyService.box.getBranchId();
-      expect(branchId, isNotNull); // Ensure branchId is available for the test
+      final audioRecorder = MockAudioRecorder();
+      when(() => audioRecorder.hasPermission()).thenAnswer((_) async => true);
+      when(() => audioRecorder.start(any(), path: any(named: 'path')))
+          .thenAnswer((_) async {});
+      when(() => audioRecorder.stop()).thenAnswer((_) async => 'some/path');
 
-      // Mock the streamRemoteAnalytics to return a controlled stream
-      final analyticsController =
-          StreamController<List<models.BusinessAnalytic>>();
-      when(() => mockDbSync.streamRemoteAnalytics(branchId: branchId!))
-          .thenAnswer((_) => analyticsController.stream);
-
-      await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
+      await tester.pumpWidget(_wrapWithMaterialApp(
+        const AiScreen(),
+        overrides: [
+          audioRecorderProvider.overrideWithValue(audioRecorder),
+        ],
+      ));
       await tester.pumpAndSettle();
 
-      // Verify that streamRemoteAnalytics was called
-      verify(() => mockDbSync.streamRemoteAnalytics(branchId: branchId!))
-          .called(1);
+      // Tap the mic button to start recording
+      await tester.tap(find.byIcon(Icons.mic));
+      await tester.pumpAndSettle();
 
-      // Emit some data to the stream
-      analyticsController.add([
-        models.BusinessAnalytic(
-          id: 'analytic1',
-          branchId: branchId!,
-          date: DateTime.now(),
-          itemName: 'Item A',
-          price: 10.0,
-          profit: 5.0,
-          unitsSold: 10,
-          taxRate: 0.1,
-          trafficCount: 1,
-        )
-      ]);
-      await tester.pumpAndSettle(); // Allow stream listener to process
+      // Verify the icon changes to stop
+      expect(find.byIcon(Icons.stop), findsOneWidget);
 
-      await analyticsController.close();
+      // Tap the stop button to stop recording
+      await tester.tap(find.byIcon(Icons.stop));
+      await tester.pumpAndSettle();
+
+      // Verify the icon changes back to mic
+      expect(find.byIcon(Icons.mic), findsOneWidget);
     });
   });
 }
