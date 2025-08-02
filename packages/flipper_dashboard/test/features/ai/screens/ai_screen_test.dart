@@ -532,13 +532,14 @@ void main() {
       expect(find.text('Your Business AI Assistant'), findsOneWidget);
     });
 
-    testWidgets('toggles recording state when mic button is tapped',
+    testWidgets('starts and stops recording on long press',
         (WidgetTester tester) async {
       final audioRecorder = MockAudioRecorder();
       when(() => audioRecorder.hasPermission()).thenAnswer((_) async => true);
       when(() => audioRecorder.start(any(), path: any(named: 'path')))
           .thenAnswer((_) async {});
-      when(() => audioRecorder.stop()).thenAnswer((_) async => 'some/path');
+      when(() => audioRecorder.stop())
+          .thenAnswer((_) async => 'some/path/to/audio.m4a');
 
       await tester.pumpWidget(_wrapWithMaterialApp(
         const AiScreen(),
@@ -548,19 +549,34 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      // Tap the mic button to start recording
-      await tester.tap(find.byIcon(Icons.mic));
-      await tester.pumpAndSettle();
+      final micFinder = find.byIcon(Icons.mic);
+      expect(micFinder, findsOneWidget);
 
-      // Verify the icon changes to stop
-      expect(find.byIcon(Icons.stop), findsOneWidget);
+      // Start a long press gesture
+      final gesture = await tester.startGesture(tester.getCenter(micFinder));
+      // Hold for longer than the long press timeout
+      await tester.pump(const Duration(milliseconds: 500));
 
-      // Tap the stop button to stop recording
-      await tester.tap(find.byIcon(Icons.stop));
-      await tester.pumpAndSettle();
+      // Verify that recording has started
+      verify(() => audioRecorder.start(any(), path: any(named: 'path')))
+          .called(1);
+      // Check for the recording UI (e.g., the timer)
+      expect(find.text('0:00'), findsOneWidget);
 
-      // Verify the icon changes back to mic
-      expect(find.byIcon(Icons.mic), findsOneWidget);
+      // Release the gesture
+      await gesture.up();
+      // Pump to process the gesture release, which calls _stopRecording.
+      // This stops the pulse animation and starts the slide-out animation.
+      await tester.pump();
+      // Pump for the duration of the slide-out animation to ensure it completes.
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Verify that recording has stopped
+      verify(() => audioRecorder.stop()).called(1);
+      // Check that the recording UI is gone
+      expect(find.text('0:00'), findsNothing);
+      // Check that the mic icon is back
+      expect(micFinder, findsOneWidget);
     });
   });
 }
