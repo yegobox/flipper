@@ -1,9 +1,11 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'dart:async';
-import 'dart:math' as math;
 import '../theme/ai_theme.dart';
 
 // Define the provider for the AudioRecorder
@@ -43,6 +45,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   bool _hasText = false;
   bool _isRecording = false;
   bool _isLocked = false;
+  bool _isProcessing = false;
   double _slideX = 0.0;
   double _slideY = 0.0;
   Timer? _recordingTimer;
@@ -56,9 +59,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   late Animation<double> _pulseAnimation;
   late Animation<double> _lockSlideAnimation;
 
-  // Layout constants (matching WhatsApp exactly)
-  static const double _cancelThreshold = 100.0;
-  static const double _lockThreshold = 50.0;
+  // Layout constants (matching WhatsApp)
+  static const double _cancelThreshold = 120.0;
+  static const double _lockThreshold = 60.0;
   static const double _micButtonSize = 48.0;
 
   @override
@@ -132,7 +135,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       final isModifierPressed = HardwareKeyboard.instance.isControlPressed ||
           HardwareKeyboard.instance.isMetaPressed;
 
-      if (event.logicalKey == LogicalKeyboardKey.enter && isModifierPressed) {
+      if (event.logicalKey == LogicalKeyboardKey.enter && !isModifierPressed) {
         if (_canSend()) {
           _handleSubmit(widget.controller.text);
         }
@@ -143,10 +146,23 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   }
 
   void _startRecording() async {
-    final audioRecorder = ref.read(audioRecorderProvider);
-    if (await audioRecorder.hasPermission()) {
-      HapticFeedback.heavyImpact();
+    if (_isProcessing || _isRecording) return;
+    _isProcessing = true;
 
+    final audioRecorder = ref.read(audioRecorderProvider);
+    final hasPermission = await audioRecorder.hasPermission();
+    if (!hasPermission) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Microphone permission is required to record audio.'),
+        ),
+      );
+      _isProcessing = false;
+      return;
+    }
+
+    try {
+      HapticFeedback.heavyImpact();
       setState(() {
         _isRecording = true;
         _recordingDuration = 0;
@@ -159,14 +175,20 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       _pulseController.repeat(reverse: true);
       _lockController.forward();
 
-      // Start recording
+      // Use temporary directory for recording
+      final tempDir = await getTemporaryDirectory();
+      final extension = Platform.isIOS ? '.m4a' : '.aac';
+      final filePath =
+          '${tempDir.path}/recording_${DateTime.now().millisecondsSinceEpoch}$extension';
+
       await audioRecorder.start(
-          const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 128000,
-            sampleRate: 44100,
-          ),
-          path: 'recording_${DateTime.now().millisecondsSinceEpoch}.m4a');
+        const RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        ),
+        path: filePath,
+      );
 
       // Start timer and waveform updates
       _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -175,7 +197,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         });
       });
 
-      // Update waveform periodically
       Timer.periodic(const Duration(milliseconds: 150), (timer) {
         if (!_isRecording) {
           timer.cancel();
@@ -183,43 +204,69 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         }
         _updateWaveform();
       });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to start recording: $e')),
+      );
+      setState(() {
+        _isRecording = false;
+        _isLocked = false;
+      });
+      _pulseController.stop();
+      _lockController.reverse();
+    } finally {
+      _isProcessing = false;
     }
   }
 
   void _stopRecording({bool send = true}) async {
-    if (!_isRecording) return;
+    if (!_isRecording || _isProcessing) return;
+    _isProcessing = true;
 
-    final audioRecorder = ref.read(audioRecorderProvider);
-    _recordingTimer?.cancel();
-    _pulseController.stop();
-    _lockController.reverse();
+    try {
+      final audioRecorder = ref.read(audioRecorderProvider);
+      _recordingTimer?.cancel();
+      _pulseController.stop();
+      _lockController.reverse();
 
-    if (send) {
-      HapticFeedback.lightImpact();
       final path = await audioRecorder.stop();
-      if (path != null && widget.onVoiceMessageSend != null) {
-        widget.onVoiceMessageSend!(path);
+      if (path != null) {
+        if (send && widget.onVoiceMessageSend != null) {
+          HapticFeedback.lightImpact();
+          widget.onVoiceMessageSend!(path);
+        } else {
+          HapticFeedback.lightImpact();
+          final file = File(path);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        }
       }
-    } else {
-      HapticFeedback.lightImpact();
-      await audioRecorder.stop();
-    }
 
-    setState(() {
-      _isRecording = false;
-      _isLocked = false;
-      _slideX = 0.0;
-      _slideY = 0.0;
-    });
+      setState(() {
+        _isRecording = false;
+        _isLocked = false;
+        _slideX = 0.0;
+        _slideY = 0.0;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to stop recording: $e')),
+      );
+    } finally {
+      _isProcessing = false;
+    }
   }
 
   void _lockRecording() {
+    if (_isLocked) return;
     HapticFeedback.lightImpact();
     setState(() {
       _isLocked = true;
       _slideX = 0.0;
       _slideY = 0.0;
     });
+    _lockController.forward();
   }
 
   String _formatDuration(int seconds) {
@@ -236,9 +283,18 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         color: Theme.of(context).scaffoldBackgroundColor,
       ),
       child: SafeArea(
-        child: _isRecording && !_isLocked
-            ? _buildRecordingInterface()
-            : _buildNormalInterface(),
+        child: Stack(
+          clipBehavior: Clip.none, // Allow lock icon to appear outside bounds
+          children: [
+            AnimatedOpacity(
+              opacity: _isRecording && !_isLocked ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: _buildNormalInterface(),
+            ),
+            if (_isRecording) _buildRecordingInterface(),
+            if (_isRecording && !_isLocked) _buildLockIndicator(),
+          ],
+        ),
       ),
     );
   }
@@ -247,21 +303,39 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Emoji/Attachment button
-        Container(
-          width: 40,
-          height: 40,
-          margin: const EdgeInsets.only(right: 8, bottom: 4),
-          decoration: BoxDecoration(
-            color: AiTheme.primaryColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 24,
-          ),
-        ),
+        // Attachment/Emoji button (replaced with delete when locked)
+        _isLocked
+            ? GestureDetector(
+                onTap: () => _stopRecording(send: false),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  margin: const EdgeInsets.only(right: 8, bottom: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 24,
+                  ),
+                ),
+              )
+            : Container(
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.only(right: 8, bottom: 4),
+                decoration: BoxDecoration(
+                  color: AiTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
 
         // Input field
         Expanded(child: _buildInputField()),
@@ -275,141 +349,143 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   }
 
   Widget _buildRecordingInterface() {
-    return Stack(
+    return Row(
       children: [
-        // Main recording interface
-        Row(
-          children: [
-            // Delete/Cancel button (like WhatsApp)
-            AnimatedOpacity(
-              opacity: _slideX < -30 ? 1.0 : 0.5,
-              duration: const Duration(milliseconds: 100),
-              child: GestureDetector(
-                onTap: () => _stopRecording(send: false),
-                child: Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _slideX < -_cancelThreshold
-                        ? Colors.red.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Icon(
-                    Icons.delete_outline,
-                    color: _slideX < -_cancelThreshold
-                        ? Colors.red
-                        : Colors.grey[600],
-                    size: 24,
-                  ),
-                ),
+        // Delete/Cancel button (visible when not locked)
+        if (!_isLocked)
+          GestureDetector(
+            onTap: () => _stopRecording(send: false),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _slideX < -_cancelThreshold
+                    ? Colors.red.withOpacity(0.3)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(24),
               ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // Recording content bubble
-            Expanded(
-              child: Transform.translate(
-                offset: Offset(_slideX.clamp(-50.0, 0.0), 0),
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 16),
-
-                      // Red recording dot
-                      AnimatedBuilder(
-                        animation: _pulseAnimation,
-                        builder: (context, child) {
-                          return Transform.scale(
-                            scale: _pulseAnimation.value,
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // Timer
-                      Text(
-                        _formatDuration(_recordingDuration),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black87,
-                        ),
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      // Waveform
-                      Expanded(child: _buildWaveform()),
-
-                      const SizedBox(width: 16),
-                    ],
-                  ),
-                ),
+              child: Icon(
+                Icons.delete_outline,
+                color: _slideX < -_cancelThreshold ? Colors.red : Colors.grey,
+                size: 24,
               ),
-            ),
-
-            const SizedBox(width: 8),
-
-            // Mic button (recording)
-            Transform.translate(
-              offset:
-                  Offset(_slideX.clamp(-50.0, 0.0), _slideY.clamp(-50.0, 0.0)),
-              child: _buildRecordingMicButton(),
-            ),
-          ],
-        ),
-
-        // Lock indicator (appears when sliding up)
-        if (_slideY < -20 && !_isLocked)
-          Positioned(
-            right: 24,
-            bottom: 60 - _slideY.abs().clamp(0, 40),
-            child: AnimatedBuilder(
-              animation: _lockSlideAnimation,
-              builder: (context, child) {
-                return Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _slideY < -_lockThreshold
-                        ? AiTheme.primaryColor.withValues(alpha: 0.1)
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: _slideY < -_lockThreshold
-                          ? AiTheme.primaryColor
-                          : Colors.grey[400]!,
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.lock,
-                    size: 16,
-                    color: _slideY < -_lockThreshold
-                        ? AiTheme.primaryColor
-                        : Colors.grey[600],
-                  ),
-                );
-              },
             ),
           ),
+
+        if (!_isLocked) const SizedBox(width: 8),
+
+        // Recording content bubble
+        Expanded(
+          child: Transform.translate(
+            offset: Offset(_isLocked ? 0.0 : _slideX.clamp(-50.0, 0.0), 0),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+
+                  // Red recording dot
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // Timer
+                  Text(
+                    _formatDuration(_recordingDuration),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black87,
+                    ),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  // Waveform
+                  Expanded(child: _buildWaveform()),
+
+                  const SizedBox(width: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        // Mic button (recording) or Send button (locked)
+        _isLocked
+            ? GestureDetector(
+                onTap: () => _stopRecording(send: true),
+                child: Container(
+                  width: _micButtonSize,
+                  height: _micButtonSize,
+                  decoration: const BoxDecoration(
+                    color: AiTheme.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.send, color: Colors.white, size: 24),
+                ),
+              )
+            : Transform.translate(
+                offset: Offset(
+                    _slideX.clamp(-50.0, 0.0), _slideY.clamp(-100.0, 0.0)),
+                child: _buildRecordingMicButton(),
+              ),
       ],
+    );
+  }
+
+  Widget _buildLockIndicator() {
+    return Positioned(
+      right: 16,
+      bottom: 64 + _slideY.clamp(-_lockThreshold, 0.0),
+      child: AnimatedOpacity(
+        opacity: (_slideY.abs() / _lockThreshold).clamp(0.0, 1.0),
+        duration: const Duration(milliseconds: 100),
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: _slideY < -_lockThreshold
+                ? AiTheme.primaryColor.withOpacity(0.3)
+                : Colors.grey[300],
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _slideY < -_lockThreshold
+                  ? AiTheme.primaryColor
+                  : Colors.grey[400]!,
+              width: 1,
+            ),
+          ),
+          child: Icon(
+            Icons.lock,
+            size: 16,
+            color: _slideY < -_lockThreshold
+                ? AiTheme.primaryColor
+                : Colors.grey[600],
+          ),
+        ),
+      ),
     );
   }
 
@@ -445,11 +521,12 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
 
   Widget _buildMicSendButton() {
     return GestureDetector(
-      onLongPressStart: _hasText ? null : (_) => _startRecording(),
-      onLongPressMoveUpdate: _hasText
+      onLongPressStart:
+          _hasText || widget.isLoading ? null : (details) => _startRecording(),
+      onLongPressMoveUpdate: _hasText || widget.isLoading
           ? null
           : (details) {
-              if (!_isRecording) return;
+              if (!_isRecording || _isLocked) return;
 
               final RenderBox renderBox =
                   context.findRenderObject() as RenderBox;
@@ -469,13 +546,13 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 _lockRecording();
               }
               // Check for cancel (slide left)
-              else if (!_isLocked && _slideX < -_cancelThreshold) {
+              if (!_isLocked && _slideX < -_cancelThreshold) {
                 _stopRecording(send: false);
               }
             },
-      onLongPressEnd: _hasText
+      onLongPressUp: _hasText || widget.isLoading
           ? null
-          : (_) {
+          : () {
               if (_isRecording && !_isLocked) {
                 _stopRecording(send: true);
               }
