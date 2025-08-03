@@ -13,9 +13,6 @@ on:
           - beta
           - promote_to_production
           - production
-  # pull_request:
-  #   branches:
-  #     - main
   push:
     branches:
       - 'feature-*'
@@ -347,9 +344,12 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
   
   fastlane-deploy:
-    name: "Google Deploy"
+    name: "Google Deploy ${{ matrix.app }}"
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [flipper, flipper_auth]
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.
@@ -407,7 +407,7 @@ jobs:
       - name: Get version from pubspec.yaml
         id: get_version
         run: |
-          VERSION=$(grep '^version:' apps/flipper/pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          VERSION=$(grep '^version:' apps/${{ matrix.app }}/pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
         
@@ -418,11 +418,11 @@ jobs:
           ruby-version: "3.0"
           bundler-cache: true
           # cache-version: 1
-          working-directory: apps/flipper/android
+          working-directory: apps/${{ matrix.app }}/android
       - name: Write Posthog API Key to local.properties
         run: |
           echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
-        working-directory: apps/flipper
+        working-directory: apps/${{ matrix.app }}
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
@@ -439,18 +439,18 @@ jobs:
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: apps/flipper/android
+        working-directory: apps/${{ matrix.app }}/android
       - run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        working-directory: apps/flipper/android
+        working-directory: apps/${{ matrix.app }}/android
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v1
         with:
-          name: Android AAB Release - ${{ github.ref_name }}
+          name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
           tag_name: v${{ steps.get_version.outputs.version }}
           body: |
             Debug Release for QA
