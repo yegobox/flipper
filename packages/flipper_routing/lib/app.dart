@@ -829,3 +829,5 @@ class App {}
 //Enable repo git hooks git config core.hooksPath hooks
 // Changes to submit in brick in future package: brick_offline_first
 // offline_first_repository.dart
+
+// keytool -importcert -file deployment_cert.der -keystore flipper_auth.jks -alias flipper_auth -storepass flipper_auth -keypass flipper_auth

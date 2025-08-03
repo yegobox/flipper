@@ -451,7 +451,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
-          tag_name: v${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}_${{ matrix.app }}
           body: |
             Debug Release for QA
         env:
