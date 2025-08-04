@@ -97,7 +97,8 @@ class XReport {
     }
     document.template.bottom = footerTemplate;
 
-    _drawHeader(page, pageSize, business, ebm: ebm);
+    _drawHeader(page, pageSize, business,
+        ebm: ebm, startDate: lastZReportDate, endDate: DateTime.now());
     _drawContent(
       page,
       pageSize,
@@ -124,7 +125,7 @@ class XReport {
   }
 
   void _drawHeader(PdfPage page, Size pageSize, Business? business,
-      {Ebm? ebm, DateTime? startDate, DateTime? endDate}) {
+      {Ebm? ebm, required DateTime startDate, required DateTime endDate}) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont businessDetailsFont =
         PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
@@ -141,7 +142,6 @@ class XReport {
     final businessName = business?.name ?? 'Demo';
     final tin = business?.tinNumber?.toString() ?? '933000005';
     final mrc = ebm?.mrc ?? '';
-    final date = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     // Draw blue rectangle for the header background
     const double headerHeight = 60;
@@ -178,26 +178,11 @@ class XReport {
     detailsY += 18;
     graphics.drawString('Date: ', labelFont,
         brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString(date, businessDetailsFont,
+    graphics.drawString(
+        'From: ${DateFormat('yyyy-MM-dd').format(startDate)} To: ${DateFormat('yyyy-MM-dd').format(endDate)}',
+        businessDetailsFont,
         brush: blackBrush,
         bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-
-    if (startDate != null && endDate != null) {
-      detailsY += 18;
-      graphics.drawString('From: ', labelFont,
-          brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-      graphics.drawString(DateFormat('yyyy-MM-dd').format(startDate),
-          businessDetailsFont,
-          brush: blackBrush,
-          bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-      detailsY += 18;
-      graphics.drawString('To: ', labelFont,
-          brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-      graphics.drawString(
-          DateFormat('yyyy-MM-dd').format(endDate), businessDetailsFont,
-          brush: blackBrush,
-          bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
-    }
     detailsY += 25;
 
     // Draw "All Transactions" subtitle centered and with blue color
