@@ -104,6 +104,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'branchIdString',
     'customerTin',
     'vatEnabled',
+    'lastZReportDate',
     // Add new preference keys above this line
   };
 
@@ -838,5 +839,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool vatEnabled() {
     return _cache['vatEnabled'] as bool? ?? true;
+  }
+
+  @override
+  String? lastZReportDate() {
+    return _cache['lastZReportDate'] as String?;
   }
 }

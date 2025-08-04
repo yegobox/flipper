@@ -13,8 +13,17 @@ class XReport {
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
+    // Get the last Z-report date from local storage.
+    final lastZReportDateString = ProxyService.box.lastZReportDate();
+
+    /// 1. Try to get the start date from the last Z-Report.
+    /// 2. If it doesn't exist (because a Z-Report was never run), then default to showing the transactions from the last 24 hours.
+    final lastZReportDate = lastZReportDateString != null
+        ? DateTime.parse(lastZReportDateString)
+        : DateTime.now().toLocal().subtract(const Duration(days: 1));
+
     final transactions = await ProxyService.strategy.transactions(
-      startDate: DateTime.now().toLocal().subtract(const Duration(days: 1)),
+      startDate: lastZReportDate,
       skipOriginalTransactionCheck: true,
       endDate: DateTime.now().toLocal(),
     );
@@ -115,7 +124,7 @@ class XReport {
   }
 
   void _drawHeader(PdfPage page, Size pageSize, Business? business,
-      {Ebm? ebm}) {
+      {Ebm? ebm, DateTime? startDate, DateTime? endDate}) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont businessDetailsFont =
         PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
@@ -172,6 +181,23 @@ class XReport {
     graphics.drawString(date, businessDetailsFont,
         brush: blackBrush,
         bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+
+    if (startDate != null && endDate != null) {
+      detailsY += 18;
+      graphics.drawString('From: ', labelFont,
+          brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
+      graphics.drawString(DateFormat('yyyy-MM-dd').format(startDate),
+          businessDetailsFont,
+          brush: blackBrush,
+          bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+      detailsY += 18;
+      graphics.drawString('To: ', labelFont,
+          brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
+      graphics.drawString(
+          DateFormat('yyyy-MM-dd').format(endDate), businessDetailsFont,
+          brush: blackBrush,
+          bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
+    }
     detailsY += 25;
 
     // Draw "All Transactions" subtitle centered and with blue color
