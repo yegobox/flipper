@@ -278,7 +278,8 @@ class DataViewState extends ConsumerState<DataView>
                 onZReportPressed: () async {
                   setState(() => _isExportingZReport = true);
                   try {
-                    await ZReport().generateZReport();
+                    await ZReport().generateZReport(
+                        startDate: widget.startDate, endDate: widget.endDate);
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingZReport = false);

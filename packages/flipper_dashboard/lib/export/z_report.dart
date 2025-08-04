@@ -9,21 +9,18 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 
 class ZReport {
-  Future<void> generateZReport({DateTime? startDate, DateTime? endDate}) async {
-    final reportStartDate =
-        startDate ?? DateTime.now().toLocal().subtract(const Duration(days: 1));
-    final reportEndDate = endDate ?? DateTime.now().toLocal();
-
+  Future<void> generateZReport(
+      {required DateTime startDate, required DateTime endDate}) async {
     // When a Z-report is generated, save the end date to local storage.
-    await ProxyService.box.writeString(
-        key: 'lastZReportDate', value: reportEndDate.toIso8601String());
+    await ProxyService.box
+        .writeString(key: 'lastZReportDate', value: endDate.toIso8601String());
 
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     final transactions = await ProxyService.strategy.transactions(
-      startDate: reportStartDate,
-      endDate: reportEndDate,
+      startDate: startDate,
+      endDate: endDate,
       skipOriginalTransactionCheck: true,
     );
     final ebm = await ProxyService.strategy.ebm(
