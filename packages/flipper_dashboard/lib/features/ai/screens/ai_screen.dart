@@ -176,17 +176,33 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         throw e;
       });
 
+      String messageToDisplay;
+      String aiResponseForContext =
+          aiResponseText; // Keep original for aiResponse field
+
+      if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
+        // If it contains visualization data, display the visualization
+        messageToDisplay = aiResponseText;
+      } else {
+        // If no visualization, summarize the response and display only the summary
+        final summaryPrompt =
+            "Summarize the following AI response concisely for a business owner: $aiResponseText";
+        messageToDisplay =
+            await ref.refresh(geminiSummaryProvider(summaryPrompt).future);
+      }
+
       await ProxyService.strategy.saveMessage(
-        text: aiResponseText,
+        text: messageToDisplay,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'assistant',
         conversationId: _currentConversationId,
-        aiResponse: aiResponseText,
+        aiResponse:
+            aiResponseForContext, // Always save the original AI response here
         aiContext: text,
       );
 
-      // Check if the response contains visualization data
+      // If visualization data is present, generate and save a *separate* summary
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
         final summaryPrompt =
             "Summarize the key insight from the following data visualization in one or two concise sentences. "
