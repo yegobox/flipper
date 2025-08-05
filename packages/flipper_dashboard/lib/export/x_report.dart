@@ -178,8 +178,7 @@ class XReport {
     detailsY += 18;
     graphics.drawString('Date: ', labelFont,
         brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString(
-        'From: ${DateFormat('yyyy-MM-dd').format(startDate)} To: ${DateFormat('yyyy-MM-dd').format(endDate)}',
+    graphics.drawString('Date: ${DateFormat('yyyy-MM-dd').format(endDate)}',
         businessDetailsFont,
         brush: blackBrush,
         bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
@@ -254,12 +253,11 @@ class XReport {
     }
 
     // Add all rows according to the expected format
-    addRow('Total Sales Amount (NS)', '${totalSales.toStringAsFixed(0)} RWF');
+    addRow('Total Sales Amount (NS)', '${totalSales.toCurrencyFormatted()}');
     addRow('Total Sales Amount by Main Groups', '0 RWF');
     addRow('Number of Sales Receipts (NS)',
         '${netSalesReceipts > 0 ? netSalesReceipts : 0}');
-    addRow(
-        'Total Refund Amount (NR)', '${totalRefunds.toStringAsFixed(0)} RWF');
+    addRow('Total Refund Amount (NR)', '${totalRefunds.toCurrencyFormatted()}');
     addRow('Number of Refund Receipts (NR)', numRefundReceipts.toString());
 
     // Taxable Amounts nested table
@@ -267,13 +265,13 @@ class XReport {
       {'payment': 'Payment', 'ns': 'Amount(NS)', 'nr': 'Amount(NR)'},
       {
         'payment': 'CASH',
-        'ns': '${salesCash.toStringAsFixed(0)} RWF',
-        'nr': '${refundsCash.toStringAsFixed(0)} RWF'
+        'ns': '${salesCash.toCurrencyFormatted()}',
+        'nr': '${refundsCash.toCurrencyFormatted()}'
       },
       {
         'payment': 'MOBILE MONEY',
-        'ns': '${salesMobile.toStringAsFixed(0)} RWF',
-        'nr': '${refundsMobile.toStringAsFixed(0)} RWF'
+        'ns': '${salesMobile.toCurrencyFormatted()}',
+        'nr': '${refundsMobile.toCurrencyFormatted()}'
       },
     ]);
 
@@ -288,13 +286,13 @@ class XReport {
       {'payment': 'Payment', 'ns': 'Amount(NS)', 'nr': 'Amount(NR)'},
       {
         'payment': 'CASH',
-        'ns': '${(salesCash * 0.18).toStringAsFixed(2)} RWF',
-        'nr': '${(refundsCash * 0.18).toStringAsFixed(2)} RWF'
+        'ns': '${(salesCash * 0.18).toCurrencyFormatted()}',
+        'nr': '${(refundsCash * 0.18).toCurrencyFormatted()}'
       },
       {
         'payment': 'MOBILE MONEY',
-        'ns': '${(salesMobile * 0.18).toStringAsFixed(2)} RWF',
-        'nr': '${(refundsMobile * 0.18).toStringAsFixed(2)} RWF'
+        'ns': '${(salesMobile * 0.18).toCurrencyFormatted()}',
+        'nr': '${(refundsMobile * 0.18).toCurrencyFormatted()}'
       },
     ]);
 
@@ -336,17 +334,17 @@ class XReport {
           {'payment': 'Payment', 'ns': 'Amount(NS)', 'nr': 'Amount(NR)'},
           {
             'payment': 'CASH',
-            'ns': '${salesCash.toStringAsFixed(0)} RWF',
-            'nr': '${refundsCash.toStringAsFixed(0)} RWF'
+            'ns': '${salesCash.toCurrencyFormatted()}',
+            'nr': '${refundsCash.toCurrencyFormatted()}'
           },
           {
             'payment': 'MOBILE MONEY',
-            'ns': '${salesMobile.toStringAsFixed(0)} RWF',
-            'nr': '${refundsMobile.toStringAsFixed(0)} RWF'
+            'ns': '${salesMobile.toCurrencyFormatted()}',
+            'nr': '${refundsMobile.toCurrencyFormatted()}'
           },
         ]);
 
-    addRow('All discounts', '${totalDiscount.toStringAsFixed(0)} RWF');
+    addRow('All discounts', '${totalDiscount.toCurrencyFormatted()}');
     addRow('Number of incomplete sales', '0');
     addRow(
         'Other registrations that have reduced the day sales and their amount',

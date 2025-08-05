@@ -9,8 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 
 class ZReport {
-  Future<void> generateZReport(
-      {required DateTime startDate, required DateTime endDate}) async {
+  Future<void> generateZReport({required DateTime endDate}) async {
     // When a Z-report is generated, save the end date to local storage.
     await ProxyService.box
         .writeString(key: 'lastZReportDate', value: endDate.toIso8601String());
@@ -19,8 +18,8 @@ class ZReport {
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     final transactions = await ProxyService.strategy.transactions(
-      startDate: startDate,
-      endDate: endDate,
+      startDate: DateTime(endDate.year, endDate.month, endDate.day),
+      endDate: DateTime(endDate.year, endDate.month, endDate.day),
       skipOriginalTransactionCheck: true,
     );
     final ebm = await ProxyService.strategy.ebm(
@@ -97,7 +96,6 @@ class ZReport {
       pageSize,
       business,
       ebm: ebm,
-      startDate: startDate,
       endDate: endDate,
     );
     _drawContent(
@@ -126,7 +124,7 @@ class ZReport {
   }
 
   void _drawHeader(PdfPage page, Size pageSize, Business? business,
-      {Ebm? ebm, required DateTime startDate, required DateTime endDate}) {
+      {Ebm? ebm, required DateTime endDate}) {
     final PdfGraphics graphics = page.graphics;
     final PdfFont businessDetailsFont =
         PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
@@ -179,8 +177,7 @@ class ZReport {
     detailsY += 18;
     graphics.drawString('Date: ', labelFont,
         brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString(
-        'From: ${DateFormat('yyyy-MM-dd').format(startDate)} To: ${DateFormat('yyyy-MM-dd').format(endDate)}',
+    graphics.drawString('Date: ${DateFormat('yyyy-MM-dd').format(endDate)}',
         businessDetailsFont,
         brush: blackBrush,
         bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
@@ -254,13 +251,11 @@ class ZReport {
     }
 
     // Add all rows according to the expected format
-    addRow(
-        'Total Sales Amount (NS)', '${totalSales.toCurrencyFormatted()} RWF');
+    addRow('Total Sales Amount (NS)', '${totalSales.toCurrencyFormatted()}');
     addRow('Total Sales Amount by Main Groups', '0 RWF');
     addRow('Number of Sales Receipts (NS)',
         '${netSalesReceipts > 0 ? netSalesReceipts : 0}');
-    addRow(
-        'Total Refund Amount (NR)', '${totalRefunds.toCurrencyFormatted()} ');
+    addRow('Total Refund Amount (NR)', '${totalRefunds.toCurrencyFormatted()}');
     addRow('Number of Refund Receipts (NR)', numRefundReceipts.toString());
 
     // Taxable Amounts nested table
