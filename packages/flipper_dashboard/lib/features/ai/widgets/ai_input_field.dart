@@ -18,7 +18,6 @@ class AiInputField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final bool isLoading;
   final Function(String) onSend;
-  final Function(String)? onVoiceMessageSend;
   final String? hintText;
   final bool enabled;
 
@@ -27,7 +26,6 @@ class AiInputField extends ConsumerStatefulWidget {
     required this.controller,
     required this.isLoading,
     required this.onSend,
-    this.onVoiceMessageSend,
     this.hintText = 'Message',
     this.enabled = true,
   });
@@ -387,11 +385,10 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       final path = await audioRecorder.stop();
 
       if (path != null && _currentRecordingPath != null) {
-        if (send &&
-            widget.onVoiceMessageSend != null &&
-            _recordingDuration >= 1) {
+        if (send && _recordingDuration >= 1) {
           HapticFeedback.lightImpact();
-          widget.onVoiceMessageSend!(path);
+          // Format the voice message and send it through the main onSend callback
+          widget.onSend('[voice]($path)');
           _showSuccessSnackBar('Voice message sent!');
         } else {
           HapticFeedback.lightImpact();

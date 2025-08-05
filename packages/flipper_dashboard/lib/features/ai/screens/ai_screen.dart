@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_dashboard/features/ai/widgets/audio_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
@@ -342,9 +343,22 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final message = _messages[index];
+        final isUser = message.role == 'user';
+
+        if (message.text.startsWith('[voice](')) {
+          final path = message.text.substring(8, message.text.length - 1);
+          return Align(
+            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: AudioPlayerWidget(audioPath: path),
+            ),
+          );
+        }
+
         return MessageBubble(
           message: message,
-          isUser: message.role == 'user',
+          isUser: isUser,
         );
       },
     );
