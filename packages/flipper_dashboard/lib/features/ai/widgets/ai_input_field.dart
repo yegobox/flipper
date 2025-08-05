@@ -47,6 +47,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   bool _isProcessing = false;
   bool _showCancelHint = false;
   bool _showLockHint = false;
+  bool _isCancelZone = false;
   double _slideX = 0.0;
   double _slideY = 0.0;
   Timer? _recordingTimer;
@@ -342,18 +343,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     _lockHintController.reverse();
   }
 
-  void _unlockRecording() {
-    if (!_isLocked || !_isRecording) return;
-
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _isLocked = false;
-      _slideX = 0.0;
-      _slideY = 0.0;
-    });
-
-    _lockController.reverse();
-  }
+ 
 
   void _resetRecordingState() {
     if (mounted) {
@@ -365,6 +355,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         _showCancelHint = false;
         _showLockHint = false;
         _recordingDuration = 0;
+        _isCancelZone = false;
       });
     }
     _currentRecordingPath = null;
@@ -522,23 +513,23 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       children: [
         if (!_isLocked)
           AnimatedScale(
-            scale: _slideX < -_cancelThreshold * 0.7 ? 1.2 : 1.0,
+            scale: _isCancelZone ? 1.2 : 1.0,
             duration: const Duration(milliseconds: 100),
             child: Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _slideX < -_cancelThreshold * 0.7
+                color: _isCancelZone
                     ? Colors.red.withOpacity(0.2)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(24),
-                border: _slideX < -_cancelThreshold * 0.7
+                border: _isCancelZone
                     ? Border.all(color: Colors.red.withOpacity(0.5))
                     : null,
               ),
               child: Icon(
                 Icons.delete_outline,
-                color: _slideX < -_cancelThreshold * 0.7
+                color: _isCancelZone
                     ? Colors.red
                     : Colors.grey[400],
                 size: 24,
@@ -848,17 +839,24 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 _slideY = newSlideY;
               });
 
+              // Check for entering/leaving the cancel zone
+              final isInCancelZone = newSlideX < -_cancelThreshold;
+              if (isInCancelZone != _isCancelZone) {
+                setState(() => _isCancelZone = isInCancelZone);
+                HapticFeedback.mediumImpact();
+              }
+
+              // Check for locking
               if (_slideY < -_lockThreshold) {
                 _lockRecording();
-              } else if (_slideX < -_cancelThreshold) {
-                _stopRecording(send: false);
               }
             },
       onLongPressUp: _hasText || widget.isLoading
           ? null
           : () {
               if (_isRecording && !_isLocked) {
-                _stopRecording(send: true);
+                // If in cancel zone, cancel. Otherwise, send.
+                _stopRecording(send: !_isCancelZone);
               }
             },
       child: Container(
@@ -869,7 +867,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           borderRadius: BorderRadius.circular(_micButtonSize / 2),
           boxShadow: [
             BoxShadow(
-              color: AiTheme.primaryColor.withOpacity(0.3),
+              color: AiTheme.primaryColor.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
