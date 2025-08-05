@@ -189,8 +189,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       // Check if the response contains visualization data
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
         final summaryPrompt =
-            "Provide a brief, expert summary of the following data visualization. "
-            "Explain what the user might use this data for and offer a key insight.\n\n"
+            "Summarize the key insight from the following data visualization in one or two concise sentences. "
+            "Focus on the most important takeaway for a business owner.\n\n"
             "$aiResponseText";
 
         final summaryText =

@@ -80,20 +80,12 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
         throw Exception('Audio file not found');
       }
 
-      // Set the audio source
+      // Set the audio source and wait for it to load
       final source = AudioSource.uri(Uri.file(widget.audioPath));
-      await _audioPlayer.setAudioSource(source);
+      _duration = await _audioPlayer.setAudioSource(source);
 
-      // Listen to duration changes
-      _durationSubscription = _audioPlayer.durationStream.listen((duration) {
-        if (mounted) {
-          setState(() {
-            _duration = duration;
-          });
-        }
-      });
+      if (!mounted) return;
 
-      // Listen to player state changes
       _playerStateSubscription = _audioPlayer.playerStateStream.listen((state) {
         if (mounted) {
           setState(() {
