@@ -220,6 +220,30 @@ User Query: $userPrompt
 }
 
 @riverpod
+Future<String> geminiSummary(Ref ref, String prompt) async {
+  final inputData = GeminiInput(
+    contents: [
+      Content(
+        role: "user",
+        parts: [
+          Part(text: prompt),
+        ],
+      ),
+    ],
+    generationConfig: GenerationConfig(
+      temperature: 0.7, // Higher temperature for more creative summaries
+      maxOutputTokens: 512,
+    ),
+  );
+
+  try {
+    return await ref.read(geminiResponseProvider(inputData).future);
+  } catch (e) {
+    return "I'm sorry, I couldn't generate a summary at the moment. Please try again later.";
+  }
+}
+
+@riverpod
 Stream<List<BusinessAnalytic>> streamedBusinessAnalytics(
     Ref ref, int branchId) {
   return ProxyService.strategy.streamRemoteAnalytics(branchId: branchId);

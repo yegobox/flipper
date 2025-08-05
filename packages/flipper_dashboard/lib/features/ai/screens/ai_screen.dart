@@ -186,6 +186,25 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         aiContext: text,
       );
 
+      // Check if the response contains visualization data
+      if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
+        final summaryPrompt =
+            "Provide a brief, expert summary of the following data visualization. "
+            "Explain what the user might use this data for and offer a key insight.\n\n"
+            "$aiResponseText";
+
+        final summaryText =
+            await ref.refresh(geminiSummaryProvider(summaryPrompt).future);
+
+        await ProxyService.strategy.saveMessage(
+          text: summaryText,
+          phoneNumber: ProxyService.box.getUserPhone() ?? '',
+          branchId: branchId,
+          role: 'assistant',
+          conversationId: _currentConversationId,
+        );
+      }
+
       _scrollToBottom();
     } catch (e) {
       _showError('Error: ${e.toString()}');
