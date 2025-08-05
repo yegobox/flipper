@@ -31,9 +31,11 @@ class SaleReport {
     // Calculate totals
     double totalAmount = 0.0;
     double totalVatAmount = 0.0;
-    for (final t in transactions) {
-      totalAmount += t.subTotal ?? 0.0;
-      totalVatAmount += t.taxAmount ?? 0.0;
+    for (final twi in transactionsWithItems) {
+      totalAmount += twi.transaction.subTotal ?? 0.0;
+      for (final item in twi.items) {
+        totalVatAmount += item.taxAmt ?? 0.0;
+      }
     }
 
     final PdfDocument document = PdfDocument();

@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 class SemiCircleGauge extends StatefulWidget {
   final double dataOnGreenSide;
@@ -51,20 +51,6 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     super.dispose();
   }
 
-  String _formatNumber(double number) {
-    if (number.abs() >= 1000000000000) {
-      return '${(number / 1000000000000).toStringAsFixed(1)}T';
-    } else if (number.abs() >= 1000000000) {
-      return '${(number / 1000000000).toStringAsFixed(1)}B';
-    } else if (number.abs() >= 1000000) {
-      return '${(number / 1000000).toStringAsFixed(1)}M';
-    } else if (number.abs() >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
-    } else {
-      return NumberFormat('#,###').format(number);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -92,7 +78,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
 
     // Determine font size based on length
     String profitOrLossStr =
-        _formatNumber(profitOrLoss); // Use formatted string for length check
+        formatNumber(profitOrLoss); // Use formatted string for length check
     int numberLength = profitOrLossStr.length;
     double fontSize = 28; // Default font size
 
@@ -137,7 +123,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          _formatNumber(profitOrLoss) + ' RWF',
+                          formatNumber(profitOrLoss) + ' RWF',
                           style: GoogleFonts.poppins(
                             fontSize: fontSize,
                             color: color,
@@ -196,7 +182,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     return Column(
       children: [
         Text(
-          _formatNumber(amount) + " RWF",
+          formatNumber(amount) + " RWF",
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: Colors.black87,
