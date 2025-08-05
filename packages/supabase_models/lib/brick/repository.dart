@@ -60,11 +60,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   late final QueueManager _queueManager;
 
   // Thread-safe locks using Completer for specific operations
-  static Completer<void>? _cleanupCompleter;
   static Completer<void>? _migrationCompleter;
-
-  // Timeout for operations
-  static const _operationTimeout = Duration(seconds: 30);
 
   /// Override the default version increment behavior
   ///
@@ -220,20 +216,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       databasePath: queuePath, // This is the path for the queue database
       onReattempt: (http.Request request, dynamic object) async {
         _logger.info('Reattempting offline request: ${request.url}');
-        try {
-          final instance = _singleton;
-          if (instance != null) {
-            final statusBefore = await instance._queueManager.getQueueStatus();
-            _logger.info(
-                'Queue status before deletion (onReattempt): $statusBefore');
-            await instance._queueManager.deleteFailedRequests();
-            final statusAfter = await instance._queueManager.getQueueStatus();
-            _logger.info(
-                'Queue status after deletion (onReattempt): $statusAfter');
-          }
-        } catch (e) {
-          _logger.severe('Error handling queue cleanup on reattempt: $e');
-        }
       },
       onRequestException: (request, object) async {
         try {
@@ -411,24 +393,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
   }
 
-  /// Clear any locked requests in the queue
-  /// This method is called from CoreSync.dart
-  Future<void> deleteUnprocessedRequests() async {
-    if (kIsWeb) {
-      return;
-    }
-    if (_isDisposed) {
-      _logger.warning(
-          'Attempted to call deleteUnprocessedRequests on a disposed Repository.');
-      return;
-    }
-    try {
-      await _queueManager.deleteUnprocessedRequests();
-    } catch (e) {
-      _logger.warning('Error deleting unprocessed requests: $e');
-    }
-  }
-
   /// Get information about the queue status
   /// Returns a map with counts of locked (failed) and unlocked (waiting) requests
   Future<Map<String, int>> getQueueStatus() async {
@@ -445,74 +409,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     } catch (e) {
       _logger.warning('Error getting queue status: $e');
       return {'locked': 0, 'unlocked': 0, 'total': 0};
-    }
-  }
-
-  /// Delete only failed requests from the queue
-  /// Returns the number of requests deleted
-  Future<int> deleteFailedRequests() async {
-    if (kIsWeb) {
-      return 0;
-    }
-    if (_isDisposed) {
-      _logger.warning(
-          'Attempted to call deleteFailedRequests on a disposed Repository.');
-      return 0;
-    }
-    try {
-      return await _queueManager.deleteFailedRequests();
-    } catch (e) {
-      _logger.warning('Error deleting failed requests: $e');
-      return 0;
-    }
-  }
-
-  /// Cleanup failed requests from the queue with thread safety
-  /// This method is designed to be called from CronService
-  /// Returns the number of failed requests that were cleaned up
-  Future<int> cleanupFailedRequests() async {
-    if (kIsWeb) {
-      return 0;
-    }
-    if (_isDisposed) {
-      _logger.warning(
-          'Attempted to call cleanupFailedRequests on a disposed Repository.');
-      return 0;
-    }
-
-    // Thread-safe cleanup operation
-    if (_cleanupCompleter != null && !_cleanupCompleter!.isCompleted) {
-      _logger.info('Cleanup already in progress, waiting for completion');
-      await _cleanupCompleter!.future;
-      return 0;
-    }
-
-    _cleanupCompleter = Completer<void>();
-
-    try {
-      // Check if queue manager is properly initialized with timeout
-      try {
-        await _queueManager.getQueueStatus().timeout(_operationTimeout);
-      } catch (e) {
-        _logger.warning(
-            'Queue manager not fully initialized or timeout, skipping cleanup: $e');
-        _cleanupCompleter!.complete();
-        return 0;
-      }
-
-      // Add a longer delay before cleanup to allow any pending operations to complete
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final result = await _queueManager
-          .cleanupFailedRequests()
-          .timeout(_operationTimeout);
-
-      _cleanupCompleter!.complete();
-      return result;
-    } catch (e) {
-      _logger.warning('Error during cleanup: $e');
-      _cleanupCompleter!.complete();
-      return 0;
     }
   }
 

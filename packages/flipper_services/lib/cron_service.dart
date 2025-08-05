@@ -311,28 +311,6 @@ class CronService {
         talker.error("Asset download failed: $e");
       }
     }));
-
-    // Setup periodic database backup timer
-    // _activeTimers.add(Timer.periodic(Duration(minutes: _databaseBackupMinutes),
-    //     (Timer t) async {
-    //   try {
-    //     // Import Repository dynamically to avoid circular dependencies
-    //     // This is needed because Repository is in a different package
-    //     await _performPeriodicDatabaseBackup();
-    //   } catch (e, stackTrace) {
-    //     talker.error("Periodic database backup failed: $e", stackTrace);
-    //   }
-    // }));
-
-    // Setup periodic failed queue cleanup timer
-    // _activeTimers.add(Timer.periodic(Duration(minutes: _queueCleanupMinutes),
-    //     (Timer t) async {
-    //   try {
-    //     await _cleanupFailedQueue();
-    //   } catch (e, stackTrace) {
-    //     talker.error("Failed queue cleanup failed: $e", stackTrace);
-    //   }
-    // }));
   }
 
   /// Synchronizes analytics and handles patching operations

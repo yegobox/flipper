@@ -3375,9 +3375,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> deleteFailedQueue() async {
-    await repository.deleteUnprocessedRequests();
-  }
+  Future<void> deleteFailedQueue() async {}
 
   @override
   Future<int> queueLength() async {
