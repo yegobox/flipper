@@ -1350,9 +1350,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
 
             return AnimatedContainer(
               duration: Duration(milliseconds: 80 + (index * 10)),
-              width: 3.0,
+              width: 2.0,
               height: height * 28 + 8,
-              margin: const EdgeInsets.symmetric(horizontal: 1.0),
+              margin: const EdgeInsets.symmetric(horizontal: 0.5),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
