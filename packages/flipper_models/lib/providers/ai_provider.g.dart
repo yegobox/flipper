@@ -454,17 +454,21 @@ class _GeminiResponseProviderElement
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'f94637ca4fea29f38e722b1903e469a1ae723524';
+    r'a9630a3f95f1d14a4a6792b0207b61e0f84efcd6';
 
 abstract class _$GeminiBusinessAnalytics
     extends BuildlessAutoDisposeAsyncNotifier<String> {
   late final int branchId;
   late final String userPrompt;
+  late final String? filePath;
+  late final List<Content>? history;
 
   FutureOr<String> build(
     int branchId,
-    String userPrompt,
-  );
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  });
 }
 
 /// See also [GeminiBusinessAnalytics].
@@ -479,11 +483,15 @@ class GeminiBusinessAnalyticsFamily extends Family<AsyncValue<String>> {
   /// See also [GeminiBusinessAnalytics].
   GeminiBusinessAnalyticsProvider call(
     int branchId,
-    String userPrompt,
-  ) {
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  }) {
     return GeminiBusinessAnalyticsProvider(
       branchId,
       userPrompt,
+      filePath: filePath,
+      history: history,
     );
   }
 
@@ -494,6 +502,8 @@ class GeminiBusinessAnalyticsFamily extends Family<AsyncValue<String>> {
     return call(
       provider.branchId,
       provider.userPrompt,
+      filePath: provider.filePath,
+      history: provider.history,
     );
   }
 
@@ -519,11 +529,15 @@ class GeminiBusinessAnalyticsProvider
   /// See also [GeminiBusinessAnalytics].
   GeminiBusinessAnalyticsProvider(
     int branchId,
-    String userPrompt,
-  ) : this._internal(
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  }) : this._internal(
           () => GeminiBusinessAnalytics()
             ..branchId = branchId
-            ..userPrompt = userPrompt,
+            ..userPrompt = userPrompt
+            ..filePath = filePath
+            ..history = history,
           from: geminiBusinessAnalyticsProvider,
           name: r'geminiBusinessAnalyticsProvider',
           debugGetCreateSourceHash:
@@ -535,6 +549,8 @@ class GeminiBusinessAnalyticsProvider
               GeminiBusinessAnalyticsFamily._allTransitiveDependencies,
           branchId: branchId,
           userPrompt: userPrompt,
+          filePath: filePath,
+          history: history,
         );
 
   GeminiBusinessAnalyticsProvider._internal(
@@ -546,10 +562,14 @@ class GeminiBusinessAnalyticsProvider
     required super.from,
     required this.branchId,
     required this.userPrompt,
+    required this.filePath,
+    required this.history,
   }) : super.internal();
 
   final int branchId;
   final String userPrompt;
+  final String? filePath;
+  final List<Content>? history;
 
   @override
   FutureOr<String> runNotifierBuild(
@@ -558,6 +578,8 @@ class GeminiBusinessAnalyticsProvider
     return notifier.build(
       branchId,
       userPrompt,
+      filePath: filePath,
+      history: history,
     );
   }
 
@@ -568,7 +590,9 @@ class GeminiBusinessAnalyticsProvider
       override: GeminiBusinessAnalyticsProvider._internal(
         () => create()
           ..branchId = branchId
-          ..userPrompt = userPrompt,
+          ..userPrompt = userPrompt
+          ..filePath = filePath
+          ..history = history,
         from: from,
         name: null,
         dependencies: null,
@@ -576,6 +600,8 @@ class GeminiBusinessAnalyticsProvider
         debugGetCreateSourceHash: null,
         branchId: branchId,
         userPrompt: userPrompt,
+        filePath: filePath,
+        history: history,
       ),
     );
   }
@@ -590,7 +616,9 @@ class GeminiBusinessAnalyticsProvider
   bool operator ==(Object other) {
     return other is GeminiBusinessAnalyticsProvider &&
         other.branchId == branchId &&
-        other.userPrompt == userPrompt;
+        other.userPrompt == userPrompt &&
+        other.filePath == filePath &&
+        other.history == history;
   }
 
   @override
@@ -598,6 +626,8 @@ class GeminiBusinessAnalyticsProvider
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
     hash = _SystemHash.combine(hash, userPrompt.hashCode);
+    hash = _SystemHash.combine(hash, filePath.hashCode);
+    hash = _SystemHash.combine(hash, history.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -612,6 +642,12 @@ mixin GeminiBusinessAnalyticsRef
 
   /// The parameter `userPrompt` of this provider.
   String get userPrompt;
+
+  /// The parameter `filePath` of this provider.
+  String? get filePath;
+
+  /// The parameter `history` of this provider.
+  List<Content>? get history;
 }
 
 class _GeminiBusinessAnalyticsProviderElement
@@ -624,6 +660,11 @@ class _GeminiBusinessAnalyticsProviderElement
   @override
   String get userPrompt =>
       (origin as GeminiBusinessAnalyticsProvider).userPrompt;
+  @override
+  String? get filePath => (origin as GeminiBusinessAnalyticsProvider).filePath;
+  @override
+  List<Content>? get history =>
+      (origin as GeminiBusinessAnalyticsProvider).history;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

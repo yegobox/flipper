@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io'; // Import for File
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/business_analytic.model.dart';
+import 'package:mime/mime.dart'; // Import for lookupMimeType
 
 part 'ai_provider.g.dart';
 
@@ -59,13 +61,51 @@ class Content {
 
 /// Part of the content
 class Part {
-  final String text;
+  final String? _text;
+  final Map<String, dynamic>? _inlineData;
 
-  Part({required this.text});
+  // Private constructor
+  Part._({String? text, Map<String, dynamic>? inlineData})
+      : _text = text,
+        _inlineData = inlineData,
+        assert(
+            (text != null && inlineData == null) ||
+                (text == null && inlineData != null),
+            'A Part must contain either text or inline_data, but not both, and not neither.');
 
-  Map<String, dynamic> toJson() => {
-        'text': text,
-      };
+  // Factory constructor for text parts
+  factory Part.text(String text) => Part._(text: text);
+
+  // Factory constructor for inline data parts
+  factory Part.inlineData(String mimeType, String data) =>
+      Part._(inlineData: {'mime_type': mimeType, 'data': data});
+
+  Map<String, dynamic> toJson() {
+    if (_text != null) {
+      return {'text': _text};
+    } else if (_inlineData != null) {
+      return {'inline_data': _inlineData!};
+    }
+    // This case should ideally not be reached due to the assert
+    throw StateError(
+        'Invalid Part state: neither text nor inline_data is present.');
+  }
+}
+
+/// Converts a file to a base64 encoded string with its MIME type.
+Future<Map<String, dynamic>> _fileToBase64(String filePath) async {
+  final file = File(filePath);
+  if (!await file.exists()) {
+    throw Exception('File not found: $filePath');
+  }
+
+  final bytes = await file.readAsBytes();
+  final mimeType = lookupMimeType(filePath) ?? 'application/octet-stream';
+
+  return {
+    "mime_type": mimeType,
+    "data": base64Encode(bytes),
+  };
 }
 
 /// Providers
@@ -74,6 +114,7 @@ class GeminiResponse extends _$GeminiResponse {
   @override
   Future<String> build(GeminiInput input) async {
     final url = Uri.parse(AppSecrets.googleAiUrl + AppSecrets.googleKey);
+    talker.info('Gemini API request: ${input.toJson()}');
 
     try {
       final response = await http.post(
@@ -104,7 +145,8 @@ class GeminiResponse extends _$GeminiResponse {
 @riverpod
 class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
   @override
-  Future<String> build(int branchId, String userPrompt) async {
+  Future<String> build(int branchId, String userPrompt,
+      {String? filePath, List<Content>? history}) async {
     final businessAnalyticsData =
         await ProxyService.strategy.analytics(branchId: branchId);
 
@@ -112,13 +154,8 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Format CSV with all available fields
-    String csvData =
-        "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
-            businessAnalyticsData.map((e) => e.toString()).join('\n');
-
     // Enhanced prompt with temporal context
-    final basePrompt = """
+    final String basePrompt = """
 Current Time Context:
 - Current Date: ${today.toString().split(' ')[0]}
 - Today refers to: ${today.toString().split(' ')[0]}
@@ -188,29 +225,52 @@ Analyze the provided business data following these guidelines:
 User Query: $userPrompt
 """;
 
-    // If there's no analytics data, provide a fallback response
-    if (businessAnalyticsData.isEmpty) {
+    // Format CSV with all available fields
+    String csvData =
+        "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
+            businessAnalyticsData.map((e) => e.toString()).join('\n');
+
+    final List<Part> currentTurnParts = [];
+
+    // Always add the user's text prompt
+    currentTurnParts.add(Part.text(userPrompt));
+
+    // Add file data if present
+    if (filePath != null) {
+      final fileData = await _fileToBase64(filePath);
+      currentTurnParts
+          .add(Part.inlineData(fileData['mime_type'], fileData['data']));
+    }
+
+    // Add CSV data and base prompt only if no file is attached for this turn
+    // This ensures that when a file is attached, the AI focuses on the file and the user's question about it,
+    // without being overwhelmed by the general business analytics CSV data.
+    if (filePath == null) {
+      currentTurnParts.add(Part.text(csvData));
+      currentTurnParts.add(Part.text(basePrompt));
+    }
+
+    final List<Content> contents = [];
+    if (history != null) {
+      contents.addAll(history);
+    }
+    contents.add(Content(role: "user", parts: currentTurnParts));
+
+    if (businessAnalyticsData.isEmpty && filePath == null) {
       return "I don't have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.";
     }
 
     final inputData = GeminiInput(
-      contents: [
-        Content(
-          role: "user",
-          parts: [
-            Part(text: csvData),
-            Part(text: basePrompt),
-          ],
-        ),
-      ],
+      contents: contents,
       generationConfig: GenerationConfig(
-        temperature:
-            0.2, // Lower temperature for more precise numerical analysis
+        temperature: 0.2,
         maxOutputTokens: 2048,
       ),
     );
 
     try {
+      talker
+          .info('Gemini API request: ${inputData.toJson()}'); // Log the request
       return await ref.read(geminiResponseProvider(inputData).future);
     } catch (e) {
       // Provide a fallback response if the API call fails
@@ -226,7 +286,7 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
       Content(
         role: "user",
         parts: [
-          Part(text: prompt),
+          Part.text(prompt),
         ],
       ),
     ],

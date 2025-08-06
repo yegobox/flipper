@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:file_picker/file_picker.dart'; // Import file_picker
 import '../theme/ai_theme.dart';
 
 final audioRecorderProvider = Provider<AudioRecorder>((ref) {
@@ -18,6 +19,9 @@ class AiInputField extends ConsumerStatefulWidget {
   final TextEditingController controller;
   final bool isLoading;
   final Function(String) onSend;
+  final Function(String)? onAttachFile; // New callback for file attachments
+  final String? attachedFilePath; // New parameter to display attached file
+  final VoidCallback? onClearAttachedFile; // New callback to clear attached file
   final String? hintText;
   final bool enabled;
 
@@ -26,6 +30,9 @@ class AiInputField extends ConsumerStatefulWidget {
     required this.controller,
     required this.isLoading,
     required this.onSend,
+    this.onAttachFile,
+    this.attachedFilePath,
+    this.onClearAttachedFile,
     this.hintText = 'Message',
     this.enabled = true,
   });
@@ -37,7 +44,6 @@ class AiInputField extends ConsumerStatefulWidget {
 class _AiInputFieldState extends ConsumerState<AiInputField>
     with TickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode();
-  final GlobalKey _micButtonKey = GlobalKey();
 
   bool _hasText = false;
   bool _isRecording = false;
@@ -74,8 +80,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   late AnimationController _tipController;
 
   late Animation<double> _pulseAnimation;
-  late Animation<double> _lockSlideAnimation;
-  late Animation<double> _slideAnimation;
   late Animation<double> _cancelAnimation;
   late Animation<double> _micScaleAnimation;
   late Animation<double> _lockHintAnimation;
@@ -155,12 +159,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     // Enhanced animations
     _pulseAnimation = Tween<double>(begin: 0.85, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    _lockSlideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _lockController, curve: Curves.elasticOut),
-    );
-    _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
     );
     _cancelAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _cancelController, curve: Curves.easeInOut),
@@ -525,6 +523,27 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     );
   }
 
+  Future<void> _pickFile() async {
+    if (widget.onAttachFile == null) return;
+
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'xlsx', 'xls'], // Allow PDF and Excel files
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final filePath = result.files.single.path!;
+        widget.onAttachFile!(filePath);
+      } else {
+        // User canceled the picker
+        _showErrorSnackBar('File selection canceled.');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error picking file: $e');
+    }
+  }
+
   String _formatDuration(int seconds) {
     final minutes = seconds ~/ 60;
     final remainingSeconds = seconds % 60;
@@ -539,7 +558,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, -4),
           ),
@@ -631,7 +650,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                   borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.withOpacity(0.3),
+                      color: Colors.red.withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -646,7 +665,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             )
           : GestureDetector(
               key: const ValueKey('attachment'),
-              onTap: () => HapticFeedback.lightImpact(),
+              onTap: _pickFile, // Call _pickFile on tap
               child: Container(
                 width: 44,
                 height: 44,

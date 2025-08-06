@@ -32,6 +32,17 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _analyticsSubscribed = false;
+  String? _attachedFilePath; // New variable to store attached file path
+  List<Content> _conversationHistory =
+      []; // To store conversation history for AI
+
+  void _handleAttachedFile(String filePath) {
+    setState(() {
+      _attachedFilePath = filePath;
+    });
+    // Send a placeholder message to display the file in the chat bubble
+    _sendMessage('[file](' + filePath + ')');
+  }
 
   @override
   void initState() {
@@ -78,6 +89,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _conversations = groupedMessages;
           _currentConversationId = conversations.first.id;
           _messages = _conversations[_currentConversationId] ?? [];
+          _conversationHistory = []; // Clear history on conversation load
         });
         _subscribeToCurrentConversation();
         _scrollToBottom();
@@ -102,6 +114,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _currentConversationId = conversation.id;
           _conversations[conversation.id] = [];
           _messages = [];
+          _conversationHistory = []; // Clear history on new conversation
         });
         _subscribeToCurrentConversation();
         _scrollToBottom();
@@ -156,6 +169,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) throw Exception('Branch ID is required');
 
+      // Save user message to local database
       await ProxyService.strategy.saveMessage(
         text: text,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
@@ -167,8 +181,28 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _controller.clear();
       _scrollToBottom();
 
+      // If the message is a file placeholder, we just save it and wait for a follow-up question.
+      if (text.startsWith('[file](')) {
+        setState(() => _isLoading = false);
+        return; // Do not hit AI provider yet
+      }
+
+      // Prepare parts for the AI prompt
+      String processedText = text;
+      String? fileToAnalyzePath = _attachedFilePath;
+
+      // Clear attached file path after it's used for AI analysis
+      if (_attachedFilePath != null) {
+        _attachedFilePath = null;
+      }
+
       final aiResponseText = await ref
-          .refresh(geminiBusinessAnalyticsProvider(branchId, text).future)
+          .refresh(geminiBusinessAnalyticsProvider(
+        branchId,
+        processedText,
+        filePath: fileToAnalyzePath,
+        history: _conversationHistory, // Pass conversation history
+      ).future)
           .catchError((e) {
         if (e.toString().contains('RESOURCE_EXHAUSTED')) {
           return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
@@ -191,6 +225,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             await ref.refresh(geminiSummaryProvider(summaryPrompt).future);
       }
 
+      // Save AI response to local database
       await ProxyService.strategy.saveMessage(
         text: messageToDisplay,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
@@ -201,6 +236,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             aiResponseForContext, // Always save the original AI response here
         aiContext: text,
       );
+
+      // Update conversation history for multi-turn AI interaction
+      _conversationHistory.add(Content(role: "user", parts: [Part.text(text)]));
+      _conversationHistory.add(
+          Content(role: "assistant", parts: [Part.text(messageToDisplay)]));
 
       // If visualization data is present, generate and save a *separate* summary
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
@@ -219,6 +259,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           role: 'assistant',
           conversationId: _currentConversationId,
         );
+        _conversationHistory
+            .add(Content(role: "assistant", parts: [Part.text(summaryText)]));
       }
 
       _scrollToBottom();
@@ -307,6 +349,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           setState(() {
             _currentConversationId = id;
             _messages = _conversations[id] ?? [];
+            _conversationHistory =
+                []; // Clear history on conversation selection
           });
           _subscribeToCurrentConversation();
           _scrollToBottom();
@@ -329,6 +373,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           controller: _controller,
           onSend: _sendMessage,
           isLoading: _isLoading,
+          onAttachFile: _handleAttachedFile,
         ),
       ],
     );
@@ -360,6 +405,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                 controller: _controller,
                 onSend: _sendMessage,
                 isLoading: _isLoading,
+                onAttachFile: _handleAttachedFile,
               ),
             ],
           ),
@@ -387,6 +433,57 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: AudioPlayerWidget(audioPath: path),
+            ),
+          );
+        } else if (message.text.startsWith('[file](')) {
+          final path = message.text.substring(7, message.text.length - 1);
+          final fileName = path.split('/').last;
+          return Align(
+            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Card(
+                color: isUser ? AiTheme.userBubbleColor : AiTheme.aiBubbleColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Attached File:',
+                        style: TextStyle(
+                          color: isUser ? Colors.white70 : Colors.black54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.attach_file,
+                            color: isUser ? Colors.white : Colors.black87,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              fileName,
+                              style: TextStyle(
+                                color: isUser ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           );
         }
