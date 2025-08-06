@@ -135,7 +135,7 @@ extension CurrencyFormatExtension on num {
 
     // Return just the symbol if the number is zero
     if (this == 0 || this == 0.0) {
-      return cleanSymbol.trim(); // Return "RWF" (without space) for zero
+      return numberFormat.format(this);
     }
 
     return numberFormat.format(this);
