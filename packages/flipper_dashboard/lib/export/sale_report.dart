@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -156,11 +157,28 @@ class SaleReport {
         PdfStandardFont(PdfFontFamily.helvetica, 22, style: PdfFontStyle.bold);
 
     // Company name and report title side by side
+    // Replace the existing business name drawing with:
+    final String businessName = business?.name ?? 'Business Name';
+
+    // Measure the text width
+    final Size textSize = titleFont.measureString(businessName);
+    final double textWidth = textSize.width;
+
+// Use either the measured width or contentWidth, whichever is smaller
+    final double availableWidth =
+        min(textWidth + 20, contentWidth); // Add 20px padding
+
     graphics.drawString(
-      business?.name ?? 'Business Name',
+      businessName.substring(0, 20),
       titleFont,
-      bounds: Rect.fromLTWH(leftMargin, currentY, contentWidth / 2, 30),
+      bounds: Rect.fromLTWH(leftMargin, currentY, availableWidth, 30),
       brush: PdfSolidBrush(darkGray),
+      format: PdfStringFormat(
+        alignment: PdfTextAlignment.left,
+        lineAlignment: PdfVerticalAlignment.middle,
+        wordWrap: PdfWordWrapType.word, // Prevent word wrapping
+        characterSpacing: 0.5, // Slightly increase spacing if needed
+      ),
     );
 
     graphics.drawString(
