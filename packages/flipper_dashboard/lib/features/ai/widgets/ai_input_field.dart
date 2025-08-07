@@ -1338,7 +1338,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                     }
                   },
             child: Container(
-              key: _micButtonKey,
               width: _micButtonSize,
               height: _micButtonSize,
               decoration: BoxDecoration(

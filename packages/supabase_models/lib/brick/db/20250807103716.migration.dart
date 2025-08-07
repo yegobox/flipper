@@ -10,7 +10,6 @@ part of 'schema.g.dart';
 // The migration version must **always** mirror the file name
 
 const List<MigrationCommand> _migration_20250807103716_up = [
-  DropTable('AiConversation'),
   DropColumn('user_name', onTable: 'Conversation'),
   DropColumn('body', onTable: 'Conversation'),
   DropColumn('avatar', onTable: 'Conversation'),
@@ -34,20 +33,17 @@ const List<MigrationCommand> _migration_20250807103716_up = [
   InsertColumn('title', Column.varchar, onTable: 'Conversation'),
   InsertColumn('branch_id', Column.integer, onTable: 'Conversation'),
   InsertColumn('last_message_at', Column.datetime, onTable: 'Conversation'),
-  CreateIndex(columns: ['l_Conversation_brick_id', 'f_Message_brick_id'], onTable: '_brick_Conversation_messages', unique: true),
-  CreateIndex(columns: ['id'], onTable: 'AiConversation', unique: true)
+  CreateIndex(columns: ['l_Conversation_brick_id', 'f_Message_brick_id'], onTable: '_brick_Conversation_messages', unique: true)
 ];
 
 const List<MigrationCommand> _migration_20250807103716_down = [
-  InsertTable('AiConversation'),
   DropTable('_brick_Conversation_messages'),
   DropColumn('l_Conversation_brick_id', onTable: '_brick_Conversation_messages'),
   DropColumn('f_Message_brick_id', onTable: '_brick_Conversation_messages'),
   DropColumn('title', onTable: 'Conversation'),
   DropColumn('branch_id', onTable: 'Conversation'),
   DropColumn('last_message_at', onTable: 'Conversation'),
-  DropIndex('index__brick_Conversation_messages_on_l_Conversation_brick_id_f_Message_brick_id'),
-  DropIndex('index_AiConversation_on_id')
+  DropIndex('index__brick_Conversation_messages_on_l_Conversation_brick_id_f_Message_brick_id')
 ];
 
 //
