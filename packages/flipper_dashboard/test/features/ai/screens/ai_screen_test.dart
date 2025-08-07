@@ -655,7 +655,7 @@ void main() {
 
       for (final gestureDetector in gestureDetectorWidgets) {
         if (gestureDetector.onLongPressStart != null) {
-          print('Found GestureDetector with onLongPressStart callback');
+          // print('Found GestureDetector with onLongPressStart callback');
 
           // Simulate the long press start callback
           final center = tester.getCenter(find.byWidget(gestureDetector));
@@ -669,7 +669,7 @@ void main() {
             verify(() => audioRecorder.hasPermission()).called(1);
             verify(() => audioRecorder.start(any(), path: any(named: 'path')))
                 .called(1);
-            print('✓ Direct callback invocation worked');
+            // print('✓ Direct callback invocation worked');
 
             // Simulate long press up
             if (gestureDetector.onLongPressUp != null) {
@@ -680,7 +680,7 @@ void main() {
 
             break;
           } catch (e) {
-            print('✗ Direct callback failed: $e');
+            // print('✗ Direct callback failed: $e');
           }
         }
       }
