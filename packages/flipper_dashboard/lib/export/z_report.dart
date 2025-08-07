@@ -17,7 +17,8 @@ class ZReport {
     final business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-    final transactions = await ProxyService.strategy.transactions(
+    final transactionsWithItems =
+        await ProxyService.strategy.transactionsAndItems(
       startDate: DateTime(endDate.year, endDate.month, endDate.day),
       endDate: DateTime(endDate.year, endDate.month, endDate.day),
       skipOriginalTransactionCheck: true,
@@ -26,54 +27,54 @@ class ZReport {
       branchId: ProxyService.box.getBranchId()!,
     );
     // Data processing - exclude refunded transactions
-    final salesTransactions = transactions
-        .where((t) => t.receiptType == 'NS' && t.isRefunded != true)
+    final salesTransactions = transactionsWithItems
+        .where((t) => t.transaction.receiptType == 'NS')
         .toList();
-    final refundTransactions =
-        transactions.where((t) => t.receiptType == 'NR').toList();
+    final refundTransactions = transactionsWithItems
+        .where((t) => t.transaction.receiptType == 'NR')
+        .toList();
 
-    final totalSales =
-        salesTransactions.fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
-    final totalRefunds =
-        refundTransactions.fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
+    final totalSales = salesTransactions.fold(
+        0.0, (sum, t) => sum + (t.transaction.subTotal ?? 0.0));
+    final totalRefunds = refundTransactions.fold(
+        0.0, (sum, t) => sum + (t.transaction.subTotal ?? 0.0));
     final numSalesReceipts = salesTransactions.length;
     final numRefundReceipts = refundTransactions.length;
     final netSalesReceipts = numSalesReceipts - numRefundReceipts;
 
-    // Calculate payment method breakdowns
-    final salesCash = salesTransactions
-        .where((t) => t.paymentType?.toLowerCase() == 'cash')
-        .fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
-    final salesMobile = salesTransactions
-        .where((t) => t.paymentType?.toLowerCase() == 'mobile money')
-        .fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
+    // Dynamically calculate payment method breakdowns
+    final Map<String, double> salesByPaymentMethod = {};
+    for (var t in salesTransactions) {
+      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      salesByPaymentMethod[paymentType] =
+          (salesByPaymentMethod[paymentType] ?? 0) +
+              (t.transaction.subTotal ?? 0.0);
+    }
 
-    final refundsCash = refundTransactions
-        .where((t) => t.paymentType?.toLowerCase() == 'cash')
-        .fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
-    final refundsMobile = refundTransactions
-        .where((t) => t.paymentType?.toLowerCase() == 'mobile money')
-        .fold(0.0, (sum, t) => sum + (t.subTotal ?? 0.0));
+    final Map<String, double> refundsByPaymentMethod = {};
+    for (var t in refundTransactions) {
+      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      refundsByPaymentMethod[paymentType] =
+          (refundsByPaymentMethod[paymentType] ?? 0) +
+              (t.transaction.subTotal ?? 0.0);
+    }
 
     // Calculate tax amounts (assuming 18% VAT)
     final taxRateSales = salesTransactions.fold(
-        0.0, (sum, t) => sum + ((t.subTotal ?? 0.0) * 0.18));
+        0.0, (sum, t) => sum + ((t.transaction.subTotal ?? 0.0) * 0.18));
     final taxRateRefunds = refundTransactions.fold(
-        0.0, (sum, t) => sum + ((t.subTotal ?? 0.0) * 0.18));
+        0.0, (sum, t) => sum + ((t.transaction.subTotal ?? 0.0) * 0.18));
 
     // Calculate item counts
     int totalItemsSold = 0;
     if (netSalesReceipts > 0) {
       for (final transaction in salesTransactions) {
-        // final items = await ProxyService.strategy.transactionItems(
-        //     transactionId: transaction.id, doneWithTransaction: true);
-        totalItemsSold += transaction.items!
-            .fold<int>(0, (sum, item) => sum + item.qty.toInt());
+        totalItemsSold += transaction.items.length;
       }
     }
     final totalDiscount = (netSalesReceipts > 0)
         ? salesTransactions.fold(
-            0.0, (sum, t) => sum + (t.discountAmount ?? 0.0))
+            0.0, (sum, t) => sum + (t.transaction.discountAmount ?? 0.0))
         : 0.0;
 
     final PdfDocument document = PdfDocument();
@@ -112,21 +113,21 @@ class ZReport {
       numSalesReceipts,
       numRefundReceipts,
       netSalesReceipts,
-      salesCash,
-      salesMobile,
-      refundsCash,
-      refundsMobile,
+      salesByPaymentMethod,
+      refundsByPaymentMethod,
       taxRateSales,
       taxRateRefunds,
       totalItemsSold,
       totalDiscount,
-      transactions: transactions,
+      transactions: transactionsWithItems.map((e) => e.transaction).toList(),
     );
 
     final List<int> bytes = await document.save();
     document.dispose();
 
-    await _saveAndLaunchFile(bytes, 'ZReport.pdf');
+    final String formattedDate =
+        DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
+    await _saveAndLaunchFile(bytes, 'ZReport_$formattedDate.pdf');
   }
 
   void _drawHeader(PdfPage page, Size pageSize, Business? business,
@@ -205,10 +206,8 @@ class ZReport {
       int numSalesReceipts,
       int numRefundReceipts,
       int netSalesReceipts,
-      double salesCash,
-      double salesMobile,
-      double refundsCash,
-      double refundsMobile,
+      Map<String, double> salesByPaymentMethod,
+      Map<String, double> refundsByPaymentMethod,
       double taxRateSales,
       double taxRateRefunds,
       int totalItemsSold,
@@ -254,20 +253,26 @@ class ZReport {
 
     // Taxable Amounts section
     addTitleRow('Taxable Amounts');
-    addRow('  CASH (NS)', salesCash.toCurrencyFormatted());
-    addRow('  CASH (NR)', refundsCash.toCurrencyFormatted());
-    addRow('  MOBILE MONEY (NS)', salesMobile.toCurrencyFormatted());
-    addRow('  MOBILE MONEY (NR)', refundsMobile.toCurrencyFormatted());
+    salesByPaymentMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (NS)', amount.toCurrencyFormatted());
+    });
+    refundsByPaymentMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (NR)', amount.toCurrencyFormatted());
+    });
 
     addRow('Opening deposit', '0 RWF');
     addRow('Number of items sold', totalItemsSold.toString());
 
     // Tax Amounts section
     addTitleRow('Tax Amounts');
-    addRow('  CASH (NS)', (salesCash * 0.18).toCurrencyFormatted());
-    addRow('  CASH (NR)', (refundsCash * 0.18).toCurrencyFormatted());
-    addRow('  MOBILE MONEY (NS)', (salesMobile * 0.18).toCurrencyFormatted());
-    addRow('  MOBILE MONEY (NR)', (refundsMobile * 0.18).toCurrencyFormatted());
+    salesByPaymentMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (NS)',
+          (amount * 0.18).toCurrencyFormatted());
+    });
+    refundsByPaymentMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (NR)',
+          (amount * 0.18).toCurrencyFormatted());
+    });
 
     // Count different receipt types
     final receiptTypeCounts = transactions.fold<Map<String, int>>(
@@ -303,10 +308,12 @@ class ZReport {
     // Payment split section
     addTitleRow(
         'Total Sales divided according to means of payment for sales (NS) and refund (NR) receipts');
-    addRow('  CASH (NS)', salesCash.toCurrencyFormatted());
-    addRow('  CASH (NR)', refundsCash.toCurrencyFormatted());
-    addRow('  MOBILE MONEY (NS)', salesMobile.toCurrencyFormatted());
-    addRow('  MOBILE MONEY (NR)', refundsMobile.toCurrencyFormatted());
+    salesByPaymentMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (NS)', amount.toCurrencyFormatted());
+    });
+    refundsByPaymentMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (NR)', amount.toCurrencyFormatted());
+    });
 
     addRow('All discounts', totalDiscount.toCurrencyFormatted());
     addRow('Number of incomplete sales', '0');
