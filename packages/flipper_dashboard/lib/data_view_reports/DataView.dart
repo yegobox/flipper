@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
 import 'package:flipper_dashboard/export/sale_report.dart';
-import 'package:flipper_dashboard/export/x_report.dart';
+import 'package:flipper_dashboard/export/report_service.dart';
 
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
@@ -22,7 +22,7 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_dashboard/data_view_reports/StockRecount.dart';
 import 'package:flipper_dashboard/data_view_reports/report_actions_row.dart';
-import 'package:flipper_dashboard/export/z_report.dart';
+
 import 'package:flipper_dashboard/export/plu_report.dart';
 
 class DataView extends StatefulHookConsumerWidget {
@@ -268,7 +268,7 @@ class DataViewState extends ConsumerState<DataView>
                 onXReportPressed: () async {
                   setState(() => _isExportingXReport = true);
                   try {
-                    await XReport().generateXReport();
+                    await ReportService().generateReport(reportType: 'X');
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingXReport = false);
@@ -278,7 +278,8 @@ class DataViewState extends ConsumerState<DataView>
                 onZReportPressed: () async {
                   setState(() => _isExportingZReport = true);
                   try {
-                    await ZReport().generateZReport(endDate: widget.endDate);
+                    await ReportService().generateReport(
+                        reportType: 'Z', endDate: widget.endDate);
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingZReport = false);
