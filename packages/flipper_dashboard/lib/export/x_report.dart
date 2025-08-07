@@ -178,7 +178,8 @@ class XReport {
     detailsY += 18;
     graphics.drawString('Date: ', labelFont,
         brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    graphics.drawString('Date: ${DateFormat('yyyy-MM-dd').format(endDate)}',
+    graphics.drawString(
+        'From: ${DateFormat('yyyy-MM-dd').format(startDate)} To: ${DateFormat('yyyy-MM-dd').format(endDate)}',
         businessDetailsFont,
         brush: blackBrush,
         bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
@@ -223,78 +224,47 @@ class XReport {
     header.style.font =
         PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
 
-    // Helper function to add rows
+    // Helper function to add a title row
+    void addTitleRow(String title) {
+      final PdfGridRow row = grid.rows.add();
+      row.cells[0].value = title;
+      row.cells[0].style.font = PdfStandardFont(PdfFontFamily.helvetica, 10,
+          style: PdfFontStyle.bold);
+      row.cells[1].value = ''; // No value for title row
+      // row.isSpan = true; // Span across both columns
+    }
+
+    // Helper function to add regular data rows
     void addRow(String description, String value) {
       final PdfGridRow row = grid.rows.add();
       row.cells[0].value = description;
       row.cells[1].value = value;
     }
 
-    // Helper function to add nested table rows
-    void addNestedTableRow(String description, List<Map<String, String>> data) {
-      final PdfGridRow row = grid.rows.add();
-      row.cells[0].value = description;
-
-      // Create nested table as text
-      String nestedContent = '';
-      for (int i = 0; i < data.length; i++) {
-        final item = data[i];
-        if (i == 0) {
-          // Header row
-          nestedContent +=
-              '${item['payment']?.padRight(12)} ${item['ns']?.padRight(12)} ${item['nr']}\n';
-        } else {
-          nestedContent +=
-              '${item['payment']?.padRight(12)} ${item['ns']?.padRight(12)} ${item['nr']}\n';
-        }
-      }
-      row.cells[1].value = nestedContent.trim();
-      row.cells[1].style.font = PdfStandardFont(PdfFontFamily.courier, 9);
-    }
-
     // Add all rows according to the expected format
-    addRow('Total Sales Amount (NS)', '${totalSales.toCurrencyFormatted()}');
+    addRow('Total Sales Amount (NS)', totalSales.toCurrencyFormatted());
     addRow('Total Sales Amount by Main Groups', '0 RWF');
     addRow('Number of Sales Receipts (NS)',
-        '${netSalesReceipts > 0 ? netSalesReceipts : 0}');
-    addRow('Total Refund Amount (NR)', '${totalRefunds.toCurrencyFormatted()}');
+        (netSalesReceipts > 0 ? netSalesReceipts : 0).toString());
+    addRow('Total Refund Amount (NR)', totalRefunds.toCurrencyFormatted());
     addRow('Number of Refund Receipts (NR)', numRefundReceipts.toString());
 
-    // Taxable Amounts nested table
-    addNestedTableRow('Taxable Amounts', [
-      {'payment': 'Payment', 'ns': 'Amount(NS)', 'nr': 'Amount(NR)'},
-      {
-        'payment': 'CASH',
-        'ns': '${salesCash.toCurrencyFormatted()}',
-        'nr': '${refundsCash.toCurrencyFormatted()}'
-      },
-      {
-        'payment': 'MOBILE MONEY',
-        'ns': '${salesMobile.toCurrencyFormatted()}',
-        'nr': '${refundsMobile.toCurrencyFormatted()}'
-      },
-    ]);
+    // Taxable Amounts section
+    addTitleRow('Taxable Amounts');
+    addRow('  CASH (NS)', salesCash.toCurrencyFormatted());
+    addRow('  CASH (NR)', refundsCash.toCurrencyFormatted());
+    addRow('  MOBILE MONEY (NS)', salesMobile.toCurrencyFormatted());
+    addRow('  MOBILE MONEY (NR)', refundsMobile.toCurrencyFormatted());
 
     addRow('Opening deposit', '0 RWF');
     addRow('Number of items sold', totalItemsSold.toString());
 
-    // print all receiptType here for debug
-    print('receiptType: ${transactions.map((t) => t.receiptType).toList()}');
-
-    // Tax Amounts nested table
-    addNestedTableRow('Tax Amounts', [
-      {'payment': 'Payment', 'ns': 'Amount(NS)', 'nr': 'Amount(NR)'},
-      {
-        'payment': 'CASH',
-        'ns': '${(salesCash * 0.18).toCurrencyFormatted()}',
-        'nr': '${(refundsCash * 0.18).toCurrencyFormatted()}'
-      },
-      {
-        'payment': 'MOBILE MONEY',
-        'ns': '${(salesMobile * 0.18).toCurrencyFormatted()}',
-        'nr': '${(refundsMobile * 0.18).toCurrencyFormatted()}'
-      },
-    ]);
+    // Tax Amounts section
+    addTitleRow('Tax Amounts');
+    addRow('  CASH (NS)', (salesCash * 0.18).toCurrencyFormatted());
+    addRow('  CASH (NR)', (refundsCash * 0.18).toCurrencyFormatted());
+    addRow('  MOBILE MONEY (NS)', (salesMobile * 0.18).toCurrencyFormatted());
+    addRow('  MOBILE MONEY (NR)', (refundsMobile * 0.18).toCurrencyFormatted());
 
     // Count different receipt types
     final receiptTypeCounts = transactions.fold<Map<String, int>>(
@@ -324,27 +294,18 @@ class XReport {
     );
     addRow(
       'Number of Advance Receipts in Proforma Mode (PS)',
-      '${receiptTypeCounts['PS'] ?? 0}',
+      (receiptTypeCounts['PS'] ?? 0).toString(),
     );
 
-    // Payment split nested table
-    addNestedTableRow(
-        'Total Sales divided according to means of payment for sales (NS) and refund (NR) receipts',
-        [
-          {'payment': 'Payment', 'ns': 'Amount(NS)', 'nr': 'Amount(NR)'},
-          {
-            'payment': 'CASH',
-            'ns': '${salesCash.toCurrencyFormatted()}',
-            'nr': '${refundsCash.toCurrencyFormatted()}'
-          },
-          {
-            'payment': 'MOBILE MONEY',
-            'ns': '${salesMobile.toCurrencyFormatted()}',
-            'nr': '${refundsMobile.toCurrencyFormatted()}'
-          },
-        ]);
+    // Payment split section
+    addTitleRow(
+        'Total Sales divided according to means of payment for sales (NS) and refund (NR) receipts');
+    addRow('  CASH (NS)', salesCash.toCurrencyFormatted());
+    addRow('  CASH (NR)', refundsCash.toCurrencyFormatted());
+    addRow('  MOBILE MONEY (NS)', salesMobile.toCurrencyFormatted());
+    addRow('  MOBILE MONEY (NR)', refundsMobile.toCurrencyFormatted());
 
-    addRow('All discounts', '${totalDiscount.toCurrencyFormatted()}');
+    addRow('All discounts', totalDiscount.toCurrencyFormatted());
     addRow('Number of incomplete sales', '0');
     addRow(
         'Other registrations that have reduced the day sales and their amount',

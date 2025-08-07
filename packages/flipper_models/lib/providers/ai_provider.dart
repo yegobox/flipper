@@ -93,7 +93,7 @@ class Part {
 }
 
 /// Converts a file to a base64 encoded string with its MIME type.
-Future<Map<String, dynamic>> _fileToBase64(String filePath) async {
+Future<Map<String, dynamic>> fileToBase64(String filePath) async {
   final file = File(filePath);
   if (!await file.exists()) {
     throw Exception('File not found: $filePath');
@@ -237,9 +237,11 @@ User Query: $userPrompt
 
     // Add file data if present
     if (filePath != null) {
-      final fileData = await _fileToBase64(filePath);
+      final fileData = await fileToBase64(filePath);
       currentTurnParts
           .add(Part.inlineData(fileData['mime_type'], fileData['data']));
+      currentTurnParts.add(Part.text(
+          "The user has attached a file. Please acknowledge and be ready for follow-up questions regarding this file."));
     }
 
     // Add CSV data and base prompt only if no file is attached for this turn

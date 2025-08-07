@@ -191,7 +191,23 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       String processedText = text;
       String? fileToAnalyzePath = _attachedFilePath;
 
-      // Clear attached file path after it's used for AI analysis
+      // Prepare the user's content for the history, including any attached files.
+      final List<Part> userPartsForHistory = [Part.text(processedText)];
+      if (fileToAnalyzePath != null) {
+        try {
+          final fileData = await fileToBase64(fileToAnalyzePath);
+          userPartsForHistory
+              .add(Part.inlineData(fileData['mime_type'], fileData['data']));
+        } catch (e) {
+          _showError("Error processing attached file: ${e.toString()}");
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
+      final userContentForHistory =
+          Content(role: "user", parts: userPartsForHistory);
+
+      // Clear attached file path after it's used for AI analysis for the current turn
       if (_attachedFilePath != null) {
         _attachedFilePath = null;
       }
@@ -200,7 +216,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           .refresh(geminiBusinessAnalyticsProvider(
         branchId,
         processedText,
-        filePath: fileToAnalyzePath,
+        filePath:
+            fileToAnalyzePath, // Provider still needs the path for the current call
         history: _conversationHistory, // Pass conversation history
       ).future)
           .catchError((e) {
@@ -210,39 +227,29 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         throw e;
       });
 
-      String messageToDisplay;
-      String aiResponseForContext =
-          aiResponseText; // Keep original for aiResponse field
-
-      if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
-        // If it contains visualization data, display the visualization
-        messageToDisplay = aiResponseText;
-      } else {
-        // If no visualization, summarize the response and display only the summary
-        final summaryPrompt =
-            "Summarize the following AI response concisely for a business owner: $aiResponseText";
-        messageToDisplay =
-            await ref.refresh(geminiSummaryProvider(summaryPrompt).future);
-      }
-
-      // Save AI response to local database
+      // Always save the full, original AI response first.
       await ProxyService.strategy.saveMessage(
-        text: messageToDisplay,
+        text: aiResponseText,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'assistant',
         conversationId: _currentConversationId,
-        aiResponse:
-            aiResponseForContext, // Always save the original AI response here
+        aiResponse: aiResponseText,
         aiContext: text,
       );
 
-      // Update conversation history for multi-turn AI interaction
-      _conversationHistory.add(Content(role: "user", parts: [Part.text(text)]));
-      _conversationHistory.add(
-          Content(role: "assistant", parts: [Part.text(messageToDisplay)]));
+      // Clean the response for conversation history to avoid confusing the AI.
+      final cleanedForHistory = aiResponseText.replaceAll(
+          RegExp(r'\{\{VISUALIZATION_DATA\}\}|\{\{/VISUALIZATION_DATA\}\}',
+              dotAll: true),
+          '');
 
-      // If visualization data is present, generate and save a *separate* summary
+      // Update conversation history with the user's prompt and the cleaned AI response.
+      _conversationHistory.add(userContentForHistory);
+      _conversationHistory.add(
+          Content(role: "assistant", parts: [Part.text(cleanedForHistory)]));
+
+      // If the response contained visualization data, generate and save a separate summary message.
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
         final summaryPrompt =
             "Summarize the key insight from the following data visualization in one or two concise sentences. "
@@ -259,6 +266,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           role: 'assistant',
           conversationId: _currentConversationId,
         );
+
+        // Also add the summary to the conversation history for complete context.
         _conversationHistory
             .add(Content(role: "assistant", parts: [Part.text(summaryText)]));
       }
