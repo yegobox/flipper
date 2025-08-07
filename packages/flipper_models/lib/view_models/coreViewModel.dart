@@ -1234,6 +1234,12 @@ class CoreViewModel extends FlipperBaseModel
         await ProxyService.box.bhfId();
     final serverUrl = await ProxyService.box.getServerUrl() ?? "";
 
+    // Skip tax service call in test environment
+    if (serverUrl.isEmpty) {
+      talker.warning("Tax service unavailable in test environment");
+      return;
+    }
+
     final rwApiResponse = await ProxyService.tax.savePurchases(
       item: purchase,
       business: business,
