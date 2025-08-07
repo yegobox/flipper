@@ -201,7 +201,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "regrNm": mod,
         "modrId": sar,
         "modrNm": mod,
-        "sarNo": invoiceNumber.toString() ?? sar.toString(),
+        "sarNo": invoiceNumber?.toString() ?? sar.toString(),
         "orgSarNo": invoiceNumber ?? transaction.orgSarNo,
         "itemList": itemsList
       };

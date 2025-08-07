@@ -81,6 +81,8 @@ class SaleReport {
         totalVatAmount,
         totalTransactions,
         ebm: ebm,
+        start: startDate,
+        end: endDate,
         averageTransactionValue);
 
     await _drawEnhancedContentAsync(
@@ -151,7 +153,9 @@ class SaleReport {
       double totalVatAmount,
       int totalTransactions,
       double averageTransactionValue,
-      {Ebm? ebm}) {
+      {Ebm? ebm,
+      required DateTime start,
+      required DateTime end}) {
     final PdfGraphics graphics = page.graphics;
     final double leftMargin = 40; // Increased from 20 for better balance
     final double rightMargin = 40;
@@ -201,7 +205,7 @@ class SaleReport {
     final PdfFont detailFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
 
     graphics.drawString(
-      'TIN: ${business?.tinNumber ?? 'N/A'} | MRC: ${ebm?.mrc ?? 'N/A'} | CIS: CIS',
+      'TIN: ${business?.tinNumber ?? 'N/A'} | MRC: ${ebm?.mrc ?? 'N/A'} | CIS: Flipper',
       detailFont,
       bounds: Rect.fromLTWH(leftMargin, currentY, contentWidth, 15),
       brush: PdfSolidBrush(darkGray),
@@ -210,17 +214,11 @@ class SaleReport {
 
     // Report period with proper date ordering
     final DateFormat dtf = DateFormat('MMMM dd, yyyy');
-    final start =
-        transactions.isNotEmpty ? transactions.first.createdAt : DateTime.now();
-    final end =
-        transactions.isNotEmpty ? transactions.last.createdAt : DateTime.now();
 
     // Ensure dates are in correct order (from-to)
-    final DateTime fromDate = start!.isBefore(end!) ? start : end;
-    final DateTime toDate = start.isBefore(end) ? end : start;
 
     graphics.drawString(
-      'Report Period: ${dtf.format(fromDate)} - ${dtf.format(toDate)}',
+      'Report Period: ${dtf.format(start)} - ${dtf.format(end)}',
       detailFont,
       bounds: Rect.fromLTWH(leftMargin, currentY, contentWidth, 15),
       brush: PdfSolidBrush(darkGray),
