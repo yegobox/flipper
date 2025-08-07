@@ -1,15 +1,15 @@
-import 'package:supabase_models/brick/models/ai_conversation.model.dart';
+import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 
 abstract class AiStrategy {
   // Conversation methods
-  Future<List<AiConversation>> getConversations({
+  Future<List<Conversation>> getConversations({
     required int branchId,
     int? limit,
     int? offset,
   });
 
-  Future<AiConversation> createConversation({
+  Future<Conversation> createConversation({
     required String title,
     required int branchId,
   });

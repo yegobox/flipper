@@ -21,7 +21,8 @@ class AiInputField extends ConsumerStatefulWidget {
   final Function(String) onSend;
   final Function(String)? onAttachFile; // New callback for file attachments
   final String? attachedFilePath; // New parameter to display attached file
-  final VoidCallback? onClearAttachedFile; // New callback to clear attached file
+  final VoidCallback?
+      onClearAttachedFile; // New callback to clear attached file
   final String? hintText;
   final bool enabled;
 
@@ -91,8 +92,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   // Enhanced Layout constants
   static const double _cancelThreshold = 120.0;
   static const double _lockThreshold = 90.0;
-  static const double _micButtonSize = 56.0;
-  static const double _recordingBubbleHeight = 54.0;
+  static const double _micButtonSize = 44.0;
+  static const double _recordingBubbleHeight = 44.0;
   static const Duration _animationDuration = Duration(milliseconds: 200);
   static const Duration _fastAnimationDuration = Duration(milliseconds: 150);
   static const Duration _hintDisplayDuration = Duration(seconds: 2);
@@ -905,7 +906,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                   child: const Icon(
                     Icons.mic,
                     color: Colors.white,
-                    size: 26,
+                    size: 22,
                   ),
                 ),
               ],

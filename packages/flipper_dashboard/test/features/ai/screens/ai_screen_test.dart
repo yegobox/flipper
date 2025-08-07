@@ -13,7 +13,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:record/record.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
-import 'package:supabase_models/brick/models/ai_conversation.model.dart';
+import 'package:supabase_models/brick/models/conversation.model.dart';
 
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
@@ -65,7 +65,7 @@ void main() {
       taxRate: 0.0,
       trafficCount: 0,
     ));
-    registerFallbackValue(AiConversation(
+    registerFallbackValue(Conversation(
       id: 'fallback_conversation',
       title: 'Fallback Conversation',
       branchId: 1,
@@ -115,7 +115,7 @@ void main() {
     when(() => mockDbSync.createConversation(
           title: any(named: 'title'),
           branchId: any(named: 'branchId'),
-        )).thenAnswer((_) async => AiConversation(
+        )).thenAnswer((_) async => Conversation(
           id: 'new_conversation_id',
           title: 'New Conversation',
           branchId: 1,
@@ -317,7 +317,7 @@ void main() {
             branchId: any(named: 'branchId'),
             limit: any(named: 'limit'),
           )).thenAnswer((_) async => [
-            AiConversation(
+            Conversation(
               id: 'existing_conversation',
               title: 'Existing Conversation',
               branchId: 1,
@@ -378,13 +378,13 @@ void main() {
             branchId: any(named: 'branchId'),
             limit: any(named: 'limit'),
           )).thenAnswer((_) async => [
-            AiConversation(
+            Conversation(
               id: 'conv1',
               title: 'Conversation 1',
               branchId: 1,
               createdAt: DateTime.now(),
             ),
-            AiConversation(
+            Conversation(
               id: 'conv2',
               title: 'Conversation 2',
               branchId: 1,
@@ -478,7 +478,7 @@ void main() {
             branchId: any(named: 'branchId'),
             limit: any(named: 'limit'),
           )).thenAnswer((_) async => [
-            AiConversation(
+            Conversation(
               id: 'single_conv',
               title: 'Single Conversation',
               branchId: 1,
@@ -500,7 +500,7 @@ void main() {
       when(() => mockDbSync.createConversation(
             title: any(named: 'title'),
             branchId: any(named: 'branchId'),
-          )).thenAnswer((_) async => AiConversation(
+          )).thenAnswer((_) async => Conversation(
             id: 'new_conv_after_delete',
             title: 'New Conversation',
             branchId: 1,

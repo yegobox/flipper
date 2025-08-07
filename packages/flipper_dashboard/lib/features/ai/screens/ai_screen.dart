@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_dashboard/features/ai/widgets/audio_player_widget.dart';
+import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
-import 'package:flipper_models/providers/ai_provider.dart';
 
 import '../widgets/message_bubble.dart';
 import '../widgets/ai_input_field.dart';
@@ -24,7 +25,7 @@ class AiScreen extends ConsumerStatefulWidget {
 
 class _AiScreenState extends ConsumerState<AiScreen> {
   final TextEditingController _controller = TextEditingController();
-  Map<String, List<Message>> _conversations = {};
+  List<Conversation> _conversations = [];
   String _currentConversationId = '';
   List<Message> _messages = [];
   bool _isLoading = false;
@@ -75,20 +76,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         return;
       }
 
-      final groupedMessages = <String, List<Message>>{};
-      for (var conversation in conversations) {
-        final messages = await ProxyService.strategy.getMessagesForConversation(
-          conversationId: conversation.id,
-          limit: 100,
-        );
-        groupedMessages[conversation.id] = messages;
-      }
-
       if (mounted) {
         setState(() {
-          _conversations = groupedMessages;
+          _conversations = conversations;
           _currentConversationId = conversations.first.id;
-          _messages = _conversations[_currentConversationId] ?? [];
+          _messages = conversations.first.messages ?? [];
           _conversationHistory = []; // Clear history on conversation load
         });
         _subscribeToCurrentConversation();
@@ -111,8 +103,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       if (mounted) {
         setState(() {
+          _conversations.insert(0, conversation);
           _currentConversationId = conversation.id;
-          _conversations[conversation.id] = [];
           _messages = [];
           _conversationHistory = []; // Clear history on new conversation
         });
@@ -130,10 +122,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       if (mounted) {
         setState(() {
-          _conversations.remove(conversationId);
+          _conversations.removeWhere((c) => c.id == conversationId);
           if (_conversations.isNotEmpty) {
-            _currentConversationId = _conversations.keys.first;
-            _messages = _conversations[_currentConversationId] ?? [];
+            _currentConversationId = _conversations.first.id;
+            _messages = _conversations.first.messages ?? [];
           } else {
             _startNewConversation();
           }
@@ -153,7 +145,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       if (mounted) {
         setState(() {
           _messages = messages;
-          _conversations[_currentConversationId] = messages;
+          final index = _conversations
+              .indexWhere((c) => c.id == _currentConversationId);
+          if (index != -1) {
+            _conversations[index].messages = messages;
+          }
         });
         _scrollToBottom();
       }
@@ -260,8 +256,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             "Focus on the most important takeaway for a business owner.\n\n"
             "$aiResponseText";
 
-        final summaryText =
-            await ref.refresh(geminiSummaryProvider(summaryPrompt).future);
+        final summaryText = await ref
+            .refresh(geminiSummaryProvider(summaryPrompt).future)
+            .onError((error, stackTrace) {
+          talker.error("Failed to generate summary: $error");
+          return "Error: Could not generate summary.";
+        });
 
         await ProxyService.strategy.saveMessage(
           text: summaryText,
@@ -361,7 +361,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         onConversationSelected: (id) {
           setState(() {
             _currentConversationId = id;
-            _messages = _conversations[id] ?? [];
+            _messages = _conversations.firstWhere((c) => c.id == id).messages ?? [];
             _conversationHistory =
                 []; // Clear history on conversation selection
           });
@@ -401,7 +401,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           onConversationSelected: (id) {
             setState(() {
               _currentConversationId = id;
-              _messages = _conversations[id] ?? [];
+              _messages = _conversations.firstWhere((c) => c.id == id).messages ?? [];
             });
             _subscribeToCurrentConversation();
             _scrollToBottom();

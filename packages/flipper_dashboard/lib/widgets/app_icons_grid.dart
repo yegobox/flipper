@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/ai/screens/ai_screen.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
-import 'package:flipper_dashboard/Ai.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -73,7 +73,7 @@ class AppIconsGrid extends ConsumerWidget {
         // use navigator to navigate to the AI screen
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Ai()),
+          MaterialPageRoute(builder: (context) => const AiScreen()),
         );
         break;
       default:

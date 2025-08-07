@@ -16,6 +16,7 @@ import 'all_routes.dart';
     CustomRoute(page: Landing),
     CustomRoute(page: Auth),
     CustomRoute(page: CountryPicker),
+    CustomRoute(page: AiScreen),
     CustomRoute(page: PhoneInputScreen),
     CustomRoute(page: InventoryRequestMobileView),
     //End of login routes
@@ -47,10 +48,7 @@ import 'all_routes.dart';
     CustomRoute(page: BackUp),
     CustomRoute(page: LoginChoices),
     CustomRoute(page: TenantManagement),
-    CustomRoute(page: SocialHomeView),
     CustomRoute(page: DrawerScreen),
-    CustomRoute(page: ChatListView),
-    CustomRoute(page: ConversationHistory),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
     CustomRoute(page: MobileView),

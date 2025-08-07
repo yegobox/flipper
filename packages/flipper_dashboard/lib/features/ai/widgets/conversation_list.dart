@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import '../theme/ai_theme.dart';
 import 'package:intl/intl.dart';
 
 /// Widget that displays a list of AI conversations with a modern, clean design.
 class ConversationList extends StatelessWidget {
-  final Map<String, List<Message>> conversations;
+  final List<Conversation> conversations;
   final String currentConversationId;
   final Function(String) onConversationSelected;
   final Function(String) onDeleteConversation;
@@ -33,8 +34,8 @@ class ConversationList extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               itemCount: conversations.length,
               itemBuilder: (context, index) {
-                final conversationId = conversations.keys.elementAt(index);
-                final messages = conversations[conversationId]!;
+                final conversationId = conversations[index].id;
+                final messages = conversations[index].messages ?? [];
                 final lastMessage = messages.isNotEmpty ? messages.first : null;
 
                 return _buildConversationTile(

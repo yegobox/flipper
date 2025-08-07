@@ -1,4 +1,5 @@
-import 'package:supabase_models/brick/models/ai_conversation.model.dart';
+
+import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/repository.dart' as brick;
@@ -9,13 +10,13 @@ class AiStrategyImpl implements AiStrategy {
   final brick.Repository repository = brick.Repository();
 
   @override
-  Future<List<AiConversation>> getConversations({
+  Future<List<Conversation>> getConversations({
     required int branchId,
     int? limit,
     int? offset,
   }) async {
     try {
-      final conversations = await repository.get<AiConversation>(
+      final conversations = await repository.get<Conversation>(
         query: brick.Query(
           where: [brick.Where('branchId').isExactly(branchId)],
           limit: limit ?? 20,
@@ -33,19 +34,19 @@ class AiStrategyImpl implements AiStrategy {
   }
 
   @override
-  Future<AiConversation> createConversation({
+  Future<Conversation> createConversation({
     required String title,
     required int branchId,
   }) async {
     try {
-      final conversation = AiConversation(
+      final conversation = Conversation(
         title: title,
         branchId: branchId,
         createdAt: DateTime.now().toUtc(),
         lastMessageAt: DateTime.now().toUtc(),
       );
 
-      return await repository.upsert<AiConversation>(conversation);
+      return await repository.upsert<Conversation>(conversation);
     } catch (e, s) {
       talker.error('Error creating conversation: $e\n$s');
       rethrow;
@@ -67,7 +68,7 @@ class AiStrategyImpl implements AiStrategy {
       }
 
       // Then delete the conversation
-      final conversation = (await repository.get<AiConversation>(
+      final conversation = (await repository.get<Conversation>(
         query: brick.Query(
           where: [brick.Where('id').isExactly(conversationId)],
         ),
@@ -75,7 +76,7 @@ class AiStrategyImpl implements AiStrategy {
           .firstOrNull;
 
       if (conversation != null) {
-        await repository.delete<AiConversation>(conversation);
+        await repository.delete<Conversation>(conversation);
       }
     } catch (e, s) {
       talker.error('Error deleting conversation: $e\n$s');
@@ -139,7 +140,7 @@ class AiStrategyImpl implements AiStrategy {
   }) async {
     try {
       // First update the conversation's lastMessageAt
-      final conversation = (await repository.get<AiConversation>(
+      final conversation = (await repository.get<Conversation>(
         query: brick.Query(
           where: [brick.Where('id').isExactly(conversationId)],
         ),
@@ -148,7 +149,7 @@ class AiStrategyImpl implements AiStrategy {
 
       if (conversation != null) {
         conversation.lastMessageAt = DateTime.now();
-        await repository.upsert<AiConversation>(conversation);
+        await repository.upsert<Conversation>(conversation);
       }
 
       // Create and save the new message
