@@ -63,6 +63,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
   Timer? _cancelHintTimer;
   Timer? _lockHintTimer;
   Timer? _tipTimer;
+  Timer? _lockHintHideTimer;
+  Timer? _recordingTipHideTimer;
   int _recordingDuration = 0;
   List<double> _waveformData = [];
   String? _currentRecordingPath;
@@ -197,6 +199,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     _cancelHintTimer?.cancel();
     _lockHintTimer?.cancel();
     _tipTimer?.cancel();
+    _lockHintHideTimer?.cancel();
+    _recordingTipHideTimer?.cancel();
 
     // Dispose all controllers
     _pulseController.dispose();
@@ -328,7 +332,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         if (_isRecording && !_isLocked) {
           setState(() => _showLockHint = true);
           _lockHintController.forward();
-          _tipTimer = Timer(_hintDisplayDuration, () {
+          _lockHintHideTimer = Timer(_hintDisplayDuration, () {
             if (_isRecording && !_isLocked && mounted) {
               setState(() => _showLockHint = false);
               _lockHintController.reverse();
@@ -342,7 +346,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         if (_isRecording && !_isLocked && mounted) {
           setState(() => _showRecordingTip = true);
           _tipController.forward();
-          Timer(const Duration(seconds: 3), () {
+          _recordingTipHideTimer = Timer(const Duration(seconds: 3), () {
             if (mounted) {
               setState(() => _showRecordingTip = false);
               _tipController.reverse();
@@ -372,6 +376,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       _cancelHintTimer?.cancel();
       _lockHintTimer?.cancel();
       _tipTimer?.cancel();
+      _lockHintHideTimer?.cancel();
+      _recordingTipHideTimer?.cancel();
 
       // Stop all animations
       _pulseController.stop();
@@ -555,26 +561,29 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     try {
       // Check if file exists
       if (!await audioFile.exists()) return false;
-      
+
       // Check file size (minimum 1KB for valid audio)
       final fileSize = await audioFile.length();
       if (fileSize < 1024) return false;
-      
+
       // Basic header validation for common audio formats
       final bytes = await audioFile.readAsBytes();
       if (bytes.isEmpty) return false;
-      
+
       // Check for valid audio file headers
       final header = bytes.take(12).toList();
-      
+
       // AAC/M4A file validation (starts with specific bytes)
       if (header.length >= 4) {
         // Check for ftyp box (MP4/M4A container)
-        if (header[4] == 0x66 && header[5] == 0x74 && header[6] == 0x79 && header[7] == 0x70) {
+        if (header[4] == 0x66 &&
+            header[5] == 0x74 &&
+            header[6] == 0x79 &&
+            header[7] == 0x70) {
           return true;
         }
       }
-      
+
       return fileSize > 1024; // Fallback: accept if file size is reasonable
     } catch (e) {
       return false;
@@ -1301,13 +1310,14 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                         context.findRenderObject() as RenderBox;
                     final localPosition =
                         renderBox.globalToLocal(details.globalPosition);
-                    final buttonCenterX = renderBox.size.width - _micButtonSize / 2;
+                    final buttonCenterX =
+                        renderBox.size.width - _micButtonSize / 2;
                     final buttonCenterY = _micButtonSize / 2;
 
                     final newSlideX =
                         (localPosition.dx - buttonCenterX).clamp(-250.0, 0.0);
-                    final newSlideY = (localPosition.dy - buttonCenterY)
-                        .clamp(-150.0, 50.0);
+                    final newSlideY =
+                        (localPosition.dy - buttonCenterY).clamp(-150.0, 50.0);
 
                     setState(() {
                       _slideX = newSlideX;
