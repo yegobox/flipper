@@ -146,11 +146,11 @@ class SaleReport {
 
     // Summary
     graphics.drawString(
-        'Total Amount: ${totalAmount.toStringAsFixed(2)}', detailsFont,
+        'Total Amount: ${totalAmount.toCurrencyFormatted()}', detailsFont,
         bounds: Rect.fromLTWH(left, top, 400, 15));
     top += 16;
     graphics.drawString(
-        'Total VAT Amount: ${totalVatAmount.toStringAsFixed(2)}', detailsFont,
+        'Total VAT Amount: ${totalVatAmount.toCurrencyFormatted()}', detailsFont,
         bounds: Rect.fromLTWH(left, top, 400, 15));
   }
 
@@ -206,8 +206,8 @@ class SaleReport {
               .join('\n')
           : '';
 
-      row.cells[6].value = t.subTotal?.toStringAsFixed(2) ?? '';
-      row.cells[7].value = t.taxAmount?.toStringAsFixed(2) ?? '';
+      row.cells[6].value = t.subTotal?.toCurrencyFormatted() ?? '';
+      row.cells[7].value = t.taxAmount?.toCurrencyFormatted() ?? '';
       row.cells[8].value = t.receiptType ?? '';
       for (int i = 0; i < row.cells.count; i++) {
         row.cells[i].style.borders = PdfBorders(
