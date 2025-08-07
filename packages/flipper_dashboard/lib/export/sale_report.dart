@@ -19,12 +19,9 @@ class SaleReport {
         await ProxyService.strategy.transactionsAndItems(
       startDate: startDate,
       endDate: endDate,
-      // Explicitly set other parameters to their defaults or desired values if needed
       status: COMPLETE,
-      // fetchRemote: false, // Default from TransactionMixin
     );
 
-    // For clarity, extract transactions if needed by other parts, or use transactionsWithItems directly
     final transactions =
         transactionsWithItems.map((e) => e.transaction).toList();
 
@@ -71,16 +68,17 @@ class SaleReport {
     await _drawContentAsync(page, pageSize, transactionsWithItems);
 
     final List<int> bytes = await document.save();
+    final String formattedDate =
+        DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
     document.dispose();
-    await _saveAndLaunchFile(bytes, 'Sale_report.pdf');
+    await _saveAndLaunchFile(bytes, 'Sale_report_$formattedDate.pdf');
   }
 
   void _drawHeader(
       PdfPage page,
       Size pageSize,
       Business? business,
-      List<ITransaction>
-          transactions, // Keep as ITransaction for this specific header logic for now, as it only uses transaction fields
+      List<ITransaction> transactions,
       double totalAmount,
       double totalVatAmount) {
     final PdfGraphics graphics = page.graphics;
@@ -150,7 +148,8 @@ class SaleReport {
         bounds: Rect.fromLTWH(left, top, 400, 15));
     top += 16;
     graphics.drawString(
-        'Total VAT Amount: ${totalVatAmount.toCurrencyFormatted()}', detailsFont,
+        'Total VAT Amount: ${totalVatAmount.toCurrencyFormatted()}',
+        detailsFont,
         bounds: Rect.fromLTWH(left, top, 400, 15));
   }
 
@@ -158,6 +157,15 @@ class SaleReport {
       List<TransactionWithItems> transactionsWithItems) async {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 9);
+    grid.columns[0].width = 20; // #
+    grid.columns[1].width = 40; // Buyer TIN
+    grid.columns[2].width = 40; // Buyer Name
+    grid.columns[3].width = 50; // Receipt Number
+    grid.columns[4].width = 40; // Invoice Date
+    grid.columns[5].width = 150; // Items
+    grid.columns[6].width = 70; // Total Amount
+    grid.columns[7].width = 50; // VAT
+    grid.columns[8].width = 50; // Receipt Type
     grid.headers.add(1);
     final PdfGridRow header = grid.headers[0];
     header.cells[0].value = '#';
@@ -207,7 +215,14 @@ class SaleReport {
           : '';
 
       row.cells[6].value = t.subTotal?.toCurrencyFormatted() ?? '';
-      row.cells[7].value = t.taxAmount?.toCurrencyFormatted() ?? '';
+
+      double taxAmount = t.taxAmount?.toDouble() ?? 0.0;
+      if (taxAmount == 0.0 && items.isNotEmpty) {
+        taxAmount =
+            items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
+      }
+      row.cells[7].value = taxAmount.toCurrencyFormatted();
+
       row.cells[8].value = t.receiptType ?? '';
       for (int i = 0; i < row.cells.count; i++) {
         row.cells[i].style.borders = PdfBorders(
