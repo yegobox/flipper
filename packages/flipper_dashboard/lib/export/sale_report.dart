@@ -244,23 +244,24 @@ class SaleReport {
       double totalVatAmount,
       int totalTransactions,
       double averageTransactionValue) {
-    final double cardWidth = (contentWidth - 20) / 4; // 4 cards with spacing
-    final double cardHeight = 70;
+    final double cardWidth = (contentWidth - 20) / 4;
+    final double cardHeight = 80; // Increased height
     final double cardSpacing = 5;
 
+    // Use Times Roman font for better compatibility
     final PdfFont valueFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
-    final PdfFont labelFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
+        PdfStandardFont(PdfFontFamily.timesRoman, 18, style: PdfFontStyle.bold);
+    final PdfFont labelFont = PdfStandardFont(PdfFontFamily.timesRoman, 11);
 
     // Card 1: Total Revenue
     _drawSummaryCard(
       graphics,
       Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight),
-      totalAmount.toCurrencyFormatted(),
+      _formatNumber(totalAmount),
       'Total Revenue',
       valueFont,
       labelFont,
-      primaryBlue,
+      PdfColor(240, 240, 240), // Light gray background
     );
 
     // Card 2: Total VAT
@@ -268,11 +269,11 @@ class SaleReport {
       graphics,
       Rect.fromLTWH(leftMargin + cardWidth + cardSpacing, currentY, cardWidth,
           cardHeight),
-      totalVatAmount.toCurrencyFormatted(),
+      _formatNumber(totalVatAmount),
       'Total VAT',
       valueFont,
       labelFont,
-      accentGreen,
+      PdfColor(240, 240, 240), // Light gray background
     );
 
     // Card 3: Total Transactions
@@ -284,7 +285,7 @@ class SaleReport {
       'Total Transactions',
       valueFont,
       labelFont,
-      PdfColor(150, 100, 200), // Purple accent
+      PdfColor(240, 240, 240), // Light gray background
     );
 
     // Card 4: Average Transaction
@@ -292,14 +293,32 @@ class SaleReport {
       graphics,
       Rect.fromLTWH(leftMargin + (cardWidth + cardSpacing) * 3, currentY,
           cardWidth, cardHeight),
-      averageTransactionValue.toCurrencyFormatted(),
+      _formatNumber(averageTransactionValue),
       'Avg. Transaction',
       valueFont,
       labelFont,
-      PdfColor(255, 150, 50), // Orange accent
+      PdfColor(240, 240, 240), // Light gray background
     );
 
     return currentY + cardHeight + 20;
+  }
+
+  String _formatNumber(dynamic value) {
+    try {
+      // Handle both double and int values
+      final num number =
+          value is num ? value : double.tryParse(value.toString()) ?? 0;
+
+      // Format with thousands separators
+      final formatted = NumberFormat.currency(
+        symbol: 'RWF ',
+        decimalDigits: 2,
+      ).format(number);
+
+      return formatted.replaceAll('.00', ''); // Remove .00 for whole numbers
+    } catch (e) {
+      return 'RWF 0';
+    }
   }
 
   void _drawSummaryCard(
@@ -310,30 +329,47 @@ class SaleReport {
       PdfFont valueFont,
       PdfFont labelFont,
       PdfColor backgroundColor) {
-    // Card background with subtle shadow
+    // 1. Draw card with border
     graphics.drawRectangle(
-        bounds: bounds,
-        brush: PdfSolidBrush(backgroundColor),
-        pen: PdfPen(
-          PdfColor(200, 200, 200), // Light gray border
-        ));
+      brush: PdfSolidBrush(backgroundColor),
+      pen: PdfPen(PdfColor(0, 0, 0), width: 0.5),
+      bounds: bounds,
+    );
 
-    // Value
+    // 2. Draw value with debug background
+    final valueRect = Rect.fromLTWH(
+        bounds.left, bounds.top + 10, bounds.width, bounds.height * 0.6);
+
+    // Debug background (remove after verification)
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(PdfColor(255, 255, 255)),
+      bounds: valueRect,
+    );
+
     graphics.drawString(
       value,
       valueFont,
-      bounds: Rect.fromLTWH(
-          bounds.left + 10, bounds.top + 15, bounds.width - 20, 25),
-      brush: PdfBrushes.white,
+      bounds: valueRect,
+      brush: PdfSolidBrush(PdfColor(0, 0, 0)), // Black for maximum contrast
+      format: PdfStringFormat(
+        alignment: PdfTextAlignment.center,
+        lineAlignment: PdfVerticalAlignment.middle,
+      ),
     );
 
-    // Label
+    // 3. Draw label
+    final labelRect = Rect.fromLTWH(bounds.left,
+        bounds.top + bounds.height * 0.6, bounds.width, bounds.height * 0.4);
+
     graphics.drawString(
       label,
       labelFont,
-      bounds: Rect.fromLTWH(
-          bounds.left + 10, bounds.top + 40, bounds.width - 20, 15),
-      brush: PdfBrushes.white,
+      bounds: labelRect,
+      brush: PdfSolidBrush(PdfColor(0, 0, 0)), // Black for maximum contrast
+      format: PdfStringFormat(
+        alignment: PdfTextAlignment.center,
+        lineAlignment: PdfVerticalAlignment.middle,
+      ),
     );
   }
 
