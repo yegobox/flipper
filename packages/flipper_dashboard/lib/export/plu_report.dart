@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -63,6 +64,7 @@ class PdfHelper {
     const double rowHeight = 25;
     const double headerHeight = 30;
     const double cellPadding = 4;
+    const double footerSpace = 120; // Space needed for footer
 
     final headers = [
       'No',
@@ -148,6 +150,59 @@ class PdfHelper {
       // Skip if row doesn't have required data
       if (row['Item Name'] == null) continue;
 
+      // Check if we need a new page before drawing this row
+      if (y + rowHeight > page.getClientSize().height - footerSpace) {
+        page = document.pages.add();
+        y = margin;
+
+        // Redraw header on new page
+        currentX = margin;
+
+        // Draw header background with border
+        page.graphics.drawRectangle(
+          brush: headerBrush,
+          pen: borderPen,
+          bounds: ui.Rect.fromLTWH(currentX, y, availableWidth, headerHeight),
+        );
+
+        // Draw header cell borders and text
+        currentX = margin;
+        for (var i = 0; i < headers.length; i++) {
+          final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
+
+          // Draw vertical border for each header cell (except first one)
+          if (i > 0) {
+            page.graphics.drawLine(
+              borderPen,
+              ui.Offset(currentX, y),
+              ui.Offset(currentX, y + headerHeight),
+            );
+          }
+
+          // Draw header text
+          page.graphics.drawString(
+            headers[i],
+            boldFont,
+            bounds: ui.Rect.fromLTWH(
+              currentX + cellPadding,
+              y + (headerHeight - boldFont.height) / 2,
+              colWidth - (2 * cellPadding),
+              boldFont.height,
+            ),
+            format: PdfStringFormat(
+              alignment: i == 0 || i == 1
+                  ? PdfTextAlignment.left
+                  : PdfTextAlignment.center,
+              lineAlignment: PdfVerticalAlignment.middle,
+            ),
+          );
+
+          currentX += colWidth;
+        }
+
+        y += headerHeight;
+      }
+
       // Alternate row background
       PdfBrush? rowBrush;
       if (rowIndex % 2 == 0) {
@@ -211,59 +266,6 @@ class PdfHelper {
       }
 
       y += rowHeight;
-
-      // Check for page break
-      if (y > page.getClientSize().height - 100) {
-        page = document.pages.add();
-        y = margin;
-
-        // Redraw header on new page
-        currentX = margin;
-
-        // Draw header background with border
-        page.graphics.drawRectangle(
-          brush: headerBrush,
-          pen: borderPen,
-          bounds: ui.Rect.fromLTWH(currentX, y, availableWidth, headerHeight),
-        );
-
-        // Draw header cell borders and text
-        currentX = margin;
-        for (var i = 0; i < headers.length; i++) {
-          final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
-
-          // Draw vertical border for each header cell (except first one)
-          if (i > 0) {
-            page.graphics.drawLine(
-              borderPen,
-              ui.Offset(currentX, y),
-              ui.Offset(currentX, y + headerHeight),
-            );
-          }
-
-          // Draw header text
-          page.graphics.drawString(
-            headers[i],
-            boldFont,
-            bounds: ui.Rect.fromLTWH(
-              currentX + cellPadding,
-              y + (headerHeight - boldFont.height) / 2,
-              colWidth - (2 * cellPadding),
-              boldFont.height,
-            ),
-            format: PdfStringFormat(
-              alignment: i == 0 || i == 1
-                  ? PdfTextAlignment.left
-                  : PdfTextAlignment.center,
-              lineAlignment: PdfVerticalAlignment.middle,
-            ),
-          );
-
-          currentX += colWidth;
-        }
-
-        y += headerHeight;
-      }
     }
 
     return y;
@@ -406,15 +408,17 @@ class PLUReport {
       boldFont: boldFont,
     );
 
+    // Add footer with logo and generation info
+    yPosition = max(
+        yPosition,
+        page.getClientSize().height -
+            120); // Ensure footer is at least 120 from bottom
+
     // Ensure we have enough space for footer
     if (yPosition > page.getClientSize().height - 150) {
       page = document.pages.add();
       yPosition = 40;
     }
-
-    // Add footer with logo and generation info
-    yPosition = page.getClientSize().height -
-        120; // Position near bottom with space for logo
 
     // Draw generation info
     page.graphics.drawString(
