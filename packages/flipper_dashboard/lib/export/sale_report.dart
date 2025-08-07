@@ -179,7 +179,7 @@ class SaleReport {
         min(textWidth + 20, contentWidth); // Add 20px padding
 
     graphics.drawString(
-      businessName.substring(0, 20),
+      businessName.substring(0, min(20, businessName.length)),
       titleFont,
       bounds: Rect.fromLTWH(leftMargin, currentY, availableWidth, 30),
       brush: PdfSolidBrush(darkGray),

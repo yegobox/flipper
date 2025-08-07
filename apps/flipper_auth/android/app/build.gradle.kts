@@ -58,6 +58,7 @@ flutter {
 }
 
 dependencies {
+    implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.android.gms:play-services-base:18.7.0")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     
