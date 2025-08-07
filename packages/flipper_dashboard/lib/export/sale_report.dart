@@ -11,6 +11,12 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 
+extension PdfColorExtensions on PdfColor {
+  double get luminance {
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+}
+
 class SaleReport {
   // QuickBooks-inspired color scheme
   static PdfColor primaryBlue = PdfColor(0, 100, 168);
@@ -245,15 +251,14 @@ class SaleReport {
       int totalTransactions,
       double averageTransactionValue) {
     final double cardWidth = (contentWidth - 20) / 4;
-    final double cardHeight = 80; // Increased height
+    final double cardHeight = 80;
     final double cardSpacing = 5;
 
-    // Use Times Roman font for better compatibility
     final PdfFont valueFont =
-        PdfStandardFont(PdfFontFamily.timesRoman, 18, style: PdfFontStyle.bold);
-    final PdfFont labelFont = PdfStandardFont(PdfFontFamily.timesRoman, 11);
+        PdfStandardFont(PdfFontFamily.helvetica, 18, style: PdfFontStyle.bold);
+    final PdfFont labelFont = PdfStandardFont(PdfFontFamily.helvetica, 11);
 
-    // Card 1: Total Revenue
+    // Card 1: Total Revenue - Blue background
     _drawSummaryCard(
       graphics,
       Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight),
@@ -261,10 +266,10 @@ class SaleReport {
       'Total Revenue',
       valueFont,
       labelFont,
-      PdfColor(240, 240, 240), // Light gray background
+      primaryBlue,
     );
 
-    // Card 2: Total VAT
+    // Card 2: Total VAT - Green background
     _drawSummaryCard(
       graphics,
       Rect.fromLTWH(leftMargin + cardWidth + cardSpacing, currentY, cardWidth,
@@ -273,10 +278,10 @@ class SaleReport {
       'Total VAT',
       valueFont,
       labelFont,
-      PdfColor(240, 240, 240), // Light gray background
+      accentGreen,
     );
 
-    // Card 3: Total Transactions
+    // Card 3: Total Transactions - Purple background
     _drawSummaryCard(
       graphics,
       Rect.fromLTWH(leftMargin + (cardWidth + cardSpacing) * 2, currentY,
@@ -285,10 +290,10 @@ class SaleReport {
       'Total Transactions',
       valueFont,
       labelFont,
-      PdfColor(240, 240, 240), // Light gray background
+      PdfColor(150, 100, 200),
     );
 
-    // Card 4: Average Transaction
+    // Card 4: Average Transaction - Orange background
     _drawSummaryCard(
       graphics,
       Rect.fromLTWH(leftMargin + (cardWidth + cardSpacing) * 3, currentY,
@@ -297,7 +302,7 @@ class SaleReport {
       'Avg. Transaction',
       valueFont,
       labelFont,
-      PdfColor(240, 240, 240), // Light gray background
+      PdfColor(255, 150, 50),
     );
 
     return currentY + cardHeight + 20;
@@ -305,17 +310,13 @@ class SaleReport {
 
   String _formatNumber(dynamic value) {
     try {
-      // Handle both double and int values
       final num number =
           value is num ? value : double.tryParse(value.toString()) ?? 0;
-
-      // Format with thousands separators
       final formatted = NumberFormat.currency(
         symbol: 'RWF ',
         decimalDigits: 2,
       ).format(number);
-
-      return formatted.replaceAll('.00', ''); // Remove .00 for whole numbers
+      return formatted.replaceAll('.00', '');
     } catch (e) {
       return 'RWF 0';
     }
@@ -329,28 +330,23 @@ class SaleReport {
       PdfFont valueFont,
       PdfFont labelFont,
       PdfColor backgroundColor) {
-    // 1. Draw card with border
+    // 1. Draw card with original design
     graphics.drawRectangle(
       brush: PdfSolidBrush(backgroundColor),
-      pen: PdfPen(PdfColor(0, 0, 0), width: 0.5),
+      pen: PdfPen(borderGray, width: 1),
       bounds: bounds,
     );
 
-    // 2. Draw value with debug background
-    final valueRect = Rect.fromLTWH(
-        bounds.left, bounds.top + 10, bounds.width, bounds.height * 0.6);
-
-    // Debug background (remove after verification)
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(PdfColor(255, 255, 255)),
-      bounds: valueRect,
-    );
-
+    // 2. Draw value with white text (for colored backgrounds)
     graphics.drawString(
       value,
       valueFont,
-      bounds: valueRect,
-      brush: PdfSolidBrush(PdfColor(0, 0, 0)), // Black for maximum contrast
+      bounds: Rect.fromLTWH(
+          bounds.left, bounds.top + 10, bounds.width, bounds.height * 0.6),
+      brush: PdfSolidBrush(backgroundColor.luminance > 0.5
+              ? PdfColor(0, 0, 0) // Black for light backgrounds
+              : PdfColor(255, 255, 255) // White for dark backgrounds
+          ),
       format: PdfStringFormat(
         alignment: PdfTextAlignment.center,
         lineAlignment: PdfVerticalAlignment.middle,
@@ -358,14 +354,15 @@ class SaleReport {
     );
 
     // 3. Draw label
-    final labelRect = Rect.fromLTWH(bounds.left,
-        bounds.top + bounds.height * 0.6, bounds.width, bounds.height * 0.4);
-
     graphics.drawString(
       label,
       labelFont,
-      bounds: labelRect,
-      brush: PdfSolidBrush(PdfColor(0, 0, 0)), // Black for maximum contrast
+      bounds: Rect.fromLTWH(bounds.left, bounds.top + bounds.height * 0.6,
+          bounds.width, bounds.height * 0.4),
+      brush: PdfSolidBrush(backgroundColor.luminance > 0.5
+              ? PdfColor(0, 0, 0) // Black for light backgrounds
+              : PdfColor(255, 255, 255) // White for dark backgrounds
+          ),
       format: PdfStringFormat(
         alignment: PdfTextAlignment.center,
         lineAlignment: PdfVerticalAlignment.middle,
