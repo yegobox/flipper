@@ -447,11 +447,8 @@ class SaleReport {
 
       row.cells[6].value = t.subTotal?.toCurrencyFormatted() ?? '0';
 
-      double taxAmount = t.taxAmount?.toDouble() ?? 0.0;
-      if (taxAmount == 0.0 && items.isNotEmpty) {
-        taxAmount =
-            items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
-      }
+      // Calculate VAT from item-level taxAmt for consistency with header totals
+      double taxAmount = items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
       row.cells[7].value = taxAmount.toCurrencyFormatted();
       row.cells[8].value = t.receiptType ?? 'Standard';
 

@@ -45,6 +45,7 @@ class AiInputField extends ConsumerStatefulWidget {
 class _AiInputFieldState extends ConsumerState<AiInputField>
     with TickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode();
+  final GlobalKey _micButtonKey = GlobalKey();
 
   bool _hasText = false;
   bool _isRecording = false;
@@ -190,6 +191,13 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     widget.controller.removeListener(_handleTextChange);
     _focusNode.dispose();
 
+    // Cancel all timers before disposing controllers
+    _recordingTimer?.cancel();
+    _waveformTimer?.cancel();
+    _cancelHintTimer?.cancel();
+    _lockHintTimer?.cancel();
+    _tipTimer?.cancel();
+
     // Dispose all controllers
     _pulseController.dispose();
     _lockController.dispose();
@@ -202,13 +210,6 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     _rippleController.dispose();
     _bounceController.dispose();
     _tipController.dispose();
-
-    // Cancel all timers
-    _recordingTimer?.cancel();
-    _waveformTimer?.cancel();
-    _cancelHintTimer?.cancel();
-    _lockHintTimer?.cancel();
-    _tipTimer?.cancel();
 
     super.dispose();
   }
@@ -385,10 +386,17 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
 
       if (path != null && _currentRecordingPath != null) {
         if (send && _recordingDuration >= 1) {
-          HapticFeedback.lightImpact();
-          // Format the voice message and send it through the main onSend callback
-          widget.onSend('[voice]($path)');
-          _showSuccessSnackBar('Voice message sent!');
+          // Validate audio file before sending
+          final audioFile = File(path);
+          if (await _validateAudioFile(audioFile)) {
+            HapticFeedback.lightImpact();
+            // Format the voice message and send it through the main onSend callback
+            widget.onSend('[voice]($path)');
+            _showSuccessSnackBar('Voice message sent!');
+          } else {
+            _showErrorSnackBar('Audio file is corrupted or incomplete');
+            if (await audioFile.exists()) await audioFile.delete();
+          }
         } else {
           HapticFeedback.lightImpact();
           final file = File(path);
@@ -536,12 +544,40 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       if (result != null && result.files.single.path != null) {
         final filePath = result.files.single.path!;
         widget.onAttachFile!(filePath);
-      } else {
-        // User canceled the picker
-        _showErrorSnackBar('File selection canceled.');
       }
+      // User canceled the picker - no action needed
     } catch (e) {
       _showErrorSnackBar('Error picking file: $e');
+    }
+  }
+
+  Future<bool> _validateAudioFile(File audioFile) async {
+    try {
+      // Check if file exists
+      if (!await audioFile.exists()) return false;
+      
+      // Check file size (minimum 1KB for valid audio)
+      final fileSize = await audioFile.length();
+      if (fileSize < 1024) return false;
+      
+      // Basic header validation for common audio formats
+      final bytes = await audioFile.readAsBytes();
+      if (bytes.isEmpty) return false;
+      
+      // Check for valid audio file headers
+      final header = bytes.take(12).toList();
+      
+      // AAC/M4A file validation (starts with specific bytes)
+      if (header.length >= 4) {
+        // Check for ftyp box (MP4/M4A container)
+        if (header[4] == 0x66 && header[5] == 0x74 && header[6] == 0x79 && header[7] == 0x70) {
+          return true;
+        }
+      }
+      
+      return fileSize > 1024; // Fallback: accept if file size is reasonable
+    } catch (e) {
+      return false;
     }
   }
 
@@ -1251,6 +1287,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         return Transform.scale(
           scale: 1.0 + (_bounceAnimation.value * 0.1),
           child: GestureDetector(
+            key: _micButtonKey,
             onLongPressStart: _hasText || widget.isLoading
                 ? null
                 : (details) => _startRecording(),
@@ -1262,14 +1299,14 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 : (details) {
                     final RenderBox renderBox =
                         context.findRenderObject() as RenderBox;
-                    final startPosition =
-                        renderBox.size.width - _micButtonSize / 2;
-                    final currentPosition =
+                    final localPosition =
                         renderBox.globalToLocal(details.globalPosition);
+                    final buttonCenterX = renderBox.size.width - _micButtonSize / 2;
+                    final buttonCenterY = _micButtonSize / 2;
 
                     final newSlideX =
-                        (currentPosition.dx - startPosition).clamp(-250.0, 0.0);
-                    final newSlideY = (currentPosition.dy - _micButtonSize)
+                        (localPosition.dx - buttonCenterX).clamp(-250.0, 0.0);
+                    final newSlideY = (localPosition.dy - buttonCenterY)
                         .clamp(-150.0, 50.0);
 
                     setState(() {
@@ -1301,6 +1338,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                     }
                   },
             child: Container(
+              key: _micButtonKey,
               width: _micButtonSize,
               height: _micButtonSize,
               decoration: BoxDecoration(

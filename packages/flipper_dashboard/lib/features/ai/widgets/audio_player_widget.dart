@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/rxdart.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
   final String audioPath;
@@ -49,6 +50,9 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
   late AnimationController _playButtonController;
   late AnimationController _loadingController;
 
+  // Disposal flag
+  bool _isDisposed = false;
+
   @override
   void initState() {
     super.initState();
@@ -87,7 +91,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
       if (!mounted) return;
 
       _playerStateSubscription = _audioPlayer.playerStateStream.listen((state) {
-        if (mounted) {
+        if (mounted && !_isDisposed) {
           setState(() {
             _isPlaying = state.playing;
             _isLoading = state.processingState == ProcessingState.loading ||
@@ -108,12 +112,11 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
         }
       });
 
-      // Listen to position changes with debouncing
+      // Listen to position changes with throttling
       _positionSubscription = _audioPlayer.positionStream
-          .where((position) =>
-              position.inMilliseconds % 100 == 0) // Debounce updates
+          .throttleTime(const Duration(milliseconds: 100))
           .listen((position) {
-        if (mounted) {
+        if (mounted && !_isDisposed) {
           setState(() {
             _position = position;
           });
@@ -129,6 +132,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
   }
 
   void _handleError(String message) {
+    if (_isDisposed) return;
     setState(() {
       _hasError = true;
       _errorMessage = message;
@@ -145,6 +149,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
 
   @override
   void dispose() {
+    _isDisposed = true;
     _positionSubscription?.cancel();
     _playerStateSubscription?.cancel();
     _durationSubscription?.cancel();
@@ -180,13 +185,15 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget>
   }
 
   Future<void> _setPlaybackSpeed(double speed) async {
-    if (_hasError) return;
+    if (_hasError || _isDisposed) return;
 
     try {
       await _audioPlayer.setSpeed(speed);
-      setState(() {
-        _playbackSpeed = speed;
-      });
+      if (!_isDisposed) {
+        setState(() {
+          _playbackSpeed = speed;
+        });
+      }
     } catch (e) {
       _handleError('Speed change error: ${e.toString()}');
     }

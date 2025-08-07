@@ -41,9 +41,15 @@ class LocalNotificationService implements LNotification {
   Future<void> sendLocalNotification(
       {required String body, String? userName = "Flipper"}) async {
     try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        // Skip notification if branch ID is not available
+        return;
+      }
+      
       Conversation? conversation = Conversation(
         title: body,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: branchId,
       );
 
       // Now you can use _notificationManager safely
