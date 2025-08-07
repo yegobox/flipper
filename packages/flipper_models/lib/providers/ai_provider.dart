@@ -241,16 +241,12 @@ User Query: $userPrompt
       currentTurnParts
           .add(Part.inlineData(fileData['mime_type'], fileData['data']));
       currentTurnParts.add(Part.text(
-          "The user has attached a file. Please acknowledge and be ready for follow-up questions regarding this file."));
+          "The user has attached a file. Please use it as additional context for the analysis."));
     }
 
-    // Add CSV data and base prompt only if no file is attached for this turn
-    // This ensures that when a file is attached, the AI focuses on the file and the user's question about it,
-    // without being overwhelmed by the general business analytics CSV data.
-    if (filePath == null) {
-      currentTurnParts.add(Part.text(csvData));
-      currentTurnParts.add(Part.text(basePrompt));
-    }
+    // Always add business data and base prompt for context.
+    currentTurnParts.add(Part.text(csvData));
+    currentTurnParts.add(Part.text(basePrompt));
 
     final List<Content> contents = [];
     if (history != null) {

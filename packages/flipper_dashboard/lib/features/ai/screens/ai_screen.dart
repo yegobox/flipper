@@ -157,6 +157,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         });
         _scrollToBottom();
       }
+    }, onError: (e) {
+      if (mounted) {
+        _showError('Error subscribing to messages: ${e.toString()}');
+      }
     });
   }
 
@@ -240,7 +244,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       // Clean the response for conversation history to avoid confusing the AI.
       final cleanedForHistory = aiResponseText.replaceAll(
-          RegExp(r'\{\{VISUALIZATION_DATA\}\}|\{\{/VISUALIZATION_DATA\}\}',
+          RegExp(r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
               dotAll: true),
           '');
 
