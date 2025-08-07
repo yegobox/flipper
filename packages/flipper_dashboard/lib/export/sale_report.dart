@@ -60,6 +60,9 @@ class SaleReport {
 
     _createFooter(footerTemplate, pageSize);
     document.template.bottom = footerTemplate;
+    final ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
 
     // Draw enhanced content
     double contentHeight = _drawEnhancedHeader(
@@ -70,6 +73,7 @@ class SaleReport {
         totalAmount,
         totalVatAmount,
         totalTransactions,
+        ebm: ebm,
         averageTransactionValue);
 
     await _drawEnhancedContentAsync(
@@ -139,100 +143,67 @@ class SaleReport {
       double totalAmount,
       double totalVatAmount,
       int totalTransactions,
-      double averageTransactionValue) {
+      double averageTransactionValue,
+      {Ebm? ebm}) {
     final PdfGraphics graphics = page.graphics;
-    final double leftMargin = 20;
-    final double rightMargin = 20;
+    final double leftMargin = 40; // Increased from 20 for better balance
+    final double rightMargin = 40;
     final double contentWidth = pageSize.width - leftMargin - rightMargin;
     double currentY = 30;
 
-    // Title section with background
-    final Rect titleRect = Rect.fromLTWH(0, currentY, pageSize.width, 60);
-    graphics.drawRectangle(
-        brush: PdfSolidBrush(primaryBlue), bounds: titleRect);
-
+    // Title section with improved layout
     final PdfFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 24, style: PdfFontStyle.bold);
+        PdfStandardFont(PdfFontFamily.helvetica, 22, style: PdfFontStyle.bold);
+
+    // Company name and report title side by side
+    graphics.drawString(
+      business?.name ?? 'Business Name',
+      titleFont,
+      bounds: Rect.fromLTWH(leftMargin, currentY, contentWidth / 2, 30),
+      brush: PdfSolidBrush(darkGray),
+    );
+
     graphics.drawString(
       'Sales Report',
       titleFont,
-      bounds: Rect.fromLTWH(leftMargin, currentY + 15, contentWidth, 30),
-      brush: PdfBrushes.white,
+      bounds: Rect.fromLTWH(
+          leftMargin + contentWidth / 2, currentY, contentWidth / 2, 30),
+      format: PdfStringFormat(alignment: PdfTextAlignment.right),
+      brush: PdfSolidBrush(primaryBlue),
     );
-    currentY += 80;
+    currentY += 35;
 
-    // Business information card
-    final Rect businessRect =
-        Rect.fromLTWH(leftMargin, currentY, contentWidth, 100);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(lightBlue),
-      pen: PdfPen(borderGray, width: 1),
-      bounds: businessRect,
-    );
-
-    currentY += 15;
-    final PdfFont sectionFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold);
-    final PdfFont normalFont = PdfStandardFont(PdfFontFamily.helvetica, 11);
+    // Business details in a cleaner format
+    final PdfFont detailFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
 
     graphics.drawString(
-      business?.name ?? 'Business Name',
-      sectionFont,
-      bounds: Rect.fromLTWH(leftMargin + 15, currentY, contentWidth - 30, 20),
+      'TIN: ${business?.tinNumber ?? 'N/A'} | MRC: ${ebm?.mrc ?? 'N/A'} | CIS: CIS',
+      detailFont,
+      bounds: Rect.fromLTWH(leftMargin, currentY, contentWidth, 15),
       brush: PdfSolidBrush(darkGray),
     );
-    currentY += 25;
-
-    // Business details in two columns
-    final double columnWidth = (contentWidth - 30) / 2;
-    graphics.drawString('TIN: ${business?.tinNumber ?? 'N/A'}', normalFont,
-        bounds: Rect.fromLTWH(leftMargin + 15, currentY, columnWidth, 15),
-        brush: PdfSolidBrush(darkGray));
-    graphics.drawString('CIS: ${"CIS"}', normalFont,
-        bounds: Rect.fromLTWH(
-            leftMargin + 15 + columnWidth, currentY, columnWidth, 15),
-        brush: PdfSolidBrush(darkGray));
     currentY += 20;
 
-    graphics.drawString('MRC: ${"MRC"}', normalFont,
-        bounds: Rect.fromLTWH(leftMargin + 15, currentY, columnWidth, 15),
-        brush: PdfSolidBrush(darkGray));
-    currentY += 40;
-
-    // Report period section
-    final Rect periodRect =
-        Rect.fromLTWH(leftMargin, currentY, contentWidth, 80);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(lightGray),
-      pen: PdfPen(borderGray, width: 1),
-      bounds: periodRect,
-    );
-
-    currentY += 15;
-    graphics.drawString(
-      'Report Period',
-      sectionFont,
-      bounds: Rect.fromLTWH(leftMargin + 15, currentY, contentWidth - 30, 20),
-      brush: PdfSolidBrush(darkGray),
-    );
-    currentY += 25;
-
+    // Report period with proper date ordering
     final DateFormat dtf = DateFormat('MMMM dd, yyyy');
     final start =
         transactions.isNotEmpty ? transactions.first.createdAt : DateTime.now();
     final end =
         transactions.isNotEmpty ? transactions.last.createdAt : DateTime.now();
 
-    graphics.drawString('From: ${dtf.format(start!)}', normalFont,
-        bounds: Rect.fromLTWH(leftMargin + 15, currentY, columnWidth, 15),
-        brush: PdfSolidBrush(darkGray));
-    graphics.drawString('To: ${dtf.format(end!)}', normalFont,
-        bounds: Rect.fromLTWH(
-            leftMargin + 15 + columnWidth, currentY, columnWidth, 15),
-        brush: PdfSolidBrush(darkGray));
-    currentY += 40;
+    // Ensure dates are in correct order (from-to)
+    final DateTime fromDate = start!.isBefore(end!) ? start : end;
+    final DateTime toDate = start.isBefore(end) ? end : start;
 
-    // Summary metrics in cards
+    graphics.drawString(
+      'Report Period: ${dtf.format(fromDate)} - ${dtf.format(toDate)}',
+      detailFont,
+      bounds: Rect.fromLTWH(leftMargin, currentY, contentWidth, 15),
+      brush: PdfSolidBrush(darkGray),
+    );
+    currentY += 30;
+
+    // Summary cards in a single row with equal width
     currentY = _drawSummaryCards(
         graphics,
         leftMargin,
@@ -243,7 +214,7 @@ class SaleReport {
         totalTransactions,
         averageTransactionValue);
 
-    return currentY + 20; // Return the Y position for content
+    return currentY + 30; // More spacing before table
   }
 
   double _drawSummaryCards(
@@ -255,103 +226,97 @@ class SaleReport {
       double totalVatAmount,
       int totalTransactions,
       double averageTransactionValue) {
-    final double cardWidth = (contentWidth - 30) / 2;
-    final double cardHeight = 60;
+    final double cardWidth = (contentWidth - 20) / 4; // 4 cards with spacing
+    final double cardHeight = 70;
+    final double cardSpacing = 5;
+
     final PdfFont valueFont =
         PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
     final PdfFont labelFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
 
-    // Total Revenue Card
-    Rect cardRect = Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(accentGreen),
-      bounds: cardRect,
-    );
-
-    graphics.drawString(
+    // Card 1: Total Revenue
+    _drawSummaryCard(
+      graphics,
+      Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight),
       totalAmount.toCurrencyFormatted(),
-      valueFont,
-      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 10, cardWidth - 30, 25),
-      brush: PdfBrushes.white,
-    );
-    graphics.drawString(
       'Total Revenue',
+      valueFont,
       labelFont,
-      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 35, cardWidth - 30, 15),
-      brush: PdfBrushes.white,
+      primaryBlue,
     );
 
-    // Total VAT Card
-    cardRect = Rect.fromLTWH(
-        leftMargin + cardWidth + 15, currentY, cardWidth, cardHeight);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(primaryBlue),
-      bounds: cardRect,
-    );
-
-    graphics.drawString(
+    // Card 2: Total VAT
+    _drawSummaryCard(
+      graphics,
+      Rect.fromLTWH(leftMargin + cardWidth + cardSpacing, currentY, cardWidth,
+          cardHeight),
       totalVatAmount.toCurrencyFormatted(),
-      valueFont,
-      bounds: Rect.fromLTWH(
-          leftMargin + cardWidth + 30, currentY + 10, cardWidth - 30, 25),
-      brush: PdfBrushes.white,
-    );
-    graphics.drawString(
       'Total VAT',
+      valueFont,
       labelFont,
+      accentGreen,
+    );
+
+    // Card 3: Total Transactions
+    _drawSummaryCard(
+      graphics,
+      Rect.fromLTWH(leftMargin + (cardWidth + cardSpacing) * 2, currentY,
+          cardWidth, cardHeight),
+      totalTransactions.toString(),
+      'Total Transactions',
+      valueFont,
+      labelFont,
+      PdfColor(150, 100, 200), // Purple accent
+    );
+
+    // Card 4: Average Transaction
+    _drawSummaryCard(
+      graphics,
+      Rect.fromLTWH(leftMargin + (cardWidth + cardSpacing) * 3, currentY,
+          cardWidth, cardHeight),
+      averageTransactionValue.toCurrencyFormatted(),
+      'Avg. Transaction',
+      valueFont,
+      labelFont,
+      PdfColor(255, 150, 50), // Orange accent
+    );
+
+    return currentY + cardHeight + 20;
+  }
+
+  void _drawSummaryCard(
+      PdfGraphics graphics,
+      Rect bounds,
+      String value,
+      String label,
+      PdfFont valueFont,
+      PdfFont labelFont,
+      PdfColor backgroundColor) {
+    // Card background with subtle shadow
+    graphics.drawRectangle(
+        bounds: bounds,
+        brush: PdfSolidBrush(backgroundColor),
+        pen: PdfPen(
+          PdfColor(200, 200, 200), // Light gray border
+        ));
+
+    // Value
+    graphics.drawString(
+      value,
+      valueFont,
       bounds: Rect.fromLTWH(
-          leftMargin + cardWidth + 30, currentY + 35, cardWidth - 30, 15),
+          bounds.left + 10, bounds.top + 15, bounds.width - 20, 25),
       brush: PdfBrushes.white,
     );
 
-    currentY += cardHeight + 15;
-
-    // Transaction Count and Average Value Cards
-    cardRect = Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(lightBlue),
-      pen: PdfPen(primaryBlue, width: 2),
-      bounds: cardRect,
-    );
-
+    // Label
     graphics.drawString(
-      totalTransactions.toString(),
-      valueFont,
-      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 10, cardWidth - 30, 25),
-      brush: PdfSolidBrush(primaryBlue),
-    );
-    graphics.drawString(
-      'Total Transactions',
-      labelFont,
-      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 35, cardWidth - 30, 15),
-      brush: PdfSolidBrush(darkGray),
-    );
-
-    // Average Transaction Value Card
-    cardRect = Rect.fromLTWH(
-        leftMargin + cardWidth + 15, currentY, cardWidth, cardHeight);
-    graphics.drawRectangle(
-      brush: PdfSolidBrush(lightGray),
-      pen: PdfPen(borderGray, width: 1),
-      bounds: cardRect,
-    );
-
-    graphics.drawString(
-      averageTransactionValue.toCurrencyFormatted(),
-      valueFont,
-      bounds: Rect.fromLTWH(
-          leftMargin + cardWidth + 30, currentY + 10, cardWidth - 30, 25),
-      brush: PdfSolidBrush(darkGray),
-    );
-    graphics.drawString(
-      'Average Transaction',
+      label,
       labelFont,
       bounds: Rect.fromLTWH(
-          leftMargin + cardWidth + 30, currentY + 35, cardWidth - 30, 15),
-      brush: PdfSolidBrush(darkGray),
+          bounds.left + 10, bounds.top + 40, bounds.width - 20, 15),
+      brush: PdfBrushes.white,
     );
-
-    return currentY + cardHeight;
   }
 
   Future<void> _drawEnhancedContentAsync(PdfPage page, Size pageSize,
@@ -360,15 +325,16 @@ class SaleReport {
     grid.columns.add(count: 9);
 
     // Optimized column widths for better readability
-    grid.columns[0].width = 25; // #
-    grid.columns[1].width = 45; // Buyer TIN
-    grid.columns[2].width = 50; // Buyer Name
-    grid.columns[3].width = 50; // Receipt Number
-    grid.columns[4].width = 40; // Invoice Date
-    grid.columns[5].width = 110; // Items
-    grid.columns[6].width = 40; // Total Amount
-    grid.columns[7].width = 40; // VAT
-    grid.columns[8].width = 20; // Receipt Type
+    final double pageWidth = pageSize.width - 80; // 40px margins on each side
+    grid.columns[0].width = pageWidth * 0.03; // # (3%)
+    grid.columns[1].width = pageWidth * 0.10; // Buyer TIN (10%)
+    grid.columns[2].width = pageWidth * 0.12; // Buyer Name (12%)
+    grid.columns[3].width = pageWidth * 0.08; // Receipt Number (8%)
+    grid.columns[4].width = pageWidth * 0.08; // Date (8%)
+    grid.columns[5].width = pageWidth * 0.35; // Items Details (35%)
+    grid.columns[6].width = pageWidth * 0.12; // Amount (12%)
+    grid.columns[7].width = pageWidth * 0.10; // VAT (10%)
+    grid.columns[8].width = pageWidth * 0.02; // Type (2%)
 
     // Enhanced header styling
     grid.headers.add(1);
