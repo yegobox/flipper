@@ -11,6 +11,14 @@ import 'package:path/path.dart' as path;
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 
 class SaleReport {
+  // QuickBooks-inspired color scheme
+  static PdfColor primaryBlue = PdfColor(0, 100, 168);
+  static PdfColor lightBlue = PdfColor(230, 242, 252);
+  static PdfColor darkGray = PdfColor(64, 64, 64);
+  static PdfColor lightGray = PdfColor(248, 248, 248);
+  static PdfColor borderGray = PdfColor(220, 220, 220);
+  static PdfColor accentGreen = PdfColor(76, 175, 80);
+
   Future<void> generateSaleReport(
       {required DateTime startDate, required DateTime endDate}) async {
     final business = await ProxyService.strategy
@@ -25,9 +33,12 @@ class SaleReport {
     final transactions =
         transactionsWithItems.map((e) => e.transaction).toList();
 
-    // Calculate totals
+    // Calculate totals and additional metrics
     double totalAmount = 0.0;
     double totalVatAmount = 0.0;
+    int totalTransactions = transactionsWithItems.length;
+    double averageTransactionValue = 0.0;
+
     for (final twi in transactionsWithItems) {
       totalAmount += twi.transaction.subTotal ?? 0.0;
       for (final item in twi.items) {
@@ -35,37 +46,34 @@ class SaleReport {
       }
     }
 
+    if (totalTransactions > 0) {
+      averageTransactionValue = totalAmount / totalTransactions;
+    }
+
     final PdfDocument document = PdfDocument();
     final PdfPage page = document.pages.add();
     final Size pageSize = page.getClientSize();
 
-    // Footer template for logo and page info
+    // Enhanced footer with better styling
     final PdfPageTemplateElement footerTemplate =
-        PdfPageTemplateElement(Rect.fromLTWH(0, 0, pageSize.width, 50));
-    try {
-      final ByteData imageData =
-          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
-      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
-      const double logoWidth = 25;
-      const double logoHeight = 25;
-      final double xLogoPosition = (pageSize.width - logoWidth) / 2;
-      footerTemplate.graphics.drawImage(
-          logoImage, Rect.fromLTWH(xLogoPosition, 0, logoWidth, logoHeight));
-      final PdfFont footerFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
-      footerTemplate.graphics.drawString(
-        'Page 1 | Powered by flipper',
-        footerFont,
-        bounds: Rect.fromLTWH(0, 30, pageSize.width, 15),
-        format: PdfStringFormat(alignment: PdfTextAlignment.center),
-      );
-    } catch (e) {
-      print('Error loading logo for footer: $e');
-    }
+        PdfPageTemplateElement(Rect.fromLTWH(0, 0, pageSize.width, 60));
+
+    _createFooter(footerTemplate, pageSize);
     document.template.bottom = footerTemplate;
 
-    _drawHeader(
-        page, pageSize, business, transactions, totalAmount, totalVatAmount);
-    await _drawContentAsync(page, pageSize, transactionsWithItems);
+    // Draw enhanced content
+    double contentHeight = _drawEnhancedHeader(
+        page,
+        pageSize,
+        business,
+        transactions,
+        totalAmount,
+        totalVatAmount,
+        totalTransactions,
+        averageTransactionValue);
+
+    await _drawEnhancedContentAsync(
+        page, pageSize, transactionsWithItems, contentHeight);
 
     final List<int> bytes = await document.save();
     final String formattedDate =
@@ -74,147 +82,355 @@ class SaleReport {
     await _saveAndLaunchFile(bytes, 'Sale_report_$formattedDate.pdf');
   }
 
-  void _drawHeader(
+  void _createFooter(
+      PdfPageTemplateElement footerTemplate, Size pageSize) async {
+    try {
+      // Draw a subtle line at the top of footer
+      final PdfPen footerPen = PdfPen(borderGray, width: 1);
+      footerTemplate.graphics
+          .drawLine(footerPen, Offset(40, 10), Offset(pageSize.width - 40, 10));
+
+      final ByteData imageData =
+          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
+      const double logoWidth = 30;
+      const double logoHeight = 30;
+
+      // Position logo on the left
+      footerTemplate.graphics
+          .drawImage(logoImage, Rect.fromLTWH(40, 20, logoWidth, logoHeight));
+
+      final PdfFont footerFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
+
+      // Company info next to logo
+      footerTemplate.graphics.drawString(
+        'Powered by Flipper',
+        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold),
+        bounds: Rect.fromLTWH(80, 25, 200, 15),
+        brush: PdfSolidBrush(darkGray),
+      );
+
+      // Page number on the right
+      footerTemplate.graphics.drawString(
+        'Page 1',
+        footerFont,
+        bounds: Rect.fromLTWH(pageSize.width - 100, 35, 60, 15),
+        format: PdfStringFormat(alignment: PdfTextAlignment.right),
+        brush: PdfSolidBrush(darkGray),
+      );
+
+      // Generation timestamp
+      footerTemplate.graphics.drawString(
+        'Generated: ${DateFormat('MMM dd, yyyy at HH:mm').format(DateTime.now())}',
+        footerFont,
+        bounds: Rect.fromLTWH(80, 40, 300, 15),
+        brush: PdfSolidBrush(PdfColor(120, 120, 120)),
+      );
+    } catch (e) {
+      print('Error creating footer: $e');
+    }
+  }
+
+  double _drawEnhancedHeader(
       PdfPage page,
       Size pageSize,
       Business? business,
       List<ITransaction> transactions,
       double totalAmount,
-      double totalVatAmount) {
+      double totalVatAmount,
+      int totalTransactions,
+      double averageTransactionValue) {
     final PdfGraphics graphics = page.graphics;
+    final double leftMargin = 20;
+    final double rightMargin = 20;
+    final double contentWidth = pageSize.width - leftMargin - rightMargin;
+    double currentY = 30;
+
+    // Title section with background
+    final Rect titleRect = Rect.fromLTWH(0, currentY, pageSize.width, 60);
+    graphics.drawRectangle(
+        brush: PdfSolidBrush(primaryBlue), bounds: titleRect);
+
     final PdfFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 18, style: PdfFontStyle.bold);
-    final PdfFont detailsFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold);
-    final PdfFont normalFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
-    final double left = 40;
-    double top = 40;
-
-    // Title
+        PdfStandardFont(PdfFontFamily.helvetica, 24, style: PdfFontStyle.bold);
     graphics.drawString(
-      'Sale Report',
+      'Sales Report',
       titleFont,
-      bounds: Rect.fromLTWH(0, top, pageSize.width, 30),
-      format: PdfStringFormat(
-          alignment: PdfTextAlignment.center,
-          lineAlignment: PdfVerticalAlignment.middle),
+      bounds: Rect.fromLTWH(leftMargin, currentY + 15, contentWidth, 30),
+      brush: PdfBrushes.white,
     );
-    top += 40;
+    currentY += 80;
 
-    // Business Details
-    graphics.drawString('${business?.name ?? ''}', detailsFont,
-        bounds: Rect.fromLTWH(left, top, 400, 18));
-    top += 20;
-    graphics.drawString('TIN: ${business?.tinNumber ?? ''}', normalFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 15;
+    // Business information card
+    final Rect businessRect =
+        Rect.fromLTWH(leftMargin, currentY, contentWidth, 100);
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(lightBlue),
+      pen: PdfPen(borderGray, width: 1),
+      bounds: businessRect,
+    );
+
+    currentY += 15;
+    final PdfFont sectionFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 14, style: PdfFontStyle.bold);
+    final PdfFont normalFont = PdfStandardFont(PdfFontFamily.helvetica, 11);
+
+    graphics.drawString(
+      business?.name ?? 'Business Name',
+      sectionFont,
+      bounds: Rect.fromLTWH(leftMargin + 15, currentY, contentWidth - 30, 20),
+      brush: PdfSolidBrush(darkGray),
+    );
+    currentY += 25;
+
+    // Business details in two columns
+    final double columnWidth = (contentWidth - 30) / 2;
+    graphics.drawString('TIN: ${business?.tinNumber ?? 'N/A'}', normalFont,
+        bounds: Rect.fromLTWH(leftMargin + 15, currentY, columnWidth, 15),
+        brush: PdfSolidBrush(darkGray));
     graphics.drawString('CIS: ${"CIS"}', normalFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 15;
-    graphics.drawString('MRC: ${"MRC"}', normalFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 20;
+        bounds: Rect.fromLTWH(
+            leftMargin + 15 + columnWidth, currentY, columnWidth, 15),
+        brush: PdfSolidBrush(darkGray));
+    currentY += 20;
 
-    // Report Period
-    graphics.drawString('Report Period', detailsFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 16;
-    final DateFormat dtf = DateFormat('MMMM dd, yyyy, hh:mm a');
+    graphics.drawString('MRC: ${"MRC"}', normalFont,
+        bounds: Rect.fromLTWH(leftMargin + 15, currentY, columnWidth, 15),
+        brush: PdfSolidBrush(darkGray));
+    currentY += 40;
+
+    // Report period section
+    final Rect periodRect =
+        Rect.fromLTWH(leftMargin, currentY, contentWidth, 80);
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(lightGray),
+      pen: PdfPen(borderGray, width: 1),
+      bounds: periodRect,
+    );
+
+    currentY += 15;
+    graphics.drawString(
+      'Report Period',
+      sectionFont,
+      bounds: Rect.fromLTWH(leftMargin + 15, currentY, contentWidth - 30, 20),
+      brush: PdfSolidBrush(darkGray),
+    );
+    currentY += 25;
+
+    final DateFormat dtf = DateFormat('MMMM dd, yyyy');
     final start =
         transactions.isNotEmpty ? transactions.first.createdAt : DateTime.now();
     final end =
         transactions.isNotEmpty ? transactions.last.createdAt : DateTime.now();
-    graphics.drawString('Start: ${dtf.format(start!)}', normalFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 15;
-    graphics.drawString('End: ${dtf.format(end!)}', normalFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 20;
 
-    // Report Details
-    graphics.drawString('Report Details', detailsFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 16;
-    graphics.drawString('Generated: ${dtf.format(DateTime.now())}', normalFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 15;
-    // graphics.drawString('Report Reference: ', normalFont,
-    //     bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 20;
+    graphics.drawString('From: ${dtf.format(start!)}', normalFont,
+        bounds: Rect.fromLTWH(leftMargin + 15, currentY, columnWidth, 15),
+        brush: PdfSolidBrush(darkGray));
+    graphics.drawString('To: ${dtf.format(end!)}', normalFont,
+        bounds: Rect.fromLTWH(
+            leftMargin + 15 + columnWidth, currentY, columnWidth, 15),
+        brush: PdfSolidBrush(darkGray));
+    currentY += 40;
 
-    // Summary
-    graphics.drawString(
-        'Total Amount: ${totalAmount.toCurrencyFormatted()}', detailsFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
-    top += 16;
-    graphics.drawString(
-        'Total VAT Amount: ${totalVatAmount.toCurrencyFormatted()}',
-        detailsFont,
-        bounds: Rect.fromLTWH(left, top, 400, 15));
+    // Summary metrics in cards
+    currentY = _drawSummaryCards(
+        graphics,
+        leftMargin,
+        currentY,
+        contentWidth,
+        totalAmount,
+        totalVatAmount,
+        totalTransactions,
+        averageTransactionValue);
+
+    return currentY + 20; // Return the Y position for content
   }
 
-  Future<void> _drawContentAsync(PdfPage page, Size pageSize,
-      List<TransactionWithItems> transactionsWithItems) async {
+  double _drawSummaryCards(
+      PdfGraphics graphics,
+      double leftMargin,
+      double currentY,
+      double contentWidth,
+      double totalAmount,
+      double totalVatAmount,
+      int totalTransactions,
+      double averageTransactionValue) {
+    final double cardWidth = (contentWidth - 30) / 2;
+    final double cardHeight = 60;
+    final PdfFont valueFont =
+        PdfStandardFont(PdfFontFamily.helvetica, 16, style: PdfFontStyle.bold);
+    final PdfFont labelFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
+
+    // Total Revenue Card
+    Rect cardRect = Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight);
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(accentGreen),
+      bounds: cardRect,
+    );
+
+    graphics.drawString(
+      totalAmount.toCurrencyFormatted(),
+      valueFont,
+      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 10, cardWidth - 30, 25),
+      brush: PdfBrushes.white,
+    );
+    graphics.drawString(
+      'Total Revenue',
+      labelFont,
+      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 35, cardWidth - 30, 15),
+      brush: PdfBrushes.white,
+    );
+
+    // Total VAT Card
+    cardRect = Rect.fromLTWH(
+        leftMargin + cardWidth + 15, currentY, cardWidth, cardHeight);
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(primaryBlue),
+      bounds: cardRect,
+    );
+
+    graphics.drawString(
+      totalVatAmount.toCurrencyFormatted(),
+      valueFont,
+      bounds: Rect.fromLTWH(
+          leftMargin + cardWidth + 30, currentY + 10, cardWidth - 30, 25),
+      brush: PdfBrushes.white,
+    );
+    graphics.drawString(
+      'Total VAT',
+      labelFont,
+      bounds: Rect.fromLTWH(
+          leftMargin + cardWidth + 30, currentY + 35, cardWidth - 30, 15),
+      brush: PdfBrushes.white,
+    );
+
+    currentY += cardHeight + 15;
+
+    // Transaction Count and Average Value Cards
+    cardRect = Rect.fromLTWH(leftMargin, currentY, cardWidth, cardHeight);
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(lightBlue),
+      pen: PdfPen(primaryBlue, width: 2),
+      bounds: cardRect,
+    );
+
+    graphics.drawString(
+      totalTransactions.toString(),
+      valueFont,
+      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 10, cardWidth - 30, 25),
+      brush: PdfSolidBrush(primaryBlue),
+    );
+    graphics.drawString(
+      'Total Transactions',
+      labelFont,
+      bounds: Rect.fromLTWH(leftMargin + 15, currentY + 35, cardWidth - 30, 15),
+      brush: PdfSolidBrush(darkGray),
+    );
+
+    // Average Transaction Value Card
+    cardRect = Rect.fromLTWH(
+        leftMargin + cardWidth + 15, currentY, cardWidth, cardHeight);
+    graphics.drawRectangle(
+      brush: PdfSolidBrush(lightGray),
+      pen: PdfPen(borderGray, width: 1),
+      bounds: cardRect,
+    );
+
+    graphics.drawString(
+      averageTransactionValue.toCurrencyFormatted(),
+      valueFont,
+      bounds: Rect.fromLTWH(
+          leftMargin + cardWidth + 30, currentY + 10, cardWidth - 30, 25),
+      brush: PdfSolidBrush(darkGray),
+    );
+    graphics.drawString(
+      'Average Transaction',
+      labelFont,
+      bounds: Rect.fromLTWH(
+          leftMargin + cardWidth + 30, currentY + 35, cardWidth - 30, 15),
+      brush: PdfSolidBrush(darkGray),
+    );
+
+    return currentY + cardHeight;
+  }
+
+  Future<void> _drawEnhancedContentAsync(PdfPage page, Size pageSize,
+      List<TransactionWithItems> transactionsWithItems, double startY) async {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 9);
-    grid.columns[0].width = 20; // #
-    grid.columns[1].width = 40; // Buyer TIN
-    grid.columns[2].width = 40; // Buyer Name
+
+    // Optimized column widths for better readability
+    grid.columns[0].width = 25; // #
+    grid.columns[1].width = 45; // Buyer TIN
+    grid.columns[2].width = 50; // Buyer Name
     grid.columns[3].width = 50; // Receipt Number
     grid.columns[4].width = 40; // Invoice Date
-    grid.columns[5].width = 150; // Items
-    grid.columns[6].width = 70; // Total Amount
-    grid.columns[7].width = 50; // VAT
-    grid.columns[8].width = 50; // Receipt Type
+    grid.columns[5].width = 110; // Items
+    grid.columns[6].width = 40; // Total Amount
+    grid.columns[7].width = 40; // VAT
+    grid.columns[8].width = 20; // Receipt Type
+
+    // Enhanced header styling
     grid.headers.add(1);
     final PdfGridRow header = grid.headers[0];
     header.cells[0].value = '#';
     header.cells[1].value = 'Buyer TIN';
     header.cells[2].value = 'Buyer Name';
-    header.cells[3].value = 'Receipt Number';
-    header.cells[4].value = 'Invoice Date';
-    header.cells[5].value = 'Items';
-    header.cells[6].value = 'Total Amount (RWF)';
-    header.cells[7].value = 'VAT (RWF)';
-    header.cells[8].value = 'Receipt Type';
-    header.style.backgroundBrush = PdfSolidBrush(PdfColor(240, 240, 240));
-    header.style.textBrush = PdfBrushes.black;
+    header.cells[3].value = 'Receipt #';
+    header.cells[4].value = 'Date';
+    header.cells[5].value = 'Items Details';
+    header.cells[6].value = 'Amount';
+    header.cells[7].value = 'VAT';
+    header.cells[8].value = 'Type';
+
+    // QuickBooks-style header
+    header.style.backgroundBrush = PdfSolidBrush(primaryBlue);
+    header.style.textBrush = PdfBrushes.white;
     header.style.font =
         PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
 
-    final PdfPen grayPen = PdfPen(PdfColor(180, 180, 180), width: 0.5);
+    final PdfPen headerPen = PdfPen(PdfColor(255, 255, 255), width: 1);
     for (int i = 0; i < header.cells.count; i++) {
       header.cells[i].style.borders = PdfBorders(
-        left: grayPen,
-        right: grayPen,
-        top: grayPen,
-        bottom: grayPen,
+          left: headerPen, right: headerPen, top: headerPen, bottom: headerPen);
+      header.cells[i].style.stringFormat = PdfStringFormat(
+        alignment: PdfTextAlignment.center,
+        lineAlignment: PdfVerticalAlignment.middle,
       );
     }
 
+    // Enhanced data rows
+    final PdfPen borderPen = PdfPen(borderGray, width: 0.5);
+    final PdfFont dataFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
+    final PdfFont itemFont = PdfStandardFont(PdfFontFamily.helvetica, 8);
+
     int index = 1;
     for (final twi in transactionsWithItems) {
-      // Iterate over TransactionWithItems
-      final t = twi.transaction; // Get the ITransaction object
-      final items = twi.items; // Get the list of TransactionItem objects
+      final t = twi.transaction;
+      final items = twi.items;
 
       final row = grid.rows.add();
+      row.height = 40; // Increased row height for better readability
+
       row.cells[0].value = index.toString();
-      row.cells[1].value = t.customerTin ?? '[individual]';
-      row.cells[2].value = t.customerName ?? '';
-      row.cells[3].value =
-          t.receiptNumber?.toString() ?? ''; // Ensure it's a string
+      row.cells[1].value = t.customerTin ?? 'Individual';
+      row.cells[2].value = t.customerName ?? '-';
+      row.cells[3].value = t.receiptNumber?.toString() ?? '-';
       row.cells[4].value = t.createdAt != null
-          ? DateFormat('yyyy-MM-dd').format(t.createdAt!)
-          : '';
-      row.cells[5].value = items.isNotEmpty
-          ? items
-              .map((item) =>
-                  '• ${item.name} (${item.itemCd ?? ''} [${item.taxTyCd ?? ''}])\n  > ${item.qty} x RWF ${item.price.toStringAsFixed(2)}\n  >Total: ${item.totAmt?.toStringAsFixed(2) ?? ''}\n  >VAT: ${item.taxAmt?.toStringAsFixed(2) ?? ''}')
-              .join('\n')
+          ? DateFormat('MM/dd/yy').format(t.createdAt!)
           : '';
 
-      row.cells[6].value = t.subTotal?.toCurrencyFormatted() ?? '';
+      // Enhanced items display
+      if (items.isNotEmpty) {
+        final itemsText = items.map((item) {
+          return '${item.name}\n  Qty: ${item.qty} × ${item.price.toStringAsFixed(0)}\n  Total: ${item.totAmt?.toStringAsFixed(0) ?? '0'}';
+        }).join('\n\n');
+        row.cells[5].value = itemsText;
+      } else {
+        row.cells[5].value = '-';
+      }
+
+      row.cells[6].value = t.subTotal?.toCurrencyFormatted() ?? '0';
 
       double taxAmount = t.taxAmount?.toDouble() ?? 0.0;
       if (taxAmount == 0.0 && items.isNotEmpty) {
@@ -222,32 +438,47 @@ class SaleReport {
             items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
       }
       row.cells[7].value = taxAmount.toCurrencyFormatted();
+      row.cells[8].value = t.receiptType ?? 'Standard';
 
-      row.cells[8].value = t.receiptType ?? '';
+      // Style individual cells
       for (int i = 0; i < row.cells.count; i++) {
         row.cells[i].style.borders = PdfBorders(
-          left: grayPen,
-          right: grayPen,
-          top: grayPen,
-          bottom: grayPen,
+            left: borderPen,
+            right: borderPen,
+            top: borderPen,
+            bottom: borderPen);
+        row.cells[i].style.font = i == 5 ? itemFont : dataFont;
+        row.cells[i].style.stringFormat = PdfStringFormat(
+          alignment: i == 0 || i == 3 || i == 6 || i == 7
+              ? PdfTextAlignment.center
+              : PdfTextAlignment.left,
+          lineAlignment: PdfVerticalAlignment.middle,
         );
+
+        // Right-align monetary values
+        if (i == 6 || i == 7) {
+          row.cells[i].style.stringFormat = PdfStringFormat(
+            alignment: PdfTextAlignment.right,
+            lineAlignment: PdfVerticalAlignment.middle,
+          );
+        }
       }
+
+      // Alternating row colors for better readability
+      if (index % 2 == 0) {
+        for (int i = 0; i < row.cells.count; i++) {
+          row.cells[i].style.backgroundBrush = PdfSolidBrush(lightGray);
+        }
+      }
+
       index++;
     }
 
-    for (int i = 0; i < grid.rows.count; i++) {
-      if (i % 2 == 0) {
-        grid.rows[i].style.backgroundBrush =
-            PdfSolidBrush(PdfColor(250, 250, 250));
-      }
-    }
-
-    // Increase this value to add more space between header and table
-    double estimatedHeaderHeight = 300;
+    // Draw the grid with proper spacing
     grid.draw(
       page: page,
-      bounds: Rect.fromLTWH(0, estimatedHeaderHeight, pageSize.width,
-          pageSize.height - estimatedHeaderHeight - 50),
+      bounds: Rect.fromLTWH(
+          40, startY, pageSize.width - 80, pageSize.height - startY - 80),
     );
   }
 
