@@ -89,7 +89,7 @@ class TransactionListWrapperState
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withOpacity(0.2),
+        color: colorScheme.primaryContainer.withValues(alpha: .2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

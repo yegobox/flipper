@@ -347,7 +347,9 @@ jobs:
     name: "Google Deploy ${{ matrix.app }}"
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         app: [flipper, flipper_auth]
     steps:
@@ -399,6 +401,12 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - name: Verify app exists
+        run: |
+          echo "Checking if apps/${{ matrix.app }} exists..."
+          ls -la apps/
+          ls -la apps/${{ matrix.app }}/
+          ls -la apps/${{ matrix.app }}/android/
       - run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
