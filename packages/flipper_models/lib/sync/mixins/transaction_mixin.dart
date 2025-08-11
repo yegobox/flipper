@@ -997,6 +997,13 @@ mixin TransactionMixin implements TransactionInterface {
         // limit: 5000,
         where: conditions,
         orderBy: [OrderBy('lastTouched', ascending: false)]);
+
+    // Debug: Log all query conditions
+    talker.info('Query conditions (${conditions.length}):');
+    for (int i = 0; i < conditions.length; i++) {
+      talker.info('  [$i] ${conditions[i].toString()}');
+    }
+
     if (ProxyService.box.enableDebug() ?? false) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
@@ -1010,7 +1017,7 @@ mixin TransactionMixin implements TransactionInterface {
         .subscribe<ITransaction>(
             query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
         .map((data) {
-      print('Transaction stream data: ${data.length} records');
+      talker.info('Transaction stream returned: ${data.length} records');
       return data;
     });
   }

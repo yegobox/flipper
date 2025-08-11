@@ -35,6 +35,7 @@ class SaleReport {
       startDate: startDate,
       endDate: endDate,
       status: COMPLETE,
+      skipOriginalTransactionCheck: true,
     );
 
     final transactions =
@@ -378,12 +379,12 @@ class SaleReport {
     grid.columns[0].width = pageWidth * 0.03; // # (3%)
     grid.columns[1].width = pageWidth * 0.10; // Buyer TIN (10%)
     grid.columns[2].width = pageWidth * 0.12; // Buyer Name (12%)
-    grid.columns[3].width = pageWidth * 0.08; // Receipt Number (8%)
+    grid.columns[3].width = pageWidth * 0.14; // Receipt Number (14%)
     grid.columns[4].width = pageWidth * 0.08; // Date (8%)
-    grid.columns[5].width = pageWidth * 0.35; // Items Details (35%)
+    grid.columns[5].width = pageWidth * 0.25; // Items Details (25%)
     grid.columns[6].width = pageWidth * 0.12; // Amount (12%)
     grid.columns[7].width = pageWidth * 0.10; // VAT (10%)
-    grid.columns[8].width = pageWidth * 0.02; // Type (2%)
+    grid.columns[8].width = pageWidth * 0.10; // Type (10%)
 
     // Enhanced header styling
     grid.headers.add(1);
@@ -448,7 +449,8 @@ class SaleReport {
       row.cells[6].value = t.subTotal?.toCurrencyFormatted() ?? '0';
 
       // Calculate VAT from item-level taxAmt for consistency with header totals
-      double taxAmount = items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
+      double taxAmount =
+          items.fold<double>(0.0, (sum, item) => sum + (item.taxAmt ?? 0.0));
       row.cells[7].value = taxAmount.toCurrencyFormatted();
       row.cells[8].value = t.receiptType ?? 'Standard';
 

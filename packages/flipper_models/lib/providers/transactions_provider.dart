@@ -52,7 +52,7 @@ Stream<List<ITransaction>> transactionList(
     final stream = ProxyService.strategy.transactionsStream(
       startDate: startDate,
       endDate: endDate,
-      skipOriginalTransactionCheck: false,
+      skipOriginalTransactionCheck: true,
       removeAdjustmentTransactions: true,
       branchId: ProxyService.box.getBranchId(),
       isCashOut: false,
@@ -102,7 +102,7 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     branchId: branchId,
-    skipOriginalTransactionCheck: false,
+    skipOriginalTransactionCheck: true,
     startDate: startDate,
     endDate: endDate,
     removeAdjustmentTransactions: true,
