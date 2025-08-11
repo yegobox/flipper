@@ -1014,5 +1014,53 @@ void main() {
             receiptNumber: null,
           )).called(1);
     });
+    test('#transactionsStream should handle date filtering', () async {
+      final startDate = DateTime(2025, 7, 29);
+      final endDate = DateTime(2025, 7, 30);
+
+      when(() => mockDbSync.transactionsStream(
+            startDate: startDate,
+            endDate: endDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            id: null,
+            removeAdjustmentTransactions: false,
+            filterType: null,
+            includePending: false,
+            forceRealData: true,
+            skipOriginalTransactionCheck: false,
+          )).thenAnswer((_) => Stream.value([
+            ITransaction(
+              id: 'stream_txn_1',
+              lastTouched: DateTime(2025, 7, 29, 12, 0, 0),
+              branchId: 1,
+              status: 'complete',
+              subTotal: 100.0,
+              isOriginalTransaction: true,
+              isExpense: false,
+              transactionType: 'sale',
+              paymentType: 'Cash',
+              cashReceived: 100,
+              customerChangeDue: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isIncome: true,
+            ),
+          ]));
+
+      final stream = ProxyService.strategy.transactionsStream(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: 1,
+        removeAdjustmentTransactions: false,
+        skipOriginalTransactionCheck: false,
+      );
+
+      final result = await stream.first;
+      expect(result.length, 1);
+      expect(result.first.id, 'stream_txn_1');
+    });
   });
 }
