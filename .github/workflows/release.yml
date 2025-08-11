@@ -434,29 +434,29 @@ jobs:
       - name: Set environment variables
         run: |
           if [ "${{ matrix.app }}" = "flipper_auth" ]; then
-            {
-              echo "PLAY_STORE_UPLOAD_KEY<<EOF"
-              echo "${{ secrets.FLIPPER_AUTH_PLAY_STORE_UPLOAD_KEY }}"
-              echo "EOF"
-              echo "KEYSTORE_KEY_ALIAS=${{ secrets.FLIPPER_AUTH_KEYSTORE_KEY_ALIAS }}"
-              echo "KEYSTORE_KEY_PASSWORD=${{ secrets.FLIPPER_AUTH_KEYSTORE_KEY_PASSWORD }}"
-              echo "KEYSTORE_STORE_PASSWORD=${{ secrets.FLIPPER_AUTH_KEYSTORE_STORE_PASSWORD }}"
-              echo "GOOGLE_SERVICE_JSON<<EOF"
-              echo "${{ secrets.FLIPPER_AUTH_GOOGLE_SERVICE_JSON }}"
-              echo "EOF"
-            } >> "$GITHUB_ENV"
+            cat << 'ENV_EOF' >> "$GITHUB_ENV"
+          PLAY_STORE_UPLOAD_KEY<<EOF
+          ${{ secrets.FLIPPER_AUTH_PLAY_STORE_UPLOAD_KEY }}
+          EOF
+          KEYSTORE_KEY_ALIAS=${{ secrets.FLIPPER_AUTH_KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.FLIPPER_AUTH_KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.FLIPPER_AUTH_KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON<<EOF
+          ${{ secrets.FLIPPER_AUTH_GOOGLE_SERVICE_JSON }}
+          EOF
+          ENV_EOF
           else
-            {
-              echo "PLAY_STORE_UPLOAD_KEY<<EOF"
-              echo "${{ secrets.PLAY_STORE_UPLOAD_KEY }}"
-              echo "EOF"
-              echo "KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}"
-              echo "KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}"
-              echo "KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}"
-              echo "GOOGLE_SERVICE_JSON<<EOF"
-              echo "${{ secrets.GOOGLE_SERVICE_JSON }}"
-              echo "EOF"
-            } >> "$GITHUB_ENV"
+            cat << 'ENV_EOF' >> "$GITHUB_ENV"
+          PLAY_STORE_UPLOAD_KEY<<EOF
+          ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          EOF
+          KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON<<EOF
+          ${{ secrets.GOOGLE_SERVICE_JSON }}
+          EOF
+          ENV_EOF
           fi
       - name: Configure Keystore
         run: |
