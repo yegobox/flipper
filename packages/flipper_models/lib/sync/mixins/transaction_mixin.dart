@@ -106,24 +106,20 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      // Convert to UTC to match database timezone
-      final utcStartDate =
-          DateTime(startDate.year, startDate.month, startDate.day).toUtc();
-      final utcEndDate =
-          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
-              .toUtc();
-
-      talker.info(
-          'Date Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
+      // Use local timezone for precise date matching
+      final localStartDate =
+          DateTime(startDate.year, startDate.month, startDate.day);
+      final localEndDate =
+          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
 
       conditions.add(
         Where('lastTouched').isGreaterThanOrEqualTo(
-          utcStartDate.toIso8601String(),
+          localStartDate.toIso8601String(),
         ),
       );
       conditions.add(
         Where('lastTouched').isLessThanOrEqualTo(
-          utcEndDate.toIso8601String(),
+          localEndDate.toIso8601String(),
         ),
       );
     }
@@ -151,19 +147,6 @@ mixin TransactionMixin implements TransactionInterface {
           : OfflineFirstGetPolicy.localOnly,
       query: queryString,
     );
-
-    // Filter results to honor user's exact date choice
-    if (startDate != null && endDate != null) {
-      final targetDate = startDate.toDateOnly;
-      return result.where((transaction) {
-        final transactionDate = transaction.lastTouched?.toDateOnly;
-        return transactionDate != null &&
-                transactionDate.isAtSameMomentAs(targetDate) ||
-            (transactionDate!.isAfter(targetDate) &&
-                transactionDate
-                    .isBefore(endDate.toDateOnly.add(Duration(days: 1))));
-      }).toList();
-    }
 
     return result;
   }
@@ -962,49 +945,39 @@ mixin TransactionMixin implements TransactionInterface {
     if (startDate != null || endDate != null) {
       // Case 1: Both dates provided (date range)
       if (startDate != null && endDate != null) {
-        // Treat input dates as local and convert to UTC for database comparison
-        final utcStartDate =
-            DateTime(startDate.year, startDate.month, startDate.day).toUtc();
-        final utcEndDate =
-            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
-                .toUtc();
-
-        talker.info(
-            'Input dates: ${startDate.toIso8601String()} to ${endDate.toIso8601String()}');
-        talker.info(
-            'UTC Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
-        talker.info('Target record: 2025-07-29T17:14:44.627243Z');
+        final localStartDate =
+            DateTime(startDate.year, startDate.month, startDate.day);
+        final localEndDate =
+            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
 
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
-            utcStartDate.toIso8601String(),
+            localStartDate.toIso8601String(),
           ),
         );
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
-            utcEndDate.toIso8601String(),
+            localEndDate.toIso8601String(),
           ),
         );
       }
       // Case 2: Only startDate provided (everything from this date onwards)
       else if (startDate != null) {
-        final utcStartDate = startDate.toUtc();
-        talker.info(
-            'Transactions From Date: \x1B[35m${utcStartDate.toIso8601String()}\x1B[0m onwards');
+        final localStartDate =
+            DateTime(startDate.year, startDate.month, startDate.day);
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
-            utcStartDate.toIso8601String(),
+            localStartDate.toIso8601String(),
           ),
         );
       }
       // Case 3: Only endDate provided (everything up to this date)
       else if (endDate != null) {
-        final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
-        talker.info(
-            'Transactions Until Date: \x1B[35m${utcEndDate.toIso8601String()}\x1B[0m');
+        final localEndDate =
+            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
-            utcEndDate.toIso8601String(),
+            localEndDate.toIso8601String(),
           ),
         );
       }
