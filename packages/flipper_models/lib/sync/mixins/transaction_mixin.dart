@@ -933,27 +933,31 @@ mixin TransactionMixin implements TransactionInterface {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
-      if (skipOriginalTransactionCheck == false)
+      if (!skipOriginalTransactionCheck)
         Where('isOriginalTransaction').isExactly(true),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
       if (isCashOut) Where('isExpense').isExactly(isCashOut),
       if (removeAdjustmentTransactions)
         Where('transactionType').isNot('Adjustment'),
-      if (removeAdjustmentTransactions)
-        Where('transactionType').isNot('adjustment'),
     ];
     // talker.warning(conditions.toString());
     // Handle date filtering with proper support for single date scenarios
     if (startDate != null || endDate != null) {
       // Case 1: Both dates provided (date range)
       if (startDate != null && endDate != null) {
-        // Convert to UTC to match database timezone
-        final utcStartDate = startDate.toUtc();
-        final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
+        // Treat input dates as local and convert to UTC for database comparison
+        final utcStartDate =
+            DateTime(startDate.year, startDate.month, startDate.day).toUtc();
+        final utcEndDate =
+            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
+                .toUtc();
 
         talker.info(
-            'Transaction Date Range: \x1B[35m${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}\x1B[0m');
+            'Input dates: ${startDate.toIso8601String()} to ${endDate.toIso8601String()}');
+        talker.info(
+            'UTC Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
+        talker.info('Target record: 2025-07-29T17:14:44.627243Z');
 
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
@@ -996,8 +1000,7 @@ mixin TransactionMixin implements TransactionInterface {
     if (ProxyService.box.enableDebug() ?? false) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
-        branchId:
-            branchId ?? 0, // Provide a default or handle null appropriately
+        branchId: branchId ?? 0,
         status: status,
         transactionType: transactionType,
       ));

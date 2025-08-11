@@ -25,7 +25,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     branchId: branchId,
-    skipOriginalTransactionCheck: false,
+    skipOriginalTransactionCheck: true,
     startDate: startDate,
     endDate: endDate,
     removeAdjustmentTransactions: true,
@@ -186,7 +186,7 @@ Stream<List<ITransaction>> expensesStream(
       'Fetching expenses from $startDate to $endDate for branch $branchId');
   return ProxyService.strategy
       .transactionsStream(
-        skipOriginalTransactionCheck: false,
+        skipOriginalTransactionCheck: true,
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
