@@ -1062,5 +1062,124 @@ void main() {
       expect(result.length, 1);
       expect(result.first.id, 'stream_txn_1');
     });
+
+    test('#transactions should handle different timezone edge cases', () async {
+      // Clear any previous interactions
+      clearInteractions(mockDbSync);
+      
+      // Test with UTC date that could cross timezone boundaries
+      final utcDate = DateTime.utc(2025, 7, 29, 22, 0, 0); // 10 PM UTC
+      final localDate = DateTime(2025, 7, 29); // Local midnight
+
+      when(() => mockDbSync.transactions(
+            startDate: localDate,
+            endDate: localDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).thenAnswer((_) async => [
+            ITransaction(
+              id: 'utc_txn',
+              lastTouched: utcDate,
+              branchId: 1,
+              status: 'complete',
+              subTotal: 100.0,
+              isOriginalTransaction: true,
+              isExpense: false,
+              transactionType: 'sale',
+              paymentType: 'Cash',
+              cashReceived: 100,
+              customerChangeDue: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isIncome: true,
+            ),
+          ]);
+
+      final result = await ProxyService.strategy.transactions(
+        startDate: localDate,
+        endDate: localDate,
+        branchId: 1,
+      );
+
+      expect(result.length, 1);
+      expect(result.first.id, 'utc_txn');
+      // Verify the method uses local date boundaries, not UTC conversion
+      verify(() => mockDbSync.transactions(
+            startDate: localDate, // Should pass local date, not converted
+            endDate: localDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).called(1);
+    });
+
+    test('#transactionsStream should handle timezone edge cases', () async {
+      final localDate = DateTime(2025, 7, 29);
+
+      when(() => mockDbSync.transactionsStream(
+            startDate: localDate,
+            endDate: localDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            id: null,
+            removeAdjustmentTransactions: false,
+            filterType: null,
+            includePending: false,
+            forceRealData: true,
+            skipOriginalTransactionCheck: false,
+          )).thenAnswer((_) => Stream.value([
+            ITransaction(
+              id: 'tz_stream_txn',
+              lastTouched: DateTime.utc(2025, 7, 29, 23, 30, 0),
+              branchId: 1,
+              status: 'complete',
+              subTotal: 100.0,
+              isOriginalTransaction: true,
+              isExpense: false,
+              transactionType: 'sale',
+              paymentType: 'Cash',
+              cashReceived: 100,
+              customerChangeDue: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isIncome: true,
+            ),
+          ]));
+
+      final stream = ProxyService.strategy.transactionsStream(
+        startDate: localDate,
+        endDate: localDate,
+        branchId: 1,
+        removeAdjustmentTransactions: false,
+        skipOriginalTransactionCheck: false,
+      );
+
+      final result = await stream.first;
+      expect(result.length, 1);
+      expect(result.first.id, 'tz_stream_txn');
+    });
   });
 }
