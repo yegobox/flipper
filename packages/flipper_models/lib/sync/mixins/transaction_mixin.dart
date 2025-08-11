@@ -107,8 +107,11 @@ mixin TransactionMixin implements TransactionInterface {
 
     if (startDate != null && endDate != null) {
       // Convert to UTC to match database timezone
-      final utcStartDate = startDate.toUtc();
-      final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
+      final utcStartDate =
+          DateTime(startDate.year, startDate.month, startDate.day).toUtc();
+      final utcEndDate =
+          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999)
+              .toUtc();
 
       talker.info(
           'Date Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
@@ -148,6 +151,19 @@ mixin TransactionMixin implements TransactionInterface {
           : OfflineFirstGetPolicy.localOnly,
       query: queryString,
     );
+
+    // Filter results to honor user's exact date choice
+    if (startDate != null && endDate != null) {
+      final targetDate = startDate.toDateOnly;
+      return result.where((transaction) {
+        final transactionDate = transaction.lastTouched?.toDateOnly;
+        return transactionDate != null &&
+                transactionDate.isAtSameMomentAs(targetDate) ||
+            (transactionDate!.isAfter(targetDate) &&
+                transactionDate
+                    .isBefore(endDate.toDateOnly.add(Duration(days: 1))));
+      }).toList();
+    }
 
     return result;
   }

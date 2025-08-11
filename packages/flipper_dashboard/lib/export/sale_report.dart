@@ -438,6 +438,8 @@ class SaleReport {
 
       // Enhanced items display
       if (items.isNotEmpty) {
+        // get transaction item found on this transaction
+
         final itemsText = items.map((item) {
           return '${item.name}\n  Qty: ${item.qty} × ${item.price.toStringAsFixed(0)}\n  Total: ${item.totAmt?.toStringAsFixed(0) ?? '0'}';
         }).join('\n\n');

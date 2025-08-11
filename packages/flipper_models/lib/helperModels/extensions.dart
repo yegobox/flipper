@@ -455,3 +455,9 @@ extension CompactDateTimeParser on String {
     }
   }
 }
+
+DateTimeRange localDayRangeToUtc(DateTime localDate) {
+  final localStart = DateTime(localDate.year, localDate.month, localDate.day);
+  final localEnd = localStart.add(Duration(days: 1));
+  return DateTimeRange(start: localStart.toUtc(), end: localEnd.toUtc());
+}
