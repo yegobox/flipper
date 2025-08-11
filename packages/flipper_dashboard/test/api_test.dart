@@ -903,4 +903,116 @@ void main() {
       expect(result?.businessId, expectedPlan.businessId);
     });
   });
+  group('Transaction Date Filtering', () {
+    late MockDatabaseSync mockDbSync;
+
+    setUp(() {
+      env.injectMocks();
+      env.stubCommonMethods();
+      mockDbSync = env.mockDbSync;
+    });
+
+    tearDown(() {
+      env.restore();
+    });
+
+    test('#transactions should return ITransaction objects not timestamps',
+        () async {
+      final targetDate = DateTime(2025, 7, 29);
+      final mockTransactions = [
+        ITransaction(
+          id: 'txn_1',
+          lastTouched: DateTime(2025, 7, 29, 8, 30, 0),
+          branchId: 1,
+          status: 'complete',
+          subTotal: 100.0,
+          isOriginalTransaction: true,
+          isExpense: false,
+          transactionType: 'sale',
+          paymentType: 'Cash',
+          cashReceived: 100,
+          customerChangeDue: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          isIncome: true,
+        ),
+      ];
+
+      when(() => mockDbSync.transactions(
+            startDate: targetDate,
+            endDate: targetDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).thenAnswer((_) async => mockTransactions);
+
+      final result = await ProxyService.strategy.transactions(
+        startDate: targetDate,
+        endDate: targetDate,
+        branchId: 1,
+      );
+
+      expect(result, isA<List<ITransaction>>());
+      expect(result.length, 1);
+      expect(result.first.id, 'txn_1');
+      expect(result.first.lastTouched, isA<DateTime>());
+    });
+
+    test('#transactions should handle date filtering correctly', () async {
+      final startDate = DateTime(2025, 7, 29);
+      final endDate = DateTime(2025, 7, 30);
+
+      when(() => mockDbSync.transactions(
+            startDate: startDate,
+            endDate: endDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).thenAnswer((_) async => []);
+
+      await ProxyService.strategy.transactions(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: 1,
+      );
+
+      verify(() => mockDbSync.transactions(
+            startDate: startDate,
+            endDate: endDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).called(1);
+    });
+  });
 }
