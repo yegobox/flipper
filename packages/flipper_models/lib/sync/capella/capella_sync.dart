@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/purchase.dart' hide Purchase;
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/capella/capella_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';

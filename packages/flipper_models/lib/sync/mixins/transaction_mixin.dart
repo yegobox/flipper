@@ -63,6 +63,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
+    List<String>? receiptNumber,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -71,6 +72,20 @@ mixin TransactionMixin implements TransactionInterface {
         status: status,
         transactionType: transactionType,
       );
+    }
+
+    if (receiptNumber != null && receiptNumber.isNotEmpty) {
+      final response = await repository.get<ITransaction>(
+        query: Query(where: [
+          Or('invoiceNumber').isIn(receiptNumber),
+          Where('receiptNumber').isIn(receiptNumber),
+          if (branchId != null) Where('branchId').isExactly(branchId),
+        ]),
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+      );
+      return response;
     }
     final List<Where> conditions = [
       if (id != null)
@@ -91,31 +106,22 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        talker.info('Date Given ${startDate.toIso8601String()}');
-        conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
-          ),
-        );
-        // Add condition for the end of the same day
-        conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
-          ),
-        );
-      } else {
-        conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
-          ),
-        );
-        conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
-          ),
-        );
-      }
+      // Convert to UTC to match database timezone
+      final utcStartDate = startDate.toUtc();
+      final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
+      
+      talker.info('Date Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
+      
+      conditions.add(
+        Where('lastTouched').isGreaterThanOrEqualTo(
+          utcStartDate.toIso8601String(),
+        ),
+      );
+      conditions.add(
+        Where('lastTouched').isLessThanOrEqualTo(
+          utcEndDate.toIso8601String(),
+        ),
+      );
     }
 
     // Add ordering to fetch transactions with latest lastTouched first (for consistency)

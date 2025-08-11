@@ -21,6 +21,7 @@ abstract class TransactionInterface {
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
+    List<String>? receiptNumber,
   });
 
   FutureOr<void> addTransaction({required ITransaction transaction});
