@@ -360,6 +360,7 @@ final currentTransactionsByIdStream =
       id: id,
       filterType: FilterType.TRANSACTION,
       forceRealData: true,
+      skipOriginalTransactionCheck: true,
       removeAdjustmentTransactions: true);
 
   // Return the stream
@@ -380,6 +381,7 @@ final ordersStreamProvider =
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.strategy.transactionsStream(
       branchId: branchId,
+      skipOriginalTransactionCheck: true,
       removeAdjustmentTransactions: true,
       forceRealData: true);
 });

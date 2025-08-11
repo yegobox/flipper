@@ -134,6 +134,7 @@ class CapellaSync extends CapellaSyncBase
       DateTime? startDate,
       bool removeAdjustmentTransactions = false,
       bool forceRealData = true,
+      required bool skipOriginalTransactionCheck,
       DateTime? endDate}) {
     // TODO: implement transactionsStream
     throw UnimplementedError();

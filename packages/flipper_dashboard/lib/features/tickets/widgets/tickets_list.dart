@@ -366,11 +366,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           status: PARKED,
           removeAdjustmentTransactions: true,
           forceRealData: true,
+          skipOriginalTransactionCheck: true,
         )
         .asBroadcastStream();
 
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
+            skipOriginalTransactionCheck: true,
             status: IN_PROGRESS,
             removeAdjustmentTransactions: true,
             forceRealData: true)
@@ -378,6 +380,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     final waitingStream = ProxyService.strategy
         .transactionsStream(
+            skipOriginalTransactionCheck: true,
             status: WAITING,
             removeAdjustmentTransactions: true,
             forceRealData: true)

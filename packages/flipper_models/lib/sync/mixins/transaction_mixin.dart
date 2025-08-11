@@ -109,9 +109,10 @@ mixin TransactionMixin implements TransactionInterface {
       // Convert to UTC to match database timezone
       final utcStartDate = startDate.toUtc();
       final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
-      
-      talker.info('Date Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
-      
+
+      talker.info(
+          'Date Range: ${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}');
+
       conditions.add(
         Where('lastTouched').isGreaterThanOrEqualTo(
           utcStartDate.toIso8601String(),
@@ -919,6 +920,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? startDate,
     DateTime? endDate,
     bool forceRealData = true,
+    required bool skipOriginalTransactionCheck,
   }) {
     if (!forceRealData) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
@@ -931,7 +933,8 @@ mixin TransactionMixin implements TransactionInterface {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
-      Where('isOriginalTransaction').isExactly(true),
+      if (skipOriginalTransactionCheck == false)
+        Where('isOriginalTransaction').isExactly(true),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
       if (isCashOut) Where('isExpense').isExactly(isCashOut),
@@ -945,40 +948,43 @@ mixin TransactionMixin implements TransactionInterface {
     if (startDate != null || endDate != null) {
       // Case 1: Both dates provided (date range)
       if (startDate != null && endDate != null) {
-        talker.info(
-            'Transaction Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m');
+        // Convert to UTC to match database timezone
+        final utcStartDate = startDate.toUtc();
+        final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
 
-        // startDate is the lower bound (inclusive)
+        talker.info(
+            'Transaction Date Range: \x1B[35m${utcStartDate.toIso8601String()} to ${utcEndDate.toIso8601String()}\x1B[0m');
+
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
+            utcStartDate.toIso8601String(),
           ),
         );
-
-        // endDate + 1 day is the upper bound (inclusive) to include all entries on the end date
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
+            utcEndDate.toIso8601String(),
           ),
         );
       }
       // Case 2: Only startDate provided (everything from this date onwards)
       else if (startDate != null) {
+        final utcStartDate = startDate.toUtc();
         talker.info(
-            'Transactions From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards');
+            'Transactions From Date: \x1B[35m${utcStartDate.toIso8601String()}\x1B[0m onwards');
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
+            utcStartDate.toIso8601String(),
           ),
         );
       }
       // Case 3: Only endDate provided (everything up to this date)
       else if (endDate != null) {
+        final utcEndDate = endDate.toUtc().add(const Duration(days: 1));
         talker.info(
-            'Transactions Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m');
+            'Transactions Until Date: \x1B[35m${utcEndDate.toIso8601String()}\x1B[0m');
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
+            utcEndDate.toIso8601String(),
           ),
         );
       }
