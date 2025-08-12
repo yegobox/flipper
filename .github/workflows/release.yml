@@ -467,6 +467,25 @@ jobs:
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
           echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
         working-directory: apps/${{ matrix.app }}/android
+      - name: Verify package name before upload
+        run: |
+          echo "Verifying package name for ${{ matrix.app }}..."
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            expected_package="rw.flipper.auth"
+          else
+            expected_package="rw.flipper"
+          fi
+          
+          # Extract package name from build.gradle.kts
+          actual_package=$(grep 'applicationId = ' app/build.gradle.kts | sed 's/.*applicationId = "\(.*\)".*/\1/')
+          echo "Expected package: $expected_package"
+          echo "Actual package: $actual_package"
+          
+          if [ "$actual_package" != "$expected_package" ]; then
+            echo "ERROR: Package name mismatch!"
+            exit 1
+          fi
+        working-directory: apps/${{ matrix.app }}/android
       - run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
