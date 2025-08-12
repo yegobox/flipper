@@ -829,5 +829,11 @@ class App {}
 // offline_first_repository.dart
 
 // keytool -importcert -file deployment_cert.der -keystore flipper_auth.jks -alias flipper_auth -storepass flipper_auth -keypass flipper_auth
+// keytool -list -v -keystore ~/.android/debug.keystore -alias flipper_auth -storepass flipper_auth -keypass flipper_auth
+
+// keytool -list -v -keystore /Users/richard/Documents/GitHub/flipper/apps/flipper_auth/android/app/flipper_auth.jks -alias flipper_auth -storepass flipper_auth
+
+
+//  keytool -list -v -keystore /Users/richard/Documents/GitHub/flipper/apps/flipper/android/app/key.jks -alias upload -storepass umwana789
 // Future plans:
 // https://medium.com/@mahmuthanb/building-a-flutter-app-with-machine-learning-using-tensorflow-lite-474fd03a30fe
