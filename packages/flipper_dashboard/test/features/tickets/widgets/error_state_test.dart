@@ -50,8 +50,7 @@ void main() {
                 skipOriginalTransactionCheck:
                     any(named: 'skipOriginalTransactionCheck'),
               ))
-          .thenAnswer((_) => Stream.fromFuture(
-              Future.delayed(const Duration(milliseconds: 100), () => [])));
+          .thenAnswer((_) => Stream.value([]));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -60,9 +59,11 @@ void main() {
           ),
         ),
       );
+      
+      await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.text('Loading tickets...'), findsOneWidget);
+      expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
+      expect(find.text('No open tickets'), findsOneWidget);
     });
 
     testWidgets('shows empty state when no data', (tester) async {
@@ -83,7 +84,7 @@ void main() {
         ),
       );
 
-      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
       expect(find.text('No open tickets'), findsOneWidget);

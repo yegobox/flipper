@@ -79,7 +79,7 @@ void main() {
       )).thenAnswer((_) => Stream.value(<ITransaction>[]));
 
       await tester.pumpWidget(buildTestWidget());
-      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
       expect(find.text('No open tickets'), findsOneWidget);
@@ -116,7 +116,7 @@ void main() {
       });
 
       await tester.pumpWidget(buildTestWidget());
-      await tester.pump(const Duration(seconds: 4));
+      await tester.pumpAndSettle();
 
       expect(find.byType(TicketCard), findsOneWidget);
       expect(find.textContaining('Ticket #'), findsOneWidget);

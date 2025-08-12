@@ -276,5 +276,34 @@ void main() {
       final container = tester.widget<Container>(containerFinder);
       expect(container.constraints, const BoxConstraints(maxWidth: 300));
     });
+
+    testWidgets('handles text overflow with ellipsis for long titles', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 250,
+                child: OrderColumn(
+                  title: 'This is an extremely long title that should definitely overflow and show ellipsis',
+                  orders: [],
+                  color: Colors.blue,
+                  status: OrderStatus.incoming,
+                  onOrderAccepted: mockOnOrderAccepted,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+
+      final titleFinder = find.text('This is an extremely long title that should definitely overflow and show ellipsis');
+      expect(titleFinder, findsOneWidget);
+      
+      final titleWidget = tester.widget<Text>(titleFinder);
+      expect(titleWidget.overflow, TextOverflow.ellipsis);
+    });
   });
 }
