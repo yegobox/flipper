@@ -28,5 +28,18 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to scan QR codes</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>flipper.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>flipper</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
