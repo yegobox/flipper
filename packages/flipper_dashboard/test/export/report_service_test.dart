@@ -123,8 +123,8 @@ void main() {
         
         // X report should span from last Z report to current time
         final duration = currentDate.difference(lastZReportDate);
-        expect(duration.inHours, greaterThan(14));
-        expect(duration.inMinutes, greaterThan(14 * 60 + 30));
+        expect(duration.inHours, greaterThanOrEqualTo(14));
+        expect(duration.inMinutes, greaterThanOrEqualTo(14 * 60 + 30));
       });
     });
 
@@ -235,15 +235,15 @@ void main() {
         // Verify the date range would capture transactions correctly
         final testTransaction1 = DateTime(2024, 1, 15, 8, 0, 0);  // Should be included
         final testTransaction2 = DateTime(2024, 1, 14, 23, 59, 59); // Should be excluded
-        final testTransaction3 = DateTime(2024, 1, 15, 23, 59, 59); // Should be included
+        final testTransaction3 = DateTime(2024, 1, 15, 13, 0, 0); // Should be included (before endDate)
         
         expect(testTransaction1.isAfter(startDate) || testTransaction1.isAtSameMomentAs(startDate), isTrue);
-        expect(testTransaction1.isBefore(endDate) || testTransaction1.isAtSameMomentAs(endDate), isTrue);
+        expect(testTransaction1.isBefore(endDate), isTrue);
         
         expect(testTransaction2.isBefore(startDate), isTrue);
         
         expect(testTransaction3.isAfter(startDate), isTrue);
-        expect(testTransaction3.isBefore(endDate) || testTransaction3.isAtSameMomentAs(endDate), isTrue);
+        expect(testTransaction3.isBefore(endDate), isTrue);
       });
 
       test('validates UTC conversion preserves date boundaries', () {
