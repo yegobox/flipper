@@ -23,7 +23,7 @@ class ReportService {
     } else {
       final lastZReportDateString = ProxyService.box.lastZReportDate();
       startDate = lastZReportDateString != null
-          ? DateTime.parse(lastZReportDateString)
+          ? DateTime.parse(lastZReportDateString).add(const Duration(days: 1))
           : DateTime.now().toLocal().subtract(const Duration(days: 1));
       endDate = DateTime.now().toLocal();
     }
