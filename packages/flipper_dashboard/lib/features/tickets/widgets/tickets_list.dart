@@ -24,13 +24,16 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     for (final ticketId in selectedIds) {
-      final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
       try {
+        final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
         await ProxyService.strategy.deleteTransaction(transaction: ticket);
       } catch (e) {
         talker.error('Failed to delete ticket $ticketId: $e');
+        rethrow;
       }
     }
+    // Refresh the UI after deletion
+    if (mounted) setState(() {});
   }
 
   /// Builds the main ticket section with responsive layout

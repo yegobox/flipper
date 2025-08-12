@@ -227,7 +227,7 @@ class PdfHelper {
         (row['Unit Price'] is num
             ? (row['Unit Price'] as num).toStringAsFixed(2)
             : row['Unit Price']?.toString() ?? '0.00'),
-        row['Tax Rate']?.toString() ?? '0.00%',
+        row['Tax']?.toString() ?? '0.00',
         row['Sold Quantity']?.toString() ?? '0',
         row['Remain Quantity']?.toString() ?? '0',
       ];
@@ -321,24 +321,17 @@ class PLUReport {
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
       final totalTax =
           items.fold<double>(0, (sum, item) => sum + (item.taxAmt ?? 0));
-      final totalTaxable =
-          items.fold<double>(0, (sum, item) => sum + (item.taxblAmt ?? 0));
 
-      // Calculate tax rate (handle division by zero)
-      double taxRate = 0.0;
-      if (totalTaxable > 0) {
-        taxRate = (totalTax / totalTaxable) * 100;
-      }
-
+      // Use tax percentage from the first item
       reportData.add({
         'No': i++,
         'Item Name': variant.name,
         'Item Code': variant.itemCd,
         'Unit Price': variant.retailPrice,
-        'Tax Rate': '${taxRate.toStringAsFixed(2)}%',
+        'Tax': '${totalTax.toStringAsFixed(2)}',
         'Sold Quantity': soldQty.toStringAsFixed(2),
         'Remain Quantity':
-            variant.stock?.currentStock?.toStringAsFixed(2) ?? '0.00',
+            variant.stock?.currentStock?.toStringAsFixed(1) ?? '0.00',
       });
     }
 

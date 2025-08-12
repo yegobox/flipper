@@ -1,5 +1,6 @@
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
@@ -38,29 +39,48 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
     if (selectedIds.isEmpty) return;
 
     final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete Selected Tickets?'),
-        content: Text(
-          'Are you sure you want to delete ${selectedIds.length} selected ticket${selectedIds.length == 1 ? '' : 's'}? This cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Cancel'),
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Delete Selected Tickets?'),
+            content: Text(
+              'Are you sure you want to delete ${selectedIds.length} selected ticket${selectedIds.length == 1 ? '' : 's'}? This cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red)),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
 
     if (!confirmed) return;
 
-    await deleteSelectedTickets(selectedIds);
-    ref.read(ticketSelectionProvider.notifier).clearSelection();
+    try {
+      await deleteSelectedTickets(selectedIds);
+      ref.read(ticketSelectionProvider.notifier).clearSelection();
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          '${selectedIds.length} ticket${selectedIds.length == 1 ? '' : 's'} deleted successfully',
+          backgroundColor: Colors.green,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Failed to delete selected tickets',
+          backgroundColor: Colors.red,
+        );
+      }
+    }
   }
 
   @override
@@ -185,7 +205,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   elevation: 0,
                   leading: IconButton(
                     onPressed: () {
-                      ref.read(ticketSelectionProvider.notifier).clearSelection();
+                      ref
+                          .read(ticketSelectionProvider.notifier)
+                          .clearSelection();
                       // ignore: unused_result
                       ref.refresh(
                         pendingTransactionStreamProvider(isExpense: false),
@@ -207,19 +229,24 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                       builder: (context, ref, _) {
                         final selection = ref.watch(ticketSelectionProvider);
                         final hasSelection = selection.isNotEmpty;
-                        
+
                         return Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (hasSelection) ...[
                               IconButton(
                                 onPressed: () => _deleteSelectedTickets(ref),
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                tooltip: 'Delete Selected (${selection.length})',
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                tooltip:
+                                    'Delete Selected (${selection.length})',
                               ),
                               IconButton(
-                                onPressed: () => ref.read(ticketSelectionProvider.notifier).clearSelection(),
-                                icon: const Icon(Icons.clear, color: Colors.grey),
+                                onPressed: () => ref
+                                    .read(ticketSelectionProvider.notifier)
+                                    .clearSelection(),
+                                icon:
+                                    const Icon(Icons.clear, color: Colors.grey),
                                 tooltip: 'Clear Selection',
                               ),
                             ],
