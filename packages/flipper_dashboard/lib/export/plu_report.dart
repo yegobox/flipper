@@ -78,8 +78,8 @@ class PdfHelper {
 
     final columnWidths = [
       0.4, // No
-      2.8, // Item Name
-      1.3, // Item Code
+      2.5, // Item Name
+      1.8, // Item Code - Increased to accommodate longer codes
       1.0, // Unit Price
       0.8, // Tax Rate
       0.8, // Sold Qty
@@ -309,11 +309,13 @@ class PLUReport {
     int i = 1;
 
     for (final entry in groupedItems.entries) {
+      final variantId = entry.key;
       final items = entry.value;
       if (items.isEmpty) continue;
 
-      // Use the first item's details (all items in the group share the same variant)
-      final firstItem = items.first;
+      // Get variant details from database
+      final variant = await ProxyService.strategy.getVariant(id: variantId);
+      if (variant == null) continue;
 
       // Calculate totals
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
@@ -330,14 +332,13 @@ class PLUReport {
 
       reportData.add({
         'No': i++,
-        'Item Name': firstItem.name,
-        'Item Code':
-            firstItem.itemCd ?? firstItem.variantId?.substring(0, 8) ?? '',
-        'Unit Price': firstItem.price,
+        'Item Name': variant.name,
+        'Item Code': variant.itemCd,
+        'Unit Price': variant.retailPrice,
         'Tax Rate': '${taxRate.toStringAsFixed(2)}%',
         'Sold Quantity': soldQty.toStringAsFixed(2),
         'Remain Quantity':
-            firstItem.remainingStock?.toStringAsFixed(2) ?? '0.00',
+            variant.stock?.currentStock?.toStringAsFixed(2) ?? '0.00',
       });
     }
 
