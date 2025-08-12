@@ -62,7 +62,10 @@ class MockDatabaseSync extends Mock implements DatabaseSyncInterface {
   Future<void> completeLogin(Pin thePin) => Future.value();
 }
 
-class MockBox extends Mock implements LocalStorage {}
+class MockBox extends Mock implements LocalStorage {
+  @override
+  String defaultCurrency() => 'USD';
+}
 
 class MockTaxApi extends Mock implements TaxApi {}
 
