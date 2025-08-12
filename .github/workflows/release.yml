@@ -436,11 +436,11 @@ jobs:
           if [ "${{ matrix.app }}" = "flipper_auth" ]; then
             cat << 'ENV_EOF' >> "$GITHUB_ENV"
           PLAY_STORE_UPLOAD_KEY<<EOF
-          ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          ${{ secrets.FLIPPER_AUTH_PLAY_STORE_UPLOAD_KEY }}
           EOF
-          KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KEYSTORE_KEY_ALIAS=${{ secrets.FLIPPER_AUTH_KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.FLIPPER_AUTH_KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.FLIPPER_AUTH_KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON<<EOF
           ${{ secrets.FLIPPER_AUTH_GOOGLE_SERVICE_JSON }}
           EOF
