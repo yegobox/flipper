@@ -837,11 +837,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");
     final pmtTyCd = ProxyService.box.pmtTyCd();
+    final customerName = transaction.customerName ??
+        customer?.custNm ??
+        ProxyService.box.customerName() ??
+        "N/A";
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
       "invcNo": counter.invcNo,
-      "orgInvcNo": originalInvoiceNumber ?? 0,
       "salesTyCd": receiptCodes['salesTyCd'],
       "rcptTyCd": receiptCodes['rcptTyCd'],
       "pmtTyCd": pmtTyCd,
@@ -889,15 +892,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "modrNm": transaction.id.substring(0, 5),
       // Always use the customer name from ProxyService.box.customerName()
       // This ensures consistency with what's entered in QuickSellingView
-      "custNm": ProxyService.box.customerName() ?? "N/A",
+      "custNm": customerName,
 
       // Log customer name source for debugging
       ...(() {
-        final customerName = ProxyService.box.customerName();
+        // final customerName = ProxyService.box.customerName();
         if (customer?.custNm != null) {
           talker.info('Using selected customer name: ${customer!.custNm}');
-        } else if (customerName != null) {
-          talker.info('Using manually entered customer name: $customerName');
         } else {
           talker.warning('No customer name available, using N/A');
         }
@@ -919,8 +920,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     };
     if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
       json['rfdRsnCd'] = ProxyService.box.getRefundReason() ?? "05";
-    }
-    if (receiptType == "NR" || receiptType == "CR" || receiptType == "TR") {
+
       /// this is normal refund add rfdDt refunded date
       /// ATTENTION: rfdDt was added later and it might cause trouble we need to watch out.
       /// 'rfdDt': Must be a valid date in yyyyMMddHHmmss format. rejected value: '20241107'
@@ -929,8 +929,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // get a transaction being refunded
       // final trans = ProxyService.strategy.getTransactionById(
       //     id: transaction.id!);
-      json['orgInvcNo'] = transaction.invoiceNumber;
-      // json['orgInvcNo'] = counter.invcNo! - 1;
+      json['orgInvcNo'] =
+          originalInvoiceNumber ?? transaction.invoiceNumber ?? 0;
+    } else {
+      /// rra api does not accept real invoice number when we are dealing with CS receipt.
+      json['orgInvcNo'] = 0;
     }
     if (customer != null) {
       json = addFieldIfCondition(
