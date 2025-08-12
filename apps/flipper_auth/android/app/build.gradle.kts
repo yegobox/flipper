@@ -25,7 +25,7 @@ android {
 
     defaultConfig {
         applicationId = "rw.flipper.auth"
-        minSdk = 26
+        minSdk = 23
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
