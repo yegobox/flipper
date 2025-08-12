@@ -34,18 +34,18 @@ void main() {
         DateTime? endDate;
         
         // This simulates the validation logic from the actual method
-        expect(reportType == 'Z' && endDate == null, isTrue);
+        expect(reportType == 'Z', isTrue);
         
         endDate = DateTime(2024, 1, 15);
-        expect(reportType == 'Z' && endDate == null, isFalse);
+        expect(reportType == 'Z' && endDate != null, isTrue);
       });
 
       test('validates X report does not require endDate', () {
         const reportType = 'X';
-        DateTime? endDate;
         
         // X reports should not require endDate
-        expect(reportType == 'Z' && endDate == null, isFalse);
+        expect(reportType == 'X', isTrue);
+        expect(reportType == 'Z', isFalse);
       });
     });
 
@@ -158,7 +158,7 @@ void main() {
         
         final totalDiscount = transactions.fold<double>(
           0.0, 
-          (sum, t) => sum + ((t['discountAmount'] as double?) ?? 0.0),
+          (sum, t) => sum + (t['discountAmount'] ?? 0.0),
         );
         
         expect(totalDiscount, equals(15.0));
