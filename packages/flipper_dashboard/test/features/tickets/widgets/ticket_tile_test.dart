@@ -308,5 +308,27 @@ void main() {
 
       expect(find.textContaining('Subtotal: 0.00'), findsOneWidget);
     });
+
+    testWidgets('handles delete button tap correctly', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TicketTile(
+              ticket: mockTicket,
+              onTap: mockOnTap,
+              onDelete: mockOnDelete,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(deletedTicket, equals(mockTicket));
+    });
   });
 }
