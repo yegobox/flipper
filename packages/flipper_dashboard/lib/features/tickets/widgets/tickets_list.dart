@@ -9,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import '../models/ticket_status.dart';
@@ -251,9 +252,13 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (tx.id == excludeId) continue;
         if (tx.subTotal != 0.0) {
           throw Exception(
-              'Non-zero pending order exists. Please process it first.');
+              'Cannot park pending transaction ${tx.id}: non-zero subtotal');
         }
-        await ProxyService.strategy.deleteTransaction(transaction: tx);
+        await ProxyService.strategy.updateTransaction(
+          transaction: tx,
+          status: PARKED,
+          updatedAt: DateTime.now().toUtc(),
+        );
         talker.info('Parked zero-total pending: ${tx.id}');
       }
     } catch (e) {
@@ -273,10 +278,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         updatedAt: DateTime.now().toUtc(),
       );
       final isMobile = MediaQuery.sizeOf(context).width < 600;
-      final isBigScreen = MediaQuery.sizeOf(context).width > 600;
       if (isMobile) {
-        await _routerService
-            .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
+        await _routerService.navigateTo(CheckOutRoute(isBigScreen: !isMobile));
       } else {
         if (mounted) Navigator.of(context).pop();
       }
@@ -336,36 +339,36 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
     if (!confirmed) return;
 
-    try {
-      if (mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => const AlertDialog(
-            content: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 16),
-                Text('Deleting...'),
-              ],
-            ),
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => const AlertDialog(
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Deleting...'),
+            ],
           ),
-        );
-      }
+        ),
+      );
+    }
 
+    try {
       await ProxyService.strategy.deleteTransaction(transaction: ticket);
-      if (mounted) Navigator.of(context).pop();
       showCustomSnackBarUtil(
         context,
         'Ticket deleted',
         backgroundColor: Colors.red,
       );
     } catch (e, st) {
-      if (mounted) Navigator.of(context).pop();
       talker.error('Delete failed: $e', st);
       showCustomSnackBarUtil(context, 'Delete failed',
           backgroundColor: Colors.red);
+    } finally {
+      if (mounted) Navigator.of(context, rootNavigator: true).maybePop();
     }
   }
 
@@ -426,41 +429,53 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
   }
 
-  /// Unified stream combining WAITING, PARKED, IN_PROGRESS
+  /// Real-time stream combining WAITING, PARKED, IN_PROGRESS
   Stream<List<ITransaction>> _getTicketsStream() {
     final statuses = [WAITING, PARKED, IN_PROGRESS];
-    return Stream.periodic(const Duration(seconds: 3)).asyncMap((_) async {
-      final futures = statuses.map((status) => ProxyService.strategy
-          .transactionsStream(
-            status: status,
-            removeAdjustmentTransactions: true,
-            forceRealData: true,
-            skipOriginalTransactionCheck: true,
-          )
-          .first);
-      final results = await Future.wait(futures);
-      final allTickets = results.expand((list) => list).toList();
-      allTickets.sort((a, b) {
-        final aStatus = a.status;
-        final bStatus = b.status;
-        // Priority: WAITING > PARKED > IN_PROGRESS
+
+    return Stream.fromIterable(statuses)
+        .asyncExpand((status) => ProxyService.strategy.transactionsStream(
+              status: status,
+              removeAdjustmentTransactions: true,
+              forceRealData: true,
+              skipOriginalTransactionCheck: true,
+            ))
+        .scan<List<ITransaction>>((accumulated, transactions, _) {
+      // Merge and deduplicate transactions by ID
+      final allTickets = <String, ITransaction>{};
+
+      // Add existing accumulated transactions
+      for (final tx in accumulated) {
+        allTickets[tx.id] = tx;
+      }
+
+      // Add new transactions
+      for (final tx in transactions) {
+        allTickets[tx.id] = tx;
+      }
+
+      final result = allTickets.values.toList();
+
+      // Sort by priority and creation date
+      result.sort((a, b) {
         final priority = <String, int>{
           WAITING: 3,
           PARKED: 2,
           IN_PROGRESS: 1,
         };
-        final aPrio = priority[aStatus] ?? 0;
-        final bPrio = priority[bStatus] ?? 0;
+        final aPrio = priority[a.status] ?? 0;
+        final bPrio = priority[b.status] ?? 0;
         if (aPrio != bPrio) return bPrio.compareTo(aPrio);
-        // Then sort by creation date (newest first)
+
         final aDate = a.createdAt ?? DateTime(1970);
         final bDate = b.createdAt ?? DateTime(1970);
         return bDate.compareTo(aDate);
       });
-      return allTickets;
-    }).handleError((e, st) {
+
+      return result;
+    }, <ITransaction>[]).handleError((e, st) {
       talker.error('Ticket stream error: $e', st);
-      return <ITransaction>[];
+      throw e; // Re-throw to show error state in UI
     });
   }
 
@@ -469,7 +484,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: .15),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color, width: 1),
       ),
@@ -617,6 +632,6 @@ class TicketCard extends StatelessWidget {
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Unknown';
-    return '${date.month}/${date.day} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+    return '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -30,9 +30,9 @@ flutter build ios --release --no-codesign --verbose
 # 5. Verify critical files
 echo "=== Verifying generated files ==="
 if [ ! -f "ios/Flutter/Release.xcconfig" ]; then
-  echo "ERROR: Release.xcconfig not found!"
-  echo "Contents of ios/Flutter:"
-  ls -la ios/Flutter/
+  echo "ERROR: Release.xcconfig not found!" >&2
+  echo "Contents of ios/Flutter:" >&2
+  test -d ios/Flutter && ls -la ios/Flutter || echo "ios/Flutter does not exist" >&2
   exit 1
 fi
 
