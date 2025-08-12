@@ -599,7 +599,7 @@ class CoreViewModel extends FlipperBaseModel
   ///change status to parked, this allow the cashier to take another transaction of different client
   ///and resume this when he feel like he wants to,
   ///the note on transaction is served as display, therefore an transaction can not be parked without a note on it.
-  void saveTicket(
+  Future<void> saveTicket(
       {required String ticketName,
       required String ticketNote,
       required ITransaction transaction}) async {

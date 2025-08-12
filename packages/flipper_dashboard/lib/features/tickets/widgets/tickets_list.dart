@@ -431,51 +431,61 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Real-time stream combining WAITING, PARKED, IN_PROGRESS
   Stream<List<ITransaction>> _getTicketsStream() {
-    final statuses = [WAITING, PARKED, IN_PROGRESS];
+    final waitingStream = ProxyService.strategy.transactionsStream(
+      status: WAITING,
+      removeAdjustmentTransactions: true,
+      forceRealData: true,
+      skipOriginalTransactionCheck: false,
+    );
 
-    return Stream.fromIterable(statuses)
-        .asyncExpand((status) => ProxyService.strategy.transactionsStream(
-              status: status,
-              removeAdjustmentTransactions: true,
-              forceRealData: true,
-              skipOriginalTransactionCheck: true,
-            ))
-        .scan<List<ITransaction>>((accumulated, transactions, _) {
-      // Merge and deduplicate transactions by ID
-      final allTickets = <String, ITransaction>{};
+    final parkedStream = ProxyService.strategy.transactionsStream(
+      status: PARKED,
+      removeAdjustmentTransactions: true,
+      forceRealData: true,
+      skipOriginalTransactionCheck: false,
+    );
 
-      // Add existing accumulated transactions
-      for (final tx in accumulated) {
-        allTickets[tx.id] = tx;
-      }
+    final inProgressStream = ProxyService.strategy.transactionsStream(
+      status: IN_PROGRESS,
+      removeAdjustmentTransactions: true,
+      forceRealData: true,
+      skipOriginalTransactionCheck: false,
+    );
 
-      // Add new transactions
-      for (final tx in transactions) {
-        allTickets[tx.id] = tx;
-      }
+    return Rx.combineLatest3<List<ITransaction>, List<ITransaction>,
+        List<ITransaction>, List<ITransaction>>(
+      waitingStream,
+      parkedStream,
+      inProgressStream,
+      (waiting, parked, inProgress) {
+        // Combine all transactions
+        final allTickets = <ITransaction>[
+          ...waiting,
+          ...parked,
+          ...inProgress,
+        ];
 
-      final result = allTickets.values.toList();
+        // Sort by priority and creation date
+        allTickets.sort((a, b) {
+          final priority = <String, int>{
+            WAITING: 3,
+            PARKED: 2,
+            IN_PROGRESS: 1,
+          };
+          final aPrio = priority[a.status] ?? 0;
+          final bPrio = priority[b.status] ?? 0;
+          if (aPrio != bPrio) return bPrio.compareTo(aPrio);
 
-      // Sort by priority and creation date
-      result.sort((a, b) {
-        final priority = <String, int>{
-          WAITING: 3,
-          PARKED: 2,
-          IN_PROGRESS: 1,
-        };
-        final aPrio = priority[a.status] ?? 0;
-        final bPrio = priority[b.status] ?? 0;
-        if (aPrio != bPrio) return bPrio.compareTo(aPrio);
+          final aDate = a.createdAt ?? DateTime(1970);
+          final bDate = b.createdAt ?? DateTime(1970);
+          return bDate.compareTo(aDate);
+        });
 
-        final aDate = a.createdAt ?? DateTime(1970);
-        final bDate = b.createdAt ?? DateTime(1970);
-        return bDate.compareTo(aDate);
-      });
-
-      return result;
-    }, <ITransaction>[]).handleError((e, st) {
+        return allTickets;
+      },
+    ).handleError((e, st) {
       talker.error('Ticket stream error: $e', st);
-      throw e; // Re-throw to show error state in UI
+      throw e;
     });
   }
 
