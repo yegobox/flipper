@@ -91,6 +91,30 @@ void main() {
       expect(find.text('Create a new ticket to get started'), findsOneWidget);
     });
 
+    testWidgets('shows error state when stream errors', (tester) async {
+      when(() => env.mockDbSync.transactionsStream(
+        status: any(named: 'status'),
+        removeAdjustmentTransactions: any(named: 'removeAdjustmentTransactions'),
+        forceRealData: any(named: 'forceRealData'),
+        skipOriginalTransactionCheck: any(named: 'skipOriginalTransactionCheck'),
+      )).thenAnswer((_) => Stream.error('Database timeout'));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: const TestErrorStateWidget(),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.text('Something went wrong'), findsOneWidget);
+      expect(find.text('Database timeout'), findsOneWidget);
+      expect(find.text('Try Again'), findsOneWidget);
+    });
+
     // testWidgets('shows empty state when error is handled', (tester) async {
     //   when(() => env.mockDbSync.transactionsStream(
     //     status: any(named: 'status'),
