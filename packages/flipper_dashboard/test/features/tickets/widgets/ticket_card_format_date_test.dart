@@ -24,6 +24,8 @@ void main() {
           home: Scaffold(
             body: TicketCard(
               ticket: ticket,
+              isSelected: false,
+              onSelectionChanged: (selected) {},
               onTap: () {},
               onDelete: () {},
             ),
@@ -55,6 +57,8 @@ void main() {
               ticket: ticket,
               onTap: () {},
               onDelete: () {},
+              isSelected: false,
+              onSelectionChanged: (selected) {},
             ),
           ),
         ),
@@ -81,6 +85,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: TicketCard(
+              isSelected: false,
+              onSelectionChanged: (selected) {},
               ticket: ticket,
               onTap: () {},
               onDelete: () {},

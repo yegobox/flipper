@@ -24,8 +24,10 @@ void main() {
           home: Scaffold(
             body: TicketCard(
               ticket: ticket,
+              isSelected: false,
               onTap: () {},
               onDelete: () {},
+              onSelectionChanged: (selected) {},
             ),
           ),
         ),
@@ -52,8 +54,10 @@ void main() {
           home: Scaffold(
             body: TicketCard(
               ticket: ticket,
+              isSelected: false,
               onTap: () {},
               onDelete: () {},
+              onSelectionChanged: (selected) {},
             ),
           ),
         ),
@@ -80,8 +84,10 @@ void main() {
           home: Scaffold(
             body: TicketCard(
               ticket: ticket,
+              isSelected: false,
               onTap: () {},
               onDelete: () {},
+              onSelectionChanged: (selected) {},
             ),
           ),
         ),

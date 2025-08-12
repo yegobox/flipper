@@ -66,6 +66,8 @@ void main() {
           home: Scaffold(
             body: TicketCard(
               ticket: ticket,
+              isSelected: false,
+              onSelectionChanged: (selected) {},
               onTap: () {},
               onDelete: () {},
             ),

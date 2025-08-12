@@ -2,6 +2,7 @@
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -17,6 +18,20 @@ import '../models/ticket_status.dart';
 
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
+  List<ITransaction> _currentTickets = [];
+
+  List<ITransaction> getCurrentTickets() => _currentTickets;
+
+  Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
+    for (final ticketId in selectedIds) {
+      final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
+      try {
+        await ProxyService.strategy.deleteTransaction(transaction: ticket);
+      } catch (e) {
+        talker.error('Failed to delete ticket $ticketId: $e');
+      }
+    }
+  }
 
   /// Builds the main ticket section with responsive layout
   Widget buildTicketSection(BuildContext context) {
@@ -43,6 +58,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             }
 
             // Show ticket list when data is available
+            _currentTickets = snapshot.data!;
             return _buildTicketList(context, snapshot.data!, isDesktop);
           },
         );
@@ -109,10 +125,19 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           for (final ticket in list)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
-              child: TicketCard(
-                ticket: ticket,
-                onTap: () => _handleTicketTap(context, ticket),
-                onDelete: () => _deleteTicket(ticket),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final isSelected = ref.watch(ticketSelectionProvider).contains(ticket.id);
+                  return TicketCard(
+                    ticket: ticket,
+                    isSelected: isSelected,
+                    onTap: () => _handleTicketTap(context, ticket),
+                    onDelete: () => _deleteTicket(ticket),
+                    onSelectionChanged: (selected) {
+                      ref.read(ticketSelectionProvider.notifier).toggleSelection(ticket.id);
+                    },
+                  );
+                },
               ),
             ),
         ],
@@ -512,13 +537,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
 class TicketCard extends StatelessWidget {
   final ITransaction ticket;
+  final bool isSelected;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final ValueChanged<bool> onSelectionChanged;
   const TicketCard({
     super.key,
     required this.ticket,
+    required this.isSelected,
     required this.onTap,
     required this.onDelete,
+    required this.onSelectionChanged,
   });
 
   @override
@@ -527,7 +556,11 @@ class TicketCard extends StatelessWidget {
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: isSelected ? Colors.blue.withOpacity(0.1) : null,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isSelected ? const BorderSide(color: Colors.blue, width: 2) : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -540,12 +573,22 @@ class TicketCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Ticket #${ticket.id.substring(0, 6).toUpperCase()}',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: isSelected,
+                        onChanged: (value) => onSelectionChanged(value ?? false),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ticket #${ticket.id.substring(0, 6).toUpperCase()}',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
                   ),
                   // Status badge
                   Container(
