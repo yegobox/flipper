@@ -37,8 +37,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   bool _isOnPaymentScreen = false;
 
   // Track last user activity to avoid interrupting active users
-  DateTime _lastUserActivity = DateTime.now();
+  DateTime? _lastUserActivity;
   static const Duration _userActivityThreshold = Duration(minutes: 5);
+  bool _isInitialStartup = true;
 
   Future<void> runStartupLogic() async {
     // await logOut();
@@ -125,8 +126,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       return;
     }
 
-    // Don't interrupt if user was recently active
-    if (DateTime.now().difference(_lastUserActivity) < _userActivityThreshold) {
+    // Don't interrupt if user was recently active (but allow during initial startup)
+    if (!_isInitialStartup &&
+        _lastUserActivity != null &&
+        DateTime.now().difference(_lastUserActivity!) <
+            _userActivityThreshold) {
       talker.info(
           'Skipping payment verification navigation - user recently active');
       return;
@@ -178,6 +182,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(FlipperAppRoute());
       talker.warning("StartupViewModel Below navigateTo(FlipperAppRoute)");
     }
+    _isInitialStartup = false;
   }
 
   void _handleNoPlan() {
@@ -224,6 +229,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// Call this method whenever user interacts with the app
   void updateUserActivity() {
     _lastUserActivity = DateTime.now();
+    _isInitialStartup = false;
   }
 
   /// Force payment verification with navigation handling

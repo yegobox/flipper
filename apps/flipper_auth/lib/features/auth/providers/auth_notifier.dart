@@ -2,7 +2,6 @@
 import 'package:flipper_auth/core/services/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flipper_auth/core/services/auth_service.dart';
 import 'package:flipper_auth/core/providers.dart';
 
 // Auth State

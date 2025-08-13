@@ -7,8 +7,7 @@ import 'package:flipper_auth/features/totp/views/totp_screen.dart';
 import 'package:flipper_models/secrets.dart';
 
 Future<void> main() async {
-  // supabaseUrl: AppSecrets.superbaseurl,
-  //       supabaseAnonKey: AppSecrets.supabaseAnonKey,
+  
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: AppSecrets.superbaseurl,
@@ -28,7 +27,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginScreen(),
         '/home': (context) => TOTPScreen(),
-        // Add other routes as needed
       },
     );
   }

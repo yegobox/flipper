@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flipper_auth/core/providers.dart';
 
 class TOTPScreen extends ConsumerStatefulWidget {
   @override
