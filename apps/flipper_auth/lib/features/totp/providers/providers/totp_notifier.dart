@@ -1,7 +1,7 @@
 // lib/features/totp/providers/totp_notifier.dart
 import 'package:flipper_auth/core/providers.dart';
 import 'package:flipper_auth/core/services/totp_service.dart';
-import 'package:flipper_auth/features/auth/respositories/account_repository.dart';
+import 'package:flipper_auth/features/auth/repositories/account_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
 
