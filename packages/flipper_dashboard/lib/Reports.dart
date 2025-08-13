@@ -3,6 +3,7 @@
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/stock_value_provider.dart';
@@ -454,8 +455,27 @@ class ReportsDashboard extends HookConsumerWidget {
 }
 
 // Wrapper Widget for Dialog
-class ReportsDashboardDialogWrapper extends StatelessWidget {
+class ReportsDashboardDialogWrapper extends StatefulWidget {
   const ReportsDashboardDialogWrapper({Key? key}) : super(key: key);
+
+  @override
+  State<ReportsDashboardDialogWrapper> createState() =>
+      _ReportsDashboardDialogWrapperState();
+}
+
+class _ReportsDashboardDialogWrapperState
+    extends State<ReportsDashboardDialogWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    NavigationGuardService().startCriticalWorkflow();
+  }
+
+  @override
+  void dispose() {
+    NavigationGuardService().endCriticalWorkflow();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

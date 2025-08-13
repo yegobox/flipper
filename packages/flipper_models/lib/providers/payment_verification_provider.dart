@@ -7,7 +7,8 @@ final paymentVerificationProvider = Provider<PaymentVerificationService>((ref) {
 });
 
 /// Provider for manually triggering payment verification
-final verifyPaymentProvider = FutureProvider.autoDispose<bool>((ref) async {
+final verifyPaymentProvider =
+    FutureProvider.autoDispose<PaymentVerificationResponse>((ref) async {
   final service = ref.watch(paymentVerificationProvider);
   return await service.verifyPaymentStatus();
 });

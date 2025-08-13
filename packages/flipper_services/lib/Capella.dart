@@ -1349,6 +1349,7 @@ class Capella extends AiStrategyImpl
       String? id,
       FilterType? filterType,
       bool removeAdjustmentTransactions = false,
+      required bool skipOriginalTransactionCheck,
       DateTime? startDate,
       DateTime? endDate}) {
     // TODO: implement transactionsStream
@@ -1443,6 +1444,7 @@ class Capella extends AiStrategyImpl
       int? branchId,
       bool includeZeroSubTotal = false,
       bool skipOriginalTransactionCheck = false,
+      List<String>? receiptNumber,
       bool includePending = false}) {
     // TODO: implement transactions
     throw UnimplementedError();
@@ -2401,6 +2403,13 @@ class Capella extends AiStrategyImpl
   @override
   Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin}) {
     // TODO: implement verifyOtpAndLogin
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<brick.BusinessAnalytic>> streamRemoteAnalytics(
+      {required int branchId}) {
+    // TODO: implement streamRemoteAnalytics
     throw UnimplementedError();
   }
 }

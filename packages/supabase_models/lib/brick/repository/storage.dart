@@ -111,4 +111,5 @@ abstract class LocalStorage {
   bool getForceLogout();
   String? customerTin();
   bool vatEnabled();
+  String? lastZReportDate();
 }

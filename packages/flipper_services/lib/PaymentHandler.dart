@@ -9,10 +9,10 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 mixin PaymentHandler {
-  Future<void> handleMomoPayment(int finalPrice, {Plan? plan}) async {
+  Future<void> handleMomoPayment(int finalPrice, {required Plan plan}) async {
     /// given  plan.selectedPlan compute time in seconds
     int timeInSeconds = 120;
-    if (plan!.selectedPlan == "monthly") {
+    if (plan.selectedPlan == "monthly") {
       timeInSeconds = kDebugMode ? 120 : 2628000;
     }
     if (plan.selectedPlan == "yearly") {

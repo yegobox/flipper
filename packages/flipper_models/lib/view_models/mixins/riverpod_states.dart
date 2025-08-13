@@ -311,55 +311,16 @@ class ButtonIndexNotifier extends StateNotifier<int> {
     state = index;
   }
 }
-
-//DateTime range provider
-
-// final transactionListProvider =
-//     StreamProvider.autoDispose.family<List<ITransaction>, bool>((ref, forceRealData) {
-//   final dateRange = ref.watch(dateRangeProvider);
-//   final startDate = dateRange.startDate;
-//   final endDate = dateRange.endDate;
-
-//   // Check if startDate or endDate is null, and return an empty list stream if either is null
-//   if (startDate == null || endDate == null) {
-//     return Stream.value([]);
-//   }
-
-//   try {
-//     final stream = ProxyService.strategy.transactionsStream(
-//       startDate: startDate,
-//       endDate: endDate,
-//       removeAdjustmentTransactions: true,
-//       branchId: ProxyService.box.getBranchId(),
-//       isCashOut: false,
-//       status: COMPLETE,
-//       forceRealData: forceRealData,
-//     );
-
-//     // Use `switchMap` to handle potential changes in dateRangeProvider
-//     return stream.switchMap((transactions) {
-//       // Log the received data to the console
-//       // talker.info("Transaction Data: $transactions");
-
-//       // Handle null or empty transactions if needed
-//       return Stream.value(transactions);
-//     });
-//   } catch (e, stackTrace) {
-//     // Return an error stream if something goes wrong
-//     talker.info("Error loading transactions: $e");
-//     return Stream.error(e, stackTrace);
-//   }
-// });
-
 final currentTransactionsByIdStream =
     StreamProvider.autoDispose.family<List<ITransaction>, String>((ref, id) {
   // Retrieve the transaction status from the provider container, if needed
 
-  // Use ProxyService to get the IsarStream of transactions
+  // Use ProxyService to get the  of transactions
   final transactionsStream = ProxyService.strategy.transactionsStream(
       id: id,
       filterType: FilterType.TRANSACTION,
       forceRealData: true,
+      skipOriginalTransactionCheck: true,
       removeAdjustmentTransactions: true);
 
   // Return the stream
@@ -380,6 +341,7 @@ final ordersStreamProvider =
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.strategy.transactionsStream(
       branchId: branchId,
+      skipOriginalTransactionCheck: true,
       removeAdjustmentTransactions: true,
       forceRealData: true);
 });

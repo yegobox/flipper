@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 import 'package:pasteboard/pasteboard.dart';
+import 'package:markdown_widget/markdown_widget.dart';
 
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
@@ -129,14 +130,22 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   cardKey: _visualizationKey,
                                   onCopyGraph: _copyToClipboard,
                                 )
-                              : Text(
-                                  widget.message.text,
-                                  style: TextStyle(
-                                    color: widget.isUser
-                                        ? AiTheme.onPrimaryColor
-                                        : AiTheme.onAssistantMessageColor,
-                                    fontSize: 16,
-                                    height: 1.4,
+                              : MarkdownWidget(
+                                  data: widget.message.text,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  config: MarkdownConfig(
+                                    configs: [
+                                      PConfig(
+                                        textStyle: TextStyle(
+                                          color: widget.isUser
+                                              ? AiTheme.onPrimaryColor
+                                              : AiTheme.onAssistantMessageColor,
+                                          fontSize: 16,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                         ),

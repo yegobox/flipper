@@ -63,6 +63,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
+    List<String>? receiptNumber,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -71,6 +72,20 @@ mixin TransactionMixin implements TransactionInterface {
         status: status,
         transactionType: transactionType,
       );
+    }
+
+    if (receiptNumber != null && receiptNumber.isNotEmpty) {
+      final response = await repository.get<ITransaction>(
+        query: Query(where: [
+          Or('invoiceNumber').isIn(receiptNumber),
+          Where('receiptNumber').isIn(receiptNumber),
+          if (branchId != null) Where('branchId').isExactly(branchId),
+        ]),
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+      );
+      return response;
     }
     final List<Where> conditions = [
       if (id != null)
@@ -91,31 +106,22 @@ mixin TransactionMixin implements TransactionInterface {
     ];
 
     if (startDate != null && endDate != null) {
-      if (startDate == endDate) {
-        talker.info('Date Given ${startDate.toIso8601String()}');
-        conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
-          ),
-        );
-        // Add condition for the end of the same day
-        conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
-          ),
-        );
-      } else {
-        conditions.add(
-          Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
-          ),
-        );
-        conditions.add(
-          Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
-          ),
-        );
-      }
+      // Use local timezone for precise date matching
+      final localStartDate =
+          DateTime(startDate.year, startDate.month, startDate.day);
+      final localEndDate =
+          DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+
+      conditions.add(
+        Where('lastTouched').isGreaterThanOrEqualTo(
+          localStartDate.toIso8601String(),
+        ),
+      );
+      conditions.add(
+        Where('lastTouched').isLessThanOrEqualTo(
+          localEndDate.toIso8601String(),
+        ),
+      );
     }
 
     // Add ordering to fetch transactions with latest lastTouched first (for consistency)
@@ -913,6 +919,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? startDate,
     DateTime? endDate,
     bool forceRealData = true,
+    required bool skipOriginalTransactionCheck,
   }) {
     if (!forceRealData) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
@@ -925,54 +932,52 @@ mixin TransactionMixin implements TransactionInterface {
     final List<Where> conditions = [
       Where('status').isExactly(status ?? COMPLETE),
       Where('subTotal').isGreaterThan(0),
-      Where('isOriginalTransaction').isExactly(true),
+      if (!skipOriginalTransactionCheck)
+        Where('isOriginalTransaction').isExactly(true),
       if (id != null) Where('id').isExactly(id),
       if (branchId != null) Where('branchId').isExactly(branchId),
       if (isCashOut) Where('isExpense').isExactly(isCashOut),
       if (removeAdjustmentTransactions)
         Where('transactionType').isNot('Adjustment'),
-      if (removeAdjustmentTransactions)
-        Where('transactionType').isNot('adjustment'),
     ];
     // talker.warning(conditions.toString());
     // Handle date filtering with proper support for single date scenarios
     if (startDate != null || endDate != null) {
       // Case 1: Both dates provided (date range)
       if (startDate != null && endDate != null) {
-        talker.info(
-            'Transaction Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m');
+        final localStartDate =
+            DateTime(startDate.year, startDate.month, startDate.day);
+        final localEndDate =
+            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
 
-        // startDate is the lower bound (inclusive)
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
+            localStartDate.toIso8601String(),
           ),
         );
-
-        // endDate + 1 day is the upper bound (inclusive) to include all entries on the end date
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
+            localEndDate.toIso8601String(),
           ),
         );
       }
       // Case 2: Only startDate provided (everything from this date onwards)
       else if (startDate != null) {
-        talker.info(
-            'Transactions From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards');
+        final localStartDate =
+            DateTime(startDate.year, startDate.month, startDate.day);
         conditions.add(
           Where('lastTouched').isGreaterThanOrEqualTo(
-            startDate.toIso8601String(),
+            localStartDate.toIso8601String(),
           ),
         );
       }
       // Case 3: Only endDate provided (everything up to this date)
       else if (endDate != null) {
-        talker.info(
-            'Transactions Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m');
+        final localEndDate =
+            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
         conditions.add(
           Where('lastTouched').isLessThanOrEqualTo(
-            endDate.add(const Duration(days: 1)).toIso8601String(),
+            localEndDate.toIso8601String(),
           ),
         );
       }
@@ -981,11 +986,17 @@ mixin TransactionMixin implements TransactionInterface {
         // limit: 5000,
         where: conditions,
         orderBy: [OrderBy('lastTouched', ascending: false)]);
+
+    // Debug: Log all query conditions
+    talker.info('Query conditions (${conditions.length}):');
+    for (int i = 0; i < conditions.length; i++) {
+      talker.info('  [$i] ${conditions[i].toString()}');
+    }
+
     if (ProxyService.box.enableDebug() ?? false) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
-        branchId:
-            branchId ?? 0, // Provide a default or handle null appropriately
+        branchId: branchId ?? 0,
         status: status,
         transactionType: transactionType,
       ));
@@ -995,7 +1006,7 @@ mixin TransactionMixin implements TransactionInterface {
         .subscribe<ITransaction>(
             query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
         .map((data) {
-      print('Transaction stream data: ${data.length} records');
+      talker.info('Transaction stream returned: ${data.length} records');
       return data;
     });
   }

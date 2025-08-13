@@ -6,7 +6,7 @@ part of 'ai_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$geminiResponseHash() => r'f5be35204f746cda1aa02f973fa696919afa51b9';
+String _$geminiSummaryHash() => r'47ce0665f73a819980ec6f4fc79db07c9fbad9d3';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -28,6 +28,274 @@ class _SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 }
+
+/// See also [geminiSummary].
+@ProviderFor(geminiSummary)
+const geminiSummaryProvider = GeminiSummaryFamily();
+
+/// See also [geminiSummary].
+class GeminiSummaryFamily extends Family<AsyncValue<String>> {
+  /// See also [geminiSummary].
+  const GeminiSummaryFamily();
+
+  /// See also [geminiSummary].
+  GeminiSummaryProvider call(
+    String prompt,
+  ) {
+    return GeminiSummaryProvider(
+      prompt,
+    );
+  }
+
+  @override
+  GeminiSummaryProvider getProviderOverride(
+    covariant GeminiSummaryProvider provider,
+  ) {
+    return call(
+      provider.prompt,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'geminiSummaryProvider';
+}
+
+/// See also [geminiSummary].
+class GeminiSummaryProvider extends AutoDisposeFutureProvider<String> {
+  /// See also [geminiSummary].
+  GeminiSummaryProvider(
+    String prompt,
+  ) : this._internal(
+          (ref) => geminiSummary(
+            ref as GeminiSummaryRef,
+            prompt,
+          ),
+          from: geminiSummaryProvider,
+          name: r'geminiSummaryProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$geminiSummaryHash,
+          dependencies: GeminiSummaryFamily._dependencies,
+          allTransitiveDependencies:
+              GeminiSummaryFamily._allTransitiveDependencies,
+          prompt: prompt,
+        );
+
+  GeminiSummaryProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.prompt,
+  }) : super.internal();
+
+  final String prompt;
+
+  @override
+  Override overrideWith(
+    FutureOr<String> Function(GeminiSummaryRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: GeminiSummaryProvider._internal(
+        (ref) => create(ref as GeminiSummaryRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        prompt: prompt,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<String> createElement() {
+    return _GeminiSummaryProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GeminiSummaryProvider && other.prompt == prompt;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, prompt.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin GeminiSummaryRef on AutoDisposeFutureProviderRef<String> {
+  /// The parameter `prompt` of this provider.
+  String get prompt;
+}
+
+class _GeminiSummaryProviderElement
+    extends AutoDisposeFutureProviderElement<String> with GeminiSummaryRef {
+  _GeminiSummaryProviderElement(super.provider);
+
+  @override
+  String get prompt => (origin as GeminiSummaryProvider).prompt;
+}
+
+String _$streamedBusinessAnalyticsHash() =>
+    r'50dfe5f380d2280d57f8190d0e478f37f1ac226c';
+
+/// See also [streamedBusinessAnalytics].
+@ProviderFor(streamedBusinessAnalytics)
+const streamedBusinessAnalyticsProvider = StreamedBusinessAnalyticsFamily();
+
+/// See also [streamedBusinessAnalytics].
+class StreamedBusinessAnalyticsFamily
+    extends Family<AsyncValue<List<BusinessAnalytic>>> {
+  /// See also [streamedBusinessAnalytics].
+  const StreamedBusinessAnalyticsFamily();
+
+  /// See also [streamedBusinessAnalytics].
+  StreamedBusinessAnalyticsProvider call(
+    int branchId,
+  ) {
+    return StreamedBusinessAnalyticsProvider(
+      branchId,
+    );
+  }
+
+  @override
+  StreamedBusinessAnalyticsProvider getProviderOverride(
+    covariant StreamedBusinessAnalyticsProvider provider,
+  ) {
+    return call(
+      provider.branchId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'streamedBusinessAnalyticsProvider';
+}
+
+/// See also [streamedBusinessAnalytics].
+class StreamedBusinessAnalyticsProvider
+    extends AutoDisposeStreamProvider<List<BusinessAnalytic>> {
+  /// See also [streamedBusinessAnalytics].
+  StreamedBusinessAnalyticsProvider(
+    int branchId,
+  ) : this._internal(
+          (ref) => streamedBusinessAnalytics(
+            ref as StreamedBusinessAnalyticsRef,
+            branchId,
+          ),
+          from: streamedBusinessAnalyticsProvider,
+          name: r'streamedBusinessAnalyticsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$streamedBusinessAnalyticsHash,
+          dependencies: StreamedBusinessAnalyticsFamily._dependencies,
+          allTransitiveDependencies:
+              StreamedBusinessAnalyticsFamily._allTransitiveDependencies,
+          branchId: branchId,
+        );
+
+  StreamedBusinessAnalyticsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.branchId,
+  }) : super.internal();
+
+  final int branchId;
+
+  @override
+  Override overrideWith(
+    Stream<List<BusinessAnalytic>> Function(
+            StreamedBusinessAnalyticsRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: StreamedBusinessAnalyticsProvider._internal(
+        (ref) => create(ref as StreamedBusinessAnalyticsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        branchId: branchId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeStreamProviderElement<List<BusinessAnalytic>> createElement() {
+    return _StreamedBusinessAnalyticsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is StreamedBusinessAnalyticsProvider &&
+        other.branchId == branchId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, branchId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin StreamedBusinessAnalyticsRef
+    on AutoDisposeStreamProviderRef<List<BusinessAnalytic>> {
+  /// The parameter `branchId` of this provider.
+  int get branchId;
+}
+
+class _StreamedBusinessAnalyticsProviderElement
+    extends AutoDisposeStreamProviderElement<List<BusinessAnalytic>>
+    with StreamedBusinessAnalyticsRef {
+  _StreamedBusinessAnalyticsProviderElement(super.provider);
+
+  @override
+  int get branchId => (origin as StreamedBusinessAnalyticsProvider).branchId;
+}
+
+String _$geminiResponseHash() => r'2035609e3fa651e343607ebc87d760a7a1f9661e';
 
 abstract class _$GeminiResponse
     extends BuildlessAutoDisposeAsyncNotifier<String> {
@@ -186,17 +454,21 @@ class _GeminiResponseProviderElement
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'f94637ca4fea29f38e722b1903e469a1ae723524';
+    r'c686b1e484380933605bdf1e69ce48a7c8dabc9e';
 
 abstract class _$GeminiBusinessAnalytics
     extends BuildlessAutoDisposeAsyncNotifier<String> {
   late final int branchId;
   late final String userPrompt;
+  late final String? filePath;
+  late final List<Content>? history;
 
   FutureOr<String> build(
     int branchId,
-    String userPrompt,
-  );
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  });
 }
 
 /// See also [GeminiBusinessAnalytics].
@@ -211,11 +483,15 @@ class GeminiBusinessAnalyticsFamily extends Family<AsyncValue<String>> {
   /// See also [GeminiBusinessAnalytics].
   GeminiBusinessAnalyticsProvider call(
     int branchId,
-    String userPrompt,
-  ) {
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  }) {
     return GeminiBusinessAnalyticsProvider(
       branchId,
       userPrompt,
+      filePath: filePath,
+      history: history,
     );
   }
 
@@ -226,6 +502,8 @@ class GeminiBusinessAnalyticsFamily extends Family<AsyncValue<String>> {
     return call(
       provider.branchId,
       provider.userPrompt,
+      filePath: provider.filePath,
+      history: provider.history,
     );
   }
 
@@ -251,11 +529,15 @@ class GeminiBusinessAnalyticsProvider
   /// See also [GeminiBusinessAnalytics].
   GeminiBusinessAnalyticsProvider(
     int branchId,
-    String userPrompt,
-  ) : this._internal(
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  }) : this._internal(
           () => GeminiBusinessAnalytics()
             ..branchId = branchId
-            ..userPrompt = userPrompt,
+            ..userPrompt = userPrompt
+            ..filePath = filePath
+            ..history = history,
           from: geminiBusinessAnalyticsProvider,
           name: r'geminiBusinessAnalyticsProvider',
           debugGetCreateSourceHash:
@@ -267,6 +549,8 @@ class GeminiBusinessAnalyticsProvider
               GeminiBusinessAnalyticsFamily._allTransitiveDependencies,
           branchId: branchId,
           userPrompt: userPrompt,
+          filePath: filePath,
+          history: history,
         );
 
   GeminiBusinessAnalyticsProvider._internal(
@@ -278,10 +562,14 @@ class GeminiBusinessAnalyticsProvider
     required super.from,
     required this.branchId,
     required this.userPrompt,
+    required this.filePath,
+    required this.history,
   }) : super.internal();
 
   final int branchId;
   final String userPrompt;
+  final String? filePath;
+  final List<Content>? history;
 
   @override
   FutureOr<String> runNotifierBuild(
@@ -290,6 +578,8 @@ class GeminiBusinessAnalyticsProvider
     return notifier.build(
       branchId,
       userPrompt,
+      filePath: filePath,
+      history: history,
     );
   }
 
@@ -300,7 +590,9 @@ class GeminiBusinessAnalyticsProvider
       override: GeminiBusinessAnalyticsProvider._internal(
         () => create()
           ..branchId = branchId
-          ..userPrompt = userPrompt,
+          ..userPrompt = userPrompt
+          ..filePath = filePath
+          ..history = history,
         from: from,
         name: null,
         dependencies: null,
@@ -308,6 +600,8 @@ class GeminiBusinessAnalyticsProvider
         debugGetCreateSourceHash: null,
         branchId: branchId,
         userPrompt: userPrompt,
+        filePath: filePath,
+        history: history,
       ),
     );
   }
@@ -322,7 +616,9 @@ class GeminiBusinessAnalyticsProvider
   bool operator ==(Object other) {
     return other is GeminiBusinessAnalyticsProvider &&
         other.branchId == branchId &&
-        other.userPrompt == userPrompt;
+        other.userPrompt == userPrompt &&
+        other.filePath == filePath &&
+        other.history == history;
   }
 
   @override
@@ -330,6 +626,8 @@ class GeminiBusinessAnalyticsProvider
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, branchId.hashCode);
     hash = _SystemHash.combine(hash, userPrompt.hashCode);
+    hash = _SystemHash.combine(hash, filePath.hashCode);
+    hash = _SystemHash.combine(hash, history.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -344,6 +642,12 @@ mixin GeminiBusinessAnalyticsRef
 
   /// The parameter `userPrompt` of this provider.
   String get userPrompt;
+
+  /// The parameter `filePath` of this provider.
+  String? get filePath;
+
+  /// The parameter `history` of this provider.
+  List<Content>? get history;
 }
 
 class _GeminiBusinessAnalyticsProviderElement
@@ -356,6 +660,11 @@ class _GeminiBusinessAnalyticsProviderElement
   @override
   String get userPrompt =>
       (origin as GeminiBusinessAnalyticsProvider).userPrompt;
+  @override
+  String? get filePath => (origin as GeminiBusinessAnalyticsProvider).filePath;
+  @override
+  List<Content>? get history =>
+      (origin as GeminiBusinessAnalyticsProvider).history;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -423,14 +423,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    SocialHomeViewRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i1.SocialHomeView(),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
     DrawerScreenRoute.name: (routeData) {
       final args = routeData.argsAs<DrawerScreenArgs>();
       return _i4.CustomPage<dynamic>(
@@ -438,26 +430,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         child: _i1.DrawerScreen(
           key: args.key,
           open: args.open,
-        ),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    ChatListViewRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i1.ChatListView(),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    ConversationHistoryRoute.name: (routeData) {
-      final args = routeData.argsAs<ConversationHistoryArgs>();
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: _i1.ConversationHistory(
-          key: args.key,
-          conversationId: args.conversationId,
         ),
         opaque: true,
         barrierDismissible: false,

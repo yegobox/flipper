@@ -21,9 +21,11 @@ abstract class AiTheme {
 
   // User message bubble background color
   static const userMessageColor = primaryColor;
+  static const userBubbleColor = primaryColor;
 
   // AI message bubble background color
   static const assistantMessageColor = Color(0xFFFFFFFF);
+  static const aiBubbleColor = Color(0xFFFFFFFF);
 
   // Text colors
   static const onPrimaryColor = Colors.white;

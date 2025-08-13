@@ -2513,11 +2513,12 @@ class CoreSync extends AiStrategyImpl
       {required int userId,
       String? featureName,
       required bool fetchRemote}) async {
-    return await repository.get<Access>(
+    final access = await repository.get<Access>(
       policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
           : OfflineFirstGetPolicy.localOnly,
       query: brick.Query(
+        limit: 20,
         where: [
           brick.Where('userId').isExactly(userId),
           if (featureName != null)
@@ -2526,6 +2527,7 @@ class CoreSync extends AiStrategyImpl
         orderBy: [brick.OrderBy('id', ascending: true)],
       ),
     );
+    return access;
   }
 
   @override
@@ -3211,6 +3213,7 @@ class CoreSync extends AiStrategyImpl
   Stream<Credit?> credit({required String branchId}) {
     return repository
         .subscribe<Credit>(
+          policy: OfflineFirstGetPolicy.alwaysHydrate,
           query: brick.Query(where: [
             brick.Where('branchId').isExactly(branchId),
           ]),
@@ -3350,7 +3353,7 @@ class CoreSync extends AiStrategyImpl
     try {
       final data = await repository.get<BusinessAnalytic>(
         /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
-        policy: OfflineFirstGetPolicy.awaitRemote,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: brick.Query(
           // limit: 100,
           where: [brick.Where('branchId').isExactly(branchId)],
@@ -3372,9 +3375,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> deleteFailedQueue() async {
-    await repository.deleteUnprocessedRequests();
-  }
+  Future<void> deleteFailedQueue() async {}
 
   @override
   Future<int> queueLength() async {
@@ -3539,5 +3540,17 @@ class CoreSync extends AiStrategyImpl
         }
       }
     }
+  }
+
+  @override
+  Stream<List<models.BusinessAnalytic>> streamRemoteAnalytics(
+      {required int branchId}) {
+    return repository.subscribeToRealtime<BusinessAnalytic>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: Query(
+        where: [Where('branchId').isExactly(branchId)],
+        orderBy: [OrderBy('date', ascending: false)],
+      ),
+    );
   }
 }

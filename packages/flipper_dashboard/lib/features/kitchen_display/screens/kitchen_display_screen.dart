@@ -25,16 +25,19 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         .transactionsStream(
             status: PARKED,
             removeAdjustmentTransactions: true,
+            skipOriginalTransactionCheck: true,
             forceRealData: true)
         .asBroadcastStream();
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
+            skipOriginalTransactionCheck: true,
             status: IN_PROGRESS,
             removeAdjustmentTransactions: true,
             forceRealData: true)
         .asBroadcastStream();
     final waitingStream = ProxyService.strategy
         .transactionsStream(
+            skipOriginalTransactionCheck: true,
             status: WAITING,
             removeAdjustmentTransactions: true,
             forceRealData: true)

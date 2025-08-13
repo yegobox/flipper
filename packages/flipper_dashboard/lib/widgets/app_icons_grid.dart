@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/ai/screens/ai_screen.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
-import 'package:flipper_dashboard/Ai.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -73,7 +73,7 @@ class AppIconsGrid extends ConsumerWidget {
         // use navigator to navigate to the AI screen
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const Ai()),
+          MaterialPageRoute(builder: (context) => const AiScreen()),
         );
         break;
       default:
@@ -226,8 +226,7 @@ class AppIconsGrid extends ConsumerWidget {
   }
 }
 
-// Separate widget for Credits app card to handle its own state
-class _CreditsAppCard extends StatefulWidget {
+class _CreditsAppCard extends ConsumerWidget {
   final Map<String, dynamic> app;
   final bool isBigScreen;
   final VoidCallback onTap;
@@ -240,45 +239,12 @@ class _CreditsAppCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<_CreditsAppCard> createState() => _CreditsAppCardState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final branchId = ProxyService.box.getBranchId();
+    final creditAsyncValue = branchId != null
+        ? ref.watch(creditStreamProvider(branchId))
+        : const AsyncValue.data(null); // Handle null branchId case
 
-class _CreditsAppCardState extends State<_CreditsAppCard> {
-  // Local instance of CreditData - in a real app, you'd get this from a repository or service
-  final CreditData _creditData = CreditData();
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize credit data from API
-    _loadCreditsFromApi();
-  }
-
-  Future<void> _loadCreditsFromApi() async {
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId != null) {
-        // Get branch from server ID
-        final branch = await ProxyService.strategy.branch(serverId: branchId);
-        if (branch != null) {
-          // Get credit from branch ID
-          final creditStream =
-              ProxyService.strategy.credit(branchId: branch.id);
-          // Take the first value from the stream to get initial credit amount
-          final initialCredit = await creditStream.first;
-          if (initialCredit != null) {
-            // Use buyCredits with the actual credit value from the API
-            _creditData.buyCredits(initialCredit.credits.toInt());
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint('Error loading credits: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Card(
       elevation: 1,
       shadowColor: Colors.black26,
@@ -288,22 +254,37 @@ class _CreditsAppCardState extends State<_CreditsAppCard> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: widget.onTap,
+        onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CreditIconWidget(
-              credits: _creditData.availableCredits,
-              maxCredits: _creditData.maxCredits,
-              size: widget.isBigScreen ? 30 : 40,
+            creditAsyncValue.when(
+              data: (credit) {
+                final availableCredits = credit?.credits.toInt() ?? 100;
+                return CreditIconWidget(
+                  credits: availableCredits,
+                  maxCredits: 1000000, // Assuming a max credit value
+                  size: isBigScreen ? 30 : 40,
+                );
+              },
+              loading: () => SizedBox(
+                width: isBigScreen ? 30 : 40,
+                height: isBigScreen ? 30 : 40,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              ),
+              error: (error, stack) => Icon(
+                Icons.error,
+                color: Colors.red,
+                size: isBigScreen ? 30 : 40,
+              ),
             ),
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                widget.app['label'],
+                app['label'],
                 style: GoogleFonts.poppins(
-                  fontSize: widget.isBigScreen ? 11 : 12,
+                  fontSize: isBigScreen ? 11 : 12,
                   fontWeight: FontWeight.w500,
                   color: Colors.grey[800],
                 ),

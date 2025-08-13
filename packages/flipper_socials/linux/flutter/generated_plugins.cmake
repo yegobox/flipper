@@ -9,8 +9,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   flutter_localization
   gtk
+  pasteboard
   printing
   realm
+  record_linux
   screen_retriever_linux
   sentry_flutter
   smart_auth

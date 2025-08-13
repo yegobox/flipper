@@ -135,7 +135,7 @@ extension CurrencyFormatExtension on num {
 
     // Return just the symbol if the number is zero
     if (this == 0 || this == 0.0) {
-      return cleanSymbol.trim(); // Return "RWF" (without space) for zero
+      return numberFormat.format(this);
     }
 
     return numberFormat.format(this);
@@ -454,4 +454,10 @@ extension CompactDateTimeParser on String {
       return null;
     }
   }
+}
+
+DateTimeRange localDayRangeToUtc(DateTime localDate) {
+  final localStart = DateTime(localDate.year, localDate.month, localDate.day);
+  final localEnd = localStart.add(Duration(days: 1));
+  return DateTimeRange(start: localStart.toUtc(), end: localEnd.toUtc());
 }

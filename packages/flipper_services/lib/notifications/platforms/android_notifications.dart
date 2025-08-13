@@ -99,9 +99,9 @@ class AndroidNotifications extends BaseNotifications {
 
         final iConversation = IConversation(
             id: conversation.id,
-            body: conversation.body ?? "",
+            body: conversation.title,
             createdAt: conversation.createdAt,
-            userName: conversation.userName ?? "");
+            userName: conversation.title);
 
         dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 
