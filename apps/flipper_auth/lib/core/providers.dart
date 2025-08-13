@@ -1,5 +1,5 @@
 // lib/core/providers.dart
-import 'package:flipper_auth/features/auth/respositories/account_repository.dart';
+import 'package:flipper_auth/features/auth/repositories/account_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_auth/core/services/auth_service.dart';

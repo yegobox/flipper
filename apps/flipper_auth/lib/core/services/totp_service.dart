@@ -4,8 +4,8 @@ import 'package:otp/otp.dart';
 class TOTPService {
   String generateTOTPCode(String secret) {
     return OTP.generateTOTPCodeString(
-      'secret',
-      Duration(seconds: 30).inSeconds,
+      secret,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
       interval: 30,
       algorithm: Algorithm.SHA1,
       length: 6,
@@ -19,12 +19,6 @@ class TOTPService {
   }
 
   String generateSecret() {
-    return OTP.generateTOTPCodeString(
-      'secret',
-      Duration(seconds: 30).inSeconds,
-      interval: 30,
-      algorithm: Algorithm.SHA1,
-      length: 32,
-    );
+    return OTP.randomSecret();
   }
 }

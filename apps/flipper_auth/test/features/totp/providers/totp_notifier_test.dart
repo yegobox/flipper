@@ -1,6 +1,6 @@
 // test/features/totp/providers/totp_notifier_test.dart
 import 'package:flipper_auth/core/providers.dart';
-import 'package:flipper_auth/features/auth/respositories/account_repository.dart';
+import 'package:flipper_auth/features/auth/repositories/account_repository.dart';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -25,6 +25,10 @@ void main() {
         totpServiceProvider.overrideWithValue(mockTOTPService),
       ],
     );
+  });
+
+  tearDown(() {
+    container.dispose();
   });
 
   group('TOTPNotifier', () {

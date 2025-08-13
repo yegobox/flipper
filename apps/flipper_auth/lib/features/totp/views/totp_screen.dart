@@ -59,9 +59,10 @@ class TOTPDisplay extends ConsumerStatefulWidget {
 }
 
 class _TOTPDisplayState extends ConsumerState<TOTPDisplay> {
-  late Timer _timer;
+  Timer? _timer;
   String _currentCode = '';
   int _remainingSeconds = 0;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -73,18 +74,39 @@ class _TOTPDisplayState extends ConsumerState<TOTPDisplay> {
   void _updateCode() {
     final now = DateTime.now();
     final remainingSeconds = 30 - (now.second % 30);
-    final code =
-        ref.read(totpNotifierProvider.notifier).generateCode(widget.secret);
-
-    setState(() {
-      _currentCode = code;
-      _remainingSeconds = remainingSeconds;
-    });
+    
+    try {
+      if (widget.secret.isEmpty) {
+        throw Exception('Invalid secret');
+      }
+      
+      final code = ref.read(totpNotifierProvider.notifier).generateCode(widget.secret);
+      
+      setState(() {
+        _currentCode = code;
+        _remainingSeconds = remainingSeconds;
+        _errorMessage = null;
+      });
+    } catch (e) {
+      debugPrint('TOTP generation error: $e');
+      setState(() {
+        _currentCode = '------';
+        _remainingSeconds = remainingSeconds;
+        _errorMessage = 'Code generation failed';
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate TOTP code')),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 
@@ -95,7 +117,11 @@ class _TOTPDisplayState extends ConsumerState<TOTPDisplay> {
       children: [
         Text(
           _currentCode,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: _errorMessage != null ? Colors.red : null,
+          ),
         ),
         Text('$_remainingSeconds s'),
       ],
