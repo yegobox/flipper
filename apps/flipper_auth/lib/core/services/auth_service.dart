@@ -2,7 +2,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase;
+
+  AuthService(this._supabase);
 
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 

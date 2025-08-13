@@ -12,7 +12,8 @@ final supabaseProvider = Provider<SupabaseClient>((ref) {
 
 // Service Providers
 final authServiceProvider = Provider<AuthService>((ref) {
-  return AuthService();
+  final supabase = ref.read(supabaseProvider);
+  return AuthService(supabase);
 });
 
 final totpServiceProvider = Provider<TOTPService>((ref) {
