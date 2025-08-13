@@ -115,46 +115,35 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         num taxblAmt;
         num totAmt;
 
+        final num taxPercentage = variation.taxPercentage ?? 18.0;
+
         if (variation.taxTyCd == 'B') {
           // For taxTyCd == 'B', tax is included in the price
-          // Use priceAfterDiscount (which accounts for discount) instead of amountTotal
-          taxAmt =
-              double.parse((priceAfterDiscount * 18 / 118).toStringAsFixed(2));
+          taxAmt = double.parse(
+              (priceAfterDiscount * taxPercentage / (100 + taxPercentage))
+                  .toStringAsFixed(2));
           taxblAmt = priceAfterDiscount - taxAmt;
           totAmt = priceAfterDiscount;
 
           talker.info('  TAX CALCULATION - TYPE B (with discount):');
-          talker.info('    Formula: priceAfterDiscount * 18 / 118');
           talker.info(
-              '    Calculation: $priceAfterDiscount * 18 / 118 = $taxAmt');
+              '    Formula: priceAfterDiscount * $taxPercentage / ${100 + taxPercentage}');
+          talker.info(
+              '    Calculation: $priceAfterDiscount * $taxPercentage / ${100 + taxPercentage} = $taxAmt');
           talker.info('    taxblAmt = priceAfterDiscount - taxAmt = $taxblAmt');
           talker.info('    totAmt = priceAfterDiscount = $totAmt');
-
-          // For comparison with previous calculation
-          double oldTaxAmt =
-              double.parse((amountTotal * 18 / 118).toStringAsFixed(2));
-          talker.info(
-              '    Previous calculation (without discount): $amountTotal * 18 / 118 = $oldTaxAmt');
-
-          // Example calculation with actual values
-          talker.info('    Example with actual values:');
-          talker.info('      originalAmount = $originalAmount');
-          talker.info('      dcRt = $dcRt');
-          talker.info('      dcAmt = $originalAmount * $dcRt = $dcAmt');
-          talker.info(
-              '      priceAfterDiscount = $originalAmount - $dcAmt = $priceAfterDiscount');
-          talker
-              .info('      taxAmt = $priceAfterDiscount * 18 / 118 = $taxAmt');
         } else {
           // For other tax types, tax is added to the price
           taxblAmt = priceAfterDiscount;
-          taxAmt = double.parse((taxblAmt * 18 / 100).toStringAsFixed(2));
+          taxAmt = double.parse(
+              (taxblAmt * taxPercentage / (100)).toStringAsFixed(2));
           totAmt = taxblAmt + taxAmt;
 
           talker.info('  TAX CALCULATION - OTHER TYPE (with discount):');
           talker.info('    taxblAmt = priceAfterDiscount = $taxblAmt');
-          talker.info('    Formula: taxblAmt * 18 / 100');
-          talker.info('    Calculation: $taxblAmt * 18 / 100 = $taxAmt');
+          talker.info('    Formula: taxblAmt * $taxPercentage / 100');
+          talker.info(
+              '    Calculation: $taxblAmt * $taxPercentage / 100 = $taxAmt');
           talker.info('    totAmt = taxblAmt + taxAmt = $totAmt');
         }
 

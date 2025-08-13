@@ -21,6 +21,7 @@ abstract class TransactionInterface {
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
+    List<String>? receiptNumber,
   });
 
   FutureOr<void> addTransaction({required ITransaction transaction});
@@ -51,6 +52,7 @@ abstract class TransactionInterface {
     DateTime? endDate,
     required bool removeAdjustmentTransactions,
     bool forceRealData = true,
+    required bool skipOriginalTransactionCheck,
   });
 
   Future<List<Configurations>> taxes({required int branchId});

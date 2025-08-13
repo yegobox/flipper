@@ -1,17 +1,35 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/cache/cache_export.dart';
+import 'package:flipper_services/FirebaseCrashlyticService.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 
+// flutter test test/outer_variant_provider_test.dart
 // Mocks
 class MockCacheManager extends Mock implements CacheManager {}
+
+class MockCrash extends TalkerObserver implements Crash {
+  @override
+  Future<void> initializeFlutterFire() async {}
+
+  @override
+  Future<void> testAsyncErrorOnInit() async {}
+
+  @override
+  Future<void> log(data) async {}
+
+  @override
+  void reportError(error, stackTrace) {}
+}
 
 void main() {
   // Declare mock objects.
@@ -32,24 +50,62 @@ void main() {
 
   setUpAll(() async {
     env = TestEnvironment();
-    await env.init();
+    // Skip full initialization to avoid Supabase platform plugin errors
+    // await env.init();
+
+    // Initialize only what we need for this test
+    env.mockSyncStrategy = MockSyncStrategy();
+    env.mockDbSync = MockDatabaseSync();
+    env.mockBox = MockBox();
+    env.mockFlipperHttpClient = MockFlipperHttpClient();
+    env.mockTaxApi = MockTaxApi();
+
+    // Set up fallback values
+    registerFallbackValue(
+        Customer(branchId: 0, custNm: 'fallback', bhfId: '00'));
+    registerFallbackValue(Business(
+        id: "1", name: "Fallback Business", tinNumber: 123456789, serverId: 1));
+    registerFallbackValue(
+        Variant(id: "fallback_variant", name: "Fallback Variant", branchId: 1));
+    registerFallbackValue(<Variant>[]);
   });
 
   tearDownAll(() {
-    env.restore();
+    // Only restore if we have original values
+    try {
+      env.restore();
+    } catch (e) {
+      // Ignore restore errors in test-only setup
+    }
   });
 
   setUp(() {
-    env.injectMocks();
+    // Manually inject mocks without full ProxyService setup
     mockBox = env.mockBox;
     mockDbSync = env.mockDbSync;
     mockCacheManager = MockCacheManager();
+
+    // Set up ProxyService mocks directly
+    try {
+      ProxyService.strategyLink = env.mockSyncStrategy;
+      ProxyService.box = mockBox;
+      ProxyService.tax = env.mockTaxApi;
+    } catch (e) {
+      // Ignore ProxyService setup errors in test environment
+    }
+
+    when(() => env.mockSyncStrategy.current).thenReturn(mockDbSync);
 
     if (!GetIt.I.isRegistered<CacheManager>()) {
       GetIt.I.registerSingleton<CacheManager>(mockCacheManager);
     } else {
       GetIt.I.unregister<CacheManager>();
       GetIt.I.registerSingleton<CacheManager>(mockCacheManager);
+    }
+
+    // Register Crash service to fix CI/CD issue
+    if (!GetIt.I.isRegistered<Crash>()) {
+      GetIt.I.registerSingleton<Crash>(MockCrash());
     }
 
     when(() => mockBox.itemPerPage()).thenReturn(10);

@@ -23,7 +23,7 @@ class Message extends OfflineFirstWithSupabaseModel {
   final DateTime? timestamp;
 
   @Sqlite(nullable: true, index: true)
-  final String? conversationId; // References AiConversation.id
+  final String? conversationId; // References Conversation.id
 
   @Sqlite(nullable: true)
   final String? aiResponse;

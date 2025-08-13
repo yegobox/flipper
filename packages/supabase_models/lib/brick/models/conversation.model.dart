@@ -1,6 +1,8 @@
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:uuid/uuid.dart';
 
 @ConnectOfflineFirstWithSupabase(
@@ -11,44 +13,26 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  String? userName;
-  String? body;
-  String? avatar;
-  String? channelType;
-  String? fromNumber;
-  String? toNumber;
-  DateTime? createdAt;
-  String? messageType;
-  String? phoneNumberId;
-  String? messageId;
-  String? respondedBy;
-  String? conversationId;
-  String? businessPhoneNumber;
-  int? businessId;
-  DateTime? scheduledAt;
-  bool? delivered;
-  DateTime? lastTouched;
-  DateTime? deletedAt;
+  final String title;
+  final int branchId;
+
+  @Sqlite(nullable: true)
+  final DateTime? createdAt;
+
+  @Supabase(ignore: true)
+  @OfflineFirst(where: {'conversationId': 'id'})
+  List<Message>? messages;
+
+  DateTime lastMessageAt;
 
   Conversation({
     String? id,
-    this.userName,
-    this.body,
-    this.avatar,
-    this.channelType,
-    this.fromNumber,
-    this.toNumber,
-    this.createdAt,
-    this.messageType,
-    this.phoneNumberId,
-    this.messageId,
-    this.respondedBy,
-    this.conversationId,
-    this.businessPhoneNumber,
-    this.businessId,
-    this.scheduledAt,
-    this.delivered,
-    this.lastTouched,
-    this.deletedAt,
-  }) : id = id ?? const Uuid().v4();
+    required this.title,
+    required this.branchId,
+    DateTime? createdAt,
+    DateTime? lastMessageAt,
+    this.messages,
+  })  : id = id ?? const Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now().toUtc(),
+        lastMessageAt = lastMessageAt ?? DateTime.now();
 }

@@ -20,6 +20,7 @@ class NewTicketState extends State<NewTicket> {
   bool _noteValue = false;
   bool _ticketNameValue = false;
   bool _isLoan = false;
+  bool _isSaving = false;
   DateTime? _dueDate;
 
   @override
@@ -196,47 +197,52 @@ class NewTicketState extends State<NewTicket> {
                                     fontSize: 14,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                if (_isLoan)
-                                  InkWell(
-                                    onTap: () async {
-                                      DateTime? picked = await showDatePicker(
-                                        context: context,
-                                        initialDate: _dueDate ??
-                                            DateTime.now()
-                                                .toUtc()
-                                                .add(const Duration(days: 7)),
-                                        firstDate: DateTime.now().toUtc(),
-                                        lastDate: DateTime.now()
-                                            .toUtc()
-                                            .add(const Duration(days: 365)),
-                                      );
-                                      if (picked != null) {
-                                        setState(() {
-                                          _dueDate = picked.toUtc();
-                                        });
-                                      }
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.event,
-                                            color: Colors.blue, size: 20),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _dueDate != null
-                                              ? 'Due: ${_dueDate!.toLocal().toString().split(' ')[0]}'
-                                              : 'Set Due Date',
-                                          style: GoogleFonts.poppins(
-                                            color: Colors.blue,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
                               ],
                             ),
+                            // Due Date Picker (separate row to prevent overflow)
+                            if (_isLoan)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 40, top: 8),
+                                child: InkWell(
+                                  onTap: () async {
+                                    DateTime? picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: _dueDate ??
+                                          DateTime.now()
+                                              .toUtc()
+                                              .add(const Duration(days: 7)),
+                                      firstDate: DateTime.now().toUtc(),
+                                      lastDate: DateTime.now()
+                                          .toUtc()
+                                          .add(const Duration(days: 365)),
+                                    );
+                                    if (picked != null) {
+                                      setState(() {
+                                        _dueDate = picked.toUtc();
+                                      });
+                                    }
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.event,
+                                          color: Colors.blue, size: 20),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        _dueDate != null
+                                            ? 'Due: ${_dueDate!.toLocal().toString().split(' ')[0]}'
+                                            : 'Set Due Date',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.blue,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -256,7 +262,7 @@ class NewTicketState extends State<NewTicket> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: .05),
                         blurRadius: 5,
                         offset: const Offset(0, -2),
                       ),
@@ -280,19 +286,30 @@ class NewTicketState extends State<NewTicket> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: _ticketNameValue && _noteValue
-                            ? () {
+                        onPressed: _ticketNameValue && _noteValue && !_isSaving
+                            ? () async {
                                 if (_formKey.currentState!.validate()) {
-                                  // Set loan value and due date on transaction before saving
-                                  widget.transaction.isLoan = _isLoan;
-                                  widget.transaction.dueDate =
-                                      _isLoan ? _dueDate?.toUtc() : null;
-                                  model.saveTicket(
-                                    ticketName: _swipeController.text,
-                                    transaction: widget.transaction,
-                                    ticketNote: _noteController.text,
-                                  );
-                                  Navigator.of(context).pop();
+                                  setState(() {
+                                    _isSaving = true;
+                                  });
+                                  try {
+                                    // Set loan value and due date on transaction before saving
+                                    widget.transaction.isLoan = _isLoan;
+                                    widget.transaction.dueDate =
+                                        _isLoan ? _dueDate?.toUtc() : null;
+                                    await model.saveTicket(
+                                      ticketName: _swipeController.text,
+                                      transaction: widget.transaction,
+                                      ticketNote: _noteController.text,
+                                    );
+                                    Navigator.of(context).pop();
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() {
+                                        _isSaving = false;
+                                      });
+                                    }
+                                  }
                                 }
                               }
                             : null,
@@ -306,13 +323,36 @@ class NewTicketState extends State<NewTicket> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 12),
                         ),
-                        child: Text(
-                          'Save Ticket',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                        ),
+                        child: _isSaving
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Saving...',
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Text(
+                                'Save Ticket',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
                       ),
                     ],
                   ),

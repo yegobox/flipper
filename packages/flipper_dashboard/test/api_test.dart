@@ -7,7 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
-import 'test_helpers/turbo_tax_test_environment.dart';
+// import 'test_helpers/turbo_tax_test_environment.dart';
 
 // flutter test test/api_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 void main() {
@@ -901,6 +901,285 @@ void main() {
       expect(result, isA<Plan>());
       expect(result?.id, expectedPlan.id);
       expect(result?.businessId, expectedPlan.businessId);
+    });
+  });
+  group('Transaction Date Filtering', () {
+    late MockDatabaseSync mockDbSync;
+
+    setUp(() {
+      env.injectMocks();
+      env.stubCommonMethods();
+      mockDbSync = env.mockDbSync;
+    });
+
+    tearDown(() {
+      env.restore();
+    });
+
+    test('#transactions should return ITransaction objects not timestamps',
+        () async {
+      final targetDate = DateTime(2025, 7, 29);
+      final mockTransactions = [
+        ITransaction(
+          id: 'txn_1',
+          lastTouched: DateTime(2025, 7, 29, 8, 30, 0),
+          branchId: 1,
+          status: 'complete',
+          subTotal: 100.0,
+          isOriginalTransaction: true,
+          isExpense: false,
+          transactionType: 'sale',
+          paymentType: 'Cash',
+          cashReceived: 100,
+          customerChangeDue: 0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          isIncome: true,
+        ),
+      ];
+
+      when(() => mockDbSync.transactions(
+            startDate: targetDate,
+            endDate: targetDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).thenAnswer((_) async => mockTransactions);
+
+      final result = await ProxyService.strategy.transactions(
+        startDate: targetDate,
+        endDate: targetDate,
+        branchId: 1,
+      );
+
+      expect(result, isA<List<ITransaction>>());
+      expect(result.length, 1);
+      expect(result.first.id, 'txn_1');
+      expect(result.first.lastTouched, isA<DateTime>());
+    });
+
+    test('#transactions should handle date filtering correctly', () async {
+      final startDate = DateTime(2025, 7, 29);
+      final endDate = DateTime(2025, 7, 30);
+
+      when(() => mockDbSync.transactions(
+            startDate: startDate,
+            endDate: endDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).thenAnswer((_) async => []);
+
+      await ProxyService.strategy.transactions(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: 1,
+      );
+
+      verify(() => mockDbSync.transactions(
+            startDate: startDate,
+            endDate: endDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).called(1);
+    });
+    test('#transactionsStream should handle date filtering', () async {
+      final startDate = DateTime(2025, 7, 29);
+      final endDate = DateTime(2025, 7, 30);
+
+      when(() => mockDbSync.transactionsStream(
+            startDate: startDate,
+            endDate: endDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            id: null,
+            removeAdjustmentTransactions: false,
+            filterType: null,
+            includePending: false,
+            forceRealData: true,
+            skipOriginalTransactionCheck: false,
+          )).thenAnswer((_) => Stream.value([
+            ITransaction(
+              id: 'stream_txn_1',
+              lastTouched: DateTime(2025, 7, 29, 12, 0, 0),
+              branchId: 1,
+              status: 'complete',
+              subTotal: 100.0,
+              isOriginalTransaction: true,
+              isExpense: false,
+              transactionType: 'sale',
+              paymentType: 'Cash',
+              cashReceived: 100,
+              customerChangeDue: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isIncome: true,
+            ),
+          ]));
+
+      final stream = ProxyService.strategy.transactionsStream(
+        startDate: startDate,
+        endDate: endDate,
+        branchId: 1,
+        removeAdjustmentTransactions: false,
+        skipOriginalTransactionCheck: false,
+      );
+
+      final result = await stream.first;
+      expect(result.length, 1);
+      expect(result.first.id, 'stream_txn_1');
+    });
+
+    test('#transactions should handle different timezone edge cases', () async {
+      // Clear any previous interactions
+      clearInteractions(mockDbSync);
+      
+      // Test with UTC date that could cross timezone boundaries
+      final utcDate = DateTime.utc(2025, 7, 29, 22, 0, 0); // 10 PM UTC
+      final localDate = DateTime(2025, 7, 29); // Local midnight
+
+      when(() => mockDbSync.transactions(
+            startDate: localDate,
+            endDate: localDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).thenAnswer((_) async => [
+            ITransaction(
+              id: 'utc_txn',
+              lastTouched: utcDate,
+              branchId: 1,
+              status: 'complete',
+              subTotal: 100.0,
+              isOriginalTransaction: true,
+              isExpense: false,
+              transactionType: 'sale',
+              paymentType: 'Cash',
+              cashReceived: 100,
+              customerChangeDue: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isIncome: true,
+            ),
+          ]);
+
+      final result = await ProxyService.strategy.transactions(
+        startDate: localDate,
+        endDate: localDate,
+        branchId: 1,
+      );
+
+      expect(result.length, 1);
+      expect(result.first.id, 'utc_txn');
+      // Verify the method uses local date boundaries, not UTC conversion
+      verify(() => mockDbSync.transactions(
+            startDate: localDate, // Should pass local date, not converted
+            endDate: localDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            fetchRemote: false,
+            id: null,
+            isExpense: false,
+            filterType: null,
+            includeZeroSubTotal: false,
+            includePending: false,
+            skipOriginalTransactionCheck: false,
+            forceRealData: true,
+            receiptNumber: null,
+          )).called(1);
+    });
+
+    test('#transactionsStream should handle timezone edge cases', () async {
+      final localDate = DateTime(2025, 7, 29);
+
+      when(() => mockDbSync.transactionsStream(
+            startDate: localDate,
+            endDate: localDate,
+            status: null,
+            transactionType: null,
+            branchId: 1,
+            isCashOut: false,
+            id: null,
+            removeAdjustmentTransactions: false,
+            filterType: null,
+            includePending: false,
+            forceRealData: true,
+            skipOriginalTransactionCheck: false,
+          )).thenAnswer((_) => Stream.value([
+            ITransaction(
+              id: 'tz_stream_txn',
+              lastTouched: DateTime.utc(2025, 7, 29, 23, 30, 0),
+              branchId: 1,
+              status: 'complete',
+              subTotal: 100.0,
+              isOriginalTransaction: true,
+              isExpense: false,
+              transactionType: 'sale',
+              paymentType: 'Cash',
+              cashReceived: 100,
+              customerChangeDue: 0,
+              createdAt: DateTime.now(),
+              updatedAt: DateTime.now(),
+              isIncome: true,
+            ),
+          ]));
+
+      final stream = ProxyService.strategy.transactionsStream(
+        startDate: localDate,
+        endDate: localDate,
+        branchId: 1,
+        removeAdjustmentTransactions: false,
+        skipOriginalTransactionCheck: false,
+      );
+
+      final result = await stream.first;
+      expect(result.length, 1);
+      expect(result.first.id, 'tz_stream_txn');
     });
   });
 }

@@ -1,16 +1,20 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250729081610.migration.dart';
+part '20250807103716.migration.dart';
 part '20250716114853.migration.dart';
+part '20250729081610.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250729081610(),const Migration20250716114853()};
+  const Migration20250807103716(),
+  const Migration20250716114853(),
+  const Migration20250729081610(),
+};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250716114853,
+  20250729081610,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -222,6 +226,40 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      '_brick_Conversation_messages',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn(
+          'l_Conversation_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'Conversation',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn(
+          'f_Message_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'Message',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(
+          columns: ['l_Conversation_brick_id', 'f_Message_brick_id'],
+          unique: true,
+        ),
+      },
+    ),
+    SchemaTable(
       'Conversation',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -232,24 +270,10 @@ final schema = Schema(
           isPrimaryKey: true,
         ),
         SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('user_name', Column.varchar),
-        SchemaColumn('body', Column.varchar),
-        SchemaColumn('avatar', Column.varchar),
-        SchemaColumn('channel_type', Column.varchar),
-        SchemaColumn('from_number', Column.varchar),
-        SchemaColumn('to_number', Column.varchar),
+        SchemaColumn('title', Column.varchar),
+        SchemaColumn('branch_id', Column.integer),
         SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('message_type', Column.varchar),
-        SchemaColumn('phone_number_id', Column.varchar),
-        SchemaColumn('message_id', Column.varchar),
-        SchemaColumn('responded_by', Column.varchar),
-        SchemaColumn('conversation_id', Column.varchar),
-        SchemaColumn('business_phone_number', Column.varchar),
-        SchemaColumn('business_id', Column.integer),
-        SchemaColumn('scheduled_at', Column.datetime),
-        SchemaColumn('delivered', Column.boolean),
-        SchemaColumn('last_touched', Column.datetime),
-        SchemaColumn('deleted_at', Column.datetime),
+        SchemaColumn('last_message_at', Column.datetime),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1727,26 +1751,6 @@ final schema = Schema(
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['business_id'], unique: false),
         SchemaIndex(columns: ['user_id'], unique: false),
-      },
-    ),
-    SchemaTable(
-      'AiConversation',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('title', Column.varchar),
-        SchemaColumn('branch_id', Column.integer),
-        SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('last_message_at', Column.datetime),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
       },
     ),
     SchemaTable(

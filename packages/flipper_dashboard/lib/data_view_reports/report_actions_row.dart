@@ -104,22 +104,6 @@ class ReportActionsRow extends ConsumerWidget {
           ),
         ),
         Tooltip(
-          message: 'X Report',
-          child: SizedBox(
-            width: 40,
-            height: 40,
-            child: isXReportLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : IconButton(
-                    icon: const Icon(Icons.receipt_long_outlined),
-                    onPressed: onXReportPressed,
-                  ),
-          ),
-        ),
-        Tooltip(
           message: 'Z Report',
           child: SizedBox(
             width: 40,
@@ -132,6 +116,22 @@ class ReportActionsRow extends ConsumerWidget {
                 : IconButton(
                     icon: const Icon(Icons.assessment),
                     onPressed: onZReportPressed,
+                  ),
+          ),
+        ),
+        Tooltip(
+          message: 'X Report',
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: isXReportLoading
+                ? const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.receipt_long_outlined),
+                    onPressed: onXReportPressed,
                   ),
           ),
         ),

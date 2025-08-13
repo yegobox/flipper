@@ -29,6 +29,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/posthog_service.dart';
+import 'package:flipper_services/navigation_guard_service.dart';
 
 enum OrderStatus { pending, approved }
 
@@ -60,6 +61,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   @override
   void initState() {
     super.initState();
+    NavigationGuardService().startCriticalWorkflow();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -76,6 +78,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   void dispose() {
+    NavigationGuardService().endCriticalWorkflow();
     WidgetsBinding.instance.removeObserver(this);
     _animationController.dispose();
     tabController.dispose();

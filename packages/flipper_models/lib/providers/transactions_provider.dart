@@ -25,6 +25,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     branchId: branchId,
+    skipOriginalTransactionCheck: true,
     startDate: startDate,
     endDate: endDate,
     removeAdjustmentTransactions: true,
@@ -51,6 +52,7 @@ Stream<List<ITransaction>> transactionList(
     final stream = ProxyService.strategy.transactionsStream(
       startDate: startDate,
       endDate: endDate,
+      skipOriginalTransactionCheck: true,
       removeAdjustmentTransactions: true,
       branchId: ProxyService.box.getBranchId(),
       isCashOut: false,
@@ -100,6 +102,7 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     branchId: branchId,
+    skipOriginalTransactionCheck: true,
     startDate: startDate,
     endDate: endDate,
     removeAdjustmentTransactions: true,
@@ -183,6 +186,7 @@ Stream<List<ITransaction>> expensesStream(
       'Fetching expenses from $startDate to $endDate for branch $branchId');
   return ProxyService.strategy
       .transactionsStream(
+        skipOriginalTransactionCheck: true,
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
@@ -217,6 +221,7 @@ Stream<double> netProfitStream(
       .transactionsStream(
         startDate: startDate,
         endDate: endDate,
+        skipOriginalTransactionCheck: false,
         branchId: branchId,
         forceRealData: forceRealData,
         isCashOut: false, // Only get income transactions
@@ -226,6 +231,7 @@ Stream<double> netProfitStream(
 
   final expensesStream = ProxyService.strategy
       .transactionsStream(
+        skipOriginalTransactionCheck: false,
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
@@ -325,6 +331,7 @@ Stream<double> grossProfitStream(
     startDate: startDate,
     endDate: endDate,
     forceRealData: forceRealData,
+    skipOriginalTransactionCheck: false,
     branchId: branchId,
     isCashOut: false, // Only get income transactions
     removeAdjustmentTransactions: true,
@@ -365,6 +372,7 @@ Stream<double> totalIncomeStream(
     endDate: endDate,
     forceRealData: forceRealData,
     branchId: branchId,
+    skipOriginalTransactionCheck: false,
     removeAdjustmentTransactions: true,
   );
 

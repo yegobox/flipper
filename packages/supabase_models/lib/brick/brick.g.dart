@@ -11,6 +11,8 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/message.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:flipper_models/helperModels/random.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
@@ -93,7 +95,6 @@ import '../brick/models/ebm.model.dart';
 import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/shift.model.dart';
-import '../brick/models/ai_conversation.model.dart';
 import '../brick/models/plans.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
@@ -150,7 +151,6 @@ part 'adapters/ebm_adapter.g.dart';
 part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/shift_adapter.g.dart';
-part 'adapters/ai_conversation_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
@@ -209,7 +209,6 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Shift: ShiftAdapter(),
-  AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
@@ -270,7 +269,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Shift: ShiftAdapter(),
-  AiConversation: AiConversationAdapter(),
   Plan: PlanAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);

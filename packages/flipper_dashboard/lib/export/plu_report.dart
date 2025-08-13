@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -63,6 +64,7 @@ class PdfHelper {
     const double rowHeight = 25;
     const double headerHeight = 30;
     const double cellPadding = 4;
+    const double footerSpace = 120; // Space needed for footer
 
     final headers = [
       'No',
@@ -76,8 +78,8 @@ class PdfHelper {
 
     final columnWidths = [
       0.4, // No
-      2.8, // Item Name
-      1.3, // Item Code
+      2.5, // Item Name
+      1.8, // Item Code - Increased to accommodate longer codes
       1.0, // Unit Price
       0.8, // Tax Rate
       0.8, // Sold Qty
@@ -148,72 +150,8 @@ class PdfHelper {
       // Skip if row doesn't have required data
       if (row['Item Name'] == null) continue;
 
-      // Alternate row background
-      PdfBrush? rowBrush;
-      if (rowIndex % 2 == 0) {
-        rowBrush = PdfSolidBrush(PdfColor(248, 248, 248));
-        page.graphics.drawRectangle(
-          brush: rowBrush,
-          bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
-        );
-      }
-
-      // Draw row border (top and bottom)
-      page.graphics.drawRectangle(
-        pen: borderPen,
-        bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
-      );
-
-      // Draw cell values
-      final values = [
-        row['No'].toString(),
-        row['Item Name']?.toString() ?? '',
-        row['Item Code']?.toString() ?? '',
-        (row['Unit Price'] is num
-            ? (row['Unit Price'] as num).toStringAsFixed(2)
-            : row['Unit Price']?.toString() ?? '0.00'),
-        row['Tax Rate']?.toString() ?? '0.00%',
-        row['Sold Quantity']?.toString() ?? '0',
-        row['Remain Quantity']?.toString() ?? '0',
-      ];
-
-      for (var i = 0; i < values.length; i++) {
-        final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
-
-        // Draw vertical border for each cell (except first one)
-        if (i > 0) {
-          page.graphics.drawLine(
-            borderPen,
-            ui.Offset(currentX, y),
-            ui.Offset(currentX, y + rowHeight),
-          );
-        }
-
-        // Draw cell text with proper alignment
-        page.graphics.drawString(
-          values[i],
-          normalFont,
-          bounds: ui.Rect.fromLTWH(
-            currentX + cellPadding,
-            y + (rowHeight - normalFont.height) / 2,
-            colWidth - (2 * cellPadding),
-            normalFont.height,
-          ),
-          format: PdfStringFormat(
-            alignment: i == 0 || i == 1
-                ? PdfTextAlignment.left
-                : PdfTextAlignment.center,
-            lineAlignment: PdfVerticalAlignment.middle,
-          ),
-        );
-
-        currentX += colWidth;
-      }
-
-      y += rowHeight;
-
-      // Check for page break
-      if (y > page.getClientSize().height - 100) {
+      // Check if we need a new page before drawing this row
+      if (y + rowHeight > page.getClientSize().height - footerSpace) {
         page = document.pages.add();
         y = margin;
 
@@ -264,6 +202,70 @@ class PdfHelper {
 
         y += headerHeight;
       }
+
+      // Alternate row background
+      PdfBrush? rowBrush;
+      if (rowIndex % 2 == 0) {
+        rowBrush = PdfSolidBrush(PdfColor(248, 248, 248));
+        page.graphics.drawRectangle(
+          brush: rowBrush,
+          bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
+        );
+      }
+
+      // Draw row border (top and bottom)
+      page.graphics.drawRectangle(
+        pen: borderPen,
+        bounds: ui.Rect.fromLTWH(margin, y, availableWidth, rowHeight),
+      );
+
+      // Draw cell values
+      final values = [
+        row['No'].toString(),
+        row['Item Name']?.toString() ?? '',
+        row['Item Code']?.toString() ?? '',
+        (row['Unit Price'] is num
+            ? (row['Unit Price'] as num).toStringAsFixed(2)
+            : row['Unit Price']?.toString() ?? '0.00'),
+        row['Tax']?.toString() ?? '0.00',
+        row['Sold Quantity']?.toString() ?? '0',
+        row['Remain Quantity']?.toString() ?? '0',
+      ];
+
+      for (var i = 0; i < values.length; i++) {
+        final colWidth = (columnWidths[i] / totalWidth) * availableWidth;
+
+        // Draw vertical border for each cell (except first one)
+        if (i > 0) {
+          page.graphics.drawLine(
+            borderPen,
+            ui.Offset(currentX, y),
+            ui.Offset(currentX, y + rowHeight),
+          );
+        }
+
+        // Draw cell text with proper alignment
+        page.graphics.drawString(
+          values[i],
+          normalFont,
+          bounds: ui.Rect.fromLTWH(
+            currentX + cellPadding,
+            y + (rowHeight - normalFont.height) / 2,
+            colWidth - (2 * cellPadding),
+            normalFont.height,
+          ),
+          format: PdfStringFormat(
+            alignment: i == 0 || i == 1
+                ? PdfTextAlignment.left
+                : PdfTextAlignment.center,
+            lineAlignment: PdfVerticalAlignment.middle,
+          ),
+        );
+
+        currentX += colWidth;
+      }
+
+      y += rowHeight;
     }
 
     return y;
@@ -307,35 +309,29 @@ class PLUReport {
     int i = 1;
 
     for (final entry in groupedItems.entries) {
+      final variantId = entry.key;
       final items = entry.value;
       if (items.isEmpty) continue;
 
-      // Use the first item's details (all items in the group share the same variant)
-      final firstItem = items.first;
+      // Get variant details from database
+      final variant = await ProxyService.strategy.getVariant(id: variantId);
+      if (variant == null) continue;
 
       // Calculate totals
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
       final totalTax =
           items.fold<double>(0, (sum, item) => sum + (item.taxAmt ?? 0));
-      final totalTaxable =
-          items.fold<double>(0, (sum, item) => sum + (item.taxblAmt ?? 0));
 
-      // Calculate tax rate (handle division by zero)
-      double taxRate = 0.0;
-      if (totalTaxable > 0) {
-        taxRate = (totalTax / totalTaxable) * 100;
-      }
-
+      // Use tax percentage from the first item
       reportData.add({
         'No': i++,
-        'Item Name': firstItem.name,
-        'Item Code':
-            firstItem.itemCd ?? firstItem.variantId?.substring(0, 8) ?? '',
-        'Unit Price': firstItem.price,
-        'Tax Rate': '${taxRate.toStringAsFixed(2)}%',
+        'Item Name': variant.name,
+        'Item Code': variant.itemCd,
+        'Unit Price': variant.retailPrice,
+        'Tax': '${totalTax.toStringAsFixed(2)}',
         'Sold Quantity': soldQty.toStringAsFixed(2),
         'Remain Quantity':
-            firstItem.remainingStock?.toStringAsFixed(2) ?? '0.00',
+            variant.stock?.currentStock?.toStringAsFixed(1) ?? '0.00',
       });
     }
 
@@ -406,15 +402,17 @@ class PLUReport {
       boldFont: boldFont,
     );
 
+    // Add footer with logo and generation info
+    yPosition = max(
+        yPosition,
+        page.getClientSize().height -
+            120); // Ensure footer is at least 120 from bottom
+
     // Ensure we have enough space for footer
     if (yPosition > page.getClientSize().height - 150) {
       page = document.pages.add();
       yPosition = 40;
     }
-
-    // Add footer with logo and generation info
-    yPosition = page.getClientSize().height -
-        120; // Position near bottom with space for logo
 
     // Draw generation info
     page.graphics.drawString(

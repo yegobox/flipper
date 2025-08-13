@@ -286,7 +286,7 @@ class TaxController<OBJ> {
             brandEmail: business.email ?? "info@yegobox.com",
             customerTin: transaction.customerTin,
             receiptType: receiptType,
-            customerName: transaction.customerName ?? "",
+            customerName: transaction.customerName ?? "N/A",
             printCallback: (Uint8List data) {
               bytes = data;
             },
@@ -368,7 +368,10 @@ class TaxController<OBJ> {
 
         /// update transaction with receipt number and total receipt number
 
-        if (receiptType == "CR" || receiptType == "NR" || receiptType == "TR") {
+        if (receiptType == "CR" ||
+            receiptType == "NR" ||
+            receiptType == "TR" ||
+            receiptType == "CS") {
           final newTransaction = ITransaction(
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,

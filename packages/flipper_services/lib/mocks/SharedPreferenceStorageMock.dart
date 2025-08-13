@@ -435,4 +435,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   @override
   // TODO: implement onTrainingModeChanged
   Stream<bool> get onTrainingModeChanged => Stream.value(true);
+
+  @override
+  String? lastZReportDate() {
+    return "2024-08-10T12:00:00Z";
+  }
 }

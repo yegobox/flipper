@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/proxy.dart';
@@ -42,12 +41,15 @@ class LocalNotificationService implements LNotification {
   Future<void> sendLocalNotification(
       {required String body, String? userName = "Flipper"}) async {
     try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        // Skip notification if branch ID is not available
+        return;
+      }
+      
       Conversation? conversation = Conversation(
-        body: body,
-        phoneNumberId: randomNumber().toString().substring(0, 5),
-        createdAt: DateTime.now().add(Duration(seconds: 10)),
-        userName: userName,
-        businessId: ProxyService.box.getBusinessId(),
+        title: body,
+        branchId: branchId,
       );
 
       // Now you can use _notificationManager safely

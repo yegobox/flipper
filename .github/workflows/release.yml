@@ -13,9 +13,6 @@ on:
           - beta
           - promote_to_production
           - production
-  # pull_request:
-  #   branches:
-  #     - main
   push:
     branches:
       - 'feature-*'
@@ -347,9 +344,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}  # Use the default GITHUB_TOKEN
   
   fastlane-deploy:
-    name: "Google Deploy"
+    name: "Google Deploy ${{ matrix.app }}"
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [flipper, flipper_auth]
     steps:
       - run: git config --global core.autocrlf false
       # Set up Flutter.
@@ -399,6 +401,12 @@ jobs:
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - name: Verify app exists
+        run: |
+          echo "Checking if apps/${{ matrix.app }} exists..."
+          ls -la apps/
+          ls -la apps/${{ matrix.app }}/
+          ls -la apps/${{ matrix.app }}/android/
       - run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
@@ -407,7 +415,7 @@ jobs:
       - name: Get version from pubspec.yaml
         id: get_version
         run: |
-          VERSION=$(grep '^version:' apps/flipper/pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
+          VERSION=$(grep '^version:' apps/${{ matrix.app }}/pubspec.yaml | cut -d ' ' -f 2 | tr -d '\r')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
         
@@ -418,40 +426,78 @@ jobs:
           ruby-version: "3.0"
           bundler-cache: true
           # cache-version: 1
-          working-directory: apps/flipper/android
+          working-directory: apps/${{ matrix.app }}/android
       - name: Write Posthog API Key to local.properties
         run: |
           echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
-        working-directory: apps/flipper
+        working-directory: apps/${{ matrix.app }}
+      - name: Set environment variables
+        run: |
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            cat << 'ENV_EOF' >> "$GITHUB_ENV"
+          PLAY_STORE_UPLOAD_KEY<<EOF
+          ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          EOF
+          KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON<<EOF
+          ${{ secrets.FLIPPER_AUTH_GOOGLE_SERVICE_JSON }}
+          EOF
+          ENV_EOF
+          else
+            cat << 'ENV_EOF' >> "$GITHUB_ENV"
+          PLAY_STORE_UPLOAD_KEY<<EOF
+          ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          EOF
+          KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD=${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD=${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON<<EOF
+          ${{ secrets.GOOGLE_SERVICE_JSON }}
+          EOF
+          ENV_EOF
+          fi
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
-          cat play_store_upload_key.txt
           echo "storeFile=key.jks" >> key.properties
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
           echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: apps/flipper/android
+        working-directory: apps/${{ matrix.app }}/android
+      - name: Verify package name before upload
+        run: |
+          echo "Verifying package name for ${{ matrix.app }}..."
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            expected_package="rw.flipper.auth"
+          else
+            expected_package="rw.flipper"
+          fi
+          
+          # Extract package name from build.gradle.kts
+          actual_package=$(grep 'applicationId = ' app/build.gradle.kts | sed 's/.*applicationId = "\(.*\)".*/\1/')
+          echo "Expected package: $expected_package"
+          echo "Actual package: $actual_package"
+          
+          if [ "$actual_package" != "$expected_package" ]; then
+            echo "ERROR: Package name mismatch!"
+            exit 1
+          fi
+        working-directory: apps/${{ matrix.app }}/android
       - run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
-          PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        working-directory: apps/flipper/android
+        working-directory: apps/${{ matrix.app }}/android
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v1
         with:
-          name: Android AAB Release - ${{ github.ref_name }}
-          tag_name: v${{ steps.get_version.outputs.version }}
+          name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
+          tag_name: v${{ steps.get_version.outputs.version }}_${{ matrix.app }}
           body: |
             Debug Release for QA
         env:

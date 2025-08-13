@@ -1,7 +1,5 @@
 import 'package:flipper_models/DatabaseSyncInterface.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:http/http.dart' as http;
-import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_login/pin_login.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -15,6 +13,7 @@ import 'TestApp.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 
+// flutter test test/pin_login_test.dart --dart-define=FLUTTER_TEST_ENV=true
 class MockPin extends Mock implements IPin {}
 
 void main() {
@@ -39,6 +38,7 @@ void main() {
           ownerName: 'test',
           phoneNumber: '1234567890'));
       registerFallbackValue(MockUser());
+      registerFallbackValue(FakeHttpClient());
     });
 
     tearDownAll(() {
@@ -173,73 +173,5 @@ void main() {
 
       expect(find.text('PIN must be at least 4 digits'), findsOneWidget);
     });
-    // TODO: work on this later.
-    // testWidgets('Successful MFA login flow', (WidgetTester tester) async {
-    //   // Mock Pin
-    //   final mockPin = MockPin();
-    //   when(() => mockPin.userId).thenReturn('1');
-    //   when(() => mockPin.phoneNumber).thenReturn('1234567890');
-    //   when(() => mockPin.branchId).thenReturn(1);
-    //   when(() => mockPin.businessId).thenReturn(1);
-    //   when(() => mockPin.ownerName).thenReturn('Test Owner');
-
-    //   // Mock getPin
-    //   when(() => mockDatabaseSync.getPin(
-    //         pinString: '1234',
-    //         flipperHttpClient: any(named: 'flipperHttpClient'),
-    //       )).thenAnswer((_) async => mockPin);
-
-    //   // Mock requestOtp
-    //   when(() => mockDatabaseSync.requestOtp('1234')).thenAnswer((_) async => {
-    //         'success': true,
-    //         'message': 'OTP sent to your phone',
-    //         'phoneNumber': '250788123456',
-    //         'requiresOtp': true,
-    //       });
-
-    //   // Mock verifyOtpAndLogin
-    //   when(() => mockDatabaseSync.verifyOtpAndLogin('123456', pin: mockPin))
-    //       .thenAnswer((_) async => MockUser());
-
-    //   // Mock handleLoginError
-    //   when(() => mockDatabaseSync.handleLoginError(
-    //             any(),
-    //             any(that: isA<StackTrace>()),
-    //           ))
-    //       .thenAnswer((_) async =>
-    //           {'errorMessage': 'Invalid PIN or OTP. Please try again.'});
-
-    //   await tester.pumpWidget(
-    //     TestApp(
-    //       child: PinLogin(),
-    //     ),
-    //   );
-
-    //   // Enter PIN
-    //   await tester.enterText(find.byKey(const Key('pinField')), '1234');
-    //   await tester.tap(find.byKey(const Key('signInButtonText')));
-    //   await tester.pumpAndSettle(Duration(seconds: 1));
-
-    //   // Verify OTP field is visible
-    //   final otpFieldFinder = find.byKey(const Key('otpField'));
-    //   expect(otpFieldFinder, findsOneWidget);
-
-    //   // Enter OTP
-    //   await tester.enterText(otpFieldFinder, '123456');
-    //   await tester.tap(find.byKey(const Key('signInButtonText')));
-    //   await tester.pumpAndSettle(Duration(seconds: 1));
-
-    //   // Verify interactions
-    //   verify(() => mockDatabaseSync.requestOtp('1234')).called(1);
-    //   verify(() => mockDatabaseSync.getPin(
-    //         pinString: '1234',
-    //         flipperHttpClient: any(named: 'flipperHttpClient'),
-    //       )).called(1);
-    //   verify(() => mockDatabaseSync.verifyOtpAndLogin('123456', pin: mockPin))
-    //       .called(1);
-
-    //   // Verify no error is shown
-    //   expect(find.text('Invalid PIN or OTP. Please try again.'), findsNothing);
-    // });
   });
 }

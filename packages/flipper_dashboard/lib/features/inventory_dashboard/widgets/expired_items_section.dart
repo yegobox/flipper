@@ -16,10 +16,6 @@ class ExpiredItemsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate the available width for the table
-    final availableWidth =
-        MediaQuery.of(context).size.width - 64; // Full width minus padding
-
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero, // Remove default card margin
@@ -52,11 +48,11 @@ class ExpiredItemsSection extends StatelessWidget {
               ],
             ),
           ),
-          // Table section - no horizontal scroll
+          // Table section - with horizontal scroll
           Padding(
             padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-            child: SizedBox(
-              width: availableWidth,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               child: DataTable(
                 columnSpacing: 20,
                 headingRowColor: WidgetStateProperty.all(

@@ -561,6 +561,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<double> fetchCost(int branchId);
   Future<List<BusinessAnalytic>> analytics({required int branchId});
+  Stream<List<BusinessAnalytic>> streamRemoteAnalytics({required int branchId});
   Future<void> deleteFailedQueue();
   Future<int> queueLength();
 

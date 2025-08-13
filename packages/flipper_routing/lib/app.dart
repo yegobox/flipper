@@ -16,6 +16,7 @@ import 'all_routes.dart';
     CustomRoute(page: Landing),
     CustomRoute(page: Auth),
     CustomRoute(page: CountryPicker),
+    CustomRoute(page: AiScreen),
     CustomRoute(page: PhoneInputScreen),
     CustomRoute(page: InventoryRequestMobileView),
     //End of login routes
@@ -47,10 +48,7 @@ import 'all_routes.dart';
     CustomRoute(page: BackUp),
     CustomRoute(page: LoginChoices),
     CustomRoute(page: TenantManagement),
-    CustomRoute(page: SocialHomeView),
     CustomRoute(page: DrawerScreen),
-    CustomRoute(page: ChatListView),
-    CustomRoute(page: ConversationHistory),
     CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
     CustomRoute(page: MobileView),
@@ -829,3 +827,13 @@ class App {}
 //Enable repo git hooks git config core.hooksPath hooks
 // Changes to submit in brick in future package: brick_offline_first
 // offline_first_repository.dart
+
+// keytool -importcert -file deployment_cert.der -keystore flipper_auth.jks -alias flipper_auth -storepass flipper_auth -keypass flipper_auth
+// keytool -list -v -keystore ~/.android/debug.keystore -alias flipper_auth -storepass flipper_auth -keypass flipper_auth
+
+// keytool -list -v -keystore /Users/richard/Documents/GitHub/flipper/apps/flipper_auth/android/app/flipper_auth.jks -alias flipper_auth -storepass flipper_auth
+
+
+//  keytool -list -v -keystore /Users/richard/Documents/GitHub/flipper/apps/flipper/android/app/key.jks -alias upload -storepass umwana789
+// Future plans:
+// https://medium.com/@mahmuthanb/building-a-flutter-app-with-machine-learning-using-tensorflow-lite-474fd03a30fe
