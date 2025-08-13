@@ -18,7 +18,7 @@ class TOTPService {
     return code == validCode;
   }
 
-  String generateSecret() {
+  String generateSecret({int length = 32}) {
     return OTP.randomSecret();
   }
 }

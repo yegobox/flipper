@@ -8,9 +8,15 @@ class AccountRepository {
 
   Future<List<Map<String, dynamic>>> fetchAccounts() async {
     try {
-      final userId = _supabase.auth.currentUser!.id;
-      final response =
-          await _supabase.from('accounts').select().eq('user_id', userId);
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Unauthenticated: no current user');
+      }
+      
+      final response = await _supabase
+          .from('accounts')
+          .select('id, issuer, account_name, secret')
+          .eq('user_id', currentUser.id);
 
       return List<Map<String, dynamic>>.from(response);
     } on PostgrestException catch (e) {
@@ -22,11 +28,15 @@ class AccountRepository {
 
   Future<void> addAccount(Map<String, dynamic> account) async {
     try {
-      final userId = _supabase.auth.currentUser!.id;
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser == null) {
+        throw Exception('Unauthenticated: no current user');
+      }
+      
       await _supabase.from('accounts').insert({
         ...account,
-        'user_id': userId,
-      });
+        'user_id': currentUser.id,
+      }).select('');
     } on PostgrestException catch (e) {
       throw Exception('Failed to add account: ${e.message}');
     } catch (e) {
