@@ -6,6 +6,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,7 +89,15 @@ class FlipperScaffold extends HookConsumerWidget {
         appBar: statusText.isNotEmpty ? const StatusAppBar() : null,
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            try {
+              final startupViewModel = getIt<StartupViewModel>();
+              startupViewModel.updateUserActivity();
+            } catch (e) {
+              // Ignore if StartupViewModel is not available
+            }
+          },
           child: const FlipperAppBody(),
         ),
       ),

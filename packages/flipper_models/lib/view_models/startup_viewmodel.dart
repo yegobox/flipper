@@ -36,10 +36,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   // Flag to track if we're currently on a payment screen
   bool _isOnPaymentScreen = false;
 
+  // Track last user activity to avoid interrupting active users
+  DateTime _lastUserActivity = DateTime.now();
+  static const Duration _userActivityThreshold = Duration(minutes: 5);
+
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
-      if (ProxyService.box.getForceLogout()) {
+      final forceLogout = ProxyService.box.getForceLogout();
+      if (forceLogout) {
+        talker.warning('Force logout detected - logging out user');
+        // Reset the force logout flag to prevent repeated logouts
+        await ProxyService.box.setForceLogout(false);
         await logOut();
         _routerService.navigateTo(LoginRoute());
         return;
@@ -97,6 +105,33 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   /// Handle payment status changes from periodic verification
   void _handlePaymentStatusChange(PaymentVerificationResponse response) {
+    // Check if user is currently on a modal or critical page
+    final currentRoute = _routerService.router.current.name;
+    final criticalRoutes = [
+      'AddProductView',
+      'Sell',
+      'Payments',
+      'PaymentConfirmation',
+      'TransactionDetail',
+      'CheckOut',
+      'NewTicket',
+      'CheckOut'
+    ];
+
+    // Don't interrupt user during critical operations
+    if (criticalRoutes.contains(currentRoute)) {
+      talker.info(
+          'Skipping payment verification navigation - user on critical page: $currentRoute');
+      return;
+    }
+
+    // Don't interrupt if user was recently active
+    if (DateTime.now().difference(_lastUserActivity) < _userActivityThreshold) {
+      talker.info(
+          'Skipping payment verification navigation - user recently active');
+      return;
+    }
+
     switch (response.result) {
       case PaymentVerificationResult.active:
         _handleActiveSubscription();
@@ -184,6 +219,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   void _clearPaymentScreenFlag() {
     _isOnPaymentScreen = false;
     talker.info('Payment screen flag set to false');
+  }
+
+  /// Call this method whenever user interacts with the app
+  void updateUserActivity() {
+    _lastUserActivity = DateTime.now();
   }
 
   /// Force payment verification with navigation handling
