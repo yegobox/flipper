@@ -28,6 +28,20 @@ class TicketsScreen extends StatefulHookConsumerWidget {
 class _TicketsScreenState extends ConsumerState<TicketsScreen>
     with TicketsListMixin {
   final _routerService = locator<RouterService>();
+  String _sortFilter = 'all'; // 'all', 'regular', 'loans'
+
+  @override
+  List<ITransaction> getCurrentTickets() {
+    final allTickets = super.getCurrentTickets();
+    switch (_sortFilter) {
+      case 'regular':
+        return allTickets.where((t) => t.isLoan != true).toList();
+      case 'loans':
+        return allTickets.where((t) => t.isLoan == true).toList();
+      default:
+        return allTickets;
+    }
+  }
 
   void _selectAllTickets(WidgetRef ref) {
     final visibleTickets = getCurrentTickets();
@@ -40,24 +54,27 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
     final selectedIds = ref.read(ticketSelectionProvider);
     final visibleTickets = getCurrentTickets();
     final visibleTicketIds = visibleTickets.map((t) => t.id).toSet();
-    
+
     // Filter to only include visible tickets
-    final validSelectedIds = selectedIds.where((id) => visibleTicketIds.contains(id)).toSet();
-    
+    final validSelectedIds =
+        selectedIds.where((id) => visibleTicketIds.contains(id)).toSet();
+
     // Clear invalid selections
     if (validSelectedIds.length != selectedIds.length) {
       ref.read(ticketSelectionProvider.notifier).clearSelection();
       // Re-select only valid tickets
-      final validTickets = visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
+      final validTickets =
+          visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
       if (validTickets.isNotEmpty) {
         ref.read(ticketSelectionProvider.notifier).selectAll(validTickets);
       }
     }
-    
+
     if (validSelectedIds.isEmpty) return;
 
-    final selectedTickets = visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
-    
+    final selectedTickets =
+        visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
+
     showDeletionConfirmationSnackBar(
       context,
       selectedTickets,
@@ -257,6 +274,10 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                               onSelected: (value) {
                                 if (value == 'select_all') {
                                   _selectAllTickets(ref);
+                                } else if (value.startsWith('sort_')) {
+                                  setState(() {
+                                    _sortFilter = value.substring(5);
+                                  });
                                 }
                               },
                               itemBuilder: (context) => [
@@ -267,6 +288,58 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                       Icon(Icons.select_all),
                                       SizedBox(width: 8),
                                       Text('Select All'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuDivider(),
+                                PopupMenuItem(
+                                  value: 'sort_all',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.list,
+                                          color: _sortFilter == 'all'
+                                              ? Colors.blue
+                                              : null),
+                                      const SizedBox(width: 8),
+                                      Text('All Tickets',
+                                          style: TextStyle(
+                                              color: _sortFilter == 'all'
+                                                  ? Colors.blue
+                                                  : null)),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'sort_regular',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.receipt,
+                                          color: _sortFilter == 'regular'
+                                              ? Colors.blue
+                                              : null),
+                                      const SizedBox(width: 8),
+                                      Text('Regular Tickets',
+                                          style: TextStyle(
+                                              color: _sortFilter == 'regular'
+                                                  ? Colors.blue
+                                                  : null)),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'sort_loans',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.credit_card,
+                                          color: _sortFilter == 'loans'
+                                              ? Colors.blue
+                                              : null),
+                                      const SizedBox(width: 8),
+                                      Text('Loan Tickets',
+                                          style: TextStyle(
+                                              color: _sortFilter == 'loans'
+                                                  ? Colors.blue
+                                                  : null)),
                                     ],
                                   ),
                                 ),

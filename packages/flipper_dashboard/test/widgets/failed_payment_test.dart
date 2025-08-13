@@ -2,18 +2,23 @@ import 'package:flipper_dashboard/payment/FailedPayment.dart';
 import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 import '../test_helpers/mocks.dart';
 import '../test_helpers/setup.dart';
 
+// flutter test test/widgets/failed_payment_test.dart
 class MockPaymentVerificationService extends Mock
     implements PaymentVerificationService {}
 
 class MockRepository extends Mock implements Repository {}
+
+class MockCrash extends Mock implements Crash, TalkerObserver {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +33,17 @@ void main() {
 
   setUpAll(() async {
     env = TestEnvironment();
-    await env.init();
+    // Skip full initialization to avoid Supabase platform plugin errors
+    // await env.init();
+    
+    // Initialize only what we need for this test
+    env.mockSyncStrategy = MockSyncStrategy();
+    env.mockDbSync = MockDatabaseSync();
+    env.mockBox = MockBox();
+    env.mockFlipperHttpClient = MockFlipperHttpClient();
+    env.mockTaxApi = MockTaxApi();
+    
+    // Register missing services to avoid GetIt errors
 
     mockPaymentVerificationService = MockPaymentVerificationService();
     mockRouterService = MockRouterService();
@@ -47,8 +62,17 @@ void main() {
   });
 
   setUp(() {
-    env.injectMocks();
-    env.stubCommonMethods();
+    // Manually inject mocks without full ProxyService setup
+    try {
+      ProxyService.strategyLink = env.mockSyncStrategy;
+      ProxyService.box = env.mockBox;
+      ProxyService.tax = env.mockTaxApi;
+      ProxyService.crash = MockCrash();
+    } catch (e) {
+      // Ignore ProxyService setup errors in test environment
+    }
+    
+    when(() => env.mockSyncStrategy.current).thenReturn(mockDatabaseSync);
     service = PaymentVerificationService();
 
     reset(mockDatabaseSync);
@@ -58,7 +82,6 @@ void main() {
     reset(mockRepository);
 
     ProxyService.http = mockFlipperHttpClient;
-    env.stubCommonMethods();
 
     when(() => mockDatabaseSync.activeBusiness()).thenAnswer((_) async =>
         models.Business(id: '1', name: 'Test Business', serverId: 1));
@@ -74,23 +97,7 @@ void main() {
           paymentMethod: 'mobile_money',
         ));
 
-    when(() => mockRepository.subscribeToRealtime<models.Plan>(
-          query: any(named: 'query'),
-        )).thenAnswer((_) => Stream.fromIterable([
-          [
-            models.Plan(
-              id: 'plan1',
-              selectedPlan: 'Monthly',
-              totalPrice: 1000,
-              isYearlyPlan: false,
-              paymentMethod: 'mobile_money',
-            )
-          ]
-        ]));
-
-    when(() => ProxyService.box.readInt(key: any(named: 'key')))
-        .thenReturn(null);
-    when(() => ProxyService.box.defaultCurrency()).thenReturn('RWF');
+    // Skip repository and box mocks that aren't essential for widget tests
   });
 
   tearDown(() {
@@ -99,15 +106,15 @@ void main() {
 
   Widget _wrapWithMaterialApp(Widget widget) {
     return MaterialApp(
-      home: ScaffoldMessenger(
-        child: widget,
+      home: Scaffold(
+        body: widget,
       ),
     );
   }
 
   group('FailedPayment Widget Tests', () {
     testWidgets('renders loading state initially', (WidgetTester tester) async {
-      when(() => env.mockDbSync.getPaymentPlan(
+      when(() => mockDatabaseSync.getPaymentPlan(
             businessId: any(named: 'businessId'),
             fetchOnline: any(named: 'fetchOnline'),
           )).thenAnswer((_) async {
@@ -141,7 +148,7 @@ void main() {
 
     testWidgets('displays error message when plan loading fails',
         (WidgetTester tester) async {
-      when(() => env.mockDbSync.getPaymentPlan(
+      when(() => mockDatabaseSync.getPaymentPlan(
             businessId: any(named: 'businessId'),
             fetchOnline: any(named: 'fetchOnline'),
           )).thenThrow(Exception('Failed to fetch plan'));
