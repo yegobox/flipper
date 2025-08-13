@@ -23,17 +23,28 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   List<ITransaction> getCurrentTickets() => _currentTickets;
 
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
+    final List<String> failedDeletions = [];
+
     for (final ticketId in selectedIds) {
       try {
         final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
         await ProxyService.strategy.deleteTransaction(transaction: ticket);
       } catch (e) {
         talker.error('Failed to delete ticket $ticketId: $e');
-        rethrow;
+        failedDeletions.add(ticketId);
       }
     }
-    // Refresh the UI after deletion
+
+    // Refresh the UI after deletion attempts
     if (mounted) setState(() {});
+
+    // Throw error only if all deletions failed
+    if (failedDeletions.length == selectedIds.length) {
+      throw Exception('Failed to delete all selected tickets');
+    } else if (failedDeletions.isNotEmpty) {
+      throw Exception(
+          'Failed to delete ${failedDeletions.length} out of ${selectedIds.length} tickets');
+    }
   }
 
   /// Builds the main ticket section with responsive layout
@@ -130,14 +141,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
               child: Consumer(
                 builder: (context, ref, _) {
-                  final isSelected = ref.watch(ticketSelectionProvider).contains(ticket.id);
+                  final isSelected =
+                      ref.watch(ticketSelectionProvider).contains(ticket.id);
                   return TicketCard(
                     ticket: ticket,
                     isSelected: isSelected,
                     onTap: () => _handleTicketTap(context, ticket),
                     onDelete: () => _deleteTicket(ticket),
                     onSelectionChanged: (selected) {
-                      ref.read(ticketSelectionProvider.notifier).toggleSelection(ticket.id);
+                      ref
+                          .read(ticketSelectionProvider.notifier)
+                          .toggleSelection(ticket.id);
                     },
                   );
                 },
@@ -562,7 +576,9 @@ class TicketCard extends StatelessWidget {
       color: isSelected ? Colors.blue.withOpacity(0.1) : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isSelected ? const BorderSide(color: Colors.blue, width: 2) : BorderSide.none,
+        side: isSelected
+            ? const BorderSide(color: Colors.blue, width: 2)
+            : BorderSide.none,
       ),
       child: InkWell(
         onTap: onTap,
@@ -580,7 +596,8 @@ class TicketCard extends StatelessWidget {
                     children: [
                       Checkbox(
                         value: isSelected,
-                        onChanged: (value) => onSelectionChanged(value ?? false),
+                        onChanged: (value) =>
+                            onSelectionChanged(value ?? false),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       const SizedBox(width: 8),

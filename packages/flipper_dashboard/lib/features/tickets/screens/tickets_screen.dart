@@ -30,57 +30,60 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
   final _routerService = locator<RouterService>();
 
   void _selectAllTickets(WidgetRef ref) {
-    final tickets = getCurrentTickets();
-    ref.read(ticketSelectionProvider.notifier).selectAll(tickets);
+    final visibleTickets = getCurrentTickets();
+    if (visibleTickets.isNotEmpty) {
+      ref.read(ticketSelectionProvider.notifier).selectAll(visibleTickets);
+    }
   }
 
   Future<void> _deleteSelectedTickets(WidgetRef ref) async {
     final selectedIds = ref.read(ticketSelectionProvider);
-    if (selectedIds.isEmpty) return;
-
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Delete Selected Tickets?'),
-            content: Text(
-              'Are you sure you want to delete ${selectedIds.length} selected ticket${selectedIds.length == 1 ? '' : 's'}? This cannot be undone.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child:
-                    const Text('Delete', style: TextStyle(color: Colors.red)),
-              ),
-            ],
-          ),
-        ) ??
-        false;
-
-    if (!confirmed) return;
-
-    try {
-      await deleteSelectedTickets(selectedIds);
+    final visibleTickets = getCurrentTickets();
+    final visibleTicketIds = visibleTickets.map((t) => t.id).toSet();
+    
+    // Filter to only include visible tickets
+    final validSelectedIds = selectedIds.where((id) => visibleTicketIds.contains(id)).toSet();
+    
+    // Clear invalid selections
+    if (validSelectedIds.length != selectedIds.length) {
       ref.read(ticketSelectionProvider.notifier).clearSelection();
-      if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          '${selectedIds.length} ticket${selectedIds.length == 1 ? '' : 's'} deleted successfully',
-          backgroundColor: Colors.green,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showCustomSnackBarUtil(
-          context,
-          'Failed to delete selected tickets',
-          backgroundColor: Colors.red,
-        );
+      // Re-select only valid tickets
+      final validTickets = visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
+      if (validTickets.isNotEmpty) {
+        ref.read(ticketSelectionProvider.notifier).selectAll(validTickets);
       }
     }
+    
+    if (validSelectedIds.isEmpty) return;
+
+    final selectedTickets = visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
+    
+    showDeletionConfirmationSnackBar(
+      context,
+      selectedTickets,
+      (ticket) => 'Ticket #${ticket.reference ?? ticket.id.substring(0, 8)}',
+      () async {
+        try {
+          await deleteSelectedTickets(validSelectedIds);
+          ref.read(ticketSelectionProvider.notifier).clearSelection();
+          if (mounted) {
+            showCustomSnackBarUtil(
+              context,
+              '${validSelectedIds.length} ticket${validSelectedIds.length == 1 ? '' : 's'} deleted successfully',
+              backgroundColor: Colors.green,
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            showCustomSnackBarUtil(
+              context,
+              'Failed to delete selected tickets',
+              backgroundColor: Colors.red,
+            );
+          }
+        }
+      },
+    );
   }
 
   @override
