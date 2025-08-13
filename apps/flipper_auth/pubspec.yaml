@@ -44,13 +44,13 @@ dependencies:
   equatable: ^2.0.3
   supabase_flutter: ^2.9.1
   otp: ^3.1.4
-  mobile_scanner: ^7.0.0
   app_links: ^6.3.2
   path_provider: ^2.1.4
   shared_preferences: ^2.3.2
   url_launcher: ^6.3.1
   json_annotation: ^4.9.0
   flipper_models: any
+  mobile_scanner: ^7.0.0-beta.8
 #  NOTE: Review and remove obsolete dependency overrides quarterly
 dependency_overrides:
   image: ^4.5.4  # match flipper_services image version

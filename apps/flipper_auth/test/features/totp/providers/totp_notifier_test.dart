@@ -71,5 +71,39 @@ void main() {
       verify(() => mockAccountRepository.fetchAccounts()).called(1);
       expect(container.read(totpNotifierProvider).accounts, [account]);
     });
+
+    test('loadAccounts handles errors', () async {
+      // Arrange
+      when(() => mockAccountRepository.fetchAccounts())
+          .thenThrow(Exception('Network error'));
+
+      // Act
+      await container.read(totpNotifierProvider.notifier).loadAccounts();
+
+      // Assert
+      expect(container.read(totpNotifierProvider).error, isNotNull);
+      expect(container.read(totpNotifierProvider).error, contains('Network error'));
+      expect(container.read(totpNotifierProvider).accounts, isEmpty);
+    });
+
+    test('addAccount handles errors', () async {
+      // Arrange
+      final account = {
+        'issuer': 'Test',
+        'account_name': 'test@example.com',
+        'secret': 'secret'
+      };
+      when(() => mockAccountRepository.addAccount(account))
+          .thenThrow(Exception('Database error'));
+
+      // Act
+      await container.read(totpNotifierProvider.notifier).addAccount(account);
+
+      // Assert
+      expect(container.read(totpNotifierProvider).error, isNotNull);
+      expect(container.read(totpNotifierProvider).error, contains('Database error'));
+      verify(() => mockAccountRepository.addAccount(account)).called(1);
+      verifyNever(() => mockAccountRepository.fetchAccounts());
+    });
   });
 }

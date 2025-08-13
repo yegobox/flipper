@@ -22,6 +22,10 @@ void main() {
     );
   });
 
+  tearDown(() {
+    container.dispose();
+  });
+
   group('AuthNotifier', () {
     test('signIn succeeds', () async {
       // Arrange
