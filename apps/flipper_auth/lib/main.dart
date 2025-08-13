@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_auth/features/auth/views/login_screen.dart';
 import 'package:flipper_auth/features/totp/views/totp_screen.dart';
-import 'package:flipper_models/secrets.dart';
+import 'package:flipper_auth/core/secrets.dart';
 
 Future<void> main() async {
   
