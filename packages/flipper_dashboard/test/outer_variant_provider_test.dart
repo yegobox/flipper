@@ -7,6 +7,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/cache/cache_export.dart';
+import 'package:flipper_services/FirebaseCrashlyticService.dart';
 
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
@@ -14,6 +15,7 @@ import 'test_helpers/setup.dart';
 // flutter test test/outer_variant_provider_test.dart
 // Mocks
 class MockCacheManager extends Mock implements CacheManager {}
+class MockCrash extends Mock implements Crash {}
 
 void main() {
   // Declare mock objects.
@@ -85,6 +87,11 @@ void main() {
     } else {
       GetIt.I.unregister<CacheManager>();
       GetIt.I.registerSingleton<CacheManager>(mockCacheManager);
+    }
+
+    // Register Crash service to fix CI/CD issue
+    if (!GetIt.I.isRegistered<Crash>()) {
+      GetIt.I.registerSingleton<Crash>(MockCrash());
     }
 
     when(() => mockBox.itemPerPage()).thenReturn(10);
