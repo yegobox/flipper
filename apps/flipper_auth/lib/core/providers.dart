@@ -36,8 +36,9 @@ final authStateProvider = StreamProvider<supabase.AuthState>((ref) {
 // Current User Provider
 final currentUserProvider = Provider<supabase.User?>((ref) {
   final authState = ref.watch(authStateProvider);
+  final supabaseClient = ref.watch(supabaseProvider);
   return authState.when(
-    data: (state) => state.user,
+    data: (state) => supabaseClient.auth.currentUser,
     loading: () => null,
     error: (_, __) => null,
   );
