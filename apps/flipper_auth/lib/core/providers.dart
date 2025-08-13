@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:flipper_auth/core/services/auth_service.dart';
 import 'package:flipper_auth/core/services/totp_service.dart';
+import 'package:flipper_auth/features/auth/providers/auth_notifier.dart';
 
 // Supabase Client Provider
 final supabaseProvider = Provider<supabase.SupabaseClient>((ref) {
