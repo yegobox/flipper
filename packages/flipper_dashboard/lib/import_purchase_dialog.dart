@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
+import 'package:flipper_dashboard/kafka_service.dart';
+import 'package:overlay_support/overlay_support.dart';
 
-class ImportPurchaseDialog extends StatelessWidget {
+class ImportPurchaseDialog extends StatefulWidget {
   const ImportPurchaseDialog({Key? key}) : super(key: key);
 
   static Future<void> show(BuildContext context) async {
@@ -25,6 +28,29 @@ class ImportPurchaseDialog extends StatelessWidget {
     if (width < 768) return "Phablet";
     if (width < 1024) return "Tablet";
     return "Desktop";
+  }
+
+  @override
+  State<ImportPurchaseDialog> createState() => _ImportPurchaseDialogState();
+}
+
+class _ImportPurchaseDialogState extends State<ImportPurchaseDialog> {
+  late StreamSubscription _kafkaSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _kafkaSubscription = KafkaService().messages.listen((message) {
+      toast(
+        message,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _kafkaSubscription.cancel();
+    super.dispose();
   }
 
   @override

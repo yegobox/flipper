@@ -9,6 +9,7 @@ import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_dashboard/kafka_service.dart';
 
 import '../interfaces/purchase_interface.dart';
 import '../interfaces/branch_interface.dart';
@@ -113,10 +114,11 @@ mixin PurchaseMixin
       if (response.data == null ||
           response.data!.itemList == null ||
           response.data!.itemList!.isEmpty) {
-        return await variants(branchId: branchId, forImportScreen: true,
-        taxTyCds: ProxyService.box.vatEnabled()
-            ? ['A', 'B', 'C']
-            : ['D'],
+        KafkaService().sendMessage("There is no search result.");
+        return await variants(
+          branchId: branchId,
+          forImportScreen: true,
+          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
         );
       }
 
@@ -146,10 +148,10 @@ mixin PurchaseMixin
         );
       }
 
-      return await variants(branchId: branchId, forImportScreen: true,
-          taxTyCds: ProxyService.box.vatEnabled()
-              ? ['A', 'B', 'C']
-              : ['D']);
+      return await variants(
+          branchId: branchId,
+          forImportScreen: true,
+          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
     } catch (e, stackTrace) {
       talker.error("Error in selectImportItems: $e", stackTrace);
       rethrow;
@@ -205,6 +207,7 @@ mixin PurchaseMixin
 
         if (response.data?.saleList?.isEmpty ?? true) {
           // If no new purchases from API, return existing purchases from local DB
+          KafkaService().sendMessage("There is no search result.");
           return await repository.get<Purchase>(
             query: brick.Query(
               where: [
