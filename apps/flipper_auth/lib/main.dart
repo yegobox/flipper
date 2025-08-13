@@ -6,10 +6,12 @@ import 'package:flipper_auth/features/auth/views/login_screen.dart';
 import 'package:flipper_auth/features/totp/views/totp_screen.dart';
 
 Future<void> main() async {
+  // supabaseUrl: AppSecrets.superbaseurl,
+  //       supabaseAnonKey: AppSecrets.supabaseAnonKey,
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
-    url: 'YOUR_SUPABASE_URL',
-    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    url: AppSecrets.superbaseurl,
+    anonKey: AppSecrets.supabaseAnonKey,
   );
   runApp(const ProviderScope(child: MyApp()));
 }
