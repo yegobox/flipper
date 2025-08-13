@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
@@ -91,11 +92,10 @@ class FlipperScaffold extends HookConsumerWidget {
           behavior: HitTestBehavior.translucent,
           onTap: () {
             FocusScope.of(context).unfocus();
-            try {
-              final startupViewModel = getIt<StartupViewModel>();
-              startupViewModel.updateUserActivity();
-            } catch (e) {
-              // Ignore if StartupViewModel is not available
+            if (getIt.isRegistered<StartupViewModel>()) {
+              getIt<StartupViewModel>().updateUserActivity();
+            } else if (kDebugMode) {
+              debugPrint('StartupViewModel is not registered');
             }
           },
           child: const FlipperAppBody(),
