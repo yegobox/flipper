@@ -43,9 +43,10 @@ cd  "$CI_WORKSPACE/apps/flipper_auth/ios"  && pod install # run `pod install` in
 # Get Flutter dependencies
 flutter pub get
 
+
 # Build the Flutter iOS project
 # This command generates the Generated.xcconfig and other necessary files.
-flutter build ios --release --no-codesign
+cd "$CI_WORKSPACE/apps/flipper_auth" && flutter build ios --release --no-codesign
 
 echo "=== Flutter build completed ==="
 

@@ -2049,7 +2049,7 @@ class CoreSync extends AiStrategyImpl
           status: PENDING,
           branchId: ProxyService.box.getBranchId()!,
         );
-        repository.upsert<ITransaction>(transaction);
+        await repository.upsert<ITransaction>(transaction);
         return transaction;
       } catch (e, s) {
         talker.error(s);
