@@ -5,7 +5,7 @@ set -e
 
 # Adjust the base path to the correct root folder
 BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
-echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
+echo "BASE_PATH is: $BASE_PATH"
 
 # Define the destination paths relative to BASE_PATH
 INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
@@ -40,51 +40,30 @@ echo "{
 
 echo "✅ firebase_app_id_file.json has been generated successfully."
 
-# Get content from environment variables
-INDEX_CONTENT="${INDEX:-{}}"
-CONFIGDART_CONTENT="${CONFIGDART:-{}}"
-SECRETS_CONTENT="${SECRETS_PATH:-{}}"
-SECRETS_PATH2_CONTENT="${SECRETS_PATH2:-{}}"
-FIREBASE_OPTIONS_CONTENT="${FIREBASE_OPTIONS2_PATH:-{}}"
-FIREBASE_OPTIONS2_CONTENT="${FIREBASE_OPTIONS2_PATH:-{}}"
-AMPLIFY_CONFIG_CONTENT="${AMPLIFY_CONFIG:-{}}"
-AMPLIFY_TEAM_PROVIDER_CONTENT="${AMPLIFY_TEAM_PROVIDER:-{}}"
-
-# Function to write content to files with proper error handling
+# Function to write content to files
 write_to_file() {
   local content="$1"
   local file_path="$2"
-  
+
   if [[ -n "$content" ]]; then
-    echo "🔍 Content to be written to $file_path:"
-    echo "$content" | head -n 10  # Show first 10 lines of content
-    if [[ $(echo "$content" | wc -l) -gt 10 ]]; then
-      echo "...(truncated)"
-    fi
-    
-    mkdir -p "$(dirname "$file_path")" || {
-      echo "❌ ERROR: Failed to create directory for $file_path" >&2
-      exit 1
-    }
-    echo "$content" > "$file_path" || {
-      echo "❌ ERROR: Failed to write to $file_path" >&2
-      exit 1
-    }
-    echo "✅ Successfully wrote content to $file_path"
+    echo "🔍 Writing to $file_path..."
+    mkdir -p "$(dirname "$file_path")" || exit 1
+    echo "$content" > "$file_path" || exit 1
+    echo "✅ Wrote content to $file_path"
   else
-    echo "⚠️ Warning: Empty content, skipping $file_path" >&2
+    echo "⚠️ Warning: Empty content for $file_path"
   fi
 }
 
-# Write environment variables with proper content
-write_to_file "$INDEX_CONTENT" "$INDEX_PATH"
-write_to_file "$CONFIGDART_CONTENT" "$CONFIGDART_PATH"
-write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH1"
-write_to_file "$SECRETS_PATH2_CONTENT" "$SECRETS_PATH2"
-write_to_file "$FIREBASE_OPTIONS_CONTENT" "$FIREBASE_OPTIONS1_PATH"
-write_to_file "$FIREBASE_OPTIONS2_CONTENT" "$FIREBASE_OPTIONS2_PATH"
-write_to_file "$AMPLIFY_CONFIG_CONTENT" "$AMPLIFY_CONFIG_PATH"
-write_to_file "$AMPLIFY_TEAM_PROVIDER_CONTENT" "$AMPLIFY_TEAM_PROVIDER_PATH"
+# Write environment variables
+write_to_file "${INDEX:-{}}" "$INDEX_PATH"
+write_to_file "${CONFIGDART:-{}}" "$CONFIGDART_PATH"
+write_to_file "${SECRETS_PATH:-{}}" "$SECRETS_PATH1"
+write_to_file "${SECRETS_PATH2:-{}}" "$SECRETS_PATH2"
+write_to_file "${FIREBASE_OPTIONS2_PATH:-{}}" "$FIREBASE_OPTIONS1_PATH"
+write_to_file "${FIREBASE_OPTIONS2_PATH:-{}}" "$FIREBASE_OPTIONS2_PATH"
+write_to_file "${AMPLIFY_CONFIG:-{}}" "$AMPLIFY_CONFIG_PATH"
+write_to_file "${AMPLIFY_TEAM_PROVIDER:-{}}" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
 # Prevent Git from converting line endings
 git config --global core.autocrlf false
@@ -94,133 +73,71 @@ REQUIRED_RUBY_VERSION="3.2.2"
 CURRENT_RUBY_VERSION=$(ruby -e 'puts RUBY_VERSION' 2>/dev/null || echo "0.0.0")
 
 if [[ "$(printf '%s\n' "$REQUIRED_RUBY_VERSION" "$CURRENT_RUBY_VERSION" | sort -V | head -n1)" != "$REQUIRED_RUBY_VERSION" ]]; then
-  echo "🔄 Upgrading Ruby..."
+  echo "🔄 Installing Ruby $REQUIRED_RUBY_VERSION..."
   brew install rbenv
-  rbenv install 3.2.2
-  rbenv global 3.2.2
-  export PATH="$HOME/.rbenv/shims:$PATH"
-  echo "✅ Ruby upgraded to: $(ruby -v)"
+  rbenv install $REQUIRED_RUBY_VERSION
+  rbenv global $REQUIRED_RUBY_VERSION
 else
-  echo "✅ Ruby version is sufficient: $(ruby -v)"
+  echo "✅ Ruby version is OK: $(ruby -v)"
 fi
 
-# Ensure correct gem paths
-export PATH="$HOME/.gem/ruby/$(ruby -e 'puts RUBY_VERSION')/bin:$PATH"
-
-# Fix gem conflicts with proper error handling
-echo "🔄 Fixing gem conflicts..."
-gem uninstall -aIx rexml xcodeproj || {
-  echo "⚠️ Warning: Failed to uninstall gems, continuing..." >&2
-}
-gem install rexml -v 3.3.6 --user-install --no-document || {
-  echo "❌ ERROR: Failed to install rexml" >&2
-  exit 1
-}
-gem install xcodeproj --user-install --no-document || {
-  echo "❌ ERROR: Failed to install xcodeproj" >&2
-  exit 1
-}
-echo "✅ Gems fixed."
-
-# Install required Ruby gems with proper error handling
-echo "🔄 Installing required Ruby gems..."
-gem install ffi cocoapods --user-install --no-document || {
-  echo "❌ ERROR: Failed to install required gems" >&2
-  exit 1
-}
-echo "✅ Ruby gems installed."
-
-# Ensure CocoaPods is installed with proper error handling
-if ! command -v pod &> /dev/null; then
-  echo "🔄 Installing CocoaPods..."
-  gem install cocoapods --user-install --no-document || {
-    echo "❌ ERROR: Failed to install CocoaPods" >&2
-    exit 1
-  }
-fi
-echo "✅ CocoaPods version: $(pod --version)"
+# Fix gem conflicts
+gem uninstall -aIx rexml xcodeproj || true
+gem install rexml -v 3.3.6 --user-install --no-document
+gem install xcodeproj --user-install --no-document
+gem install ffi cocoapods --user-install --no-document
 
 # Install Flutter if missing
 FLUTTER_VERSION="3.29.0"
 FLUTTER_DIR="$HOME/flutter"
 
 if ! command -v flutter &> /dev/null; then
-  echo "🚀 Installing Flutter $FLUTTER_VERSION..."
-  rm -rf "$FLUTTER_DIR"
+  echo "🚀 Installing Flutter..."
   git clone --depth 1 --branch "stable" https://github.com/flutter/flutter.git "$FLUTTER_DIR"
   export PATH="$FLUTTER_DIR/bin:$PATH"
   flutter precache
-  flutter --version
-  echo "✅ Flutter installed successfully."
-else
-  echo "✅ Flutter is already installed."
 fi
 export PATH="$FLUTTER_DIR/bin:$PATH"
 
-# Install & configure Melos
+# Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
-if ! command -v melos &> /dev/null; then
-  echo "🔄 Installing Melos..."
-  dart pub global activate melos 6.3.2
-fi
+dart pub global activate melos 6.3.2
 
-# Add cleanup trap for temporary files
+# Cleanup temporary file on exit
 trap 'rm -f "$BASE_PATH/firebase_app_id_file.json"' EXIT
 
-# --- Network Debugging ---
-echo "--- Running Network Diagnostics ---"
-echo "--- Pinging pub.dev ---"
-ping -c 5 pub.dev || echo "Ping failed, continuing..."
-echo "--- nslookup pub.dev ---"
-nslookup pub.dev || echo "nslookup failed, continuing..."
-echo "--- curl pub.dev ---"
-curl -v https://pub.dev || echo "curl failed, continuing..."
-echo "--- Network Diagnostics Finished ---"
+# Network diagnostics (optional)
+ping -c 2 pub.dev || true
+nslookup pub.dev || true
+curl -v https://pub.dev || true
 
-# Add explicit error handling for melos bootstrap with retries
-echo "🔄 Running melos bootstrap..."
+# Melos bootstrap
 MAX_RETRIES=3
 RETRY_COUNT=0
 until melos bootstrap; do
-  RETRY_COUNT=$((RETRY_COUNT + 1))
+  RETRY_COUNT=$((RETRY_COUNT+1))
   if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-    echo "❌ ERROR: melos bootstrap failed after $MAX_RETRIES attempts." >&2
+    echo "❌ Melos bootstrap failed."
     exit 1
   fi
-  echo "⚠️ melos bootstrap failed. Retrying in 5 seconds... (Attempt $RETRY_COUNT/$MAX_RETRIES)"
+  echo "Retrying melos bootstrap ($RETRY_COUNT/$MAX_RETRIES)..."
   sleep 5
 done
-echo "✅ Melos setup completed successfully."
 
-# Install Flutter dependencies
-cd "$BASE_PATH/apps/flipper" || exit 1
-echo "🔄 Navigated into apps/flipper"
+# CocoaPods Handling
+cd "$BASE_PATH/apps/flipper/ios" || exit 1
+echo "📂 In apps/flipper/ios"
 
-cd ios || exit 1
-echo "🔄 Navigated into apps/flipper/ios"
+# Ensure sqlite3 is updated to match plugin requirements
+echo "🔄 Updating sqlite3 pod..."
+pod update sqlite3 || echo "⚠️ Could not update sqlite3, will retry later."
 
-# Update CocoaPods specs repo to prevent failures from outdated local specs
-echo "🔄 Updating CocoaPods specs repo..."
-pod repo update || echo "⚠️ Warning: 'pod repo update' failed. This can happen in CI environments with outdated repos. Continuing..."
-
-# Add explicit error handling for pod update
-echo "🔄 Running pod update for GoogleSignIn..."
-pod update GoogleSignIn || {
-  echo "❌ ERROR: pod update GoogleSignIn failed" >&2
-  exit 1
-}
-
-# Run pod install with a retry mechanism to handle transient issues
-echo "🔄 Running pod install with retry logic..."
-
-flutter build ios --config-only --release
+# Update CocoaPods specs repo
+pod repo update || echo "⚠️ Skipping 'pod repo update' due to network issues..."
 
 run_pod_install() {
-  echo "🗑️ Removing Podfile.lock if it exists..."
   rm -f Podfile.lock
-  
   if [[ -f "Gemfile" ]]; then
-    echo "--- Found Gemfile, using Bundler ---"
     bundle install || return 1
     bundle exec pod install
   else
@@ -228,20 +145,13 @@ run_pod_install() {
   fi
 }
 
-
-# First attempt
 if ! run_pod_install; then
-  echo "⚠️ pod install failed on the first attempt. Cleaning cache and retrying..."
-  rm -rf Pods Podfile.lock
-  pod cache clean --all
-  
-  # Second attempt
-  echo "🔄 Retrying pod install..."
+  echo "⚠️ pod install failed. Trying targeted pod updates..."
+  pod update sqlite3 GoogleSignIn || true
   if ! run_pod_install; then
-    echo "❌ ERROR: pod install failed after cleaning cache and retrying." >&2
-    exit 1
+    echo "🔄 Full pod update as last resort..."
+    pod update || exit 1
   fi
 fi
 
 echo "✅ Post-clone setup completed successfully."
-
