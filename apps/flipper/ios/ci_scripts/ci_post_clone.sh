@@ -213,6 +213,8 @@ pod update GoogleSignIn || {
 # Run pod install with a retry mechanism to handle transient issues
 echo "🔄 Running pod install with retry logic..."
 
+flutter build ios --config-only --release
+
 run_pod_install() {
   echo "🗑️ Removing Podfile.lock if it exists..."
   rm -f Podfile.lock
