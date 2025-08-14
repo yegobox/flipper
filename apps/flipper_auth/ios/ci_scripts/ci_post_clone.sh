@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+
+BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
+echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
+
+# Define the destination paths relative to BASE_PATH
+SECRETS_PATH1="$BASE_PATH/apps/flipper_auth/lib/secrets.dart" 
+
 # Go to repo root
 cd $CI_PRIMARY_REPOSITORY_PATH
 

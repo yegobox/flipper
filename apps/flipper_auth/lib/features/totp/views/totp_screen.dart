@@ -6,6 +6,7 @@ import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TOTPScreen extends ConsumerStatefulWidget {
   const TOTPScreen({super.key}); // Add const constructor
