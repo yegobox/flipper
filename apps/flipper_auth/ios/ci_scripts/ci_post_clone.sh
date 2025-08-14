@@ -1,41 +1,26 @@
-#!/bin/bash
+#!/bin/sh
 
-set -e  # Exit on any error
+# Fail this script if any subcommand fails.
+set -e
 
-# 1. Setup Flutter
-echo "=== Setting up Flutter ==="
-if [ ! -d "$HOME/flutter" ]; then
-  echo "Installing Flutter..."
-  git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-fi
-export PATH="$HOME/flutter/bin:$PATH"
-flutter --version
+# The default execution directory of this script is the ci_scripts directory.
+cd $CI_PRIMARY_REPOSITORY_PATH # change working directory to the root of your cloned repo.
 
-# 2. Navigate to project
-echo "=== Changing to project directory ==="
-cd /Volumes/workspace/repository/apps/flipper_auth
-pwd
-ls -la
+# Install Flutter using git.
+git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+export PATH="$PATH:$HOME/flutter/bin"
 
-# 3. Clean and prepare
-echo "=== Cleaning and preparing build ==="
-flutter clean
-rm -f ios/Flutter/*.xcconfig
+# Install Flutter artifacts for iOS (--ios), or macOS (--macos) platforms.
+flutter precache --ios
+
+# Install Flutter dependencies.
 flutter pub get
 
-# 4. Build Flutter
-echo "=== Building Flutter for iOS ==="
-flutter build ios --release --no-codesign --verbose
+# Install CocoaPods using Homebrew.
+HOMEBREW_NO_AUTO_UPDATE=1 # disable homebrew's automatic updates.
+brew install cocoapods
 
-# 5. Verify critical files
-echo "=== Verifying generated files ==="
-if [ ! -f "ios/Flutter/Release.xcconfig" ]; then
-  echo "ERROR: Release.xcconfig not found!" >&2
-  echo "Contents of ios/Flutter:" >&2
-  test -d ios/Flutter && ls -la ios/Flutter || echo "ios/Flutter does not exist" >&2
-  exit 1
-fi
+# Install CocoaPods dependencies.
+cd ios && pod install # run `pod install` in the `ios` directory.
 
-echo "=== Build completed successfully ==="
-echo "Release.xcconfig contents:"
-cat ios/Flutter/Release.xcconfig
+exit 0
