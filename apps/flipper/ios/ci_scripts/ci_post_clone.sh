@@ -214,6 +214,9 @@ pod update GoogleSignIn || {
 echo "🔄 Running pod install with retry logic..."
 
 run_pod_install() {
+  echo "🗑️ Removing Podfile.lock if it exists..."
+  rm -f Podfile.lock
+  
   if [[ -f "Gemfile" ]]; then
     echo "--- Found Gemfile, using Bundler ---"
     bundle install || return 1
@@ -222,6 +225,7 @@ run_pod_install() {
     pod install
   fi
 }
+
 
 # First attempt
 if ! run_pod_install; then
