@@ -2033,14 +2033,15 @@ class CoreSync extends AiStrategyImpl
               ?.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
         }
         // touch variant's lastTouched, this will make generating some report much easier.
-        for (TransactionItem item in transaction.items ?? []) {
-          final variant =
-              await ProxyService.strategy.getVariant(id: item.variantId ?? "0");
-          if (variant != null) {
-            variant.lastTouched = DateTime.now().toUtc();
-            await repository.upsert(variant);
-          }
-        }
+        // this could make app slow, will find another way to optimize
+        // for (TransactionItem item in transaction.items ?? []) {
+        //   final variant =
+        //       await ProxyService.strategy.getVariant(id: item.variantId ?? "0");
+        //   if (variant != null) {
+        //     variant.lastTouched = DateTime.now().toUtc();
+        //     await repository.upsert(variant);
+        //   }
+        // }
 
         await ProxyService.strategy.manageTransaction(
           transactionType: TransactionType.sale,
