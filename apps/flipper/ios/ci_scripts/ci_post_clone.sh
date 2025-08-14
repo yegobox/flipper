@@ -199,26 +199,43 @@ echo "🔄 Navigated into apps/flipper"
 cd ios || exit 1
 echo "🔄 Navigated into apps/flipper/ios"
 
-# Add explicit error handling for pod install
-echo "🔄 Running pod update for GoogleSignIn..."
-pod update GoogleSignIn
+# Update CocoaPods specs repo to prevent failures from outdated local specs
+echo "🔄 Updating CocoaPods specs repo..."
+pod repo update || echo "⚠️ Warning: 'pod repo update' failed. This can happen in CI environments with outdated repos. Continuing..."
 
-echo "🔄 Running pod install..."
-if [[ -f "Gemfile" ]]; then
-  echo "🔄 Using Bundler for pod install..."
-  bundle install || {
-    echo "❌ ERROR: bundle install failed" >&2
+# Add explicit error handling for pod update
+echo "🔄 Running pod update for GoogleSignIn..."
+pod update GoogleSignIn || {
+  echo "❌ ERROR: pod update GoogleSignIn failed" >&2
+  exit 1
+}
+
+# Run pod install with a retry mechanism to handle transient issues
+echo "🔄 Running pod install with retry logic..."
+
+run_pod_install() {
+  if [[ -f "Gemfile" ]]; then
+    echo "--- Found Gemfile, using Bundler ---"
+    bundle install || return 1
+    bundle exec pod install
+  else
+    pod install
+  fi
+}
+
+# First attempt
+if ! run_pod_install; then
+  echo "⚠️ pod install failed on the first attempt. Cleaning cache and retrying..."
+  rm -rf Pods Podfile.lock
+  pod cache clean --all
+  
+  # Second attempt
+  echo "🔄 Retrying pod install..."
+  if ! run_pod_install; then
+    echo "❌ ERROR: pod install failed after cleaning cache and retrying." >&2
     exit 1
-  }
-  bundle exec pod install || {
-    echo "❌ ERROR: bundle exec pod install failed" >&2
-    exit 1
-  }
-else
-  pod install || {
-    echo "❌ ERROR: pod install failed" >&2
-    exit 1
-  }
+  fi
 fi
+
 echo "✅ Post-clone setup completed successfully."
 
