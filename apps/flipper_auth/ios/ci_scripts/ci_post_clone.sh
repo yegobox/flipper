@@ -1,15 +1,24 @@
 #!/bin/bash
 set -e
 
+echo "--- Starting ci_post_clone.sh for flipper_auth ---"
 
+echo "--- Setting BASE_PATH ---"
+echo "SRCROOT is: $SRCROOT"
 BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
-echo "BASE_PATH is: $BASE_PATH"  # VERIFY THIS IN THE LOGS
+echo "BASE_PATH is: $BASE_PATH"
 
-# Define the destination path relative to BASE_PATH
+echo "--- Defining SECRETS_PATH ---"
 SECRETS_PATH="$BASE_PATH/apps/flipper_auth/lib/core/secrets.dart"
+echo "SECRETS_PATH is: $SECRETS_PATH"
 
-# Get content from environment variables
+echo "--- Reading SECRETS_CONTENT from environment variable ---"
 SECRETS_CONTENT="${SECRETS_PATH:-{}}"
+if [ -z "$SECRETS_CONTENT" ]; then
+  echo "WARNING: SECRETS_CONTENT is empty."
+else
+  echo "SECRETS_CONTENT is set."
+fi
 
 # Function to write content to files with proper error handling
 write_to_file() {
@@ -17,54 +26,60 @@ write_to_file() {
   local file_path="$2"
   
   if [[ -n "$content" ]]; then
-    echo "🔍 Content to be written to $file_path:"
-    echo "$content" | head -n 10  # Show first 10 lines of content
-    if [[ $(echo "$content" | wc -l) -gt 10 ]]; then
-      echo "...(truncated)"
-    fi
+    echo "--- Writing to file: $file_path ---"
+    echo "Creating directory if it doesn't exist..."
+    mkdir -p "$(dirname "$file_path")"
+    echo "Directory created."
     
-    mkdir -p "$(dirname "$file_path")" || {
-      echo "❌ ERROR: Failed to create directory for $file_path" >&2
-      exit 1
-    }
-    echo "$content" > "$file_path" || {
-      echo "❌ ERROR: Failed to write to $file_path" >&2
-      exit 1
-    }
+    echo "Writing content to file..."
+    echo "$content" > "$file_path"
+    echo "Content written."
+    
     echo "✅ Successfully wrote content to $file_path"
   else
     echo "⚠️ Warning: Empty content, skipping $file_path" >&2
   fi
 }
 
-# Write environment variables with proper content
 write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH"
-# Go to repo root
-cd $CI_PRIMARY_REPOSITORY_PATH
 
-# Install Flutter
-git clone https://github.com/flutter/flutter.git --depth 1 -b stable $HOME/flutter
+echo "--- Changing to repo root ---"
+echo "CI_PRIMARY_REPOSITORY_PATH is: $CI_PRIMARY_REPOSITORY_PATH"
+cd "$CI_PRIMARY_REPOSITORY_PATH" || exit 1
+pwd
+
+echo "--- Installing Flutter ---"
+git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
 export PATH="$HOME/flutter/bin:$PATH"
+flutter --version
 
-# Precache iOS artifacts
+echo "--- Precaching iOS artifacts ---"
 flutter precache --ios
 
-# Navigate to your Flutter app folder
-cd apps/flipper_auth
+echo "--- Navigating to Flutter app folder ---"
+cd apps/flipper_auth || exit 1
+pwd
 
-# Clean old builds
+
+echo "--- Cleaning old builds ---"
 flutter clean
 
-# Install dependencies
+
+echo "--- Installing dependencies ---"
 flutter pub get
 
-# Build iOS once to generate Generated.xcconfig
+
+echo "--- Building iOS once to generate Generated.xcconfig ---"
 flutter build ios --release --no-codesign
 
-# Install CocoaPods dependencies
-cd ios
+
+echo "--- Installing CocoaPods dependencies ---"
+cd ios || exit 1
+pwd
 HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
 pod install
 cd ../..
+pwd
 
-echo "=== Flutter build completed ==="
+echo "--- Flutter build completed ---"
+echo "--- ci_post_clone.sh for flipper_auth finished successfully ---"
