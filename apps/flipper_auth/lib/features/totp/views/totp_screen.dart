@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TOTPScreen extends ConsumerStatefulWidget {
+  const TOTPScreen({super.key}); // Add const constructor
+
   @override
   ConsumerState<TOTPScreen> createState() => _TOTPScreenState();
 }
