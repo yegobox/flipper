@@ -12,12 +12,12 @@ echo "--- Defining SECRETS_PATH ---"
 SECRETS_PATH="$BASE_PATH/apps/flipper_auth/lib/core/secrets.dart"
 echo "SECRETS_PATH is: $SECRETS_PATH"
 
-echo "--- Reading SECRETS_CONTENT from environment variable ---"
-SECRETS_CONTENT="${SECRETS_PATH:-{}}"
-if [ -z "$SECRETS_CONTENT" ]; then
-  echo "WARNING: SECRETS_CONTENT is empty."
+echo "--- Reading SECRETS_DART_CONTENT from environment variable ---"
+if [ -z "$SECRETS_DART_CONTENT" ]; then
+  echo "ERROR: SECRETS_DART_CONTENT environment variable is not set."
+  exit 1
 else
-  echo "SECRETS_CONTENT is set."
+  echo "SECRETS_DART_CONTENT is set."
 fi
 
 # Function to write content to files with proper error handling
@@ -41,7 +41,7 @@ write_to_file() {
   fi
 }
 
-write_to_file "$SECRETS_CONTENT" "$SECRETS_PATH"
+write_to_file "$SECRETS_DART_CONTENT" "$SECRETS_PATH"
 
 echo "--- Changing to repo root ---"
 echo "CI_PRIMARY_REPOSITORY_PATH is: $CI_PRIMARY_REPOSITORY_PATH"
