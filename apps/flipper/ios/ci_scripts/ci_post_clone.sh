@@ -200,6 +200,9 @@ cd ios || exit 1
 echo "🔄 Navigated into apps/flipper/ios"
 
 # Add explicit error handling for pod install
+echo "🔄 Running pod update for GoogleSignIn..."
+pod update GoogleSignIn
+
 echo "🔄 Running pod install..."
 if [[ -f "Gemfile" ]]; then
   echo "🔄 Using Bundler for pod install..."
@@ -218,3 +221,4 @@ else
   }
 fi
 echo "✅ Post-clone setup completed successfully."
+
