@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
       title: 'Auth App',
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginScreen(),
-        '/home': (context) => TOTPScreen(),
+        '/': (context) => const LoginScreen(),
+        '/home': (context) => const TOTPScreen(),
       },
     );
   }
