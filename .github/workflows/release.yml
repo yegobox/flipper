@@ -388,6 +388,9 @@ jobs:
           echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          if [ "${{ matrix.app }}" = "flipper_auth" ]; then
+            echo "$SECRETS" >> apps/flipper_auth/lib/core/secrets.dart
+          fi
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
