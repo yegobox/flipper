@@ -45,5 +45,19 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Required for camera usage (mobile_scanner plugin) -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to scan QR codes.</string>
+
+	<!-- Optional common permissions in case some dependencies reference them -->
+	<!-- <key>NSMicrophoneUsageDescription</key>
+	<string>This app may use the microphone for audio capture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app may access your photo library for selecting images.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app may access your location while in use for location-based features.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app may access your location in the background for location-based features.</string> -->
 </dict>
 </plist>
