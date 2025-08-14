@@ -167,12 +167,29 @@ fi
 # Add cleanup trap for temporary files
 trap 'rm -f "$BASE_PATH/firebase_app_id_file.json"' EXIT
 
-# Add explicit error handling for melos bootstrap
+# --- Network Debugging ---
+echo "--- Running Network Diagnostics ---"
+echo "--- Pinging pub.dev ---"
+ping -c 5 pub.dev || echo "Ping failed, continuing..."
+echo "--- nslookup pub.dev ---"
+nslookup pub.dev || echo "nslookup failed, continuing..."
+echo "--- curl pub.dev ---"
+curl -v https://pub.dev || echo "curl failed, continuing..."
+echo "--- Network Diagnostics Finished ---"
+
+# Add explicit error handling for melos bootstrap with retries
 echo "🔄 Running melos bootstrap..."
-melos bootstrap || {
-  echo "❌ ERROR: melos bootstrap failed" >&2
-  exit 1
-}
+MAX_RETRIES=3
+RETRY_COUNT=0
+until melos bootstrap; do
+  RETRY_COUNT=$((RETRY_COUNT + 1))
+  if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
+    echo "❌ ERROR: melos bootstrap failed after $MAX_RETRIES attempts." >&2
+    exit 1
+  fi
+  echo "⚠️ melos bootstrap failed. Retrying in 5 seconds... (Attempt $RETRY_COUNT/$MAX_RETRIES)"
+  sleep 5
+done
 echo "✅ Melos setup completed successfully."
 
 # Install Flutter dependencies
