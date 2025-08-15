@@ -602,9 +602,10 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> saveTicket(
       {required String ticketName,
       required String ticketNote,
-      required ITransaction transaction}) async {
+      required ITransaction transaction,
+      String? customerId}) async {
     // Only change status to PARKED if we have both ticket name and note
-    if (ticketName.isNotEmpty && ticketNote.isNotEmpty) {
+    if (ticketName.isNotEmpty) {
       // get item for this transaction
       final items = (await ProxyService.strategy
           .transactionItems(transactionId: transaction.id));
@@ -613,6 +614,7 @@ class CoreViewModel extends FlipperBaseModel
         status: PARKED,
         note: ticketNote,
         ticketName: ticketName,
+        customerId: customerId,
         subTotal: items.fold(0, (sum, item) => sum! + (item.price * item.qty)),
         updatedAt: DateTime.now().toUtc(),
       );
