@@ -12,8 +12,28 @@ final clockProvider = StreamProvider.autoDispose((ref) {
   return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 });
 
+class TotpAccount {
+  final String issuer;
+  final String accountName;
+  final String secret;
+
+  TotpAccount({
+    required this.issuer,
+    required this.accountName,
+    required this.secret,
+  });
+
+  factory TotpAccount.fromMap(Map<String, dynamic> map) {
+    return TotpAccount(
+      issuer: map['issuer'] as String? ?? 'Unknown Issuer',
+      accountName: map['account_name'] as String? ?? '',
+      secret: map['secret'] as String? ?? '',
+    );
+  }
+}
+
 class TOTPScreen extends ConsumerStatefulWidget {
-  const TOTPScreen({super.key}); // Add const constructor
+  const TOTPScreen({super.key});
 
   @override
   ConsumerState<TOTPScreen> createState() => _TOTPScreenState();
@@ -23,7 +43,6 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
   @override
   void initState() {
     super.initState();
-    // Load accounts when the screen is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(totpNotifierProvider.notifier).loadAccounts();
     });
@@ -191,16 +210,33 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
   }
 
   Widget _buildAccountsList(List<dynamic> accounts, bool isDark) {
+    final validAccounts = accounts
+        .map((account) {
+          if (account is Map<String, dynamic>) {
+            final secret = account['secret'] as String?;
+            if (secret != null && secret.isNotEmpty) {
+              return TotpAccount.fromMap(account);
+            }
+          }
+          return null;
+        })
+        .whereType<TotpAccount>()
+        .toList();
+
+    if (validAccounts.isEmpty) {
+      return _buildEmptyState(context);
+    }
+
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: accounts.length,
+      itemCount: validAccounts.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final account = accounts[index];
+        final account = validAccounts[index];
         return ModernTOTPCard(
-          issuer: account['issuer'],
-          accountName: account['account_name'],
-          secret: account['secret'],
+          issuer: account.issuer,
+          accountName: account.accountName,
+          secret: account.secret,
           isDark: isDark,
         );
       },
@@ -298,7 +334,6 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
-      onTap: _copyToClipboard,
       child: AnimatedScale(
         scale: _isPressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 150),
@@ -373,69 +408,72 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
                 ],
               ),
               const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _formatCode(_currentCode),
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'monospace',
-                            color:
-                                widget.isDark ? Colors.white : Colors.black87,
-                            letterSpacing: 2,
+              GestureDetector(
+                onTap: _copyToClipboard,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _formatCode(_currentCode),
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'monospace',
+                              color:
+                                  widget.isDark ? Colors.white : Colors.black87,
+                              letterSpacing: 2,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _getProgressColor(remainingSeconds)
-                                    .withOpacity(0.2),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _getProgressColor(remainingSeconds)
+                                      .withOpacity(0.2),
+                                ),
+                                child: CustomPaint(
+                                  size: const Size(16, 16),
+                                  painter: CircularProgressPainter(
+                                    progress: progress,
+                                    color: _getProgressColor(remainingSeconds),
+                                  ),
+                                ),
                               ),
-                              child: CustomPaint(
-                                size: const Size(16, 16),
-                                painter: CircularProgressPainter(
-                                  progress: progress,
+                              const SizedBox(width: 8),
+                              Text(
+                                '${remainingSeconds}s',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
                                   color: _getProgressColor(remainingSeconds),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${remainingSeconds}s',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: _getProgressColor(remainingSeconds),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0066CC).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0066CC).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.copy,
+                        color: Color(0xFF0066CC),
+                        size: 20,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.copy,
-                      color: Color(0xFF0066CC),
-                      size: 20,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -485,5 +523,7 @@ class CircularProgressPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CircularProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress || oldDelegate.color != color;
+  }
 }
