@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/import_purchase_viewmodel.dart';
-import 'package:flipper_dashboard/kafka_service.dart';
+import 'package:flipper_services/kafka_service.dart';
 import 'package:overlay_support/overlay_support.dart';
 
 class ImportPurchaseDialog extends StatefulWidget {

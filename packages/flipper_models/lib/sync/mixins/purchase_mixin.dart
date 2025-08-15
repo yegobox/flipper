@@ -9,7 +9,7 @@ import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-import 'package:flipper_dashboard/kafka_service.dart';
+import 'package:flipper_services/kafka_service.dart';
 
 import '../interfaces/purchase_interface.dart';
 import '../interfaces/branch_interface.dart';
@@ -114,7 +114,11 @@ mixin PurchaseMixin
       if (response.data == null ||
           response.data!.itemList == null ||
           response.data!.itemList!.isEmpty) {
-        KafkaService().sendMessage("There is no search result.");
+        try {
+          KafkaService().sendMessage("There is no search result.");
+        } catch (e) {
+          talker.debug("Error sending message to Kafka: $e");
+        }
         return await variants(
           branchId: branchId,
           forImportScreen: true,
@@ -207,7 +211,11 @@ mixin PurchaseMixin
 
         if (response.data?.saleList?.isEmpty ?? true) {
           // If no new purchases from API, return existing purchases from local DB
-          KafkaService().sendMessage("There is no search result.");
+          try {
+            KafkaService().sendMessage("There is no search result.");
+          } catch (e) {
+            talker.debug("Error sending message to Kafka: $e");
+          }
           return await repository.get<Purchase>(
             query: brick.Query(
               where: [
