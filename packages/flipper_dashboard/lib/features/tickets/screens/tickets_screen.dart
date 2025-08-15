@@ -130,73 +130,68 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   child: Consumer(
                     builder: (context, ref, _) {
                       final transaction = widget.transaction;
-                      final transactionItemsAsync = transaction != null
+                      final transactionItems = transaction != null
                           ? ref.watch(transactionItemsProvider(
                               transactionId: transaction.id,
-                            ).future)
-                          : Future.value(<dynamic>[]);
-                      return FutureBuilder<List<dynamic>>(
-                        future: transactionItemsAsync,
-                        builder: (context, snapshot) {
-                          final itemCount =
-                              snapshot.hasData ? snapshot.data!.length : 0;
-                          return ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xff006AFE),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                vertical: isMobile ? 12.0 : 16.0,
-                              ),
-                              elevation: isMobile ? 1 : 0,
-                              textStyle: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
-                                fontSize: buttonFontSize,
-                              ),
-                            ),
-                            onPressed: () {
-                              if (itemCount > 0) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                     return NewTicket(
-                                      transaction: transaction!,
-                                      onClose: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                    );
+                            ))
+                          : const AsyncValue<List<dynamic>>.data([]);
+
+                      final itemCount = transactionItems.value?.length ?? 0;
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff006AFE),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: isMobile ? 12.0 : 16.0,
+                          ),
+                          elevation: isMobile ? 1 : 0,
+                          textStyle: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                            fontSize: buttonFontSize,
+                          ),
+                        ),
+                        onPressed: () {
+                          if (itemCount > 0) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return NewTicket(
+                                  transaction: transaction!,
+                                  onClose: () {
+                                    Navigator.of(context).pop();
                                   },
                                 );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Please add items to the transaction before creating a ticket'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.add,
-                                    size: 18, color: Colors.white),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Create Ticket${itemCount > 0 ? ' ($itemCount ${itemCount == 1 ? 'item' : 'items'})' : ''}',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: buttonFontSize,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]);
+                              },
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Please add items to the transaction before creating a ticket'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
                         },
-                      );
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.add,
+                                size: 18, color: Colors.white),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Create Ticket${itemCount > 0 ? ' ($itemCount ${itemCount == 1 ? 'item' : 'items'})' : ''}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: buttonFontSize,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]);
                     },
                   ),
                 ),
