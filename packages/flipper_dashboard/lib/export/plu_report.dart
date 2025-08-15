@@ -331,7 +331,7 @@ class PLUReport {
         'Item Name': variant.name,
         'Item Code': variant.itemCd,
         'Unit Price': variant.retailPrice,
-        'Tax': '${variant.taxPercentage}',
+        'Tax': '${variant.taxPercentage}%',
         'Sold Quantity': soldQty.toStringAsFixed(2),
         'Remain Quantity':
             variant.stock?.currentStock?.toStringAsFixed(1) ?? '0.00',
