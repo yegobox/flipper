@@ -324,8 +324,6 @@ class PLUReport {
       );
       // Calculate totals
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
-      final totalTax =
-          items.fold<double>(0, (sum, item) => sum + (item.taxAmt ?? 0));
 
       // Use tax percentage from the first item
       reportData.add({
@@ -333,7 +331,7 @@ class PLUReport {
         'Item Name': variant.name,
         'Item Code': variant.itemCd,
         'Unit Price': variant.retailPrice,
-        'Tax': '${totalTax.toStringAsFixed(2)}',
+        'Tax': '${variant.taxPercentage}',
         'Sold Quantity': soldQty.toStringAsFixed(2),
         'Remain Quantity':
             variant.stock?.currentStock?.toStringAsFixed(1) ?? '0.00',
