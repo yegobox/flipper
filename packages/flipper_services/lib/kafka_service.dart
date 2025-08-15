@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as developer show log;
+
 class KafkaService {
   static final KafkaService _instance = KafkaService._internal();
   factory KafkaService() => _instance;
@@ -15,8 +17,16 @@ class KafkaService {
   void sendMessage(String message) {
     // In a real Kafka integration, you would publish to a Kafka topic here.
     // For now, we'll just add it to our stream for local consumption.
-    _messageController.add(message);
-    print('KafkaService: Sent message: $message'); // For debugging
+    if (!_messageController.isClosed) {
+      _messageController.add(message);
+      // Mask or truncate message for logging to avoid exposing PII
+      final masked =
+          message.length > 20 ? message.substring(0, 20) + '...' : message;
+      developer.log('Kafka message sent: $masked', name: 'KafkaService');
+    } else {
+      developer.log('Attempted to send message to closed controller',
+          name: 'KafkaService', level: 900);
+    }
   }
 
   void dispose() {

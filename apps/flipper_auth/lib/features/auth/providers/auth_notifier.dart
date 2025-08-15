@@ -6,6 +6,7 @@ import 'package:flipper_auth/core/providers.dart';
 
 // Auth State
 class AuthState extends Equatable {
+  static const Object _unset = Object();
   final bool isLoading;
   final String? error;
   final bool isAuthenticated;
@@ -20,13 +21,13 @@ class AuthState extends Equatable {
 
   AuthState copyWith({
     bool? isLoading,
-    String? error,
+    Object? error = _unset,
     bool? isAuthenticated,
     bool? isNavigatingToHome,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error == _unset ? this.error : error as String?,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isNavigatingToHome: isNavigatingToHome ?? this.isNavigatingToHome,
     );
