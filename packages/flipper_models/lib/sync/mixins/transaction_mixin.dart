@@ -292,10 +292,13 @@ mixin TransactionMixin implements TransactionInterface {
 
       // First try to find transactions with subtotal > 0
       if (includeSubTotalCheck) {
-        final queryWithSubtotal = Query(where: [
-          ...baseWhere,
-          Where('subTotal').isGreaterThan(0),
-        ]);
+        final queryWithSubtotal = Query(
+          where: [
+            ...baseWhere,
+            Where('subTotal').isGreaterThan(0),
+          ],
+          orderBy: [OrderBy('lastTouched', ascending: false)],
+        );
 
         final transactionsWithSubtotal = await repository.get<ITransaction>(
           query: queryWithSubtotal,
@@ -309,7 +312,10 @@ mixin TransactionMixin implements TransactionInterface {
 
       // If no transaction with subtotal > 0 found or includeSubTotalCheck is false,
       // find any pending transaction regardless of subtotal
-      final query = Query(where: baseWhere);
+      final query = Query(
+        where: baseWhere,
+        orderBy: [OrderBy('lastTouched', ascending: false)],
+      );
 
       final transactions = await repository.get<ITransaction>(
         query: query,
