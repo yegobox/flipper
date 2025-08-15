@@ -2032,17 +2032,19 @@ class CoreSync extends AiStrategyImpl
           transaction.items
               ?.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
         }
-        // touch variant's lastTouched, this will make generating some report much easier.
-        // this could make app slow, will find another way to optimize
-        // for (TransactionItem item in transaction.items ?? []) {
-        //   final variant =
-        //       await ProxyService.strategy.getVariant(id: item.variantId ?? "0");
-        //   if (variant != null) {
-        //     variant.lastTouched = DateTime.now().toUtc();
-        //     await repository.upsert(variant);
-        //   }
-        // }
-
+        // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
+        Future.microtask(() async {
+          final items = transaction.items ?? const <TransactionItem>[];
+          final variantIds =
+              items.map((i) => i.variantId).whereType<String>().toSet();
+          for (final id in variantIds) {
+            final variant = await ProxyService.strategy.getVariant(id: id);
+            if (variant != null) {
+              variant.lastTouched = DateTime.now().toUtc();
+              await repository.upsert<Variant>(variant);
+            }
+          }
+        });
         await ProxyService.strategy.manageTransaction(
           transactionType: TransactionType.sale,
           isExpense: false,

@@ -54,21 +54,32 @@ class NewTicketState extends State<NewTicket> {
   }
 
   Future<void> _loadCustomers() async {
-    final customers = await ProxyService.strategy
-        .customers(branchId: ProxyService.box.getBranchId());
-    if (mounted) {
-      setState(() {
-        _customers = customers;
-        // Pre-select customer if already on transaction
-        if (widget.transaction.customerId != null) {
-          try {
-            _selectedCustomer = _customers
-                .firstWhere((c) => c.id == widget.transaction.customerId);
-          } catch (e) {
-            _selectedCustomer = null;
+    try {
+      final customers = await ProxyService.strategy
+          .customers(branchId: ProxyService.box.getBranchId());
+      if (mounted) {
+        setState(() {
+          _customers = customers;
+          // Pre-select customer if already on transaction
+          if (widget.transaction.customerId != null) {
+            try {
+              _selectedCustomer = _customers
+                  .firstWhere((c) => c.id == widget.transaction.customerId);
+            } catch (e) {
+              _selectedCustomer = null;
+            }
           }
-        }
-      });
+        });
+      }
+    } catch (e) {
+      // Log error and continue with empty customer list
+      print('Failed to load customers: $e');
+      if (mounted) {
+        setState(() {
+          _customers = [];
+          _selectedCustomer = null;
+        });
+      }
     }
   }
 
@@ -413,6 +424,16 @@ class NewTicketState extends State<NewTicket> {
                               ),
                       ),
                     ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
                   ),
                 ),
               ],

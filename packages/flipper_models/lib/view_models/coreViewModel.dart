@@ -625,10 +625,10 @@ class CoreViewModel extends FlipperBaseModel
 
           // Create a new pending transaction for the next sale.
           // await newTransaction(typeOfThisTransactionIsExpense: false);
-          ProxyService.strategy.manageTransaction(
+          await ProxyService.strategy.manageTransaction(
             branchId: ProxyService.box.getBranchId()!,
             transactionType: SALE,
-            isExpense: true,
+            isExpense: false,
           );
           return; // End execution.
         }
@@ -649,10 +649,10 @@ class CoreViewModel extends FlipperBaseModel
       );
 
       // Create a new pending transaction for the next sale.
-      ProxyService.strategy.manageTransaction(
+      await ProxyService.strategy.manageTransaction(
         branchId: ProxyService.box.getBranchId()!,
         transactionType: SALE,
-        isExpense: true,
+        isExpense: false,
       );
     }
   }

@@ -35,7 +35,7 @@ class ImportPurchaseDialog extends StatefulWidget {
 }
 
 class _ImportPurchaseDialogState extends State<ImportPurchaseDialog> {
-  late StreamSubscription _kafkaSubscription;
+  late StreamSubscription<String> _kafkaSubscription;
 
   @override
   void initState() {

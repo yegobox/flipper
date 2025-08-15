@@ -29,7 +29,7 @@ if [[ -z "$GOOGLE_APP_ID" || -z "$FIREBASE_PROJECT_ID" || -z "$GCM_SENDER_ID" ]]
 fi
 
 # Create temporary Firebase App ID file
-cat > "$BASE_PATH/firebase_app_id_file.json" <<EOF
+cat > "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json" <<EOF
 {
   "file_generated_by": "FlutterFire CLI",
   "purpose": "FirebaseAppID & ProjectID",
@@ -38,7 +38,7 @@ cat > "$BASE_PATH/firebase_app_id_file.json" <<EOF
   "GCM_SENDER_ID": "$GCM_SENDER_ID"
 }
 EOF
-echo "✅ firebase_app_id_file.json generated."
+echo "✅ firebase_app_id_file.json generated at $BASE_PATH/apps/flipper/ios/firebase_app_id_file.json."
 
 # Helper to write files from env vars
 write_to_file() {
@@ -81,7 +81,7 @@ export PATH="$HOME/.pub-cache/bin:$PATH"
 dart pub global activate melos 6.3.2
 
 # Cleanup temp file at exit
-trap 'rm -f "$BASE_PATH/firebase_app_id_file.json"' EXIT
+trap 'rm -f "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json"' EXIT
 
 # Network diagnostics
 ping -c 2 pub.dev || true
@@ -111,7 +111,6 @@ pod repo update || echo "⚠️ Skipped pod repo update."
 pod update sqlite3 || echo "⚠️ sqlite3 update failed, will retry later."
 
 run_pod_install() {
-  rm -f Podfile.lock
   pod install || return 1
 }
 
@@ -119,7 +118,7 @@ if ! run_pod_install; then
   echo "⚠️ pod install failed. Trying targeted updates..."
   pod update sqlite3 GoogleSignIn || true
   if ! run_pod_install; then
-    echo "🔄 Running full pod update..."
+    echo "🔄 Running full pod update (last resort, lockfile preserved if present)..."
     pod update || exit 1
   fi
 fi
