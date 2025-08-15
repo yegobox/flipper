@@ -477,6 +477,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final waitingStream = ProxyService.strategy
         .transactionsStream(
       status: WAITING,
+      branchId: ProxyService.box.getBranchId(),
       removeAdjustmentTransactions: true,
       forceRealData: true,
       skipOriginalTransactionCheck: false,
@@ -488,6 +489,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       status: PARKED,
       removeAdjustmentTransactions: true,
       forceRealData: true,
+      branchId: ProxyService.box.getBranchId(),
       skipOriginalTransactionCheck: false,
     )
         .startWith(const <ITransaction>[]);
@@ -497,6 +499,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       status: IN_PROGRESS,
       removeAdjustmentTransactions: true,
       forceRealData: true,
+      branchId: ProxyService.box.getBranchId(),
       skipOriginalTransactionCheck: false,
     )
         .startWith(const <ITransaction>[]);
@@ -622,7 +625,7 @@ class TicketCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusExt.color.withValues(alpha:0.15),
+                      color: statusExt.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: statusExt.color, width: 1),
                     ),
