@@ -3,11 +3,11 @@ set -e
 
 echo "🚀 Starting ci_post_clone.sh for flipper ---"
 
-# Base path
+# Adjust the base path to the correct root folder
 BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
 echo "BASE_PATH is: $BASE_PATH"
 
-# File paths
+# Define file paths
 INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
 CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
 SECRETS1_PATH="$BASE_PATH/apps/flipper/lib/secrets.dart" 
@@ -40,7 +40,7 @@ cat > "$BASE_PATH/firebase_app_id_file.json" <<EOF
 EOF
 echo "✅ firebase_app_id_file.json generated."
 
-# Helper function to write files
+# Helper to write files from env vars
 write_to_file() {
   local content="$1"
   local file_path="$2"
@@ -53,17 +53,17 @@ write_to_file() {
   fi
 }
 
-# Write files from the **correct environment variables**
-write_to_file "$INDEX_CONTENT" "$INDEX_PATH"
-write_to_file "$CONFIGDART_CONTENT" "$CONFIGDART_PATH"
-write_to_file "$SECRETS_DART_CONTENT" "$SECRETS1_PATH"
-write_to_file "$SECRETS_MODELS_DART_CONTENT" "$SECRETS2_PATH"
-write_to_file "$FIREBASE_OPTIONS_CONTENT1" "$FIREBASE1_PATH"
-write_to_file "$FIREBASE_OPTIONS_CONTENT2" "$FIREBASE2_PATH"
+# Write files from environment variables
+write_to_file "$INDEX" "$INDEX_PATH"
+write_to_file "$CONFIGDART" "$CONFIGDART_PATH"
+write_to_file "$SECRETS1" "$SECRETS1_PATH"
+write_to_file "$SECRETS2" "$SECRETS2_PATH"
+write_to_file "$FIREBASE1" "$FIREBASE1_PATH"
+write_to_file "$FIREBASE2" "$FIREBASE2_PATH"
 write_to_file "$AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "$AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
-# Git config
+# Prevent Git from changing line endings
 git config --global core.autocrlf false
 
 # Install Flutter if missing
@@ -83,15 +83,14 @@ echo "⚙️ Preparing Flutter iOS release configuration..."
 cd "$BASE_PATH/apps/flipper"
 flutter build ios --config-only --release
 
-
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
 dart pub global activate melos 6.3.2
 
-# Cleanup temp file on exit
+# Cleanup temp file at exit
 trap 'rm -f "$BASE_PATH/firebase_app_id_file.json"' EXIT
 
-# Optional network diagnostics
+# Network diagnostics
 ping -c 2 pub.dev || true
 nslookup pub.dev || true
 
@@ -114,7 +113,7 @@ echo "📂 In $(pwd)"
 HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
 pod repo update || echo "⚠️ Skipped pod repo update."
 
-# Targeted pod update for sqlite3 to avoid conflicts
+# Targeted pod update for sqlite3
 pod update sqlite3 || echo "⚠️ sqlite3 update failed, will retry later."
 
 run_pod_install() {
@@ -130,6 +129,5 @@ if ! run_pod_install; then
     pod update || exit 1
   fi
 fi
-
 
 echo "✅ Post-clone setup completed successfully."
