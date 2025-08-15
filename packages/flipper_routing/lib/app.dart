@@ -837,3 +837,6 @@ class App {}
 //  keytool -list -v -keystore /Users/richard/Documents/GitHub/flipper/apps/flipper/android/app/key.jks -alias upload -storepass umwana789
 // Future plans:
 // https://medium.com/@mahmuthanb/building-a-flutter-app-with-machine-learning-using-tensorflow-lite-474fd03a30fe
+
+// DB to use in our backend in future:
+// https://duckdb.org/
