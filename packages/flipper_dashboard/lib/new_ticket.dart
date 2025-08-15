@@ -1,4 +1,6 @@
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,15 +19,18 @@ class NewTicketState extends State<NewTicket> {
   final _formKey = GlobalKey<FormState>();
   final _swipeController = TextEditingController();
   final _noteController = TextEditingController();
-  bool _noteValue = false;
   bool _ticketNameValue = false;
   bool _isLoan = false;
   bool _isSaving = false;
   DateTime? _dueDate;
 
+  List<Customer> _customers = [];
+  Customer? _selectedCustomer;
+
   @override
   void initState() {
     super.initState();
+    _loadCustomers();
     // Prefill ticket name if available
     if (widget.transaction.ticketName != null &&
         widget.transaction.ticketName!.isNotEmpty) {
@@ -37,7 +42,6 @@ class NewTicketState extends State<NewTicket> {
     if (widget.transaction.note != null &&
         widget.transaction.note!.isNotEmpty) {
       _noteController.text = widget.transaction.note!;
-      _noteValue = true;
     }
     // Prefill loan value if available
     if (widget.transaction.isLoan != null) {
@@ -46,6 +50,25 @@ class NewTicketState extends State<NewTicket> {
     // Prefill dueDate if available
     if (widget.transaction.dueDate != null) {
       _dueDate = widget.transaction.dueDate;
+    }
+  }
+
+  Future<void> _loadCustomers() async {
+    final customers = await ProxyService.strategy
+        .customers(branchId: ProxyService.box.getBranchId());
+    if (mounted) {
+      setState(() {
+        _customers = customers;
+        // Pre-select customer if already on transaction
+        if (widget.transaction.customerId != null) {
+          try {
+            _selectedCustomer = _customers
+                .firstWhere((c) => c.id == widget.transaction.customerId);
+          } catch (e) {
+            _selectedCustomer = null;
+          }
+        }
+      });
     }
   }
 
@@ -156,16 +179,50 @@ class NewTicketState extends State<NewTicket> {
                                 border: OutlineInputBorder(),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return "Please enter a note";
-                                }
                                 return null;
                               },
-                              onChanged: (val) {
+                              onChanged: (val) {},
+                            ),
+                            const SizedBox(height: 16),
+                            // Customer Dropdown
+                            DropdownSearch<Customer>(
+                              items: (filter, loadProps) {
+                                return _customers
+                                    .where((c) =>
+                                        c.custNm
+                                            ?.toLowerCase()
+                                            .contains(filter.toLowerCase()) ??
+                                        false)
+                                    .toList();
+                              },
+                              compareFn: (Customer i, Customer s) =>
+                                  i.id == s.id,
+                              selectedItem: _selectedCustomer,
+                              decoratorProps: DropDownDecoratorProps(
+                                decoration: InputDecoration(
+                                  labelText: "Attach Customer (Optional)",
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              onChanged: (Customer? newValue) {
                                 setState(() {
-                                  _noteValue = val.isNotEmpty;
+                                  _selectedCustomer = newValue;
                                 });
                               },
+                              popupProps: PopupProps.menu(
+                                showSearchBox: true,
+                                itemBuilder:
+                                    (context, item, isDisabled, isSelected) {
+                                  return ListTile(
+                                    selected: isSelected,
+                                    title:
+                                        Text(item.custNm ?? 'Unknown Customer'),
+                                    subtitle: Text(item.telNo ?? ''),
+                                  );
+                                },
+                              ),
+                              itemAsString: (Customer c) =>
+                                  c.custNm ?? 'Unknown Customer',
                             ),
                             const SizedBox(height: 16),
                             // Loan Checkbox
@@ -286,7 +343,7 @@ class NewTicketState extends State<NewTicket> {
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
-                        onPressed: _ticketNameValue && _noteValue && !_isSaving
+                        onPressed: _ticketNameValue && !_isSaving
                             ? () async {
                                 if (_formKey.currentState!.validate()) {
                                   setState(() {
@@ -301,6 +358,7 @@ class NewTicketState extends State<NewTicket> {
                                       ticketName: _swipeController.text,
                                       transaction: widget.transaction,
                                       ticketNote: _noteController.text,
+                                      customerId: _selectedCustomer?.id,
                                     );
                                     Navigator.of(context).pop();
                                   } finally {
