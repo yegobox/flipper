@@ -318,6 +318,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         transaction: ticket,
         status: PENDING,
         updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
       );
       final isMobile = MediaQuery.sizeOf(context).width < 600;
       if (isMobile) {

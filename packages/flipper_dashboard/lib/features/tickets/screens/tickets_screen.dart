@@ -160,7 +160,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                 showDialog(
                                   context: context,
                                   builder: (context) {
-                                    return NewTicket(
+                                     return NewTicket(
                                       transaction: transaction!,
                                       onClose: () {
                                         Navigator.of(context).pop();
