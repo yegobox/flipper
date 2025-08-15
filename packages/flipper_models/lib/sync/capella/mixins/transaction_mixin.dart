@@ -28,6 +28,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
     List<String>? receiptNumber,
+    String? customerId,
   }) async {
     throw UnimplementedError(
         'transactions needs to be implemented for Capella');
