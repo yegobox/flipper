@@ -22,6 +22,12 @@ abstract class TransactionInterface {
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
     List<String>? receiptNumber,
+    String? customerId,
+  });
+
+  Future<void> mergeTransactions({
+    required ITransaction from,
+    required ITransaction to,
   });
 
   FutureOr<void> addTransaction({required ITransaction transaction});

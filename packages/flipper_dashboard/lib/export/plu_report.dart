@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -315,12 +316,14 @@ class PLUReport {
 
       // Get variant details from database
       final variant = await ProxyService.strategy.getVariant(id: variantId);
-      if (variant == null) continue;
 
+      if (variant == null) continue;
+      talker.info(
+        variant.id,
+        "${variant.lastTouched}:${variant.name}",
+      );
       // Calculate totals
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
-      final totalTax =
-          items.fold<double>(0, (sum, item) => sum + (item.taxAmt ?? 0));
 
       // Use tax percentage from the first item
       reportData.add({
@@ -328,7 +331,7 @@ class PLUReport {
         'Item Name': variant.name,
         'Item Code': variant.itemCd,
         'Unit Price': variant.retailPrice,
-        'Tax': '${totalTax.toStringAsFixed(2)}',
+        'Tax': '${variant.taxPercentage}%',
         'Sold Quantity': soldQty.toStringAsFixed(2),
         'Remain Quantity':
             variant.stock?.currentStock?.toStringAsFixed(1) ?? '0.00',

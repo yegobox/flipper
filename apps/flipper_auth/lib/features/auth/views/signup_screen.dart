@@ -1,34 +1,35 @@
-// lib/features/auth/views/login_screen.dart
+// lib/features/auth/views/signup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_auth/features/auth/providers/auth_notifier.dart';
-import 'package:flipper_auth/features/auth/views/signup_screen.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class SignUpScreen extends ConsumerStatefulWidget {
+  const SignUpScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _rememberMe = false;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
-    final authNotifier = ref.read(authNotifierProvider.notifier);
 
     ref.listen<AuthState>(authNotifierProvider, (previous, next) {
       if (next.isAuthenticated) {
@@ -67,7 +68,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const SizedBox(height: 60),
 
-                  // Microsoft-style logo/branding area
+                  // Header
                   Center(
                     child: Column(
                       children: [
@@ -93,14 +94,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ],
                           ),
                           child: const Icon(
-                            Icons.security,
+                            Icons.person_add_alt_1,
                             color: Colors.white,
                             size: 40,
                           ),
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Sign in',
+                          'Create Account',
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
@@ -109,19 +110,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 color: Colors.grey[800],
                               ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'to continue to your account',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Colors.grey[600],
-                                  ),
-                        ),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: 48),
+
+                  // Name field
+                  _buildInputField(
+                    controller: _nameController,
+                    label: 'Full Name',
+                    hintText: 'Enter your full name',
+                    prefixIcon: Icons.person_outline,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
 
                   // Email field
                   _buildInputField(
@@ -131,13 +140,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                          .hasMatch(value)) {
-                        return 'Please enter a valid email';
-                      }
                       return null;
                     },
                   ),
@@ -175,61 +177,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     },
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Remember me and forgot password row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Checkbox(
-                              value: _rememberMe,
-                              onChanged: (value) {
-                                setState(() {
-                                  _rememberMe = value ?? false;
-                                });
-                              },
-                              activeColor: Colors.blue[600],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Keep me signed in',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          // Handle forgot password
-                        },
-                        child: Text(
-                          'Forgot password?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.blue[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Confirm Password field
+                  _buildInputField(
+                    controller: _confirmPasswordController,
+                    label: 'Confirm Password',
+                    hintText: 'Confirm your password',
+                    prefixIcon: Icons.lock_outline,
+                    obscureText: !_isPasswordVisible,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
                   ),
 
                   const SizedBox(height: 32),
 
-                  // Sign in button
+                  // Sign up button
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: authState.isLoading ? null : _handleSignIn,
+                      onPressed: authState.isLoading ? null : _handleSignUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[600],
                         foregroundColor: Colors.white,
@@ -250,7 +225,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             )
                           : const Text(
-                              'Sign in',
+                              'Sign Up',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -259,51 +234,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 32),
-
-                  // Divider with "OR"
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.grey[300])),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey[300])),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Alternative sign-in options
-                  _buildSocialSignInButton(
-                    icon: Icons.fingerprint,
-                    text: 'Use biometric authentication',
-                    onPressed: () {
-                      // Handle biometric auth
-                    },
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _buildSocialSignInButton(
-                    icon: Icons.phone_android,
-                    text: 'Sign in with phone number',
-                    onPressed: () {
-                      // Handle phone auth
-                    },
-                  ),
-
                   const SizedBox(height: 40),
 
-                  // Sign up link
+                  // Sign in link
                   Center(
                     child: RichText(
                       text: TextSpan(
@@ -312,18 +245,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           color: Colors.grey[600],
                         ),
                         children: [
-                          const TextSpan(text: "Don't have an account? "),
+                          const TextSpan(text: "Already have an account? "),
                           WidgetSpan(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const SignUpScreen(),
-                                  ),
-                                );
+                                Navigator.of(context).pop();
                               },
                               child: Text(
-                                'Create one',
+                                'Sign in',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.blue[600],
@@ -411,38 +340,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildSocialSignInButton({
-    required IconData icon,
-    required String text,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20, color: Colors.grey[700]),
-        label: Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[300]!),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _handleSignIn() {
+  void _handleSignUp() {
     if (_formKey.currentState?.validate() ?? false) {
-      ref.read(authNotifierProvider.notifier).signIn(
+      ref.read(authNotifierProvider.notifier).signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );

@@ -318,6 +318,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         transaction: ticket,
         status: PENDING,
         updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
       );
       final isMobile = MediaQuery.sizeOf(context).width < 600;
       if (isMobile) {
@@ -473,26 +474,35 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Real-time stream combining WAITING, PARKED, IN_PROGRESS
   Stream<List<ITransaction>> _getTicketsStream() {
-    final waitingStream = ProxyService.strategy.transactionsStream(
+    final waitingStream = ProxyService.strategy
+        .transactionsStream(
       status: WAITING,
+      branchId: ProxyService.box.getBranchId(),
       removeAdjustmentTransactions: true,
       forceRealData: true,
       skipOriginalTransactionCheck: false,
-    );
+    )
+        .startWith(const <ITransaction>[]);
 
-    final parkedStream = ProxyService.strategy.transactionsStream(
+    final parkedStream = ProxyService.strategy
+        .transactionsStream(
       status: PARKED,
       removeAdjustmentTransactions: true,
       forceRealData: true,
+      branchId: ProxyService.box.getBranchId(),
       skipOriginalTransactionCheck: false,
-    );
+    )
+        .startWith(const <ITransaction>[]);
 
-    final inProgressStream = ProxyService.strategy.transactionsStream(
+    final inProgressStream = ProxyService.strategy
+        .transactionsStream(
       status: IN_PROGRESS,
       removeAdjustmentTransactions: true,
       forceRealData: true,
+      branchId: ProxyService.box.getBranchId(),
       skipOriginalTransactionCheck: false,
-    );
+    )
+        .startWith(const <ITransaction>[]);
 
     return Rx.combineLatest3<List<ITransaction>, List<ITransaction>,
         List<ITransaction>, List<ITransaction>>(
@@ -615,7 +625,7 @@ class TicketCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusExt.color.withOpacity(0.15),
+                      color: statusExt.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: statusExt.color, width: 1),
                     ),
@@ -630,6 +640,62 @@ class TicketCard extends StatelessWidget {
                   ),
                 ],
               ),
+
+              if (ticket.ticketName != null && ticket.ticketName!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade50, Colors.blue.shade100],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200, width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade500,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.confirmation_number,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            ticket.ticketName!,
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.blue.shade900,
+                              letterSpacing: 0.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
               const SizedBox(height: 12),
 

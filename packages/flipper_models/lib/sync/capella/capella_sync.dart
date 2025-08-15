@@ -195,4 +195,11 @@ class CapellaSync extends CapellaSyncBase
     // TODO: implement updateIoFunc
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> mergeTransactions(
+      {required ITransaction from, required ITransaction to}) {
+    // TODO: implement mergeTransactions
+    throw UnimplementedError();
+  }
 }
