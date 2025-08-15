@@ -3,10 +3,14 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+
+final clockProvider = StreamProvider.autoDispose((ref) {
+  return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
+});
 
 class TOTPScreen extends ConsumerStatefulWidget {
   const TOTPScreen({super.key}); // Add const constructor
@@ -101,14 +105,24 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
+            if (kDebugMode)
+              Text(
+                error,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              )
+            else
+              const Text(
+                'An unexpected error occurred. Please try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
               ),
-            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
@@ -212,46 +226,33 @@ class ModernTOTPCard extends ConsumerStatefulWidget {
   ConsumerState<ModernTOTPCard> createState() => _ModernTOTPCardState();
 }
 
-class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard>
-    with SingleTickerProviderStateMixin {
-  late Timer _timer;
+class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
   String _currentCode = '';
-  int _remainingSeconds = 0;
-  late AnimationController _animationController;
-  late Animation<double> _progressAnimation;
+  int _lastTimeWindow = 0;
   bool _isPressed = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 30),
-      vsync: this,
-    );
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(_animationController);
-
-    _updateCode();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _updateCode());
+    _updateCodeIfNeeded(rebuild: false);
   }
 
-  void _updateCode() {
-    final now = DateTime.now();
-    final remainingSeconds = 30 - (now.second % 30);
-    final code =
-        ref.read(totpNotifierProvider.notifier).generateCode(widget.secret);
-
-    if (mounted) {
-      setState(() {
-        _currentCode = code;
-        _remainingSeconds = remainingSeconds;
-      });
-
-      // Update progress animation
-      final progress = (30 - remainingSeconds) / 30;
-      _animationController.value = progress;
+  void _updateCodeIfNeeded({bool rebuild = true}) {
+    final timeWindow = DateTime.now().millisecondsSinceEpoch ~/ 30000;
+    if (timeWindow != _lastTimeWindow) {
+      final newCode =
+          ref.read(totpNotifierProvider.notifier).generateCode(widget.secret);
+      if (rebuild) {
+        if (mounted) {
+          setState(() {
+            _currentCode = newCode;
+            _lastTimeWindow = timeWindow;
+          });
+        }
+      } else {
+        _currentCode = newCode;
+        _lastTimeWindow = timeWindow;
+      }
     }
   }
 
@@ -274,10 +275,10 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard>
     }
   }
 
-  Color _getProgressColor() {
-    if (_remainingSeconds > 10) {
+  Color _getProgressColor(int remaining) {
+    if (remaining > 10) {
       return const Color(0xFF34C759);
-    } else if (_remainingSeconds > 5) {
+    } else if (remaining > 5) {
       return const Color(0xFFFF9500);
     } else {
       return const Color(0xFFFF3B30);
@@ -285,14 +286,14 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard>
   }
 
   @override
-  void dispose() {
-    _timer.cancel();
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    ref.watch(clockProvider);
+    _updateCodeIfNeeded();
+
+    final now = DateTime.now();
+    final remainingSeconds = 30 - (now.second % 30);
+    final progress = (30.0 - remainingSeconds) / 30.0;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -397,32 +398,24 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard>
                               height: 16,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: _getProgressColor().withOpacity(0.2),
+                                color: _getProgressColor(remainingSeconds)
+                                    .withOpacity(0.2),
                               ),
-                              child: Stack(
-                                children: [
-                                  AnimatedBuilder(
-                                    animation: _progressAnimation,
-                                    builder: (context, child) {
-                                      return CustomPaint(
-                                        size: const Size(16, 16),
-                                        painter: CircularProgressPainter(
-                                          progress: _progressAnimation.value,
-                                          color: _getProgressColor(),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
+                              child: CustomPaint(
+                                size: const Size(16, 16),
+                                painter: CircularProgressPainter(
+                                  progress: progress,
+                                  color: _getProgressColor(remainingSeconds),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              '${_remainingSeconds}s',
+                              '${remainingSeconds}s',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: _getProgressColor(),
+                                color: _getProgressColor(remainingSeconds),
                               ),
                             ),
                           ],
