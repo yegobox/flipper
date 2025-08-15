@@ -99,13 +99,6 @@ for i in {1..3}; do
 done
 
 
-# -------------------------
-# Prepare iOS Release Config
-# -------------------------
-echo "⚙️ Preparing Flutter iOS release configuration..."
-cd "$BASE_PATH/apps/flipper"
-flutter build ios --config-only --release
-
 # CocoaPods setup
 cd "$BASE_PATH/apps/flipper/ios"
 echo "📂 In $(pwd)"
@@ -130,5 +123,14 @@ if ! run_pod_install; then
     pod update || exit 1
   fi
 fi
+
+
+
+# -------------------------
+# Prepare iOS Release Config
+# -------------------------
+echo "⚙️ Preparing Flutter iOS release configuration..."
+cd "$BASE_PATH/apps/flipper"
+flutter build ios --config-only --release
 
 echo "✅ Post-clone setup completed successfully."
