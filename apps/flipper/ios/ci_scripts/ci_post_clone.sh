@@ -76,13 +76,6 @@ if ! command -v flutter &> /dev/null; then
 fi
 export PATH="$FLUTTER_DIR/bin:$PATH"
 
-# -------------------------
-# Prepare iOS Release Config
-# -------------------------
-echo "⚙️ Preparing Flutter iOS release configuration..."
-cd "$BASE_PATH/apps/flipper"
-flutter build ios --config-only --release
-
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
 dart pub global activate melos 6.3.2
@@ -104,6 +97,14 @@ for i in {1..3}; do
     exit 1
   fi
 done
+
+
+# -------------------------
+# Prepare iOS Release Config
+# -------------------------
+echo "⚙️ Preparing Flutter iOS release configuration..."
+cd "$BASE_PATH/apps/flipper"
+flutter build ios --config-only --release
 
 # CocoaPods setup
 cd "$BASE_PATH/apps/flipper/ios"
