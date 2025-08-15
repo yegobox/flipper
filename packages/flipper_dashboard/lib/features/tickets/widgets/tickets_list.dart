@@ -474,26 +474,32 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Real-time stream combining WAITING, PARKED, IN_PROGRESS
   Stream<List<ITransaction>> _getTicketsStream() {
-    final waitingStream = ProxyService.strategy.transactionsStream(
+    final waitingStream = ProxyService.strategy
+        .transactionsStream(
       status: WAITING,
       removeAdjustmentTransactions: true,
       forceRealData: true,
       skipOriginalTransactionCheck: false,
-    );
+    )
+        .startWith(const <ITransaction>[]);
 
-    final parkedStream = ProxyService.strategy.transactionsStream(
+    final parkedStream = ProxyService.strategy
+        .transactionsStream(
       status: PARKED,
       removeAdjustmentTransactions: true,
       forceRealData: true,
       skipOriginalTransactionCheck: false,
-    );
+    )
+        .startWith(const <ITransaction>[]);
 
-    final inProgressStream = ProxyService.strategy.transactionsStream(
+    final inProgressStream = ProxyService.strategy
+        .transactionsStream(
       status: IN_PROGRESS,
       removeAdjustmentTransactions: true,
       forceRealData: true,
       skipOriginalTransactionCheck: false,
-    );
+    )
+        .startWith(const <ITransaction>[]);
 
     return Rx.combineLatest3<List<ITransaction>, List<ITransaction>,
         List<ITransaction>, List<ITransaction>>(

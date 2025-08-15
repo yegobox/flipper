@@ -605,11 +605,15 @@ class CoreViewModel extends FlipperBaseModel
       required ITransaction transaction}) async {
     // Only change status to PARKED if we have both ticket name and note
     if (ticketName.isNotEmpty && ticketNote.isNotEmpty) {
+      // get item for this transaction
+      final items = (await ProxyService.strategy
+          .transactionItems(transactionId: transaction.id));
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: PARKED,
         note: ticketNote,
         ticketName: ticketName,
+        subTotal: items.fold(0, (sum, item) => sum! + (item.price * item.qty)),
         updatedAt: DateTime.now().toUtc(),
       );
     }
