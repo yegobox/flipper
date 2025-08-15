@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_auth/features/auth/providers/auth_notifier.dart';
+import 'package:flipper_auth/features/auth/views/signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -315,7 +316,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           WidgetSpan(
                             child: GestureDetector(
                               onTap: () {
-                                // Navigate to sign up
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const SignUpScreen(),
+                                  ),
+                                );
                               },
                               child: Text(
                                 'Create one',
