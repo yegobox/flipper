@@ -1,10 +1,12 @@
 import 'package:flipper_dashboard/Ai.dart';
 import 'package:flipper_dashboard/EnhancedSideMenu.dart';
+import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/inventory_app.dart';
 import 'package:flipper_dashboard/features/inventory_dashboard/inventory_dashboard_app.dart';
 import 'package:flipper_dashboard/kitchen_display.dart';
 import 'package:flipper_dashboard/orders_app.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -61,26 +63,37 @@ class DashboardLayout extends HookConsumerWidget {
       builder: (context, model, child) {
         final selectedPageWidget = _buildSelectedApp(ref, searchController);
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 600) {
-              return MobileView(
-                isBigScreen: false,
-                controller: searchController,
-                model: model,
-              );
-            }
-            return Scaffold(
-              body: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (ProxyService.remoteConfig.isMultiUserEnabled())
-                    const EnhancedSideMenu(),
-                  Expanded(child: selectedPageWidget),
-                ],
-              ),
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            onWillPop(
+              context: context,
+              navigationPurpose: NavigationPurpose.home,
+              message: 'Are you sure you want to exit?',
             );
           },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                return MobileView(
+                  isBigScreen: false,
+                  controller: searchController,
+                  model: model,
+                );
+              }
+              return Scaffold(
+                body: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (ProxyService.remoteConfig.isMultiUserEnabled())
+                      const EnhancedSideMenu(),
+                    Expanded(child: selectedPageWidget),
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );
