@@ -434,13 +434,3 @@ class NewTicketState extends State<NewTicket> {
     );
   }
 }
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

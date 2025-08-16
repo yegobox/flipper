@@ -91,6 +91,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void resetNavigation() {
     state = state.copyWith(isNavigatingToHome: false);
   }
+
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
 }
 
 final authNotifierProvider =

@@ -130,13 +130,14 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   child: Consumer(
                     builder: (context, ref, _) {
                       final transaction = widget.transaction;
-                      final transactionItems = transaction != null
+                      final itemCount = transaction != null
                           ? ref.watch(transactionItemsProvider(
-                              transactionId: transaction.id,
-                            ))
-                          : const AsyncValue<List<dynamic>>.data([]);
-
-                      final itemCount = transactionItems.value?.length ?? 0;
+                                  transactionId: transaction.id))
+                              .maybeWhen(
+                                data: (items) => items.length,
+                                orElse: () => 0,
+                              )
+                          : 0; // If no transaction, itemCount is 0
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xff006AFE),
