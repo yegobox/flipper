@@ -10,6 +10,8 @@ import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
 import 'package:flipper_scanner/random.dart';
 import 'package:flutter/services.dart'; // Added for HapticFeedback
+import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class AuthScannerActions implements ScannerActions {
   final BuildContext context;
@@ -18,8 +20,67 @@ class AuthScannerActions implements ScannerActions {
   AuthScannerActions(this.context, this.ref);
 
   @override
-  void onBarcodeDetected(barcode) {
-    // Not used for auth intent
+  void onBarcodeDetected(Barcode? barcode) {
+    final String? code = barcode?.rawValue;
+    if (code != null && code.startsWith('otpauth://')) {
+      _handleTotpScan(code);
+    } else if (code != null && code.startsWith('login-')) {
+      handleLoginScan(code);
+    } else {
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
+      showSimpleNotification('Invalid QR code');
+      Timer(const Duration(seconds: 2), pop);
+    }
+  }
+
+  Future<void> _handleTotpScan(String uri) async {
+    try {
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
+
+      final Uri parsedUri = Uri.parse(uri);
+      if (parsedUri.scheme != 'otpauth' || parsedUri.host != 'totp') {
+        throw const FormatException('Invalid TOTP URI');
+      }
+
+      final secret = parsedUri.queryParameters['secret'];
+      final issuer = parsedUri.queryParameters['issuer'];
+      // The path is something like /Example:alice@google.com
+      // We need to remove the leading '/'
+      final path = parsedUri.path.substring(1);
+      // The label can be "Issuer:accountName" or just "accountName"
+      final parts = path.split(':');
+      final String accountName;
+      final String finalIssuer;
+
+      if (parts.length > 1) {
+        finalIssuer = issuer ?? parts[0];
+        accountName = parts.sublist(1).join(':').trim();
+      } else {
+        finalIssuer = issuer ?? 'Unknown Issuer';
+        accountName = path.trim();
+      }
+
+      if (secret == null) {
+        throw const FormatException('Secret not found in URI');
+      }
+
+      final account = {
+        'issuer': finalIssuer,
+        'account_name': accountName,
+        'secret': secret,
+      };
+
+      final notifier = ref.read(totpNotifierProvider.notifier);
+      await notifier.addAccount(account);
+
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.success;
+      showSimpleNotification('Account added successfully');
+      Timer(const Duration(seconds: 1), pop);
+    } catch (e) {
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
+      showSimpleNotification('Failed to add account: ${e.toString()}');
+      Timer(const Duration(seconds: 2), pop);
+    }
   }
 
   @override
