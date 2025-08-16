@@ -33,13 +33,15 @@ class TOTPService {
     }
 
     try {
+      // Use the processed secret, not the original
       final code = OTP.generateTOTPCodeString(
-        secret,
+        processedSecret, // This was the bug - was using 'secret' instead
         timestamp.millisecondsSinceEpoch,
         interval: intervalSeconds,
         algorithm: algorithm,
         length: length,
-        isGoogle: false, // standard TOTP for GitHub
+        isGoogle: provider?.toLowerCase() ==
+            'github', // GitHub might need Google-style padding
       );
 
       if (debug) print('Generated TOTP code: $code');
@@ -87,22 +89,66 @@ class TOTPService {
 
   /// Process secret to ensure valid Base32
   String _processSecret(String secret, String? provider, {bool debug = false}) {
+    // Remove whitespace and convert to uppercase
     String cleanSecret = secret.replaceAll(RegExp(r'\s+'), '').toUpperCase();
 
-    // Only remove invalid Base32 chars for GitHub
+    if (debug) {
+      print('Original secret: $secret');
+      print('After cleanup: $cleanSecret');
+      print('Secret length: ${cleanSecret.length}');
+    }
+
+    // GitHub secrets should only contain valid Base32 characters (A-Z, 2-7)
     if (provider?.toLowerCase() == 'github') {
+      final beforeFilter = cleanSecret;
       cleanSecret = cleanSecret.replaceAll(RegExp(r'[^A-Z2-7]'), '');
+
+      if (debug && beforeFilter != cleanSecret) {
+        print('Filtered out invalid chars: $beforeFilter -> $cleanSecret');
+      }
+
+      // Ensure the secret length is appropriate (GitHub typically uses 16 or 32 chars)
+      if (cleanSecret.length < 10) {
+        throw ArgumentError(
+            'GitHub secret too short after cleaning: ${cleanSecret.length} chars');
+      }
     }
 
-    // Validate
+    if (debug) {
+      print('Final clean secret: $cleanSecret (${cleanSecret.length} chars)');
+    }
+
+    // Validate that it's proper Base32 without adding padding first
     try {
+      // Test decode without padding first
       base32.decode(cleanSecret);
-      if (debug)
-        print('Secret is valid Base32 with length: ${cleanSecret.length}');
+      if (debug) {
+        print('Secret decoded successfully without padding');
+      }
     } catch (e) {
-      throw ArgumentError('Invalid Base32 secret: $e');
+      if (debug) {
+        print('Decode without padding failed: $e');
+        print('Trying with padding...');
+      }
+
+      // Add padding if needed for proper Base32 decoding
+      String paddedSecret = cleanSecret;
+      while (paddedSecret.length % 8 != 0) {
+        paddedSecret += '=';
+      }
+
+      try {
+        final decoded = base32.decode(paddedSecret);
+        if (debug) {
+          print('Secret decoded successfully with padding: $paddedSecret');
+          print('Decoded bytes length: ${decoded.length}');
+        }
+      } catch (e2) {
+        throw ArgumentError('Invalid Base32 secret: $e2');
+      }
     }
 
+    // Return clean secret without padding (OTP library handles padding)
     return cleanSecret;
   }
 
@@ -135,6 +181,8 @@ class TOTPService {
     print('Secret: ${_truncateSecret(secret)} (${secret.length} chars)');
     print('Timestamp: ${timestamp.toIso8601String()}');
     print('Unix ms: ${timestamp.millisecondsSinceEpoch}');
+    print(
+        'Time window: ${timestamp.millisecondsSinceEpoch ~/ (interval * 1000)}');
     print('Interval: $interval s');
     print('Algorithm: $algorithm');
     print('Length: $length');
