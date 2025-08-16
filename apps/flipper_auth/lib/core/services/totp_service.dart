@@ -29,7 +29,6 @@ class TOTPService {
         .add(Duration(seconds: timeAdjustmentSeconds));
 
     try {
-      // Use the processed secret, not the original
       final code = OTP.generateTOTPCodeString(
         processedSecret,
         timestamp.millisecondsSinceEpoch,
@@ -72,6 +71,7 @@ class TOTPService {
         length: length,
         algorithm: algorithm,
         provider: provider,
+        timeAdjustmentSeconds: 0,
         debug: debug && i == 0,
       );
 
@@ -86,45 +86,52 @@ class TOTPService {
     // Remove whitespace and convert to uppercase
     String cleanSecret = secret.replaceAll(RegExp(r'\s+'), '').toUpperCase();
 
-    // GitHub secrets should only contain valid Base32 characters (A-Z, 2-7)
+    // Handle GitHub provider-specific processing
     if (provider?.toLowerCase() == 'github') {
-      cleanSecret = cleanSecret.replaceAll(RegExp(r'[^A-Z2-7]'), '');
+      // Remove non-Base32 characters but keep padding temporarily
+      cleanSecret = cleanSecret.replaceAll(RegExp(r'[^A-Z2-7=]'), '');
 
-      // Ensure the secret length is appropriate (GitHub typically uses 16 or 32 chars)
+      // Remove padding for GitHub
+      cleanSecret = cleanSecret.replaceAll('=', '');
+
+      // Ensure the secret length is appropriate
       if (cleanSecret.length < 10) {
         throw ArgumentError(
             'GitHub secret too short after cleaning: ${cleanSecret.length} chars');
       }
+
+      return cleanSecret;
     }
 
-    // Validate that it's proper Base32 without adding padding first
+    // For non-GitHub providers, validate and normalize Base32 format
+    if (!RegExp(r'^[A-Z2-7=]*$').hasMatch(cleanSecret)) {
+      throw ArgumentError('Invalid Base32 secret: contains invalid characters');
+    }
+
+    // Normalize padding: remove existing padding and add correct padding
+    String normalizedSecret = cleanSecret.replaceAll('=', '');
+
+    // Add correct padding for Base32 (must be multiple of 8 characters)
+    while (normalizedSecret.length % 8 != 0) {
+      normalizedSecret += '=';
+    }
+
     try {
-      // Test decode without padding first
-      base32.decode(cleanSecret);
+      // Validate the normalized secret can be decoded
+      base32.decode(normalizedSecret);
+      return normalizedSecret;
     } catch (e) {
-      // Add padding if needed for proper Base32 decoding
-      String paddedSecret = cleanSecret;
-      while (paddedSecret.length % 8 != 0) {
-        paddedSecret += '=';
-      }
-
-      try {
-        base32.decode(paddedSecret);
-      } catch (e2) {
-        throw ArgumentError('Invalid Base32 secret: $e2');
-      }
+      throw ArgumentError('Invalid Base32 secret: cannot decode - $e');
     }
-
-    // Return clean secret without padding (OTP library handles padding)
-    return cleanSecret;
   }
 
   /// Constant-time string comparison to prevent timing attacks
   bool _constantTimeEquals(String a, String b) {
     if (a.length != b.length) return false;
     int result = 0;
-    for (int i = 0; i < a.length; i++)
+    for (int i = 0; i < a.length; i++) {
       result |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    }
     return result == 0;
   }
 
@@ -135,7 +142,9 @@ class TOTPService {
     final random = Random.secure();
     final bytesNeeded = (length * 5 / 8).ceil();
     final bytes = Uint8List(bytesNeeded);
-    for (int i = 0; i < bytesNeeded; i++) bytes[i] = random.nextInt(256);
+    for (int i = 0; i < bytesNeeded; i++) {
+      bytes[i] = random.nextInt(256);
+    }
 
     final encoded = base32.encode(bytes).replaceAll('=', '');
     return encoded.substring(0, min(length, encoded.length));
