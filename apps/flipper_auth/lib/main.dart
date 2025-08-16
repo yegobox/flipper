@@ -1,10 +1,14 @@
 // lib/main.dart
+
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_auth/features/auth/views/login_screen.dart';
 import 'package:flipper_auth/features/totp/views/totp_screen.dart';
 import 'package:flipper_auth/core/secrets.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,24 +28,25 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late final StreamSubscription _authSub;
   @override
   void initState() {
     super.initState();
     // Listen for auth changes and navigate accordingly
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedIn) {
-        // User is signed in, navigate to home
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
+        navigatorKey.currentState?.pushReplacementNamed('/home');
       } else if (event == AuthChangeEvent.signedOut) {
-        // User is signed out, navigate to login
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/');
-        }
+        navigatorKey.currentState?.pushReplacementNamed('/');
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _authSub.cancel();
+    super.dispose();
   }
 
   @override
@@ -51,6 +56,7 @@ class _MyAppState extends State<MyApp> {
         Supabase.instance.client.auth.currentUser == null ? '/' : '/home';
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Auth App',
       initialRoute: initialRoute, // Set initial route dynamically
       routes: {

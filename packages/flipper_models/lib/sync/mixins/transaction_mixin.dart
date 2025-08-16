@@ -1083,6 +1083,12 @@ mixin TransactionMixin implements TransactionInterface {
     required ITransaction from,
     required ITransaction to,
   }) async {
+    if (from.id == to.id) {
+      talker.warning(
+          'mergeTransactions called with identical transaction IDs (${from.id}). Skipping.');
+      return;
+    }
+
     final itemsToMove = await repository.get<TransactionItem>(
       query: Query(where: [Where('transactionId').isExactly(from.id)]),
     );
@@ -1096,11 +1102,15 @@ mixin TransactionMixin implements TransactionInterface {
     final allItems = await repository.get<TransactionItem>(
       query: Query(where: [Where('transactionId').isExactly(to.id)]),
     );
-    final newTotal =
-        allItems.fold(0.0, (sum, item) => sum + (item.price * item.qty));
+    final newTotal = allItems.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item.totAmt) ?? (item.price * item.qty)),
+    );
 
     to.subTotal = newTotal;
-    to.updatedAt = DateTime.now().toUtc();
+    final now = DateTime.now();
+    to.updatedAt = now;
+    to.lastTouched = now;
     await repository.upsert<ITransaction>(to);
 
     // Delete the 'from' transaction

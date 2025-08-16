@@ -71,9 +71,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.more_vert),
-            onPressed: () {
-              // Add menu functionality
-            },
+            onPressed: () {},
           ),
         ],
       ),
