@@ -96,7 +96,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
             MaterialPageRoute(
               builder: (context) => ScannView(
                 intent: LOGIN,
-                scannerActions: AuthScannerActions(context, ref as WidgetRef),
+                scannerActions: AuthScannerActions(context, ref),
               ),
             ),
           ),
@@ -183,7 +183,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
                 borderRadius: BorderRadius.circular(60),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
