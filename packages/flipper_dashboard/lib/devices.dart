@@ -1,10 +1,12 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_scanner/scanner_view.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -94,7 +96,15 @@ class Devices extends ConsumerWidget {
                   ),
                 ),
                 onPressed: () {
-                  _routerService.navigateTo(ScannViewRoute(intent: "login"));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ScannView(
+                        intent: LOGIN,
+                        scannerActions: DashboardScannerActions(context),
+                      ),
+                    ),
+                  );
                 },
               ),
             ),

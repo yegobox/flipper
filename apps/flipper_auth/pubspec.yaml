@@ -26,6 +26,10 @@ dependencies:
   url_launcher: ^6.3.1
   json_annotation: ^4.9.0
   mobile_scanner: ^7.0.0-beta.8
+  flipper_scanner: any
+  flipper_models: any
+  flipper_services:
+    path: ../../packages/flipper_services
 #  NOTE: Review and remove obsolete dependency overrides quarterly
 dependency_overrides:
   image: ^4.5.4  # match flipper_services image version

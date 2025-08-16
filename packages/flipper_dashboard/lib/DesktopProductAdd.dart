@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
@@ -31,7 +32,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
 import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
-import 'package:flipper_dashboard/scanner_view.dart';
+import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -670,7 +671,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         !ref.watch(isCompositeProvider)
                             ? TableVariants(
                                 isEbmEnabled:
-                                    ref.watch(ebmVatEnabledProvider).value??false,
+                                    ref.watch(ebmVatEnabledProvider).value ??
+                                        false,
                                 isEditMode: widget.productId != null,
                                 onDateChanged:
                                     (String variantId, DateTime date) {
@@ -864,7 +866,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ScannView(intent: BARCODE),
+                        builder: (context) => ScannView(
+                            intent: BARCODE,
+                            scannerActions: DashboardScannerActions(context)),
                       ),
                     );
                     if (result != null &&

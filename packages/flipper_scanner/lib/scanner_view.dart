@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_scanner/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -10,25 +10,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pubnub/pubnub.dart' as nub;
-import 'package:stacked/stacked.dart';
 
-import 'package:flipper_services/proxy.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flipper_scanner/scanner_actions.dart';
+import 'package:flipper_scanner/providers/scan_status_provider.dart';
 
 class ScannView extends StatefulHookConsumerWidget {
   const ScannView({
     Key? key,
     this.intent = 'selling',
     this.useLatestImplementation = false,
+    required this.scannerActions,
   }) : super(key: key);
 
   final String intent;
   final bool useLatestImplementation;
+  final ScannerActions scannerActions;
 
   @override
   ScannViewState createState() => ScannViewState();
@@ -40,10 +39,8 @@ class ScannViewState extends ConsumerState<ScannView>
   bool isFlashOn = false;
   bool isScanning = true;
   bool hasScanned = false;
-  final _routerService = locator<RouterService>();
   late AnimationController _animationController;
   late Animation<double> _animation;
-  ScanStatus _scanStatus = ScanStatus.idle;
 
   // For managing PubNub subscriptions and timers
   nub.Subscription? _loginResponseSubscription;
@@ -76,45 +73,41 @@ class ScannViewState extends ConsumerState<ScannView>
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final scannerSize = min(screenSize.width * 0.8, 280.0);
+    final scanStatus = ref.watch(scanStatusProvider);
 
-    return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () => CoreViewModel(),
-      builder: (context, model, child) {
-        return Scaffold(
-          backgroundColor: Colors.black,
-          body: Stack(
-            children: [
-              // Scanner background with blur overlay
-              _buildScannerBackground(context, model),
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Scanner background with blur overlay
+          _buildScannerBackground(context),
 
-              // Overlay with transparent cutout
-              _buildOverlay(context, scannerSize),
+          // Overlay with transparent cutout
+          _buildOverlay(context, scannerSize),
 
-              // Scanner animation
-              _buildScannerAnimation(context, scannerSize),
+          // Scanner animation
+          _buildScannerAnimation(context, scannerSize),
 
-              // Guide corners
-              _buildGuideCorners(context, scannerSize),
+          // Guide corners
+          _buildGuideCorners(context, scannerSize),
 
-              // Instructions text
-              _buildInstructionsText(context, scannerSize),
+          // Instructions text
+          _buildInstructionsText(context, scannerSize),
 
-              // Status bar when scanned
-              if (hasScanned) _buildScanStatusBar(context),
+          // Status bar when scanned
+          if (hasScanned) _buildScanStatusBar(context, scanStatus),
 
-              // Top app bar
-              _buildAppBar(context),
+          // Top app bar
+          _buildAppBar(context),
 
-              // Bottom controls
-              _buildBottomControls(context),
-            ],
-          ),
-        );
-      },
+          // Bottom controls
+          _buildBottomControls(context),
+        ],
+      ),
     );
   }
 
-  Widget _buildScannerBackground(BuildContext context, CoreViewModel model) {
+  Widget _buildScannerBackground(BuildContext context) {
     return Positioned.fill(
       child: MobileScanner(
         onDetectError: (error, stackTrace) => print(error),
@@ -132,7 +125,7 @@ class ScannViewState extends ConsumerState<ScannView>
             // Vibrate on successful scan
             HapticFeedback.mediumImpact();
 
-            performIntent(barcode, model);
+            widget.scannerActions.onBarcodeDetected(barcode);
           }
         },
       ),
@@ -305,7 +298,7 @@ class ScannViewState extends ConsumerState<ScannView>
     }
   }
 
-  Widget _buildScanStatusBar(BuildContext context) {
+  Widget _buildScanStatusBar(BuildContext context, ScanStatus scanStatus) {
     Color backgroundColor;
     Color iconColor;
     IconData statusIcon;
@@ -313,7 +306,7 @@ class ScannViewState extends ConsumerState<ScannView>
     String statusMessage;
     bool showSpinner = false;
 
-    switch (_scanStatus) {
+    switch (scanStatus) {
       case ScanStatus.processing:
         backgroundColor = Colors.blue.shade50;
         iconColor = Colors.blue;
@@ -427,7 +420,7 @@ class ScannViewState extends ConsumerState<ScannView>
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             GestureDetector(
-              onTap: () => _routerService.pop(),
+              onTap: () => widget.scannerActions.pop(),
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -563,7 +556,6 @@ class ScannViewState extends ConsumerState<ScannView>
             // Gallery button
             GestureDetector(
               onTap: () {
-                // Implement image picker functionality
                 showToast(context, 'Gallery selection coming soon');
               },
               child: Container(
@@ -650,40 +642,20 @@ class ScannViewState extends ConsumerState<ScannView>
         !result.contains('-') ||
         !result.split('-')[0].contains('login')) {
       setState(() {
-        _scanStatus = ScanStatus.failed;
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       });
       showToast(context, 'Invalid QR code format');
 
       // Wait a moment to show error state before closing
       Future.delayed(Duration(milliseconds: 1500)).then((_) {
-        if (mounted) _routerService.back();
+        if (mounted) widget.scannerActions.pop();
       });
       return;
     }
 
     final split = result.split('-');
     if (split.length > 1 && split[0] == 'login') {
-      // Check if we have network connectivity
-      Connectivity().checkConnectivity().then((connectivityResult) {
-        if (connectivityResult == ConnectivityResult.none) {
-          // We're offline, show a specific message
-          setState(() {
-            _scanStatus = ScanStatus.failed;
-          });
-          showToast(context,
-              'Cannot login via QR when offline. Please use PIN login instead.');
-
-          // Wait a moment to show error state before closing
-          Future.delayed(Duration(milliseconds: 2000)).then((_) {
-            if (mounted) _routerService.back();
-          });
-        } else {
-          // We're online, proceed with login
-          // we get login-<linkingCode> so we need to get the linkingCode
-          // pass the linkingCode to the publishLoginDetails function which is split[1]
-          _publishLoginDetails(split[1]);
-        }
-      });
+      widget.scannerActions.handleLoginScan(result);
     }
   }
 
@@ -697,11 +669,11 @@ class ScannViewState extends ConsumerState<ScannView>
     HapticFeedback.mediumImpact();
 
     try {
-      int userId = ProxyService.box.getUserId()!;
-      int businessId = ProxyService.box.getBusinessId()!;
-      int branchId = ProxyService.box.getBranchId()!;
-      String phone = ProxyService.box.getUserPhone()!;
-      String defaultApp = ProxyService.box.getDefaultApp() ?? "POS";
+      int userId = widget.scannerActions.getUserId();
+      int businessId = widget.scannerActions.getBusinessId();
+      int branchId = widget.scannerActions.getBranchId();
+      String phone = widget.scannerActions.getUserPhone();
+      String defaultApp = widget.scannerActions.getDefaultApp();
       String linkingCode = randomNumber().toString();
 
       // Create a unique response channel for this login attempt
@@ -712,14 +684,14 @@ class ScannViewState extends ConsumerState<ScannView>
 
       // Update UI to show we're processing
       setState(() {
-        _scanStatus = ScanStatus.processing;
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
       });
       // get the pin
-      final pin = await ProxyService.strategy
+      final pin = await widget.scannerActions
           .getPinLocal(userId: userId, alwaysHydrate: false);
 
       nub.PublishResult result =
-          await ProxyService.event.publish(loginDetails: {
+          await widget.scannerActions.getEventService().publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -736,29 +708,29 @@ class ScannViewState extends ConsumerState<ScannView>
       if (result.isError) {
         // Only handle publish error here, success will be handled by response
         setState(() {
-          _scanStatus = ScanStatus.failed;
+          ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
         });
 
-        showToast(context, 'Failed to send login request');
+        widget.scannerActions.showSimpleNotification('Failed to send login request');
 
         // Wait a moment to show failure state before closing
         await Future.delayed(Duration(milliseconds: 1500));
-        if (mounted) _routerService.back();
+        if (mounted) widget.scannerActions.pop();
       }
 
       // Set up a timeout timer that will be canceled if we get a response
       _loginTimeoutTimer = Timer(Duration(seconds: 15), () {
         // Only proceed if widget is still mounted and we're still processing
-        if (mounted && _scanStatus == ScanStatus.processing) {
+        if (mounted && ref.read(scanStatusProvider) == ScanStatus.processing) {
           setState(() {
-            _scanStatus = ScanStatus.failed;
+            ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
           });
 
-          showToast(context, 'Login timed out. Please try again.');
+          widget.scannerActions.showSimpleNotification('Login timed out. Please try again.');
 
           // Wait a moment to show failure state before closing
           Timer(Duration(milliseconds: 1500), () {
-            if (mounted) _routerService.back();
+            if (mounted) widget.scannerActions.pop();
           });
 
           // Clean up subscription since we're done
@@ -769,21 +741,21 @@ class ScannViewState extends ConsumerState<ScannView>
     } catch (e) {
       // Handle any exceptions
       setState(() {
-        _scanStatus = ScanStatus.failed;
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       });
 
-      showToast(context, 'Login error: ${e.toString()}');
+      widget.scannerActions.showSimpleNotification('Login error: ${e.toString()}');
 
       // Wait a moment to show failure state before closing
       await Future.delayed(Duration(milliseconds: 1500));
-      if (mounted) _routerService.back();
+      if (mounted) widget.scannerActions.pop();
     }
   }
 
   void _listenForLoginResponse(String responseChannel) {
     try {
       // Use the connect method to get the PubNub instance
-      nub.PubNub pubNub = ProxyService.event.connect();
+      nub.PubNub pubNub = widget.scannerActions.getEventService().connect();
 
       // Subscribe to the response channel
       _loginResponseSubscription =
@@ -798,45 +770,45 @@ class ScannViewState extends ConsumerState<ScannView>
           if (response['status'] == 'success') {
             // Update UI to show success
             setState(() {
-              _scanStatus = ScanStatus.success;
+              ref.read(scanStatusProvider.notifier).state = ScanStatus.success;
             });
 
             HapticFeedback.lightImpact();
-            showToast(context, 'Login successful');
+            widget.scannerActions.showSimpleNotification('Login successful');
 
             // Wait a moment to show success state before closing
             Future.delayed(Duration(milliseconds: 1500)).then((_) {
-              if (mounted) _routerService.back();
+              if (mounted) widget.scannerActions.pop();
             });
           } else if (response['status'] == 'choices_needed') {
             // This is not a failure - it's part of the normal flow when a user
             // needs to select a business/branch
             setState(() {
-              _scanStatus = ScanStatus.success;
+              ref.read(scanStatusProvider.notifier).state = ScanStatus.success;
             });
 
             HapticFeedback.lightImpact();
-            showToast(context, 'Login successful - select your business');
+            widget.scannerActions.showSimpleNotification('Login successful - select your business');
 
             // Wait a moment to show success state before closing
             Future.delayed(Duration(milliseconds: 1500)).then((_) {
-              if (mounted) _routerService.back();
+              if (mounted) widget.scannerActions.pop();
             });
           } else {
             // Update UI to show failure
             setState(() {
-              _scanStatus = ScanStatus.failed;
+              ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
             });
 
             String errorMessage = response.containsKey('message')
                 ? response['message']
                 : 'Login failed';
 
-            showToast(context, errorMessage);
+            widget.scannerActions.showSimpleNotification(errorMessage);
 
             // Wait a moment to show failure state before closing
             Future.delayed(Duration(milliseconds: 1500)).then((_) {
-              if (mounted) _routerService.back();
+              if (mounted) widget.scannerActions.pop();
             });
           }
 
@@ -851,37 +823,37 @@ class ScannViewState extends ConsumerState<ScannView>
       }, onError: (error) {
         // Handle subscription error
         setState(() {
-          _scanStatus = ScanStatus.failed;
+          ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
         });
 
-        showToast(context, 'Connection error: $error');
+        widget.scannerActions.showSimpleNotification('Connection error: $error');
 
         // Wait a moment to show failure state before closing
         Future.delayed(Duration(milliseconds: 1500)).then((_) {
-          if (mounted) _routerService.back();
+          if (mounted) widget.scannerActions.pop();
         });
       });
     } catch (e) {
       // Handle any exceptions
       setState(() {
-        _scanStatus = ScanStatus.failed;
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       });
 
-      showToast(context, 'Subscription error: $e');
+      widget.scannerActions.showSimpleNotification('Subscription error: $e');
 
       // Wait a moment to show failure state before closing
       Future.delayed(Duration(milliseconds: 1500)).then((_) {
-        if (mounted) _routerService.back();
+        if (mounted) widget.scannerActions.pop();
       });
     }
   }
 
-  Future<void> performIntent(Barcode barcode, CoreViewModel model) async {
+  Future<void> performIntent(Barcode barcode) async {
     // Set initial scan status
     setState(() {
       hasScanned = true;
       isScanning = false;
-      _scanStatus = ScanStatus.idle;
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.idle;
     });
 
     // Vibrate on successful scan
@@ -889,13 +861,12 @@ class ScannViewState extends ConsumerState<ScannView>
 
     // Process the barcode based on intent
     if (widget.intent == BARCODE) {
-      model.productService.setBarcode(barcode.rawValue);
+      widget.scannerActions.onBarcodeDetected(barcode);
     }
 
     // Handle login QR code scanning
     if (widget.intent == LOGIN) {
-      scanToLogin(result: barcode.rawValue);
-      // We'll navigate from _publishLoginDetails after showing success/failure
+      await widget.scannerActions.handleLoginScan(barcode.rawValue);
       return;
     }
 
@@ -903,27 +874,23 @@ class ScannViewState extends ConsumerState<ScannView>
     await Future.delayed(Duration(milliseconds: 1500));
 
     // Navigate based on intent for non-login cases
-    navigate(barcode.rawValue, model);
+    navigate(barcode.rawValue);
   }
 
-  void navigate(String? code, CoreViewModel model) async {
+  void navigate(String? code) async {
     if (widget.intent == BARCODE) {
-      _routerService.pop();
+      widget.scannerActions.pop();
       return;
     }
     if (widget.intent == SELLING) {
       Product? product =
-          await model.productService.getProductByBarCode(code: code);
+          await widget.scannerActions.getStrategyService().getProductByBarCode(code: code);
       if (product != null) {
-        _routerService.navigateTo(SellRoute(product: product));
+        widget.scannerActions.navigateToSellRoute(product);
         return;
       }
-      showSimpleNotification(
-        const Text("Product not found"),
-        background: Colors.green,
-        position: NotificationPosition.bottom,
-      );
-      _routerService.pop();
+      widget.scannerActions.showSimpleNotification("Product not found");
+      widget.scannerActions.pop();
       return;
     }
     if (widget.intent == ATTENDANCE) {
@@ -1019,5 +986,3 @@ class ScannerOverlayPainter extends CustomPainter {
     return false;
   }
 }
-
-enum ScanStatus { idle, processing, success, failed }
