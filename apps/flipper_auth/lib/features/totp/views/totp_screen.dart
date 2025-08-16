@@ -96,7 +96,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
             MaterialPageRoute(
               builder: (context) => ScannView(
                 intent: LOGIN,
-                scannerActions: AuthScannerActions(context, ref),
+                scannerActions: AuthScannerActions(context, ref as WidgetRef),
               ),
             ),
           ),
