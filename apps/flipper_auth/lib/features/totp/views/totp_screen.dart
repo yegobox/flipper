@@ -2,7 +2,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
+import 'package:flipper_scanner/scanner_view.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -88,7 +91,15 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
       floatingActionButton: Container(
         margin: const EdgeInsets.only(bottom: 16),
         child: FloatingActionButton.extended(
-          onPressed: () => Navigator.pushNamed(context, '/add-totp'),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ScannView(
+                intent: LOGIN,
+                scannerActions: AuthScannerActions(context, ref),
+              ),
+            ),
+          ),
           backgroundColor: const Color(0xFF0066CC),
           foregroundColor: Colors.white,
           elevation: 8,

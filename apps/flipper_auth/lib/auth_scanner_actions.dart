@@ -13,7 +13,7 @@ import 'package:flutter/services.dart'; // Added for HapticFeedback
 
 class AuthScannerActions implements ScannerActions {
   final BuildContext context;
-  final Ref ref;
+  final WidgetRef ref;
 
   AuthScannerActions(this.context, this.ref);
 
