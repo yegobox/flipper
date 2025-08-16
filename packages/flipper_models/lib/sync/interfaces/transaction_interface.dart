@@ -25,6 +25,12 @@ abstract class TransactionInterface {
     String? customerId,
   });
 
+  /// Merge `from` into `to`:
+  /// - Moves all TransactionItem records from `from` to `to`.
+  /// - Recomputes `to.subTotal` = sum(item.price * item.qty) and persists `to`.
+  /// - Updates `to.updatedAt` (UTC) and persists the change.
+  /// - Removes the `from` transaction (implementations may delete or archive; the default mixin deletes via `deleteTransaction`).
+  /// Preconditions: same branch/context expected; `to` must not be finalized/closed (e.g., status != COMPLETE). Implementations should ensure atomicity and preserve accounting/stock invariants.
   Future<void> mergeTransactions({
     required ITransaction from,
     required ITransaction to,

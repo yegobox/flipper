@@ -103,9 +103,21 @@ done
 cd "$BASE_PATH/apps/flipper/ios"
 echo "📂 In $(pwd)"
 
-# Install CocoaPods
-HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
-pod repo update || echo "⚠️ Skipped pod repo update."
+# Install CocoaPods conditionally
+if [[ -n "$INSTALL_COCOAPODS" ]] && ! command -v pod &> /dev/null; then
+  echo "📦 Installing CocoaPods..."
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+else
+  echo "ℹ️ Skipping CocoaPods installation (already present or INSTALL_COCOAPODS not set)."
+fi
+
+# Conditionally update pod repo
+if [[ -n "$POD_REPO_UPDATE" ]]; then
+  echo "🔄 Updating pod repo..."
+  pod repo update || echo "⚠️ Skipped pod repo update."
+else
+  echo "ℹ️ Skipping pod repo update (POD_REPO_UPDATE not set)."
+fi
 
 # Targeted pod update for sqlite3
 pod update sqlite3 || echo "⚠️ sqlite3 update failed, will retry later."
