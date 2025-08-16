@@ -36,7 +36,6 @@ import 'all_routes.dart';
     CustomRoute(page: TransactionDetail),
     CustomRoute(page: SettingsScreen),
     CustomRoute(page: SwitchBranchView),
-    CustomRoute(page: ScannView),
     CustomRoute(page: OrderView),
     CustomRoute(page: Orders),
     CustomRoute(page: Customers),

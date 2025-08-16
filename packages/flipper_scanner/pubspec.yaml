@@ -1,0 +1,31 @@
+name: flipper_scanner
+description: A new Flutter package for QR/Barcode scanning.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  hooks_riverpod: ^2.4.5
+  pubnub: ^5.2.0 # Check latest version
+  overlay_support: ^2.1.0 # Check latest version
+  mobile_scanner: ^7.0.0-beta.8
+  connectivity_plus: ^6.0.5 # Check latest version
+  flipper_models: any
+  flipper_services: any
+  flipper_ui: any
+  flipper_routing: any
+dependency_overrides:
+  image: ^4.5.4  # match flipper_services image version
+  archive: ^3.6.1  # unify archive across packages
+  mime: ^2.0.0  # satisfy supabase_flutter's mime requirement
+  sqlite3: ^2.7.6  # keep sqlite3 consistent
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0

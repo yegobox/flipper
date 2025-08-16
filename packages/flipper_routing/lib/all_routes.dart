@@ -39,7 +39,6 @@ export 'package:flipper_dashboard/new_ticket.dart';
 export 'package:flipper_dashboard/startup_view.dart';
 export 'package:flipper_dashboard/order.dart';
 export 'package:flipper_dashboard/payments.dart';
-export 'package:flipper_dashboard/scanner_view.dart';
 export 'package:flipper_dashboard/sell.dart';
 export 'package:flipper_dashboard/setting_secreen.dart';
 export 'package:flipper_dashboard/switch_branch_view.dart';
