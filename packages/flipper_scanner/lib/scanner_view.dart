@@ -11,9 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 
-import 'package:overlay_support/overlay_support.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
 
