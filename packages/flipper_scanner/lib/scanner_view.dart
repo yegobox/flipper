@@ -160,17 +160,17 @@ class ScannViewState extends ConsumerState<ScannView>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Colors.blue.withOpacity(0),
-                      Colors.blue.withOpacity(0.5),
+                      Colors.blue.withValues(alpha: 0),
+                      Colors.blue.withValues(alpha: 0.5),
                       Colors.blue,
-                      Colors.blue.withOpacity(0.5),
-                      Colors.blue.withOpacity(0),
+                      Colors.blue.withValues(alpha: 0.5),
+                      Colors.blue.withValues(alpha: 0),
                     ],
                     stops: const [0.0, 0.2, 0.5, 0.8, 1.0],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.5),
+                      color: Colors.blue.withValues(alpha: 0.5),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),
@@ -593,7 +593,7 @@ class ScannViewState extends ConsumerState<ScannView>
                   boxShadow: isFlashOn
                       ? [
                           BoxShadow(
-                            color: Colors.amber.withOpacity(0.5),
+                            color: Colors.amber.withValues(alpha: 0.5),
                             blurRadius: 12,
                             spreadRadius: 2,
                           )
@@ -709,7 +709,8 @@ class ScannViewState extends ConsumerState<ScannView>
           ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
         });
 
-        widget.scannerActions.showSimpleNotification('Failed to send login request');
+        widget.scannerActions
+            .showSimpleNotification('Failed to send login request');
 
         // Wait a moment to show failure state before closing
         await Future.delayed(Duration(milliseconds: 1500));
@@ -724,7 +725,8 @@ class ScannViewState extends ConsumerState<ScannView>
             ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
           });
 
-          widget.scannerActions.showSimpleNotification('Login timed out. Please try again.');
+          widget.scannerActions
+              .showSimpleNotification('Login timed out. Please try again.');
 
           // Wait a moment to show failure state before closing
           Timer(Duration(milliseconds: 1500), () {
@@ -742,7 +744,8 @@ class ScannViewState extends ConsumerState<ScannView>
         ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       });
 
-      widget.scannerActions.showSimpleNotification('Login error: ${e.toString()}');
+      widget.scannerActions
+          .showSimpleNotification('Login error: ${e.toString()}');
 
       // Wait a moment to show failure state before closing
       await Future.delayed(Duration(milliseconds: 1500));
@@ -786,7 +789,8 @@ class ScannViewState extends ConsumerState<ScannView>
             });
 
             HapticFeedback.lightImpact();
-            widget.scannerActions.showSimpleNotification('Login successful - select your business');
+            widget.scannerActions.showSimpleNotification(
+                'Login successful - select your business');
 
             // Wait a moment to show success state before closing
             Future.delayed(Duration(milliseconds: 1500)).then((_) {
@@ -824,7 +828,8 @@ class ScannViewState extends ConsumerState<ScannView>
           ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
         });
 
-        widget.scannerActions.showSimpleNotification('Connection error: $error');
+        widget.scannerActions
+            .showSimpleNotification('Connection error: $error');
 
         // Wait a moment to show failure state before closing
         Future.delayed(Duration(milliseconds: 1500)).then((_) {
@@ -881,8 +886,9 @@ class ScannViewState extends ConsumerState<ScannView>
       return;
     }
     if (widget.intent == SELLING) {
-      Product? product =
-          await widget.scannerActions.getStrategyService().getProductByBarCode(code: code);
+      Product? product = await widget.scannerActions
+          .getStrategyService()
+          .getProductByBarCode(code: code);
       if (product != null) {
         widget.scannerActions.navigateToSellRoute(product);
         return;
@@ -954,15 +960,15 @@ class ScannerOverlayPainter extends CustomPainter {
 
     canvas.drawPath(
       finalPath,
-      Paint()..color = Colors.black.withOpacity(0.5),
+      Paint()..color = Colors.black.withValues(alpha: 0.5),
     );
 
     // Draw the blur effect around the cutout
     final blurPaint = Paint()
       ..shader = RadialGradient(
         colors: [
-          Colors.black.withOpacity(0.0),
-          Colors.black.withOpacity(0.7),
+          Colors.black.withValues(alpha: 0.0),
+          Colors.black.withValues(alpha: 0.7),
         ],
       ).createShader(cutOutRect);
 

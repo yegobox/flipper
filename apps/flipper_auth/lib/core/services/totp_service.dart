@@ -39,7 +39,6 @@ class TOTPService {
         isGoogle: provider?.toLowerCase() == 'github',
       );
 
-      if (debug) print('Generated TOTP code: $code');
       return code;
     } catch (e) {
       throw Exception('Failed to generate TOTP code: $e');
@@ -87,20 +86,9 @@ class TOTPService {
     // Remove whitespace and convert to uppercase
     String cleanSecret = secret.replaceAll(RegExp(r'\s+'), '').toUpperCase();
 
-    if (debug) {
-      print('Original secret: $secret');
-      print('After cleanup: $cleanSecret');
-      print('Secret length: ${cleanSecret.length}');
-    }
-
     // GitHub secrets should only contain valid Base32 characters (A-Z, 2-7)
     if (provider?.toLowerCase() == 'github') {
-      final beforeFilter = cleanSecret;
       cleanSecret = cleanSecret.replaceAll(RegExp(r'[^A-Z2-7]'), '');
-
-      if (debug && beforeFilter != cleanSecret) {
-        print('Filtered out invalid chars: $beforeFilter -> $cleanSecret');
-      }
 
       // Ensure the secret length is appropriate (GitHub typically uses 16 or 32 chars)
       if (cleanSecret.length < 10) {
@@ -109,23 +97,11 @@ class TOTPService {
       }
     }
 
-    if (debug) {
-      print('Final clean secret: $cleanSecret (${cleanSecret.length} chars)');
-    }
-
     // Validate that it's proper Base32 without adding padding first
     try {
       // Test decode without padding first
       base32.decode(cleanSecret);
-      if (debug) {
-        print('Secret decoded successfully without padding');
-      }
     } catch (e) {
-      if (debug) {
-        print('Decode without padding failed: $e');
-        print('Trying with padding...');
-      }
-
       // Add padding if needed for proper Base32 decoding
       String paddedSecret = cleanSecret;
       while (paddedSecret.length % 8 != 0) {
@@ -133,11 +109,7 @@ class TOTPService {
       }
 
       try {
-        final decoded = base32.decode(paddedSecret);
-        if (debug) {
-          print('Secret decoded successfully with padding: $paddedSecret');
-          print('Decoded bytes length: ${decoded.length}');
-        }
+        base32.decode(paddedSecret);
       } catch (e2) {
         throw ArgumentError('Invalid Base32 secret: $e2');
       }

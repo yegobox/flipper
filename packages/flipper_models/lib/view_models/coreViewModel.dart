@@ -612,6 +612,7 @@ class CoreViewModel extends FlipperBaseModel
             await ProxyService.strategy.transactions(
           customerId: customerId,
           status: PARKED,
+          branchId: ProxyService.box.getBranchId()!,
         );
 
         if (existingParkedTransactions.isNotEmpty) {
