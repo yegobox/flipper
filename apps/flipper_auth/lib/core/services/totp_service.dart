@@ -35,7 +35,7 @@ class TOTPService {
         interval: intervalSeconds,
         algorithm: algorithm,
         length: length,
-        isGoogle: provider?.toLowerCase() == 'github',
+        isGoogle: true,
       );
 
       return code;
