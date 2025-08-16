@@ -63,7 +63,7 @@ class TOTPNotifier extends StateNotifier<TOTPState> {
 
   String generateCode(String secret, {required String provider}) {
     return _totpService.generateTOTPCode(secret,
-        provider: provider, debug: true);
+        provider: provider, debug: false);
   }
 }
 

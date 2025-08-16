@@ -28,20 +28,15 @@ class TOTPService {
     final timestamp = (time ?? DateTime.now().toUtc())
         .add(Duration(seconds: timeAdjustmentSeconds));
 
-    if (debug) {
-      _debugLog(processedSecret, timestamp, intervalSeconds, algorithm, length);
-    }
-
     try {
       // Use the processed secret, not the original
       final code = OTP.generateTOTPCodeString(
-        processedSecret, // This was the bug - was using 'secret' instead
+        processedSecret,
         timestamp.millisecondsSinceEpoch,
         interval: intervalSeconds,
         algorithm: algorithm,
         length: length,
-        isGoogle: provider?.toLowerCase() ==
-            'github', // GitHub might need Google-style padding
+        isGoogle: provider?.toLowerCase() == 'github',
       );
 
       if (debug) print('Generated TOTP code: $code');
@@ -172,26 +167,6 @@ class TOTPService {
 
     final encoded = base32.encode(bytes).replaceAll('=', '');
     return encoded.substring(0, min(length, encoded.length));
-  }
-
-  /// Debug helper
-  void _debugLog(String secret, DateTime timestamp, int interval,
-      Algorithm algorithm, int length) {
-    print('=== TOTP Debug Info ===');
-    print('Secret: ${_truncateSecret(secret)} (${secret.length} chars)');
-    print('Timestamp: ${timestamp.toIso8601String()}');
-    print('Unix ms: ${timestamp.millisecondsSinceEpoch}');
-    print(
-        'Time window: ${timestamp.millisecondsSinceEpoch ~/ (interval * 1000)}');
-    print('Interval: $interval s');
-    print('Algorithm: $algorithm');
-    print('Length: $length');
-    print('=======================');
-  }
-
-  String _truncateSecret(String secret) {
-    if (secret.length <= 8) return secret;
-    return '${secret.substring(0, 4)}...${secret.substring(secret.length - 4)}';
   }
 
   /// Get remaining seconds until next TOTP code
