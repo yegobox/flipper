@@ -245,6 +245,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
       itemBuilder: (context, index) {
         final account = validAccounts[index];
         return ModernTOTPCard(
+          provider: account.issuer,
           issuer: account.issuer,
           accountName: account.accountName,
           secret: account.secret,
@@ -259,6 +260,7 @@ class ModernTOTPCard extends ConsumerStatefulWidget {
   final String issuer;
   final String accountName;
   final String secret;
+  final String provider;
   final bool isDark;
 
   const ModernTOTPCard({
@@ -267,6 +269,7 @@ class ModernTOTPCard extends ConsumerStatefulWidget {
     required this.accountName,
     required this.secret,
     required this.isDark,
+    required this.provider,
   });
 
   @override
@@ -287,8 +290,9 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
   void _updateCodeIfNeeded({bool rebuild = true}) {
     final timeWindow = DateTime.now().millisecondsSinceEpoch ~/ 30000;
     if (timeWindow != _lastTimeWindow) {
-      final newCode =
-          ref.read(totpNotifierProvider.notifier).generateCode(widget.secret);
+      final newCode = ref
+          .read(totpNotifierProvider.notifier)
+          .generateCode(widget.secret, provider: widget.provider);
       if (rebuild) {
         if (mounted) {
           setState(() {
