@@ -14,11 +14,11 @@ INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
 CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
 SECRETS1_PATH="$BASE_PATH/apps/flipper/lib/secrets.dart" 
 SECRETS2_PATH="$BASE_PATH/packages/flipper_models/lib/secrets.dart"
-FIREBASE1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
-FIREBASE2_PATH="$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
-AMPLIFY_CONFIG_PATH="$BASE_PATH/apps/flipper/lib/amplifyconfiguration.dart"
-AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.json"
-GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
+# FIREBASE1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
+# FIREBASE2_PATH="$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
+# AMPLIFY_CONFIG_PATH="$BASE_PATH/apps/flipper/lib/amplifyconfiguration.dart"
+# AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.json"
+# GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
 
 # Helper to write files from env vars
 write_to_file() {
