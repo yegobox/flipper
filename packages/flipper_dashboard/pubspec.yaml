@@ -43,6 +43,7 @@ dependencies:
   cupertino_icons: ^1.0.4
   flipper_services: any
   flipper_scanner: any
+  flipper_mfa: any
 
   flipper_login: any
   intl: ^0.20.2

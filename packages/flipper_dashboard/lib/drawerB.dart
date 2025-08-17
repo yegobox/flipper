@@ -9,6 +9,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_dashboard/mfa_setup_view.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -260,6 +261,19 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           ),
           const SizedBox(height: 12),
           const ModernShiftTile(),
+          const SizedBox(height: 12), // Add some spacing
+          _ModernMenuItem(
+            icon: Icons.security_rounded,
+            title: 'Authenticator Setup',
+            color: const Color(0xFF0078D4), // Use a suitable color
+            onTap: () {
+              // Navigator.pop(context); // Close the drawer
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => const MfaSetupView()),
+              // );
+            },
+          ),
         ],
       ),
     );

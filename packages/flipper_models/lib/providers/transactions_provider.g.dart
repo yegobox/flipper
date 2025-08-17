@@ -6,7 +6,7 @@ part of 'transactions_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionListHash() => r'c51c783107e59416dffe9026fbcb734138294c22';
+String _$transactionListHash() => r'663c941ffbd2e136425ff6e9b7c465ce4fdf8e61';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -160,7 +160,7 @@ class _TransactionListProviderElement
   bool get forceRealData => (origin as TransactionListProvider).forceRealData;
 }
 
-String _$transactionsHash() => r'9b8885fcae2217e3df1090a23d2db3c84777e4fd';
+String _$transactionsHash() => r'991ab7155e61940e2235a2d1cfaa33af7579ca17';
 
 /// See also [transactions].
 @ProviderFor(transactions)
@@ -465,7 +465,7 @@ class _PendingTransactionStreamProviderElement
       (origin as PendingTransactionStreamProvider).forceRealData;
 }
 
-String _$expensesStreamHash() => r'ffdf5e52919c19ffcc41bf1c3ab7c7062bc610dc';
+String _$expensesStreamHash() => r'6e456a143bd5930c3166a11627c9bfb504ce9628';
 
 /// See also [expensesStream].
 @ProviderFor(expensesStream)
@@ -646,7 +646,7 @@ class _ExpensesStreamProviderElement
   bool get forceRealData => (origin as ExpensesStreamProvider).forceRealData;
 }
 
-String _$netProfitStreamHash() => r'95aa5045a5ab14ceb7c0f18c22e521faf2fd9741';
+String _$netProfitStreamHash() => r'90b0c1cfdbdc92926d082ca89bcc21b0be196141';
 
 /// See also [netProfitStream].
 @ProviderFor(netProfitStream)
@@ -825,7 +825,7 @@ class _NetProfitStreamProviderElement
   bool get forceRealData => (origin as NetProfitStreamProvider).forceRealData;
 }
 
-String _$grossProfitStreamHash() => r'9b5e0d6fcf95c515d27c05e6e27d13aadb946eb9';
+String _$grossProfitStreamHash() => r'661e381bc07be31b89088498df89baac2c9c40df';
 
 /// See also [grossProfitStream].
 @ProviderFor(grossProfitStream)
@@ -1004,7 +1004,7 @@ class _GrossProfitStreamProviderElement
   bool get forceRealData => (origin as GrossProfitStreamProvider).forceRealData;
 }
 
-String _$totalIncomeStreamHash() => r'e91d2c42a9af82d3e2e551211ba3863d29fe925f';
+String _$totalIncomeStreamHash() => r'08fe8070393d807259bdb74e5882bffd752ffa2e';
 
 /// See also [totalIncomeStream].
 @ProviderFor(totalIncomeStream)
