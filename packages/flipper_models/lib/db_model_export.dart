@@ -16,3 +16,6 @@ export 'package:flipper_models/view_models/flipperBaseModel.dart';
 export 'package:flipper_models/view_models/ScannViewModel.dart';
 
 // export 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
+
+export 'models/user_mfa_secret.dart';
+export 'repositories/user_mfa_secret_repository.dart';

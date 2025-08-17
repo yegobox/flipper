@@ -8,6 +8,31 @@ echo "SRCROOT is: $SRCROOT"
 BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
 echo "BASE_PATH is: $BASE_PATH"
 
+
+# Define file paths
+INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
+CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
+SECRETS1_PATH="$BASE_PATH/apps/flipper/lib/secrets.dart" 
+SECRETS2_PATH="$BASE_PATH/packages/flipper_models/lib/secrets.dart"
+FIREBASE1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
+FIREBASE2_PATH="$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
+AMPLIFY_CONFIG_PATH="$BASE_PATH/apps/flipper/lib/amplifyconfiguration.dart"
+AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.json"
+GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
+
+# Helper to write files from env vars
+write_to_file() {
+  local content="$1"
+  local file_path="$2"
+  if [[ -n "$content" ]]; then
+    mkdir -p "$(dirname "$file_path")"
+    echo "$content" > "$file_path"
+    echo "✅ Wrote to $file_path"
+  else
+    echo "⚠️ Skipped $file_path (empty content)"
+  fi
+}
+
 echo "--- Defining SECRETS_PATH ---"
 SECRETS_PATH="$BASE_PATH/apps/flipper_auth/lib/core/secrets.dart"
 echo "SECRETS_PATH is: $SECRETS_PATH"

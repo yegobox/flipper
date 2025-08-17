@@ -1,0 +1,29 @@
+name: flipper_mfa
+description: "A new Flutter package project."
+version: 0.0.1
+# homepage:
+
+environment:
+  sdk: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  totp_authenticator: ^1.0.0
+  qr_flutter: ^4.1.0
+  flipper_models: any
+  flipper_services: any
+dependency_overrides:
+  image: ^4.5.4  # match flipper_services image version
+  archive: ^3.6.1  # unify archive across packages
+  mime: ^2.0.0  # satisfy supabase_flutter's mime requirement
+  sqlite3: ^2.9.0  # keep sqlite3 consistent
+  nfc_manager: ^4.0.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
