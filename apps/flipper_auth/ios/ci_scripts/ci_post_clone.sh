@@ -97,7 +97,18 @@ nslookup pub.dev || true
 melos clean
 
 # Melos bootstrap with retries
-melos bootstrap
+for i in {1..3}; do
+  melos bootstrap && break
+  echo "Retrying melos bootstrap ($i/3)..."
+  sleep 5
+  if [[ $i -eq 3 ]]; then
+    echo "❌ Melos bootstrap failed."
+    exit 1
+  fi
+done
+
+# Explicitly run flutter pub get for all packages after bootstrap
+# melos exec "flutter pub get"
 
 
 echo "--- Navigating to Flutter app folder ---"
