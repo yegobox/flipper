@@ -65,8 +65,26 @@ echo "--- Cleaning old builds ---"
 flutter clean
 
 
-echo "--- Installing dependencies ---"
-flutter pub get
+
+# Install Melos
+export PATH="$HOME/.pub-cache/bin:$PATH"
+dart pub global activate melos 6.3.2
+
+
+# Network diagnostics
+ping -c 2 pub.dev || true
+nslookup pub.dev || true
+
+# Melos bootstrap with retries
+for i in {1..3}; do
+  melos bootstrap && break
+  echo "Retrying melos bootstrap ($i/3)..."
+  sleep 5
+  if [[ $i -eq 3 ]]; then
+    echo "❌ Melos bootstrap failed."
+    exit 1
+  fi
+done
 
 
 echo "--- Building iOS once to generate Generated.xcconfig ---"
