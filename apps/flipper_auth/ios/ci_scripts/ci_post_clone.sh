@@ -73,9 +73,6 @@ echo "CI_PRIMARY_REPOSITORY_PATH is: $CI_PRIMARY_REPOSITORY_PATH"
 cd "$CI_PRIMARY_REPOSITORY_PATH" || exit 1
 pwd
 
-echo "--- Cleaning old builds ---"
-flutter clean
-
 echo "--- Installing Flutter ---"
 git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
 export PATH="$HOME/flutter/bin:$PATH"
@@ -83,6 +80,9 @@ flutter --version
 
 echo "--- Precaching iOS artifacts ---"
 flutter precache --ios
+
+echo "--- Cleaning old builds ---"
+flutter clean
 
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
