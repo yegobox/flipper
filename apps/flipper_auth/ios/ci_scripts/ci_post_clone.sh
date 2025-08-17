@@ -93,16 +93,12 @@ dart pub global activate melos 6.3.2
 ping -c 2 pub.dev || true
 nslookup pub.dev || true
 
+# Melos clean to ensure a fresh state
+melos clean
+
 # Melos bootstrap with retries
-for i in {1..1}; do
-  melos bootstrap && break
-  echo "Retrying melos bootstrap ($i/3)..."
-  sleep 5
-  if [[ $i -eq 3 ]]; then
-    echo "❌ Melos bootstrap failed."
-    exit 1
-  fi
-done
+melos bootstrap
+
 
 echo "--- Navigating to Flutter app folder ---"
 cd apps/flipper_auth || exit 1
