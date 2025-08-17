@@ -76,7 +76,7 @@ ping -c 2 pub.dev || true
 nslookup pub.dev || true
 
 # Melos bootstrap with retries
-for i in {1..3}; do
+for i in {1..1}; do
   melos bootstrap && break
   echo "Retrying melos bootstrap ($i/3)..."
   sleep 5
