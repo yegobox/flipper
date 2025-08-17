@@ -86,7 +86,7 @@ flutter clean
 
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
-dart pub global activate melos 6.3.2
+dart pub global activate melos 7.0.0
 
 
 # Network diagnostics
@@ -97,11 +97,11 @@ nslookup pub.dev || true
 melos clean
 
 # Melos bootstrap with retries
-for i in {1..3}; do
+for i in {1..5}; do
   melos bootstrap && break
-  echo "Retrying melos bootstrap ($i/3)..."
-  sleep 5
-  if [[ $i -eq 3 ]]; then
+  echo "Retrying melos bootstrap ($i/5)..."
+  sleep 10
+  if [[ $i -eq 5 ]]; then
     echo "❌ Melos bootstrap failed."
     exit 1
   fi
