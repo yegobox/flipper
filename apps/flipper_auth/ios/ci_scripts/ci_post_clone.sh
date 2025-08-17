@@ -93,22 +93,16 @@ dart pub global activate melos 7.0.0
 ping -c 2 pub.dev || true
 nslookup pub.dev || true
 
-# Melos clean to ensure a fresh state
-melos clean
-
 # Melos bootstrap with retries
-for i in {1..5}; do
+for i in {1..3}; do
   melos bootstrap && break
-  echo "Retrying melos bootstrap ($i/5)..."
-  sleep 10
-  if [[ $i -eq 5 ]]; then
+  echo "Retrying melos bootstrap ($i/3)..."
+  sleep 5
+  if [[ $i -eq 3 ]]; then
     echo "❌ Melos bootstrap failed."
     exit 1
   fi
 done
-
-# Explicitly run flutter pub get for all packages after bootstrap
-# melos exec "flutter pub get"
 
 
 echo "--- Navigating to Flutter app folder ---"
