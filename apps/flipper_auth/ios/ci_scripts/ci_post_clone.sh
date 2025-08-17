@@ -82,7 +82,7 @@ echo "--- Precaching iOS artifacts ---"
 flutter precache --ios
 
 echo "--- Cleaning old builds ---"
-flutter clean
+melos clean || true
 
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
