@@ -10,8 +10,8 @@ echo "BASE_PATH is: $BASE_PATH"
 
 
 # Define file paths
-INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
-CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
+# INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
+# CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
 SECRETS1_PATH="$BASE_PATH/apps/flipper/lib/secrets.dart" 
 SECRETS2_PATH="$BASE_PATH/packages/flipper_models/lib/secrets.dart"
 # FIREBASE1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
@@ -73,6 +73,9 @@ echo "CI_PRIMARY_REPOSITORY_PATH is: $CI_PRIMARY_REPOSITORY_PATH"
 cd "$CI_PRIMARY_REPOSITORY_PATH" || exit 1
 pwd
 
+echo "--- Cleaning old builds ---"
+flutter clean
+
 echo "--- Installing Flutter ---"
 git clone https://github.com/flutter/flutter.git --depth 1 -b stable "$HOME/flutter"
 export PATH="$HOME/flutter/bin:$PATH"
@@ -80,16 +83,6 @@ flutter --version
 
 echo "--- Precaching iOS artifacts ---"
 flutter precache --ios
-
-echo "--- Navigating to Flutter app folder ---"
-cd apps/flipper_auth || exit 1
-pwd
-
-
-echo "--- Cleaning old builds ---"
-flutter clean
-
-
 
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
@@ -111,6 +104,9 @@ for i in {1..1}; do
   fi
 done
 
+echo "--- Navigating to Flutter app folder ---"
+cd apps/flipper_auth || exit 1
+pwd
 
 echo "--- Building iOS once to generate Generated.xcconfig ---"
 flutter build ios --release --no-codesign
