@@ -126,6 +126,7 @@ dependencies:
   record: ^6.0.0
   just_audio: ^0.10.4
   markdown_widget: ^2.3.2
+  flipper_auth: any
   
 
 dependency_overrides:

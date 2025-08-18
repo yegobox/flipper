@@ -121,5 +121,6 @@ pod install
 cd ../..
 pwd
 
+# flutter build ios --config-only
 echo "--- Flutter build completed ---"
 echo "--- ci_post_clone.sh for flipper_auth finished successfully ---"

@@ -2,3 +2,10 @@ global_options:
   freezed:freezed:
     runs_before:
       # - isar_generator:isar_generator
+
+targets:
+  $default:
+    builders:
+      dart_mappable:
+        options:
+          caseStyle: snake_case

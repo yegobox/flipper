@@ -23,21 +23,21 @@ class UserMfaSecretMapper extends ClassMapperBase<UserMfaSecret> {
   static String? _$id(UserMfaSecret v) => v.id;
   static const Field<UserMfaSecret, String> _f$id =
       Field('id', _$id, opt: true);
-  static String _$userId(UserMfaSecret v) => v.userId;
-  static const Field<UserMfaSecret, String> _f$userId =
-      Field('userId', _$userId);
+  static int _$userId(UserMfaSecret v) => v.userId;
+  static const Field<UserMfaSecret, int> _f$userId =
+      Field('userId', _$userId, key: r'user_id');
   static String _$secret(UserMfaSecret v) => v.secret;
   static const Field<UserMfaSecret, String> _f$secret =
       Field('secret', _$secret);
   static DateTime? _$createdAt(UserMfaSecret v) => v.createdAt;
   static const Field<UserMfaSecret, DateTime> _f$createdAt =
-      Field('createdAt', _$createdAt, opt: true);
+      Field('createdAt', _$createdAt, key: r'created_at', opt: true);
   static String? _$issuer(UserMfaSecret v) => v.issuer;
   static const Field<UserMfaSecret, String> _f$issuer =
       Field('issuer', _$issuer, opt: true);
   static String? _$accountName(UserMfaSecret v) => v.accountName;
   static const Field<UserMfaSecret, String> _f$accountName =
-      Field('accountName', _$accountName, opt: true);
+      Field('accountName', _$accountName, key: r'account_name', opt: true);
 
   @override
   final MappableFields<UserMfaSecret> fields = const {
@@ -114,7 +114,7 @@ abstract class UserMfaSecretCopyWith<$R, $In extends UserMfaSecret, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   $R call(
       {String? id,
-      String? userId,
+      int? userId,
       String? secret,
       DateTime? createdAt,
       String? issuer,
@@ -133,7 +133,7 @@ class _UserMfaSecretCopyWithImpl<$R, $Out>
   @override
   $R call(
           {Object? id = $none,
-          String? userId,
+          int? userId,
           String? secret,
           Object? createdAt = $none,
           Object? issuer = $none,
