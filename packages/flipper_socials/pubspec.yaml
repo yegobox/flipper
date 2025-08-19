@@ -24,7 +24,7 @@ dependencies:
   fluentui_system_icons: ^1.1.273
   animated_icon_button: ^1.0.2
   pip_view: ^0.9.7
-  getwidget: ^3.0.1
+  getwidget: ^6.0.0
   timeago: ^3.4.0
   fast_cached_network_image: ^1.1.1
   # custom_floating_action_button: ^0.0.3
@@ -40,7 +40,7 @@ dependency_overrides:
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.9.0
-  device_info_plus: ^11.2.2
+  device_info_plus: ^11.3.3
   archive: ^3.6.1
   excel: ^4.0.6
   

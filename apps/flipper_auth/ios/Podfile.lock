@@ -4,7 +4,7 @@ PODS:
     - FlutterMacOS
   - amplify_secure_storage (0.0.1):
     - Flutter
-  - app_links (0.0.2):
+  - app_links (6.4.1):
     - Flutter
   - AppAuth (1.7.6):
     - AppAuth/Core (= 1.7.6)
@@ -564,7 +564,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   amplify_auth_cognito: b76a0e367489da2b9a3c6e5a8ec74a72a0a7cc2f
   amplify_secure_storage: ede2a5027299bab196b8baa030ed3f4cf50ce9a9
-  app_links: f3e17e4ee5e357b39d8b95290a9b2c299fca71c6
+  app_links: 585674be3c6661708e6cd794ab4f39fb9d8356f9
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audio_session: 19e9480dbdd4e5f6c4543826b2e8b0e4ab6145fe

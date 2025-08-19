@@ -307,7 +307,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    
     OrderViewRoute.name: (routeData) {
       final args =
           routeData.argsAs<OrderViewArgs>(orElse: () => const OrderViewArgs());
@@ -510,14 +509,6 @@ class StackedRouterWeb extends _i4.RootStackRouter {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Security(key: args.key),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    ComfirmRoute.name: (routeData) {
-      return _i4.CustomPage<dynamic>(
-        routeData: routeData,
-        child: const _i1.Comfirm(),
         opaque: true,
         barrierDismissible: false,
       );

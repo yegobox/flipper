@@ -503,6 +503,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+				PRODUCT_MODULE_NAME = flipper;
 			};
 			name = Profile;
 		};
@@ -521,6 +522,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+				PRODUCT_MODULE_NAME = FlipperTests;
 			};
 			name = Debug;
 		};
@@ -537,6 +539,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+				PRODUCT_MODULE_NAME = FlipperTests;
 			};
 			name = Release;
 		};
@@ -553,6 +556,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
+				PRODUCT_MODULE_NAME = FlipperTests;
 			};
 			name = Profile;
 		};
@@ -688,6 +692,7 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+				PRODUCT_MODULE_NAME = flipper;
 			};
 			name = Debug;
 		};
@@ -711,6 +716,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+				PRODUCT_MODULE_NAME = flipper;
 			};
 			name = Release;
 		};
