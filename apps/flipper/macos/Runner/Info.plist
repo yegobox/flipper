@@ -28,22 +28,5 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.business</string>
-	<key>FirebaseAutomaticScreenReportingEnabled</key>
-	<false/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsLocalNetworking</key>
-		<true/>
-	</dict>
-	<key>com.posthog.posthog.API_KEY</key>
-		<string>$(POSTHOG_API_KEY)</string>
-		<key>com.posthog.posthog.POSTHOG_HOST</key>
-		<string>https://us.i.posthog.com</string>
-		<key>com.posthog.posthog.CAPTURE_APPLICATION_LIFECYCLE_EVENTS</key>
-		<true/>
-	<key>NSMicrophoneUsageDescription</key>
-    <string>Some message to describe why you need this permission</string>
 </dict>
 </plist>
