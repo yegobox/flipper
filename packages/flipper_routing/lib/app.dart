@@ -57,7 +57,6 @@ import 'all_routes.dart';
     CustomRoute(page: SettingPage),
     CustomRoute(page: Transactions),
     CustomRoute(page: Security),
-    CustomRoute(page: Comfirm),
     CustomRoute(page: ReportsDashboard),
     CustomRoute(page: AdminControl),
     CustomRoute(page: AddBranch),
@@ -839,3 +838,4 @@ class App {}
 
 // DB to use in our backend in future:
 // https://duckdb.org/
+// exec zsh -l

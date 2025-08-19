@@ -919,23 +919,28 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   Future<String> _saveExcelFile(excel.Workbook workbook) async {
-    final List<int> bytes = workbook.saveAsStream();
-    final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '${formattedDate}-Report.xlsx';
+    final List<int>? bytes = workbook.saveAsStream();
 
-    try {
-      final tempDir = await getApplicationDocumentsDirectory();
-      final filePath = path.join(tempDir.path, fileName);
-      final file = File(filePath);
+    if (bytes != null) {
+      final formattedDate =
+          DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final fileName = '${formattedDate}-Report.xlsx';
 
-      await file.create(recursive: true);
+      try {
+        final tempDir = await getApplicationDocumentsDirectory();
+        final filePath = path.join(tempDir.path, fileName);
+        final file = File(filePath);
 
-      await file.writeAsBytes(bytes, flush: true);
-      return filePath;
-    } catch (e) {
-      talker.error('Error saving Excel file: $e');
-      rethrow;
+        await file.create(recursive: true);
+
+        await file.writeAsBytes(bytes, flush: true);
+        return filePath;
+      } catch (e) {
+        talker.error('Error saving Excel file: $e');
+        rethrow;
+      }
     }
+    throw Exception('Error saving Excel file');
   }
 
   Future<void> _openOrShareFile(String filePath) async {

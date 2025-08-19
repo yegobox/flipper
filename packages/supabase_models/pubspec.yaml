@@ -31,7 +31,7 @@ dependencies:
   # e.g querying variant come with stock but refreshing this stock might be time consuming or not effient
   realm: ^20.1.1
 dependency_overrides:
-  device_info_plus: ^11.2.2
+  device_info_plus: ^11.3.3
   sqlite3: ^2.9.0
   sqlite3_web: '>=0.2.1 <0.4.0'
   archive: ^3.6.1

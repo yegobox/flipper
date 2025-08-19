@@ -6,6 +6,3 @@ environment:
 dev_dependencies:
   melos: ^6.2.0
   patrol: ^3.14.1
-
-dependency_overrides:
-  firebase_dynamic_links: ^6.1.5

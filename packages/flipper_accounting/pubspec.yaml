@@ -21,7 +21,7 @@ dependency_overrides:
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.9.0
-  device_info_plus: ^11.2.2
+  device_info_plus: ^11.3.3
   archive: ^3.6.1
 
 dev_dependencies:
