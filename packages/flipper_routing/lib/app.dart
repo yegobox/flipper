@@ -839,3 +839,4 @@ class App {}
 // DB to use in our backend in future:
 // https://duckdb.org/
 // exec zsh -l
+// pod deintegrate && pod install
