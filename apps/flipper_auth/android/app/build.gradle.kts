@@ -11,7 +11,6 @@ plugins {
 android {
     namespace = "rw.flipper.auth"
     compileSdk = 36
-    // ndkVersion = "26.3.11579264"
     ndkVersion = "27.0.12077973"
 
     compileOptions {
@@ -69,6 +68,11 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.android.gms:play-services-base:18.7.0")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
+    
+    //  
+    
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    // 
     
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
