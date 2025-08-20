@@ -262,46 +262,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 32),
 
                   // Divider with "OR"
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.grey[300])),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: Colors.grey[300])),
-                    ],
-                  ),
+                  // Row(
+                  //   children: [
+                  //     Expanded(child: Divider(color: Colors.grey[300])),
+                  //     Padding(
+                  //       padding: const EdgeInsets.symmetric(horizontal: 16),
+                  //       child: Text(
+                  //         'OR',
+                  //         style: TextStyle(
+                  //           color: Colors.grey[600],
+                  //           fontSize: 12,
+                  //           fontWeight: FontWeight.w500,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     Expanded(child: Divider(color: Colors.grey[300])),
+                  //   ],
+                  // ),
 
-                  const SizedBox(height: 24),
+                  // const SizedBox(height: 24),
 
                   // Alternative sign-in options
-                  _buildSocialSignInButton(
-                    icon: Icons.fingerprint,
-                    text: 'Use biometric authentication',
-                    onPressed: () {
-                      // Handle biometric auth
-                    },
-                  ),
+                  // _buildSocialSignInButton(
+                  //   icon: Icons.fingerprint,
+                  //   text: 'Use biometric authentication',
+                  //   onPressed: () {
+                  //     // Handle biometric auth
+                  //   },
+                  // ),
 
-                  const SizedBox(height: 12),
+                  // const SizedBox(height: 12),
 
-                  _buildSocialSignInButton(
-                    icon: Icons.phone_android,
-                    text: 'Sign in with phone number',
-                    onPressed: () {
-                      // Handle phone auth
-                    },
-                  ),
+                  // _buildSocialSignInButton(
+                  //   icon: Icons.phone_android,
+                  //   text: 'Sign in with phone number',
+                  //   onPressed: () {
+                  //     // Handle phone auth
+                  //   },
+                  // ),
 
-                  const SizedBox(height: 40),
+                  // const SizedBox(height: 40),
 
                   // Sign up link
                   Center(

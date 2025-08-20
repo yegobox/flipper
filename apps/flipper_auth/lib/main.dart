@@ -56,6 +56,7 @@ class _MyAppState extends State<MyApp> {
         Supabase.instance.client.auth.currentUser == null ? '/' : '/home';
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       title: 'Auth App',
       initialRoute: initialRoute, // Set initial route dynamically
