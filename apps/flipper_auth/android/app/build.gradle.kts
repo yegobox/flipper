@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "rw.flipper.auth"
-    compileSdk = 35
+    compileSdk = 36
     // ndkVersion = "26.3.11579264"
     ndkVersion = "27.0.12077973"
 
@@ -27,9 +27,9 @@ android {
     defaultConfig {
         applicationId = "rw.flipper.auth"
         minSdk = 24
-        targetSdk = 35
-        // minSdkVersion 24 
-        
+        targetSdk = 36
+        // minSdkVersion 24
+
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
