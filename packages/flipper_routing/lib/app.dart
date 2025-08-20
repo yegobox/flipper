@@ -840,3 +840,11 @@ class App {}
 // https://duckdb.org/
 // exec zsh -l
 // pod deintegrate && pod install
+
+// create simulator
+// xcrun simctl create "iPhone 15 Pro iOS18" com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro com.apple.CoreSimulator.SimRuntime.iOS-18-1
+// xcrun simctl create "iPad iOS18" com.apple.CoreSimulator.SimDeviceType.iPad-10th-generation com.apple.CoreSimulator.SimRuntime.iOS-18-1
+// xcrun simctl boot "iPad iOS18"
+// xcrun simctl boot "iPhone 15 Pro iOS18"
+// open -a Simulator
+

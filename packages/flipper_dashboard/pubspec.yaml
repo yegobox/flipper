@@ -36,7 +36,7 @@ dependencies:
   ionicons: ^0.1.2
   overlay_support: ^2.1.0
   flutter_settings_ui: ^3.0.1
-  url_launcher: ^6.3.0
+  # url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
   firebase_core: ^4.0.0
