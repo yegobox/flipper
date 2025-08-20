@@ -68,17 +68,11 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
     implementation("com.google.android.gms:play-services-base:18.7.0")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
-    
-    //  
-    
-    implementation 'com.google.firebase:firebase-auth-ktx'
-    // 
-    
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-auth-ktx")
-
+    // implementation("com.google.firebase:firebase-auth-ktx")
+    androidTestUtil("androidx.test:orchestrator:1.5.1")
     implementation("androidx.window:window:1.3.0")
     implementation("androidx.window:window-java:1.3.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")

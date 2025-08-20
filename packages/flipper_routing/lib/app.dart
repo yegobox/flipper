@@ -140,14 +140,13 @@ class App {}
 // STEPS to remove submodule
 ///git submodule deinit -f open-sources/generator
 ///git rm -rf open-sources/generator
-///rm -rf open-sources/generator
+/// rm -rf open-sources/generator
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
-///rm -rf path/to/submodule
-///git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
-
-// / find ./ -name pubspec.lock -type f -delete
-// / find ./ -name pubspec_overrides.yaml -type f -delete
-// / find ./ -name dependencies.txt -type f -delete
+/// rm -rf path/to/submodule
+/// git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
+/// find ./ -name pubspec.lock -type f -delete
+/// find ./ -name pubspec_overrides.yaml -type f -delete
+/// find ./ -name dependencies.txt -type f -delete
 /// https://developer.apple.com/in-app-purchase/
 /// https://github.com/flutter/packages/tree/main/packages/in_app_purchase/in_app_purchase
 /// C:\Users\Richie\Downloads\vcpkg\vcpkg.exe install cppwinrt

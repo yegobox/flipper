@@ -119,7 +119,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.13.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-auth-ktx'
+    // implementation 'com.google.firebase:firebase-auth-ktx'
 
     androidTestUtil "androidx.test:orchestrator:1.5.1"
 
