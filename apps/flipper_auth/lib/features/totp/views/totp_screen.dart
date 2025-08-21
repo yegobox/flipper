@@ -61,6 +61,7 @@ class _TOTPScreenState extends ConsumerState<TOTPScreen> {
       backgroundColor:
           isDark ? const Color(0xFF1C1C1E) : const Color(0xFFF2F2F7),
       appBar: AppBar(
+        leading: SizedBox.shrink(),
         title: const Text(
           'Authenticator',
           style: TextStyle(fontWeight: FontWeight.w600),

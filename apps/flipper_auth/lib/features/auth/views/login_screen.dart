@@ -1,4 +1,6 @@
 // lib/features/auth/views/login_screen.dart
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_auth/features/auth/providers/auth_notifier.dart';
@@ -411,34 +413,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildSocialSignInButton({
-    required IconData icon,
-    required String text,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 20, color: Colors.grey[700]),
-        label: Text(
-          text,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[700],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[300]!),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildSocialSignInButton({
+  //   required IconData icon,
+  //   required String text,
+  //   required VoidCallback onPressed,
+  // }) {
+  //   return SizedBox(
+  //     width: double.infinity,
+  //     height: 48,
+  //     child: OutlinedButton.icon(
+  //       onPressed: onPressed,
+  //       icon: Icon(icon, size: 20, color: Colors.grey[700]),
+  //       label: Text(
+  //         text,
+  //         style: TextStyle(
+  //           fontSize: 14,
+  //           color: Colors.grey[700],
+  //           fontWeight: FontWeight.w500,
+  //         ),
+  //       ),
+  //       style: OutlinedButton.styleFrom(
+  //         side: BorderSide(color: Colors.grey[300]!),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(8),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _handleSignIn() {
     if (_formKey.currentState?.validate() ?? false) {
