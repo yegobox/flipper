@@ -257,7 +257,6 @@ class _PinLoginState extends State<PinLogin>
   Future<void> _requestSmsOtp() async {
     try {
       setState(() {
-        _isProcessing = true;
         _hasError = false;
         _errorMessage = '';
       });
@@ -270,10 +269,6 @@ class _PinLoginState extends State<PinLogin>
       }
     } catch (e, s) {
       await _handleLoginError(e, s);
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
     }
   }
 
