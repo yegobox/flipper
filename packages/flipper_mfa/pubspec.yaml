@@ -13,6 +13,7 @@ dependencies:
   qr_flutter: ^4.1.0
   flipper_models: any
   flipper_services: any
+  supabase_flutter: any
 dependency_overrides:
   image: ^4.5.4  # match flipper_services image version
   archive: ^3.6.1  # unify archive across packages
