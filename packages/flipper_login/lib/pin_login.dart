@@ -126,9 +126,26 @@ class _PinLoginState extends State<PinLogin>
         if (_showOtpField) {
           final pin = await _getPin();
           if (_authMethod == AuthMethod.authenticator) {
+            final otpCode = _otpController.text;
+            if (otpCode.length != 6 || int.tryParse(otpCode) == null) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Authenticator code must be a 6-digit number.';
+              });
+              return;
+            }
+
+            if (pin == null) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              });
+              return;
+            }
+
             final ok = await _mfa.validateTotpThenLogin(
-              pin: pin!,
-              code: _otpController.text,
+              pin: pin,
+              code: otpCode,
             );
             if (!ok) {
               setState(() {
@@ -143,8 +160,15 @@ class _PinLoginState extends State<PinLogin>
               await _requestSmsOtp();
               return;
             }
+            if (pin == null) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              });
+              return;
+            }
             await _mfa.verifySmsOtpThenLogin(
-                otp: _otpController.text, pin: pin!);
+                otp: _otpController.text, pin: pin);
           }
         } else {
           if (_authMethod == AuthMethod.sms) {
@@ -224,6 +248,8 @@ class _PinLoginState extends State<PinLogin>
       },
     );
 
+    if (!mounted) return;
+
     setState(() {
       _hasError = true;
       _errorMessage = errorMessage.isNotEmpty
@@ -261,6 +287,9 @@ class _PinLoginState extends State<PinLogin>
         _errorMessage = '';
       });
       final response = await _mfa.requestSmsOtp(pinString: _pinController.text);
+
+      if (!mounted) return;
+
       if (response['requiresOtp'] == true) {
         setState(() {
           _showOtpField = true;
@@ -268,7 +297,9 @@ class _PinLoginState extends State<PinLogin>
         _otpFocusNode.requestFocus();
       }
     } catch (e, s) {
-      await _handleLoginError(e, s);
+      if (mounted) {
+        await _handleLoginError(e, s);
+      }
     }
   }
 

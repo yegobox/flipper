@@ -132,9 +132,6 @@ class MfaService {
   bool _verifyCodeAtTime(String secret, String code, int timeStep) {
     try {
       final totp = TOTP();
-      // Note: This is a simplified implementation.
-      // You might need to implement time-based verification manually
-      // if the totp_authenticator package doesn't support it.
       return totp.verifyCode(secret, code);
     } catch (e) {
       return false;
