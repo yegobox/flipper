@@ -44,6 +44,7 @@ void main() {
     testWidgets('displays loading state initially', (tester) async {
       when(() => env.mockDbSync.transactionsStream(
                 status: any(named: 'status'),
+                branchId: any(named: 'branchId'),
                 removeAdjustmentTransactions:
                     any(named: 'removeAdjustmentTransactions'),
                 forceRealData: any(named: 'forceRealData'),
@@ -69,6 +70,7 @@ void main() {
     testWidgets('shows empty state when no data', (tester) async {
       when(() => env.mockDbSync.transactionsStream(
             status: any(named: 'status'),
+            branchId: any(named: 'branchId'),
             removeAdjustmentTransactions:
                 any(named: 'removeAdjustmentTransactions'),
             forceRealData: any(named: 'forceRealData'),
@@ -94,6 +96,7 @@ void main() {
     testWidgets('shows error state when stream errors', (tester) async {
       when(() => env.mockDbSync.transactionsStream(
         status: any(named: 'status'),
+        branchId: any(named: 'branchId'),
         removeAdjustmentTransactions: any(named: 'removeAdjustmentTransactions'),
         forceRealData: any(named: 'forceRealData'),
         skipOriginalTransactionCheck: any(named: 'skipOriginalTransactionCheck'),
