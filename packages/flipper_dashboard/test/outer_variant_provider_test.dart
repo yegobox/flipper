@@ -318,3 +318,10 @@ void main() {
     });
   });
 }
+
+/// real test above is failing due to realm download 
+// void main() {
+//   group('OuterVariants Provider', () {
+//     expect(1, 1);
+//   });
+// }
