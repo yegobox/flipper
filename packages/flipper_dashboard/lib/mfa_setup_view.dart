@@ -57,8 +57,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
           id: const Uuid().v4(),
           secret: _secret!,
           issuer: 'Flipper',
-          accountName: ProxyService.box
-              .getUserPhone(), // Use user's phone as account name
+          accountName: ProxyService.box.getUserPhone(),
         ));
       }
     } catch (e) {
