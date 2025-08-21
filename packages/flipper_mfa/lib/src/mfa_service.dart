@@ -1,6 +1,9 @@
 import 'package:totp_authenticator/totp_authenticator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:math';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flipper_models/models/user_mfa_secret.dart';
+import 'package:flipper_models/repositories/user_mfa_secret_repository.dart';
 
 class MfaService {
   /// Generates a new TOTP secret using base32 encoding
@@ -107,6 +110,20 @@ class MfaService {
 
       return false;
     } catch (e) {
+      return false;
+    }
+  }
+
+  /// Verify a TOTP code for the current user from stored secret in Supabase
+  /// Returns true if user has a secret and the code is valid, false otherwise
+  Future<bool> verifyTotpForUser(
+      {required int userId, required String code}) async {
+    try {
+      final repo = UserMfaSecretRepository(Supabase.instance.client);
+      final UserMfaSecret? record = await repo.getSecretByUserId(userId);
+      if (record == null || record.secret.isEmpty) return false;
+      return verifyCode(secret: record.secret, code: code);
+    } catch (_) {
       return false;
     }
   }

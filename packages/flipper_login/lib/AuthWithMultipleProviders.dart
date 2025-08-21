@@ -4,8 +4,6 @@ import 'package:flipper_login/LoadingDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/view_models/login_viewmodel.dart';
-import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_services/proxy.dart';
 // import 'package:flipper_login/apple_logo_painter.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
