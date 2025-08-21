@@ -137,6 +137,12 @@ class _PinLoginState extends State<PinLogin>
               });
             }
           } else {
+            // SMS selected while already at OTP stage
+            if (_otpController.text.isEmpty) {
+              // Ensure an SMS is sent, keep OTP visible
+              await _requestSmsOtp();
+              return;
+            }
             await _mfa.verifySmsOtpThenLogin(
                 otp: _otpController.text, pin: pin!);
           }
@@ -239,9 +245,36 @@ class _PinLoginState extends State<PinLogin>
       _authMethod = method;
       _hasError = false;
       _errorMessage = '';
-      _showOtpField = false;
+      // Keep OTP stage if already shown; just clear current code
       _otpController.clear();
     });
+    // If switching to SMS while already in OTP stage, request an SMS code immediately
+    if (method == AuthMethod.sms && _showOtpField) {
+      _requestSmsOtp();
+    }
+  }
+
+  Future<void> _requestSmsOtp() async {
+    try {
+      setState(() {
+        _isProcessing = true;
+        _hasError = false;
+        _errorMessage = '';
+      });
+      final response = await _mfa.requestSmsOtp(pinString: _pinController.text);
+      if (response['requiresOtp'] == true) {
+        setState(() {
+          _showOtpField = true;
+        });
+        _otpFocusNode.requestFocus();
+      }
+    } catch (e, s) {
+      await _handleLoginError(e, s);
+    } finally {
+      setState(() {
+        _isProcessing = false;
+      });
+    }
   }
 
   @override
