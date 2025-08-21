@@ -19,10 +19,11 @@ class MfaService {
   }) {
     final totp = TOTP();
     final String otpUri = totp.generateQRCodeUrl(
-      "Flipper",
+      accountName,
       secret,
       issuer: issuer,
     );
+    print(otpUri);
     return QrPainter(
       data: otpUri,
       version: QrVersions.auto,
