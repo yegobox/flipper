@@ -125,6 +125,7 @@ dependencies:
   just_audio: ^0.10.4
   markdown_widget: ^2.3.2
   flipper_auth: any
+  realm_dart: ^20.1.1
   
 
 dependency_overrides:
