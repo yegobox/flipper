@@ -78,7 +78,7 @@ dependencies:
   rxdart: ^0.28.0
   badges: ^3.1.2
   community_charts_flutter: ^1.0.2
-  
+
   dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
@@ -93,16 +93,16 @@ dependencies:
   syncfusion_flutter_datagrid_export: ^29.2.11
   syncfusion_flutter_core: ^29.2.11
   syncfusion_officechart: ^29.2.11
-  
+
   flex_color_picker: ^3.7.1
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0
   amplify_api: ^2.6.5
-  amplify_flutter: ^2.6.1
+  amplify_flutter: ^2.6.5
   amplify_auth_cognito: ^2.6.5
   flutter_side_menu: ^0.5.3
-  
+
   phone_numbers_parser: ^8.3.0
   wolt_modal_sheet: ^0.8.0
   demo_ui_components: 1.0.0
@@ -126,7 +126,6 @@ dependencies:
   markdown_widget: ^2.3.2
   flipper_auth: any
   realm_dart: ^20.1.1
-  
 
 dependency_overrides:
   http: ^1.2.2
@@ -138,7 +137,6 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   mime: ^2.0.0
-  
 
 flutter:
   # The following line ensures that the Material Icons font is

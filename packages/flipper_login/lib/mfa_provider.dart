@@ -11,8 +11,13 @@ class MfaProvider {
     required IPin pin,
     required String code,
   }) async {
+    final int? userId = int.tryParse(pin.userId);
+    if (userId == null) {
+      return false;
+    }
+
     final bool isValid = await MfaService().verifyTotpForUser(
-      userId: int.parse(pin.userId),
+      userId: userId,
       code: code,
     );
 
@@ -23,7 +28,7 @@ class MfaProvider {
       isInSignUpProgress: false,
       skipDefaultAppSetup: false,
       pin: Pin(
-        userId: int.parse(pin.userId),
+        userId: userId,
         pin: pin.pin,
         businessId: pin.businessId,
         branchId: pin.branchId,
