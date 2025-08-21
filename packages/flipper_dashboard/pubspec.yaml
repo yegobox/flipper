@@ -158,7 +158,7 @@ dev_dependencies:
   riverpod_lint: ^2.3.7
   mockito: ^5.4.4
   mocktail: ^1.0.4
-  test:
+  test: ^1.26.2
   integration_test:
     sdk: flutter
   path_provider_platform_interface: ^2.0.0
