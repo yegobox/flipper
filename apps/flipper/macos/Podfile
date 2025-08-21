@@ -28,7 +28,6 @@ flutter_macos_podfile_setup
 
 target 'Runner' do
   use_frameworks!
-  use_modular_headers!
 
   flutter_install_all_macos_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
@@ -41,6 +40,11 @@ post_install do |installer|
     flutter_additional_macos_build_settings(target)
     target.build_configurations.each do |config|
       config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
+      if target.name == 'realm'
+        config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'YES'
+        # Set RUN_SCRIPT_PHASE_DEPENDENCIES = 0 for Realm's script phases
+        config.build_settings['RUN_SCRIPT_PHASE_DEPENDENCIES'] = '0'
+      end
     end
   end
 end

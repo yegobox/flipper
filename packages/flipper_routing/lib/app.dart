@@ -36,7 +36,6 @@ import 'all_routes.dart';
     CustomRoute(page: TransactionDetail),
     CustomRoute(page: SettingsScreen),
     CustomRoute(page: SwitchBranchView),
-    CustomRoute(page: ScannView),
     CustomRoute(page: OrderView),
     CustomRoute(page: Orders),
     CustomRoute(page: Customers),
@@ -58,7 +57,6 @@ import 'all_routes.dart';
     CustomRoute(page: SettingPage),
     CustomRoute(page: Transactions),
     CustomRoute(page: Security),
-    CustomRoute(page: Comfirm),
     CustomRoute(page: ReportsDashboard),
     CustomRoute(page: AdminControl),
     CustomRoute(page: AddBranch),
@@ -142,14 +140,13 @@ class App {}
 // STEPS to remove submodule
 ///git submodule deinit -f open-sources/generator
 ///git rm -rf open-sources/generator
-///rm -rf open-sources/generator
+/// rm -rf open-sources/generator
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
-///rm -rf path/to/submodule
-///git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
-
-// / find ./ -name pubspec.lock -type f -delete
-// / find ./ -name pubspec_overrides.yaml -type f -delete
-// / find ./ -name dependencies.txt -type f -delete
+/// rm -rf path/to/submodule
+/// git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
+/// find ./ -name pubspec.lock -type f -delete
+/// find ./ -name pubspec_overrides.yaml -type f -delete
+/// find ./ -name dependencies.txt -type f -delete
 /// https://developer.apple.com/in-app-purchase/
 /// https://github.com/flutter/packages/tree/main/packages/in_app_purchase/in_app_purchase
 /// C:\Users\Richie\Downloads\vcpkg\vcpkg.exe install cppwinrt
@@ -837,3 +834,16 @@ class App {}
 //  keytool -list -v -keystore /Users/richard/Documents/GitHub/flipper/apps/flipper/android/app/key.jks -alias upload -storepass umwana789
 // Future plans:
 // https://medium.com/@mahmuthanb/building-a-flutter-app-with-machine-learning-using-tensorflow-lite-474fd03a30fe
+
+// DB to use in our backend in future:
+// https://duckdb.org/
+// exec zsh -l
+// pod deintegrate && pod install
+
+// create simulator
+// xcrun simctl create "iPhone 15 Pro iOS18" com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro com.apple.CoreSimulator.SimRuntime.iOS-18-1
+// xcrun simctl create "iPad iOS18" com.apple.CoreSimulator.SimDeviceType.iPad-10th-generation com.apple.CoreSimulator.SimRuntime.iOS-18-1
+// xcrun simctl boot "iPad iOS18"
+// xcrun simctl boot "iPhone 15 Pro iOS18"
+// open -a Simulator
+

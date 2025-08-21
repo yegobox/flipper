@@ -34,9 +34,9 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 android {
-    ndkVersion = "26.3.11579264"
+    ndkVersion = "27.0.12077973"
     namespace "rw.flipper"
-    compileSdkVersion 35
+    compileSdkVersion 36
     testOptions {
         execution "ANDROIDX_TEST_ORCHESTRATOR"
     }
@@ -66,7 +66,7 @@ android {
         minSdkVersion 26
         // minSdkVersion flutter.minSdkVersion
         // targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
@@ -119,7 +119,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.13.0')
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-auth-ktx'
+    // implementation 'com.google.firebase:firebase-auth-ktx'
 
     androidTestUtil "androidx.test:orchestrator:1.5.1"
 

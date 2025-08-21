@@ -1445,6 +1445,7 @@ class Capella extends AiStrategyImpl
       bool includeZeroSubTotal = false,
       bool skipOriginalTransactionCheck = false,
       List<String>? receiptNumber,
+      String? customerId,
       bool includePending = false}) {
     // TODO: implement transactions
     throw UnimplementedError();
@@ -2410,6 +2411,13 @@ class Capella extends AiStrategyImpl
   Stream<List<brick.BusinessAnalytic>> streamRemoteAnalytics(
       {required int branchId}) {
     // TODO: implement streamRemoteAnalytics
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> mergeTransactions(
+      {required brick.ITransaction from, required brick.ITransaction to}) {
+    // TODO: implement mergeTransactions
     throw UnimplementedError();
   }
 }

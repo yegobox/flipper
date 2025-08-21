@@ -17,8 +17,6 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 // ignore: unnecessary_import
-import 'package:flipper_models/exceptions.dart'
-    show FailedPaymentException, NoPaymentPlanFound;
 
 final selectedBusinessIdProvider = StateProvider<int?>((ref) => null);
 

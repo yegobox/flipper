@@ -6,6 +6,9 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_login/mfa_provider.dart';
+
+enum AuthMethod { authenticator, sms }
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -27,6 +30,8 @@ class _PinLoginState extends State<PinLogin>
   bool _hasError = false;
   String _errorMessage = '';
   bool _showOtpField = false;
+  AuthMethod _authMethod = AuthMethod.authenticator;
+  final MfaProvider _mfa = const MfaProvider();
 
   late AnimationController _slideController;
   late AnimationController _fadeController;
@@ -120,18 +125,88 @@ class _PinLoginState extends State<PinLogin>
       try {
         if (_showOtpField) {
           final pin = await _getPin();
-          await ProxyService.strategy
-              .verifyOtpAndLogin(_otpController.text, pin: pin);
+          if (_authMethod == AuthMethod.authenticator) {
+            final otpCode = _otpController.text;
+            if (otpCode.length != 6 || int.tryParse(otpCode) == null) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Authenticator code must be a 6-digit number.';
+              });
+              return;
+            }
+
+            if (pin == null) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              });
+              return;
+            }
+
+            final ok = await _mfa.validateTotpThenLogin(
+              pin: pin,
+              code: otpCode,
+            );
+            if (!ok) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid authenticator code. Please try again.';
+              });
+            }
+          } else {
+            // SMS selected while already at OTP stage
+            if (_otpController.text.isEmpty) {
+              // Ensure an SMS is sent, keep OTP visible
+              await _requestSmsOtp();
+              return;
+            }
+            if (pin == null) {
+              setState(() {
+                _hasError = true;
+                _errorMessage = 'Invalid PIN. Please re-enter and try again.';
+              });
+              return;
+            }
+            await _mfa.verifySmsOtpThenLogin(
+                otp: _otpController.text, pin: pin);
+          }
         } else {
-          final response =
-              await ProxyService.strategy.requestOtp(_pinController.text);
-          if (response['requiresOtp']) {
+          if (_authMethod == AuthMethod.sms) {
+            final response =
+                await _mfa.requestSmsOtp(pinString: _pinController.text);
+            if (response['requiresOtp']) {
+              setState(() {
+                _showOtpField = true;
+                _otpFocusNode.requestFocus();
+              });
+            } else {
+              // No OTP required: proceed to login directly using the PIN details
+              final pin = await _getPin();
+              if (pin != null) {
+                await ProxyService.strategy.login(
+                  userPhone: pin.phoneNumber,
+                  isInSignUpProgress: false,
+                  skipDefaultAppSetup: false,
+                  pin: Pin(
+                    userId: int.parse(pin.userId),
+                    pin: pin.pin,
+                    businessId: pin.businessId,
+                    branchId: pin.branchId,
+                    ownerName: pin.ownerName ?? '',
+                    phoneNumber: pin.phoneNumber,
+                  ),
+                  flipperHttpClient: ProxyService.http,
+                );
+              }
+            }
+          } else {
+            // Authenticator selected: show OTP field without requesting SMS
+            // Validate PIN exists before proceeding
+            await _getPin();
             setState(() {
               _showOtpField = true;
               _otpFocusNode.requestFocus();
             });
-          } else {
-            // Handle login without OTP
           }
         }
       } catch (e, s) {
@@ -173,6 +248,8 @@ class _PinLoginState extends State<PinLogin>
       },
     );
 
+    if (!mounted) return;
+
     setState(() {
       _hasError = true;
       _errorMessage = errorMessage.isNotEmpty
@@ -186,6 +263,44 @@ class _PinLoginState extends State<PinLogin>
       _isObscure = !_isObscure;
     });
     HapticFeedback.selectionClick();
+  }
+
+  void _setAuthMethod(AuthMethod method) {
+    if (_authMethod == method) return;
+    setState(() {
+      _authMethod = method;
+      _hasError = false;
+      _errorMessage = '';
+      // Keep OTP stage if already shown; just clear current code
+      _otpController.clear();
+    });
+    // If switching to SMS while already in OTP stage, request an SMS code immediately
+    if (method == AuthMethod.sms && _showOtpField) {
+      _requestSmsOtp();
+    }
+  }
+
+  Future<void> _requestSmsOtp() async {
+    try {
+      setState(() {
+        _hasError = false;
+        _errorMessage = '';
+      });
+      final response = await _mfa.requestSmsOtp(pinString: _pinController.text);
+
+      if (!mounted) return;
+
+      if (response['requiresOtp'] == true) {
+        setState(() {
+          _showOtpField = true;
+        });
+        _otpFocusNode.requestFocus();
+      }
+    } catch (e, s) {
+      if (mounted) {
+        await _handleLoginError(e, s);
+      }
+    }
   }
 
   @override
@@ -344,6 +459,8 @@ class _PinLoginState extends State<PinLogin>
             SizedBox(height: screenHeight < 600 ? 16 : 24),
             _buildPinField(isDark, screenHeight),
             if (_showOtpField) ...[
+              SizedBox(height: screenHeight < 600 ? 8 : 12),
+              _buildMethodToggle(isDark, screenHeight),
               SizedBox(height: screenHeight < 600 ? 12 : 16),
               _buildOtpField(isDark, screenHeight),
             ],
@@ -569,12 +686,13 @@ class _PinLoginState extends State<PinLogin>
 
   Widget _buildOtpField(bool isDark, double screenHeight) {
     final isSmallScreen = screenHeight < 600;
+    final isAuthenticator = _authMethod == AuthMethod.authenticator;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'OTP',
+          isAuthenticator ? 'Authenticator code' : 'OTP',
           style: TextStyle(
             fontSize: isSmallScreen ? 13 : 14,
             fontWeight: FontWeight.w600,
@@ -597,7 +715,7 @@ class _PinLoginState extends State<PinLogin>
           decoration: InputDecoration(
             filled: true,
             fillColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF8F9FB),
-            hintText: 'Enter your OTP',
+            hintText: isAuthenticator ? 'Enter 6-digit code' : 'Enter your OTP',
             hintStyle: TextStyle(
               color: isDark ? Colors.white38 : Color(0xFF9CA3AF),
               fontWeight: FontWeight.w400,
@@ -610,7 +728,7 @@ class _PinLoginState extends State<PinLogin>
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(
-                Icons.sms_outlined,
+                isAuthenticator ? Icons.shield_outlined : Icons.sms_outlined,
                 color: Color(0xFF4285F4),
                 size: isSmallScreen ? 16 : 18,
               ),
@@ -665,10 +783,71 @@ class _PinLoginState extends State<PinLogin>
           ),
           validator: (text) {
             if (text == null || text.isEmpty) {
-              return "OTP is required";
+              return isAuthenticator
+                  ? "Authenticator code is required"
+                  : "OTP is required";
             }
             return null;
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMethodToggle(bool isDark, double screenHeight) {
+    final isSmallScreen = screenHeight < 600;
+    return Row(
+      children: [
+        Expanded(
+          child: ChoiceChip(
+            label: Text(
+              'Authenticator',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 11 : 12,
+                fontWeight: FontWeight.w600,
+                color: _authMethod == AuthMethod.authenticator
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : Color(0xFF374151)),
+              ),
+            ),
+            selected: _authMethod == AuthMethod.authenticator,
+            onSelected: (v) => _setAuthMethod(AuthMethod.authenticator),
+            selectedColor: Color(0xFF4285F4),
+            backgroundColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF3F4F6),
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: _authMethod == AuthMethod.authenticator
+                    ? Color(0xFF4285F4)
+                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: 8),
+        Expanded(
+          child: ChoiceChip(
+            label: Text(
+              'SMS',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 11 : 12,
+                fontWeight: FontWeight.w600,
+                color: _authMethod == AuthMethod.sms
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : Color(0xFF374151)),
+              ),
+            ),
+            selected: _authMethod == AuthMethod.sms,
+            onSelected: (v) => _setAuthMethod(AuthMethod.sms),
+            selectedColor: Color(0xFF4285F4),
+            backgroundColor: isDark ? Color(0xFF3a3a3a) : Color(0xFFF3F4F6),
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: _authMethod == AuthMethod.sms
+                    ? Color(0xFF4285F4)
+                    : (isDark ? Color(0xFF4a4a4a) : Color(0xFFE5E7EB)),
+              ),
+            ),
+          ),
         ),
       ],
     );

@@ -43,24 +43,7 @@ class GeminiBusinessAnalyticsMock extends Mock
   }
 }
 
-class MockDatabaseSync extends Mock implements DatabaseSyncInterface {
-  @override
-  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
-          {String? responseChannel}) =>
-      Future.value({'errorMessage': ''});
-
-  @override
-  Future<void> saveLog(dynamic log) => Future.value();
-
-  @override
-  Future<IPin?> getPin(
-          {required String pinString,
-          required HttpClientInterface flipperHttpClient}) =>
-      Future.value(null);
-
-  @override
-  Future<void> completeLogin(Pin thePin) => Future.value();
-}
+class MockDatabaseSync extends Mock implements DatabaseSyncInterface {}
 
 class MockBox extends Mock implements LocalStorage {
   @override
