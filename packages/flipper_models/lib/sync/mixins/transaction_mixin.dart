@@ -64,6 +64,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
     List<String>? receiptNumber,
+    String? customerId,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -79,6 +80,19 @@ mixin TransactionMixin implements TransactionInterface {
         query: Query(where: [
           Or('invoiceNumber').isIn(receiptNumber),
           Where('receiptNumber').isIn(receiptNumber),
+          if (branchId != null) Where('branchId').isExactly(branchId),
+        ]),
+        policy: fetchRemote
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+      );
+      return response;
+    }
+    if (customerId != null && status != null) {
+      final response = await repository.get<ITransaction>(
+        query: Query(where: [
+          Where('customerId').isExactly(customerId),
+          Where('status').isExactly(status),
           if (branchId != null) Where('branchId').isExactly(branchId),
         ]),
         policy: fetchRemote
@@ -292,10 +306,13 @@ mixin TransactionMixin implements TransactionInterface {
 
       // First try to find transactions with subtotal > 0
       if (includeSubTotalCheck) {
-        final queryWithSubtotal = Query(where: [
-          ...baseWhere,
-          Where('subTotal').isGreaterThan(0),
-        ]);
+        final queryWithSubtotal = Query(
+          where: [
+            ...baseWhere,
+            Where('subTotal').isGreaterThan(0),
+          ],
+          orderBy: [OrderBy('lastTouched', ascending: false)],
+        );
 
         final transactionsWithSubtotal = await repository.get<ITransaction>(
           query: queryWithSubtotal,
@@ -309,7 +326,10 @@ mixin TransactionMixin implements TransactionInterface {
 
       // If no transaction with subtotal > 0 found or includeSubTotalCheck is false,
       // find any pending transaction regardless of subtotal
-      final query = Query(where: baseWhere);
+      final query = Query(
+        where: baseWhere,
+        orderBy: [OrderBy('lastTouched', ascending: false)],
+      );
 
       final transactions = await repository.get<ITransaction>(
         query: query,
@@ -1056,5 +1076,44 @@ mixin TransactionMixin implements TransactionInterface {
       ]),
     ))
         .firstOrNull;
+  }
+
+  @override
+  Future<void> mergeTransactions({
+    required ITransaction from,
+    required ITransaction to,
+  }) async {
+    if (from.id == to.id) {
+      talker.warning(
+          'mergeTransactions called with identical transaction IDs (${from.id}). Skipping.');
+      return;
+    }
+
+    final itemsToMove = await repository.get<TransactionItem>(
+      query: Query(where: [Where('transactionId').isExactly(from.id)]),
+    );
+
+    for (final item in itemsToMove) {
+      item.transactionId = to.id;
+      await repository.upsert<TransactionItem>(item);
+    }
+
+    // Recalculate total for the 'to' transaction
+    final allItems = await repository.get<TransactionItem>(
+      query: Query(where: [Where('transactionId').isExactly(to.id)]),
+    );
+    final newTotal = allItems.fold<double>(
+      0.0,
+      (sum, item) => sum + ((item.totAmt) ?? (item.price * item.qty)),
+    );
+
+    to.subTotal = newTotal;
+    final now = DateTime.now();
+    to.updatedAt = now;
+    to.lastTouched = now;
+    await repository.upsert<ITransaction>(to);
+
+    // Delete the 'from' transaction
+    await deleteTransaction(transaction: from);
   }
 }

@@ -602,15 +602,58 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> saveTicket(
       {required String ticketName,
       required String ticketNote,
-      required ITransaction transaction}) async {
-    // Only change status to PARKED if we have both ticket name and note
-    if (ticketName.isNotEmpty && ticketNote.isNotEmpty) {
+      required ITransaction transaction,
+      String? customerId}) async {
+    // Only park if a ticket name is provided.
+    if (ticketName.isNotEmpty) {
+      // If a customer is attached, check if they already have a parked ticket.
+      if (customerId != null) {
+        final existingParkedTransactions =
+            await ProxyService.strategy.transactions(
+          customerId: customerId,
+          status: PARKED,
+          branchId: ProxyService.box.getBranchId()!,
+        );
+
+        if (existingParkedTransactions.isNotEmpty) {
+          final existingTransaction = existingParkedTransactions.first;
+
+          // Merge the new transaction into the existing one.
+          await ProxyService.strategy.mergeTransactions(
+            from: transaction,
+            to: existingTransaction,
+          );
+
+          // Create a new pending transaction for the next sale.
+          // await newTransaction(typeOfThisTransactionIsExpense: false);
+          await ProxyService.strategy.manageTransaction(
+            branchId: ProxyService.box.getBranchId()!,
+            transactionType: SALE,
+            isExpense: false,
+          );
+          return; // End execution.
+        }
+      }
+
+      // If no customer or no existing parked ticket, park the current transaction as new.
+      final items = await ProxyService.strategy
+          .transactionItems(transactionId: transaction.id);
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         status: PARKED,
         note: ticketNote,
         ticketName: ticketName,
+        customerId: customerId,
+        subTotal:
+            items.fold(0.0, (sum, item) => sum! + (item.price * item.qty)),
         updatedAt: DateTime.now().toUtc(),
+      );
+
+      // Create a new pending transaction for the next sale.
+      await ProxyService.strategy.manageTransaction(
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: SALE,
+        isExpense: false,
       );
     }
   }

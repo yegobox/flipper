@@ -9,6 +9,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_dashboard/mfa_setup_view.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -260,6 +261,19 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           ),
           const SizedBox(height: 12),
           const ModernShiftTile(),
+          const SizedBox(height: 12), // Add some spacing
+          _ModernMenuItem(
+            icon: Icons.security_rounded,
+            title: 'Authenticator Setup',
+            color: const Color(0xFF0078D4), // Use a suitable color
+            onTap: () {
+              Navigator.pop(context); // Close the drawer
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MfaSetupView()),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -833,59 +847,72 @@ class _ModernBusinessCard extends StatelessWidget {
   }
 
   Widget _buildBusinessCard(BuildContext context, List<Branch> branches) {
-    return ExpansionTile(
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      childrenPadding: const EdgeInsets.only(bottom: 8),
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0078D4).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          Icons.business_rounded,
-          size: 20,
-          color: Color(0xFF0078D4),
-        ),
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
       ),
-      title: Text(
-        business.name ?? 'Unnamed Business',
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        childrenPadding: const EdgeInsets.only(bottom: 8),
+        collapsedShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
-      ),
-      subtitle: Text(
-        '${branches.length} ${branches.length == 1 ? 'branch' : 'branches'}',
-        style: TextStyle(
-          fontSize: 13,
-          color: Colors.grey[600],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
-      ),
-      children: branches.isEmpty
-          ? [
-              _BranchItem(
-                branch: Branch(
-                  id: 'main',
-                  name: 'Main Branch',
-                  businessId: business.serverId,
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0078D4).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.business_rounded,
+            size: 20,
+            color: Color(0xFF0078D4),
+          ),
+        ),
+        title: Text(
+          business.name ?? 'Unnamed Business',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: Text(
+          '${branches.length} ${branches.length == 1 ? 'branch' : 'branches'}',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey[600],
+          ),
+        ),
+        children: branches.isEmpty
+            ? [
+                _BranchItem(
+                  branch: Branch(
+                    id: 'main',
+                    name: 'Main Branch',
+                    businessId: business.serverId,
+                  ),
+                  switchingBranchId: switchingBranchId,
+                  onTap: () => onBranchSelected(Branch(
+                    id: 'main',
+                    name: 'Main Branch',
+                    businessId: business.serverId,
+                  )),
                 ),
-                switchingBranchId: switchingBranchId,
-                onTap: () => onBranchSelected(Branch(
-                  id: 'main',
-                  name: 'Main Branch',
-                  businessId: business.serverId,
-                )),
-              ),
-            ]
-          : branches
-              .map((branch) => _BranchItem(
-                    branch: branch,
-                    switchingBranchId: switchingBranchId,
-                    onTap: () => onBranchSelected(branch),
-                  ))
-              .toList(),
+              ]
+            : branches
+                .map((branch) => _BranchItem(
+                      branch: branch,
+                      switchingBranchId: switchingBranchId,
+                      onTap: () => onBranchSelected(branch),
+                    ))
+                .toList(),
+      ),
     );
   }
 }

@@ -4,10 +4,9 @@ import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/product_form.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_scanner/scanner_view.dart';
+import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/scheduler.dart';
@@ -42,7 +41,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     super.dispose();
   }
 
-  final _routerService = locator<RouterService>();
+  
 
   @override
   Widget build(BuildContext context) {
@@ -350,8 +349,15 @@ class AddProductViewState extends ConsumerState<AddProductView> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
           child: GestureDetector(
-            onTap: () =>
-                _routerService.navigateTo(ScannViewRoute(intent: 'addBarCode')),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ScannView(
+                  intent: BARCODE,
+                  scannerActions: DashboardScannerActions(context),
+                ),
+              ),
+            ),
             child: BoxInputField(
               enabled: false,
               controller: productForm.barCodeController,
@@ -384,7 +390,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
     await _updateRegularVariant(model);
 
-    _routerService.clearStackAndShow(CheckOutRoute(isBigScreen: false));
+    Navigator.of(context).pop();
   }
 
   Future<void> _updateRegularVariant(ProductViewModel model) async {

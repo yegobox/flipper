@@ -272,10 +272,6 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   String getCartText({required String transactionId}) {
-    // Force a refresh of the transaction items provider to ensure we have the latest data
-    ref.invalidate(
-        transactionItemsStreamProvider(transactionId: transactionId));
-
     // Get the latest count with a fresh watch to ensure reactivity
     final itemsAsync =
         ref.watch(transactionItemsStreamProvider(transactionId: transactionId));

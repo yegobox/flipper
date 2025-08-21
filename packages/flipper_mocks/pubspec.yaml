@@ -15,8 +15,8 @@ dependency_overrides:
   http: ^1.2.2
   meta: ^1.12.0
   web: ^1.1.0
-  sqlite3: ^2.7.6
-  device_info_plus: ^11.2.2
+  sqlite3: ^2.9.0
+  device_info_plus: ^11.3.3
   archive: ^3.6.1
   excel: ^4.0.6
   

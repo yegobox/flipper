@@ -2031,18 +2031,27 @@ class CoreSync extends AiStrategyImpl
           // Update transaction details
           transaction.items
               ?.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
-          // Update stock and transaction items
-
-          /// please do not remove await on the following method because feature like sync to ebm rely heavily on it.
-          /// by ensuring that transaction's item have both doneWithTransaction and active that are true at time of completing a transaction
         }
+        // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
+        Future.microtask(() async {
+          final items = transaction.items ?? const <TransactionItem>[];
+          final variantIds =
+              items.map((i) => i.variantId).whereType<String>().toSet();
+          for (final id in variantIds) {
+            final variant = await ProxyService.strategy.getVariant(id: id);
+            if (variant != null) {
+              variant.lastTouched = DateTime.now().toUtc();
+              await repository.upsert<Variant>(variant);
+            }
+          }
+        });
         await ProxyService.strategy.manageTransaction(
           transactionType: TransactionType.sale,
           isExpense: false,
           status: PENDING,
           branchId: ProxyService.box.getBranchId()!,
         );
-
+        await repository.upsert<ITransaction>(transaction);
         return transaction;
       } catch (e, s) {
         talker.error(s);

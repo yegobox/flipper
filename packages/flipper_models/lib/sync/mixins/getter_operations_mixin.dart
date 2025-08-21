@@ -38,6 +38,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     bool forceRealData = true,
     bool skipOriginalTransactionCheck = false,
     List<String>? receiptNumber,
+    String? customerId,
   });
 
   @override

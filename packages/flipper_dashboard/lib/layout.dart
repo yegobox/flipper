@@ -61,26 +61,32 @@ class DashboardLayout extends HookConsumerWidget {
       builder: (context, model, child) {
         final selectedPageWidget = _buildSelectedApp(ref, searchController);
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth < 600) {
-              return MobileView(
-                isBigScreen: false,
-                controller: searchController,
-                model: model,
-              );
-            }
-            return Scaffold(
-              body: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (ProxyService.remoteConfig.isMultiUserEnabled())
-                    const EnhancedSideMenu(),
-                  Expanded(child: selectedPageWidget),
-                ],
-              ),
-            );
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            // Silently prevent back navigation.
           },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                return MobileView(
+                  isBigScreen: false,
+                  controller: searchController,
+                  model: model,
+                );
+              }
+              return Scaffold(
+                body: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (ProxyService.remoteConfig.isMultiUserEnabled())
+                      const EnhancedSideMenu(),
+                    Expanded(child: selectedPageWidget),
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );
