@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/supabase_models.dart';
 
 // Define the interface
@@ -67,9 +68,11 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
 
   // Private helper method to reuse logout logic
   static Future<bool> _performLogout() async {
+
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
+     
       // set authComplete to false
       ProxyService.box.writeBool(key: 'authComplete', value: false);
       if (ProxyService.box.getUserId() != null &&
@@ -100,6 +103,8 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       // Perform additional logout operations
       ProxyService.strategy.whoAmI();
       await ProxyService.strategy.amplifyLogout();
+      Supabase.instance.client.auth.signOut();
+
 
       // Unset default for all businesses and branches
       final userId = ProxyService.box.getUserId();
