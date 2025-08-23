@@ -26,7 +26,7 @@ dependencies:
   azlistview: ^2.0.0
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this
   # will increase app size.
-  mobile_scanner: ^7.0.0-beta.8
+  mobile_scanner: ^7.0.1
   cached_network_image: ^3.2.1
   flutter_slidable: ^1.3.0
   flutter_text_drawable: ^1.0.0
