@@ -216,7 +216,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> amplifyLogout() async {
     try {
-      amplify.Amplify.Auth.signOut();
+      await amplify.Amplify.Auth.signOut();
     } catch (e) {}
   }
 

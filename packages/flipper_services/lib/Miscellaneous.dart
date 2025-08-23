@@ -103,7 +103,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       // Perform additional logout operations
       ProxyService.strategy.whoAmI();
       await ProxyService.strategy.amplifyLogout();
-      Supabase.instance.client.auth.signOut();
+      await Supabase.instance.client.auth.signOut();
 
 
       // Unset default for all businesses and branches

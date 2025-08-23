@@ -6,7 +6,6 @@ import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
 
-// "Request parameter error: Validation error for fields: [ 'regrNm': must not be empty. rejected value: 'null',  'regrId': must not be empty. rejected value: 'null',  'modrNm': must not be empty. rejected value: 'null']]",
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )

@@ -372,8 +372,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   bool getForceLogout() {
-    // TODO: implement getForceLogout
-    throw UnimplementedError();
+    return false;
   }
 
   @override
