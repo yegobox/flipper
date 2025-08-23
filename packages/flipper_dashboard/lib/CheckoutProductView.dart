@@ -2,13 +2,16 @@ import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
-import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldImplementationOfRiverpod;
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flipper_services/proxy.dart';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -36,7 +39,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   final TextEditingController customerPhoneNumberController =
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
-  String _selectedSegment = 'Items';
 
   @override
   void dispose() {
@@ -49,11 +51,23 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
     super.dispose();
   }
 
+  String getCartText({required String transactionId}) {
+    // Get the latest count with a fresh watch to ensure reactivity
+    final itemsAsync =
+        ref.watch(transactionItemsStreamProvider(transactionId: transactionId));
+
+    // Get the count from the async value
+    final count = itemsAsync.when(
+      data: (items) => items.length,
+      loading: () => 0,
+      error: (_, __) => 0,
+    );
+
+    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, dynamic) {
@@ -62,97 +76,17 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(8),
-              child: Icon(Icons.arrow_back_ios_new,
-                  size: 16, color: colorScheme.primary),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: const Text(
-            'Checkout',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          centerTitle: false,
-          elevation: 1.0,
-          shadowColor: Colors.black12,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          actions: [
-            IconButton(
-              icon: const Icon(FluentIcons.more_vertical_20_regular),
-              onPressed: () {
-                // Show more options menu
-              },
-            ),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48.0),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: CustomSegmentedButton<String>(
-                segments: const [
-                  ButtonSegment<String>(
-                    value: 'Items',
-                    label: Text('Items'),
-                    icon: Icon(FluentIcons.box_20_regular, size: 18),
-                  ),
-                  ButtonSegment<String>(
-                    value: 'cart',
-                    label: Text('Cart'),
-                    enabled: false,
-                    icon: Icon(FluentIcons.cart_20_regular, size: 18),
-                  ),
-                  ButtonSegment<String>(
-                    value: 'Pay',
-                    label: Text('Pay'),
-                    enabled: false,
-                    icon: Icon(FluentIcons.payment_20_regular, size: 18),
-                  ),
-                ],
-                selected: {_selectedSegment},
-                onSelectionChanged: (Set<String> newSelection) {
-                  setState(() {
-                    _selectedSegment = newSelection.first;
-                  });
-                },
-                selectedBackgroundColor: Theme.of(context).colorScheme.primary,
-                unselectedBackgroundColor: Colors.transparent,
-                selectedForegroundColor:
-                    Theme.of(context).colorScheme.onPrimary,
-                unselectedForegroundColor:
-                    Theme.of(context).colorScheme.onSurface,
-                borderColor: Theme.of(context).colorScheme.primary,
-                borderRadius: 8.0,
-              ),
-            ),
-          ),
-        ),
         body: SafeArea(
           child: Column(
             children: [
-              // Search field at the top
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: SearchField(
-                  controller: searchController,
-                  showAddButton: true,
-                  showDatePicker: false,
-                  showIncomingButton: true,
-                  showOrderButton: true,
-                ),
-              ),
+              // Loyverse-style Header
+              _buildLoyverseHeader(),
+
+              // Main Action Buttons
+              _buildActionButtons(),
+
+              // Search/Filter Bar
+              _buildSearchFilterBar(),
 
               // ProductView takes remaining space
               Expanded(
@@ -182,6 +116,268 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLoyverseHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        children: [
+          // Title with Ticket Icon
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Ticket',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    '0',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Action Icons
+          Row(
+            children: [
+              // Add Customer Icon
+              IconButton(
+                icon: const Icon(
+                  Icons.person_add,
+                  color: Colors.black,
+                  size: 20,
+                ),
+                onPressed: () {
+                  // TODO: Implement add customer functionality
+                },
+              ),
+              // More Options Icon
+              IconButton(
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Colors.black,
+                  size: 20,
+                ),
+                onPressed: () {
+                  // TODO: Implement more options menu
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final transactionAsyncValue =
+            ref.watch(pendingTransactionStreamProvider(isExpense: false));
+
+        return transactionAsyncValue.when(
+          data: (transaction) {
+            final cartText = getCartText(transactionId: transaction.id);
+            return Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  // OPEN TICKETS Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Show cart preview
+                        ref
+                            .read(oldImplementationOfRiverpod
+                                .previewingCart.notifier)
+                            .state = true;
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF34C759), // Green like Loyverse
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            cartText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // CHARGE Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Handle charge/payment
+                        _handleCharge(transaction);
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF34C759), // Green like Loyverse
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'CHARGE RWF 0',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          loading: () => Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'OPEN TICKETS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'CHARGE RWF 0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          error: (_, __) => Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'OPEN TICKETS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'CHARGE RWF 0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleCharge(ITransaction transaction) {
+    // TODO: Implement charge functionality
+    // This should trigger the payment flow
+    print('Charge button pressed for transaction: ${transaction.id}');
+  }
+
+  Widget _buildSearchFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: SearchField(
+        controller: searchController,
+        showAddButton: true,
+        showDatePicker: false,
+        showIncomingButton: false,
+        showOrderButton: true,
       ),
     );
   }

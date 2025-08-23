@@ -1,12 +1,8 @@
 // ignore_for_file: unused_result
 
-import 'dart:io';
-
 import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_dashboard/OrderStatusSelector.dart';
-import 'package:flipper_dashboard/PaymentModeModal.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
-import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
@@ -294,10 +290,6 @@ class CheckOutState extends ConsumerState<CheckOut>
     ProxyService.box.writeBool(key: 'transactionInProgress', value: true);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: true);
 
-    // if (customerNameController.text.isEmpty) {
-    //   ProxyService.box.remove(key: 'customerName');
-    //   ProxyService.box.remove(key: 'getRefundReason');
-    // }
     if (discountController.text.isEmpty) {
       ProxyService.box.remove(key: 'discountRate');
     }
@@ -358,98 +350,11 @@ class CheckOutState extends ConsumerState<CheckOut>
             }
           },
           child: !showCart
-              ? Stack(
-                  children: [
-                    CheckoutProductView(
-                      widget: widget,
-                      tabController: tabController,
-                      textEditController: textEditController,
-                      model: model,
-                    ),
-                    Positioned(
-                      bottom: 20,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        color: Colors.white,
-                        child: Builder(
-                          builder: (context) {
-                            final branchAsync = ref.watch(activeBranchProvider);
-                            return branchAsync.when(
-                              data: (branch) {
-                                return FutureBuilder<bool>(
-                                  future: ProxyService.strategy
-                                          .isBranchEnableForPayment(
-                                              currentBranchId: branch.id)
-                                      as Future<bool>,
-                                  builder: (context, snapshot) {
-                                    final digitalPaymentEnabled =
-                                        snapshot.data ?? false;
-                                    return PayableView(
-                                      transactionId: transaction.id,
-                                      mode: oldImplementationOfRiverpod
-                                          .SellingMode.forOrdering,
-                                      wording: getCartText(
-                                          transactionId: transaction.id),
-                                      model: model,
-                                      completeTransaction:
-                                          (immediateCompletion) async {
-                                        await _handleCompleteTransaction(
-                                            transaction, immediateCompletion);
-                                      },
-                                      ticketHandler: () =>
-                                          handleTicketNavigation(transaction),
-                                      previewCart: () {
-                                        if (Platform.isAndroid ||
-                                            Platform.isIOS) {
-                                          BottomSheets.showBottom(
-                                            context: context,
-                                            ref: ref,
-                                            transactionId: transaction.id,
-                                            onCharge:
-                                                (transactionId, total) async {
-                                              await _handleCompleteTransaction(
-                                                  transaction, false);
-                                              Navigator.of(context).pop();
-                                            },
-                                            doneDelete: () {
-                                              ref.refresh(
-                                                  transactionItemsStreamProvider(
-                                                      branchId: ProxyService.box
-                                                          .branchIdString()!,
-                                                      transactionId:
-                                                          transaction.id));
-                                              Navigator.of(context).pop();
-                                            },
-                                          );
-                                        } else {
-                                          showPaymentModeModal(context,
-                                              (provider) async {
-                                            print(
-                                                'User selected Finance Provider: ${provider.name}');
-                                            placeFinalOrder(
-                                                financeOption: provider,
-                                                isShoppingFromWareHouse: false,
-                                                transaction: transaction);
-                                          });
-                                        }
-                                      },
-                                      digitalPaymentEnabled:
-                                          digitalPaymentEnabled,
-                                    );
-                                  },
-                                );
-                              },
-                              loading: () =>
-                                  const Center(child: Text("Loading...")),
-                              error: (error, stack) =>
-                                  Center(child: Text('Error: $error')),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+              ? CheckoutProductView(
+                  widget: widget,
+                  tabController: tabController,
+                  textEditController: textEditController,
+                  model: model,
                 )
               : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
         );
