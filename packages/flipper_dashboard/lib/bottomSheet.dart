@@ -490,7 +490,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           border: Border.all(color: Colors.grey[200]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -562,32 +562,65 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
     Widget _buildPhoneField() {
       return Container(
-        margin: EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: _customerPhoneError != null ? Colors.red : Colors.grey[200]!,
-          ),
-        ),
-        child: TextField(
-          controller: _customerPhoneController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(9),
-          ],
-          decoration: InputDecoration(
-            labelText: 'Customer Phone Number',
-            hintText: 'Enter 9-digit phone number',
-            prefixIcon: Icon(
-              Icons.phone_outlined,
-              color: _customerPhoneError != null ? Colors.red : Colors.blue,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  _customerPhoneError != null ? Colors.red : Colors.grey[300]!,
+              width: 1,
             ),
-            errorText: _customerPhoneError,
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            counterText: '',
+          ),
+          child: TextFormField(
+            controller: _customerPhoneController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(9),
+            ],
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+            decoration: InputDecoration(
+              labelText: 'Customer Phone Number',
+              labelStyle: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                letterSpacing: 0.5,
+              ),
+              hintText: 'Enter 9-digit phone number',
+              hintStyle: TextStyle(
+                color: Colors.grey[400],
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(
+                Icons.phone_outlined,
+                color:
+                    _customerPhoneError != null ? Colors.red : Colors.grey[600],
+                size: 20,
+              ),
+              errorText: _customerPhoneError,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+              counterText: '',
+            ),
+            onChanged: (value) {
+              // Clear error when user starts typing
+              if (_customerPhoneError != null && value.isNotEmpty) {
+                setState(() {
+                  _customerPhoneError = null;
+                });
+              }
+            },
           ),
         ),
       );

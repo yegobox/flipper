@@ -22,6 +22,8 @@ class PaymentMethodsCard extends StatefulHookConsumerWidget {
 }
 
 class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
+  bool _showPaymentMethods = false; // Toggle state for mobile
+
   @override
   void initState() {
     super.initState();
@@ -563,6 +565,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header with toggle for mobile
           Row(
             children: [
               Icon(
@@ -596,9 +599,29 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                     ),
                   ),
                 ),
+              // Toggle button for mobile only
+              if (isMobile) ...[
+                SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(
+                    _showPaymentMethods
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: Colors.blue[600],
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showPaymentMethods = !_showPaymentMethods;
+                    });
+                  },
+                ),
+              ],
             ],
           ),
-          if (ref.read(paymentMethodsProvider).isNotEmpty) ...[
+
+          // Payment methods content - conditionally shown on mobile
+          if ((!isMobile || _showPaymentMethods) &&
+              ref.read(paymentMethodsProvider).isNotEmpty) ...[
             SizedBox(height: 16),
             if (isMobile) ...[
               // Mobile layout - stacked vertically
@@ -666,6 +689,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
               ),
             ],
           ],
+
+          // Add payment method button - always visible
           SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -706,11 +731,31 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Payment Methods',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+        Row(
+          children: [
+            Text(
+              'Payment Methods',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+            Spacer(),
+            // Toggle button for mobile only in list view
+            if (isMobile)
+              IconButton(
+                icon: Icon(
+                  _showPaymentMethods
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showPaymentMethods = !_showPaymentMethods;
+                  });
+                },
               ),
+          ],
         ),
         SizedBox(height: 8),
         Text(
@@ -719,8 +764,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
         ),
-        SizedBox(height: 16),
-        if (ref.read(paymentMethodsProvider).isNotEmpty) ...[
+
+        // Conditionally show payment methods on mobile
+        if ((!isMobile || _showPaymentMethods) &&
+            ref.read(paymentMethodsProvider).isNotEmpty) ...[
+          SizedBox(height: 16),
           if (isMobile) ...[
             // Mobile layout - stacked vertically
             for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
@@ -762,6 +810,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
             ),
           ],
         ],
+
         SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
