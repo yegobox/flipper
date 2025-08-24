@@ -104,7 +104,7 @@ dependencies:
   flutter_side_menu: ^0.5.3
 
   phone_numbers_parser: ^8.3.0
-  wolt_modal_sheet: ^0.8.0
+  wolt_modal_sheet: ^0.11.0
   demo_ui_components: 1.0.0
   lottie: ^3.1.2
   flipper_rw:
