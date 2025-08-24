@@ -8,6 +8,9 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/cache/cache_export.dart';
+import 'package:flipper_services/GlobalLogError.dart';
+import 'package:flipper_models/helperModels/flipperWatch.dart';
+import 'package:flutter/foundation.dart';
 
 class TransactionItemAdder {
   final BuildContext context;
@@ -19,6 +22,9 @@ class TransactionItemAdder {
     required Variant variant,
     required bool isOrdering,
   }) async {
+    final flipperWatch? w = kDebugMode ? flipperWatch("addItemToTransaction") : null;
+    w?.start();
+
     try {
       // Show immediate visual feedback to indicate the item is being processed
       if (context.mounted) {
@@ -44,7 +50,8 @@ class TransactionItemAdder {
         // Get the latest stock from cache
         Stock? cachedStock;
         if (variant.id.isNotEmpty) {
-          cachedStock = await CacheManager().getStockByVariantId(variant.id);
+          cachedStock =
+              await CacheManager().getStockByVariantId(variant.id);
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock
@@ -129,16 +136,26 @@ class TransactionItemAdder {
       ref.invalidate(transactionItemsStreamProvider(
           transactionId: pendingTransaction.id,
           branchId: (await ProxyService.strategy.activeBranch()).id));
+
+      w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
       // Hide the loading indicator if there was an error
       if (context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
       }
 
-      talker.warning("Error while adding item to transaction: $e");
-      talker.error(s);
+      GlobalErrorHandler.logError(
+        s,
+        type: "ITEM-ADD-EXCEPTION",
+        context: {
+          'resultCode': e.toString(),
+          'businessId': ProxyService.box.getBusinessId(),
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
       showCustomSnackBarUtil(context, "Failed to add item to cart",
           backgroundColor: Colors.red);
+      w?.log("ItemAddedToTransactionFailed"); // Log failure
       rethrow;
     }
   }
