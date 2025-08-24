@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:io';
 import 'package:flipper_services/DeviceType.dart';
 
 import 'package:flipper_models/providers/all_providers.dart';
