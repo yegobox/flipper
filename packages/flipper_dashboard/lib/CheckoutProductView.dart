@@ -1,4 +1,8 @@
+// ignore_for_file: unused_result
+
+import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
@@ -7,14 +11,17 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:flipper_models/providers/active_branch_provider.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'dart:io';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -34,7 +41,13 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
   _CheckoutProductViewState createState() => _CheckoutProductViewState();
 }
 
-class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
+class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
+    with
+        TextEditingControllersMixin,
+        TickerProviderStateMixin,
+        WidgetsBindingObserver,
+        TransactionMixinOld,
+        PreviewCartMixin {
   final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController receivedAmountController =
@@ -129,37 +142,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
       child: Row(
         children: [
           // Title with Ticket Icon
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Ticket',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    '0',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const Spacer(),
 
           // Action Icons
           Row(
@@ -167,23 +150,12 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
               // Add Customer Icon
               IconButton(
                 icon: const Icon(
-                  Icons.person_add,
-                  color: Colors.black,
+                  FluentIcons.person_add_16_regular,
+                  color: Colors.blue,
                   size: 20,
                 ),
                 onPressed: () {
-                  // TODO: Implement add customer functionality
-                },
-              ),
-              // More Options Icon
-              IconButton(
-                icon: const Icon(
-                  Icons.more_vert,
-                  color: Colors.black,
-                  size: 20,
-                ),
-                onPressed: () {
-                  // TODO: Implement more options menu
+                  locator<RouterService>().navigateTo(CustomersRoute());
                 },
               ),
             ],
@@ -211,6 +183,32 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
+                        handleTicketNavigation(transaction);
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF34C759), // Green like Loyverse
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Tickets',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Tickets Button - Handles complete transaction like old implementation
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
                         _showPreviewCartBottomSheet(transaction);
                       },
                       child: Container(
@@ -231,33 +229,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  // CHARGE Button - Handles complete transaction like old implementation
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        _handleCompleteTransaction(transaction);
-                      },
-                      child: Container(
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF34C759), // Green like Loyverse
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'CHARGE RWF 0',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  )
                 ],
               ),
             );

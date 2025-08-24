@@ -128,17 +128,7 @@ class SearchInputWithDropdown extends ConsumerStatefulWidget {
 class _SearchInputWithDropdownState
     extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _customerTypes = [
-    'Shop',
-    'Walk-in',
-    'Take Away',
-    'Delivery'
-  ];
-  final List<String> _saleTypes = [
-    'Agent Sale',
-    'Outgoing Sale',
-    'Incoming Return'
-  ];
+
   String _selectedCustomerType = 'Walk-in';
   String _selectedSaleType = 'Outgoing- Sale';
   List<Customer> _searchResults = [];
@@ -309,17 +299,18 @@ class _SearchInputWithDropdownState
         ProxyService.box.writeString(key: 'stockInOutType', value: "11");
       }
     } else {
+      ProxyService.box.writeString(key: 'stockInOutType', value: "11");
       // Ensure desktop defaults are maintained
-      if (_selectedCustomerType == 'Shop' &&
-          !_customerTypes.contains('Walk-in')) {
-        _selectedCustomerType = 'Walk-in';
-      }
-      if (_selectedSaleType == 'Agent Sale' &&
-          !_saleTypes.contains('Outgoing- Sale')) {
-        _selectedSaleType = 'Outgoing- Sale';
-        // Update the stockInOutType value for Outgoing Sale
-        ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-      }
+      // if (_selectedCustomerType == 'Shop' &&
+      //     !_customerTypes.contains('Walk-in')) {
+      //   _selectedCustomerType = 'Walk-in';
+      // }
+      // if (_selectedSaleType == 'Agent Sale' &&
+      //     !_saleTypes.contains('Outgoing- Sale')) {
+      //   _selectedSaleType = 'Outgoing- Sale';
+      //   // Update the stockInOutType value for Outgoing Sale
+      //   ProxyService.box.writeString(key: 'stockInOutType', value: "11");
+      // }
     }
 
     return attachedCustomerFuture.when(
@@ -399,47 +390,6 @@ class _SearchInputWithDropdownState
             fillColor: Colors.grey[200],
           ),
         ),
-        const SizedBox(height: 8.0),
-        Row(
-          children: [
-            Expanded(
-              child: CustomDropdownButton(
-                items: _customerTypes,
-                selectedItem: _selectedCustomerType,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedCustomerType = newValue;
-                  });
-                },
-                label: 'Customer Type',
-                icon: Icons.person,
-                compact: true,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: CustomDropdownButton(
-                items: _saleTypes,
-                selectedItem: _selectedSaleType,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedSaleType = newValue;
-                    if (newValue == "Outgoing Sale") {
-                      ProxyService.box
-                          .writeString(key: 'stockInOutType', value: "11");
-                    } else if (newValue == "Incoming Return") {
-                      ProxyService.box
-                          .writeString(key: 'stockInOutType', value: "03");
-                    }
-                  });
-                },
-                label: 'Sale Type',
-                icon: Icons.shopping_cart,
-                compact: true,
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -455,36 +405,6 @@ class _SearchInputWithDropdownState
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomDropdownButton(
-              items: _customerTypes,
-              selectedItem: _selectedCustomerType,
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedCustomerType = newValue;
-                });
-              },
-              label: 'Customer Type',
-              icon: Icons.person,
-            ),
-            const SizedBox(width: 8),
-            CustomDropdownButton(
-              items: _saleTypes,
-              selectedItem: _selectedSaleType,
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedSaleType = newValue;
-                  if (newValue == "Outgoing Sale") {
-                    ProxyService.box
-                        .writeString(key: 'stockInOutType', value: "11");
-                  } else if (newValue == "Incoming Return") {
-                    ProxyService.box
-                        .writeString(key: 'stockInOutType', value: "03");
-                  }
-                });
-              },
-              label: 'Sale Type',
-              icon: Icons.shopping_cart,
-            ),
             attachedCustomer != null
                 ? IconButton(
                     icon: const Icon(
