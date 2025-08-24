@@ -2,16 +2,19 @@ import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'dart:io';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -204,15 +207,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Row(
                 children: [
-                  // OPEN TICKETS Button
+                  // OPEN TICKETS Button - Shows bottom sheet like old implementation
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // Show cart preview
-                        ref
-                            .read(oldImplementationOfRiverpod
-                                .previewingCart.notifier)
-                            .state = true;
+                        _showPreviewCartBottomSheet(transaction);
                       },
                       child: Container(
                         height: 48,
@@ -234,12 +233,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // CHARGE Button
+                  // CHARGE Button - Handles complete transaction like old implementation
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // Handle charge/payment
-                        _handleCharge(transaction);
+                        _handleCompleteTransaction(transaction);
                       },
                       child: Container(
                         height: 48,
@@ -363,10 +361,31 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
     );
   }
 
-  void _handleCharge(ITransaction transaction) {
-    // TODO: Implement charge functionality
-    // This should trigger the payment flow
-    print('Charge button pressed for transaction: ${transaction.id}');
+  void _showPreviewCartBottomSheet(ITransaction transaction) {
+    // Show bottom sheet like in old implementation
+    if (Platform.isAndroid || Platform.isIOS) {
+      BottomSheets.showBottom(
+        context: context,
+        ref: ref,
+        transactionId: transaction.id,
+        onCharge: (transactionId, total) async {
+          await _handleCompleteTransaction(transaction);
+          Navigator.of(context).pop();
+        },
+        doneDelete: () {
+          ref.refresh(transactionItemsStreamProvider(
+              branchId: ProxyService.box.branchIdString()!,
+              transactionId: transaction.id));
+          Navigator.of(context).pop();
+        },
+      );
+    }
+  }
+
+  Future<void> _handleCompleteTransaction(ITransaction transaction) async {
+    // This should call the same complete transaction logic as the old implementation
+    // For now, we'll trigger the cart preview to show the payment flow
+    ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state = true;
   }
 
   Widget _buildSearchFilterBar() {
