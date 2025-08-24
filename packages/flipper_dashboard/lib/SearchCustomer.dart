@@ -300,17 +300,7 @@ class _SearchInputWithDropdownState
       }
     } else {
       ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-      // Ensure desktop defaults are maintained
-      // if (_selectedCustomerType == 'Shop' &&
-      //     !_customerTypes.contains('Walk-in')) {
-      //   _selectedCustomerType = 'Walk-in';
-      // }
-      // if (_selectedSaleType == 'Agent Sale' &&
-      //     !_saleTypes.contains('Outgoing- Sale')) {
-      //   _selectedSaleType = 'Outgoing- Sale';
-      //   // Update the stockInOutType value for Outgoing Sale
-      //   ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-      // }
+     
     }
 
     return attachedCustomerFuture.when(
