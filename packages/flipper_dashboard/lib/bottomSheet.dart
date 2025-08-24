@@ -13,6 +13,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_services/utils.dart';
 import 'dart:async';
 
 class BottomSheets {
@@ -324,7 +325,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                         ),
                                       ),
                                       Text(
-                                        transactionItem.price.toString(),
+                                        formatNumber(
+                                            transactionItem.price.toDouble()),
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -563,7 +565,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             ),
           ),
           subtitle: Text(
-            '${transactionItem.price.toString()} × ${transactionItem.qty}',
+            '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
