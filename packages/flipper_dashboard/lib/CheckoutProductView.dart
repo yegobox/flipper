@@ -1,14 +1,27 @@
+// ignore_for_file: unused_result
+
+import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
-import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
+import 'package:flipper_dashboard/bottomSheet.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
+    as oldImplementationOfRiverpod;
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flipper_services/proxy.dart';
+import 'dart:io';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -28,7 +41,13 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
   _CheckoutProductViewState createState() => _CheckoutProductViewState();
 }
 
-class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
+class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
+    with
+        TextEditingControllersMixin,
+        TickerProviderStateMixin,
+        WidgetsBindingObserver,
+        TransactionMixinOld,
+        PreviewCartMixin {
   final TextEditingController searchController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController receivedAmountController =
@@ -36,7 +55,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
   final TextEditingController customerPhoneNumberController =
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
-  String _selectedSegment = 'Items';
 
   @override
   void dispose() {
@@ -49,110 +67,41 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
     super.dispose();
   }
 
+  String getCartText({required String transactionId}) {
+    // Get the latest count with a fresh watch to ensure reactivity
+    final itemsAsync =
+        ref.watch(transactionItemsStreamProvider(transactionId: transactionId));
+
+    // Get the count from the async value
+    final count = itemsAsync.when(
+      data: (items) => items.length,
+      loading: () => 0,
+      error: (_, __) => 0,
+    );
+
+    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, dynamic) {
         if (didPop) return;
-        // _handleWillPop(context);
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(8),
-              child: Icon(Icons.arrow_back_ios_new,
-                  size: 16, color: colorScheme.primary),
-            ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          title: const Text(
-            'Checkout',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          centerTitle: false,
-          elevation: 1.0,
-          shadowColor: Colors.black12,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          actions: [
-            IconButton(
-              icon: const Icon(FluentIcons.more_vertical_20_regular),
-              onPressed: () {
-                // Show more options menu
-              },
-            ),
-          ],
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(48.0),
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: CustomSegmentedButton<String>(
-                segments: const [
-                  ButtonSegment<String>(
-                    value: 'Items',
-                    label: Text('Items'),
-                    icon: Icon(FluentIcons.box_20_regular, size: 18),
-                  ),
-                  ButtonSegment<String>(
-                    value: 'cart',
-                    label: Text('Cart'),
-                    enabled: false,
-                    icon: Icon(FluentIcons.cart_20_regular, size: 18),
-                  ),
-                  ButtonSegment<String>(
-                    value: 'Pay',
-                    label: Text('Pay'),
-                    enabled: false,
-                    icon: Icon(FluentIcons.payment_20_regular, size: 18),
-                  ),
-                ],
-                selected: {_selectedSegment},
-                onSelectionChanged: (Set<String> newSelection) {
-                  setState(() {
-                    _selectedSegment = newSelection.first;
-                  });
-                },
-                selectedBackgroundColor: Theme.of(context).colorScheme.primary,
-                unselectedBackgroundColor: Colors.transparent,
-                selectedForegroundColor:
-                    Theme.of(context).colorScheme.onPrimary,
-                unselectedForegroundColor:
-                    Theme.of(context).colorScheme.onSurface,
-                borderColor: Theme.of(context).colorScheme.primary,
-                borderRadius: 8.0,
-              ),
-            ),
-          ),
-        ),
         body: SafeArea(
           child: Column(
             children: [
-              // Search field at the top
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: SearchField(
-                  controller: searchController,
-                  showAddButton: true,
-                  showDatePicker: false,
-                  showIncomingButton: true,
-                  showOrderButton: true,
-                ),
-              ),
+              // Loyverse-style Header
+              _buildFlipperseHeader(),
+
+              // Main Action Buttons
+              _buildActionButtons(),
+
+              // Search/Filter Bar
+              _buildSearchFilterBar(),
 
               // ProductView takes remaining space
               Expanded(
@@ -182,6 +131,261 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFlipperseHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        children: [
+          // Modern Back Button
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+                color: Colors.blue,
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+
+          const Spacer(),
+
+          // Action Icons
+          Row(
+            children: [
+              // Add Customer Icon
+              IconButton(
+                icon: const Icon(
+                  FluentIcons.person_add_16_regular,
+                  color: Colors.blue,
+                  size: 20,
+                ),
+                onPressed: () {
+                  locator<RouterService>().navigateTo(CustomersRoute());
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final transactionAsyncValue =
+            ref.watch(pendingTransactionStreamProvider(isExpense: false));
+
+        return transactionAsyncValue.when(
+          data: (transaction) {
+            final cartText = getCartText(transactionId: transaction.id);
+            return Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  // OPEN TICKETS Button - Shows bottom sheet like old implementation
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        handleTicketNavigation(transaction);
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF34C759), // Green like Loyverse
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Tickets',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Tickets Button - Handles complete transaction like old implementation
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        _showPreviewCartBottomSheet(transaction);
+                      },
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF34C759), // Green like Loyverse
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            cartText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            );
+          },
+          loading: () => Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'OPEN TICKETS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'CHARGE RWF 0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          error: (_, __) => Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'OPEN TICKETS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF34C759),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'CHARGE RWF 0',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPreviewCartBottomSheet(ITransaction transaction) {
+    // Show bottom sheet like in old implementation
+    if (Platform.isAndroid || Platform.isIOS) {
+      BottomSheets.showBottom(
+        context: context,
+        ref: ref,
+        transactionId: transaction.id,
+        onCharge: (transactionId, total) async {
+          await _handleCompleteTransaction(transaction);
+          Navigator.of(context).pop();
+        },
+        doneDelete: () {
+          ref.refresh(transactionItemsStreamProvider(
+              branchId: ProxyService.box.branchIdString()!,
+              transactionId: transaction.id));
+          Navigator.of(context).pop();
+        },
+      );
+    }
+  }
+
+  Future<void> _handleCompleteTransaction(ITransaction transaction) async {
+    // This should call the same complete transaction logic as the old implementation
+    // For now, we'll trigger the cart preview to show the payment flow
+    ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state = true;
+  }
+
+  Widget _buildSearchFilterBar() {
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: SearchField(
+        controller: searchController,
+        showAddButton: true,
+        showDatePicker: false,
+        showIncomingButton: false,
+        showOrderButton: true,
       ),
     );
   }
@@ -272,7 +476,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView> {
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('Loading Items...'),
           ],
         ),
       ),

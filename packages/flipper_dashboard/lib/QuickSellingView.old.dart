@@ -1,3 +1,4 @@
+
 // ignore_for_file: unused_result
 import 'dart:async';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -11,6 +12,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -23,7 +25,6 @@ import 'package:stacked/stacked.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 
 import 'package:flipper_dashboard/providers/customer_provider.dart';
-import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -68,6 +69,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     super.initState();
     final initialCode = CountryCode.fromCountryCode("RW");
     widget.countryCodeController.text = initialCode.dialCode!;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        updatePaymentAmounts(transactionId: "");
+      } catch (e) {}
+    });
 
     // Listen for transaction completion flag
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
@@ -82,6 +88,47 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       c.dispose();
     }
     super.dispose();
+  }
+
+  void updatePaymentAmounts({required String transactionId}) {
+    if (ref.read(paymentMethodsProvider).isEmpty) return;
+
+    double remainingAmount = totalAfterDiscountAndShipping;
+    final payments = ref.read(paymentMethodsProvider);
+
+    // Handle the first payment method
+    if (payments.isNotEmpty) {
+      double firstAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
+      remainingAmount -= firstAmount;
+      payments[0].amount = firstAmount;
+    }
+
+    // Distribute remaining amount among other payment methods
+    for (int i = 1; i < payments.length; i++) {
+      if (i == payments.length - 1) {
+        // Last payment method gets the remaining amount
+        payments[i].amount = remainingAmount;
+        if (remainingAmount > 0) {
+          payments[i].controller.text = remainingAmount.toStringAsFixed(2);
+        }
+      } else {
+        // Keep the entered amount for middle payment methods
+        double enteredAmount =
+            double.tryParse(payments[i].controller.text) ?? 0.0;
+        payments[i].amount = enteredAmount;
+        remainingAmount -= enteredAmount;
+      }
+
+      // Update the payment method in the provider
+      ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+            transactionId: transactionId,
+            i,
+            Payment(
+              amount: payments[i].amount,
+              method: payments[i].method,
+            ),
+          );
+    }
   }
 
   Future<void> _onQuickSellComplete(ITransaction transaction) async {
@@ -160,6 +207,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
           SliverToBoxAdapter(
             child: _buildSectionHeader('Payment', Icons.payment_outlined),
+          ),
+          SliverToBoxAdapter(
+            child: _buildPaymentSection(transactionAsyncValue),
           ),
         ],
 
@@ -474,6 +524,110 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  Widget _buildPaymentSection(AsyncValue<ITransaction> transactionAsyncValue) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Customer Phone Number Field
+          Text(
+            'Customer Phone number',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          SizedBox(height: 8),
+
+          // Payment Methods Header
+          Text(
+            'Payment Methods',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
+          ),
+          SizedBox(height: 16),
+
+          // Payment Methods List
+          if (ref.read(paymentMethodsProvider).isNotEmpty)
+            Column(
+              children: [
+                // Header Row
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        'Payment Method',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        'Amount',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+
+                // Payment Method Rows
+                for (int i = 0;
+                    i < ref.read(paymentMethodsProvider).length;
+                    i++)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: _buildPaymentMethodRow(i,
+                        transactionId: transactionAsyncValue.value?.id ?? ""),
+                  ),
+              ],
+            ),
+
+          // Add Payment Method Button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _addPaymentMethod(
+                  transactionId: transactionAsyncValue.value?.id ?? ""),
+              icon: Icon(Icons.add, size: 18),
+              label: Text('Add Payment Method'),
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDeliverySection() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -780,10 +934,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       children: [
         // Payment Method Field
         Expanded(
-          child: PaymentMethodsCard(
-            transactionId: transactionId,
-            totalPayable: totalAfterDiscountAndShipping,
-          ),
+          child: _buildPaymentMethodField(transactionId: transactionId),
         ),
       ],
     );
@@ -891,6 +1042,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
                       Payment(amount: receivedAmount, method: payment.method));
                 }
+                updatePaymentAmounts(transactionId: transactionId);
               } // Update payment amounts after received amount changes
             }),
         validator: (String? value) {
@@ -1022,6 +1174,428 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ],
       ),
     );
+  }
+
+  Widget _buildPaymentMethodField({required String transactionId}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+      ),
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header section
+          Row(
+            children: [
+              Icon(
+                Icons.payment,
+                color: Colors.blue[600],
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Payment Methods',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              Spacer(),
+              // Summary badge
+              if (ref.read(paymentMethodsProvider).isNotEmpty)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          if (ref.read(paymentMethodsProvider).isNotEmpty) ...[
+            SizedBox(height: 16),
+            // Payment methods list
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[200]!, width: 1),
+              ),
+              child: Column(
+                children: [
+                  // Header row
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'Payment Method',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            'Amount',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 48), // Space for action button
+                      ],
+                    ),
+                  ),
+                  // Payment method rows
+                  for (int i = 0;
+                      i < ref.read(paymentMethodsProvider).length;
+                      i++)
+                    _buildPaymentMethodRow(i, transactionId: transactionId),
+                ],
+              ),
+            ),
+          ],
+
+          SizedBox(height: 16),
+
+          // Add button
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: () => _addPaymentMethod(transactionId: transactionId),
+              icon: Icon(
+                Icons.add,
+                size: 18,
+                color: Colors.blue[600],
+              ),
+              label: Text(
+                'Add Payment Method',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue[600],
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.blue[300]!, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                backgroundColor: Colors.blue[50],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentMethodRow(int index, {required String transactionId}) {
+    final isLast = index == ref.read(paymentMethodsProvider).length - 1;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: isLast
+              ? BorderSide.none
+              : BorderSide(color: Colors.grey[200]!, width: 0.5),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Payment method dropdown
+            Expanded(
+              flex: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!, width: 1),
+                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.white,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: ref.read(paymentMethodsProvider)[index].method,
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        icon: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.grey[600],
+                          size: 20,
+                        ),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[800],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        items: paymentTypes.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Row(
+                              children: [
+                                _getPaymentMethodIcon(value),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    value,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              final payment =
+                                  ref.read(paymentMethodsProvider)[index];
+                              payment.method = newValue;
+                              ref
+                                  .read(paymentMethodsProvider.notifier)
+                                  .updatePaymentMethod(
+                                      index,
+                                      Payment(
+                                        amount: payment.amount,
+                                        method: newValue,
+                                      ),
+                                      transactionId: transactionId);
+
+                              // Save the payment method in ProxyService.box
+                              ProxyService.box.writeString(
+                                  key: 'paymentType', value: newValue);
+
+                              // Map payment methods to their corresponding codes for reference:
+                              // Cash: 01
+                              // Credit Card: 02
+                              // CASH/CREDIT: 03
+                              // BANK CHECK: 04
+                              // DEBIT&CREDIT CARD: 05
+                              // MOBILE MONEY: 06
+                              // OTHER: 07
+                              final paymentMethodCode =
+                                  ProxyService.box.paymentMethodCode(newValue);
+                              ProxyService.box.writeString(
+                                  key: 'pmtTyCd', value: paymentMethodCode);
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(width: 16),
+
+            // Amount field
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!, width: 1),
+                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.white,
+                    ),
+                    child: TextFormField(
+                      controller:
+                          ref.read(paymentMethodsProvider)[index].controller,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[800],
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter amount',
+                        hintStyle: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        ),
+                        prefix: Text(
+                          '${ProxyService.box.defaultCurrency()} ',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        final amount = double.tryParse(value) ?? 0.0;
+                        ref.read(paymentMethodsProvider)[index].amount = amount;
+
+                        if (index <
+                            ref.read(paymentMethodsProvider).length - 1) {
+                          updatePaymentAmounts(transactionId: transactionId);
+                        }
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter an amount';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(width: 12),
+
+            // Remove button
+            Container(
+              width: 36,
+              height: 36,
+              child: index == 0
+                  ? SizedBox() // Empty space for first item
+                  : Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => _removePaymentMethod(index,
+                            transactionId: transactionId),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border:
+                                Border.all(color: Colors.red[300]!, width: 1),
+                            borderRadius: BorderRadius.circular(18),
+                            color: Colors.red[50],
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 16,
+                            color: Colors.red[600],
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+// Helper method to get payment method icons
+  Widget _getPaymentMethodIcon(String paymentMethod) {
+    IconData icon;
+    Color color;
+
+    switch (paymentMethod.toUpperCase()) {
+      case 'CASH':
+        icon = Icons.money;
+        color = Colors.green[600]!;
+        break;
+      case 'CREDIT CARD':
+        icon = Icons.credit_card;
+        color = Colors.blue[600]!;
+        break;
+      case 'DEBIT&CREDIT CARD':
+        icon = Icons.payment;
+        color = Colors.purple[600]!;
+        break;
+      case 'MOBILE MONEY':
+        icon = Icons.phone_android;
+        color = Colors.orange[600]!;
+        break;
+      case 'BANK CHECK':
+        icon = Icons.account_balance;
+        color = Colors.indigo[600]!;
+        break;
+      default:
+        icon = Icons.payment;
+        color = Colors.grey[600]!;
+    }
+
+    return Icon(
+      icon,
+      size: 16,
+      color: color,
+    );
+  }
+
+  void _addPaymentMethod({required String transactionId}) {
+    setState(() {
+      ref
+          .read(paymentMethodsProvider)
+          .add(Payment(amount: 0.0, method: 'CASH'));
+      ref.read(paymentMethodsProvider).last.controller.addListener(
+          () => updatePaymentAmounts(transactionId: transactionId));
+
+      updatePaymentAmounts(transactionId: transactionId);
+    });
+  }
+
+  void _removePaymentMethod(int index, {required String transactionId}) {
+    setState(() {
+      ref.read(paymentMethodsProvider)[index];
+      ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
+      updatePaymentAmounts(transactionId: transactionId);
+    });
+  }
+
+  String? validatePaymentMethods() {
+    double total = ref
+        .read(paymentMethodsProvider)
+        .fold(0, (sum, method) => sum + method.amount);
+    if ((total - totalAfterDiscountAndShipping).abs() > 0.01) {
+      return 'Total received amount does not match the total due';
+    }
+    return null;
   }
 
   Widget _buildFooter(AsyncValue<ITransaction> transactionAsyncValue) {

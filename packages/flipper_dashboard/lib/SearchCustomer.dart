@@ -14,6 +14,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
@@ -128,17 +129,7 @@ class SearchInputWithDropdown extends ConsumerStatefulWidget {
 class _SearchInputWithDropdownState
     extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _customerTypes = [
-    'Shop',
-    'Walk-in',
-    'Take Away',
-    'Delivery'
-  ];
-  final List<String> _saleTypes = [
-    'Agent Sale',
-    'Outgoing Sale',
-    'Incoming Return'
-  ];
+
   String _selectedCustomerType = 'Walk-in';
   String _selectedSaleType = 'Outgoing- Sale';
   List<Customer> _searchResults = [];
@@ -178,9 +169,14 @@ class _SearchInputWithDropdownState
         ProxyService.box
             .writeString(key: 'customerTin', value: customer.first.custTin!);
         _searchController.text = customer.first.custNm!;
+        // Update the Riverpod provider for customer phone number
+        ref.read(customerPhoneNumberProvider.notifier).state =
+            customer.first.telNo!;
       }
     } else {
       _searchController.clear();
+      // Clear the Riverpod provider when no customer is found
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
   }
 
@@ -201,6 +197,8 @@ class _SearchInputWithDropdownState
       setState(() {
         _searchController.clear();
       });
+      // Clear the Riverpod provider for customer phone number
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
   }
 
@@ -250,6 +248,9 @@ class _SearchInputWithDropdownState
         await ProxyService.box
             .writeString(key: 'customerTin', value: customer.custTin!);
       }
+
+      // Update the Riverpod provider for customer phone number
+      ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
 
       // Show success alert
       showDialog(
@@ -309,17 +310,7 @@ class _SearchInputWithDropdownState
         ProxyService.box.writeString(key: 'stockInOutType', value: "11");
       }
     } else {
-      // Ensure desktop defaults are maintained
-      if (_selectedCustomerType == 'Shop' &&
-          !_customerTypes.contains('Walk-in')) {
-        _selectedCustomerType = 'Walk-in';
-      }
-      if (_selectedSaleType == 'Agent Sale' &&
-          !_saleTypes.contains('Outgoing- Sale')) {
-        _selectedSaleType = 'Outgoing- Sale';
-        // Update the stockInOutType value for Outgoing Sale
-        ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-      }
+      ProxyService.box.writeString(key: 'stockInOutType', value: "11");
     }
 
     return attachedCustomerFuture.when(
@@ -399,47 +390,6 @@ class _SearchInputWithDropdownState
             fillColor: Colors.grey[200],
           ),
         ),
-        const SizedBox(height: 8.0),
-        Row(
-          children: [
-            Expanded(
-              child: CustomDropdownButton(
-                items: _customerTypes,
-                selectedItem: _selectedCustomerType,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedCustomerType = newValue;
-                  });
-                },
-                label: 'Customer Type',
-                icon: Icons.person,
-                compact: true,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: CustomDropdownButton(
-                items: _saleTypes,
-                selectedItem: _selectedSaleType,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedSaleType = newValue;
-                    if (newValue == "Outgoing Sale") {
-                      ProxyService.box
-                          .writeString(key: 'stockInOutType', value: "11");
-                    } else if (newValue == "Incoming Return") {
-                      ProxyService.box
-                          .writeString(key: 'stockInOutType', value: "03");
-                    }
-                  });
-                },
-                label: 'Sale Type',
-                icon: Icons.shopping_cart,
-                compact: true,
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -455,36 +405,6 @@ class _SearchInputWithDropdownState
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomDropdownButton(
-              items: _customerTypes,
-              selectedItem: _selectedCustomerType,
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedCustomerType = newValue;
-                });
-              },
-              label: 'Customer Type',
-              icon: Icons.person,
-            ),
-            const SizedBox(width: 8),
-            CustomDropdownButton(
-              items: _saleTypes,
-              selectedItem: _selectedSaleType,
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedSaleType = newValue;
-                  if (newValue == "Outgoing Sale") {
-                    ProxyService.box
-                        .writeString(key: 'stockInOutType', value: "11");
-                  } else if (newValue == "Incoming Return") {
-                    ProxyService.box
-                        .writeString(key: 'stockInOutType', value: "03");
-                  }
-                });
-              },
-              label: 'Sale Type',
-              icon: Icons.shopping_cart,
-            ),
             attachedCustomer != null
                 ? IconButton(
                     icon: const Icon(

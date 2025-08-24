@@ -20,6 +20,7 @@ import 'create/section_select_unit.dart';
 import 'create/supply_price_widget.dart';
 import 'create/variation_list.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 import 'package:intl/intl.dart';
 
 class AddProductView extends StatefulHookConsumerWidget {
@@ -40,8 +41,6 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     productForm.dispose();
     super.dispose();
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +113,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   Future<void> _fillFormForExistingProduct(ProductViewModel model) async {
     List<Variant> variants = await ProxyService.strategy.variants(
       productId: widget.productId!,
-      taxTyCds: ProxyService.box.vatEnabled()
-          ? ['A', 'B', 'C']
-          : ['D'],
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       branchId: ProxyService.box.getBranchId()!,
     );
 
@@ -307,7 +304,12 @@ class AddProductViewState extends ConsumerState<AddProductView> {
       ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return Column(
+            children: List.generate(
+                3,
+                (index) =>
+                    const VariantShimmerPlaceholder()), // Display 3 shimmer placeholders
+          );
         }
         final List<Variant> variations = snapshot.data ?? [];
         if (variations.isEmpty) {
