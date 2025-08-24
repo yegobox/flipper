@@ -1,4 +1,3 @@
-
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -76,11 +75,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
       ref
           .read(paymentMethodsProvider)
           .add(Payment(amount: 0.0, method: 'CASH'));
-      ref
-          .read(paymentMethodsProvider)
-          .last
-          .controller
-          .addListener(() => updatePaymentAmounts(transactionId: transactionId));
+      ref.read(paymentMethodsProvider).last.controller.addListener(
+          () => updatePaymentAmounts(transactionId: transactionId));
 
       updatePaymentAmounts(transactionId: transactionId);
     });
@@ -131,7 +127,228 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     );
   }
 
-  Widget _buildPaymentMethodRow(int index, {required String transactionId}) {
+  // Mobile-optimized layout (vertical stacking)
+  Widget _buildMobilePaymentMethodRow(int index,
+      {required String transactionId}) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.05),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with remove button
+            if (index > 0)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Payment Method ${index + 1}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () => _removePaymentMethod(index,
+                          transactionId: transactionId),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.red[300]!, width: 1),
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.red[50],
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          size: 16,
+                          color: Colors.red[600],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (index > 0) SizedBox(height: 12),
+
+            // Payment method label
+            Text(
+              'Payment Method',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(height: 6),
+
+            // Payment method dropdown (full width)
+            Container(
+              width: double.infinity,
+              height: 44,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!, width: 1),
+                borderRadius: BorderRadius.circular(6),
+                color: Colors.white,
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: ref.read(paymentMethodsProvider)[index].method,
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Colors.grey[600],
+                    size: 20,
+                  ),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[800],
+                    fontWeight: FontWeight.w500,
+                  ),
+                  items: paymentTypes.map((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Row(
+                        children: [
+                          _getPaymentMethodIcon(value),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              value,
+                              overflow: TextOverflow.visible,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      setState(() {
+                        final payment = ref.read(paymentMethodsProvider)[index];
+                        payment.method = newValue;
+                        ref
+                            .read(paymentMethodsProvider.notifier)
+                            .updatePaymentMethod(
+                                index,
+                                Payment(
+                                  amount: payment.amount,
+                                  method: newValue,
+                                ),
+                                transactionId: transactionId);
+                        ProxyService.box
+                            .writeString(key: 'paymentType', value: newValue);
+                        final paymentMethodCode =
+                            ProxyService.box.paymentMethodCode(newValue);
+                        ProxyService.box.writeString(
+                            key: 'pmtTyCd', value: paymentMethodCode);
+                      });
+                    }
+                  },
+                ),
+              ),
+            ),
+
+            SizedBox(height: 16),
+
+            // Amount label
+            Text(
+              'Amount',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(height: 6),
+
+            // Amount field (full width)
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[300]!, width: 1),
+                borderRadius: BorderRadius.circular(6),
+                color: Colors.white,
+              ),
+              child: TextFormField(
+                controller: ref.read(paymentMethodsProvider)[index].controller,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[800],
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Enter amount',
+                  hintStyle: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 14,
+                  ),
+                  prefix: Text(
+                    '${ProxyService.box.defaultCurrency()} ',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+                onChanged: (value) {
+                  final amount = double.tryParse(value) ?? 0.0;
+                  ref.read(paymentMethodsProvider)[index].amount = amount;
+
+                  if (index < ref.read(paymentMethodsProvider).length - 1) {
+                    updatePaymentAmounts(transactionId: transactionId);
+                  }
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter an amount';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Desktop/tablet layout (horizontal layout)
+  Widget _buildDesktopPaymentMethodRow(int index,
+      {required String transactionId}) {
     final isLast = index == ref.read(paymentMethodsProvider).length - 1;
 
     return Container(
@@ -143,7 +360,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         ),
       ),
       child: Padding(
-        padding: widget.isCardView ? EdgeInsets.all(16) : EdgeInsets.only(bottom: 12),
+        padding: widget.isCardView
+            ? EdgeInsets.all(16)
+            : EdgeInsets.only(bottom: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -321,12 +540,19 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     );
   }
 
+  // Helper to determine if we should use mobile layout
+  bool _isMobile(BuildContext context) {
+    return MediaQuery.of(context).size.width < 600;
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.isCardView ? _buildCardView() : _buildListView();
   }
 
   Widget _buildCardView() {
+    final isMobile = _isMobile(context);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[50],
@@ -374,62 +600,71 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
           ),
           if (ref.read(paymentMethodsProvider).isNotEmpty) ...[
             SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[200]!, width: 1),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(8),
-                        topRight: Radius.circular(8),
+            if (isMobile) ...[
+              // Mobile layout - stacked vertically
+              for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
+                _buildMobilePaymentMethodRow(i,
+                    transactionId: widget.transactionId),
+            ] else ...[
+              // Desktop layout - table format
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[200]!, width: 1),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Payment Method',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              'Amount',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 48),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'Payment Method',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            'Amount',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 48),
-                      ],
-                    ),
-                  ),
-                  for (int i = 0;
-                      i < ref.read(paymentMethodsProvider).length;
-                      i++)
-                    _buildPaymentMethodRow(i,
-                        transactionId: widget.transactionId),
-                ],
+                    for (int i = 0;
+                        i < ref.read(paymentMethodsProvider).length;
+                        i++)
+                      _buildDesktopPaymentMethodRow(i,
+                          transactionId: widget.transactionId),
+                  ],
+                ),
               ),
-            ),
+            ],
           ],
           SizedBox(height: 16),
           SizedBox(
@@ -466,6 +701,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
   }
 
   Widget _buildListView() {
+    final isMobile = _isMobile(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -479,46 +716,53 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         Text(
           '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
         ),
         SizedBox(height: 16),
-        if (ref.read(paymentMethodsProvider).isNotEmpty)
-          Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      'Payment Method',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+        if (ref.read(paymentMethodsProvider).isNotEmpty) ...[
+          if (isMobile) ...[
+            // Mobile layout - stacked vertically
+            for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
+              _buildMobilePaymentMethodRow(i,
+                  transactionId: widget.transactionId),
+          ] else ...[
+            // Desktop layout - table format
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        'Payment Method',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      'Amount',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        'Amount',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              for (int i = 0;
-                  i < ref.read(paymentMethodsProvider).length;
-                  i++)
-                _buildPaymentMethodRow(i,
-                    transactionId: widget.transactionId),
-            ],
-          ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                for (int i = 0;
+                    i < ref.read(paymentMethodsProvider).length;
+                    i++)
+                  _buildDesktopPaymentMethodRow(i,
+                      transactionId: widget.transactionId),
+              ],
+            ),
+          ],
+        ],
+        SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
