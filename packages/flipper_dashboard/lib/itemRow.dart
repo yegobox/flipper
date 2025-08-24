@@ -30,6 +30,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/transaction_item_adder.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -781,157 +782,17 @@ class _RowItemState extends ConsumerState<RowItem>
     required CoreViewModel model,
     required bool isOrdering,
   }) async {
-    try {
-      // Show immediate visual feedback to indicate the item is being processed
-      if (mounted) {
-        // showCustomSnackBar(context, 'Adding item to cart...',
-        //     backgroundColor: Colors.black);
-      }
+    final flipperWatch? w = kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
+    w?.start();
 
-      final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;
-      w?.start();
-      final branchId = ProxyService.box.getBranchId()!;
-      final businessId = ProxyService.box.getBusinessId()!;
+    // Use the shared TransactionItemAdder
+    final itemAdder = TransactionItemAdder(context, ref);
+    await itemAdder.addItemToTransaction(
+      variant: widget.variant!,
+      isOrdering: isOrdering,
+    );
 
-      // Update isOrdering flag
-      ProxyService.box.writeBool(key: 'isOrdering', value: isOrdering);
-
-      // Manage transaction
-      final pendingTransaction =
-          ref.read(pendingTransactionStreamProvider(isExpense: isOrdering));
-
-      if (pendingTransaction.value == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        }
-        toast("Error: No active transaction");
-        return;
-      }
-
-      // Fetch product details
-      final product = await ProxyService.strategy.getProduct(
-        businessId: businessId,
-        id: widget.variant!.productId!,
-        branchId: branchId,
-      );
-
-      // Only check stock if we're not in ordering mode
-      if (!isOrdering) {
-        // Get the latest stock from cache
-        Stock? cachedStock;
-        if (widget.variant != null && widget.variant!.id.isNotEmpty) {
-          cachedStock =
-              await CacheManager().getStockByVariantId(widget.variant!.id);
-        }
-
-        // Use cached stock if available, otherwise fall back to variant.stock
-        final currentStock =
-            cachedStock?.currentStock ?? widget.variant?.stock?.currentStock;
-
-        /// because item of tax type D are not supposed to have stock so it can be sold without stock.
-        if (widget.variant?.taxTyCd != "D" &&
-
-            /// itemTyCd is 3 it is a service
-            currentStock == null &&
-            widget.variant?.itemTyCd != "3") {
-          if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          }
-          toast("You do not have enough stock");
-          return;
-        }
-        if (widget.variant?.taxTyCd != "D" &&
-            (currentStock ?? 0) <= 0 &&
-            widget.variant?.itemTyCd != "3") {
-          if (mounted) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          }
-          toast("You do not have enough stock");
-          return;
-        }
-      }
-
-      // Use a lock to prevent multiple simultaneous operations
-      final lock = Lock();
-      await lock.synchronized(() async {
-        if (product != null && product.isComposite == true) {
-          // Handle composite product
-          final composites =
-              await ProxyService.strategy.composites(productId: product.id);
-
-          for (final composite in composites) {
-            final variant = await ProxyService.strategy
-                .getVariant(id: composite.variantId!);
-            if (variant != null) {
-              await ProxyService.strategy.saveTransactionItem(
-                variation: variant,
-                doneWithTransaction: false,
-                ignoreForReport: false,
-                amountTotal: variant.retailPrice!,
-                customItem: false,
-                currentStock: variant.stock?.currentStock ?? 0,
-                pendingTransaction: pendingTransaction.value!,
-                partOfComposite: true,
-                compositePrice: composite.actualPrice,
-              );
-            }
-          }
-        } else {
-          // Handle non-composite product
-          await ProxyService.strategy.saveTransactionItem(
-            variation: widget.variant!,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-            amountTotal: widget.variant?.retailPrice ?? 0,
-            customItem: false,
-            currentStock: widget.variant!.stock?.currentStock ?? 0,
-            pendingTransaction: pendingTransaction.value!,
-            partOfComposite: false,
-          );
-        }
-      });
-
-      // Hide the loading indicator
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      }
-
-      // Show success message
-      // showCustomSnackBar(context, 'Item added to cart');
-
-      // Force refresh the transaction items with a small delay to ensure DB operations complete
-      await Future.delayed(Duration(milliseconds: 100));
-
-      // Immediately refresh the transaction items
-      await refreshTransactionItems(
-          transactionId: pendingTransaction.value!.id);
-
-      // Also explicitly invalidate the provider to force a refresh
-      ref.invalidate(transactionItemsStreamProvider(
-          transactionId: pendingTransaction.value!.id));
-
-      w?.log("TapOnItemAndSaveTransaction");
-    } catch (e, s) {
-      // Hide the loading indicator if there was an error
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      }
-
-      talker.warning("Error while clicking: $e");
-      talker.error(s);
-      toast("Failed to add item to cart");
-
-      GlobalErrorHandler.logError(
-        s,
-        type: "ITEM-ADD-EXCEPTION",
-        context: {
-          'resultCode': e,
-          'businessId': ProxyService.box.getBusinessId(),
-          'timestamp': DateTime.now().toIso8601String(),
-        },
-      );
-      rethrow;
-    }
+    w?.log("Item Added to Quick Sell");
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {

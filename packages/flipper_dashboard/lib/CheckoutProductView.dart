@@ -22,6 +22,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'dart:io';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_scanner/scanner_view.dart';
+import 'package:flipper_dashboard/checkout_scanner_actions.dart';
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -158,12 +160,32 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               Navigator.of(context).pop();
             },
           ),
+          IconButton(
+            icon: const Icon(
+              FluentIcons.scan_camera_16_filled,
+              color: Colors.blue,
+              size: 20,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ScannView(
+                    intent: 'selling',
+                    scannerActions: CheckoutScannerActions(context, ref),
+                  ),
+                ),
+              );
+            },
+          ),
 
           const Spacer(),
 
           // Action Icons
           Row(
             children: [
+              // Camera Icon
+
               // Add Customer Icon
               IconButton(
                 icon: const Icon(
