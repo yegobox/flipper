@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 
 final productProvider =
     FutureProvider.family<Product?, String>((ref, productId) async {
@@ -126,10 +127,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
     final assetAsync = ref.watch(assetProvider(variant.productId ?? ""));
-    // talker.warning("VariantName:${variant.name}");
 
     return productAsync.when(
-      loading: () => const Text('...Loading'), // Keep the loading state
+      loading: () => const VariantShimmerPlaceholder(),
       error: (err, stack) {
         // Log the error but don't show it to the user
         talker.error("Error fetching product data: $err");
@@ -222,9 +222,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   !isOrdering ? (product?.isComposite ?? false) : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
-                // locator<RouterService>().navigateTo(
-                //   AddProductViewRoute(productId: productId),
-                // );
+
                 showDialog(
                   barrierDismissible: false,
                   context: context,
