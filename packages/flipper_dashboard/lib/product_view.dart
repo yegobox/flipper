@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
-import 'package:flipper_dashboard/widgets/custom_segmented_button.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -14,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 enum ViewMode { products, stocks }
@@ -44,9 +44,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Timer? _branchSwitchTimer;
   int _lastCheckedBranchSwitchTimestamp = 0;
 
-  ViewMode _selectedStatus = ViewMode.products;
-  //TODO: when is agent get this value to handle all cases where you might not be eligible to see stock.
-  bool _isStockButtonEnabled = true;
 
   @override
   void initState() {
@@ -174,15 +171,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Add padding around the segmented button for better visual appearance
-        // if (defaultTargetPlatform == TargetPlatform.macOS ||
-        //     defaultTargetPlatform == TargetPlatform.windows ||
-        //     defaultTargetPlatform == TargetPlatform.linux)
-        //   Padding(
-        //     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        //     child: _buildSegmentedButton(context, ref),
-        //   ),
-        // Expanded to make the variant list fill the remaining space
         Expanded(
           child: _buildVariantList(context, model),
         ),
@@ -269,17 +257,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   ),
                 ),
               ),
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 180),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading products...'),
-                    ],
-                  ),
+              loading: () => Column(
+                children: List.generate(
+                  5,
+                  (index) => const VariantShimmerPlaceholder(),
                 ),
               ),
             );
@@ -307,41 +288,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         ),
       ],
     );
-  }
-
-  Widget _buildSegmentedButton(BuildContext context, WidgetRef ref) {
-    return CustomSegmentedButton<ViewMode>(
-      segments: <ButtonSegment<ViewMode>>[
-        ButtonSegment<ViewMode>(
-          value: ViewMode.products,
-          label: Text('Products'),
-          icon: Icon(Icons.inventory),
-        ),
-        ButtonSegment<ViewMode>(
-          value: ViewMode.stocks,
-          label: Text('Stock'),
-          icon: Icon(Icons.check_circle_outline),
-          enabled:
-              _isStockButtonEnabled, // Conditionally enable/disable the stock segment
-        ),
-      ],
-      selected: <ViewMode>{_selectedStatus},
-      onSelectionChanged: (Set<ViewMode> newSelection) {
-        if (newSelection.first == ViewMode.stocks && !_isStockButtonEnabled) {
-          return; // Do nothing if the stock segment is disabled
-        }
-        setState(() {
-          _selectedStatus = newSelection.first;
-        });
-
-        _handleViewModeChange(ref, newSelection.first);
-      },
-    );
-  }
-
-  void _handleViewModeChange(WidgetRef ref, ViewMode newSelection) {
-    ref.read(showProductsList.notifier).state =
-        newSelection == ViewMode.products;
   }
 
   Widget _buildMainContentSection(

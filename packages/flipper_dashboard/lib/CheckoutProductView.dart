@@ -88,7 +88,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
       canPop: true,
       onPopInvokedWithResult: (didPop, dynamic) {
         if (didPop) return;
-        // _handleWillPop(context);
       },
       child: Scaffold(
         backgroundColor: Colors.white,
@@ -96,7 +95,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
           child: Column(
             children: [
               // Loyverse-style Header
-              _buildLoyverseHeader(),
+              _buildFlipperseHeader(),
 
               // Main Action Buttons
               _buildActionButtons(),
@@ -136,12 +135,30 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     );
   }
 
-  Widget _buildLoyverseHeader() {
+  Widget _buildFlipperseHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         children: [
-          // Title with Ticket Icon
+          // Modern Back Button
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6.0),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+                color: Colors.blue,
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+
           const Spacer(),
 
           // Action Icons
@@ -459,7 +476,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('Loading Items...'),
           ],
         ),
       ),

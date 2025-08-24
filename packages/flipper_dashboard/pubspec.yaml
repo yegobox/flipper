@@ -102,6 +102,7 @@ dependencies:
   amplify_flutter: ^2.6.5
   amplify_auth_cognito: ^2.6.5
   flutter_side_menu: ^0.5.3
+  shimmer: ^3.0.0
 
   phone_numbers_parser: ^8.3.0
   wolt_modal_sheet: ^0.11.0
