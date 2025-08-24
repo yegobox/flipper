@@ -12,6 +12,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'dart:async';
 
 class BottomSheets {
@@ -121,12 +122,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     _customerPhoneController = TextEditingController(
       text: ProxyService.box.currentSaleCustomerPhoneNumber(),
     );
-    _customerPhoneController.addListener(() {
-      final value = _customerPhoneController.text;
-      ProxyService.box
-          .writeString(key: 'currentSaleCustomerPhoneNumber', value: value);
-      setState(() {}); // To update error message if needed
-    });
 
     _buttonAnimationController = AnimationController(
       duration: Duration(milliseconds: 150),
@@ -479,10 +474,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       });
       ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
-      ProxyService.box.writeString(
-          key: 'currentSaleCustomerPhoneNumber',
-          value: _customerPhoneController.text);
-
       await widget.onCharge(transactionId, total);
 
       if (mounted) {
@@ -519,6 +510,13 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
   @override
   Widget build(BuildContext context) {
+    // Add a listener to the provider
+    ref.listen<String?>(customerPhoneNumberProvider, (previous, next) {
+      if (_customerPhoneController.text != next) {
+        _customerPhoneController.text = next ?? '';
+      }
+    });
+
     final itemsAsync = ref.watch(transactionItemsProvider(
         transactionId: widget.transactionIdInt,
         branchId: ProxyService.box.getBranchId()!));
@@ -700,7 +698,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16.0),
+            padding: const EdgeInsets.only(left: 10.0),
             child: Text(
               'Items (${items.length})',
               style: TextStyle(

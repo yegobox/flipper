@@ -14,6 +14,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
@@ -168,9 +169,14 @@ class _SearchInputWithDropdownState
         ProxyService.box
             .writeString(key: 'customerTin', value: customer.first.custTin!);
         _searchController.text = customer.first.custNm!;
+        // Update the Riverpod provider for customer phone number
+        ref.read(customerPhoneNumberProvider.notifier).state =
+            customer.first.telNo!;
       }
     } else {
       _searchController.clear();
+      // Clear the Riverpod provider when no customer is found
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
   }
 
@@ -191,6 +197,8 @@ class _SearchInputWithDropdownState
       setState(() {
         _searchController.clear();
       });
+      // Clear the Riverpod provider for customer phone number
+      ref.read(customerPhoneNumberProvider.notifier).state = null;
     }
   }
 
@@ -240,6 +248,9 @@ class _SearchInputWithDropdownState
         await ProxyService.box
             .writeString(key: 'customerTin', value: customer.custTin!);
       }
+
+      // Update the Riverpod provider for customer phone number
+      ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
 
       // Show success alert
       showDialog(
@@ -300,7 +311,6 @@ class _SearchInputWithDropdownState
       }
     } else {
       ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-     
     }
 
     return attachedCustomerFuture.when(
