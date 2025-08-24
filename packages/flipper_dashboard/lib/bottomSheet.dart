@@ -240,24 +240,70 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(color: Colors.grey[200]!),
                               ),
-                              child: TextFormField(
-                                controller: newQtyController,
-                                keyboardType: TextInputType.numberWithOptions(
-                                    decimal: true),
-                                decoration: InputDecoration(
-                                  labelText: 'Quantity',
-                                  prefixIcon: Icon(
-                                      Icons.shopping_basket_outlined,
-                                      color: Colors.blue),
-                                  border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 16),
-                                ),
-                                onChanged: (val) {
-                                  setModalState(() {
-                                    // This will trigger a rebuild with updated values
-                                  });
-                                },
+                              child: Row(
+                                children: [
+                                  // Decrement button (-)
+                                  IconButton(
+                                    icon: Icon(Icons.remove, color: Colors.red),
+                                    onPressed: () {
+                                      double currentValue = double.tryParse(
+                                              newQtyController.text) ??
+                                          0.0;
+                                      if (currentValue > 0) {
+                                        newQtyController.text =
+                                            (currentValue - 1).toString();
+                                        if (newQtyController.text
+                                            .endsWith('.0')) {
+                                          newQtyController.text =
+                                              newQtyController.text
+                                                  .replaceAll('.0', '');
+                                        }
+                                        setModalState(() {});
+                                      }
+                                    },
+                                  ),
+
+                                  // Text field
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: newQtyController,
+                                      keyboardType:
+                                          TextInputType.numberWithOptions(
+                                              decimal: true),
+                                      textAlign: TextAlign.center,
+                                      decoration: InputDecoration(
+                                        labelText: 'Quantity',
+                                        border: InputBorder.none,
+                                        contentPadding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 16),
+                                      ),
+                                      onChanged: (val) {
+                                        setModalState(() {
+                                          // This will trigger a rebuild with updated values
+                                        });
+                                      },
+                                    ),
+                                  ),
+
+                                  // Increment button (+)
+                                  IconButton(
+                                    icon: Icon(Icons.add, color: Colors.blue),
+                                    onPressed: () {
+                                      double currentValue = double.tryParse(
+                                              newQtyController.text) ??
+                                          0.0;
+                                      newQtyController.text =
+                                          (currentValue + 1).toString();
+                                      if (newQtyController.text
+                                          .endsWith('.0')) {
+                                        newQtyController.text = newQtyController
+                                            .text
+                                            .replaceAll('.0', '');
+                                      }
+                                      setModalState(() {});
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                             SizedBox(height: 20),
@@ -653,12 +699,15 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Items (${items.length})',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Text(
+              'Items (${items.length})',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
             ),
           ),
           SizedBox(height: 12),
