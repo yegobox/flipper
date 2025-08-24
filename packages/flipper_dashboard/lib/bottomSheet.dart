@@ -700,7 +700,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 10.0),
+            padding: const EdgeInsets.only(left: 8.0),
             child: Text(
               'Items (${items.length})',
               style: TextStyle(
@@ -787,7 +787,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       ),
                     ),
                     Text(
-                      total.toCurrencyFormatted(),
+                      formatNumber(total),
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -809,7 +809,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                     width: double.infinity,
                     text: items.isEmpty
                         ? 'Add items to charge'
-                        : 'Charge ${total.toCurrencyFormatted()}',
+                        : 'Charge ${formatNumber(total)}',
                     isLoading: _isLoading,
                     onPressed: items.isEmpty || _isLoading
                         ? null
