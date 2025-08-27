@@ -177,7 +177,10 @@ class ExportImport {
 
   Future<void> _saveAndLaunchFile(List<int> bytes, String fileName) async {
     final directory = await getApplicationDocumentsDirectory();
-    final filePath = path.join(directory.path, fileName);
+    final String formattedDate =
+        DateFormat('yyyy-MM-dd_HH-mm').format(DateTime.now());
+    final filePath =
+        path.join(directory.path, '${fileName}_$formattedDate.pdf');
     final file = File(filePath);
     await file.writeAsBytes(bytes, flush: true);
     await OpenFilex.open(filePath);

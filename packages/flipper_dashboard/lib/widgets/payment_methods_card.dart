@@ -38,36 +38,37 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
   void updatePaymentAmounts({required String transactionId}) {
     if (ref.read(paymentMethodsProvider).isEmpty) return;
-
-    double remainingAmount = widget.totalPayable;
+    double remainingAmount = widget.totalPayable.clamp(0, double.infinity);
     final payments = ref.read(paymentMethodsProvider);
-
     if (payments.isNotEmpty) {
       double firstAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
+      if (firstAmount < 0) firstAmount = 0;
+      if (firstAmount > remainingAmount) firstAmount = remainingAmount;
       remainingAmount -= firstAmount;
       payments[0].amount = firstAmount;
+      ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
+            0,
+            Payment(amount: payments[0].amount, method: payments[0].method),
+            transactionId: transactionId,
+          );
     }
-
     for (int i = 1; i < payments.length; i++) {
       if (i == payments.length - 1) {
-        payments[i].amount = remainingAmount;
-        if (remainingAmount > 0) {
-          payments[i].controller.text = remainingAmount.toStringAsFixed(2);
-        }
+        final last = remainingAmount.clamp(0, double.infinity);
+        payments[i].amount = last.toDouble();
+        payments[i].controller.text = last.toStringAsFixed(2);
       } else {
         double enteredAmount =
             double.tryParse(payments[i].controller.text) ?? 0.0;
+        if (enteredAmount < 0) enteredAmount = 0;
+        if (enteredAmount > remainingAmount) enteredAmount = remainingAmount;
         payments[i].amount = enteredAmount;
         remainingAmount -= enteredAmount;
       }
-
       ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
-            transactionId: transactionId,
-            i,
-            Payment(
-              amount: payments[i].amount,
-              method: payments[i].method,
-            ),
+            i, // Positional argument
+            payments[i], // Pass the existing/mutated object
+            transactionId: transactionId, // Named argument
           );
     }
   }
@@ -253,11 +254,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                         ref
                             .read(paymentMethodsProvider.notifier)
                             .updatePaymentMethod(
-                                index,
-                                Payment(
-                                  amount: payment.amount,
-                                  method: newValue,
-                                ),
+                                index, payment, // Pass the mutated object
                                 transactionId: transactionId);
                         ProxyService.box
                             .writeString(key: 'paymentType', value: newValue);
@@ -418,15 +415,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                             setState(() {
                               final payment =
                                   ref.read(paymentMethodsProvider)[index];
-                              payment.method = newValue;
+                              payment.method =
+                                  newValue; // Mutate the existing object
                               ref
                                   .read(paymentMethodsProvider.notifier)
                                   .updatePaymentMethod(
-                                      index,
-                                      Payment(
-                                        amount: payment.amount,
-                                        method: newValue,
-                                      ),
+                                      index, payment, // Pass the mutated object
                                       transactionId: transactionId);
                               ProxyService.box.writeString(
                                   key: 'paymentType', value: newValue);

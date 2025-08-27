@@ -279,7 +279,9 @@ class DataViewState extends ConsumerState<DataView>
                   setState(() => _isExportingZReport = true);
                   try {
                     await ReportService().generateReport(
-                        reportType: 'Z', endDate: widget.endDate);
+                        reportType: 'Z',
+                        endDate: widget.endDate,
+                        startDate: widget.startDate);
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingZReport = false);

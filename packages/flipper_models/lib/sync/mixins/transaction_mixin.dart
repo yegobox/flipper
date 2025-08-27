@@ -210,22 +210,29 @@ mixin TransactionMixin implements TransactionInterface {
 
     if (transactionIds.isNotEmpty) {
       // Construct the list of OR conditions for transaction IDs
-      final List<WhereCondition> orConditions = transactionIds.map((id) {
-        // Each Where condition for an ID is optional (OR'd with the next)
-        return Where('transactionId',
-            value: id, compare: Compare.exact, isRequired: false);
-      }).toList();
+      // final List<WhereCondition> orConditions = transactionIds.map((id) {
+      //   // Each Where condition for an ID is optional (OR'd with the next)
+      //   return Where('transactionId',
+      //       value: id, compare: Compare.exact, isRequired: false);
+      // }).toList();
 
       // Create a WherePhrase to group these OR conditions.
       // This phrase itself is required for the query.
-      final WherePhrase transactionIdInPhrase =
-          WherePhrase(orConditions, isRequired: true);
+      // final WherePhrase transactionIdInPhrase =
+      //     WherePhrase(orConditions, isRequired: true);
 
+      // items = await repository.get<TransactionItem>(
+      //   policy: fetchRemote
+      //       ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+      //       : OfflineFirstGetPolicy.localOnly,
+      //   query: Query(where: [transactionIdInPhrase]),
+      // );
+      final where = Where('transactionId').isIn(transactionIds);
       items = await repository.get<TransactionItem>(
         policy: fetchRemote
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [transactionIdInPhrase]),
+        query: Query(where: [where]),
       );
     }
 

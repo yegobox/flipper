@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -10,14 +11,15 @@ import 'package:path/path.dart' as path;
 
 class ReportService {
   Future<void> generateReport(
-      {required String reportType, DateTime? endDate}) async {
+      {required String reportType,
+      DateTime? endDate,
+      DateTime? startDate}) async {
     if (reportType == 'Z' && endDate == null) {
       throw ArgumentError('endDate is required for Z-Reports');
     }
 
-    DateTime startDate;
-    if (reportType == 'Z') {
-      startDate = DateTime(endDate!.year, endDate.month, endDate.day);
+    if (reportType == 'Z' && endDate != null) {
+      // startDate = DateTime(endDate.year, endDate.month, endDate.day);
       await ProxyService.box.writeString(
           key: 'lastZReportDate', value: endDate.toIso8601String());
     } else {
@@ -37,15 +39,30 @@ class ReportService {
       endDate: endDate,
       skipOriginalTransactionCheck: true,
     );
+
+    talker.info(startDate!.toIso8601String(), endDate.toIso8601String());
     final ebm = await ProxyService.strategy.ebm(
       branchId: ProxyService.box.getBranchId()!,
     );
+    transactionsWithItems.map((t) => print(t.transaction.receiptType)).toList();
     // Data processing - exclude refunded transactions
     final salesTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType == 'NS')
+        .where((t) => t.transaction.receiptType!.toUpperCase() == 'NS')
         .toList();
     final refundTransactions = transactionsWithItems
-        .where((t) => t.transaction.receiptType == 'NR')
+        .where((t) => t.transaction.receiptType!.toUpperCase() == 'NR')
+        .toList();
+    final tsTransactions = transactionsWithItems
+        .where((t) => t.transaction.receiptType!.toUpperCase() == 'TS')
+        .toList();
+    final psTransactions = transactionsWithItems
+        .where((t) => t.transaction.receiptType!.toUpperCase() == 'PS')
+        .toList();
+    final crTransactions = transactionsWithItems
+        .where((t) => t.transaction.receiptType!.toUpperCase() == 'CR')
+        .toList();
+    final trTransactions = transactionsWithItems
+        .where((t) => t.transaction.receiptType!.toUpperCase() == 'TR')
         .toList();
 
     final totalSales = salesTransactions.fold(
@@ -71,6 +88,32 @@ class ReportService {
       refundsByPaymentMethod[paymentType] =
           (refundsByPaymentMethod[paymentType] ?? 0) +
               (t.transaction.subTotal ?? 0.0);
+    }
+    final Map<String, double> tsByMethod = {};
+    for (var t in tsTransactions) {
+      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      tsByMethod[paymentType] =
+          (tsByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
+    }
+    final Map<String, double> psByMethod = {};
+    for (var t in psTransactions) {
+      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      psByMethod[paymentType] =
+          (psByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
+    }
+    // final Map<String, double> crByMethod = {};
+    final Map<String, double> trByMethod = {};
+    for (var t in trTransactions) {
+      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      trByMethod[paymentType] =
+          (trByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
+    }
+    // final Map<String, double> crByMethod = {};
+    final Map<String, double> crByMethod = {};
+    for (var t in crTransactions) {
+      final paymentType = t.transaction.paymentType?.toLowerCase() ?? 'unknown';
+      crByMethod[paymentType] =
+          (crByMethod[paymentType] ?? 0) + (t.transaction.subTotal ?? 0.0);
     }
 
     // Calculate tax amounts (assuming 18% VAT)
@@ -130,7 +173,11 @@ class ReportService {
       numRefundReceipts,
       netSalesReceipts,
       salesByPaymentMethod,
-      refundsByPaymentMethod,
+      salesByPaymentMethod,
+      tsByMethod: tsByMethod,
+      psByMethod: psByMethod,
+      trByMethod: trByMethod,
+      crByMethod: crByMethod,
       taxRateSales,
       taxRateRefunds,
       totalItemsSold,
@@ -204,7 +251,8 @@ class ReportService {
     graphics.drawString('Date: ', labelFont,
         brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
     if (reportType == 'Z') {
-      graphics.drawString('Date: ${DateFormat('yyyy-MM-dd').format(endDate)}',
+      graphics.drawString(
+          '${DateFormat('yyyy-MM-dd').format(startDate)} to ${DateFormat('yyyy-MM-dd').format(endDate)}',
           businessDetailsFont,
           brush: blackBrush,
           bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
@@ -226,20 +274,25 @@ class ReportService {
   }
 
   void _drawContent(
-      PdfPage page,
-      Size pageSize,
-      double totalSales,
-      double totalRefunds,
-      int numSalesReceipts,
-      int numRefundReceipts,
-      int netSalesReceipts,
-      Map<String, double> salesByPaymentMethod,
-      Map<String, double> refundsByPaymentMethod,
-      double taxRateSales,
-      double taxRateRefunds,
-      int totalItemsSold,
-      double totalDiscount,
-      {required List<ITransaction> transactions}) {
+    PdfPage page,
+    Size pageSize,
+    double totalSales,
+    double totalRefunds,
+    int numSalesReceipts,
+    int numRefundReceipts,
+    int netSalesReceipts,
+    Map<String, double> salesByPaymentMethod,
+    Map<String, double> refundsByPaymentMethod,
+    double taxRateSales,
+    double taxRateRefunds,
+    int totalItemsSold,
+    double totalDiscount, {
+    required List<ITransaction> transactions,
+    required Map<String, double> tsByMethod,
+    required Map<String, double> psByMethod,
+    required Map<String, double> trByMethod,
+    required Map<String, double> crByMethod,
+  }) {
     final PdfGrid grid = PdfGrid();
     grid.columns.add(count: 2);
 
@@ -273,8 +326,7 @@ class ReportService {
     // Add all rows according to the expected format
     addRow('Total Sales Amount (NS)', totalSales.toCurrencyFormatted());
     addRow('Total Sales Amount by Main Groups', '0 RWF');
-    addRow('Number of Sales Receipts (NS)',
-        (netSalesReceipts > 0 ? netSalesReceipts : 0).toString());
+    addRow('Number of Sales Receipts (NS)', numSalesReceipts.toString());
     addRow('Total Refund Amount (NR)', totalRefunds.toCurrencyFormatted());
     addRow('Number of Refund Receipts (NR)', numRefundReceipts.toString());
 
@@ -340,6 +392,18 @@ class ReportService {
     });
     refundsByPaymentMethod.forEach((method, amount) {
       addRow('  ${method.toUpperCase()} (NR)', amount.toCurrencyFormatted());
+    });
+    psByMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (PS)', amount.toCurrencyFormatted());
+    });
+    tsByMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (TS)', amount.toCurrencyFormatted());
+    });
+    trByMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (TR)', amount.toCurrencyFormatted());
+    });
+    crByMethod.forEach((method, amount) {
+      addRow('  ${method.toUpperCase()} (CR)', amount.toCurrencyFormatted());
     });
 
     addRow('All discounts', totalDiscount.toCurrencyFormatted());

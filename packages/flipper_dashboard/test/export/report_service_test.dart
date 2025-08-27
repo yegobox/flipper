@@ -13,7 +13,8 @@ void main() {
     group('generateReport', () {
       test('throws ArgumentError when Z report has no endDate', () {
         expect(
-          () => reportService.generateReport(reportType: 'Z'),
+          () => reportService.generateReport(
+              reportType: 'Z', startDate: DateTime.now()),
           throwsA(isA<ArgumentError>().having(
             (e) => e.message,
             'message',
@@ -24,7 +25,8 @@ void main() {
 
       test('validates Z report requires endDate', () {
         expect(
-          () => reportService.generateReport(reportType: 'Z', endDate: null),
+          () => reportService.generateReport(
+              reportType: 'Z', endDate: null, startDate: DateTime.now()),
           throwsA(isA<ArgumentError>()),
         );
       });
@@ -155,7 +157,8 @@ void main() {
     group('Error handling', () {
       test('validates required parameters', () {
         expect(
-          () => reportService.generateReport(reportType: 'Z'),
+          () => reportService.generateReport(
+              reportType: 'Z', startDate: DateTime.now()),
           throwsA(isA<ArgumentError>()),
         );
       });

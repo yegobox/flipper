@@ -31,7 +31,6 @@ class BottomSheets {
     WoltModalSheet.show<void>(
       onModalDismissedWithBarrierTap: () {
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-        Navigator.of(context).pop();
       },
       context: context,
       pageListBuilder: (BuildContext context) {

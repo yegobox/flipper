@@ -38,7 +38,7 @@ class CheckoutScannerActions extends ScannerActions {
         final itemAdder = TransactionItemAdder(context, ref);
         await itemAdder.addItemToTransaction(
           variant: variant,
-          isOrdering: false, // Assuming this is for selling, not ordering
+          isOrdering: false,
         );
       } else {
         showCustomSnackBarUtil(
