@@ -80,9 +80,9 @@ class ExportPurchase {
 
       if (dates.isNotEmpty) {
         dates.sort();
-        final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
+        // final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
         final endDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        graphics.drawString('Date: $startDate - $endDate', headerFont,
+        graphics.drawString('Date: $endDate', headerFont,
             bounds: Rect.fromLTWH(0, 80, pageSize.width, 20));
       }
     }

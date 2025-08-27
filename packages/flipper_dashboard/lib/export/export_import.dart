@@ -57,7 +57,7 @@ class ExportImport {
         bounds: Rect.fromLTWH(0, 0, pageSize.width, 30),
         format: PdfStringFormat(alignment: PdfTextAlignment.center));
 
-    final businessName = business?.name ?? 'NYARUTARAMA SPORTS TRUST CLUB Ltd';
+    final businessName = business?.name ?? 'Demo LTD';
     final tin = business?.tinNumber ?? '933000005';
 
     graphics.drawString(businessName, headerFont,
@@ -80,9 +80,9 @@ class ExportImport {
 
       if (dates.isNotEmpty) {
         dates.sort();
-        final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
+        // final startDate = DateFormat('yyyy-MM-dd').format(dates.first);
         final endDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        graphics.drawString('Date: $startDate - $endDate', headerFont,
+        graphics.drawString('Date: $endDate', headerFont,
             bounds: Rect.fromLTWH(0, 80, pageSize.width, 20));
       }
     }

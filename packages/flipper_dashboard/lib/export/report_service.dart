@@ -19,7 +19,8 @@ class ReportService {
     }
 
     if (reportType == 'Z' && endDate != null) {
-      // startDate = DateTime(endDate.year, endDate.month, endDate.day);
+      // AS Z cover just one day this is why we override start date here.
+      startDate = DateTime(endDate.year, endDate.month, endDate.day);
       await ProxyService.box.writeString(
           key: 'lastZReportDate', value: endDate.toIso8601String());
     } else {
@@ -250,13 +251,14 @@ class ReportService {
     detailsY += 18;
     graphics.drawString('Date: ', labelFont,
         brush: blackBrush, bounds: Rect.fromLTWH(25, detailsY, 100, 18));
-    if (reportType == 'Z') {
-      graphics.drawString(
-          '${DateFormat('yyyy-MM-dd').format(startDate)} to ${DateFormat('yyyy-MM-dd').format(endDate)}',
+    if (reportType == "Z") {
+      // as it just cover one date
+      graphics.drawString('Date: ${DateFormat('yyyy-MM-dd').format(endDate)}',
           businessDetailsFont,
           brush: blackBrush,
           bounds: Rect.fromLTWH(120, detailsY, pageSize.width - 130, 18));
     } else {
+      // this is X report it covers from previous Z report up to another date.
       graphics.drawString(
           'From: ${DateFormat('yyyy-MM-dd').format(startDate)} To: ${DateFormat('yyyy-MM-dd').format(endDate)}',
           businessDetailsFont,
