@@ -97,21 +97,50 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
   }
 
   void _addPaymentMethod({required String transactionId}) {
-    setState(() {
-      ref
-          .read(paymentMethodsProvider)
-          .add(Payment(amount: 0.0, method: 'CASH'));
+    final payments = ref.read(paymentMethodsProvider);
+    final selectedMethods = payments.map((p) => p.method).toSet();
 
+    String? newMethod;
+    for (final method in paymentTypes) {
+      if (!selectedMethods.contains(method)) {
+        newMethod = method;
+        break;
+      }
+    }
+
+    if (newMethod != null) {
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(Payment(amount: 0.0, method: newMethod));
       updatePaymentAmounts(transactionId: transactionId);
-    });
+    }
   }
 
   void _removePaymentMethod(int index, {required String transactionId}) {
-    setState(() {
-      ref.read(paymentMethodsProvider)[index];
-      ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
-      updatePaymentAmounts(transactionId: transactionId);
-    });
+    ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
+    updatePaymentAmounts(transactionId: transactionId);
+  }
+
+  List<String> _getAvailablePaymentMethods(int index) {
+    final payments = ref.watch(paymentMethodsProvider);
+    final currentMethod = payments[index].method;
+
+    final otherSelectedMethods = <String>{};
+    for (int i = 0; i < payments.length; i++) {
+      if (i != index) {
+        otherSelectedMethods.add(payments[i].method);
+      }
+    }
+
+    final availableMethods = paymentTypes.toSet().where((method) {
+      return !otherSelectedMethods.contains(method);
+    }).toList();
+
+    if (!availableMethods.contains(currentMethod)) {
+      availableMethods.add(currentMethod);
+    }
+
+    return availableMethods;
   }
 
   Widget _getPaymentMethodIcon(String paymentMethod) {
@@ -162,7 +191,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         border: Border.all(color: Colors.grey[200]!, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.05),
+            color: Colors.grey.withOpacity(0.05),
             spreadRadius: 1,
             blurRadius: 3,
             offset: Offset(0, 1),
@@ -237,7 +266,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   isExpanded: true,
-                  value: ref.read(paymentMethodsProvider)[index].method,
+                  value: ref.watch(paymentMethodsProvider)[index].method,
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   icon: Icon(
                     Icons.keyboard_arrow_down,
@@ -249,7 +278,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                     color: Colors.grey[800],
                     fontWeight: FontWeight.w500,
                   ),
-                  items: paymentTypes.map((String value) {
+                  items: _getAvailablePaymentMethods(index).map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Row(
@@ -269,21 +298,23 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                   }).toList(),
                   onChanged: (String? newValue) {
                     if (newValue != null) {
-                      setState(() {
-                        final payment = ref.read(paymentMethodsProvider)[index];
-                        payment.method = newValue;
-                        ref
-                            .read(paymentMethodsProvider.notifier)
-                            .updatePaymentMethod(
-                                index, payment, // Pass the mutated object
-                                transactionId: transactionId);
-                        ProxyService.box
-                            .writeString(key: 'paymentType', value: newValue);
-                        final paymentMethodCode =
-                            ProxyService.box.paymentMethodCode(newValue);
-                        ProxyService.box.writeString(
-                            key: 'pmtTyCd', value: paymentMethodCode);
-                      });
+                      final payment = ref.read(paymentMethodsProvider)[index];
+                      final newPayment = Payment(
+                        amount: payment.amount,
+                        method: newValue,
+                        id: payment.id,
+                        controller: payment.controller,
+                      );
+                      ref
+                          .read(paymentMethodsProvider.notifier)
+                          .updatePaymentMethod(index, newPayment,
+                              transactionId: transactionId);
+                      ProxyService.box
+                          .writeString(key: 'paymentType', value: newValue);
+                      final paymentMethodCode =
+                          ProxyService.box.paymentMethodCode(newValue);
+                      ProxyService.box.writeString(
+                          key: 'pmtTyCd', value: paymentMethodCode);
                     }
                   },
                 ),
@@ -313,7 +344,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 color: Colors.white,
               ),
               child: TextFormField(
-                controller: ref.read(paymentMethodsProvider)[index].controller,
+                controller: ref.watch(paymentMethodsProvider)[index].controller,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 style: TextStyle(
@@ -367,7 +398,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
   // Desktop/tablet layout (horizontal layout)
   Widget _buildDesktopPaymentMethodRow(int index,
       {required String transactionId}) {
-    final isLast = index == ref.read(paymentMethodsProvider).length - 1;
+    final isLast = index == ref.watch(paymentMethodsProvider).length - 1;
 
     return Container(
       decoration: BoxDecoration(
@@ -399,7 +430,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         isExpanded: true,
-                        value: ref.read(paymentMethodsProvider)[index].method,
+                        value: ref.watch(paymentMethodsProvider)[index].method,
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         icon: Icon(
                           Icons.keyboard_arrow_down,
@@ -411,7 +442,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                           color: Colors.grey[800],
                           fontWeight: FontWeight.w500,
                         ),
-                        items: paymentTypes.map((String value) {
+                        items: _getAvailablePaymentMethods(index).map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Row(
@@ -431,23 +462,24 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                         }).toList(),
                         onChanged: (String? newValue) {
                           if (newValue != null) {
-                            setState(() {
-                              final payment =
-                                  ref.read(paymentMethodsProvider)[index];
-                              payment.method =
-                                  newValue; // Mutate the existing object
-                              ref
-                                  .read(paymentMethodsProvider.notifier)
-                                  .updatePaymentMethod(
-                                      index, payment, // Pass the mutated object
-                                      transactionId: transactionId);
-                              ProxyService.box.writeString(
-                                  key: 'paymentType', value: newValue);
-                              final paymentMethodCode =
-                                  ProxyService.box.paymentMethodCode(newValue);
-                              ProxyService.box.writeString(
-                                  key: 'pmtTyCd', value: paymentMethodCode);
-                            });
+                            final payment =
+                                ref.read(paymentMethodsProvider)[index];
+                            final newPayment = Payment(
+                              amount: payment.amount,
+                              method: newValue,
+                              id: payment.id,
+                              controller: payment.controller,
+                            );
+                            ref
+                                .read(paymentMethodsProvider.notifier)
+                                .updatePaymentMethod(index, newPayment,
+                                    transactionId: transactionId);
+                            ProxyService.box.writeString(
+                                key: 'paymentType', value: newValue);
+                            final paymentMethodCode =
+                                ProxyService.box.paymentMethodCode(newValue);
+                            ProxyService.box.writeString(
+                                key: 'pmtTyCd', value: paymentMethodCode);
                           }
                         },
                       ),
@@ -470,7 +502,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                     ),
                     child: TextFormField(
                       controller:
-                          ref.read(paymentMethodsProvider)[index].controller,
+                          ref.watch(paymentMethodsProvider)[index].controller,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       style: TextStyle(
@@ -564,6 +596,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
   Widget _buildCardView() {
     final isMobile = _isMobile(context);
+    final payments = ref.watch(paymentMethodsProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -593,7 +626,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 ),
               ),
               Spacer(),
-              if (ref.read(paymentMethodsProvider).isNotEmpty)
+              if (payments.isNotEmpty)
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -601,7 +634,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
+                    '${payments.length} method${payments.length != 1 ? 's' : ''}',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.blue[700],
@@ -631,11 +664,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
           // Payment methods content - conditionally shown on mobile
           if ((!isMobile || _showPaymentMethods) &&
-              ref.read(paymentMethodsProvider).isNotEmpty) ...[
+              payments.isNotEmpty) ...[
             SizedBox(height: 16),
             if (isMobile) ...[
               // Mobile layout - stacked vertically
-              for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
+              for (int i = 0; i < payments.length; i++)
                 _buildMobilePaymentMethodRow(i,
                     transactionId: widget.transactionId),
             ] else ...[
@@ -690,7 +723,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       ),
                     ),
                     for (int i = 0;
-                        i < ref.read(paymentMethodsProvider).length;
+                        i < payments.length;
                         i++)
                       _buildDesktopPaymentMethodRow(i,
                           transactionId: widget.transactionId),
@@ -737,6 +770,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
   Widget _buildListView() {
     final isMobile = _isMobile(context);
+    final payments = ref.watch(paymentMethodsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -769,7 +803,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         ),
         SizedBox(height: 8),
         Text(
-          '${ref.read(paymentMethodsProvider).length} method${ref.read(paymentMethodsProvider).length != 1 ? 's' : ''}',
+          '${payments.length} method${payments.length != 1 ? 's' : ''}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
@@ -777,11 +811,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
         // Conditionally show payment methods on mobile
         if ((!isMobile || _showPaymentMethods) &&
-            ref.read(paymentMethodsProvider).isNotEmpty) ...[
+            payments.isNotEmpty) ...[
           SizedBox(height: 16),
           if (isMobile) ...[
             // Mobile layout - stacked vertically
-            for (int i = 0; i < ref.read(paymentMethodsProvider).length; i++)
+            for (int i = 0; i < payments.length; i++)
               _buildMobilePaymentMethodRow(i,
                   transactionId: widget.transactionId),
           ] else ...[
@@ -812,7 +846,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 ),
                 SizedBox(height: 8),
                 for (int i = 0;
-                    i < ref.read(paymentMethodsProvider).length;
+                    i < payments.length;
                     i++)
                   _buildDesktopPaymentMethodRow(i,
                       transactionId: widget.transactionId),

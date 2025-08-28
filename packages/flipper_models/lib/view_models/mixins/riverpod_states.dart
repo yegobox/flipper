@@ -311,6 +311,7 @@ class ButtonIndexNotifier extends StateNotifier<int> {
     state = index;
   }
 }
+
 final currentTransactionsByIdStream =
     StreamProvider.autoDispose.family<List<ITransaction>, String>((ref, id) {
   // Retrieve the transaction status from the provider container, if needed
@@ -655,15 +656,18 @@ class Payment {
     required this.amount,
     required this.method,
     String? id,
-  })  : controller = TextEditingController(text: amount.toString()),
+    TextEditingController? controller,
+  })  : controller = controller ??
+            TextEditingController(text: amount.toStringAsFixed(2)),
         id = id ?? UniqueKey().toString();
 }
 
 class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
-  PaymentMethodsNotifier()
-      : super([
-          Payment(amount: 0.0, method: 'CASH'),
-        ]);
+  PaymentMethodsNotifier([List<Payment>? initialPayments])
+      : super(initialPayments ??
+            [
+              Payment(amount: 0.0, method: 'CASH'),
+            ]);
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
