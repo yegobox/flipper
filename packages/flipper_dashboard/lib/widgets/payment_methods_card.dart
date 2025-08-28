@@ -36,39 +36,62 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     });
   }
 
-  void updatePaymentAmounts({required String transactionId}) {
-    if (ref.read(paymentMethodsProvider).isEmpty) return;
-    double remainingAmount = widget.totalPayable.clamp(0, double.infinity);
+  void updatePaymentAmounts(
+      {required String transactionId, int? focusedIndex}) {
     final payments = ref.read(paymentMethodsProvider);
-    if (payments.isNotEmpty) {
-      double firstAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
-      if (firstAmount < 0) firstAmount = 0;
-      if (firstAmount > remainingAmount) firstAmount = remainingAmount;
-      remainingAmount -= firstAmount;
-      payments[0].amount = firstAmount;
-      ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
-            0,
-            Payment(amount: payments[0].amount, method: payments[0].method),
-            transactionId: transactionId,
-          );
-    }
-    for (int i = 1; i < payments.length; i++) {
-      if (i == payments.length - 1) {
-        final last = remainingAmount.clamp(0, double.infinity);
-        payments[i].amount = last.toDouble();
-        payments[i].controller.text = last.toStringAsFixed(2);
-      } else {
-        double enteredAmount =
-            double.tryParse(payments[i].controller.text) ?? 0.0;
-        if (enteredAmount < 0) enteredAmount = 0;
-        if (enteredAmount > remainingAmount) enteredAmount = remainingAmount;
-        payments[i].amount = enteredAmount;
-        remainingAmount -= enteredAmount;
+    if (payments.isEmpty) return;
+
+    double totalPayable = widget.totalPayable;
+    double allocatedAmount = 0;
+    int? autoFillIndex;
+
+    // If there is more than one payment, the last one is for auto-fill
+    if (payments.length > 1) {
+      autoFillIndex = payments.length - 1;
+      // If the user is editing the last one, we choose the first one to auto-fill
+      if (focusedIndex == autoFillIndex) {
+        autoFillIndex = 0;
       }
+    }
+
+    // Calculate allocated amount based on user input in other fields
+    for (int i = 0; i < payments.length; i++) {
+      if (i == autoFillIndex) continue;
+      double amount = double.tryParse(payments[i].controller.text) ?? 0.0;
+      amount = amount.clamp(0.0, totalPayable - allocatedAmount);
+      payments[i].amount = amount;
+      allocatedAmount += amount;
+    }
+
+    // Set the amount for the auto-fill field
+    if (autoFillIndex != null) {
+      final remaining =
+          (totalPayable - allocatedAmount).clamp(0.0, double.infinity);
+      payments[autoFillIndex].amount = remaining;
+      // Update the controller text only if it's not being edited
+      if (focusedIndex != autoFillIndex) {
+        final newText = remaining.toStringAsFixed(2);
+        if (payments[autoFillIndex].controller.text != newText) {
+          payments[autoFillIndex].controller.text = newText;
+        }
+      }
+    } else if (payments.length == 1) {
+      // If only one payment, it should be the total amount
+      payments[0].amount = totalPayable;
+      if (focusedIndex != 0) {
+        final newText = totalPayable.toStringAsFixed(2);
+        if (payments[0].controller.text != newText) {
+          payments[0].controller.text = newText;
+        }
+      }
+    }
+
+    // Update all payment methods in the provider
+    for (int i = 0; i < payments.length; i++) {
       ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
-            i, // Positional argument
-            payments[i], // Pass the existing/mutated object
-            transactionId: transactionId, // Named argument
+            i,
+            payments[i],
+            transactionId: transactionId,
           );
     }
   }
@@ -319,12 +342,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                   ),
                 ),
                 onChanged: (value) {
-                  final amount = double.tryParse(value) ?? 0.0;
-                  ref.read(paymentMethodsProvider)[index].amount = amount;
-
-                  if (index < ref.read(paymentMethodsProvider).length - 1) {
-                    updatePaymentAmounts(transactionId: transactionId);
-                  }
+                  updatePaymentAmounts(
+                    transactionId: widget.transactionId,
+                    focusedIndex: index,
+                  );
                 },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -478,13 +499,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                         ),
                       ),
                       onChanged: (value) {
-                        final amount = double.tryParse(value) ?? 0.0;
-                        ref.read(paymentMethodsProvider)[index].amount = amount;
-
-                        if (index <
-                            ref.read(paymentMethodsProvider).length - 1) {
-                          updatePaymentAmounts(transactionId: transactionId);
-                        }
+                        updatePaymentAmounts(
+                          transactionId: widget.transactionId,
+                          focusedIndex: index,
+                        );
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
