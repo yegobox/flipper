@@ -288,7 +288,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                           Expanded(
                             child: Text(
                               value,
-                              overflow: TextOverflow.visible,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(fontSize: 14),
                             ),
                           ),
@@ -442,14 +442,15 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                           color: Colors.grey[800],
                           fontWeight: FontWeight.w500,
                         ),
-                        items: _getAvailablePaymentMethods(index).map((String value) {
+                        items: _getAvailablePaymentMethods(index)
+                            .map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Row(
                               children: [
                                 _getPaymentMethodIcon(value),
                                 SizedBox(width: 8),
-                                Expanded(
+                                Flexible(
                                   child: Text(
                                     value,
                                     overflow: TextOverflow.ellipsis,
@@ -586,7 +587,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
   // Helper to determine if we should use mobile layout
   bool _isMobile(BuildContext context) {
-    return MediaQuery.of(context).size.width < 600;
+    final mediaQuery = MediaQuery.of(context);
+    return mediaQuery.size.width < 600 ||
+        mediaQuery.orientation == Orientation.portrait;
   }
 
   @override
@@ -663,8 +666,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
           ),
 
           // Payment methods content - conditionally shown on mobile
-          if ((!isMobile || _showPaymentMethods) &&
-              payments.isNotEmpty) ...[
+          if ((!isMobile || _showPaymentMethods) && payments.isNotEmpty) ...[
             SizedBox(height: 16),
             if (isMobile) ...[
               // Mobile layout - stacked vertically
@@ -722,9 +724,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                         ],
                       ),
                     ),
-                    for (int i = 0;
-                        i < payments.length;
-                        i++)
+                    for (int i = 0; i < payments.length; i++)
                       _buildDesktopPaymentMethodRow(i,
                           transactionId: widget.transactionId),
                   ],
@@ -810,8 +810,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         ),
 
         // Conditionally show payment methods on mobile
-        if ((!isMobile || _showPaymentMethods) &&
-            payments.isNotEmpty) ...[
+        if ((!isMobile || _showPaymentMethods) && payments.isNotEmpty) ...[
           SizedBox(height: 16),
           if (isMobile) ...[
             // Mobile layout - stacked vertically
@@ -845,9 +844,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                   ],
                 ),
                 SizedBox(height: 8),
-                for (int i = 0;
-                    i < payments.length;
-                    i++)
+                for (int i = 0; i < payments.length; i++)
                   _buildDesktopPaymentMethodRow(i,
                       transactionId: widget.transactionId),
               ],
