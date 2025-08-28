@@ -31,6 +31,13 @@ void main() {
             transactionId: any(named: 'transactionId'),
             singlePaymentOnly: any(named: 'singlePaymentOnly')))
         .thenAnswer((_) async => Future.value());
+
+    when(() => env.mockBox.writeString(
+          key: any(named: 'key'),
+          value: any(named: 'value'),
+        )).thenAnswer((_) async => Future.value());
+    // Add this stub for paymentMethodCode method
+    when(() => env.mockBox.paymentMethodCode(any())).thenReturn('TEST_CODE');
   });
 
   tearDown(() {
@@ -180,25 +187,25 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    // testWidgets('changing a payment method updates the state',
-    //     (WidgetTester tester) async {
-    //   await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-    //     Payment(amount: 800, method: 'CASH'),
-    //     Payment(amount: 200, method: 'CARD'),
-    //   ]);
-    //   await tester.pumpAndSettle();
+    testWidgets('changing a payment method updates the state',
+        (WidgetTester tester) async {
+      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
+        Payment(amount: 800, method: 'CASH'),
+        Payment(amount: 200, method: 'CARD'),
+      ]);
+      await tester.pumpAndSettle();
 
-    //   // Find the first dropdown and tap it.
-    //   await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
-    //   await tester.pumpAndSettle();
+      // Find the first dropdown and tap it.
+      await tester.tap(find.byIcon(Icons.keyboard_arrow_down).first);
+      await tester.pumpAndSettle();
 
-    //   // Find the 'MOBILE MONEY' option and tap it.
-    //   await tester.tap(find.text('MOBILE MONEY').last);
-    //   await tester.pumpAndSettle();
+      // Find the 'MOBILE MONEY' option and tap it.
+      await tester.tap(find.text('MOBILE MONEY').last);
+      await tester.pumpAndSettle();
 
-    //   // Assert the state was updated correctly.
-    //   expect(notifier.state[0].method, 'MOBILE MONEY');
-    // });
+      // Assert the state was updated correctly.
+      expect(notifier.state[0].method, 'MOBILE MONEY');
+    });
 
     testWidgets('add button does nothing when all payment methods are used',
         (WidgetTester tester) async {
