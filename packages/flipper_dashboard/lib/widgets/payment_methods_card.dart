@@ -78,8 +78,6 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
       ref
           .read(paymentMethodsProvider)
           .add(Payment(amount: 0.0, method: 'CASH'));
-      ref.read(paymentMethodsProvider).last.controller.addListener(
-          () => updatePaymentAmounts(transactionId: transactionId));
 
       updatePaymentAmounts(transactionId: transactionId);
     });
