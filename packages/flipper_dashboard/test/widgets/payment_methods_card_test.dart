@@ -266,21 +266,87 @@ void main() {
 
     testWidgets('amount field validator shows error for invalid input',
         (WidgetTester tester) async {
-      await pumpWidget(tester, totalPayable: 100, initialPayments: [
+      // Create a form key
+      final formKey = GlobalKey<FormState>();
+
+      // Create a simple test widget that wraps your card in a Form
+      notifier = PaymentMethodsNotifier([
         Payment(amount: 100, method: 'CASH'),
       ]);
-      final formKey = GlobalKey<FormState>();
-      // We need to wrap the widget in a Form to test validation.
-      // This requires more significant changes to the pumpWidget helper or the test structure.
-      // For now, we'll just check the controller's text.
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            paymentMethodsProvider.overrideWith((ref) => notifier),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: PaymentMethodsCard(
+                    transactionId: 'test_transaction',
+                    totalPayable: 100,
+                    isCardView: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
       await tester.pumpAndSettle();
 
+      // Expand if mobile layout (check by screen size)
+      if (tester.view.physicalSize.width < 600) {
+        final toggleButton = find.byKey(Key('mobile_toggle_button'));
+        await tester.ensureVisible(toggleButton);
+        await tester.tap(toggleButton, warnIfMissed: false);
+        await tester.pumpAndSettle();
+      }
+
+      // Find the amount field
       final amountField = find.byType(TextFormField).first;
+      await tester.ensureVisible(amountField);
+      await tester.pumpAndSettle();
+
+      // Test invalid input
       await tester.enterText(amountField, 'invalid');
       await tester.pumpAndSettle();
 
-      final controller = tester.widget<TextFormField>(amountField).controller!;
-      expect(controller.text, 'invalid');
+      // Trigger validation by submitting the form
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      // Alternatively, manually validate the form
+      formKey.currentState!.validate();
+      await tester.pumpAndSettle();
+
+      // Check for error message
+      expect(find.text('Please enter a valid number'), findsOneWidget);
+
+      // Test empty input
+      await tester.enterText(amountField, '');
+      await tester.pumpAndSettle();
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      formKey.currentState!.validate();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Please enter an amount'), findsOneWidget);
+
+      // Test valid input - error should disappear
+      await tester.enterText(amountField, '50');
+      await tester.pumpAndSettle();
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      formKey.currentState!.validate();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Please enter a valid number'), findsNothing);
+      expect(find.text('Please enter an amount'), findsNothing);
     });
   });
 }
