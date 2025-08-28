@@ -222,43 +222,40 @@ void main() {
       expect(notifier.state.length, paymentTypes.length);
     });
 
-    // testWidgets('should show/hide payment methods on mobile toggle',
-    //     (WidgetTester tester) async {
-    //   tester.view.physicalSize = Size(360, 640);
-    //   tester.view.devicePixelRatio = 1.0;
-    //   addTearDown(tester.view.reset);
+    testWidgets('should show/hide payment methods on mobile toggle',
+        (WidgetTester tester) async {
+      // Set mobile size
+      tester.view.physicalSize = Size(360, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
-    //   await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-    //     Payment(amount: 1000, method: 'CASH'),
-    //   ]);
-    //   await tester.pumpAndSettle();
+      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
+        Payment(amount: 1000, method: 'CASH'),
+      ]);
+      await tester.pumpAndSettle();
 
-    //   // Initially, TextFormField should not be visible in mobile collapsed state
-    //   expect(find.byType(TextFormField), findsNothing);
+      // Initially, TextFormField should not be visible in mobile collapsed state
+      expect(find.byType(TextFormField), findsNothing);
 
-    //   // Find the toggle button and ensure it's visible
-    //   final toggleButton = find.byIcon(Icons.keyboard_arrow_down);
-    //   await tester.ensureVisible(toggleButton);
-    //   await tester.pumpAndSettle();
+      // Find the toggle button using the key
+      final toggleButton = find.byKey(Key('mobile_toggle_button'));
+      await tester.ensureVisible(toggleButton);
+      await tester.pumpAndSettle();
 
-    //   // Tap the toggle button to expand
-    //   await tester.tap(toggleButton, warnIfMissed: false);
-    //   await tester.pumpAndSettle();
+      // Tap the toggle button to expand
+      await tester.tap(toggleButton, warnIfMissed: false);
+      await tester.pumpAndSettle();
 
-    //   // Now TextFormField should be visible
-    //   expect(find.byType(TextFormField), findsOneWidget);
+      // Now TextFormField should be visible
+      expect(find.byType(TextFormField), findsOneWidget);
 
-    //   // Find the up arrow and tap to collapse
-    //   final upButton = find.byIcon(Icons.keyboard_arrow_up);
-    //   await tester.ensureVisible(upButton);
-    //   await tester.pumpAndSettle();
+      // Tap again to collapse
+      await tester.tap(toggleButton, warnIfMissed: false);
+      await tester.pumpAndSettle();
 
-    //   await tester.tap(upButton, warnIfMissed: false);
-    //   await tester.pumpAndSettle();
-
-    //   // TextFormField should be hidden again
-    //   expect(find.byType(TextFormField), findsNothing);
-    // });
+      // TextFormField should be hidden again
+      expect(find.byType(TextFormField), findsNothing);
+    });
 
     testWidgets('amount field validator shows error for invalid input',
         (WidgetTester tester) async {

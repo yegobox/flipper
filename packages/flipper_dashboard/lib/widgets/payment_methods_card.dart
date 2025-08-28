@@ -396,6 +396,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
   }
 
   // Desktop/tablet layout (horizontal layout)
+// Desktop/tablet layout (horizontal layout)
   Widget _buildDesktopPaymentMethodRow(int index,
       {required String transactionId}) {
     final isLast = index == ref.watch(paymentMethodsProvider).length - 1;
@@ -415,7 +416,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            Flexible(
+              // Wrap with Flexible
               flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,8 +491,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 ],
               ),
             ),
-            SizedBox(width: 16),
-            Expanded(
+            SizedBox(width: 8), // Reduce spacing
+            Flexible(
+              // Wrap with Flexible
               flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -551,28 +554,28 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 ],
               ),
             ),
-            SizedBox(width: 12),
+            SizedBox(width: 8), // Reduce spacing
             Container(
-              width: 36,
-              height: 36,
+              width: 32, // Reduce width
+              height: 32, // Reduce height
               child: index == 0
                   ? SizedBox()
                   : Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(18),
+                        borderRadius: BorderRadius.circular(16),
                         onTap: () => _removePaymentMethod(index,
                             transactionId: transactionId),
                         child: Container(
                           decoration: BoxDecoration(
                             border:
                                 Border.all(color: Colors.red[300]!, width: 1),
-                            borderRadius: BorderRadius.circular(18),
+                            borderRadius: BorderRadius.circular(16),
                             color: Colors.red[50],
                           ),
                           child: Icon(
                             Icons.close,
-                            size: 16,
+                            size: 14, // Reduce icon size
                             color: Colors.red[600],
                           ),
                         ),
@@ -586,10 +589,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
   }
 
   // Helper to determine if we should use mobile layout
+  // Helper to determine if we should use mobile layout
   bool _isMobile(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    return mediaQuery.size.width < 600 ||
-        mediaQuery.orientation == Orientation.portrait;
+    return mediaQuery.size.width < 600;
   }
 
   @override
@@ -611,37 +614,52 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with toggle for mobile
+          // Header with toggle for mobil
           Row(
             children: [
-              Icon(
-                Icons.payment,
-                color: Colors.blue[600],
-                size: 20,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'Payment Methods',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
+              Flexible(
+                // Wrap with Flexible
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.payment,
+                      color: Colors.blue[600],
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      // Wrap text with Flexible
+                      child: Text(
+                        'Payment Methods',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                        overflow:
+                            TextOverflow.ellipsis, // Add overflow handling
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Spacer(),
               if (payments.isNotEmpty)
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[100],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${payments.length} method${payments.length != 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.blue[700],
-                      fontWeight: FontWeight.w500,
+                Flexible(
+                  // Wrap counter with Flexible
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${payments.length} method${payments.length != 1 ? 's' : ''}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
@@ -649,17 +667,21 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
               if (isMobile) ...[
                 SizedBox(width: 8),
                 IconButton(
+                  key: Key('mobile_toggle_button'),
                   icon: Icon(
                     _showPaymentMethods
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
                     color: Colors.blue[600],
+                    size: 20, // Explicit size
                   ),
                   onPressed: () {
                     setState(() {
                       _showPaymentMethods = !_showPaymentMethods;
                     });
                   },
+                  constraints:
+                      BoxConstraints(maxWidth: 40), // Constrain button size
                 ),
               ],
             ],
