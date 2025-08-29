@@ -33,6 +33,7 @@ def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
+
 android {
     ndkVersion = "27.0.12077973"
     namespace "rw.flipper"

@@ -1,0 +1,63 @@
+default_platform(:android)
+
+platform :android do
+
+  desc "Submit a new internal build to Google Play"
+  lane :internal do 
+  
+    sh "flutter build appbundle"
+
+    upload_to_play_store(
+      package_name: 'rw.flipper',
+      track: 'internal',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+      )
+  end
+  desc "Promote beta track to prod"
+  lane :promote_to_production do
+    upload_to_play_store(
+      track: 'beta',
+      package_name: 'rw.flipper',
+      track_promote_to: 'production',
+      skip_upload_changelogs: true,
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+      )
+  end
+
+  desc "Submit a new beta build to Google Play"
+  lane :beta do
+    sh "flutter build appbundle"
+
+    upload_to_play_store(
+      track: 'beta',
+      package_name: 'rw.flipper',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Submit a new production build to Google Play"
+  lane :production do
+    sh "flutter build appbundle"
+
+    upload_to_play_store(
+      track: 'production',
+      package_name: 'rw.flipper',
+      aab: '../build/app/outputs/bundle/release/app-release.aab',
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
