@@ -36,7 +36,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     ndkVersion = "27.0.12077973"
     namespace "rw.flipper"
-    compileSdkVersion 36
+    compileSdkVersion 35
     testOptions {
         execution "ANDROIDX_TEST_ORCHESTRATOR"
     }
@@ -66,7 +66,7 @@ android {
         minSdkVersion 26
         // minSdkVersion flutter.minSdkVersion
         // targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 36
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
