@@ -444,9 +444,10 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  void deleteItemFromCart(
+  Future<void> deleteItemFromCart(
       {required TransactionItem transactionItemId, String? transactionId}) {
     // TODO: implement deleteItemFromCart
+    throw UnimplementedError();
   }
 
   @override

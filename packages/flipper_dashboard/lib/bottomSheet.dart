@@ -405,13 +405,22 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                               iconColor: Colors.red[400],
                               textColor: Colors.red[400],
                               text: 'Remove Product',
-                              onPressed: () {
-                                ProxyService.strategy.deleteItemFromCart(
-                                  transactionItemId: transactionItem,
-                                  transactionId: transactionId,
-                                );
-                                Navigator.of(context).pop();
-                                doneDelete();
+                              onPressed: () async {
+                                try {
+                                  await ProxyService.strategy
+                                      .deleteItemFromCart(
+                                    transactionItemId: transactionItem,
+                                    transactionId: transactionId,
+                                  );
+                                  Navigator.of(context).pop();
+                                  doneDelete();
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            'Error removing product: ${e.toString()}')),
+                                  );
+                                }
                               },
                             ),
                           ],
@@ -751,20 +760,31 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                   child: Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () {
-                                    for (TransactionItem item in items) {
-                                      ProxyService.strategy.deleteItemFromCart(
-                                        transactionItemId: item,
-                                        transactionId:
-                                            widget.transactionIdInt.toString(),
+                                  onPressed: () async {
+                                    try {
+                                      for (TransactionItem item in items) {
+                                        await ProxyService.strategy
+                                            .deleteItemFromCart(
+                                          transactionItemId: item,
+                                          transactionId: widget.transactionIdInt
+                                              .toString(),
+                                        );
+                                      }
+                                      ref.refresh(transactionItemsProvider(
+                                          transactionId:
+                                              widget.transactionIdInt,
+                                          branchId:
+                                              ProxyService.box.getBranchId()!));
+                                      widget.doneDelete();
+                                      Navigator.pop(context);
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Error clearing cart: ${e.toString()}')),
                                       );
                                     }
-                                    ref.refresh(transactionItemsProvider(
-                                        transactionId: widget.transactionIdInt,
-                                        branchId:
-                                            ProxyService.box.getBranchId()!));
-                                    widget.doneDelete();
-                                    Navigator.pop(context);
                                   },
                                   child: Text('Clear All',
                                       style: TextStyle(color: Colors.red)),

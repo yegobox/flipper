@@ -364,11 +364,12 @@ abstract class DatabaseSyncInterface extends AiStrategy
     int numberOfPayments = 1,
     required HttpClientInterface flipperHttpClient,
   });
-  Future<models.Plan?> getPaymentPlan({required String businessId, bool? fetchOnline});
+  Future<models.Plan?> getPaymentPlan(
+      {required String businessId, bool? fetchOnline});
   Future<void> cleanDuplicatePlans();
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
 
-  void deleteItemFromCart(
+  Future<void> deleteItemFromCart(
       {required TransactionItem transactionItemId, String? transactionId});
 
   Future<void> createOrUpdateBranchOnCloud(

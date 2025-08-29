@@ -11,7 +11,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -24,9 +23,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -785,12 +782,17 @@ class _RowItemState extends ConsumerState<RowItem>
     final flipperWatch? w = kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
     w?.start();
 
-    // Use the shared TransactionItemAdder
-    final itemAdder = TransactionItemAdder(context, ref);
-    await itemAdder.addItemToTransaction(
-      variant: widget.variant!,
-      isOrdering: isOrdering,
-    );
+    if (widget.variant != null) {
+      // Use the shared TransactionItemAdder
+      final itemAdder = TransactionItemAdder(context, ref);
+      await itemAdder.addItemToTransaction(
+        variant: widget.variant!,
+        isOrdering: isOrdering,
+      );
+    } else if (widget.product != null) {
+      // _routerService.navigateTo(SellRoute(product: widget.product!));
+      throw Exception("Product navigation not implemented");
+    }
 
     w?.log("Item Added to Quick Sell");
   }
