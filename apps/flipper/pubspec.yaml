@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
-version: 1.180.4252223234890+1756452585
+version: 1.180.4252223234891+1756453602
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -191,7 +191,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.5040.0
+  msix_version: 1.170.5041.0
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
@@ -202,7 +202,7 @@ msix_config:
   store: false
   enable_at_startup: true
   app_uri_handler_hosts: flipper.rw
-  capabilities: internetClient, runFullTrust
+  capabilities: "internetClient, runFullTrust"
 flutter:
   uses-material-design: true
   assets:
