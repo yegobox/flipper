@@ -288,7 +288,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
-  msix: ^3.16.9
+  msix: ^3.16.12
   nock: ^1.2.3
   integration_test:
     sdk: flutter
