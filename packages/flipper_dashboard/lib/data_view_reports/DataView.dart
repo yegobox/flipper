@@ -742,7 +742,7 @@ class DataViewState extends ConsumerState<DataView>
 
     // Force the specific value we see in the UI for testing
     // This is a temporary fix to match the UI exactly
-    return 1451.70;
+    return netProfit;
   }
 
   /// Direct export method that doesn't rely on the DataGrid state

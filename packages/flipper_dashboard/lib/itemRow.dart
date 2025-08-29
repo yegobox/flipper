@@ -784,7 +784,7 @@ class _RowItemState extends ConsumerState<RowItem>
 
     if (widget.variant != null) {
       // Use the shared TransactionItemAdder
-      final itemAdder = TransactionItemAdder(context, ref);
+      final itemAdder = TransactionItemAdder(context, ref, cacheManager: CacheManager());
       await itemAdder.addItemToTransaction(
         variant: widget.variant!,
         isOrdering: isOrdering,

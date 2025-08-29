@@ -6,7 +6,6 @@ import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/cache/cache_export.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
@@ -15,14 +14,20 @@ import 'package:flutter/foundation.dart';
 class TransactionItemAdder {
   final BuildContext context;
   final WidgetRef ref;
+  final CacheManager _cacheManager;
 
-  TransactionItemAdder(this.context, this.ref);
+  // Shared lock to prevent concurrent addItemToTransaction operations
+  static final _lock = Lock();
+
+  TransactionItemAdder(this.context, this.ref, {CacheManager? cacheManager})
+      : _cacheManager = cacheManager ?? CacheManager();
 
   Future<void> addItemToTransaction({
     required Variant variant,
     required bool isOrdering,
   }) async {
-    final flipperWatch? w = kDebugMode ? flipperWatch("addItemToTransaction") : null;
+    final flipperWatch? w =
+        kDebugMode ? flipperWatch("addItemToTransaction") : null;
     w?.start();
 
     try {
@@ -50,8 +55,7 @@ class TransactionItemAdder {
         // Get the latest stock from cache
         Stock? cachedStock;
         if (variant.id.isNotEmpty) {
-          cachedStock =
-              await CacheManager().getStockByVariantId(variant.id);
+          cachedStock = await _cacheManager.getStockByVariantId(variant.id);
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock
@@ -82,8 +86,7 @@ class TransactionItemAdder {
       }
 
       // Use a lock to prevent multiple simultaneous operations
-      final lock = Lock();
-      await lock.synchronized(() async {
+      await _lock.synchronized(() async {
         if (product != null && product.isComposite == true) {
           // Handle composite product
           final composites =
