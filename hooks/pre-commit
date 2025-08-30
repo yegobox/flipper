@@ -24,13 +24,21 @@ fi
 touch "$LOCKFILE"
 
 # Configuration: Add folders to exclude (space-separated list)
-EXCLUDE_FOLDERS=("node_modules" "build" "test","packages","open-sources")
+EXCLUDE_FOLDERS=("node_modules" "build" "test" "packages" "open-sources")
 
 # Build find exclusion pattern
 EXCLUDE_PATTERN=""
 for folder in "${EXCLUDE_FOLDERS[@]}"; do
-  EXCLUDE_PATTERN+="! -path \"*/$folder/*\" "
+  EXCLUDE_PATTERN+=" ! -path \"*/$folder/*\""
 done
+
+# Detect correct sed syntax depending on OS
+OS=$(uname)
+if [[ "$OS" == "Darwin" ]]; then
+  SED_CMD="sed -i ''"
+else
+  SED_CMD="sed -i"
+fi
 
 # Find all pubspec.yaml files excluding specified folders
 eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PUBSPEC_PATH; do
@@ -44,7 +52,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   echo "Processing $APP_DIR/pubspec.yaml"
   
   # Get current version
-  version_line=$(grep "version: " pubspec.yaml)
+  version_line=$(grep "^version: " pubspec.yaml)
   if [[ -z "$version_line" ]]; then
     echo "No version field found in $APP_DIR/pubspec.yaml"
     continue
@@ -63,58 +71,32 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   minor=${version_parts[1]}
   patch=${version_parts[2]}
   
-  # Handle different version formats
-  if [[ "$version" =~ \+ ]]; then
-    # Format: X.Y.Z+BUILD
-    patch_part="${version_parts[2]}"
-    if [[ "$patch_part" =~ ^([0-9]+)\+ ]]; then
-      patch="${BASH_REMATCH[1]}"
-    fi
-  else
-    # Format: X.Y.Z
-    patch=$patch
+  # Handle build metadata (X.Y.Z+BUILD)
+  if [[ "$patch" =~ ^([0-9]+)\+ ]]; then
+    patch="${BASH_REMATCH[1]}"
   fi
-  # 
+  
   # Increment patch version
   patch=$((patch + 1))
   new_version="$major.$minor.$patch+$(date +%s)"
   
   # Update pubspec.yaml
-  sed -i "" "s|$version_line|version: $new_version|" pubspec.yaml
+  $SED_CMD "s|$version_line|version: $new_version|" pubspec.yaml
   git add pubspec.yaml
   
-  # Handle MSIX version (platform-specific)
-  OS=$(uname)
-  if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
-    msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
-    if [[ -n "$msix_version" ]]; then
-      IFS='.' read -ra parts <<< "$msix_version"
-      parts[2]=$((parts[2] + 1))
-      parts[3]=0
-      new_msix_version="${parts[0]}.${parts[1]}.${parts[2]}.${parts[3]}"
-      
-      sed -i.bak "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml && rm pubspec.yaml.bak
-      if [[ "$msix_version" != "$new_msix_version" ]]; then
-        git add pubspec.yaml
-        git commit -m "Increment MSIX version to $new_msix_version"
-      fi
+  # Handle MSIX version
+  msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
+  if [[ -n "$msix_version" ]]; then
+    IFS='.' read -ra parts <<< "$msix_version"
+    parts[2]=$((parts[2] + 1))
+    parts[3]=0
+    new_msix_version="${parts[0]}.${parts[1]}.${parts[2]}.${parts[3]}"
+    
+    $SED_CMD "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
+    if [[ "$msix_version" != "$new_msix_version" ]]; then
+      git add pubspec.yaml
+      git commit -m "Increment MSIX version to $new_msix_version"
     fi
-  elif [[ "$OS" == "Windows" ]]; then
-    msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
-    if [[ -n "$msix_version" ]]; then
-      IFS='.' read -ra parts <<< "$msix_version"
-      parts[2]=$((parts[2] + 1))
-      parts[3]=0
-      new_msix_version="${parts[0]}.${parts[1]}.${parts[2]}.${parts[3]}"
-      
-      sed -i "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
-      if [[ "$msix_version" != "$new_msix_version" ]]; then
-        git add pubspec.yaml
-        git commit -m "Increment MSIX version to $new_msix_version"
-      fi
-    fi
-  else
-    echo "::warning::Unsupported operating system: $OS. Skipping MSIX version increment."
   fi
   
   # Return to original directory
