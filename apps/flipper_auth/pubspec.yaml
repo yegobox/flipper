@@ -2,7 +2,7 @@ name: flipper_auth
 description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.1+98
+version: 1.0.1+99
 # 
 environment:
   sdk: ">=3.0.0"

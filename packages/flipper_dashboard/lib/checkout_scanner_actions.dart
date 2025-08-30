@@ -10,11 +10,14 @@ import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 // To refresh transaction items
 import 'package:flipper_dashboard/transaction_item_adder.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:pubnub/pubnub.dart' as nub;
+import 'package:flutter_soloud/flutter_soloud.dart'; // Added for sound playback
 
 class CheckoutScannerActions extends ScannerActions {
   final BuildContext context;
   final WidgetRef ref; // To interact with Riverpod
+
+  SoLoud? _soloud; // SoLoud instance
+  AudioSource? _soundSource; // Sound source for barcode detection
 
   CheckoutScannerActions(this.context, this.ref);
 
@@ -29,6 +32,16 @@ class CheckoutScannerActions extends ScannerActions {
     showCustomSnackBarUtil(context, 'Processing barcode: ${barcode.rawValue}');
 
     try {
+      // Initialize SoLoud if not already initialized
+      if (_soloud == null) {
+        _soloud = SoLoud.instance;
+        await _soloud!.init();
+        // Load the sound asset. Ensure 'assets/sound.mp3' exists in your project.
+        // You might need to copy 'sound.mp3' to the 'assets' folder of flipper_dashboard package.
+        _soundSource = await _soloud!
+            .loadAsset('packages/flipper_dashboard/assets/sound.mp3');
+      }
+
       // Find the variant by barcode
       Variant? variant = await ProxyService.strategy.getVariant(
         bcd: barcode.rawValue!,
@@ -41,6 +54,10 @@ class CheckoutScannerActions extends ScannerActions {
           variant: variant,
           isOrdering: false,
         );
+        // Play sound on successful barcode detection
+        if (_soundSource != null) {
+          await _soloud!.play(_soundSource!);
+        }
       } else {
         showCustomSnackBarUtil(
             context, 'Product not found for barcode: ${barcode.rawValue}',
@@ -51,12 +68,22 @@ class CheckoutScannerActions extends ScannerActions {
           backgroundColor: Colors.red);
     } finally {
       // Pop the scanner view after processing
+      // Note: SoLoud resources are disposed in the pop() method
       Navigator.of(context).pop();
     }
   }
 
   @override
   void pop() {
+    // Dispose SoLoud resources when the scanner view is popped
+    if (_soloud != null) {
+      if (_soundSource != null) {
+        _soloud!.disposeSource(_soundSource!);
+        _soundSource = null;
+      }
+      _soloud!.deinit();
+      _soloud = null;
+    }
     Navigator.of(context).pop();
   }
 
@@ -73,29 +100,19 @@ class CheckoutScannerActions extends ScannerActions {
   }
 
   @override
-  int getUserId() {
-    throw UnimplementedError();
-  }
+  int getUserId() => ProxyService.box.getUserId()!;
 
   @override
-  int getBusinessId() {
-    throw UnimplementedError();
-  }
+  int getBusinessId() => ProxyService.box.getBusinessId()!;
 
   @override
-  int getBranchId() {
-    throw UnimplementedError();
-  }
+  int getBranchId() => ProxyService.box.getBranchId()!;
 
   @override
-  String getUserPhone() {
-    throw UnimplementedError();
-  }
+  String getUserPhone() => ProxyService.box.getUserPhone()!;
 
   @override
-  String getDefaultApp() {
-    throw UnimplementedError();
-  }
+  String getDefaultApp() => ProxyService.box.getDefaultApp() ?? "1";
 
   @override
   void showSimpleNotification(String message) {
@@ -110,10 +127,9 @@ class CheckoutScannerActions extends ScannerActions {
 
   @override
   FutureOr<Pin?> getPinLocal(
-      {required int userId, required bool alwaysHydrate}) {
-    // TODO: implement getPinLocal
-    throw UnimplementedError();
-  }
+          {required int userId, required bool alwaysHydrate}) =>
+      ProxyService.strategy
+          .getPinLocal(userId: userId, alwaysHydrate: alwaysHydrate);
 
   @override
   getStrategyService() {
