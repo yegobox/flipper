@@ -7,15 +7,20 @@ import 'package:flipper_ui/toast.dart';
 import 'package:flipper_models/db_model_export.dart'; // For Product
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DashboardScannerActions implements ScannerActions {
   final BuildContext context;
+  final WidgetRef ref;
 
-  DashboardScannerActions(this.context);
+  DashboardScannerActions(this.context, this.ref);
 
   @override
   void onBarcodeDetected(barcode) {
     ProxyService.productService.setBarcode(barcode.rawValue);
+    Future.delayed(Duration(milliseconds: 500), () {
+      pop();
+    });
   }
 
   @override

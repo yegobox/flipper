@@ -101,7 +101,7 @@ class Devices extends ConsumerWidget {
                     MaterialPageRoute(
                       builder: (context) => ScannView(
                         intent: LOGIN,
-                        scannerActions: DashboardScannerActions(context),
+                        scannerActions: DashboardScannerActions(context, ref),
                       ),
                     ),
                   );

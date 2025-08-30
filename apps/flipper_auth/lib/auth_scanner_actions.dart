@@ -193,7 +193,7 @@ class AuthScannerActions implements ScannerActions {
         await Future.delayed(Duration(milliseconds: 1500));
       } else {
         // Handle successful publish
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.success;
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.desktopLoginSuccess;
         await Future.delayed(Duration(seconds: 2));
         pop();
       }
@@ -221,14 +221,14 @@ class AuthScannerActions implements ScannerActions {
               if (response['status'] == 'success') {
                 // Update UI to show success
                 ref.read(scanStatusProvider.notifier).state =
-                    ScanStatus.success;
+                    ScanStatus.desktopLoginSuccess;
                 triggerHapticFeedback(); // HapticFeedback is in flutter/services.dart, not accessible here
                 showSimpleNotification('Login successful');
               } else if (response['status'] == 'choices_needed') {
                 // This is not a failure - it's part of the normal flow when a user
                 // needs to select a business/branch
                 ref.read(scanStatusProvider.notifier).state =
-                    ScanStatus.success;
+                    ScanStatus.desktopLoginSuccess;
                 // HapticFeedback.lightImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
                 showSimpleNotification(
                     'Login successful - select your business');

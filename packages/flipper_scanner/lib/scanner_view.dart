@@ -315,6 +315,13 @@ class ScannViewState extends ConsumerState<ScannView>
         backgroundColor = Colors.green.shade50;
         iconColor = Colors.green;
         statusIcon = Icons.check_circle;
+        statusTitle = 'Scan Successful';
+        statusMessage = 'QR code processed successfully';
+        break;
+      case ScanStatus.desktopLoginSuccess:
+        backgroundColor = Colors.green.shade50;
+        iconColor = Colors.green;
+        statusIcon = Icons.check_circle;
         statusTitle = 'Login Successful';
         statusMessage = 'Desktop device authenticated';
         break;

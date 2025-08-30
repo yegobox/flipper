@@ -356,7 +356,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               MaterialPageRoute(
                 builder: (context) => ScannView(
                   intent: BARCODE,
-                  scannerActions: DashboardScannerActions(context),
+                  scannerActions: DashboardScannerActions(context, ref),
                 ),
               ),
             ),

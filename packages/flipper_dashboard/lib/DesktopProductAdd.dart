@@ -869,18 +869,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   icon: Icon(FluentIcons.camera_20_regular, color: Colors.blue),
                   onPressed: () async {
                     // Open scanner and get result
-                    final result = await Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ScannView(
                             intent: BARCODE,
-                            scannerActions: DashboardScannerActions(context)),
+                            scannerActions:
+                                DashboardScannerActions(context, ref)),
                       ),
                     );
-                    if (result != null &&
-                        result is String &&
-                        result.trim().isNotEmpty) {
-                      scannedInputController.text = result.trim();
+                    String barcode = ProxyService.productService.barCode;
+                    if (barcode.trim().isNotEmpty && barcode != "") {
+                      scannedInputController.text = barcode.trim();
                       // Trigger the same logic as manual submit
                       FocusScope.of(context)
                           .requestFocus(_scannedInputFocusNode);
@@ -888,43 +888,42 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       if (_formKey.currentState!.validate()) {
                         _inputTimer?.cancel();
                         talker.warning(
-                            "Starting timer for barcode: " + result.trim());
+                            "Starting timer for barcode: " + barcode.trim());
                         _inputTimer = Timer(const Duration(seconds: 1), () {
                           talker.warning(
-                              "Timer completed for barcode: " + result.trim());
-                          if (result.trim().isNotEmpty) {
-                            if (productRef == null) {
-                              toast(
-                                  "Invalid product reference. Please select or create a product first.");
-                              talker.error(
-                                  "Attempted to scan barcode with null productRef. Skipping scan.");
-                              return;
-                            }
-                            if (!mounted) return;
-                            try {
-                              model.onScanItem(
-                                countryCode: countryOfOriginController.text,
-                                editmode: widget.productId != null,
-                                barCode: result.trim(),
-                                retailPrice: double.tryParse(
-                                        retailPriceController.text) ??
-                                    0,
-                                supplyPrice: double.tryParse(
-                                        supplyPriceController.text) ??
-                                    0,
-                                isTaxExempted: false,
-                                product: productRef, // safe, checked above
-                              );
-                              talker
-                                  .warning("onAddVariant called successfully");
-                            } catch (e, s) {
-                              talker.error("Error in onAddVariant: $e", s);
-                              toast(
-                                  "We faced unexpected error, close this window and open again");
-                            }
-                            scannedInputController.clear();
-                            _scannedInputFocusNode.requestFocus();
+                              "Timer completed for barcode: " + barcode.trim());
+
+                          if (productRef == null) {
+                            toast(
+                                "Invalid product reference. Please select or create a product first.");
+                            talker.error(
+                                "Attempted to scan barcode with null productRef. Skipping scan.");
+                            return;
                           }
+                          if (!mounted) return;
+                          try {
+                            model.onScanItem(
+                              countryCode: countryOfOriginController.text,
+                              editmode: widget.productId != null,
+                              barCode: scannedInputController
+                                  .text, 
+                              retailPrice:
+                                  double.tryParse(retailPriceController.text) ??
+                                      0,
+                              supplyPrice:
+                                  double.tryParse(supplyPriceController.text) ??
+                                      0,
+                              isTaxExempted: false,
+                              product: productRef,
+                            );
+                            talker.warning("onAddVariant called successfully");
+                          } catch (e, s) {
+                            talker.error("Error in onAddVariant: $e", s);
+                            toast(
+                                "We faced unexpected error, close this window and open again");
+                          }
+                          scannedInputController.clear();
+                          _scannedInputFocusNode.requestFocus();
                         });
                       }
                     }
