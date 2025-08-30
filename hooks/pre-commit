@@ -74,7 +74,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
     # Format: X.Y.Z
     patch=$patch
   fi
-  
+  # 
   # Increment patch version
   patch=$((patch + 1))
   new_version="$major.$minor.$patch+$(date +%s)"
