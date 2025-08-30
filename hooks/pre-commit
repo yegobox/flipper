@@ -32,12 +32,16 @@ for folder in "${EXCLUDE_FOLDERS[@]}"; do
   EXCLUDE_PATTERN+=" ! -path \"*/$folder/*\""
 done
 
-# Detect correct sed syntax depending on OS
+# Cross-platform sed wrapper (avoids creating pubspec.yaml'')
 OS=$(uname)
 if [[ "$OS" == "Darwin" ]]; then
-  SED_CMD="sed -i ''"
+  SED_INPLACE() {
+    sed -i .bak "$1" "$2" && rm -f "$2.bak"
+  }
 else
-  SED_CMD="sed -i"
+  SED_INPLACE() {
+    sed -i "$1" "$2"
+  }
 fi
 
 # Find all pubspec.yaml files excluding specified folders
@@ -80,7 +84,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   fi
 
   # Update pubspec.yaml
-  $SED_CMD "s|$version_line|version: $new_version|" pubspec.yaml
+  SED_INPLACE "s|$version_line|version: $new_version|" pubspec.yaml
   git add pubspec.yaml
 
   # Handle MSIX version
@@ -95,7 +99,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       revision=$((revision + 1))
       new_msix_version="$major.$minor.$build.$revision"
 
-      $SED_CMD "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
+      SED_INPLACE "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
       if [[ "$msix_version" != "$new_msix_version" ]]; then
         git add pubspec.yaml
         git commit -m "Increment MSIX version to $new_msix_version"
