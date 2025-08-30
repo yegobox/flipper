@@ -44,23 +44,43 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   echo "Processing $APP_DIR/pubspec.yaml"
   
   # Get current version
-  version=$(grep "version: " pubspec.yaml | awk '{print $2}')
-  
-  # Skip if no version found or invalid format
-  if [[ -z "$version" ]]; then
-    echo "No valid version found in $APP_DIR/pubspec.yaml"
+  version_line=$(grep "version: " pubspec.yaml)
+  if [[ -z "$version_line" ]]; then
+    echo "No version field found in $APP_DIR/pubspec.yaml"
     continue
   fi
   
+  version=$(echo "$version_line" | awk '{print $2}')
+  
+  # Parse version components safely
+  IFS='.' read -ra version_parts <<< "$version"
+  if [[ ${#version_parts[@]} -lt 3 ]]; then
+    echo "Invalid version format in $APP_DIR/pubspec.yaml: $version"
+    continue
+  fi
+  
+  major=${version_parts[0]}
+  minor=${version_parts[1]}
+  patch=${version_parts[2]}
+  
+  # Handle different version formats
+  if [[ "$version" =~ \+ ]]; then
+    # Format: X.Y.Z+BUILD
+    patch_part="${version_parts[2]}"
+    if [[ "$patch_part" =~ ^([0-9]+)\+ ]]; then
+      patch="${BASH_REMATCH[1]}"
+    fi
+  else
+    # Format: X.Y.Z
+    patch=$patch
+  fi
+  
   # Increment patch version
-  major=$(echo "$version" | cut -d '.' -f1)
-  minor=$(echo "$version" | cut -d '.' -f2)
-  patch=$(echo "$version" | cut -d '.' -f3 | cut -d '+' -f1)
   patch=$((patch + 1))
   new_version="$major.$minor.$patch+$(date +%s)"
   
   # Update pubspec.yaml
-  sed -i "" "s/version: $version/version: $new_version/" pubspec.yaml
+  sed -i "" "s/$version_line/version: $new_version/" pubspec.yaml
   git add pubspec.yaml
   
   # Handle MSIX version (platform-specific)
