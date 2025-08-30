@@ -62,7 +62,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   major=${version_parts[0]}
   minor=${version_parts[1]}
   patch=${version_parts[2]}
-  # 
+  
   # Handle different version formats
   if [[ "$version" =~ \+ ]]; then
     # Format: X.Y.Z+BUILD
@@ -80,7 +80,7 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
   new_version="$major.$minor.$patch+$(date +%s)"
   
   # Update pubspec.yaml
-  sed -i "" "s/$version_line/version: $new_version/" pubspec.yaml
+  sed -i "" "s|$version_line|version: $new_version|" pubspec.yaml
   git add pubspec.yaml
   
   # Handle MSIX version (platform-specific)
