@@ -16,12 +16,44 @@ mixin VariantMixin implements VariantInterface {
   Repository get repository;
 
   @override
-  Future<Variant?> getVariant({required String id}) async {
-    return (await repository.get<Variant>(
-      query: Query(where: [Where('id').isExactly(id)]),
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    ))
-        .firstOrNull;
+  Future<Variant?> getVariant(
+      {String? id,
+      String? modrId,
+      String? name,
+      String? itemCd,
+      String? bcd,
+      String? productId,
+      String? taskCd,
+      String? itemClsCd,
+      String? itemNm,
+      String? stockId}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    final query = Query(where: [
+      if (productId != null)
+        Where('productId', value: productId, compare: Compare.exact),
+      if (id != null) Where('id').isExactly(id),
+      if (modrId != null) ...[
+        Where('modrId', value: modrId, compare: Compare.exact),
+        Where('branchId').isExactly(branchId),
+      ] else if (name != null) ...[
+        Where('name', value: name, compare: Compare.exact),
+        Where('branchId').isExactly(branchId),
+      ] else if (bcd != null) ...[
+        Where('bcd', value: bcd, compare: Compare.exact),
+        Where('branchId').isExactly(branchId),
+      ] else if (itemCd != null && itemClsCd != null && itemNm != null) ...[
+        Where('itemCd').isExactly(itemCd),
+        Where('itemClsCd').isExactly(itemClsCd),
+        Where('itemNm').isExactly(itemNm),
+        Where('branchId').isExactly(branchId),
+      ] else if (taskCd != null) ...[
+        Where('taskCd').isExactly(taskCd),
+        Where('branchId').isExactly(branchId),
+      ] else if (stockId != null) ...[
+        Where('stockId').isExactly(stockId),
+      ]
+    ]);
+    return (await repository.get<Variant>(query: query)).firstOrNull;
   }
 
   @override
@@ -236,14 +268,19 @@ mixin VariantMixin implements VariantInterface {
           if (newVariantSaved.imptItemSttsCd != "1" ||
               newVariantSaved.pchsSttsCd != "1") {
             // get the sar
-            final sar = await ProxyService.strategy.getSar(branchId: branchId);
+            Sar? sar = await ProxyService.strategy.getSar(branchId: branchId);
             await ebmSyncService.stockIo(
               invoiceNumber: sar?.sarNo ?? 1,
               variant: newVariantSaved,
               serverUrl: (await ProxyService.box.getServerUrl())!,
             );
             // increament sar and save
-            sar!.sarNo = sar.sarNo + 1;
+
+            if (sar == null) {
+              sar = Sar(branchId: branchId, sarNo: 1);
+            } else {
+              sar.sarNo = sar.sarNo + 1;
+            }
             await repository.upsert<Sar>(sar);
           }
           return newVariantSaved;

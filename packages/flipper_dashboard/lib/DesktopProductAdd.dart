@@ -562,6 +562,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                       },
                                       loading: () => DropdownButtonWithLabel(
                                         label: "Category",
+                                        onAdd: () {
+                                          showAddCategoryModal(context);
+                                        },
                                         selectedValue: null,
                                         options: const [],
                                         onChanged: (String? _) {},
@@ -569,6 +572,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                       error: (err, stack) =>
                                           DropdownButtonWithLabel(
                                         label: "Category",
+                                        onAdd: () {
+                                          showAddCategoryModal(context);
+                                        },
                                         selectedValue: null,
                                         options: const [],
                                         onChanged: (String? _) {},

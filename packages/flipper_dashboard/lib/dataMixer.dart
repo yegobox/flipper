@@ -108,7 +108,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           toast("Failed to delete product image. Product deletion aborted.");
         }
       } else {
-        toast("Can't delete shared product");
+        toast("Can't be deleted or has been deleted.");
       }
     } catch (e) {
       // Optionally log error

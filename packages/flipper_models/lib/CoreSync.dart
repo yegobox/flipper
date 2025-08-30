@@ -2280,48 +2280,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Variant?> getVariant(
-      {String? id,
-      String? modrId,
-      String? name,
-      String? itemCd,
-      String? bcd,
-      String? productId,
-      String? taskCd,
-      String? itemClsCd,
-      String? itemNm,
-      String? stockId}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-    final query = brick.Query(where: [
-      if (productId != null)
-        brick.Where('productId',
-            value: productId, compare: brick.Compare.exact),
-      if (id != null) brick.Where('id').isExactly(id),
-      if (modrId != null) ...[
-        brick.Where('modrId', value: modrId, compare: brick.Compare.exact),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (name != null) ...[
-        brick.Where('name', value: name, compare: brick.Compare.exact),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (bcd != null) ...[
-        brick.Where('bcd', value: bcd, compare: brick.Compare.exact),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (itemCd != null && itemClsCd != null && itemNm != null) ...[
-        brick.Where('itemCd').isExactly(itemCd),
-        brick.Where('itemClsCd').isExactly(itemClsCd),
-        brick.Where('itemNm').isExactly(itemNm),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (taskCd != null) ...[
-        brick.Where('taskCd').isExactly(taskCd),
-        brick.Where('branchId').isExactly(branchId),
-      ] else if (stockId != null) ...[
-        brick.Where('stockId').isExactly(stockId),
-      ]
-    ]);
-    return (await repository.get<Variant>(query: query)).firstOrNull;
-  }
-
-  @override
   DatabaseSyncInterface instance() {
     return this;
   }

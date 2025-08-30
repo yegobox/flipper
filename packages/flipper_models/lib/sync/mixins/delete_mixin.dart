@@ -29,7 +29,17 @@ mixin DeleteMixin implements DeleteInterface {
     return result.firstOrNull;
   }
 
-  Future<Variant?> getVariant({required String id});
+  Future<Variant?> getVariant(
+      {String? id,
+      String? modrId,
+      String? name,
+      String? itemCd,
+      String? bcd,
+      String? productId,
+      String? taskCd,
+      String? itemClsCd,
+      String? itemNm,
+      String? stockId});
   Future<Stock?> getStockById({required String id});
   FutureOr<List<Customer>> customers({int? branchId, String? key, String? id});
   // FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});

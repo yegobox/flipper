@@ -63,35 +63,21 @@ class DropdownButtonWithLabel extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: borderColor ?? Colors.grey,
-                ),
+                borderSide: BorderSide(color: borderColor ?? Colors.grey),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: borderColor ?? Colors.grey,
-                ),
+                borderSide: BorderSide(color: borderColor ?? Colors.grey),
               ),
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade300,
-                ),
+                borderSide: BorderSide(color: Colors.grey.shade300),
               ),
-              suffixIcon: onAdd != null
-                  ? IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: isEnabled ? onAdd : null,
-                      tooltip: 'Add',
-                    )
-                  : null,
             ),
             items: options.map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
                 child: Text(
-                  // Use display name if available, otherwise use the value itself
                   displayNames?[value] ?? value,
                   style: TextStyle(
                     color: isEnabled ? Colors.black : Colors.grey,
@@ -108,9 +94,20 @@ class DropdownButtonWithLabel extends StatelessWidget {
                   return null;
                 },
             dropdownColor: Colors.white,
-            icon: Icon(
-              Icons.arrow_drop_down,
-              color: isEnabled ? Colors.black : Colors.grey,
+            icon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (onAdd != null)
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    onPressed: isEnabled ? onAdd : null,
+                    tooltip: 'Add',
+                  ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: isEnabled ? Colors.black : Colors.grey,
+                ),
+              ],
             ),
             isExpanded: true,
             style: TextStyle(
