@@ -343,15 +343,22 @@ void main() {
               (_) async => RwApiResponse(resultCd: "500", resultMsg: "Error"));
 
       // Act & Assert
-      await expectLater(
-        coreViewModel.acceptPurchase(
+      var exceptionThrown = false;
+      try {
+        await coreViewModel.acceptPurchase(
           pchsSttsCd: "02",
           purchases: [],
           purchase: testPurchase,
           itemMapper: {},
-        ),
-        throwsA(isA<PurchaseAcceptanceException>()),
-      );
+        );
+        fail('Expected a PurchaseAcceptanceException but none was thrown.');
+      } on PurchaseAcceptanceException {
+        exceptionThrown = true;
+      } catch (e) {
+        fail('Expected a PurchaseAcceptanceException but got $e');
+      }
+      expect(exceptionThrown, isTrue,
+          reason: 'Expected PurchaseAcceptanceException to be thrown.');
 
       // Verify the call was made
       verify(() => mockTaxApi.savePurchases(

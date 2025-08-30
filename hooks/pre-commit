@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Define a lock file to prevent concurrent runs
 LOCKFILE=/tmp/pre-commit.lock
 
@@ -24,75 +23,82 @@ fi
 # Create the lock file
 touch "$LOCKFILE"
 
-# Navigate to the correct directory
-cd apps/flipper
+# Configuration: Add folders to exclude (space-separated list)
+EXCLUDE_FOLDERS=("node_modules" "build" "test","packages","open-sources")
 
-# Get the current version from pubspec.yaml
-version=$(grep "version: " pubspec.yaml | cut -d' ' -f2)
+# Build find exclusion pattern
+EXCLUDE_PATTERN=""
+for folder in "${EXCLUDE_FOLDERS[@]}"; do
+  EXCLUDE_PATTERN+="! -path \"*/$folder/*\" "
+done
 
-# Increment the version
-major=$(echo "$version" | cut -d'.' -f1)
-minor=$(echo "$version" | cut -d'.' -f2)
-patch=$(echo "$version" | cut -d'.' -f3 | cut -d'+' -f1)
-patch=$((patch + 1))
-new_version="$major.$minor.$patch+$(date +%s)"
-
-# Replace version in pubspec.yaml
-sed -i "" "s/version: $version/version: $new_version/" pubspec.yaml
-
-# Commit the change
-git add pubspec.yaml
-# Uncomment the next line to enable automatic commits
-# git commit -m "Bump version to $new_version"
-
-# Get the current operating system
-OS=$(uname)
-
-if [ "$OS" == "Darwin" ] || [ "$OS" == "Linux" ]; then
-  # Get current msix_version
-  msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
-
-  # Increment the third number
-  IFS='.' read -ra version_parts <<< "$msix_version"
-  version_parts[2]=$((version_parts[2] + 1))
-  version_parts[3]=0
-
-  # Set the new msix_version
-  new_msix_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}.${version_parts[3]}"
-
-  # Replace msix_version in pubspec.yaml
-  sed -i.bak "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml && rm pubspec.yaml.bak
-
-  # Commit if the version has changed
-  if [ "$msix_version" != "$new_msix_version" ]; then
-    git add pubspec.yaml
-    git commit -m "Increment MSIX version to $new_msix_version"
+# Find all pubspec.yaml files excluding specified folders
+eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PUBSPEC_PATH; do
+  # Extract directory path
+  APP_DIR=$(dirname "$PUBSPEC_PATH")
+  
+  # Navigate to app directory
+  cd "$APP_DIR" || continue
+  
+  # Process version increment
+  echo "Processing $APP_DIR/pubspec.yaml"
+  
+  # Get current version
+  version=$(grep "version: " pubspec.yaml | awk '{print $2}')
+  
+  # Skip if no version found or invalid format
+  if [[ -z "$version" ]]; then
+    echo "No valid version found in $APP_DIR/pubspec.yaml"
+    continue
   fi
-
-elif [ "$OS" == "Windows" ]; then
-  # Get current msix_version
-  msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
-
-  # Increment the third number
-  IFS='.' read -ra version_parts <<< "$msix_version"
-  version_parts[2]=$((version_parts[2] + 1))
-  version_parts[3]=0
-
-  # Set the new msix_version
-  new_msix_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}.${version_parts[3]}"
-
-  # Replace msix_version in pubspec.yaml
-  sed -i "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
-
-  # Commit if the version has changed
-  if [ "$msix_version" != "$new_msix_version" ]; then
-    git add pubspec.yaml
-    git commit -m "Increment MSIX version to $new_msix_version"
+  
+  # Increment patch version
+  major=$(echo "$version" | cut -d '.' -f1)
+  minor=$(echo "$version" | cut -d '.' -f2)
+  patch=$(echo "$version" | cut -d '.' -f3 | cut -d '+' -f1)
+  patch=$((patch + 1))
+  new_version="$major.$minor.$patch+$(date +%s)"
+  
+  # Update pubspec.yaml
+  sed -i "" "s/version: $version/version: $new_version/" pubspec.yaml
+  git add pubspec.yaml
+  
+  # Handle MSIX version (platform-specific)
+  OS=$(uname)
+  if [[ "$OS" == "Darwin" || "$OS" == "Linux" ]]; then
+    msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
+    if [[ -n "$msix_version" ]]; then
+      IFS='.' read -ra parts <<< "$msix_version"
+      parts[2]=$((parts[2] + 1))
+      parts[3]=0
+      new_msix_version="${parts[0]}.${parts[1]}.${parts[2]}.${parts[3]}"
+      
+      sed -i.bak "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml && rm pubspec.yaml.bak
+      if [[ "$msix_version" != "$new_msix_version" ]]; then
+        git add pubspec.yaml
+        git commit -m "Increment MSIX version to $new_msix_version"
+      fi
+    fi
+  elif [[ "$OS" == "Windows" ]]; then
+    msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
+    if [[ -n "$msix_version" ]]; then
+      IFS='.' read -ra parts <<< "$msix_version"
+      parts[2]=$((parts[2] + 1))
+      parts[3]=0
+      new_msix_version="${parts[0]}.${parts[1]}.${parts[2]}.${parts[3]}"
+      
+      sed -i "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
+      if [[ "$msix_version" != "$new_msix_version" ]]; then
+        git add pubspec.yaml
+        git commit -m "Increment MSIX version to $new_msix_version"
+      fi
+    fi
+  else
+    echo "::warning::Unsupported operating system: $OS. Skipping MSIX version increment."
   fi
+  
+  # Return to original directory
+  cd - > /dev/null
+done
 
-else
-  echo "::warning::Unsupported operating system: $OS. Skipping version increment."
-fi
-
-# Exit with success
 exit 0
