@@ -344,14 +344,12 @@ void main() {
 
       // Act & Assert
       await expectLater(
-        () async {
-          await coreViewModel.acceptPurchase(
-            pchsSttsCd: "02",
-            purchases: [],
-            purchase: testPurchase,
-            itemMapper: {},
-          );
-        },
+        coreViewModel.acceptPurchase(
+          pchsSttsCd: "02",
+          purchases: [],
+          purchase: testPurchase,
+          itemMapper: {},
+        ),
         throwsA(isA<PurchaseAcceptanceException>()),
       );
 
@@ -1066,7 +1064,7 @@ void main() {
     test('#transactions should handle different timezone edge cases', () async {
       // Clear any previous interactions
       clearInteractions(mockDbSync);
-      
+
       // Test with UTC date that could cross timezone boundaries
       final utcDate = DateTime.utc(2025, 7, 29, 22, 0, 0); // 10 PM UTC
       final localDate = DateTime(2025, 7, 29); // Local midnight
