@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flipper_scanner/scanner_actions.dart';
+import 'package:flipper_services/event_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -103,7 +105,7 @@ class AuthScannerActions implements ScannerActions {
     if (split.length > 1 && split[0] == 'login') {
       // Check if we have network connectivity
       Connectivity().checkConnectivity().then((connectivityResult) {
-        if (connectivityResult == ConnectivityResult.none) {
+        if (connectivityResult.any((test) => test == ConnectivityResult.none)) {
           // We're offline, show a specific message
           ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
           showSimpleNotification(
@@ -157,7 +159,7 @@ class AuthScannerActions implements ScannerActions {
       String linkingCode = randomNumber().toString();
 
       // Create a unique response channel for this login attempt
-      String responseChannel = 'login-response-${userId}-${linkingCode}';
+      String responseChannel = 'login-response-$userId-$linkingCode';
 
       // Start listening for response on the response channel
       _listenForLoginResponse(responseChannel);
@@ -189,26 +191,12 @@ class AuthScannerActions implements ScannerActions {
 
         // Wait a moment to show failure state before closing
         await Future.delayed(Duration(milliseconds: 1500));
+      } else {
+        // Handle successful publish
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.success;
+        await Future.delayed(Duration(seconds: 2));
         pop();
       }
-
-      // Set up a timeout timer that will be canceled if we get a response
-      Timer(Duration(seconds: 15), () {
-        // Only proceed if we're still processing
-        if (ref.read(scanStatusProvider) == ScanStatus.processing) {
-          ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-          showSimpleNotification('Login timed out. Please try again.');
-
-          // Wait a moment to show failure state before closing
-          Timer(Duration(milliseconds: 1500), () {
-            pop();
-          });
-
-          // Clean up subscription since we're done
-          // _loginResponseSubscription?.unsubscribe(); // _loginResponseSubscription is not accessible here
-          // _loginResponseSubscription = null;
-        }
-      });
     } catch (e) {
       // Handle any exceptions
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
@@ -216,7 +204,6 @@ class AuthScannerActions implements ScannerActions {
 
       // Wait a moment to show failure state before closing
       await Future.delayed(Duration(milliseconds: 1500));
-      pop();
     }
   }
 
@@ -224,9 +211,6 @@ class AuthScannerActions implements ScannerActions {
     try {
       // Use the connect method to get the PubNub instance
       nub.PubNub pubNub = getEventService().connect();
-
-      // Subscribe to the response channel
-      // _loginResponseSubscription = pubNub.subscribe(channels: {responseChannel}); // _loginResponseSubscription is not accessible here
 
       // Listen for messages on this channel
       pubNub.subscribe(channels: {responseChannel}).messages.listen((envelope) {
@@ -238,13 +222,8 @@ class AuthScannerActions implements ScannerActions {
                 // Update UI to show success
                 ref.read(scanStatusProvider.notifier).state =
                     ScanStatus.success;
-                // HapticFeedback.lightImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
+                triggerHapticFeedback(); // HapticFeedback is in flutter/services.dart, not accessible here
                 showSimpleNotification('Login successful');
-
-                // Wait a moment to show success state before closing
-                Future.delayed(Duration(milliseconds: 1500)).then((_) {
-                  pop();
-                });
               } else if (response['status'] == 'choices_needed') {
                 // This is not a failure - it's part of the normal flow when a user
                 // needs to select a business/branch
@@ -253,11 +232,6 @@ class AuthScannerActions implements ScannerActions {
                 // HapticFeedback.lightImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
                 showSimpleNotification(
                     'Login successful - select your business');
-
-                // Wait a moment to show success state before closing
-                Future.delayed(Duration(milliseconds: 1500)).then((_) {
-                  pop();
-                });
               } else {
                 // Update UI to show failure
                 ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
@@ -267,59 +241,37 @@ class AuthScannerActions implements ScannerActions {
                     : 'Login failed';
 
                 showSimpleNotification(errorMessage);
-
-                // Wait a moment to show failure state before closing
-                Future.delayed(Duration(milliseconds: 1500)).then((_) {
-                  pop();
-                });
               }
-
-              // Cancel the timeout timer since we got a response
-              // _loginTimeoutTimer?.cancel(); // _loginTimeoutTimer is not accessible here
-              // _loginTimeoutTimer = null;
-
-              // Unsubscribe after receiving response
-              // _loginResponseSubscription?.unsubscribe(); // _loginResponseSubscription is not accessible here
-              // _loginResponseSubscription = null;
             }
           }, onError: (error) {
             // Handle subscription error
             ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
             showSimpleNotification('Connection error: $error');
-
-            // Wait a moment to show failure state before closing
-            Future.delayed(Duration(milliseconds: 1500)).then((_) {
-              pop();
-            });
           });
     } catch (e) {
       // Handle any exceptions
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
       showSimpleNotification('Subscription error: $e');
-
-      // Wait a moment to show failure state before closing
-      Future.delayed(Duration(milliseconds: 1500)).then((_) {
-        pop();
-      });
     }
   }
 
   @override
-  int getUserId() => throw UnimplementedError();
+  int getUserId() => ProxyService.box.getUserId()!;
   @override
-  int getBusinessId() => throw UnimplementedError();
+  int getBusinessId() => ProxyService.box.getBusinessId()!;
   @override
-  int getBranchId() => throw UnimplementedError();
+  int getBranchId() => ProxyService.box.getBranchId()!;
   @override
-  String getUserPhone() => throw UnimplementedError();
+  String getUserPhone() => ProxyService.box.getUserPhone()!;
   @override
-  String getDefaultApp() => throw UnimplementedError();
+  String getDefaultApp() => ProxyService.box.getDefaultApp() ?? "1";
   @override
   FutureOr<Pin?> getPinLocal(
           {required int userId, required bool alwaysHydrate}) =>
-      throw UnimplementedError();
+      ProxyService.strategy.getPinLocal(alwaysHydrate: alwaysHydrate);
   @override
-  dynamic getEventService() => throw UnimplementedError();
+  EventService getEventService() =>
+      EventService(userId: getUserId().toString());
   @override
   dynamic getBoxService() => throw UnimplementedError();
   @override

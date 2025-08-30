@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -67,7 +68,7 @@ class CheckoutScannerActions extends ScannerActions {
   }
 
   @override
-  nub.PubNub getEventService() {
+  EventService getEventService() {
     throw UnimplementedError();
   }
 

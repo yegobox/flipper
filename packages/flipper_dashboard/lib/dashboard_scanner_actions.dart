@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flipper_scanner/scanner_actions.dart';
+import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flipper_models/db_model_export.dart'; // For Product
@@ -111,8 +112,7 @@ class DashboardScannerActions implements ScannerActions {
       // get the pin
       final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
 
-      nub.PublishResult result =
-          await getEventService().publish(loginDetails: {
+      nub.PublishResult result = await getEventService().publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -141,16 +141,16 @@ class DashboardScannerActions implements ScannerActions {
         // Only proceed if we're still processing
         // if (ref.read(scanStatusProvider) == ScanStatus.processing) { // ref is not available here
         //   ref.read(scanStatusProvider.notifier).state = ScanStatus.failed; // ref is not available here
-          showSimpleNotification('Login timed out. Please try again.');
+        showSimpleNotification('Login timed out. Please try again.');
 
-          // Wait a moment to show failure state before closing
-          Timer(Duration(milliseconds: 1500), () {
-            pop();
-          });
+        // Wait a moment to show failure state before closing
+        Timer(Duration(milliseconds: 1500), () {
+          pop();
+        });
 
-          // Clean up subscription since we're done
-          _loginResponseSubscription?.unsubscribe();
-          _loginResponseSubscription = null;
+        // Clean up subscription since we're done
+        _loginResponseSubscription?.unsubscribe();
+        _loginResponseSubscription = null;
         // }
       });
     } catch (e) {
@@ -170,7 +170,8 @@ class DashboardScannerActions implements ScannerActions {
       nub.PubNub pubNub = getEventService().connect();
 
       // Subscribe to the response channel
-      _loginResponseSubscription = pubNub.subscribe(channels: {responseChannel});
+      _loginResponseSubscription =
+          pubNub.subscribe(channels: {responseChannel});
 
       // Listen for messages on this channel
       _loginResponseSubscription!.messages.listen((envelope) {
@@ -261,7 +262,8 @@ class DashboardScannerActions implements ScannerActions {
       ProxyService.strategy
           .getPinLocal(userId: userId, alwaysHydrate: alwaysHydrate);
   @override
-  dynamic getEventService() => ProxyService.event;
+  EventService getEventService() =>
+      EventService(userId: getUserId().toString());
   @override
   dynamic getBoxService() => ProxyService.box;
   @override

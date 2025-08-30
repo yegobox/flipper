@@ -1,14 +1,17 @@
 import 'dart:developer';
 
+import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_dashboard/letter.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 /// when the user upload image
@@ -158,7 +161,7 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
   }
 }
 
-class PMobile extends StatelessWidget {
+class PMobile extends HookConsumerWidget {
   const PMobile({
     super.key,
     required this.widget,
@@ -171,10 +174,19 @@ class PMobile extends StatelessWidget {
   final bool sessionActive;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
-      onLongPress: () =>
-          locator<RouterService>().navigateTo(ScannViewRoute(intent: 'login')),
+      onLongPress: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScannView(
+              intent: LOGIN,
+              scannerActions: AuthScannerActions(context, ref),
+            ),
+          ),
+        );
+      },
       onTap: () {
         dialogService.showCustomDialog(
             variant: DialogType.logOut, title: 'Log out');
