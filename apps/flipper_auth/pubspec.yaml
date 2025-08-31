@@ -2,7 +2,7 @@ name: flipper_auth
 description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.1+102
+version: 1.0.1+103
 # 
 environment:
   sdk: ">=3.0.0"
@@ -39,7 +39,7 @@ dependency_overrides:
   mime: ^2.0.0  # satisfy supabase_flutter's mime requirement
   sqlite3: ^2.9.0  # keep sqlite3 consistent
   nfc_manager: ^4.0.2
-  cbor: ^6.2.0
+  cbor: ^6.3.7
   pubnub: ^5.2.0
 
 dev_dependencies:

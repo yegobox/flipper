@@ -24,7 +24,7 @@ dependency_overrides:
   archive: ^3.6.1  # unify archive across packages
   mime: ^2.0.0  # satisfy supabase_flutter's mime requirement
   sqlite3: ^2.9.0  # keep sqlite3 consistent
-  cbor: ^6.2.0
+  cbor: ^6.3.7
   pubnub: ^5.2.0
 
 dev_dependencies:
