@@ -20,7 +20,7 @@ dependency_overrides:
   mime: ^2.0.0  # satisfy supabase_flutter's mime requirement
   sqlite3: ^2.9.0  # keep sqlite3 consistent
   # nfc_manager: ^4.0.2
-  cbor: ^6.3.7
+  cbor: ^4.0.0
   pubnub: ^5.2.0
 dev_dependencies:
   flutter_test:

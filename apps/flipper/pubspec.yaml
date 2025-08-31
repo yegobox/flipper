@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
-version: 1.180.4252223234901+1756527953
+version: 1.180.4252223234901+1756527954
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -159,7 +159,7 @@ dependency_overrides:
   mime: ^2.0.0
   get_it: ^8.0.3
   nfc_manager: ^4.0.2
-  cbor: ^6.3.7
+  cbor: ^4.0.0
   pubnub: ^5.2.0
 
 dev_dependencies:
@@ -193,7 +193,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
 
-  msix_version: 1.170.5051.14
+  msix_version: 1.170.5051.15
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
