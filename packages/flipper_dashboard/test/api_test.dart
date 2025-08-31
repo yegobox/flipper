@@ -319,7 +319,7 @@ void main() {
     // Tests that acceptPurchase correctly handles tax service failure and rolls back changes.
     // - Verifies that a PurchaseAcceptanceException is thrown when the tax service fails.
     // - Ensures that no database updates are made if the tax service reporting fails.
-    // FUXME: re-enable this test bellow.
+    // FIXME: re-enable this test bellow.
     // test(
     //     '#acceptPurchase should handle tax service failure and rollback changes',
     //     () async {
