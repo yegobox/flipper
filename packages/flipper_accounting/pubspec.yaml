@@ -1,7 +1,7 @@
 name: flipper_accounting
 description: A new Flutter package.
 version: 0.0.1
-homepage: 
+# homepage: 
 
 environment:
   sdk: ">=3.0.0"
@@ -23,6 +23,8 @@ dependency_overrides:
   sqlite3: ^2.9.0
   device_info_plus: ^11.3.3
   archive: ^3.6.1
+  cbor: ^6.2.0
+  pubnub: ^5.2.0
 
 dev_dependencies:
   flutter_test:

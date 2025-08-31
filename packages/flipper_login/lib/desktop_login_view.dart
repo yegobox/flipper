@@ -305,8 +305,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   ),
                   SizedBox(
                       width: 380,
-                      child: Text(
-                          '2. Go to Settings > Devices > Link Desktop Device',
+                      child: Text('2. Go to Profile Icon > LongPress on it.',
                           style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w400,
                               fontSize: 15,

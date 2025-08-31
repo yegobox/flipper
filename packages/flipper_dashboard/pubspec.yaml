@@ -128,6 +128,7 @@ dependencies:
   flipper_auth: any
   realm_dart: ^20.1.1
   flutter_soloud: ^3.3.1
+  ditto_live: ^5.0.0-experimental-windows.5
 
 dependency_overrides:
   http: ^1.2.2
@@ -139,6 +140,8 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   mime: ^2.0.0
+  cbor: ^6.2.0
+  pubnub: ^5.2.0
 
 flutter:
   # The following line ensures that the Material Icons font is

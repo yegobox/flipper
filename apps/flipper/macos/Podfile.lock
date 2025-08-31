@@ -157,6 +157,8 @@ PODS:
     - FlutterMacOS
   - flutter_localization (0.0.1):
     - FlutterMacOS
+  - flutter_soloud (0.0.1):
+    - FlutterMacOS
   - FlutterMacOS (1.0.0)
   - geolocator_apple (1.2.0):
     - Flutter
@@ -343,6 +345,7 @@ DEPENDENCIES:
   - firebase_remote_config (from `Flutter/ephemeral/.symlinks/plugins/firebase_remote_config/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_localization (from `Flutter/ephemeral/.symlinks/plugins/flutter_localization/macos`)
+  - flutter_soloud (from `Flutter/ephemeral/.symlinks/plugins/flutter_soloud/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - geolocator_apple (from `Flutter/ephemeral/.symlinks/plugins/geolocator_apple/darwin`)
   - google_sign_in_ios (from `Flutter/ephemeral/.symlinks/plugins/google_sign_in_ios/darwin`)
@@ -441,6 +444,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
   flutter_localization:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_localization/macos
+  flutter_soloud:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_soloud/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   geolocator_apple:
@@ -532,6 +537,7 @@ SPEC CHECKSUMS:
   FirebaseSharedSwift: 59266c22ccfcef604d725c034c568fa666ea9bda
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_localization: 4035848ae2ed142875d5fd3dde328250a5e81f42
+  flutter_soloud: 6487a1bee397951f3f15f4a855d4da3812e1c3a8
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   google_sign_in_ios: 7411fab6948df90490dc4620ecbcabdc3ca04017

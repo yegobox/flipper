@@ -43,8 +43,9 @@ dependency_overrides:
   device_info_plus: ^11.3.3
   archive: ^3.6.1
   excel: ^4.0.6
-  
-  
+  cbor: ^6.2.0
+  pubnub: ^5.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
