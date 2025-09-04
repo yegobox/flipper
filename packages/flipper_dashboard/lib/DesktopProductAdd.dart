@@ -6,6 +6,7 @@ import 'package:flipper_services/GlobalLogError.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
 import 'package:flipper_dashboard/DropdownButtonWithLabel.dart';
+import 'package:flipper_dashboard/SearchableCategoryDropdown.dart';
 import 'package:flipper_dashboard/FieldCompositeActivated.dart';
 import 'package:flipper_dashboard/ProductTypeDropdown.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
@@ -528,58 +529,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                   },
                                 ),
                                 const SizedBox(height: 16),
-                                Consumer(
-                                  builder: (context, ref, child) {
-                                    final categoryAsyncValue =
-                                        ref.watch(categoryProvider);
-                                    return categoryAsyncValue.when(
-                                      data: (categories) {
-                                        final categoryOptions = categories
-                                            .map((cat) =>
-                                                "${cat.id}:${cat.name}")
-                                            .toList();
-                                        final displayNames = Map.fromEntries(
-                                            categories.map((cat) => MapEntry(
-                                                "${cat.id}:${cat.name}",
-                                                cat.name)));
-                                        return DropdownButtonWithLabel(
-                                          onAdd: () {
-                                            showAddCategoryModal(context);
-                                          },
-                                          label: "Category",
-                                          selectedValue: selectedCategoryId,
-                                          options: categoryOptions,
-                                          displayNames: displayNames,
-                                          onChanged: (String? newValue) {
-                                            if (mounted && newValue != null) {
-                                              final value = newValue.split(":");
-                                              setState(() {
-                                                selectedCategoryId = value[0];
-                                              });
-                                            }
-                                          },
-                                        );
-                                      },
-                                      loading: () => DropdownButtonWithLabel(
-                                        label: "Category",
-                                        onAdd: () {
-                                          showAddCategoryModal(context);
-                                        },
-                                        selectedValue: null,
-                                        options: const [],
-                                        onChanged: (String? _) {},
-                                      ),
-                                      error: (err, stack) =>
-                                          DropdownButtonWithLabel(
-                                        label: "Category",
-                                        onAdd: () {
-                                          showAddCategoryModal(context);
-                                        },
-                                        selectedValue: null,
-                                        options: const [],
-                                        onChanged: (String? _) {},
-                                      ),
-                                    );
+                                SearchableCategoryDropdown(
+                                  selectedValue: selectedCategoryId,
+                                  onChanged: (String? newValue) {
+                                    if (mounted && newValue != null) {
+                                      setState(() {
+                                        selectedCategoryId = newValue;
+                                      });
+                                    }
+                                  },
+                                  onAdd: () {
+                                    showAddCategoryModal(context);
                                   },
                                 ),
                               ],
@@ -602,53 +562,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: Consumer(
-                                    builder: (context, ref, child) {
-                                      final categoryAsyncValue =
-                                          ref.watch(categoryProvider);
-                                      return categoryAsyncValue.when(
-                                        data: (categories) {
-                                          final categoryOptions = categories
-                                              .map((cat) =>
-                                                  "${cat.id}:${cat.name}")
-                                              .toList();
-                                          final displayNames = Map.fromEntries(
-                                              categories.map((cat) => MapEntry(
-                                                  "${cat.id}:${cat.name}",
-                                                  cat.name)));
-                                          return DropdownButtonWithLabel(
-                                            onAdd: () {
-                                              showAddCategoryModal(context);
-                                            },
-                                            label: "Category",
-                                            selectedValue: selectedCategoryId,
-                                            options: categoryOptions,
-                                            displayNames: displayNames,
-                                            onChanged: (String? newValue) {
-                                              if (mounted && newValue != null) {
-                                                final value =
-                                                    newValue.split(":");
-                                                setState(() {
-                                                  selectedCategoryId = value[0];
-                                                });
-                                              }
-                                            },
-                                          );
-                                        },
-                                        loading: () => DropdownButtonWithLabel(
-                                          label: "Category",
-                                          selectedValue: null,
-                                          options: const [],
-                                          onChanged: (String? _) {},
-                                        ),
-                                        error: (err, stack) =>
-                                            DropdownButtonWithLabel(
-                                          label: "Category",
-                                          selectedValue: null,
-                                          options: const [],
-                                          onChanged: (String? _) {},
-                                        ),
-                                      );
+                                  child: SearchableCategoryDropdown(
+                                    selectedValue: selectedCategoryId,
+                                    onChanged: (String? newValue) {
+                                      if (mounted && newValue != null) {
+                                        setState(() {
+                                          selectedCategoryId = newValue;
+                                        });
+                                      }
+                                    },
+                                    onAdd: () {
+                                      showAddCategoryModal(context);
                                     },
                                   ),
                                 ),
@@ -905,8 +829,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                             model.onScanItem(
                               countryCode: countryOfOriginController.text,
                               editmode: widget.productId != null,
-                              barCode: scannedInputController
-                                  .text, 
+                              barCode: scannedInputController.text,
                               retailPrice:
                                   double.tryParse(retailPriceController.text) ??
                                       0,

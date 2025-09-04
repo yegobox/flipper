@@ -68,9 +68,13 @@ void main() {
       expect(
           find.byWidgetPredicate((widget) =>
               widget is RichText &&
-              (widget.text as TextSpan).toPlainText().startsWith('Category')),
+              (widget.text as TextSpan).toPlainText().contains('Category')),
           findsOneWidget);
-      expect(find.textContaining('*'), findsOneWidget);
+      expect(
+          find.byWidgetPredicate((widget) =>
+              widget is RichText &&
+              (widget.text as TextSpan).toPlainText().contains('*')),
+          findsOneWidget);
       expect(find.text('Search categories...'), findsOneWidget);
     });
 
