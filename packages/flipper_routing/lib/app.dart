@@ -847,3 +847,7 @@ class App {}
 // xcrun simctl boot "iPhone 15 Pro iOS18"
 // open -a Simulator
 
+
+// WHEN realm 16 Page issue comes up here is the solution:
+// https://gist.github.com/richard457/a24b1de67fa00da0b027a5cbb0ba7a53
+

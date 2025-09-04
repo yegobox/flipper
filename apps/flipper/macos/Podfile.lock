@@ -27,6 +27,10 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
+  - ditto_live (5.0.0-experimental-windows.5):
+    - DittoFlutter (= 5.0.0-experimental-windows.5)
+    - FlutterMacOS
+  - DittoFlutter (5.0.0-experimental-windows.5)
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_selector_macos (0.0.1):
@@ -335,6 +339,7 @@ DEPENDENCIES:
   - desktop_drop (from `Flutter/ephemeral/.symlinks/plugins/desktop_drop/macos`)
   - desktop_webview_auth (from `Flutter/ephemeral/.symlinks/plugins/desktop_webview_auth/macos`)
   - device_info_plus (from `Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos`)
+  - ditto_live (from `Flutter/ephemeral/.symlinks/plugins/ditto_live/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - firebase_analytics (from `Flutter/ephemeral/.symlinks/plugins/firebase_analytics/macos`)
@@ -378,6 +383,7 @@ SPEC REPOS:
     - AppAuth
     - AppCheckCore
     - CocoaAsyncSocket
+    - DittoFlutter
     - Firebase
     - FirebaseABTesting
     - FirebaseAnalytics
@@ -424,6 +430,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/desktop_webview_auth/macos
   device_info_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/device_info_plus/macos
+  ditto_live:
+    :path: Flutter/ephemeral/.symlinks/plugins/ditto_live/macos
   file_picker:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   file_selector_macos:
@@ -511,6 +519,8 @@ SPEC CHECKSUMS:
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
+  ditto_live: 6747639ec8e4f5f656a104d3b52636376f52da5a
+  DittoFlutter: c5c594b468d2027ba0392cedd39e03b3a9e133e5
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: 800d487043c0557d9faed71477a38d9aafb08a41

@@ -56,64 +56,69 @@ class DropdownButtonWithLabel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: validatedSelectedValue,
-            decoration: InputDecoration(
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: borderColor ?? Colors.grey),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: borderColor ?? Colors.grey),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-            ),
-            items: options.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  displayNames?[value] ?? value,
-                  style: TextStyle(
-                    color: isEnabled ? Colors.black : Colors.grey,
+          Stack(
+            children: [
+              DropdownButtonFormField<String>(
+                initialValue: validatedSelectedValue,
+                decoration: InputDecoration(
+                  contentPadding: EdgeInsets.only(
+                    left: 12,
+                    top: 8,
+                    bottom: 8,
+                    right: onAdd != null ? 88 : 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: borderColor ?? Colors.grey),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: borderColor ?? Colors.grey),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
-              );
-            }).toList(),
-            onChanged: isEnabled ? onChanged : null,
-            validator: validator ??
-                (value) {
-                  if (isRequired && (value == null || value.isEmpty)) {
-                    return '$label is required';
-                  }
-                  return null;
-                },
-            dropdownColor: Colors.white,
-            icon: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (onAdd != null)
-                  IconButton(
+                items: options.map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      displayNames?[value] ?? value,
+                      style: TextStyle(
+                        color: isEnabled ? Colors.black : Colors.grey,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: isEnabled ? onChanged : null,
+                validator: validator ??
+                    (value) {
+                      if (isRequired && (value == null || value.isEmpty)) {
+                        return '$label is required';
+                      }
+                      return null;
+                    },
+                dropdownColor: Colors.white,
+                icon: Icon(Icons.arrow_drop_down),
+                isExpanded: true,
+                style: TextStyle(
+                  color: isEnabled ? Colors.black : Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+              if (onAdd != null)
+                Positioned(
+                  right: 40,
+                  top: 0,
+                  bottom: 0,
+                  child: IconButton(
                     icon: const Icon(Icons.add_circle_outline),
                     onPressed: isEnabled ? onAdd : null,
                     tooltip: 'Add',
                   ),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: isEnabled ? Colors.black : Colors.grey,
                 ),
-              ],
-            ),
-            isExpanded: true,
-            style: TextStyle(
-              color: isEnabled ? Colors.black : Colors.grey,
-              fontSize: 16,
-            ),
+            ],
           ),
         ],
       ),
