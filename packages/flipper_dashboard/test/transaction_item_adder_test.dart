@@ -14,7 +14,7 @@ import 'test_helpers/setup.dart';
 class MockCacheManager extends Mock implements CacheManager {}
 
 class MockStock extends Mock implements Stock {}
-// flutter test test/transaction_item_adder_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
+// flutter test test/transaction_item_adder_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true --coverage 
 
 void main() {
   late TestEnvironment env;
