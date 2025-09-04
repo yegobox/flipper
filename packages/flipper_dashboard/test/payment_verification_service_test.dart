@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 
+// flutter test test/payment_verification_service_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('PaymentVerificationService', () {
     late PaymentVerificationService service;
