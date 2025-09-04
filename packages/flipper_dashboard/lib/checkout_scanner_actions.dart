@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_dashboard/transaction_item_adder.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_soloud/flutter_soloud.dart'; // Added for sound playback
+import 'dart:io';
 
 class CheckoutScannerActions extends ScannerActions {
   final BuildContext context;
@@ -32,8 +33,8 @@ class CheckoutScannerActions extends ScannerActions {
     showCustomSnackBarUtil(context, 'Processing barcode: ${barcode.rawValue}');
 
     try {
-      // Initialize SoLoud if not already initialized
-      if (_soloud == null) {
+      // Initialize SoLoud only on mobile platforms
+      if ((Platform.isAndroid || Platform.isIOS) && _soloud == null) {
         _soloud = SoLoud.instance;
         await _soloud!.init();
         // Load the sound asset. Ensure 'assets/sound.mp3' exists in your project.
@@ -54,8 +55,8 @@ class CheckoutScannerActions extends ScannerActions {
           variant: variant,
           isOrdering: false,
         );
-        // Play sound on successful barcode detection
-        if (_soundSource != null) {
+        // Play sound on successful barcode detection (mobile only)
+        if ((Platform.isAndroid || Platform.isIOS) && _soundSource != null) {
           await _soloud!.play(_soundSource!);
         }
       } else {
@@ -68,15 +69,15 @@ class CheckoutScannerActions extends ScannerActions {
           backgroundColor: Colors.red);
     } finally {
       // Pop the scanner view after processing
-      // Note: SoLoud resources are disposed in the pop() method
-      Navigator.of(context).pop();
+      // Use the pop() method to ensure SoLoud resources are properly disposed
+      pop();
     }
   }
 
   @override
   void pop() {
-    // Dispose SoLoud resources when the scanner view is popped
-    if (_soloud != null) {
+    // Dispose SoLoud resources when the scanner view is popped (mobile only)
+    if ((Platform.isAndroid || Platform.isIOS) && _soloud != null) {
       if (_soundSource != null) {
         _soloud!.disposeSource(_soundSource!);
         _soundSource = null;

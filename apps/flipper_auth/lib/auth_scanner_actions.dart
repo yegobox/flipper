@@ -193,7 +193,8 @@ class AuthScannerActions implements ScannerActions {
         await Future.delayed(Duration(milliseconds: 1500));
       } else {
         // Handle successful publish
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.desktopLoginSuccess;
+        ref.read(scanStatusProvider.notifier).state =
+            ScanStatus.desktopLoginSuccess;
         await Future.delayed(Duration(seconds: 2));
         pop();
       }
@@ -268,7 +269,8 @@ class AuthScannerActions implements ScannerActions {
   @override
   FutureOr<Pin?> getPinLocal(
           {required int userId, required bool alwaysHydrate}) =>
-      ProxyService.strategy.getPinLocal(alwaysHydrate: alwaysHydrate);
+      ProxyService.strategy
+          .getPinLocal(alwaysHydrate: alwaysHydrate, userId: userId);
   @override
   EventService getEventService() =>
       EventService(userId: getUserId().toString());
