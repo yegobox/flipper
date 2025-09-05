@@ -17,6 +17,8 @@ class DashboardScannerActions implements ScannerActions {
 
   SoLoud? _soloud;
   AudioSource? _soundSource;
+  Timer? _autoPop;
+  bool _isClosed = false;
 
   DashboardScannerActions(this.context, this.ref);
 
@@ -41,7 +43,8 @@ class DashboardScannerActions implements ScannerActions {
       // Continue even if sound fails
     }
     
-    Future.delayed(Duration(milliseconds: 500), () {
+    _autoPop?.cancel();
+    _autoPop = Timer(Duration(milliseconds: 500), () {
       pop();
     });
   }
@@ -55,11 +58,23 @@ class DashboardScannerActions implements ScannerActions {
       return;
     }
     showSimpleNotification("Product not found");
-    pop();
+    _autoPop?.cancel();
+    _autoPop = Timer(Duration(milliseconds: 100), () {
+      pop();
+    });
   }
 
   @override
   void pop() {
+    if (_isClosed) return;
+    
+    _autoPop?.cancel();
+    _autoPop = null;
+    
+    if (!Navigator.canPop(context)) return;
+    
+    _isClosed = true;
+    
     // Dispose SoLoud resources when the scanner view is popped (mobile only)
     if ((Platform.isAndroid || Platform.isIOS) && _soloud != null) {
       if (_soundSource != null) {
@@ -70,6 +85,19 @@ class DashboardScannerActions implements ScannerActions {
       _soloud = null;
     }
     Navigator.of(context).pop();
+  }
+  
+  void dispose() {
+    _autoPop?.cancel();
+    _autoPop = null;
+    if ((Platform.isAndroid || Platform.isIOS) && _soloud != null) {
+      if (_soundSource != null) {
+        _soloud!.disposeSource(_soundSource!);
+        _soundSource = null;
+      }
+      _soloud!.deinit();
+      _soloud = null;
+    }
   }
 
   @override
