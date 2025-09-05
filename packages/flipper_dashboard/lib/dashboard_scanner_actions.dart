@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
-import 'src/platform.dart';
+import 'src/platform.dart' as platform;
 
 class DashboardScannerActions implements ScannerActions {
   final BuildContext context;
@@ -26,7 +26,7 @@ class DashboardScannerActions implements ScannerActions {
   void onBarcodeDetected(barcode) async {
     try {
       // Initialize SoLoud only on mobile platforms
-      if (isMobile && _soloud == null) {
+      if (platform.isMobile && _soloud == null) {
         _soloud = SoLoud.instance;
         await _soloud!.init();
         _soundSource = await _soloud!
@@ -36,7 +36,7 @@ class DashboardScannerActions implements ScannerActions {
       ProxyService.productService.setBarcode(barcode.rawValue);
       
       // Play sound on successful barcode detection (mobile only)
-      if (isMobile && _soundSource != null) {
+      if (platform.isMobile && _soundSource != null) {
         await _soloud!.play(_soundSource!);
       }
     } catch (e) {
@@ -76,7 +76,7 @@ class DashboardScannerActions implements ScannerActions {
     _isClosed = true;
     
     // Dispose SoLoud resources when the scanner view is popped (mobile only)
-    if (isMobile && _soloud != null) {
+    if (platform.isMobile && _soloud != null) {
       if (_soundSource != null) {
         _soloud!.disposeSource(_soundSource!);
         _soundSource = null;
@@ -90,7 +90,7 @@ class DashboardScannerActions implements ScannerActions {
   void dispose() {
     _autoPop?.cancel();
     _autoPop = null;
-    if (isMobile && _soloud != null) {
+    if (platform.isMobile && _soloud != null) {
       if (_soundSource != null) {
         _soloud!.disposeSource(_soundSource!);
         _soundSource = null;
