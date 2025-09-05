@@ -192,11 +192,8 @@ class AuthScannerActions implements ScannerActions {
         // Wait a moment to show failure state before closing
         await Future.delayed(Duration(milliseconds: 1500));
       } else {
-        // Handle successful publish
-        ref.read(scanStatusProvider.notifier).state =
-            ScanStatus.desktopLoginSuccess;
-        await Future.delayed(Duration(seconds: 2));
-        pop();
+        // Handle successful publish - keep in pending state
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.publishedPending;
       }
     } catch (e) {
       // Handle any exceptions
@@ -220,21 +217,22 @@ class AuthScannerActions implements ScannerActions {
 
             if (response.containsKey('status')) {
               if (response['status'] == 'success') {
-                // Update UI to show success
+                // Update UI to show success and close
                 ref.read(scanStatusProvider.notifier).state =
                     ScanStatus.desktopLoginSuccess;
-                triggerHapticFeedback(); // HapticFeedback is in flutter/services.dart, not accessible here
+                triggerHapticFeedback();
                 showSimpleNotification('Login successful');
+                Timer(const Duration(seconds: 1), pop);
               } else if (response['status'] == 'choices_needed') {
                 // This is not a failure - it's part of the normal flow when a user
                 // needs to select a business/branch
                 ref.read(scanStatusProvider.notifier).state =
                     ScanStatus.desktopLoginSuccess;
-                // HapticFeedback.lightImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
                 showSimpleNotification(
                     'Login successful - select your business');
+                Timer(const Duration(seconds: 1), pop);
               } else {
-                // Update UI to show failure
+                // Update UI to show failure and close
                 ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
 
                 String errorMessage = response.containsKey('message')
@@ -242,12 +240,14 @@ class AuthScannerActions implements ScannerActions {
                     : 'Login failed';
 
                 showSimpleNotification(errorMessage);
+                Timer(const Duration(seconds: 2), pop);
               }
             }
           }, onError: (error) {
-            // Handle subscription error
+            // Handle subscription error and close
             ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
             showSimpleNotification('Connection error: $error');
+            Timer(const Duration(seconds: 2), pop);
           });
     } catch (e) {
       // Handle any exceptions
