@@ -29,6 +29,37 @@ class SearchableCategoryDropdown extends ConsumerStatefulWidget {
 
 class _SearchableCategoryDropdownState
     extends ConsumerState<SearchableCategoryDropdown> {
+  TextEditingController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateControllerText();
+  }
+
+  @override
+  void didUpdateWidget(SearchableCategoryDropdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedValue != widget.selectedValue) {
+      _updateControllerText();
+    }
+  }
+
+  void _updateControllerText() {
+    if (widget.selectedValue != null && _controller != null) {
+      final categoryAsyncValue = ref.read(categoryProvider);
+      categoryAsyncValue.whenData((categories) {
+        final category = categories.firstWhere(
+          (cat) => cat.id == widget.selectedValue,
+          orElse: () => Category(id: '', name: ''),
+        );
+        if (category.name!.isNotEmpty) {
+          _controller!.text = category.name!;
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final categoryAsyncValue = ref.watch(categoryProvider);
@@ -72,18 +103,8 @@ class _SearchableCategoryDropdownState
                   );
                 },
                 builder: (context, controller, focusNode) {
-                  if (widget.selectedValue != null && controller.text.isEmpty) {
-                    final categoryAsyncValue = ref.read(categoryProvider);
-                    categoryAsyncValue.whenData((categories) {
-                      final category = categories.firstWhere(
-                        (cat) => cat.id == widget.selectedValue,
-                        orElse: () => Category(id: '', name: ''),
-                      );
-                      if (category.name!.isNotEmpty) {
-                        controller.text = category.name!;
-                      }
-                    });
-                  }
+                  _controller = controller;
+                  _updateControllerText();
                   return TextFormField(
                     controller: controller,
                     focusNode: focusNode,
@@ -120,6 +141,7 @@ class _SearchableCategoryDropdownState
                   );
                 },
                 onSelected: (Category category) {
+                  _controller?.text = category.name!;
                   widget.onChanged(category.id);
                 },
                 emptyBuilder: (context) => Padding(

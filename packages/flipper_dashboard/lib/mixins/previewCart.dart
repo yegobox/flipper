@@ -334,8 +334,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         status: PENDING,
         cashReceived: ProxyService.box.getCashReceived(),
       );
-      // Example: Stop loading from another widget or function
-      ref.read(payButtonStateProvider.notifier).stopLoading();
+      
+      if (mounted) {
+        ref.read(payButtonStateProvider.notifier).stopLoading();
+      }
       String errorMessage = e
           .toString()
           .split('Caught Exception: ')
@@ -431,10 +433,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           transaction: transaction,
           context: context,
         );
-        ref.read(payButtonStateProvider.notifier).stopLoading();
-        ref.refresh(pendingTransactionStreamProvider(
-          isExpense: false,
-        ));
+        if (mounted) {
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          ref.refresh(pendingTransactionStreamProvider(
+            isExpense: false,
+          ));
+        }
       } else {
         await finalizePayment(
           formKey: formKey,
@@ -449,8 +453,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           discount: discount,
         );
 
-        ref.read(payButtonStateProvider.notifier).stopLoading();
-        ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+        if (mounted) {
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+        }
       }
     } catch (e) {
       rethrow;

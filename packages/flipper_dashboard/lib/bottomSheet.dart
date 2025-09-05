@@ -828,7 +828,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                     width: double.infinity,
                     text: items.isEmpty
                         ? 'Add items to charge'
-                        : 'Charge ${formatNumber(total)}',
+                        : 'Charge! ${formatNumber(total)}',
                     isLoading: _isLoading,
                     onPressed: items.isEmpty || _isLoading
                         ? null

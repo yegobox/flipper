@@ -239,5 +239,68 @@ void main() {
       // Should show no suggestions when error
       expect(find.byType(ListTile), findsNothing);
     });
+
+    testWidgets('should update text field when selectedValue changes', (WidgetTester tester) async {
+      String? changedValue;
+      String? selectedValue;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            categoryProvider.overrideWith((ref) => Stream.value(testCategories)),
+          ],
+          child: MaterialApp(
+            home: StatefulBuilder(
+              builder: (context, setState) => Scaffold(
+                body: Column(
+                  children: [
+                    SearchableCategoryDropdown(
+                      selectedValue: selectedValue,
+                      onChanged: (value) => changedValue = value,
+                    ),
+                    ElevatedButton(
+                      onPressed: () => setState(() => selectedValue = '1'),
+                      child: Text('Select Electronics'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Initially no text
+      final textField = find.byType(TextFormField);
+      expect((tester.widget(textField) as TextFormField).controller?.text, isEmpty);
+
+      // Change selectedValue
+      await tester.tap(find.text('Select Electronics'));
+      await tester.pumpAndSettle();
+
+      // Text field should update
+      expect((tester.widget(textField) as TextFormField).controller?.text, equals('Electronics'));
+    });
+
+    testWidgets('should update text field when suggestion is selected', (WidgetTester tester) async {
+      String? changedValue;
+
+      await pumpWidget(tester, onChanged: (value) => changedValue = value);
+      await tester.pumpAndSettle();
+
+      final textField = find.byType(TextFormField);
+      await tester.tap(textField);
+      await tester.enterText(textField, 'Cloth');
+      await tester.pumpAndSettle();
+
+      // Select suggestion
+      await tester.tap(find.text('Clothing'));
+      await tester.pumpAndSettle();
+
+      // Text field should show selected category name
+      expect((tester.widget(textField) as TextFormField).controller?.text, equals('Clothing'));
+      expect(changedValue, equals('2'));
+    });
   });
 }

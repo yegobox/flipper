@@ -25,6 +25,10 @@ PODS:
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
+  - ditto_live (5.0.0-experimental-windows.5):
+    - DittoFlutter (= 5.0.0-experimental-windows.5)
+    - Flutter
+  - DittoFlutter (5.0.0-experimental-windows.5)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -379,6 +383,7 @@ DEPENDENCIES:
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - desktop_webview_auth (from `.symlinks/plugins/desktop_webview_auth/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - ditto_live (from `.symlinks/plugins/ditto_live/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
@@ -427,6 +432,7 @@ SPEC REPOS:
     - AppAuth
     - AppCheckCore
     - CocoaAsyncSocket
+    - DittoFlutter
     - DKImagePickerController
     - DKPhotoGallery
     - Firebase
@@ -477,6 +483,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/desktop_webview_auth/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
+  ditto_live:
+    :path: ".symlinks/plugins/ditto_live/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   firebase_analytics:
@@ -573,6 +581,8 @@ SPEC CHECKSUMS:
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
   desktop_webview_auth: d645139460ef203d50bd0cdb33356785dd939cce
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
+  ditto_live: f6283dce5eaba39d1c9712127781205150068dd7
+  DittoFlutter: c5c594b468d2027ba0392cedd39e03b3a9e133e5
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
