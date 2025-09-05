@@ -14,7 +14,7 @@ import 'test_helpers/setup.dart';
 class MockCacheManager extends Mock implements CacheManager {}
 
 class MockStock extends Mock implements Stock {}
-// flutter test test/transaction_item_adder_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true --coverage 
+// flutter test test/transaction_item_adder_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true --coverage
 
 void main() {
   late TestEnvironment env;
@@ -23,7 +23,7 @@ void main() {
   setUpAll(() async {
     env = TestEnvironment();
     await env.init();
-    
+
     // Register fallbacks for mocktail
     registerFallbackValue(Variant(
         id: 'fallback', productId: 'fallback', name: 'fallback', branchId: 1));
@@ -91,9 +91,15 @@ void main() {
     mockCacheManager = MockCacheManager();
     when(() => mockCacheManager.getStockByVariantId(any()))
         .thenAnswer((_) async => Stock(currentStock: 5, id: "1", branchId: 1));
-    
+
     // Stub for logging to prevent test failures on error logging
     when(() => mockDbSync.saveLog(any())).thenAnswer((_) async {});
+
+    when(() => mockDbSync.manageTransactionStream(
+            isExpense: any(named: 'isExpense'),
+            branchId: any(named: 'branchId'),
+            transactionType: any(named: 'transactionType')))
+        .thenAnswer((_) => Stream.value(pendingTransaction));
 
     // Common stubs for this test group
     when(() => mockDbSync.getProduct(
@@ -133,7 +139,8 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
                       sut.addItemToTransaction(
                           variant: variant, isOrdering: false);
                     },
@@ -176,10 +183,10 @@ void main() {
           taxTyCd: "A",
           itemTyCd: "1",
           branchId: 1);
-      
+
       // Mock zero stock for this variant
-      when(() => mockCacheManager.getStockByVariantId('variant_2'))
-          .thenAnswer((_) async => Stock(currentStock: 0, id: "2", branchId: 1));
+      when(() => mockCacheManager.getStockByVariantId('variant_2')).thenAnswer(
+          (_) async => Stock(currentStock: 0, id: "2", branchId: 1));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -193,7 +200,8 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
                       sut.addItemToTransaction(
                           variant: outOfStockVariant, isOrdering: false);
                     },
@@ -294,7 +302,8 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
                       sut.addItemToTransaction(
                           variant: compositeVariant, isOrdering: false);
                     },
@@ -378,7 +387,8 @@ void main() {
             home: Scaffold(
               body: Consumer(
                 builder: (context, ref, child) {
-                  final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                  final sut = TransactionItemAdder(context, ref,
+                      cacheManager: mockCacheManager);
                   return Column(children: [
                     ElevatedButton(
                         key: const Key('v1'),
@@ -457,7 +467,8 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
                       sut.addItemToTransaction(
                           variant: zeroStockVariant, isOrdering: true);
                     },
@@ -483,6 +494,8 @@ void main() {
             doneWithTransaction: false,
             ignoreForReport: false,
           )).called(1);
+
+      verifyNever(() => mockDbSync.saveLog(any()));
     });
 
     testWidgets('allows tax type D items without stock check',
@@ -509,7 +522,8 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
                       sut.addItemToTransaction(
                           variant: taxTypeDVariant, isOrdering: false);
                     },
@@ -561,7 +575,8 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
                       sut.addItemToTransaction(
                           variant: itemType3Variant, isOrdering: false);
                     },
@@ -589,8 +604,7 @@ void main() {
           )).called(1);
     });
 
-    testWidgets('handles exceptions and logs errors',
-        (WidgetTester tester) async {
+    testWidgets('handles exceptions gracefully', (WidgetTester tester) async {
       when(() => mockDbSync.saveTransactionItem(
             variation: any(named: 'variation'),
             amountTotal: any(named: 'amountTotal'),
@@ -601,7 +615,7 @@ void main() {
             doneWithTransaction: any(named: 'doneWithTransaction'),
             ignoreForReport: any(named: 'ignoreForReport'),
             compositePrice: any(named: 'compositePrice'),
-          )).thenThrow(Exception('Test exception'));
+          )).thenAnswer((_) async => throw Exception('Test exception'));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -614,14 +628,11 @@ void main() {
               body: Consumer(
                 builder: (context, ref, child) {
                   return ElevatedButton(
-                    onPressed: () async {
-                      final sut = TransactionItemAdder(context, ref, cacheManager: mockCacheManager);
-                      try {
-                        await sut.addItemToTransaction(
-                            variant: variant, isOrdering: false);
-                      } catch (e) {
-                        // Expected exception
-                      }
+                    onPressed: () {
+                      final sut = TransactionItemAdder(context, ref,
+                          cacheManager: mockCacheManager);
+                      sut.addItemToTransaction(
+                          variant: variant, isOrdering: false);
                     },
                     child: Text('Add Error'),
                   );
@@ -635,7 +646,21 @@ void main() {
       await tester.tap(find.byType(ElevatedButton));
       await tester.pumpAndSettle();
 
-      verify(() => mockDbSync.saveLog(any())).called(1);
+      // Verify that saveTransactionItem was called
+      verify(() => mockDbSync.saveTransactionItem(
+            variation: any(named: 'variation'),
+            amountTotal: any(named: 'amountTotal'),
+            customItem: any(named: 'customItem'),
+            currentStock: any(named: 'currentStock'),
+            pendingTransaction: any(named: 'pendingTransaction'),
+            partOfComposite: any(named: 'partOfComposite'),
+            doneWithTransaction: any(named: 'doneWithTransaction'),
+            ignoreForReport: any(named: 'ignoreForReport'),
+            compositePrice: any(named: 'compositePrice'),
+          )).called(1);
+
+      // Verify that the exception was caught and logged
+      verify(() => mockDbSync.saveLog(any(that: isA<Log>()))).called(2);
     });
   });
 }

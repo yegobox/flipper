@@ -159,7 +159,6 @@ class TransactionItemAdder {
       showCustomSnackBarUtil(context, "Failed to add item to cart",
           backgroundColor: Colors.red);
       w?.log("ItemAddedToTransactionFailed"); // Log failure
-      rethrow;
     }
   }
 }
