@@ -84,7 +84,9 @@ jobs:
 
       - name: Run tests with coverage
         run: |
+          cd packages/flipper_dashboard
           dart run realm install
+          cd ../..
           melos run test:ci
 
       - name: Upload coverage to Codecov
