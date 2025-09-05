@@ -57,6 +57,7 @@ jobs:
         run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
+          melos run generate:icons
 
       - name: Configure Missing files
         shell: bash

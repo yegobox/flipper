@@ -4,12 +4,12 @@ import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
-import 'package:flipper_models/db_model_export.dart'; // For Product
+import 'package:flipper_models/db_model_export.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
-import 'dart:io';
+import 'src/platform.dart';
 
 class DashboardScannerActions implements ScannerActions {
   final BuildContext context;
@@ -26,7 +26,7 @@ class DashboardScannerActions implements ScannerActions {
   void onBarcodeDetected(barcode) async {
     try {
       // Initialize SoLoud only on mobile platforms
-      if ((Platform.isAndroid || Platform.isIOS) && _soloud == null) {
+      if (isMobile && _soloud == null) {
         _soloud = SoLoud.instance;
         await _soloud!.init();
         _soundSource = await _soloud!
@@ -36,7 +36,7 @@ class DashboardScannerActions implements ScannerActions {
       ProxyService.productService.setBarcode(barcode.rawValue);
       
       // Play sound on successful barcode detection (mobile only)
-      if ((Platform.isAndroid || Platform.isIOS) && _soundSource != null) {
+      if (isMobile && _soundSource != null) {
         await _soloud!.play(_soundSource!);
       }
     } catch (e) {
@@ -76,7 +76,7 @@ class DashboardScannerActions implements ScannerActions {
     _isClosed = true;
     
     // Dispose SoLoud resources when the scanner view is popped (mobile only)
-    if ((Platform.isAndroid || Platform.isIOS) && _soloud != null) {
+    if (isMobile && _soloud != null) {
       if (_soundSource != null) {
         _soloud!.disposeSource(_soundSource!);
         _soundSource = null;
@@ -90,7 +90,7 @@ class DashboardScannerActions implements ScannerActions {
   void dispose() {
     _autoPop?.cancel();
     _autoPop = null;
-    if ((Platform.isAndroid || Platform.isIOS) && _soloud != null) {
+    if (isMobile && _soloud != null) {
       if (_soundSource != null) {
         _soloud!.disposeSource(_soundSource!);
         _soundSource = null;

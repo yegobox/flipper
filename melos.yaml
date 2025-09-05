@@ -23,6 +23,11 @@ dependency_overrides:
   flutter_native_splash: ^2.3.2
 
 scripts:
+  generate:icons:
+    exec: flutter pub run flutter_launcher_icons:main
+    packageFilters:
+      scope: "flipper_auth"
+    description: Generate app icons for flipper_auth
   get_deps:
     run: melos exec -- flutter pub deps
     description: List sub dependencies

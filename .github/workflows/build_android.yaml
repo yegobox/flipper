@@ -60,6 +60,8 @@ jobs:
         run: |
           dart pub global activate melos 6.3.2
           melos bootstrap
+      - name: Generate icons
+        run: melos run generate:icons
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html

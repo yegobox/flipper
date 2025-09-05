@@ -46,18 +46,26 @@ class _SearchableCategoryDropdownState
   }
 
   void _updateControllerText() {
-    if (widget.selectedValue != null && _controller != null) {
-      final categoryAsyncValue = ref.read(categoryProvider);
-      categoryAsyncValue.whenData((categories) {
-        final category = categories.firstWhere(
-          (cat) => cat.id == widget.selectedValue,
-          orElse: () => Category(id: '', name: ''),
-        );
-        if (category.name!.isNotEmpty) {
-          _controller!.text = category.name!;
-        }
-      });
+    if (_controller == null) return;
+    
+    if (widget.selectedValue == null) {
+      if (_controller!.text.isNotEmpty) {
+        _controller!.text = '';
+      }
+      return;
     }
+    
+    final categoryAsyncValue = ref.read(categoryProvider);
+    categoryAsyncValue.whenData((categories) {
+      final category = categories.firstWhere(
+        (cat) => cat.id == widget.selectedValue,
+        orElse: () => Category(id: '', name: ''),
+      );
+      final categoryName = category.name ?? '';
+      if (_controller!.text != categoryName) {
+        _controller!.text = categoryName;
+      }
+    });
   }
 
   @override
@@ -92,19 +100,22 @@ class _SearchableCategoryDropdownState
                   return categoryAsyncValue.when(
                     data: (categories) {
                       if (search.isEmpty) return categories;
-                      return categories
-                          .where((category) => category.name!
-                              .toLowerCase()
-                              .contains(search.toLowerCase()))
-                          .toList();
+                      return categories.where((category) {
+                        final name = category.name ?? '';
+                        return name
+                            .toLowerCase()
+                            .contains(search.toLowerCase());
+                      }).toList();
                     },
                     loading: () => <Category>[],
                     error: (_, __) => <Category>[],
                   );
                 },
                 builder: (context, controller, focusNode) {
-                  _controller = controller;
-                  _updateControllerText();
+                  if (_controller != controller) {
+                    _controller = controller;
+                    _updateControllerText();
+                  }
                   return TextFormField(
                     controller: controller,
                     focusNode: focusNode,
@@ -136,12 +147,15 @@ class _SearchableCategoryDropdownState
                 },
                 itemBuilder: (context, Category category) {
                   return ListTile(
-                    title: Text(category.name!),
+                    title: Text(category.name ?? ''),
                     dense: true,
                   );
                 },
                 onSelected: (Category category) {
-                  _controller?.text = category.name!;
+                  final categoryName = category.name ?? '';
+                  if (_controller != null && _controller!.text != categoryName) {
+                    _controller!.text = categoryName;
+                  }
                   widget.onChanged(category.id);
                 },
                 emptyBuilder: (context) => Padding(

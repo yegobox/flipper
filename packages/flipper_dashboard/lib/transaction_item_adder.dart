@@ -142,10 +142,10 @@ class TransactionItemAdder {
 
       w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
+      if (!context.mounted) return;
+
       // Hide the loading indicator if there was an error
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      }
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       GlobalErrorHandler.logError(
         s,
@@ -153,12 +153,16 @@ class TransactionItemAdder {
         context: {
           'resultCode': e.toString(),
           'businessId': ProxyService.box.getBusinessId(),
+          'variantId': variant.id,
+          // 'transactionId': pendingTransaction?.id,
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
       showCustomSnackBarUtil(context, "Failed to add item to cart",
           backgroundColor: Colors.red);
-      w?.log("ItemAddedToTransactionFailed"); // Log failure
+      if (context.mounted) {
+        w?.log("ItemAddedToTransactionFailed"); // Log failure
+      }
     }
   }
 }
