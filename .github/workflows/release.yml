@@ -84,11 +84,8 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          cd apps/flipper
-          cd ../..
-          cd packages/flipper_dashboard
-          dart run realm install 
-          flutter test --coverage --dart-define=FLUTTER_TEST_ENV=true
+          dart run realm install
+          melos run test:ci
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

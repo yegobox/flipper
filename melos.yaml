@@ -28,6 +28,26 @@ scripts:
     packageFilters:
       scope: "flipper_auth"
     description: Generate app icons for flipper_auth
+  test:dashboard:
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope: "flipper_dashboard"
+    description: Run tests for flipper_dashboard
+  test:auth:
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope: "flipper_auth"
+    description: Run tests for flipper_auth
+  test:specific:
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope: "{flipper_dashboard,flipper_auth}"
+    description: Run tests for flipper_dashboard and flipper_auth
+  test:ci:
+    run: |
+      melos run test:dashboard --no-select && \
+      melos run test:auth --no-select
+    description: Run tests for flipper_dashboard and flipper_auth in CI/CD
   get_deps:
     run: melos exec -- flutter pub deps
     description: List sub dependencies
@@ -36,12 +56,6 @@ scripts:
   lint:all:
     run: melos run analyze && melos run format
     description: Run all static analysis checks.
-  test:selective_unit_test:
-    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true
-    dir-exists: "test"
-    fail-fast: true
-    description: Run selective unit tests
-
   test:all_unit_tests:
     exec: flutter test
     no-select: true
