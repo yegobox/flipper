@@ -660,7 +660,7 @@ void main() {
           )).called(1);
 
       // Verify that the exception was caught and logged
-      verify(() => mockDbSync.saveLog(any(that: isA<Log>()))).called(2);
+      verify(() => mockDbSync.saveLog(any(that: isA<Log>()))).called(1);
     });
   });
 }
