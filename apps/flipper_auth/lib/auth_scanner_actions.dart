@@ -193,7 +193,7 @@ class AuthScannerActions implements ScannerActions {
         await Future.delayed(Duration(milliseconds: 1500));
       } else {
         // Handle successful publish - keep in pending state
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.publishedPending;
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
       }
     } catch (e) {
       // Handle any exceptions
