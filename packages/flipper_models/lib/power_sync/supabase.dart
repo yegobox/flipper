@@ -8,21 +8,25 @@ bool isTestEnvironment() {
 
 Future<void> loadSupabase() async {
   try {
-    debugPrint('Initializing Supabase with:');
-    debugPrint('  URL: ${AppSecrets.superbaseurl}');
-    debugPrint('  Anon Key: ${AppSecrets.supabaseAnonKey}');
+    String supabaseUrl;
+    String supabaseAnonKey;
 
-    if (isTestEnvironment()) {
-      await Repository.initializeSupabaseAndConfigure(
-        supabaseUrl: AppSecrets.superbaseurl,
-        supabaseAnonKey: AppSecrets.supabaseAnonKey,
-      );
+    if (kDebugMode && !isTestEnvironment()) {
+      supabaseUrl = AppSecrets.localSuperbaseUrl;
+      supabaseAnonKey = AppSecrets.localSupabaseAnonKey;
     } else {
-      await Repository.initializeSupabaseAndConfigure(
-        supabaseUrl: AppSecrets.superbaseurl,
-        supabaseAnonKey: AppSecrets.supabaseAnonKey,
-      );
+      supabaseUrl = AppSecrets.superbaseurl;
+      supabaseAnonKey = AppSecrets.supabaseAnonKey;
     }
+
+    debugPrint('Initializing Supabase with:');
+    debugPrint('  URL: $supabaseUrl');
+    debugPrint('  Anon Key: $supabaseAnonKey');
+
+    await Repository.initializeSupabaseAndConfigure(
+      supabaseUrl: supabaseUrl,
+      supabaseAnonKey: supabaseAnonKey,
+    );
 
     await Repository().initialize();
   } catch (e, s) {
