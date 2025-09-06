@@ -1,4 +1,4 @@
-const countries = [
+export const countries = [
   { "name": "Afghanistan", "alpha-2": "AF" },
   { "name": "Åland Islands", "alpha-2": "AX" },
   { "name": "Albania", "alpha-2": "AL" },
@@ -249,12 +249,3 @@ const countries = [
   { "name": "Zambia", "alpha-2": "ZM" },
   { "name": "Zimbabwe", "alpha-2": "ZW" }
 ];
-
-export const run = async ({ db }) => {
-  await db.countries(countries.map((country, index) => ({
-    name: country.name,
-    code: country["alpha-2"],
-    description: country.name, // Using name as description
-    sort_order: index + 1,
-  })));
-};

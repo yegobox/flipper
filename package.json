@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "seed": "npx tsx seeds/index.ts",
+    "seed:countries": "npx tsx -e 'import { createSeedClient } from \"@snaplet/seed\"; import { seedCountries } from \"./seeds/scripts/countries\"; const seed = await createSeedClient(); await seedCountries({ db: seed }); console.log(\"Countries seeded!\");'"
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
