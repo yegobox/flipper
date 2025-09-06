@@ -1,3 +1,4 @@
+import 'package:flipper_models/src/platform.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flutter/foundation.dart';
@@ -12,7 +13,11 @@ Future<void> loadSupabase() async {
     String supabaseAnonKey;
 
     if (kDebugMode && !isTestEnvironment()) {
-      supabaseUrl = AppSecrets.localSuperbaseUrl;
+      if (isAndroid) {
+        supabaseUrl = "http://10.0.2.2:54321";
+      } else {
+        supabaseUrl = AppSecrets.localSuperbaseUrl;
+      }
       supabaseAnonKey = AppSecrets.localSupabaseAnonKey;
     } else {
       supabaseUrl = AppSecrets.superbaseurl;

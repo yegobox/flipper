@@ -4,12 +4,12 @@ import 'package:flipper_scanner/scanner_actions.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
-import 'package:flipper_models/db_model_export.dart'; 
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
-import 'src/platform.dart' as platform;
+import 'package:flipper_models/src/platform.dart' as platform;
 
 class DashboardScannerActions implements ScannerActions {
   final BuildContext context;
@@ -34,7 +34,7 @@ class DashboardScannerActions implements ScannerActions {
       }
 
       ProxyService.productService.setBarcode(barcode.rawValue);
-      
+
       // Play sound on successful barcode detection (mobile only)
       if (platform.isMobile && _soundSource != null) {
         await _soloud!.play(_soundSource!);
@@ -42,7 +42,7 @@ class DashboardScannerActions implements ScannerActions {
     } catch (e) {
       // Continue even if sound fails
     }
-    
+
     _autoPop?.cancel();
     _autoPop = Timer(Duration(milliseconds: 500), () {
       pop();
@@ -67,14 +67,14 @@ class DashboardScannerActions implements ScannerActions {
   @override
   void pop() {
     if (_isClosed) return;
-    
+
     _autoPop?.cancel();
     _autoPop = null;
-    
+
     if (!Navigator.canPop(context)) return;
-    
+
     _isClosed = true;
-    
+
     // Dispose SoLoud resources when the scanner view is popped (mobile only)
     if (platform.isMobile && _soloud != null) {
       if (_soundSource != null) {
@@ -86,7 +86,7 @@ class DashboardScannerActions implements ScannerActions {
     }
     Navigator.of(context).pop();
   }
-  
+
   void dispose() {
     _autoPop?.cancel();
     _autoPop = null;
