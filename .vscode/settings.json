@@ -1,4 +1,26 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "cmake.sourceDirectory": "/Users/richard/Documents/GitHub/flipper/open-sources/receipt/windows/runner"
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "cmake.sourceDirectory": "/Users/richard/Documents/GitHub/flipper/open-sources/receipt/windows/runner",
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic"
 }
