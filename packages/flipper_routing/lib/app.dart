@@ -851,3 +851,10 @@ class App {}
 // WHEN realm 16 Page issue comes up here is the solution:
 // https://gist.github.com/richard457/a24b1de67fa00da0b027a5cbb0ba7a53
 
+//  1. cd specs                                                                                                                                                                                                                                               │
+// │  2. Use / commands with Gemini CLI                                                                                                                                                                                                                         │
+// │     - Run gemini /specify to create specifications                                                                                                                                                                                                         │
+// │     - Run gemini /plan to create implementation plans                                                                                                                                                                                                      │
+// │     - See GEMINI.md for all available commands                                                                                                                                                                                                             │
+// │  3. Update CONSTITUTION.md with your project's non-negotiable principles 
+
