@@ -113,27 +113,3 @@ dependencies {
     // Smart POS
     implementation(files("libs/SmartPos_1.9.4_R250117.jar"))
 }
-// Gradle stub for listing dependencies in jnigen. If found in
-// android/build.gradle.kts, please delete the following function.
-tasks.register<DefaultTask>("getReleaseCompileClasspath") {
-    doLast {
-        try {
-            val app = project(":app")
-            val android = app.android
-            val classPaths = mutableListOf(android.bootClasspath.first()) // Access the first element directly
-            for (variant in android.applicationVariants) {
-                if (variant.name == "release") {
-                    val javaCompile = variant.javaCompileProvider.get()
-                    classPaths.addAll(javaCompile.classpath.files)
-                }
-            }
-            for (classPath in classPaths) {
-                println(classPath)
-            }
-        } catch (e: Exception) {
-            System.err.println("Gradle stub cannot find JAR libraries. This might be because no APK build has happened yet.")
-            throw e
-        }
-    }
-    System.err.println("If you are seeing this error in `flutter build` output, it is likely that `jnigen` left some stubs in the build.gradle file. Please restore that file from your version control system or manually remove the stub functions named getReleaseCompileClasspath and / or getSources.")
-}
