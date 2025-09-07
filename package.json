@@ -1,7 +1,7 @@
 {
   "scripts": {
     "seed": "npx tsx seeds/index.ts",
-    "seed:countries": "npx tsx -e 'import { createSeedClient } from \"@snaplet/seed\"; import { seedCountries } from \"./seeds/scripts/countries\"; const seed = await createSeedClient(); await seedCountries({ db: seed }); console.log(\"Countries seeded!\");'"
+    "seed:countries": "npx tsx -r dotenv/config -e 'import { createSeedClient } from \"@snaplet/seed\"; import { seedCountries } from \"./seeds/scripts/countries\"; const seed = await createSeedClient(); await seedCountries({ db: seed }); console.log(\"Countries seeded!\");'"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
@@ -9,7 +9,8 @@
     "@snaplet/copycat": "^6.0.0",
     "@snaplet/seed": "^0.98.0",
     "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^12.2.0"
+    "better-sqlite3": "^12.2.0",
+    "dotenv": "^17.2.2"
   },
   "dependencies": {
     "postgres": "^3.4.7"
