@@ -4,7 +4,7 @@ part 'pin.g.dart';
 
 /// because this model will not be synced then there is no need to
 /// extends IJsonSerializable and have sync properties
-@JsonSerializable()
+@JsonSerializable(fieldRename: FieldRename.snake)
 class IPin {
   IPin({
     required this.id,
@@ -16,6 +16,7 @@ class IPin {
     required this.ownerName,
     required this.tokenUid,
   });
+
   String? id;
   late String userId;
   late String phoneNumber;
@@ -25,9 +26,6 @@ class IPin {
   String? ownerName;
   String? tokenUid;
 
-  factory IPin.fromJson(Map<String, dynamic> json) {
-    return _$IPinFromJson(json);
-  }
-
+  factory IPin.fromJson(Map<String, dynamic> json) => _$IPinFromJson(json);
   Map<String, dynamic> toJson() => _$IPinToJson(this);
 }

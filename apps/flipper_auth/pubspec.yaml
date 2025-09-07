@@ -2,7 +2,7 @@ name: flipper_auth
 description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.1+145
+version: 1.0.1+146
 environment:
   sdk: ">=3.0.0"
 
@@ -31,7 +31,7 @@ dependencies:
   realm: ^20.1.1
   pubnub: ^5.2.0
   connectivity_plus: ^6.0.5
-  
+
 #  NOTE: Review and remove obsolete dependency overrides quarterly
 dependency_overrides:
   image: ^4.5.4  # match flipper_services image version

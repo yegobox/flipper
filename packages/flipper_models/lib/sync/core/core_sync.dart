@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/sync/core/core_sync_base.dart';
 import 'package:flipper_models/sync/interfaces/base_sync_interface.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -22,6 +26,7 @@ import 'package:flipper_models/sync/mixins/delete_operations_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:supabase_models/brick/models/pin.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:talker/src/talker.dart';
@@ -126,6 +131,18 @@ class CoreSync extends CoreSyncBase
   Future<BaseSyncInterface> configureCapella(
       {required bool useInMemory, required LocalStorage box}) {
     // TODO: implement configureCapella
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<IPin?> getPin({required String pinString, required HttpClientInterface flipperHttpClient}) {
+    // TODO: implement getPin
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<Pin?> getPinLocal({required int userId}) {
+    // TODO: implement getPinLocal
     throw UnimplementedError();
   }
 }

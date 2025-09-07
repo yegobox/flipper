@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
@@ -151,57 +148,6 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     );
   }
 
-  @override
-  Future<IPin?> getPin(
-      {required String pinString,
-      required HttpClientInterface flipperHttpClient}) async {
-    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
-
-    try {
-      final localPin = await repository.get<Pin>(
-        query: Query(where: [Where('userId').isExactly(pinString)]),
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      );
-
-      if (localPin.firstOrNull != null) {
-        Business? business = await getBusinessById(
-            businessId: localPin.firstOrNull!.businessId!);
-        Branch? branchE =
-            await branch(serverId: localPin.firstOrNull!.branchId!);
-        if (branchE != null || business != null) {
-          return IPin(
-            id: localPin.firstOrNull?.id,
-            pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
-            userId: localPin.firstOrNull!.userId!.toString(),
-            phoneNumber: localPin.firstOrNull!.phoneNumber!,
-            branchId: localPin.firstOrNull!.branchId!,
-            businessId: localPin.firstOrNull!.businessId!,
-            ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
-            tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A",
-          );
-        }
-      }
-
-      final response = await flipperHttpClient.get(uri);
-      if (response.statusCode == 200) {
-        return IPin.fromJson(json.decode(response.body));
-      } else if (response.statusCode == 404) {
-        throw NeedSignUpException(term: "User does not exist needs signup.");
-      } else {
-        throw PinError(term: "Not found");
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  @override
-  FutureOr<Pin?> getPinLocal({required int userId}) async {
-    return (await repository.get<Pin>(
-      query: Query(where: [Where('userId').isExactly(userId)]),
-    ))
-        .firstOrNull;
-  }
 
   @override
   Future<String?> getPlatformDeviceId() async {
@@ -308,6 +254,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
 
     return (income: sum_cash_in, expense: sum_cash_out);
   }
+  
 
   @override
   Future<Plan?> getPaymentPlan({required int businessId}) async {

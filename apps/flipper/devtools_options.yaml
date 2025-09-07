@@ -1,2 +1,5 @@
 extensions:
   - patrol: true
+  - shared_preferences: true
+  - provider: true
+  - ditto_live: true
