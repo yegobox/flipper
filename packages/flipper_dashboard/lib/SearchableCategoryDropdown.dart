@@ -46,10 +46,10 @@ class _SearchableCategoryDropdownState
   }
 
   void _updateControllerText() {
-    if (_controller == null) return;
+    if (_controller == null || !mounted) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_controller == null) return;
+      if (_controller == null || !mounted) return;
 
       if (widget.selectedValue == null) {
         if (_controller!.text.isNotEmpty) {
@@ -60,6 +60,7 @@ class _SearchableCategoryDropdownState
 
       final categoryAsyncValue = ref.read(categoryProvider);
       categoryAsyncValue.whenData((categories) {
+        if (!mounted) return;
         final category = categories.firstWhere(
           (cat) => cat.id == widget.selectedValue,
           orElse: () => Category(id: '', name: ''),
@@ -103,13 +104,15 @@ class _SearchableCategoryDropdownState
                 suggestionsCallback: (search) {
                   return categoryAsyncValue.when(
                     data: (categories) {
-                      if (search.isEmpty) return categories;
-                      return categories.where((category) {
-                        final name = category.name ?? '';
-                        return name
-                            .toLowerCase()
-                            .contains(search.toLowerCase());
-                      }).toList();
+                      if (search.isEmpty) return categories.take(50).toList();
+                      final searchLower = search.toLowerCase();
+                      return categories
+                          .where((category) {
+                            final name = category.name ?? '';
+                            return name.toLowerCase().contains(searchLower);
+                          })
+                          .take(50)
+                          .toList();
                     },
                     loading: () => <Category>[],
                     error: (_, __) => <Category>[],
@@ -173,7 +176,7 @@ class _SearchableCategoryDropdownState
               ),
               if (widget.onAdd != null)
                 Positioned(
-                  right: 40,
+                  right: 5,
                   top: 0,
                   bottom: 0,
                   child: IconButton(
