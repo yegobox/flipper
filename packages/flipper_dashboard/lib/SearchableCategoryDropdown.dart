@@ -47,24 +47,28 @@ class _SearchableCategoryDropdownState
 
   void _updateControllerText() {
     if (_controller == null) return;
-    
-    if (widget.selectedValue == null) {
-      if (_controller!.text.isNotEmpty) {
-        _controller!.text = '';
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_controller == null) return;
+
+      if (widget.selectedValue == null) {
+        if (_controller!.text.isNotEmpty) {
+          _controller!.text = '';
+        }
+        return;
       }
-      return;
-    }
-    
-    final categoryAsyncValue = ref.read(categoryProvider);
-    categoryAsyncValue.whenData((categories) {
-      final category = categories.firstWhere(
-        (cat) => cat.id == widget.selectedValue,
-        orElse: () => Category(id: '', name: ''),
-      );
-      final categoryName = category.name ?? '';
-      if (_controller!.text != categoryName) {
-        _controller!.text = categoryName;
-      }
+
+      final categoryAsyncValue = ref.read(categoryProvider);
+      categoryAsyncValue.whenData((categories) {
+        final category = categories.firstWhere(
+          (cat) => cat.id == widget.selectedValue,
+          orElse: () => Category(id: '', name: ''),
+        );
+        final categoryName = category.name ?? '';
+        if (_controller!.text != categoryName) {
+          _controller!.text = categoryName;
+        }
+      });
     });
   }
 
@@ -153,7 +157,8 @@ class _SearchableCategoryDropdownState
                 },
                 onSelected: (Category category) {
                   final categoryName = category.name ?? '';
-                  if (_controller != null && _controller!.text != categoryName) {
+                  if (_controller != null &&
+                      _controller!.text != categoryName) {
                     _controller!.text = categoryName;
                   }
                   widget.onChanged(category.id);
