@@ -1,0 +1,240 @@
+<!-- Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT License. -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flipper - Excel Data Manager</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+    <!-- Fluent UI for modern Office styling -->
+    <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
+
+    <!-- Template styles -->
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body class="ms-font-m ms-Fabric" dir="ltr">
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-container">
+        <div class="loading-spinner"></div>
+        <p>Loading Flipper...</p>
+    </div>
+
+    <!-- Authentication State -->
+    <div id="auth-state" class="auth-container" style="display: none;">
+        <div class="auth-content">
+            <div class="auth-header">
+                <img width="48" height="48" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+                <h1>Welcome to Flipper</h1>
+                <p>Connect to your Flipper account to access data</p>
+            </div>
+            
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="phone-email">Phone Number or Email</label>
+                    <input 
+                        type="text" 
+                        id="phone-email" 
+                        name="phoneNumber" 
+                        placeholder="+250783054874 or user@example.com"
+                        required
+                        class="form-input"
+                    />
+                </div>
+                
+                <button type="submit" class="primary-button login-button">
+                    <span class="ms-Icon ms-Icon--SignIn"></span>
+                    Connect to Flipper
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>By connecting, you agree to our terms of service</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="app-container" style="display: none;">
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="header-content">
+                <img width="32" height="32" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+                <h1 class="app-title">Flipper</h1>
+            </div>
+            <div class="header-actions">
+                <div class="user-profile" id="user-profile">
+                    <span class="user-name" id="user-name">Loading...</span>
+                    <button id="logout-button" class="icon-button" title="Sign Out">
+                        <span class="ms-Icon ms-Icon--SignOut"></span>
+                    </button>
+                </div>
+                <button id="settings-button" class="icon-button" title="Settings">
+                    <span class="ms-Icon ms-Icon--Settings"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Connection Status Section -->
+            <section class="section" id="connection-status-section">
+                <h2 class="section-title">
+                    <span class="ms-Icon ms-Icon--PlugConnected"></span>
+                    Connection Status
+                </h2>
+                <div class="connection-info">
+                    <div class="connection-item">
+                        <span class="connection-label">Tenant:</span>
+                        <span class="connection-value" id="tenant-name">Loading...</span>
+                    </div>
+                    <div class="connection-item">
+                        <span class="connection-label">Branch:</span>
+                        <select id="branch-selector" class="connection-select">
+                            <option value="">Select a branch...</option>
+                        </select>
+                    </div>
+                    <div class="connection-item">
+                        <span class="connection-label">Business:</span>
+                        <span class="connection-value" id="business-name">Loading...</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="ms-Icon ms-Icon--LightningBolt"></span>
+                    Quick Actions
+                </h2>
+                <div class="action-grid">
+                    <button class="action-card primary" id="highlight-button">
+                        <div class="action-icon">
+                            <span class="ms-Icon ms-Icon--Highlight"></span>
+                        </div>
+                        <div class="action-content">
+                            <h3>Highlight Selection</h3>
+                            <p>Highlight the selected range with a professional color scheme</p>
+                        </div>
+                    </button>
+
+                    <button class="action-card" id="create-table-button">
+                        <div class="action-icon">
+                            <span class="ms-Icon ms-Icon--Table"></span>
+                        </div>
+                        <div class="action-content">
+                            <h3>Create Table</h3>
+                            <p>Convert your data into a formatted Excel table</p>
+                        </div>
+                    </button>
+
+                    <button class="action-card" id="format-data-button">
+                        <div class="action-icon">
+                            <span class="ms-Icon ms-Icon--NumberSymbol"></span>
+                        </div>
+                        <div class="action-content">
+                            <h3>Format Data</h3>
+                            <p>Apply professional formatting to your data</p>
+                        </div>
+                    </button>
+
+                    <button class="action-card" id="analyze-data-button">
+                        <div class="action-icon">
+                            <span class="ms-Icon ms-Icon--BarChart4"></span>
+                        </div>
+                        <div class="action-content">
+                            <h3>Analyze Data</h3>
+                            <p>Get insights and analysis from your data</p>
+                        </div>
+                    </button>
+
+                    <button class="action-card" id="sales-report-button">
+                        <div class="action-icon">
+                            <span class="ms-Icon ms-Icon--ReportDocument"></span>
+                        </div>
+                        <div class="action-content">
+                            <h3>Sales Report</h3>
+                            <p>Generate comprehensive sales reports and analytics</p>
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Data Tools Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="ms-Icon ms-Icon--Database"></span>
+                    Data Tools
+                </h2>
+                <div class="tools-container">
+                    <div class="tool-item">
+                        <label for="data-validation">Data Validation</label>
+                        <select id="data-validation" class="tool-select">
+                            <option value="">Select validation type...</option>
+                            <option value="email">Email Address</option>
+                            <option value="phone">Phone Number</option>
+                            <option value="date">Date</option>
+                            <option value="number">Number Range</option>
+                        </select>
+                        <button class="tool-button" id="apply-validation">Apply</button>
+                    </div>
+
+                    <div class="tool-item">
+                        <label for="data-cleanup">Data Cleanup</label>
+                        <select id="data-cleanup" class="tool-select">
+                            <option value="">Select cleanup type...</option>
+                            <option value="duplicates">Remove Duplicates</option>
+                            <option value="spaces">Trim Spaces</option>
+                            <option value="format">Standardize Format</option>
+                        </select>
+                        <button class="tool-button" id="apply-cleanup">Apply</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Actions Section -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="ms-Icon ms-Icon--History"></span>
+                    Recent Actions
+                </h2>
+                <div id="recent-actions" class="recent-list">
+                    <div class="empty-state">
+                        <span class="ms-Icon ms-Icon--Info"></span>
+                        <p>No recent actions</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Status Bar -->
+        <footer class="app-footer">
+            <div class="status-indicator">
+                <span class="status-dot connected"></span>
+                <span class="status-text">Connected to Excel</span>
+            </div>
+            <div class="footer-actions">
+                <button id="help-button" class="text-button">Help</button>
+                <button id="feedback-button" class="text-button">Feedback</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-state" class="error-container" style="display: none;">
+        <div class="error-content">
+            <span class="ms-Icon ms-Icon--Error"></span>
+            <h2>Something went wrong</h2>
+            <p id="error-message">Unable to connect to Excel. Please try again.</p>
+            <button id="retry-button" class="primary-button">Retry</button>
+        </div>
+    </div>
+</body>
+
+</html>
