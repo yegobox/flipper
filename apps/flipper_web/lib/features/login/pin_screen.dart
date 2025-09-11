@@ -46,7 +46,9 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         }
       }
     } catch (e) {
-      setState(() => _errorMessage = 'An error occurred');
+      setState(
+        () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
+      );
     }
 
     setState(() => _isLoading = false);

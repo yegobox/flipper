@@ -32,10 +32,10 @@ class AuthRepository {
     );
 
     if (response.statusCode == 200) {
-      // The API might return more info, but for now, we just care about success.
       return true;
+    } else if (response.statusCode == 404) {
+      throw Exception('Pin not found');
     } else {
-      // You might want to parse the error message and throw a more specific exception
       throw Exception('Invalid PIN');
     }
   }
@@ -54,13 +54,11 @@ class AuthRepository {
     );
 
     if (response.statusCode == 200) {
-      // final responseData = jsonDecode(response.body);
-      //final String token = responseData['token'];
       final email = "$pin@flipper.rw";
-
-      // Use the token to sign in with Supabase
       await _supabase.auth.signInWithPassword(email: email, password: email);
       return true;
+    } else if (response.statusCode == 404) {
+      throw Exception('OTP not found');
     } else {
       throw Exception('Invalid OTP');
     }
@@ -74,13 +72,11 @@ class AuthRepository {
     );
 
     if (response.statusCode == 200) {
-      // final responseData = jsonDecode(response.body);
-      // final String token = responseData['token'];
       final email = "$pin@flipper.rw";
-
-      // Use the token to sign in with Supabase
       await _supabase.auth.signInWithPassword(email: email, password: email);
       return true;
+    } else if (response.statusCode == 404) {
+      throw Exception('TOTP not found');
     } else {
       throw Exception('Invalid TOTP');
     }
