@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,8 +18,10 @@ class AuthRepository {
 
   AuthRepository(this._supabase) {
     _httpClient = http.Client();
-    // Bypass SSL certificate validation for IP addresses
-    HttpOverrides.global = _DevHttpOverrides();
+    // Bypass SSL certificate validation for IP addresses (non-web only)
+    if (!kIsWeb) {
+      HttpOverrides.global = _DevHttpOverrides();
+    }
   }
 
   Future<bool> verifyPin(String pin) async {
@@ -88,6 +91,7 @@ class _DevHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 }
