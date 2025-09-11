@@ -1,0 +1,76 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  version: 1.0.0
+paths:
+  /api/login/pin:
+    post:
+      summary: Verify PIN
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pin:
+                  type: string
+      responses:
+        '200':
+          description: PIN verified
+        '401':
+          description: Invalid PIN
+  /api/login/otp:
+    post:
+      summary: Send OTP
+      responses:
+        '200':
+          description: OTP sent
+  /api/login/otp/verify:
+    post:
+      summary: Verify OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp:
+                  type: string
+      responses:
+        '200':
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid OTP
+  /api/login/totp/verify:
+    post:
+      summary: Verify TOTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totp:
+                  type: string
+      responses:
+        '200':
+          description: TOTP verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Invalid TOTP

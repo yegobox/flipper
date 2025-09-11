@@ -14,10 +14,9 @@ import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
-import 'package:flipper_dashboard/dataMixer.dart'; // Import dataMixer for assetProvider
+import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
-// Models and ViewModels
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
