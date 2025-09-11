@@ -15,12 +15,15 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   final _otpController = TextEditingController();
   bool _isLoading = false;
   bool _isPinVerified = false;
+  String? _errorMessage;
 
   Future<void> _handleSubmission() async {
     setState(() => _isLoading = true);
 
     try {
       final authRepository = ref.read(authRepositoryProvider);
+
+      setState(() => _errorMessage = null);
 
       if (!_isPinVerified) {
         final pin = _pinController.text;
@@ -29,7 +32,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         if (success) {
           setState(() => _isPinVerified = true);
         } else {
-          _showError('Invalid PIN');
+          setState(() => _errorMessage = 'Invalid PIN');
         }
       } else {
         final otp = _otpController.text;
@@ -38,20 +41,14 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         if (success) {
           ref.read(authStateProvider.notifier).state = AuthState.authenticated;
         } else {
-          _showError('Invalid OTP');
+          setState(() => _errorMessage = 'Invalid OTP');
         }
       }
     } catch (e) {
-      _showError('An error occurred: $e');
+      setState(() => _errorMessage = 'An error occurred');
     }
 
     setState(() => _isLoading = false);
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -136,13 +133,30 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: theme.colorScheme.outline,
+                                    color: _errorMessage != null
+                                        ? theme.colorScheme.error
+                                        : theme.colorScheme.outline,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide(
-                                    color: theme.colorScheme.primary,
+                                    color: _errorMessage != null
+                                        ? theme.colorScheme.error
+                                        : theme.colorScheme.primary,
+                                    width: 2,
+                                  ),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.error,
+                                  ),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: theme.colorScheme.error,
                                     width: 2,
                                   ),
                                 ),
@@ -150,8 +164,11 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                                 fillColor: theme.colorScheme.surface,
                                 prefixIcon: Icon(
                                   _isPinVerified ? Icons.security : Icons.lock,
-                                  color: theme.colorScheme.primary,
+                                  color: _errorMessage != null
+                                      ? theme.colorScheme.error
+                                      : theme.colorScheme.primary,
                                 ),
+                                errorText: _errorMessage,
                               ),
                               keyboardType: TextInputType.number,
                               obscureText: !_isPinVerified,
