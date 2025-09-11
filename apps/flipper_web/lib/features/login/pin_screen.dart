@@ -35,8 +35,9 @@ class _PinScreenState extends ConsumerState<PinScreen> {
           setState(() => _errorMessage = 'Invalid PIN');
         }
       } else {
+        final pin = _pinController.text;
         final otp = _otpController.text;
-        final success = await authRepository.verifyOtp(otp);
+        final success = await authRepository.verifyOtp(pin, otp);
 
         if (success) {
           ref.read(authStateProvider.notifier).state = AuthState.authenticated;

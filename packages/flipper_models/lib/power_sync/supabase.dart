@@ -3,6 +3,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flutter/foundation.dart';
 
+
 bool isTestEnvironment() {
   return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
 }
