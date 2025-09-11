@@ -810,14 +810,14 @@ mixin AuthMixin implements AuthInterface {
   Future<void> supabaseAuth() async {
     try {
       // Get branch ID for email construction
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) {
-        talker.warning(
-            'Cannot authenticate with Supabase: No branch ID available');
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) {
+        talker
+            .warning('Cannot authenticate with Supabase: No User ID available');
         return;
       }
 
-      final email = '$branchId@flipper.rw';
+      final email = '$userId@flipper.rw';
       talker.debug('Supabase email: $email');
 
       // Check if we already have a valid session

@@ -16,8 +16,7 @@ class AuthWrapper extends ConsumerWidget {
       case AuthState.authenticated:
         return const DashboardScreen();
       case AuthState.unauthenticated:
-      default:
-        return const PinScreen();
+      return const PinScreen();
     }
   }
 }

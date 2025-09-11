@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flipper_models/secrets.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final supabase = ref.watch(supabaseProvider);
@@ -12,9 +13,13 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 class AuthRepository {
   final SupabaseClient _supabase;
-  final http.Client _httpClient = http.Client();
+  late final http.Client _httpClient;
 
-  AuthRepository(this._supabase);
+  AuthRepository(this._supabase) {
+    _httpClient = http.Client();
+    // Bypass SSL certificate validation for IP addresses
+    HttpOverrides.global = _DevHttpOverrides();
+  }
 
   Future<bool> verifyPin(String pin) async {
     final response = await _httpClient.post(
@@ -46,11 +51,12 @@ class AuthRepository {
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final String token = responseData['token'];
+      // final responseData = jsonDecode(response.body);
+      //final String token = responseData['token'];
+      final email = "$pin@flipper.rw";
 
       // Use the token to sign in with Supabase
-      await _supabase.auth.signInWithJwt(token);
+      await _supabase.auth.signInWithPassword(email: email, password: email);
       return true;
     } else {
       throw Exception('Invalid OTP');
@@ -59,20 +65,29 @@ class AuthRepository {
 
   Future<bool> verifyTotp(String pin, String totp) async {
     final response = await _httpClient.post(
-      Uri.parse(AppSecrets.apihub + '/v2/api/login/verify-totp'),
+      Uri.parse('${AppSecrets.apihubProd}/v2/api/login/verify-totp'),
       body: jsonEncode({'pin': pin, 'totp': totp}),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final String token = responseData['token'];
+      // final responseData = jsonDecode(response.body);
+      // final String token = responseData['token'];
+      final email = "$pin@flipper.rw";
 
       // Use the token to sign in with Supabase
-      await _supabase.auth.signInWithJwt(token);
+      await _supabase.auth.signInWithPassword(email: email, password: email);
       return true;
     } else {
       throw Exception('Invalid TOTP');
     }
+  }
+}
+
+class _DevHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
   }
 }
