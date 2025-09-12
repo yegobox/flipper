@@ -22,5 +22,6 @@
     "http",
     "net"
   ],
-  "java.configuration.updateBuildConfiguration": "automatic"
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "kiroAgent.configureMCP": "Disabled"
 }

@@ -3,8 +3,11 @@ import 'package:flipper_web/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+enum OtpType { sms, authenticator }
+
 class PinScreen extends ConsumerStatefulWidget {
-  const PinScreen({super.key});
+  const PinScreen({super.key, this.isPinVerified = false});
+  final bool isPinVerified;
 
   @override
   ConsumerState<PinScreen> createState() => _PinScreenState();
@@ -14,8 +17,15 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   final _pinController = TextEditingController();
   final _otpController = TextEditingController();
   bool _isLoading = false;
-  bool _isPinVerified = false;
+  late bool _isPinVerified;
   String? _errorMessage;
+  OtpType _otpType = OtpType.sms;
+
+  @override
+  void initState() {
+    super.initState();
+    _isPinVerified = widget.isPinVerified;
+  }
 
   Future<void> _handleSubmission() async {
     setState(() => _isLoading = true);
@@ -37,7 +47,12 @@ class _PinScreenState extends ConsumerState<PinScreen> {
       } else {
         final pin = _pinController.text;
         final otp = _otpController.text;
-        final success = await authRepository.verifyOtp(pin, otp);
+        bool success;
+        if (_otpType == OtpType.sms) {
+          success = await authRepository.verifyOtp(pin, otp);
+        } else {
+          success = await authRepository.verifyTotp(pin, otp);
+        }
 
         if (success) {
           ref.read(authStateProvider.notifier).state = AuthState.authenticated;
@@ -113,7 +128,9 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                           children: [
                             // Title
                             Text(
-                              _isPinVerified ? 'Enter OTP' : 'Enter PIN',
+                              _isPinVerified
+                                  ? 'Enter ${_otpType == OtpType.sms ? 'SMS OTP' : 'Authenticator Code'}'
+                                  : 'Enter PIN',
                               style: theme.textTheme.headlineMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                                 color: theme.colorScheme.onSurface,
@@ -122,6 +139,30 @@ class _PinScreenState extends ConsumerState<PinScreen> {
 
                             const SizedBox(height: 32),
 
+                            if (_isPinVerified) ...[
+                              SegmentedButton<OtpType>(
+                                segments: const [
+                                  ButtonSegment(
+                                    value: OtpType.sms,
+                                    label: Text('SMS'),
+                                    icon: Icon(Icons.sms),
+                                  ),
+                                  ButtonSegment(
+                                    value: OtpType.authenticator,
+                                    label: Text('Authenticator'),
+                                    icon: Icon(Icons.shield),
+                                  ),
+                                ],
+                                selected: {_otpType},
+                                onSelectionChanged: (newSelection) {
+                                  setState(() {
+                                    _otpType = newSelection.first;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
                             // Input field
                             TextFormField(
                               key: const Key('pinOrOtpInput'),
@@ -129,7 +170,11 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                                   ? _otpController
                                   : _pinController,
                               decoration: InputDecoration(
-                                labelText: _isPinVerified ? 'OTP' : 'PIN',
+                                labelText: _isPinVerified
+                                    ? (_otpType == OtpType.sms
+                                        ? 'SMS OTP'
+                                        : 'Authenticator Code')
+                                    : 'PIN',
                                 labelStyle: TextStyle(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -214,7 +259,9 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         backgroundColor: theme.colorScheme.primary,
       ),
       child: Text(
-        _isPinVerified ? 'Verify OTP' : 'Submit',
+        _isPinVerified
+            ? 'Verify ${_otpType == OtpType.sms ? 'OTP' : 'Code'}'
+            : 'Submit',
         style: theme.textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w500,
         ),
