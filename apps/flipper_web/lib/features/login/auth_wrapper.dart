@@ -12,11 +12,25 @@ class AuthWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
 
-    switch (authState) {
-      case AuthState.authenticated:
-        return const DashboardScreen();
-      case AuthState.unauthenticated:
-      return const PinScreen();
-    }
+    return authState.when(
+      data: (state) {
+        switch (state) {
+          case AuthState.authenticated:
+            return const DashboardScreen();
+          case AuthState.unauthenticated:
+            return const PinScreen();
+        }
+      },
+      loading: () => const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      error: (error, stackTrace) => Scaffold(
+        body: Center(
+          child: Text('Error: $error'),
+        ),
+      ),
+    );
   }
 }

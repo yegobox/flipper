@@ -55,7 +55,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
         }
 
         if (success) {
-          ref.read(authStateProvider.notifier).state = AuthState.authenticated;
+          // The auth state will be updated by the stream provider
         } else {
           setState(() => _errorMessage = 'Invalid OTP');
         }
@@ -172,8 +172,8 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                               decoration: InputDecoration(
                                 labelText: _isPinVerified
                                     ? (_otpType == OtpType.sms
-                                        ? 'SMS OTP'
-                                        : 'Authenticator Code')
+                                          ? 'SMS OTP'
+                                          : 'Authenticator Code')
                                     : 'PIN',
                                 labelStyle: TextStyle(
                                   color: theme.colorScheme.onSurfaceVariant,
