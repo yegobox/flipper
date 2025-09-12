@@ -269,7 +269,7 @@ PODS:
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
-    - PostHog (~> 3.22)
+    - PostHog (< 4.0.0, >= 3.31.0)
   - printing (1.0.0):
     - FlutterMacOS
   - PromisesObjC (2.4.0)
@@ -567,7 +567,7 @@ SPEC CHECKSUMS:
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
   PostHog: fcb0bc4425a69a2b0ee0ff5782b298a23aedcc83
-  posthog_flutter: 6d1041c7da77eb2032c27b72df103439af64cb8c
+  posthog_flutter: 1d3bb477afcff6282596402b3d49187099f02b91
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851

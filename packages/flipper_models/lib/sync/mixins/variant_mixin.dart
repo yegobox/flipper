@@ -426,8 +426,10 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].lastTouched = DateTime.now().toUtc();
         updatables[i].qty =
             (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
+        if (updatables[i].stock != null) {
+          await CacheManager().saveStocks([updatables[i].stock!]);
+        }
 
-        await CacheManager().saveStocks([updatables[i].stock!]);
         final updated = await repository.upsert<Variant>(updatables[i]);
 
         /// still experimenting bellow.
