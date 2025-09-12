@@ -1,6 +1,7 @@
 import 'package:flipper_web/core/secrets.dart' show AppSecrets;
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/features/login/auth_wrapper.dart';
+import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,16 +28,20 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flipper',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
+      darkTheme: ThemeData.dark(),
+      themeMode: themeMode,
       home: const AuthWrapper(),
     );
   }
