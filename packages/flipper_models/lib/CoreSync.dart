@@ -1886,20 +1886,13 @@ class CoreSync extends AiStrategyImpl
       RwApiResponse? receiptSignature}) async {
     // build brick Counter to pass in to upsert
     for (Counter counter in counters) {
-      final upCounter = models.Counter(
-        createdAt: DateTime.now().toUtc(),
-        lastTouched: DateTime.now().toUtc(),
-        id: counter.id,
-        bhfId: counter.bhfId,
-        branchId: counter.branchId,
-        curRcptNo: receiptSignature!.data?.rcptNo ?? 0,
-        totRcptNo: receiptSignature.data?.totRcptNo ?? 0,
-        invcNo: counter.invcNo! + 1,
-        businessId: counter.businessId,
-        receiptType: counter.receiptType,
-      );
+      counter.createdAt = DateTime.now().toUtc();
+      counter.lastTouched = DateTime.now().toUtc();
+
+      counter.curRcptNo = receiptSignature!.data?.rcptNo ?? 0;
+      counter.totRcptNo = receiptSignature.data?.totRcptNo ?? 0;
       counter.invcNo = counter.invcNo! + 1;
-      await repository.upsert(upCounter);
+      await repository.upsert(counter);
 
       /// also update sar
       // get the sar

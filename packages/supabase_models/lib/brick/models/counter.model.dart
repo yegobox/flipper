@@ -9,15 +9,15 @@ import 'package:uuid/uuid.dart';
 class Counter extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
-  final String id;
-  final int? businessId;
-  final int? branchId;
-  final String? receiptType;
-  final int? totRcptNo;
-  final int? curRcptNo;
+   String id;
+   int? businessId;
+   int? branchId;
+   String? receiptType;
+   int? totRcptNo;
+   int? curRcptNo;
   int? invcNo;
-  final DateTime? lastTouched;
-  final DateTime? createdAt;
+   DateTime? lastTouched;
+   DateTime? createdAt;
   String bhfId;
   Counter({
     String? id,
