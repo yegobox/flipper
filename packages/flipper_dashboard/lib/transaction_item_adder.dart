@@ -130,7 +130,7 @@ class TransactionItemAdder {
       }
 
       // Show success message
-      showCustomSnackBarUtil(context, 'Item added to cart!');
+      // showCustomSnackBarUtil(context, 'Item added to cart!');
 
       // Force refresh the transaction items with a small delay to ensure DB operations complete
       await Future.delayed(const Duration(milliseconds: 100));

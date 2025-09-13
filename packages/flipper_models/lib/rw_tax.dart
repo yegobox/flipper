@@ -639,6 +639,33 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         (totalAfterDiscount * taxPercentage) / (100 + taxPercentage);
     taxAmount = (taxAmount * 100).round() / 100;
 
+    // Calculate ttTaxAmt for TT items
+    double ttTaxAmount = 0.0;
+    if (item.taxTyCd == 'TT') {
+      // For TT items, taxAmt uses tax B computation (18%)
+      taxAmount = (totalAfterDiscount * 18) / 118;
+      taxAmount = (taxAmount * 100).round() / 100;
+      // ttTaxblAmt = totalAfterDiscount / 1.18 (base price before VAT)
+      double ttTaxblAmt = totalAfterDiscount / 1.18;
+      // Get TT tax configuration
+      List<Configurations> ttTaxConfigs = await repository.get<Configurations>(
+          policy: OfflineFirstGetPolicy.localOnly,
+          query: Query(where: [
+            Where('taxType').isExactly('TT'),
+            Where('branchId').isExactly(ProxyService.box.getBranchId()!),
+          ]));
+      Configurations? ttTaxConfig;
+      try {
+        ttTaxConfig = ttTaxConfigs.first;
+      } catch (e) {
+        throw Exception("Failed to get TT tax config");
+      }
+      final ttTaxPercentage = ttTaxConfig.taxPercentage ?? 0.0;
+      // Calculate ttTaxAmt using configuration tax percentage
+      ttTaxAmount = ttTaxblAmt * ttTaxPercentage / (100 + ttTaxPercentage);
+      ttTaxAmount = (ttTaxAmount * 100).round() / 100;
+    }
+
     final itemJson = TransactionItem(
       lastTouched: DateTime.now().toUtc(),
       qty: quantity,
@@ -663,7 +690,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       isrccNm: "",
       isrcRt: 0,
       isrcAmt: 0,
-      taxTyCd: item.taxTyCd,
+      taxTyCd: item.taxTyCd == 'TT' ? 'B' : item.taxTyCd,
       bcd: item.bcd,
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
@@ -684,6 +711,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       modrNm: item.modrNm ?? randomString().substring(0, 8),
       name: item.name,
     ).toFlipperJson();
+
     itemJson.removeWhere((key, value) =>
         [
           "active",
@@ -708,8 +736,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemJson
           .removeWhere((key, value) => key == "isrccCd" || key == "isrccNm");
     }
-    // always make itemSeq be first in object
 
+    // Add ttTaxAmt and ttTaxblAmt to the JSON if it's a TT item (after cleanup)
+    if (item.taxTyCd == 'TT') {
+      double ttTaxblAmt = totalAfterDiscount / 1.18;
+      itemJson['ttTaxAmt'] = ttTaxAmount.roundToTwoDecimalPlaces();
+      itemJson['ttTaxblAmt'] = ttTaxblAmt.roundToTwoDecimalPlaces();
+      itemJson['ttCatCd'] = "TT";
+    }
+
+    // always make itemSeq be first in object
     Map<String, dynamic> sortedItemJson = Map.from(itemJson);
     final itemSeqValue = sortedItemJson.remove('itemSeq');
     sortedItemJson.addAll({'itemSeq': itemSeqValue});
@@ -724,12 +760,18 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       'C': 0.0,
       'D': 0.0,
       'TT': 0.0,
+      'ttTaxblAmt': 0.0,
     };
 
     for (var item in items) {
       try {
         // Validate and fetch data with default fallback
         String taxType = (item['taxTyCd'] as String?) ?? 'B';
+
+        // Exception: treat TT as B
+        if (taxType == 'TT') {
+          taxType = 'B';
+        }
 
         // Ensure taxType is one of the valid types
         if (!taxTotals.containsKey(taxType)) {
@@ -751,6 +793,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
         // Add to the appropriate tax type total using direct addition
         taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
+
+        // Calculate ttTaxblAmt for TT items (check if ttTaxblAmt field exists)
+        if (item.containsKey('ttTaxblAmt')) {
+          double ttTaxblAmt = (item['ttTaxblAmt'] as num?)?.toDouble() ?? 0.0;
+          taxTotals['ttTaxblAmt'] = taxTotals['ttTaxblAmt']! + ttTaxblAmt;
+        }
 
         // Optional: Add debug print to verify calculations
         print(
@@ -865,7 +913,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxblAmtB": (taxTotals['B'] ?? 0.0),
       "taxblAmtC": taxTotals['C'] ?? 0.0,
       "taxblAmtD": taxTotals['D'] ?? 0.0,
-      "ttTaxblAmt": taxTotals['TT'] ?? 0.0,
+      "taxblAmtTt": taxTotals['ttTaxblAmt'] ?? 0.0,
 
       "taxAmtA": ((taxTotals['A'] ?? 0.0) *
               (taxConfigTaxA!.taxPercentage ?? 0) /
