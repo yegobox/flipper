@@ -565,8 +565,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           final exception = Exception(errorMessage);
           if (data.resultMsg == "Invoice number already exists.") {
             print("Invoice number already exists.");
-            counter.invcNo = counter.invcNo! + 1;
-            repository.upsert(counter);
+            // Update all counters to keep them in sync
+            List<Counter> allCounters = await ProxyService.strategy.getCounters(
+                branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
+            for (Counter c in allCounters) {
+              c.invcNo = c.invcNo! + 1;
+              await repository.upsert(c);
+            }
           }
           GlobalErrorHandler.logError(
             exception,
