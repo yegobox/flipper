@@ -1,4 +1,3 @@
-
 import 'package:flipper_web/features/dashboard/widgets/performance_metrics.dart';
 import 'package:flipper_web/features/dashboard/widgets/sales_chart.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +29,7 @@ class PerformanceDashboard extends StatelessWidget {
                 const SizedBox(width: 8),
                 const Text('vs'),
                 const SizedBox(width: 8),
-                _buildFilterChip(label: 'Prior day', value: ''),
+                _buildFilterChip(label: 'Prior day'),
                 const SizedBox(width: 16),
                 _buildFilterChip(label: 'Checks', value: 'Closed'),
               ],
@@ -45,14 +44,22 @@ class PerformanceDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterChip({required String label, required String value}) {
+  Widget _buildFilterChip({required String label, String? value}) {
     return ActionChip(
-      label: Row(
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          const SizedBox(width: 4),
-          Text(value, style: const TextStyle(color: Colors.black)),
-        ],
+      label: RichText(
+        text: TextSpan(
+          children: <TextSpan>[
+            TextSpan(
+              text: value != null ? '$label: ' : label,
+              style: const TextStyle(color: Colors.grey),
+            ),
+            if (value != null)
+              TextSpan(
+                text: value,
+                style: const TextStyle(color: Colors.black),
+              ),
+          ],
+        ),
       ),
       onPressed: () {},
       backgroundColor: Colors.white,

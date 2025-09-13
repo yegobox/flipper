@@ -19,13 +19,10 @@ class QuickActions extends StatelessWidget {
           children: [
             const Text(
               'Quick actions',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            ListTile(
-              title: const Text('Add an item'),
-              onTap: () {},
-            ),
+            const Text('Add an item'),
           ],
         ),
       ),
