@@ -51,14 +51,14 @@ class PerformanceDashboard extends StatelessWidget {
     String value, {
     required bool isSelected,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+    return ActionChip(
+      onPressed: () {},
+      backgroundColor: isSelected ? Colors.blue[50] : Colors.white,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        color: isSelected ? Colors.blue[50] : Colors.white,
+        side: BorderSide(color: Colors.grey[300]!),
       ),
-      child: RichText(
+      label: RichText(
         text: TextSpan(
           children: [
             TextSpan(
