@@ -18,23 +18,27 @@ class PerformanceDashboard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // const Text(
-            //   'Performance',
-            //   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            // ),
-            // const SizedBox(height: 16),
-            // Row(
-            //   children: [
-            //     _buildFilterChip(label: 'Date', value: 'Sep 13'),
-            //     const SizedBox(width: 8),
-            //     _buildFilterChip(label: 'vs', value: 'Prior day'),
-            //     const SizedBox(width: 16),
-            //     _buildFilterChip(label: 'Checks', value: 'Closed'),
-            //   ],
-            // ),
-            // const SizedBox(height: 24),
-            // const SalesChart(),
-            // const SizedBox(height: 24),
+            const Text(
+              'Performance',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                _buildFilterChip('Date', 'Sep 13', isSelected: false),
+                const SizedBox(width: 12),
+                _buildFilterChip('vs', 'Prior day', isSelected: false),
+                const SizedBox(width: 12),
+                _buildFilterChip('Checks', 'Closed', isSelected: false),
+              ],
+            ),
+            const SizedBox(height: 32),
+            const SalesChart(),
+            const SizedBox(height: 32),
             const PerformanceMetrics(),
           ],
         ),
@@ -42,27 +46,39 @@ class PerformanceDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterChip({required String label, required String value}) {
-    return ActionChip(
-      label: RichText(
+  Widget _buildFilterChip(
+    String label,
+    String value, {
+    required bool isSelected,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(20),
+        color: isSelected ? Colors.blue[50] : Colors.white,
+      ),
+      child: RichText(
         text: TextSpan(
-          children: <TextSpan>[
+          children: [
             TextSpan(
               text: '$label ',
-              style: const TextStyle(color: Colors.grey),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
             ),
             TextSpan(
               text: value,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
-      ),
-      onPressed: () {},
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey.shade300),
       ),
     );
   }
