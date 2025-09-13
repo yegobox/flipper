@@ -123,7 +123,7 @@ mixin ProductMixin {
         variations[i].useYn = "N";
         variations[i].itemSeq = i;
         variations[i].itemStdNm = productName;
-        variations[i].taxPercentage = 18.0;
+        variations[i].taxPercentage = await setTaxPercentage(variations[i]);
 
         variations[i].tin = business?.tinNumber;
 

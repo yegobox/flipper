@@ -220,6 +220,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
             ttCatCd: "TT",
             itemTyCd: "3", // Service type
+            taxTyCd: "TT", // Tax type code
+            taxName: "TT", // Tax name
+            taxPercentage: 3.0,
             qty: 1,
             stock: roomStock,
             stockId: stockId,
@@ -230,7 +233,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             model: model,
             productName: _roomNumberController.text,
             countryofOrigin: "RW",
-            rates: {},
+            rates: {"TT": TextEditingController(text: "3.0")},
             color: "#FF0000",
             dates: {},
             retailPrice: double.tryParse(_priceController.text) ?? 0.0,

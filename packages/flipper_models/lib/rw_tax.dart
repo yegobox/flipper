@@ -723,6 +723,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       'B': 0.0,
       'C': 0.0,
       'D': 0.0,
+      'TT': 0.0,
     };
 
     for (var item in items) {
@@ -811,6 +812,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         await ProxyService.strategy.getByTaxType(taxtype: "C");
     odm.Configurations? taxConfigTaxD =
         await ProxyService.strategy.getByTaxType(taxtype: "D");
+    odm.Configurations? taxConfigTaxTT =
+        await ProxyService.strategy.getByTaxType(taxtype: "TT");
     if (transaction.customerId != null) {
       //  it mighbe a copy re-assign a customer
       talker.warning("Overriding customer");
@@ -862,6 +865,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxblAmtB": (taxTotals['B'] ?? 0.0),
       "taxblAmtC": taxTotals['C'] ?? 0.0,
       "taxblAmtD": taxTotals['D'] ?? 0.0,
+      "ttTaxblAmt": taxTotals['TT'] ?? 0.0,
 
       "taxAmtA": ((taxTotals['A'] ?? 0.0) *
               (taxConfigTaxA!.taxPercentage ?? 0) /
@@ -877,11 +881,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               (taxConfigTaxD!.taxPercentage ?? 0) /
               (100 + (taxConfigTaxD.taxPercentage ?? 0)))
           .toStringAsFixed(2)),
+      "ttTaxAmt": double.parse(((taxTotals['TT'] ?? 0.0) *
+              (taxConfigTaxTT!.taxPercentage ?? 0) /
+              (100 + (taxConfigTaxTT.taxPercentage ?? 0)))
+          .toStringAsFixed(2)),
 
       "taxRtA": taxConfigTaxA.taxPercentage,
       "taxRtB": taxConfigTaxB!.taxPercentage,
       "taxRtC": taxConfigTaxC.taxPercentage,
       "taxRtD": taxConfigTaxD.taxPercentage,
+      "ttTaxRt": taxConfigTaxTT.taxPercentage,
 
       "totTaxblAmt": totalTaxable.roundToTwoDecimalPlaces(),
 

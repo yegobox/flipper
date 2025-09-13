@@ -135,7 +135,16 @@ class TaxController<OBJ> {
 
   double calculateTotalTax(double tax, Configurations config) {
     final percentage = config.taxPercentage ?? 0;
-    return (tax * percentage) / 118;
+    // For TT tax type, use the standard formula: (amount * rate) / (100 + rate)
+    if (config.taxType == "TT") {
+      return (tax * percentage) / (100 + percentage);
+    }
+    // For tax type B, use the specific 18/118 formula
+    if (config.taxType == "B") {
+      return (tax * 18) / 118;
+    }
+    // For other tax types, use the standard formula
+    return (tax * percentage) / (100 + percentage);
   }
 
   /**
@@ -184,6 +193,7 @@ class TaxController<OBJ> {
           double totalC = 0;
           double totalA = 0;
           double totalD = 0;
+          double totalTT = 0;
           double totalDiscount = 0;
 
           try {
@@ -214,6 +224,9 @@ class TaxController<OBJ> {
                 case "D":
                   totalD += itemTotal;
                   break;
+                case "TT":
+                  totalTT += itemTotal;
+                  break;
               }
             }
           } catch (s) {
@@ -228,6 +241,8 @@ class TaxController<OBJ> {
               await ProxyService.strategy.getByTaxType(taxtype: "C");
           Configurations? taxConfigTaxD =
               await ProxyService.strategy.getByTaxType(taxtype: "D");
+          Configurations? taxConfigTaxTT =
+              await ProxyService.strategy.getByTaxType(taxtype: "TT");
 
           Print print = Print();
 
@@ -235,6 +250,8 @@ class TaxController<OBJ> {
               .strategy
               .getPaymentType(transactionId: transaction.id);
           await print.print(
+            taxTT: totalTT,
+            totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
             customerPhone: transaction.customerPhone,
             totalDiscount: totalDiscount,
             whenCreated: receipt!.whenCreated!,
