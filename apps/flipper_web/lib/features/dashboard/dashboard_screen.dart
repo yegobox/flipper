@@ -22,14 +22,16 @@ class DashboardScreen extends ConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Expanded(
+                  Expanded(
                     flex: 3,
-                    child: Column(
-                      children: [
-                        SetupProgress(),
-                        SizedBox(height: 16),
-                        PerformanceDashboard(),
-                      ],
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: const [
+                          SetupProgress(),
+                          SizedBox(height: 16),
+                          PerformanceDashboard(),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),

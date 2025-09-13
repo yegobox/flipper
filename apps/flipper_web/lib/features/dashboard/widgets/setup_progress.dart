@@ -18,7 +18,7 @@ class SetupProgress extends StatelessWidget {
           children: [
             const Text(
               "You're 43% set up.",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 16),
             ),
             const Spacer(),
             SizedBox(
