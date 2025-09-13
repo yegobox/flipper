@@ -1,0 +1,10 @@
+{
+  "@@locale": "sw",
+  "appTitle": "Flipper",
+  "login": "Ingia",
+  "logout": "Toka",
+  "dashboard": "Dashibodi",
+  "welcome": "Karibu",
+  "settings": "Mipangilio",
+  "language": "Lugha"
+}

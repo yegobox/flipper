@@ -2,10 +2,13 @@ import 'package:flipper_web/core/secrets.dart' show AppSecrets;
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/features/login/auth_wrapper.dart';
 import 'package:flipper_web/features/login/theme_provider.dart';
+import 'package:flipper_web/core/localization/locale_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flipper_web/l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +37,8 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
+    final locale = ref.watch(localeProvider);
+    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flipper',
@@ -42,6 +47,18 @@ class MyApp extends ConsumerWidget {
       ),
       darkTheme: ThemeData.dark(),
       themeMode: themeMode,
+      locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('fr'),
+        Locale('sw'),
+      ],
       home: const AuthWrapper(),
     );
   }
