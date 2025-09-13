@@ -8,16 +8,20 @@ Future<Composite> _$CompositeFromSupabase(
 }) async {
   return Composite(
     id: data['id'] as String?,
-    productId:
-        data['product_id'] == null ? null : data['product_id'] as String?,
-    variantId:
-        data['variant_id'] == null ? null : data['variant_id'] as String?,
+    productId: data['product_id'] == null
+        ? null
+        : data['product_id'] as String?,
+    variantId: data['variant_id'] == null
+        ? null
+        : data['variant_id'] as String?,
     qty: data['qty'] == null ? null : data['qty'] as double?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    actualPrice:
-        data['actual_price'] == null ? null : data['actual_price'] as double?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    actualPrice: data['actual_price'] == null
+        ? null
+        : data['actual_price'] as double?,
   );
 }
 
@@ -44,16 +48,20 @@ Future<Composite> _$CompositeFromSqlite(
 }) async {
   return Composite(
     id: data['id'] as String,
-    productId:
-        data['product_id'] == null ? null : data['product_id'] as String?,
-    variantId:
-        data['variant_id'] == null ? null : data['variant_id'] as String?,
+    productId: data['product_id'] == null
+        ? null
+        : data['product_id'] as String?,
+    variantId: data['variant_id'] == null
+        ? null
+        : data['variant_id'] as String?,
     qty: data['qty'] == null ? null : data['qty'] as double?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    actualPrice:
-        data['actual_price'] == null ? null : data['actual_price'] as double?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    actualPrice: data['actual_price'] == null
+        ? null
+        : data['actual_price'] as double?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

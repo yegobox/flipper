@@ -10,16 +10,14 @@ Future<Conversation> _$ConversationFromSupabase(
     id: data['id'] as String?,
     title: data['title'] as String,
     branchId: data['branch_id'] as int,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    lastMessageAt:
-        data['last_message_at'] == null
-            ? null
-            : DateTime.tryParse(data['last_message_at'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    lastMessageAt: data['last_message_at'] == null
+        ? null
+        : DateTime.tryParse(data['last_message_at'] as String),
   );
 }
 
@@ -46,30 +44,31 @@ Future<Conversation> _$ConversationFromSqlite(
     id: data['id'] as String,
     title: data['title'] as String,
     branchId: data['branch_id'] as int,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
     messages:
         (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_Message_brick_id` FROM `_brick_Conversation_messages` WHERE l_Conversation_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_Message_brick_id']);
-              return Future.wait<Message>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<Message>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<Message>(),
+                .rawQuery(
+                  'SELECT DISTINCT `f_Message_brick_id` FROM `_brick_Conversation_messages` WHERE l_Conversation_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map((r) => r['f_Message_brick_id']);
+                  return Future.wait<Message>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<Message>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<Message>(),
     lastMessageAt: DateTime.parse(data['last_message_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }

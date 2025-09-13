@@ -9,29 +9,30 @@ Future<Tenant> _$TenantFromSupabase(
   return Tenant(
     id: data['id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
     nfcEnabled: data['nfc_enabled'] as bool,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
     pin: data['pin'] == null ? null : data['pin'] as int?,
-    sessionActive:
-        data['session_active'] == null ? null : data['session_active'] as bool?,
+    sessionActive: data['session_active'] == null
+        ? null
+        : data['session_active'] as bool?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     isLongPressed: data['is_long_pressed'] as bool,
     type: data['type'] == null ? null : data['type'] as String?,
@@ -70,29 +71,30 @@ Future<Tenant> _$TenantFromSqlite(
   return Tenant(
     id: data['id'] as String,
     name: data['name'] == null ? null : data['name'] as String?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
     nfcEnabled: data['nfc_enabled'] == 1,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
     pin: data['pin'] == null ? null : data['pin'] as int?,
-    sessionActive:
-        data['session_active'] == null ? null : data['session_active'] == 1,
+    sessionActive: data['session_active'] == null
+        ? null
+        : data['session_active'] == 1,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     isLongPressed: data['is_long_pressed'] == 1,
     type: data['type'] == null ? null : data['type'] as String?,
@@ -116,12 +118,12 @@ Future<Map<String, dynamic>> _$TenantToSqlite(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'pin': instance.pin,
-    'session_active':
-        instance.sessionActive == null
-            ? null
-            : (instance.sessionActive! ? 1 : 0),
-    'is_default':
-        instance.isDefault == null ? null : (instance.isDefault! ? 1 : 0),
+    'session_active': instance.sessionActive == null
+        ? null
+        : (instance.sessionActive! ? 1 : 0),
+    'is_default': instance.isDefault == null
+        ? null
+        : (instance.isDefault! ? 1 : 0),
     'is_long_pressed': instance.isLongPressed ? 1 : 0,
     'type': instance.type,
   };

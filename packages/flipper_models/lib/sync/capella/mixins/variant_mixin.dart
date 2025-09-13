@@ -78,6 +78,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       String? pkgUnitCd,
       double? dcRt,
       bool? ebmSynced,
+      String? propertyTyCd,
+      String? roomTypeCd,
+      String? ttCatCd,
       Map<String, String>? dates}) {
     throw UnimplementedError(
         'updateVariant needs to be implemented for Capella');

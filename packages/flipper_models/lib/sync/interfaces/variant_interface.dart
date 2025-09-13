@@ -60,7 +60,7 @@ abstract class VariantInterface {
       double? prc,
       num? approvedQty,
       num? invoiceNumber,
-      double? dftPrc});
+      double? dftPrc,  String? propertyTyCd,  String? roomTypeCd,  String ttCatCd});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 

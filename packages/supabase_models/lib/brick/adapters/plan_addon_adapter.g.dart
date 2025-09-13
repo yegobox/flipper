@@ -9,14 +9,14 @@ Future<PlanAddon> _$PlanAddonFromSupabase(
   return PlanAddon(
     id: data['id'] as String?,
     planId: data['plan_id'] == null ? null : data['plan_id'] as String?,
-    addonName:
-        data['addon_name'] == null ? null : data['addon_name'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    addonName: data['addon_name'] == null
+        ? null
+        : data['addon_name'] as String?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   );
 }
 
@@ -41,14 +41,14 @@ Future<PlanAddon> _$PlanAddonFromSqlite(
   return PlanAddon(
     id: data['id'] as String,
     planId: data['plan_id'] == null ? null : data['plan_id'] as String?,
-    addonName:
-        data['addon_name'] == null ? null : data['addon_name'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    addonName: data['addon_name'] == null
+        ? null
+        : data['addon_name'] as String?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 

@@ -1411,6 +1411,9 @@ class Capella extends AiStrategyImpl
       String? productName,
       String? unit,
       String? pkgUnitCd,
+      String? propertyTyCd,
+      String? roomTypeCd,
+      String? ttCatCd,
       bool? ebmSynced}) {
     // TODO: implement updateVariant
     throw UnimplementedError();

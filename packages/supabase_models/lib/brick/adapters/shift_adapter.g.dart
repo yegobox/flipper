@@ -11,25 +11,23 @@ Future<Shift> _$ShiftFromSupabase(
     businessId: data['business_id'] as int,
     userId: data['user_id'] as int,
     startAt: DateTime.parse(data['start_at'] as String),
-    endAt:
-        data['end_at'] == null
-            ? null
-            : data['end_at'] == null
-            ? null
-            : DateTime.tryParse(data['end_at'] as String),
+    endAt: data['end_at'] == null
+        ? null
+        : data['end_at'] == null
+        ? null
+        : DateTime.tryParse(data['end_at'] as String),
     openingBalance: data['opening_balance'] as num,
-    closingBalance:
-        data['closing_balance'] == null
-            ? null
-            : data['closing_balance'] as num?,
+    closingBalance: data['closing_balance'] == null
+        ? null
+        : data['closing_balance'] as num?,
     status: ShiftStatus.values.byName(data['status']),
     cashSales: data['cash_sales'] == null ? null : data['cash_sales'] as num?,
-    expectedCash:
-        data['expected_cash'] == null ? null : data['expected_cash'] as num?,
-    cashDifference:
-        data['cash_difference'] == null
-            ? null
-            : data['cash_difference'] as num?,
+    expectedCash: data['expected_cash'] == null
+        ? null
+        : data['expected_cash'] as num?,
+    cashDifference: data['cash_difference'] == null
+        ? null
+        : data['cash_difference'] as num?,
     note: data['note'] == null ? null : data['note'] as String?,
     refunds: data['refunds'] == null ? null : data['refunds'] as num?,
   );
@@ -67,25 +65,23 @@ Future<Shift> _$ShiftFromSqlite(
     businessId: data['business_id'] as int,
     userId: data['user_id'] as int,
     startAt: DateTime.parse(data['start_at'] as String),
-    endAt:
-        data['end_at'] == null
-            ? null
-            : data['end_at'] == null
-            ? null
-            : DateTime.tryParse(data['end_at'] as String),
+    endAt: data['end_at'] == null
+        ? null
+        : data['end_at'] == null
+        ? null
+        : DateTime.tryParse(data['end_at'] as String),
     openingBalance: data['opening_balance'] as num,
-    closingBalance:
-        data['closing_balance'] == null
-            ? null
-            : data['closing_balance'] as num?,
+    closingBalance: data['closing_balance'] == null
+        ? null
+        : data['closing_balance'] as num?,
     status: ShiftStatus.values.byName(data['status'] as String),
     cashSales: data['cash_sales'] == null ? null : data['cash_sales'] as num?,
-    expectedCash:
-        data['expected_cash'] == null ? null : data['expected_cash'] as num?,
-    cashDifference:
-        data['cash_difference'] == null
-            ? null
-            : data['cash_difference'] as num?,
+    expectedCash: data['expected_cash'] == null
+        ? null
+        : data['expected_cash'] as num?,
+    cashDifference: data['cash_difference'] == null
+        ? null
+        : data['cash_difference'] as num?,
     note: data['note'] == null ? null : data['note'] as String?,
     refunds: data['refunds'] == null ? null : data['refunds'] as num?,
   )..primaryKey = data['_brick_id'] as int;

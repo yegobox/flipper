@@ -10,8 +10,9 @@ Future<SKU> _$SKUFromSupabase(
     id: data['id'] as String?,
     sku: data['sku'] == null ? null : data['sku'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     consumed: data['consumed'] == null ? null : data['consumed'] as bool?,
   );
 }
@@ -39,8 +40,9 @@ Future<SKU> _$SKUFromSqlite(
     id: data['id'] as String,
     sku: data['sku'] == null ? null : data['sku'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     consumed: data['consumed'] == null ? null : data['consumed'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }

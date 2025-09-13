@@ -9,10 +9,9 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSupabase(
   return BranchSmsConfig(
     id: data['id'] as String?,
     branchId: data['branch_id'] as int,
-    smsPhoneNumber:
-        data['sms_phone_number'] == null
-            ? null
-            : data['sms_phone_number'] as String?,
+    smsPhoneNumber: data['sms_phone_number'] == null
+        ? null
+        : data['sms_phone_number'] as String?,
     enableOrderNotification: data['enable_order_notification'] as bool,
   );
 }
@@ -38,10 +37,9 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSqlite(
   return BranchSmsConfig(
     id: data['id'] as String,
     branchId: data['branch_id'] as int,
-    smsPhoneNumber:
-        data['sms_phone_number'] == null
-            ? null
-            : data['sms_phone_number'] as String?,
+    smsPhoneNumber: data['sms_phone_number'] == null
+        ? null
+        : data['sms_phone_number'] as String?,
     enableOrderNotification: data['enable_order_notification'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }

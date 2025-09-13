@@ -13,12 +13,11 @@ Future<Customer> _$CustomerFromSupabase(
     telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    updatedAt:
-        data['updated_at'] == null
-            ? null
-            : data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
     custNo: data['cust_no'] == null ? null : data['cust_no'] as String?,
     custTin: data['cust_tin'] == null ? null : data['cust_tin'] as String?,
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
@@ -28,8 +27,9 @@ Future<Customer> _$CustomerFromSupabase(
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] as bool?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
-    customerType:
-        data['customer_type'] == null ? null : data['customer_type'] as String?,
+    customerType: data['customer_type'] == null
+        ? null
+        : data['customer_type'] as String?,
   );
 }
 
@@ -71,12 +71,11 @@ Future<Customer> _$CustomerFromSqlite(
     telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    updatedAt:
-        data['updated_at'] == null
-            ? null
-            : data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
     custNo: data['cust_no'] == null ? null : data['cust_no'] as String?,
     custTin: data['cust_tin'] == null ? null : data['cust_tin'] as String?,
     regrNm: data['regr_nm'] == null ? null : data['regr_nm'] as String?,
@@ -86,8 +85,9 @@ Future<Customer> _$CustomerFromSqlite(
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
-    customerType:
-        data['customer_type'] == null ? null : data['customer_type'] as String?,
+    customerType: data['customer_type'] == null
+        ? null
+        : data['customer_type'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -110,8 +110,9 @@ Future<Map<String, dynamic>> _$CustomerToSqlite(
     'regr_id': instance.regrId,
     'modr_nm': instance.modrNm,
     'modr_id': instance.modrId,
-    'ebm_synced':
-        instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
+    'ebm_synced': instance.ebmSynced == null
+        ? null
+        : (instance.ebmSynced! ? 1 : 0),
     'bhf_id': instance.bhfId,
     'use_yn': instance.useYn,
     'customer_type': instance.customerType,

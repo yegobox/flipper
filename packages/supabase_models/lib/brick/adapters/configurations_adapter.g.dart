@@ -9,12 +9,12 @@ Future<Configurations> _$ConfigurationsFromSupabase(
   return Configurations(
     id: data['id'] as String?,
     taxType: data['tax_type'] == null ? null : data['tax_type'] as String?,
-    taxPercentage:
-        data['tax_percentage'] == null
-            ? null
-            : data['tax_percentage'] as double?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    taxPercentage: data['tax_percentage'] == null
+        ? null
+        : data['tax_percentage'] as double?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
   );
 }
@@ -41,12 +41,12 @@ Future<Configurations> _$ConfigurationsFromSqlite(
   return Configurations(
     id: data['id'] as String,
     taxType: data['tax_type'] == null ? null : data['tax_type'] as String?,
-    taxPercentage:
-        data['tax_percentage'] == null
-            ? null
-            : data['tax_percentage'] as double?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    taxPercentage: data['tax_percentage'] == null
+        ? null
+        : data['tax_percentage'] as double?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
   )..primaryKey = data['_brick_id'] as int;
 }

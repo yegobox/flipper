@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/AddProductDialog.dart';
+import 'package:flipper_dashboard/AddRoomDialog.dart';
 import 'package:flipper_dashboard/import_purchase_dialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -351,8 +352,8 @@ class SearchFieldState extends ConsumerState<SearchField>
       barrierDismissible: true,
       context: context,
       builder: (context) => AddProductDialog(
-        onChoiceSelected: (isBulk) {
-          if (isBulk) {
+        onChoiceSelected: (choice) {
+          if (choice == 'bulk') {
             showDialog(
               barrierDismissible: true,
               context: context,
@@ -360,12 +361,23 @@ class SearchFieldState extends ConsumerState<SearchField>
                 child: BulkAddProduct(),
               ),
             );
-          } else {
+          } else if (choice == 'single') {
             showDialog(
               barrierDismissible: true,
               context: context,
               builder: (context) => OptionModal(
                 child: ProductEntryScreen(),
+              ),
+            );
+          } else if (choice == 'rooms') {
+            showDialog(
+              barrierDismissible: true,
+              context: context,
+              builder: (context) => AddRoomDialog(
+                onRoomAdded: (roomData) {
+                  // Handle room data here
+                  print('Room added: $roomData');
+                },
               ),
             );
           }

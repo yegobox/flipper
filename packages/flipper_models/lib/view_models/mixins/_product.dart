@@ -37,6 +37,9 @@ mixin ProductMixin {
       required String selectedProductType,
       String? color,
       Product? product,
+      String? propertyTyCd,
+      String? roomTypeCd,
+      String? ttCatCd,
       required Function(List<Variant> variantions) onCompleteCallback,
       required ScannViewModel model,
       String? categoryId}) async {
@@ -60,7 +63,7 @@ mixin ProductMixin {
       );
       // get the category
       Category? category =
-          await ProxyService.strategy.category(id: categoryId!);
+          await ProxyService.strategy.category(id: categoryId ?? "");
       List<Variant> updatables = [];
       for (var i = 0; i < variations!.length; i++) {
         // Parse the packagingUnit string to extract code and name
@@ -149,6 +152,9 @@ mixin ProductMixin {
         variations[i].spplrItemClsCd = "";
         variations[i].spplrItemNm = productName;
         variations[i].ebmSynced = false;
+        variations[i].ttCatCd = ttCatCd;
+        variations[i].propertyTyCd = propertyTyCd;
+        variations[i].roomTypeCd = roomTypeCd;
 
         // Unit fields are already set above
 

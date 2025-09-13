@@ -10,14 +10,14 @@ Future<Log> _$LogFromSupabase(
     id: data['id'] as String?,
     message: data['message'] == null ? null : data['message'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   );
 }
 
@@ -44,14 +44,14 @@ Future<Log> _$LogFromSqlite(
     id: data['id'] as String,
     message: data['message'] == null ? null : data['message'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 

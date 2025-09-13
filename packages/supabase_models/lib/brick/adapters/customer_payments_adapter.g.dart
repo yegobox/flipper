@@ -8,8 +8,9 @@ Future<CustomerPayments> _$CustomerPaymentsFromSupabase(
 }) async {
   return CustomerPayments(
     id: data['id'] as String?,
-    customerId:
-        data['customer_id'] == null ? null : data['customer_id'] as String?,
+    customerId: data['customer_id'] == null
+        ? null
+        : data['customer_id'] as String?,
     phoneNumber: data['phone_number'] as String,
     paymentStatus: data['payment_status'] as String,
     transactionId: data['transaction_id'] as String,
@@ -39,8 +40,9 @@ Future<CustomerPayments> _$CustomerPaymentsFromSqlite(
 }) async {
   return CustomerPayments(
     id: data['id'] as String,
-    customerId:
-        data['customer_id'] == null ? null : data['customer_id'] as String?,
+    customerId: data['customer_id'] == null
+        ? null
+        : data['customer_id'] as String?,
     phoneNumber: data['phone_number'] as String,
     paymentStatus: data['payment_status'] as String,
     transactionId: data['transaction_id'] as String,

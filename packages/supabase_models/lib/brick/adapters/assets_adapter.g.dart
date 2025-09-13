@@ -9,15 +9,19 @@ Future<Assets> _$AssetsFromSupabase(
   return Assets(
     id: data['id'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    assetName:
-        data['asset_name'] == null ? null : data['asset_name'] as String?,
-    productId:
-        data['product_id'] == null ? null : data['product_id'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    assetName: data['asset_name'] == null
+        ? null
+        : data['asset_name'] as String?,
+    productId: data['product_id'] == null
+        ? null
+        : data['product_id'] as String?,
     isUploaded: data['is_uploaded'] as bool,
-    localPath:
-        data['local_path'] == null ? null : data['local_path'] as String?,
+    localPath: data['local_path'] == null
+        ? null
+        : data['local_path'] as String?,
   );
 }
 
@@ -45,15 +49,19 @@ Future<Assets> _$AssetsFromSqlite(
   return Assets(
     id: data['id'] as String,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    assetName:
-        data['asset_name'] == null ? null : data['asset_name'] as String?,
-    productId:
-        data['product_id'] == null ? null : data['product_id'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    assetName: data['asset_name'] == null
+        ? null
+        : data['asset_name'] as String?,
+    productId: data['product_id'] == null
+        ? null
+        : data['product_id'] as String?,
     isUploaded: data['is_uploaded'] == 1,
-    localPath:
-        data['local_path'] == null ? null : data['local_path'] as String?,
+    localPath: data['local_path'] == null
+        ? null
+        : data['local_path'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

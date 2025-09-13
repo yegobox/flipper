@@ -9,14 +9,17 @@ Future<Pin> _$PinFromSupabase(
   return Pin(
     id: data['id'] as String?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
     pin: data['pin'] == null ? null : data['pin'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    ownerName:
-        data['owner_name'] == null ? null : data['owner_name'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    ownerName: data['owner_name'] == null
+        ? null
+        : data['owner_name'] as String?,
     tokenUid: data['token_uid'] == null ? null : data['token_uid'] as String?,
     uid: data['uid'] == null ? null : data['uid'] as String?,
   );
@@ -48,14 +51,17 @@ Future<Pin> _$PinFromSqlite(
   return Pin(
     id: data['id'] as String,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
     pin: data['pin'] == null ? null : data['pin'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    ownerName:
-        data['owner_name'] == null ? null : data['owner_name'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    ownerName: data['owner_name'] == null
+        ? null
+        : data['owner_name'] as String?,
     tokenUid: data['token_uid'] == null ? null : data['token_uid'] as String?,
     uid: data['uid'] == null ? null : data['uid'] as String?,
   )..primaryKey = data['_brick_id'] as int;

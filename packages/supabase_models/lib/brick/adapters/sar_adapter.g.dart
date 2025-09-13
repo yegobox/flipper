@@ -10,10 +10,9 @@ Future<Sar> _$SarFromSupabase(
     id: data['id'] as String?,
     sarNo: data['sar_no'] as int,
     branchId: data['branch_id'] as int,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   );
 }
 

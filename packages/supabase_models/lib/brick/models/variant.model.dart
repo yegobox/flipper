@@ -131,6 +131,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   final double? totAmt;
 
   String? pchsSttsCd;
+  String? propertyTyCd;
+  String? roomTypeCd;
+  String? ttCatCd;
   // end of fields to ignore
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
@@ -147,6 +150,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   Variant({
     String? id,
     this.pchsSttsCd,
+    this.propertyTyCd,
+    this.roomTypeCd,
+    this.ttCatCd,
     this.purchaseId,
     bool? isShared,
     this.qty,
@@ -306,6 +312,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
         spplrItemNm: parseOrDefault<String?>(json['spplrItemNm'], null),
         ebmSynced: parseOrDefault<bool>(json['ebmSynced'], false),
         dcRt: (json['dcRt'] as num?)?.toDouble() ?? 0.0,
+        propertyTyCd: parseOrDefault<String?>(json['propertyTyCd'], "01"),
+        roomTypeCd: parseOrDefault<String?>(json['roomTypeCd'], "03"),
+        ttCatCd: parseOrDefault<String?>(json['ttCatCd'], "TT"),
         expirationDate: (json['expirationDate'] != null)
             ? DateTime.tryParse(json['expirationDate'] as String)
             : null,
@@ -412,6 +421,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
       "lastTouched": lastTouched?.toIso8601String(),
       'qty': qty,
       'purchaseId': purchaseId,
+      'propertyTyCd': propertyTyCd,
+      'roomTypeCd': roomTypeCd,
+      'ttCatCd': ttCatCd,
     };
   }
 
@@ -570,6 +582,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
       taxblAmt: taxblAmt ?? this.taxblAmt,
       taxAmt: taxAmt ?? this.taxAmt,
       purchaseId: purchaseId ?? this.purchaseId,
+      ttCatCd: ttCatCd ?? ttCatCd,
+      propertyTyCd: propertyTyCd ??propertyTyCd,
+      roomTypeCd: roomTypeCd ?? roomTypeCd,
     );
   }
 

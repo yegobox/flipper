@@ -53,8 +53,9 @@ Future<Map<String, dynamic>> _$AppNotificationToSqlite(
     'type': instance.type,
     'message': instance.message,
     'identifier': instance.identifier,
-    'completed':
-        instance.completed == null ? null : (instance.completed! ? 1 : 0),
+    'completed': instance.completed == null
+        ? null
+        : (instance.completed! ? 1 : 0),
   };
 }
 

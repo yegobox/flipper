@@ -9,22 +9,21 @@ Future<PColor> _$PColorFromSupabase(
   return PColor(
     id: data['id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
-    colors:
-        data['colors'] == null ? null : data['colors']?.toList().cast<String>(),
+    colors: data['colors'] == null
+        ? null
+        : data['colors']?.toList().cast<String>(),
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     active: data['active'] as bool,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
   );
 }
 
@@ -54,18 +53,16 @@ Future<PColor> _$PColorFromSqlite(
     name: data['name'] == null ? null : data['name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     active: data['active'] == 1,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 

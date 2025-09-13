@@ -11,26 +11,24 @@ Future<Token> _$TokenFromSupabase(
     name: data['name'] == null ? null : data['name'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
     token: data['token'] == null ? null : data['token'] as String?,
-    validFrom:
-        data['valid_from'] == null
-            ? null
-            : data['valid_from'] == null
-            ? null
-            : DateTime.tryParse(data['valid_from'] as String),
-    validUntil:
-        data['valid_until'] == null
-            ? null
-            : data['valid_until'] == null
-            ? null
-            : DateTime.tryParse(data['valid_until'] as String),
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
+    validFrom: data['valid_from'] == null
+        ? null
+        : data['valid_from'] == null
+        ? null
+        : DateTime.tryParse(data['valid_from'] as String),
+    validUntil: data['valid_until'] == null
+        ? null
+        : data['valid_until'] == null
+        ? null
+        : DateTime.tryParse(data['valid_until'] as String),
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
   );
 }
 
@@ -61,26 +59,24 @@ Future<Token> _$TokenFromSqlite(
     name: data['name'] == null ? null : data['name'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
     token: data['token'] == null ? null : data['token'] as String?,
-    validFrom:
-        data['valid_from'] == null
-            ? null
-            : data['valid_from'] == null
-            ? null
-            : DateTime.tryParse(data['valid_from'] as String),
-    validUntil:
-        data['valid_until'] == null
-            ? null
-            : data['valid_until'] == null
-            ? null
-            : DateTime.tryParse(data['valid_until'] as String),
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
+    validFrom: data['valid_from'] == null
+        ? null
+        : data['valid_from'] == null
+        ? null
+        : DateTime.tryParse(data['valid_from'] as String),
+    validUntil: data['valid_until'] == null
+        ? null
+        : data['valid_until'] == null
+        ? null
+        : DateTime.tryParse(data['valid_until'] as String),
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 

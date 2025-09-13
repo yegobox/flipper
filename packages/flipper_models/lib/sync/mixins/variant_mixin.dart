@@ -358,6 +358,9 @@ mixin VariantMixin implements VariantInterface {
       num? approvedQty,
       num? invoiceNumber,
       Purchase? purchase,
+      String? propertyTyCd,
+      String? roomTypeCd,
+      String? ttCatCd,
       bool? ebmSynced}) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
@@ -368,6 +371,9 @@ mixin VariantMixin implements VariantInterface {
         variant.unit = unit ?? variant.unit;
         variant.prc = variant.retailPrice;
         variant.dftPrc = variant.retailPrice;
+        variant.propertyTyCd = variant.propertyTyCd ?? propertyTyCd;
+        variant.roomTypeCd = variant.roomTypeCd ?? roomTypeCd;
+        variant.ttCatCd = variant.ttCatCd ?? ttCatCd;
         variant.retailPrice = retailPrice ?? variant.retailPrice;
         variant.supplyPrice = supplyPrice ?? variant.supplyPrice;
         repository.upsert(variant);

@@ -8,21 +8,18 @@ Future<TransactionPaymentRecord> _$TransactionPaymentRecordFromSupabase(
 }) async {
   return TransactionPaymentRecord(
     id: data['id'] as String?,
-    transactionId:
-        data['transaction_id'] == null
-            ? null
-            : data['transaction_id'] as String?,
+    transactionId: data['transaction_id'] == null
+        ? null
+        : data['transaction_id'] as String?,
     amount: data['amount'] == null ? null : data['amount'] as double? ?? 0.0,
-    paymentMethod:
-        data['payment_method'] == null
-            ? null
-            : data['payment_method'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    paymentMethod: data['payment_method'] == null
+        ? null
+        : data['payment_method'] as String?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   );
 }
 
@@ -47,21 +44,18 @@ Future<TransactionPaymentRecord> _$TransactionPaymentRecordFromSqlite(
 }) async {
   return TransactionPaymentRecord(
     id: data['id'] as String,
-    transactionId:
-        data['transaction_id'] == null
-            ? null
-            : data['transaction_id'] as String?,
+    transactionId: data['transaction_id'] == null
+        ? null
+        : data['transaction_id'] as String?,
     amount: data['amount'] == null ? null : data['amount'] as double? ?? 0.0,
-    paymentMethod:
-        data['payment_method'] == null
-            ? null
-            : data['payment_method'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    paymentMethod: data['payment_method'] == null
+        ? null
+        : data['payment_method'] as String?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 

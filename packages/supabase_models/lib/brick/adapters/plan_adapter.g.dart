@@ -8,34 +8,34 @@ Future<Plan> _$PlanFromSupabase(
 }) async {
   return Plan(
     id: data['id'] == null ? null : data['id'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-    selectedPlan:
-        data['selected_plan'] == null ? null : data['selected_plan'] as String?,
-    additionalDevices:
-        data['additional_devices'] == null
-            ? null
-            : data['additional_devices'] as int?,
-    isYearlyPlan:
-        data['is_yearly_plan'] == null ? null : data['is_yearly_plan'] as bool?,
-    totalPrice:
-        data['total_price'] == null ? null : data['total_price'] as int?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    paymentCompletedByUser:
-        data['payment_completed_by_user'] == null
-            ? null
-            : data['payment_completed_by_user'] as bool? ?? false,
+    selectedPlan: data['selected_plan'] == null
+        ? null
+        : data['selected_plan'] as String?,
+    additionalDevices: data['additional_devices'] == null
+        ? null
+        : data['additional_devices'] as int?,
+    isYearlyPlan: data['is_yearly_plan'] == null
+        ? null
+        : data['is_yearly_plan'] as bool?,
+    totalPrice: data['total_price'] == null
+        ? null
+        : data['total_price'] as int?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    paymentCompletedByUser: data['payment_completed_by_user'] == null
+        ? null
+        : data['payment_completed_by_user'] as bool? ?? false,
     rule: data['rule'] == null ? null : data['rule'] as String?,
-    paymentMethod:
-        data['payment_method'] == null
-            ? null
-            : data['payment_method'] as String?,
+    paymentMethod: data['payment_method'] == null
+        ? null
+        : data['payment_method'] as String?,
     addons: await Future.wait<PlanAddon>(
       data['addons']
               ?.map(
@@ -49,48 +49,44 @@ Future<Plan> _$PlanFromSupabase(
               .cast<Future<PlanAddon>>() ??
           [],
     ),
-    nextBillingDate:
-        data['next_billing_date'] == null
-            ? null
-            : data['next_billing_date'] == null
-            ? null
-            : DateTime.tryParse(data['next_billing_date'] as String),
-    numberOfPayments:
-        data['number_of_payments'] == null
-            ? null
-            : data['number_of_payments'] as int?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
-    externalId:
-        data['external_id'] == null ? null : data['external_id'] as String?,
-    paymentStatus:
-        data['payment_status'] == null
-            ? null
-            : data['payment_status'] as String?,
-    lastProcessedAt:
-        data['last_processed_at'] == null
-            ? null
-            : data['last_processed_at'] == null
-            ? null
-            : DateTime.tryParse(data['last_processed_at'] as String),
-    lastError:
-        data['last_error'] == null ? null : data['last_error'] as String?,
-    updatedAt:
-        data['updated_at'] == null
-            ? null
-            : data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
-    lastUpdated:
-        data['last_updated'] == null
-            ? null
-            : data['last_updated'] == null
-            ? null
-            : DateTime.tryParse(data['last_updated'] as String),
-    processingStatus:
-        data['processing_status'] == null
-            ? null
-            : data['processing_status'] as String?,
+    nextBillingDate: data['next_billing_date'] == null
+        ? null
+        : data['next_billing_date'] == null
+        ? null
+        : DateTime.tryParse(data['next_billing_date'] as String),
+    numberOfPayments: data['number_of_payments'] == null
+        ? null
+        : data['number_of_payments'] as int?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
+    externalId: data['external_id'] == null
+        ? null
+        : data['external_id'] as String?,
+    paymentStatus: data['payment_status'] == null
+        ? null
+        : data['payment_status'] as String?,
+    lastProcessedAt: data['last_processed_at'] == null
+        ? null
+        : data['last_processed_at'] == null
+        ? null
+        : DateTime.tryParse(data['last_processed_at'] as String),
+    lastError: data['last_error'] == null
+        ? null
+        : data['last_error'] as String?,
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
+    lastUpdated: data['last_updated'] == null
+        ? null
+        : data['last_updated'] == null
+        ? null
+        : DateTime.tryParse(data['last_updated'] as String),
+    processingStatus: data['processing_status'] == null
+        ? null
+        : data['processing_status'] as String?,
   );
 }
 
@@ -142,94 +138,92 @@ Future<Plan> _$PlanFromSqlite(
 }) async {
   return Plan(
     id: data['id'] == null ? null : data['id'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-    selectedPlan:
-        data['selected_plan'] == null ? null : data['selected_plan'] as String?,
-    additionalDevices:
-        data['additional_devices'] == null
-            ? null
-            : data['additional_devices'] as int?,
-    isYearlyPlan:
-        data['is_yearly_plan'] == null ? null : data['is_yearly_plan'] == 1,
-    totalPrice:
-        data['total_price'] == null ? null : data['total_price'] as int?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    paymentCompletedByUser:
-        data['payment_completed_by_user'] == null
-            ? null
-            : data['payment_completed_by_user'] == 1,
+    selectedPlan: data['selected_plan'] == null
+        ? null
+        : data['selected_plan'] as String?,
+    additionalDevices: data['additional_devices'] == null
+        ? null
+        : data['additional_devices'] as int?,
+    isYearlyPlan: data['is_yearly_plan'] == null
+        ? null
+        : data['is_yearly_plan'] == 1,
+    totalPrice: data['total_price'] == null
+        ? null
+        : data['total_price'] as int?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    paymentCompletedByUser: data['payment_completed_by_user'] == null
+        ? null
+        : data['payment_completed_by_user'] == 1,
     rule: data['rule'] == null ? null : data['rule'] as String?,
-    paymentMethod:
-        data['payment_method'] == null
-            ? null
-            : data['payment_method'] as String?,
+    paymentMethod: data['payment_method'] == null
+        ? null
+        : data['payment_method'] as String?,
     addons:
         (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE l_Plan_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_PlanAddon_brick_id']);
-              return Future.wait<PlanAddon>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<PlanAddon>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<PlanAddon>(),
-    nextBillingDate:
-        data['next_billing_date'] == null
-            ? null
-            : data['next_billing_date'] == null
-            ? null
-            : DateTime.tryParse(data['next_billing_date'] as String),
-    numberOfPayments:
-        data['number_of_payments'] == null
-            ? null
-            : data['number_of_payments'] as int?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
-    externalId:
-        data['external_id'] == null ? null : data['external_id'] as String?,
-    paymentStatus:
-        data['payment_status'] == null
-            ? null
-            : data['payment_status'] as String?,
-    lastProcessedAt:
-        data['last_processed_at'] == null
-            ? null
-            : data['last_processed_at'] == null
-            ? null
-            : DateTime.tryParse(data['last_processed_at'] as String),
-    lastError:
-        data['last_error'] == null ? null : data['last_error'] as String?,
-    updatedAt:
-        data['updated_at'] == null
-            ? null
-            : data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
-    lastUpdated:
-        data['last_updated'] == null
-            ? null
-            : data['last_updated'] == null
-            ? null
-            : DateTime.tryParse(data['last_updated'] as String),
-    processingStatus:
-        data['processing_status'] == null
-            ? null
-            : data['processing_status'] as String?,
+                .rawQuery(
+                  'SELECT DISTINCT `f_PlanAddon_brick_id` FROM `_brick_Plan_addons` WHERE l_Plan_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map((r) => r['f_PlanAddon_brick_id']);
+                  return Future.wait<PlanAddon>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<PlanAddon>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<PlanAddon>(),
+    nextBillingDate: data['next_billing_date'] == null
+        ? null
+        : data['next_billing_date'] == null
+        ? null
+        : DateTime.tryParse(data['next_billing_date'] as String),
+    numberOfPayments: data['number_of_payments'] == null
+        ? null
+        : data['number_of_payments'] as int?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
+    externalId: data['external_id'] == null
+        ? null
+        : data['external_id'] as String?,
+    paymentStatus: data['payment_status'] == null
+        ? null
+        : data['payment_status'] as String?,
+    lastProcessedAt: data['last_processed_at'] == null
+        ? null
+        : data['last_processed_at'] == null
+        ? null
+        : DateTime.tryParse(data['last_processed_at'] as String),
+    lastError: data['last_error'] == null
+        ? null
+        : data['last_error'] as String?,
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
+    lastUpdated: data['last_updated'] == null
+        ? null
+        : data['last_updated'] == null
+        ? null
+        : DateTime.tryParse(data['last_updated'] as String),
+    processingStatus: data['processing_status'] == null
+        ? null
+        : data['processing_status'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -244,14 +238,14 @@ Future<Map<String, dynamic>> _$PlanToSqlite(
     'branch_id': instance.branchId,
     'selected_plan': instance.selectedPlan,
     'additional_devices': instance.additionalDevices,
-    'is_yearly_plan':
-        instance.isYearlyPlan == null ? null : (instance.isYearlyPlan! ? 1 : 0),
+    'is_yearly_plan': instance.isYearlyPlan == null
+        ? null
+        : (instance.isYearlyPlan! ? 1 : 0),
     'total_price': instance.totalPrice,
     'created_at': instance.createdAt?.toIso8601String(),
-    'payment_completed_by_user':
-        instance.paymentCompletedByUser == null
-            ? null
-            : (instance.paymentCompletedByUser! ? 1 : 0),
+    'payment_completed_by_user': instance.paymentCompletedByUser == null
+        ? null
+        : (instance.paymentCompletedByUser! ? 1 : 0),
     'rule': instance.rule,
     'payment_method': instance.paymentMethod,
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
@@ -544,8 +538,9 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       final addonsOldIds = addonsOldColumns.map(
         (a) => a['f_PlanAddon_brick_id'],
       );
-      final addonsNewIds =
-          instance.addons.map((s) => s.primaryKey).whereType<int>();
+      final addonsNewIds = instance.addons
+          .map((s) => s.primaryKey)
+          .whereType<int>();
       final addonsIdsToDelete = addonsOldIds.where(
         (id) => !addonsNewIds.contains(id),
       );

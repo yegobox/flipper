@@ -8,26 +8,26 @@ Future<Counter> _$CounterFromSupabase(
 }) async {
   return Counter(
     id: data['id'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    receiptType:
-        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    receiptType: data['receipt_type'] == null
+        ? null
+        : data['receipt_type'] as String?,
     totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
     curRcptNo: data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
     invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
     bhfId: data['bhf_id'] as String,
   );
 }
@@ -58,26 +58,26 @@ Future<Counter> _$CounterFromSqlite(
 }) async {
   return Counter(
     id: data['id'] as String,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    receiptType:
-        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
+    receiptType: data['receipt_type'] == null
+        ? null
+        : data['receipt_type'] as String?,
     totRcptNo: data['tot_rcpt_no'] == null ? null : data['tot_rcpt_no'] as int?,
     curRcptNo: data['cur_rcpt_no'] == null ? null : data['cur_rcpt_no'] as int?,
     invcNo: data['invc_no'] == null ? null : data['invc_no'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
     bhfId: data['bhf_id'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }

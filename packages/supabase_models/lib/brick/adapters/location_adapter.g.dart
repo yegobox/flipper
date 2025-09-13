@@ -10,27 +10,27 @@ Future<Location> _$LocationFromSupabase(
     id: data['id'] as String?,
     serverId: data['server_id'] == null ? null : data['server_id'] as int?,
     active: data['active'] == null ? null : data['active'] as bool?,
-    description:
-        data['description'] == null ? null : data['description'] as String?,
+    description: data['description'] == null
+        ? null
+        : data['description'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     location: data['location'] == null ? null : data['location'] as String?,
     isDefault: data['is_default'] as bool,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
     isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
   );
 }
@@ -66,27 +66,27 @@ Future<Location> _$LocationFromSqlite(
     id: data['id'] as String,
     serverId: data['server_id'] == null ? null : data['server_id'] as int?,
     active: data['active'] == null ? null : data['active'] == 1,
-    description:
-        data['description'] == null ? null : data['description'] as String?,
+    description: data['description'] == null
+        ? null
+        : data['description'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     location: data['location'] == null ? null : data['location'] as String?,
     isDefault: data['is_default'] == 1,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
     isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -109,8 +109,9 @@ Future<Map<String, dynamic>> _$LocationToSqlite(
     'is_default': instance.isDefault ? 1 : 0,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
-    'is_online':
-        instance.isOnline == null ? null : (instance.isOnline! ? 1 : 0),
+    'is_online': instance.isOnline == null
+        ? null
+        : (instance.isOnline! ? 1 : 0),
   };
 }
 

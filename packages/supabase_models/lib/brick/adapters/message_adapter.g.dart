@@ -13,20 +13,20 @@ Future<Message> _$MessageFromSupabase(
     delivered: data['delivered'] as bool,
     branchId: data['branch_id'] as int,
     role: data['role'] == null ? null : data['role'] as String?,
-    timestamp:
-        data['timestamp'] == null
-            ? null
-            : data['timestamp'] == null
-            ? null
-            : DateTime.tryParse(data['timestamp'] as String),
-    conversationId:
-        data['conversation_id'] == null
-            ? null
-            : data['conversation_id'] as String?,
-    aiResponse:
-        data['ai_response'] == null ? null : data['ai_response'] as String?,
-    aiContext:
-        data['ai_context'] == null ? null : data['ai_context'] as String?,
+    timestamp: data['timestamp'] == null
+        ? null
+        : data['timestamp'] == null
+        ? null
+        : DateTime.tryParse(data['timestamp'] as String),
+    conversationId: data['conversation_id'] == null
+        ? null
+        : data['conversation_id'] as String?,
+    aiResponse: data['ai_response'] == null
+        ? null
+        : data['ai_response'] as String?,
+    aiContext: data['ai_context'] == null
+        ? null
+        : data['ai_context'] as String?,
   );
 }
 
@@ -61,20 +61,20 @@ Future<Message> _$MessageFromSqlite(
     delivered: data['delivered'] == 1,
     branchId: data['branch_id'] as int,
     role: data['role'] == null ? null : data['role'] as String?,
-    timestamp:
-        data['timestamp'] == null
-            ? null
-            : data['timestamp'] == null
-            ? null
-            : DateTime.tryParse(data['timestamp'] as String),
-    conversationId:
-        data['conversation_id'] == null
-            ? null
-            : data['conversation_id'] as String?,
-    aiResponse:
-        data['ai_response'] == null ? null : data['ai_response'] as String?,
-    aiContext:
-        data['ai_context'] == null ? null : data['ai_context'] as String?,
+    timestamp: data['timestamp'] == null
+        ? null
+        : data['timestamp'] == null
+        ? null
+        : DateTime.tryParse(data['timestamp'] as String),
+    conversationId: data['conversation_id'] == null
+        ? null
+        : data['conversation_id'] as String?,
+    aiResponse: data['ai_response'] == null
+        ? null
+        : data['ai_response'] as String?,
+    aiContext: data['ai_context'] == null
+        ? null
+        : data['ai_context'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

@@ -11,11 +11,13 @@ Future<Branch> _$BranchFromSupabase(
     name: data['name'] == null ? null : data['name'] as String?,
     serverId: data['server_id'] == null ? null : data['server_id'] as int?,
     location: data['location'] == null ? null : data['location'] as String?,
-    description:
-        data['description'] == null ? null : data['description'] as String?,
+    description: data['description'] == null
+        ? null
+        : data['description'] as String?,
     active: data['active'] == null ? null : data['active'] as bool?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
@@ -53,11 +55,13 @@ Future<Branch> _$BranchFromSqlite(
     name: data['name'] == null ? null : data['name'] as String?,
     serverId: data['server_id'] == null ? null : data['server_id'] as int?,
     location: data['location'] == null ? null : data['location'] as String?,
-    description:
-        data['description'] == null ? null : data['description'] as String?,
+    description: data['description'] == null
+        ? null
+        : data['description'] as String?,
     active: data['active'] == null ? null : data['active'] == 1,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
@@ -80,10 +84,12 @@ Future<Map<String, dynamic>> _$BranchToSqlite(
     'business_id': instance.businessId,
     'latitude': instance.latitude,
     'longitude': instance.longitude,
-    'is_default':
-        instance.isDefault == null ? null : (instance.isDefault! ? 1 : 0),
-    'is_online':
-        instance.isOnline == null ? null : (instance.isOnline! ? 1 : 0),
+    'is_default': instance.isDefault == null
+        ? null
+        : (instance.isDefault! ? 1 : 0),
+    'is_online': instance.isOnline == null
+        ? null
+        : (instance.isOnline! ? 1 : 0),
   };
 }
 

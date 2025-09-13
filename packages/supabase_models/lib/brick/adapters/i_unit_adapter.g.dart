@@ -13,16 +13,17 @@ Future<IUnit> _$IUnitFromSupabase(
     value: data['value'] == null ? null : data['value'] as String?,
     active: data['active'] == null ? null : data['active'] as bool? ?? false,
     code: data['code'] == null ? null : data['code'] as String?,
-    description:
-        data['description'] == null ? null : data['description'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    createdAt:
-        data['created_at'] == null ? null : data['created_at'] as String?,
+    description: data['description'] == null
+        ? null
+        : data['description'] as String?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] as String?,
   );
 }
 
@@ -56,16 +57,17 @@ Future<IUnit> _$IUnitFromSqlite(
     value: data['value'] == null ? null : data['value'] as String?,
     active: data['active'] == null ? null : data['active'] == 1,
     code: data['code'] == null ? null : data['code'] as String?,
-    description:
-        data['description'] == null ? null : data['description'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    createdAt:
-        data['created_at'] == null ? null : data['created_at'] as String?,
+    description: data['description'] == null
+        ? null
+        : data['description'] as String?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

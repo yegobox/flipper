@@ -161,7 +161,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         transactionId: transaction.id,
       );
       if (items.isEmpty) items = transaction.items ?? [];
-      if (items.any((item) => item.itemCd == "3")) {
+
+      /// Ensure no service items are included for stock in or out
+      if (items.any((item) => item.itemTyCd == "3")) {
         throw Exception("Service item cannot be saved in IO");
       }
       List<Map<String, dynamic>> itemsList = await Future.wait(items

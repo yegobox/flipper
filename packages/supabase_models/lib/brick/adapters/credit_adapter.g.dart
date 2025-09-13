@@ -9,8 +9,9 @@ Future<Credit> _$CreditFromSupabase(
   return Credit(
     id: data['id'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as String?,
     credits: data['credits'] as double,
     createdAt: DateTime.parse(data['created_at'] as String),
     updatedAt: DateTime.parse(data['updated_at'] as String),
@@ -42,8 +43,9 @@ Future<Credit> _$CreditFromSqlite(
   return Credit(
     id: data['id'] as String,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as String?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as String?,
     credits: data['credits'] as double,
     createdAt: DateTime.parse(data['created_at'] as String),
     updatedAt: DateTime.parse(data['updated_at'] as String),

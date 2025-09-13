@@ -11,15 +11,17 @@ Future<Business> _$BusinessFromSupabase(
     serverId: data['server_id'] as int,
     name: data['name'] == null ? null : data['name'] as String?,
     currency: data['currency'] == null ? null : data['currency'] as String?,
-    categoryId:
-        data['category_id'] == null ? null : data['category_id'] as String?,
+    categoryId: data['category_id'] == null
+        ? null
+        : data['category_id'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
     country: data['country'] == null ? null : data['country'] as String?,
-    businessUrl:
-        data['business_url'] == null ? null : data['business_url'] as String?,
+    businessUrl: data['business_url'] == null
+        ? null
+        : data['business_url'] as String?,
     hexColor: data['hex_color'] == null ? null : data['hex_color'] as String?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
@@ -28,80 +30,72 @@ Future<Business> _$BusinessFromSupabase(
     metadata: data['metadata'] == null ? null : data['metadata'] as String?,
     role: data['role'] == null ? null : data['role'] as String?,
     lastSeen: data['last_seen'] == null ? null : data['last_seen'] as int?,
-    firstName:
-        data['first_name'] == null ? null : data['first_name'] as String?,
+    firstName: data['first_name'] == null
+        ? null
+        : data['first_name'] as String?,
     lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    deviceToken:
-        data['device_token'] == null ? null : data['device_token'] as String?,
-    backUpEnabled:
-        data['back_up_enabled'] == null
-            ? null
-            : data['back_up_enabled'] as bool?,
-    subscriptionPlan:
-        data['subscription_plan'] == null
-            ? null
-            : data['subscription_plan'] as String?,
-    nextBillingDate:
-        data['next_billing_date'] == null
-            ? null
-            : data['next_billing_date'] as String?,
-    previousBillingDate:
-        data['previous_billing_date'] == null
-            ? null
-            : data['previous_billing_date'] as String?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    deviceToken: data['device_token'] == null
+        ? null
+        : data['device_token'] as String?,
+    backUpEnabled: data['back_up_enabled'] == null
+        ? null
+        : data['back_up_enabled'] as bool?,
+    subscriptionPlan: data['subscription_plan'] == null
+        ? null
+        : data['subscription_plan'] as String?,
+    nextBillingDate: data['next_billing_date'] == null
+        ? null
+        : data['next_billing_date'] as String?,
+    previousBillingDate: data['previous_billing_date'] == null
+        ? null
+        : data['previous_billing_date'] as String?,
     isLastSubscriptionPaymentSucceeded:
         data['is_last_subscription_payment_succeeded'] == null
-            ? null
-            : data['is_last_subscription_payment_succeeded'] as bool?,
-    backupFileId:
-        data['backup_file_id'] == null
-            ? null
-            : data['backup_file_id'] as String?,
+        ? null
+        : data['is_last_subscription_payment_succeeded'] as bool?,
+    backupFileId: data['backup_file_id'] == null
+        ? null
+        : data['backup_file_id'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
-    lastDbBackup:
-        data['last_db_backup'] == null
-            ? null
-            : data['last_db_backup'] as String?,
+    lastDbBackup: data['last_db_backup'] == null
+        ? null
+        : data['last_db_backup'] as String?,
     fullName: data['full_name'] == null ? null : data['full_name'] as String?,
     tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dvcSrlNo: data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
-    taxEnabled:
-        data['tax_enabled'] == null ? null : data['tax_enabled'] as bool?,
-    taxServerUrl:
-        data['tax_server_url'] == null
-            ? null
-            : data['tax_server_url'] as String?,
+    taxEnabled: data['tax_enabled'] == null
+        ? null
+        : data['tax_enabled'] as bool?,
+    taxServerUrl: data['tax_server_url'] == null
+        ? null
+        : data['tax_server_url'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
-    businessTypeId:
-        data['business_type_id'] == null
-            ? null
-            : data['business_type_id'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
-    encryptionKey:
-        data['encryption_key'] == null
-            ? null
-            : data['encryption_key'] as String?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    businessTypeId: data['business_type_id'] == null
+        ? null
+        : data['business_type_id'] as int?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    encryptionKey: data['encryption_key'] == null
+        ? null
+        : data['encryption_key'] as String?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
   );
 }
 
@@ -169,15 +163,17 @@ Future<Business> _$BusinessFromSqlite(
     serverId: data['server_id'] as int,
     name: data['name'] == null ? null : data['name'] as String?,
     currency: data['currency'] == null ? null : data['currency'] as String?,
-    categoryId:
-        data['category_id'] == null ? null : data['category_id'] as String?,
+    categoryId: data['category_id'] == null
+        ? null
+        : data['category_id'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     userId: data['user_id'] == null ? null : data['user_id'] as int?,
     timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
     country: data['country'] == null ? null : data['country'] as String?,
-    businessUrl:
-        data['business_url'] == null ? null : data['business_url'] as String?,
+    businessUrl: data['business_url'] == null
+        ? null
+        : data['business_url'] as String?,
     hexColor: data['hex_color'] == null ? null : data['hex_color'] as String?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
@@ -186,77 +182,70 @@ Future<Business> _$BusinessFromSqlite(
     metadata: data['metadata'] == null ? null : data['metadata'] as String?,
     role: data['role'] == null ? null : data['role'] as String?,
     lastSeen: data['last_seen'] == null ? null : data['last_seen'] as int?,
-    firstName:
-        data['first_name'] == null ? null : data['first_name'] as String?,
+    firstName: data['first_name'] == null
+        ? null
+        : data['first_name'] as String?,
     lastName: data['last_name'] == null ? null : data['last_name'] as String?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    deviceToken:
-        data['device_token'] == null ? null : data['device_token'] as String?,
-    backUpEnabled:
-        data['back_up_enabled'] == null ? null : data['back_up_enabled'] == 1,
-    subscriptionPlan:
-        data['subscription_plan'] == null
-            ? null
-            : data['subscription_plan'] as String?,
-    nextBillingDate:
-        data['next_billing_date'] == null
-            ? null
-            : data['next_billing_date'] as String?,
-    previousBillingDate:
-        data['previous_billing_date'] == null
-            ? null
-            : data['previous_billing_date'] as String?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    deviceToken: data['device_token'] == null
+        ? null
+        : data['device_token'] as String?,
+    backUpEnabled: data['back_up_enabled'] == null
+        ? null
+        : data['back_up_enabled'] == 1,
+    subscriptionPlan: data['subscription_plan'] == null
+        ? null
+        : data['subscription_plan'] as String?,
+    nextBillingDate: data['next_billing_date'] == null
+        ? null
+        : data['next_billing_date'] as String?,
+    previousBillingDate: data['previous_billing_date'] == null
+        ? null
+        : data['previous_billing_date'] as String?,
     isLastSubscriptionPaymentSucceeded:
         data['is_last_subscription_payment_succeeded'] == null
-            ? null
-            : data['is_last_subscription_payment_succeeded'] == 1,
-    backupFileId:
-        data['backup_file_id'] == null
-            ? null
-            : data['backup_file_id'] as String?,
+        ? null
+        : data['is_last_subscription_payment_succeeded'] == 1,
+    backupFileId: data['backup_file_id'] == null
+        ? null
+        : data['backup_file_id'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
-    lastDbBackup:
-        data['last_db_backup'] == null
-            ? null
-            : data['last_db_backup'] as String?,
+    lastDbBackup: data['last_db_backup'] == null
+        ? null
+        : data['last_db_backup'] as String?,
     fullName: data['full_name'] == null ? null : data['full_name'] as String?,
     tinNumber: data['tin_number'] == null ? null : data['tin_number'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dvcSrlNo: data['dvc_srl_no'] == null ? null : data['dvc_srl_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
     taxEnabled: data['tax_enabled'] == null ? null : data['tax_enabled'] == 1,
-    taxServerUrl:
-        data['tax_server_url'] == null
-            ? null
-            : data['tax_server_url'] as String?,
+    taxServerUrl: data['tax_server_url'] == null
+        ? null
+        : data['tax_server_url'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
-    businessTypeId:
-        data['business_type_id'] == null
-            ? null
-            : data['business_type_id'] as int?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
-    encryptionKey:
-        data['encryption_key'] == null
-            ? null
-            : data['encryption_key'] as String?,
-    phoneNumber:
-        data['phone_number'] == null ? null : data['phone_number'] as String?,
+    businessTypeId: data['business_type_id'] == null
+        ? null
+        : data['business_type_id'] as int?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    encryptionKey: data['encryption_key'] == null
+        ? null
+        : data['encryption_key'] as String?,
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -289,17 +278,16 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
     'last_name': instance.lastName,
     'created_at': instance.createdAt?.toIso8601String(),
     'device_token': instance.deviceToken,
-    'back_up_enabled':
-        instance.backUpEnabled == null
-            ? null
-            : (instance.backUpEnabled! ? 1 : 0),
+    'back_up_enabled': instance.backUpEnabled == null
+        ? null
+        : (instance.backUpEnabled! ? 1 : 0),
     'subscription_plan': instance.subscriptionPlan,
     'next_billing_date': instance.nextBillingDate,
     'previous_billing_date': instance.previousBillingDate,
     'is_last_subscription_payment_succeeded':
         instance.isLastSubscriptionPaymentSucceeded == null
-            ? null
-            : (instance.isLastSubscriptionPaymentSucceeded! ? 1 : 0),
+        ? null
+        : (instance.isLastSubscriptionPaymentSucceeded! ? 1 : 0),
     'backup_file_id': instance.backupFileId,
     'email': instance.email,
     'last_db_backup': instance.lastDbBackup,
@@ -308,11 +296,13 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
     'bhf_id': instance.bhfId,
     'dvc_srl_no': instance.dvcSrlNo,
     'adrs': instance.adrs,
-    'tax_enabled':
-        instance.taxEnabled == null ? null : (instance.taxEnabled! ? 1 : 0),
+    'tax_enabled': instance.taxEnabled == null
+        ? null
+        : (instance.taxEnabled! ? 1 : 0),
     'tax_server_url': instance.taxServerUrl,
-    'is_default':
-        instance.isDefault == null ? null : (instance.isDefault! ? 1 : 0),
+    'is_default': instance.isDefault == null
+        ? null
+        : (instance.isDefault! ? 1 : 0),
     'business_type_id': instance.businessTypeId,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),

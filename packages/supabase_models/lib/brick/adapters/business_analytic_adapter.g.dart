@@ -16,10 +16,12 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     taxRate: data['tax_rate'] as num,
     trafficCount: data['traffic_count'] as int,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    categoryName:
-        data['category_name'] == null ? null : data['category_name'] as String?,
-    categoryId:
-        data['category_id'] == null ? null : data['category_id'] as String?,
+    categoryName: data['category_name'] == null
+        ? null
+        : data['category_name'] as String?,
+    categoryId: data['category_id'] == null
+        ? null
+        : data['category_id'] as String?,
   );
 }
 
@@ -58,10 +60,12 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     taxRate: data['tax_rate'] as num,
     trafficCount: data['traffic_count'] as int,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    categoryName:
-        data['category_name'] == null ? null : data['category_name'] as String?,
-    categoryId:
-        data['category_id'] == null ? null : data['category_id'] as String?,
+    categoryName: data['category_name'] == null
+        ? null
+        : data['category_name'] as String?,
+    categoryId: data['category_id'] == null
+        ? null
+        : data['category_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

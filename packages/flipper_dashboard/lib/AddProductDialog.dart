@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AddProductDialog extends StatelessWidget {
-  final Function(bool) onChoiceSelected;
+  final Function(String) onChoiceSelected;
 
   const AddProductDialog({
     super.key,
@@ -40,7 +40,15 @@ class AddProductDialog extends StatelessWidget {
                 icon: Icons.add,
                 title: 'Add Single Product',
                 subtitle: 'Add one product at a time',
-                onTap: () => _handleSelection(context, false),
+                onTap: () => _handleSelection(context, 'single'),
+              ),
+              const SizedBox(height: 16),
+              _buildOptionButton(
+                context: context,
+                icon: Icons.hotel,
+                title: 'Add Rooms',
+                subtitle: 'Add rooms for hotel management',
+                onTap: () => _handleSelection(context, 'rooms'),
               ),
               const SizedBox(height: 16),
               _buildOptionButton(
@@ -48,7 +56,7 @@ class AddProductDialog extends StatelessWidget {
                 icon: Icons.dashboard_customize,
                 title: 'Bulk Add Products',
                 subtitle: 'Add multiple products at once',
-                onTap: () => _handleSelection(context, true),
+                onTap: () => _handleSelection(context, 'bulk'),
               ),
               const SizedBox(height: 24),
               _buildCancelButton(context),
@@ -184,8 +192,8 @@ class AddProductDialog extends StatelessWidget {
     );
   }
 
-  void _handleSelection(BuildContext context, bool isBulkAdd) {
+  void _handleSelection(BuildContext context, String choice) {
     Navigator.of(context).pop();
-    onChoiceSelected(isBulkAdd);
+    onChoiceSelected(choice);
   }
 }

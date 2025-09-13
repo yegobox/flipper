@@ -9,184 +9,166 @@ Future<ITransaction> _$ITransactionFromSupabase(
   return ITransaction(
     id: data['id'] as String?,
     reference: data['reference'] == null ? null : data['reference'] as String?,
-    categoryId:
-        data['category_id'] == null ? null : data['category_id'] as String?,
-    transactionNumber:
-        data['transaction_number'] == null
-            ? null
-            : data['transaction_number'] as String?,
+    categoryId: data['category_id'] == null
+        ? null
+        : data['category_id'] as String?,
+    transactionNumber: data['transaction_number'] == null
+        ? null
+        : data['transaction_number'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     status: data['status'] == null ? null : data['status'] as String?,
-    transactionType:
-        data['transaction_type'] == null
-            ? null
-            : data['transaction_type'] as String?,
-    subTotal:
-        data['sub_total'] == null ? null : data['sub_total'] as double? ?? 0.0,
-    paymentType:
-        data['payment_type'] == null ? null : data['payment_type'] as String?,
-    cashReceived:
-        data['cash_received'] == null
-            ? null
-            : data['cash_received'] as double? ?? 0.0,
-    customerChangeDue:
-        data['customer_change_due'] == null
-            ? null
-            : data['customer_change_due'] as double? ?? 0.0,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    receiptType:
-        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-    updatedAt:
-        data['updated_at'] == null
-            ? null
-            : data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
-    customerId:
-        data['customer_id'] == null ? null : data['customer_id'] as String?,
-    customerType:
-        data['customer_type'] == null ? null : data['customer_type'] as String?,
+    transactionType: data['transaction_type'] == null
+        ? null
+        : data['transaction_type'] as String?,
+    subTotal: data['sub_total'] == null
+        ? null
+        : data['sub_total'] as double? ?? 0.0,
+    paymentType: data['payment_type'] == null
+        ? null
+        : data['payment_type'] as String?,
+    cashReceived: data['cash_received'] == null
+        ? null
+        : data['cash_received'] as double? ?? 0.0,
+    customerChangeDue: data['customer_change_due'] == null
+        ? null
+        : data['customer_change_due'] as double? ?? 0.0,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    receiptType: data['receipt_type'] == null
+        ? null
+        : data['receipt_type'] as String?,
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
+    customerId: data['customer_id'] == null
+        ? null
+        : data['customer_id'] as String?,
+    customerType: data['customer_type'] == null
+        ? null
+        : data['customer_type'] as String?,
     note: data['note'] == null ? null : data['note'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    ticketName:
-        data['ticket_name'] == null ? null : data['ticket_name'] as String?,
-    supplierId:
-        data['supplier_id'] == null ? null : data['supplier_id'] as int?,
-    ebmSynced:
-        data['ebm_synced'] == null
-            ? null
-            : data['ebm_synced'] as bool? ?? false,
-    isIncome:
-        data['is_income'] == null ? null : data['is_income'] as bool? ?? true,
-    isExpense:
-        data['is_expense'] == null
-            ? null
-            : data['is_expense'] as bool? ?? false,
-    isRefunded:
-        data['is_refunded'] == null
-            ? null
-            : data['is_refunded'] as bool? ?? false,
-    customerName:
-        data['customer_name'] == null ? null : data['customer_name'] as String?,
-    customerTin:
-        data['customer_tin'] == null ? null : data['customer_tin'] as String?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    ticketName: data['ticket_name'] == null
+        ? null
+        : data['ticket_name'] as String?,
+    supplierId: data['supplier_id'] == null
+        ? null
+        : data['supplier_id'] as int?,
+    ebmSynced: data['ebm_synced'] == null
+        ? null
+        : data['ebm_synced'] as bool? ?? false,
+    isIncome: data['is_income'] == null
+        ? null
+        : data['is_income'] as bool? ?? true,
+    isExpense: data['is_expense'] == null
+        ? null
+        : data['is_expense'] as bool? ?? false,
+    isRefunded: data['is_refunded'] == null
+        ? null
+        : data['is_refunded'] as bool? ?? false,
+    customerName: data['customer_name'] == null
+        ? null
+        : data['customer_name'] as String?,
+    customerTin: data['customer_tin'] == null
+        ? null
+        : data['customer_tin'] as String?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
-    customerBhfId:
-        data['customer_bhf_id'] == null
-            ? null
-            : data['customer_bhf_id'] as String?,
+    customerBhfId: data['customer_bhf_id'] == null
+        ? null
+        : data['customer_bhf_id'] as String?,
     sarTyCd: data['sar_ty_cd'] == null ? null : data['sar_ty_cd'] as String?,
-    receiptNumber:
-        data['receipt_number'] == null ? null : data['receipt_number'] as int?,
-    totalReceiptNumber:
-        data['total_receipt_number'] == null
-            ? null
-            : data['total_receipt_number'] as int?,
-    invoiceNumber:
-        data['invoice_number'] == null ? null : data['invoice_number'] as int?,
-    isDigitalReceiptGenerated:
-        data['is_digital_receipt_generated'] == null
-            ? null
-            : data['is_digital_receipt_generated'] as bool?,
-    receiptFileName:
-        data['receipt_file_name'] == null
-            ? null
-            : data['receipt_file_name'] as String?,
+    receiptNumber: data['receipt_number'] == null
+        ? null
+        : data['receipt_number'] as int?,
+    totalReceiptNumber: data['total_receipt_number'] == null
+        ? null
+        : data['total_receipt_number'] as int?,
+    invoiceNumber: data['invoice_number'] == null
+        ? null
+        : data['invoice_number'] as int?,
+    isDigitalReceiptGenerated: data['is_digital_receipt_generated'] == null
+        ? null
+        : data['is_digital_receipt_generated'] as bool?,
+    receiptFileName: data['receipt_file_name'] == null
+        ? null
+        : data['receipt_file_name'] as String?,
     currentSaleCustomerPhoneNumber:
         data['current_sale_customer_phone_number'] == null
-            ? null
-            : data['current_sale_customer_phone_number'] as String?,
+        ? null
+        : data['current_sale_customer_phone_number'] as String?,
     sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
     orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
     shiftId: data['shift_id'] == null ? null : data['shift_id'] as String?,
     isLoan: data['is_loan'] == null ? null : data['is_loan'] as bool? ?? false,
-    dueDate:
-        data['due_date'] == null
-            ? null
-            : data['due_date'] == null
-            ? null
-            : DateTime.tryParse(data['due_date'] as String),
-    isAutoBilled:
-        data['is_auto_billed'] == null
-            ? null
-            : data['is_auto_billed'] as bool? ?? false,
-    nextBillingDate:
-        data['next_billing_date'] == null
-            ? null
-            : data['next_billing_date'] == null
-            ? null
-            : DateTime.tryParse(data['next_billing_date'] as String),
-    billingFrequency:
-        data['billing_frequency'] == null
-            ? null
-            : data['billing_frequency'] as String?,
-    billingAmount:
-        data['billing_amount'] == null
-            ? null
-            : data['billing_amount'] as num? ?? 0.0,
-    totalInstallments:
-        data['total_installments'] == null
-            ? null
-            : data['total_installments'] as int? ?? 1,
-    paidInstallments:
-        data['paid_installments'] == null
-            ? null
-            : data['paid_installments'] as int? ?? 0,
-    lastBilledDate:
-        data['last_billed_date'] == null
-            ? null
-            : data['last_billed_date'] == null
-            ? null
-            : DateTime.tryParse(data['last_billed_date'] as String),
-    originalLoanAmount:
-        data['original_loan_amount'] == null
-            ? null
-            : data['original_loan_amount'] as num? ?? 0.0,
-    remainingBalance:
-        data['remaining_balance'] == null
-            ? null
-            : data['remaining_balance'] as num? ?? 0.0,
-    lastPaymentDate:
-        data['last_payment_date'] == null
-            ? null
-            : data['last_payment_date'] == null
-            ? null
-            : DateTime.tryParse(data['last_payment_date'] as String),
-    lastPaymentAmount:
-        data['last_payment_amount'] == null
-            ? null
-            : data['last_payment_amount'] as num? ?? 0.0,
-    originalTransactionId:
-        data['original_transaction_id'] == null
-            ? null
-            : data['original_transaction_id'] as String?,
-    isOriginalTransaction:
-        data['is_original_transaction'] == null
-            ? null
-            : data['is_original_transaction'] as bool?,
+    dueDate: data['due_date'] == null
+        ? null
+        : data['due_date'] == null
+        ? null
+        : DateTime.tryParse(data['due_date'] as String),
+    isAutoBilled: data['is_auto_billed'] == null
+        ? null
+        : data['is_auto_billed'] as bool? ?? false,
+    nextBillingDate: data['next_billing_date'] == null
+        ? null
+        : data['next_billing_date'] == null
+        ? null
+        : DateTime.tryParse(data['next_billing_date'] as String),
+    billingFrequency: data['billing_frequency'] == null
+        ? null
+        : data['billing_frequency'] as String?,
+    billingAmount: data['billing_amount'] == null
+        ? null
+        : data['billing_amount'] as num? ?? 0.0,
+    totalInstallments: data['total_installments'] == null
+        ? null
+        : data['total_installments'] as int? ?? 1,
+    paidInstallments: data['paid_installments'] == null
+        ? null
+        : data['paid_installments'] as int? ?? 0,
+    lastBilledDate: data['last_billed_date'] == null
+        ? null
+        : data['last_billed_date'] == null
+        ? null
+        : DateTime.tryParse(data['last_billed_date'] as String),
+    originalLoanAmount: data['original_loan_amount'] == null
+        ? null
+        : data['original_loan_amount'] as num? ?? 0.0,
+    remainingBalance: data['remaining_balance'] == null
+        ? null
+        : data['remaining_balance'] as num? ?? 0.0,
+    lastPaymentDate: data['last_payment_date'] == null
+        ? null
+        : data['last_payment_date'] == null
+        ? null
+        : DateTime.tryParse(data['last_payment_date'] as String),
+    lastPaymentAmount: data['last_payment_amount'] == null
+        ? null
+        : data['last_payment_amount'] as num? ?? 0.0,
+    originalTransactionId: data['original_transaction_id'] == null
+        ? null
+        : data['original_transaction_id'] as String?,
+    isOriginalTransaction: data['is_original_transaction'] == null
+        ? null
+        : data['is_original_transaction'] as bool?,
     taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
-    numberOfItems:
-        data['number_of_items'] == null
-            ? null
-            : data['number_of_items'] as int?,
-    discountAmount:
-        data['discount_amount'] == null
-            ? null
-            : data['discount_amount'] as num?,
-    customerPhone:
-        data['customer_phone'] == null
-            ? null
-            : data['customer_phone'] as String?,
+    numberOfItems: data['number_of_items'] == null
+        ? null
+        : data['number_of_items'] as int?,
+    discountAmount: data['discount_amount'] == null
+        ? null
+        : data['discount_amount'] as num?,
+    customerPhone: data['customer_phone'] == null
+        ? null
+        : data['customer_phone'] as String?,
   );
 }
 
@@ -265,185 +247,178 @@ Future<ITransaction> _$ITransactionFromSqlite(
   return ITransaction(
     id: data['id'] as String,
     reference: data['reference'] == null ? null : data['reference'] as String?,
-    categoryId:
-        data['category_id'] == null ? null : data['category_id'] as String?,
-    transactionNumber:
-        data['transaction_number'] == null
-            ? null
-            : data['transaction_number'] as String?,
+    categoryId: data['category_id'] == null
+        ? null
+        : data['category_id'] as String?,
+    transactionNumber: data['transaction_number'] == null
+        ? null
+        : data['transaction_number'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     status: data['status'] == null ? null : data['status'] as String?,
-    transactionType:
-        data['transaction_type'] == null
-            ? null
-            : data['transaction_type'] as String?,
+    transactionType: data['transaction_type'] == null
+        ? null
+        : data['transaction_type'] as String?,
     subTotal: data['sub_total'] == null ? null : data['sub_total'] as double?,
-    paymentType:
-        data['payment_type'] == null ? null : data['payment_type'] as String?,
-    cashReceived:
-        data['cash_received'] == null ? null : data['cash_received'] as double?,
-    customerChangeDue:
-        data['customer_change_due'] == null
-            ? null
-            : data['customer_change_due'] as double?,
-    createdAt:
-        data['created_at'] == null
-            ? null
-            : data['created_at'] == null
-            ? null
-            : DateTime.tryParse(data['created_at'] as String),
-    receiptType:
-        data['receipt_type'] == null ? null : data['receipt_type'] as String?,
-    updatedAt:
-        data['updated_at'] == null
-            ? null
-            : data['updated_at'] == null
-            ? null
-            : DateTime.tryParse(data['updated_at'] as String),
-    customerId:
-        data['customer_id'] == null ? null : data['customer_id'] as String?,
-    customerType:
-        data['customer_type'] == null ? null : data['customer_type'] as String?,
+    paymentType: data['payment_type'] == null
+        ? null
+        : data['payment_type'] as String?,
+    cashReceived: data['cash_received'] == null
+        ? null
+        : data['cash_received'] as double?,
+    customerChangeDue: data['customer_change_due'] == null
+        ? null
+        : data['customer_change_due'] as double?,
+    createdAt: data['created_at'] == null
+        ? null
+        : data['created_at'] == null
+        ? null
+        : DateTime.tryParse(data['created_at'] as String),
+    receiptType: data['receipt_type'] == null
+        ? null
+        : data['receipt_type'] as String?,
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
+    customerId: data['customer_id'] == null
+        ? null
+        : data['customer_id'] as String?,
+    customerType: data['customer_type'] == null
+        ? null
+        : data['customer_type'] as String?,
     note: data['note'] == null ? null : data['note'] as String?,
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
-    ticketName:
-        data['ticket_name'] == null ? null : data['ticket_name'] as String?,
-    supplierId:
-        data['supplier_id'] == null ? null : data['supplier_id'] as int?,
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
+    ticketName: data['ticket_name'] == null
+        ? null
+        : data['ticket_name'] as String?,
+    supplierId: data['supplier_id'] == null
+        ? null
+        : data['supplier_id'] as int?,
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
     isIncome: data['is_income'] == null ? null : data['is_income'] == 1,
     isExpense: data['is_expense'] == null ? null : data['is_expense'] == 1,
     isRefunded: data['is_refunded'] == null ? null : data['is_refunded'] == 1,
-    customerName:
-        data['customer_name'] == null ? null : data['customer_name'] as String?,
-    customerTin:
-        data['customer_tin'] == null ? null : data['customer_tin'] as String?,
+    customerName: data['customer_name'] == null
+        ? null
+        : data['customer_name'] as String?,
+    customerTin: data['customer_tin'] == null
+        ? null
+        : data['customer_tin'] as String?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
-    customerBhfId:
-        data['customer_bhf_id'] == null
-            ? null
-            : data['customer_bhf_id'] as String?,
+    customerBhfId: data['customer_bhf_id'] == null
+        ? null
+        : data['customer_bhf_id'] as String?,
     sarTyCd: data['sar_ty_cd'] == null ? null : data['sar_ty_cd'] as String?,
-    receiptNumber:
-        data['receipt_number'] == null ? null : data['receipt_number'] as int?,
-    totalReceiptNumber:
-        data['total_receipt_number'] == null
-            ? null
-            : data['total_receipt_number'] as int?,
-    invoiceNumber:
-        data['invoice_number'] == null ? null : data['invoice_number'] as int?,
-    isDigitalReceiptGenerated:
-        data['is_digital_receipt_generated'] == null
-            ? null
-            : data['is_digital_receipt_generated'] == 1,
-    receiptFileName:
-        data['receipt_file_name'] == null
-            ? null
-            : data['receipt_file_name'] as String?,
+    receiptNumber: data['receipt_number'] == null
+        ? null
+        : data['receipt_number'] as int?,
+    totalReceiptNumber: data['total_receipt_number'] == null
+        ? null
+        : data['total_receipt_number'] as int?,
+    invoiceNumber: data['invoice_number'] == null
+        ? null
+        : data['invoice_number'] as int?,
+    isDigitalReceiptGenerated: data['is_digital_receipt_generated'] == null
+        ? null
+        : data['is_digital_receipt_generated'] == 1,
+    receiptFileName: data['receipt_file_name'] == null
+        ? null
+        : data['receipt_file_name'] as String?,
     currentSaleCustomerPhoneNumber:
         data['current_sale_customer_phone_number'] == null
-            ? null
-            : data['current_sale_customer_phone_number'] as String?,
+        ? null
+        : data['current_sale_customer_phone_number'] as String?,
     sarNo: data['sar_no'] == null ? null : data['sar_no'] as String?,
     orgSarNo: data['org_sar_no'] == null ? null : data['org_sar_no'] as String?,
     shiftId: data['shift_id'] == null ? null : data['shift_id'] as String?,
     isLoan: data['is_loan'] == null ? null : data['is_loan'] == 1,
-    dueDate:
-        data['due_date'] == null
-            ? null
-            : data['due_date'] == null
-            ? null
-            : DateTime.tryParse(data['due_date'] as String),
-    isAutoBilled:
-        data['is_auto_billed'] == null ? null : data['is_auto_billed'] == 1,
-    nextBillingDate:
-        data['next_billing_date'] == null
-            ? null
-            : data['next_billing_date'] == null
-            ? null
-            : DateTime.tryParse(data['next_billing_date'] as String),
-    billingFrequency:
-        data['billing_frequency'] == null
-            ? null
-            : data['billing_frequency'] as String?,
-    billingAmount:
-        data['billing_amount'] == null ? null : data['billing_amount'] as num?,
-    totalInstallments:
-        data['total_installments'] == null
-            ? null
-            : data['total_installments'] as int?,
-    paidInstallments:
-        data['paid_installments'] == null
-            ? null
-            : data['paid_installments'] as int?,
-    lastBilledDate:
-        data['last_billed_date'] == null
-            ? null
-            : data['last_billed_date'] == null
-            ? null
-            : DateTime.tryParse(data['last_billed_date'] as String),
-    originalLoanAmount:
-        data['original_loan_amount'] == null
-            ? null
-            : data['original_loan_amount'] as num?,
-    remainingBalance:
-        data['remaining_balance'] == null
-            ? null
-            : data['remaining_balance'] as num?,
-    lastPaymentDate:
-        data['last_payment_date'] == null
-            ? null
-            : data['last_payment_date'] == null
-            ? null
-            : DateTime.tryParse(data['last_payment_date'] as String),
-    lastPaymentAmount:
-        data['last_payment_amount'] == null
-            ? null
-            : data['last_payment_amount'] as num?,
-    originalTransactionId:
-        data['original_transaction_id'] == null
-            ? null
-            : data['original_transaction_id'] as String?,
-    isOriginalTransaction:
-        data['is_original_transaction'] == null
-            ? null
-            : data['is_original_transaction'] == 1,
+    dueDate: data['due_date'] == null
+        ? null
+        : data['due_date'] == null
+        ? null
+        : DateTime.tryParse(data['due_date'] as String),
+    isAutoBilled: data['is_auto_billed'] == null
+        ? null
+        : data['is_auto_billed'] == 1,
+    nextBillingDate: data['next_billing_date'] == null
+        ? null
+        : data['next_billing_date'] == null
+        ? null
+        : DateTime.tryParse(data['next_billing_date'] as String),
+    billingFrequency: data['billing_frequency'] == null
+        ? null
+        : data['billing_frequency'] as String?,
+    billingAmount: data['billing_amount'] == null
+        ? null
+        : data['billing_amount'] as num?,
+    totalInstallments: data['total_installments'] == null
+        ? null
+        : data['total_installments'] as int?,
+    paidInstallments: data['paid_installments'] == null
+        ? null
+        : data['paid_installments'] as int?,
+    lastBilledDate: data['last_billed_date'] == null
+        ? null
+        : data['last_billed_date'] == null
+        ? null
+        : DateTime.tryParse(data['last_billed_date'] as String),
+    originalLoanAmount: data['original_loan_amount'] == null
+        ? null
+        : data['original_loan_amount'] as num?,
+    remainingBalance: data['remaining_balance'] == null
+        ? null
+        : data['remaining_balance'] as num?,
+    lastPaymentDate: data['last_payment_date'] == null
+        ? null
+        : data['last_payment_date'] == null
+        ? null
+        : DateTime.tryParse(data['last_payment_date'] as String),
+    lastPaymentAmount: data['last_payment_amount'] == null
+        ? null
+        : data['last_payment_amount'] as num?,
+    originalTransactionId: data['original_transaction_id'] == null
+        ? null
+        : data['original_transaction_id'] as String?,
+    isOriginalTransaction: data['is_original_transaction'] == null
+        ? null
+        : data['is_original_transaction'] == 1,
     taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
-    numberOfItems:
-        data['number_of_items'] == null
-            ? null
-            : data['number_of_items'] as int?,
-    discountAmount:
-        data['discount_amount'] == null
-            ? null
-            : data['discount_amount'] as num?,
+    numberOfItems: data['number_of_items'] == null
+        ? null
+        : data['number_of_items'] as int?,
+    discountAmount: data['discount_amount'] == null
+        ? null
+        : data['discount_amount'] as num?,
     items:
         (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_ITransaction_items` WHERE l_ITransaction_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_TransactionItem_brick_id']);
-              return Future.wait<TransactionItem>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<TransactionItem>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<TransactionItem>(),
-    customerPhone:
-        data['customer_phone'] == null
-            ? null
-            : data['customer_phone'] as String?,
+                .rawQuery(
+                  'SELECT DISTINCT `f_TransactionItem_brick_id` FROM `_brick_ITransaction_items` WHERE l_ITransaction_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map(
+                    (r) => r['f_TransactionItem_brick_id'],
+                  );
+                  return Future.wait<TransactionItem>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<TransactionItem>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<TransactionItem>(),
+    customerPhone: data['customer_phone'] == null
+        ? null
+        : data['customer_phone'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -473,14 +448,18 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'ticket_name': instance.ticketName,
     'supplier_id': instance.supplierId,
-    'ebm_synced':
-        instance.ebmSynced == null ? null : (instance.ebmSynced! ? 1 : 0),
-    'is_income':
-        instance.isIncome == null ? null : (instance.isIncome! ? 1 : 0),
-    'is_expense':
-        instance.isExpense == null ? null : (instance.isExpense! ? 1 : 0),
-    'is_refunded':
-        instance.isRefunded == null ? null : (instance.isRefunded! ? 1 : 0),
+    'ebm_synced': instance.ebmSynced == null
+        ? null
+        : (instance.ebmSynced! ? 1 : 0),
+    'is_income': instance.isIncome == null
+        ? null
+        : (instance.isIncome! ? 1 : 0),
+    'is_expense': instance.isExpense == null
+        ? null
+        : (instance.isExpense! ? 1 : 0),
+    'is_refunded': instance.isRefunded == null
+        ? null
+        : (instance.isRefunded! ? 1 : 0),
     'customer_name': instance.customerName,
     'customer_tin': instance.customerTin,
     'remark': instance.remark,
@@ -489,10 +468,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'receipt_number': instance.receiptNumber,
     'total_receipt_number': instance.totalReceiptNumber,
     'invoice_number': instance.invoiceNumber,
-    'is_digital_receipt_generated':
-        instance.isDigitalReceiptGenerated == null
-            ? null
-            : (instance.isDigitalReceiptGenerated! ? 1 : 0),
+    'is_digital_receipt_generated': instance.isDigitalReceiptGenerated == null
+        ? null
+        : (instance.isDigitalReceiptGenerated! ? 1 : 0),
     'receipt_file_name': instance.receiptFileName,
     'current_sale_customer_phone_number':
         instance.currentSaleCustomerPhoneNumber,
@@ -501,8 +479,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'shift_id': instance.shiftId,
     'is_loan': instance.isLoan == null ? null : (instance.isLoan! ? 1 : 0),
     'due_date': instance.dueDate?.toIso8601String(),
-    'is_auto_billed':
-        instance.isAutoBilled == null ? null : (instance.isAutoBilled! ? 1 : 0),
+    'is_auto_billed': instance.isAutoBilled == null
+        ? null
+        : (instance.isAutoBilled! ? 1 : 0),
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
     'billing_frequency': instance.billingFrequency,
     'billing_amount': instance.billingAmount,
@@ -514,10 +493,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'last_payment_date': instance.lastPaymentDate?.toIso8601String(),
     'last_payment_amount': instance.lastPaymentAmount,
     'original_transaction_id': instance.originalTransactionId,
-    'is_original_transaction':
-        instance.isOriginalTransaction == null
-            ? null
-            : (instance.isOriginalTransaction! ? 1 : 0),
+    'is_original_transaction': instance.isOriginalTransaction == null
+        ? null
+        : (instance.isOriginalTransaction! ? 1 : 0),
     'tax_amount': instance.taxAmount,
     'number_of_items': instance.numberOfItems,
     'discount_amount': instance.discountAmount,

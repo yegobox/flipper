@@ -9,8 +9,9 @@ Future<Report> _$ReportFromSupabase(
   return Report(
     id: data['id'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     filename: data['filename'] == null ? null : data['filename'] as String?,
     s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
     downloaded: data['downloaded'] == null ? null : data['downloaded'] as bool?,
@@ -40,8 +41,9 @@ Future<Report> _$ReportFromSqlite(
   return Report(
     id: data['id'] as String,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    businessId:
-        data['business_id'] == null ? null : data['business_id'] as int?,
+    businessId: data['business_id'] == null
+        ? null
+        : data['business_id'] as int?,
     filename: data['filename'] == null ? null : data['filename'] as String?,
     s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
     downloaded: data['downloaded'] == null ? null : data['downloaded'] == 1,
@@ -59,8 +61,9 @@ Future<Map<String, dynamic>> _$ReportToSqlite(
     'business_id': instance.businessId,
     'filename': instance.filename,
     's3_url': instance.s3Url,
-    'downloaded':
-        instance.downloaded == null ? null : (instance.downloaded! ? 1 : 0),
+    'downloaded': instance.downloaded == null
+        ? null
+        : (instance.downloaded! ? 1 : 0),
   };
 }
 

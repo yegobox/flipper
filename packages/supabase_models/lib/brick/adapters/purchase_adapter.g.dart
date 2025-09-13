@@ -8,22 +8,21 @@ Future<Purchase> _$PurchaseFromSupabase(
 }) async {
   return Purchase(
     id: data['id'] as String?,
-    variants:
-        data['variants'] == null
-            ? null
-            : await Future.wait<Variant>(
-              data['variants']
-                      ?.map(
-                        (d) => VariantAdapter().fromSupabase(
-                          d,
-                          provider: provider,
-                          repository: repository,
-                        ),
-                      )
-                      .toList()
-                      .cast<Future<Variant>>() ??
-                  [],
-            ),
+    variants: data['variants'] == null
+        ? null
+        : await Future.wait<Variant>(
+            data['variants']
+                    ?.map(
+                      (d) => VariantAdapter().fromSupabase(
+                        d,
+                        provider: provider,
+                        repository: repository,
+                      ),
+                    )
+                    .toList()
+                    .cast<Future<Variant>>() ??
+                [],
+          ),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -32,8 +31,9 @@ Future<Purchase> _$PurchaseFromSupabase(
     pmtTyCd: data['pmt_ty_cd'] as String,
     cfmDt: data['cfm_dt'] as String,
     salesDt: data['sales_dt'] as String,
-    stockRlsDt:
-        data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
+    stockRlsDt: data['stock_rls_dt'] == null
+        ? null
+        : data['stock_rls_dt'] as String?,
     totItemCnt: data['tot_item_cnt'] as int,
     taxblAmtA: data['taxbl_amt_a'] as num,
     taxblAmtB: data['taxbl_amt_b'] as num,
@@ -52,10 +52,9 @@ Future<Purchase> _$PurchaseFromSupabase(
     totAmt: data['tot_amt'] as num,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
-    hasUnApprovedVariant:
-        data['has_un_approved_variant'] == null
-            ? null
-            : data['has_un_approved_variant'] as bool?,
+    hasUnApprovedVariant: data['has_un_approved_variant'] == null
+        ? null
+        : data['has_un_approved_variant'] as bool?,
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
@@ -126,22 +125,24 @@ Future<Purchase> _$PurchaseFromSqlite(
     id: data['id'] as String,
     variants:
         (await provider
-            .rawQuery(
-              'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
-              [data['_brick_id'] as int],
-            )
-            .then((results) {
-              final ids = results.map((r) => r['f_Variant_brick_id']);
-              return Future.wait<Variant>(
-                ids.map(
-                  (primaryKey) => repository!
-                      .getAssociation<Variant>(
-                        Query.where('primaryKey', primaryKey, limit1: true),
-                      )
-                      .then((r) => r!.first),
-                ),
-              );
-            })).toList().cast<Variant>(),
+                .rawQuery(
+                  'SELECT DISTINCT `f_Variant_brick_id` FROM `_brick_Purchase_variants` WHERE l_Purchase_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map((r) => r['f_Variant_brick_id']);
+                  return Future.wait<Variant>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<Variant>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<Variant>(),
     spplrTin: data['spplr_tin'] as String,
     spplrNm: data['spplr_nm'] as String,
     spplrBhfId: data['spplr_bhf_id'] as String,
@@ -150,8 +151,9 @@ Future<Purchase> _$PurchaseFromSqlite(
     pmtTyCd: data['pmt_ty_cd'] as String,
     cfmDt: data['cfm_dt'] as String,
     salesDt: data['sales_dt'] as String,
-    stockRlsDt:
-        data['stock_rls_dt'] == null ? null : data['stock_rls_dt'] as String?,
+    stockRlsDt: data['stock_rls_dt'] == null
+        ? null
+        : data['stock_rls_dt'] as String?,
     totItemCnt: data['tot_item_cnt'] as int,
     taxblAmtA: data['taxbl_amt_a'] as num,
     taxblAmtB: data['taxbl_amt_b'] as num,
@@ -170,10 +172,9 @@ Future<Purchase> _$PurchaseFromSqlite(
     totAmt: data['tot_amt'] as num,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
-    hasUnApprovedVariant:
-        data['has_un_approved_variant'] == null
-            ? null
-            : data['has_un_approved_variant'] == 1,
+    hasUnApprovedVariant: data['has_un_approved_variant'] == null
+        ? null
+        : data['has_un_approved_variant'] == 1,
     approved: data['approved'] == null ? null : data['approved'] as int?,
     rejected: data['rejected'] == null ? null : data['rejected'] as int?,
     pending: data['pending'] == null ? null : data['pending'] as int?,
@@ -215,10 +216,9 @@ Future<Map<String, dynamic>> _$PurchaseToSqlite(
     'tot_amt': instance.totAmt,
     'branch_id': instance.branchId,
     'remark': instance.remark,
-    'has_un_approved_variant':
-        instance.hasUnApprovedVariant == null
-            ? null
-            : (instance.hasUnApprovedVariant! ? 1 : 0),
+    'has_un_approved_variant': instance.hasUnApprovedVariant == null
+        ? null
+        : (instance.hasUnApprovedVariant! ? 1 : 0),
     'approved': instance.approved,
     'rejected': instance.rejected,
     'pending': instance.pending,

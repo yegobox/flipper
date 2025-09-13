@@ -12,18 +12,16 @@ Future<Category> _$CategoryFromSupabase(
     focused: data['focused'] as bool,
     name: data['name'] == null ? null : data['name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
   );
 }
 
@@ -54,18 +52,16 @@ Future<Category> _$CategoryFromSqlite(
     focused: data['focused'] == 1,
     name: data['name'] == null ? null : data['name'] as String?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    deletedAt:
-        data['deleted_at'] == null
-            ? null
-            : data['deleted_at'] == null
-            ? null
-            : DateTime.tryParse(data['deleted_at'] as String),
-    lastTouched:
-        data['last_touched'] == null
-            ? null
-            : data['last_touched'] == null
-            ? null
-            : DateTime.tryParse(data['last_touched'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    lastTouched: data['last_touched'] == null
+        ? null
+        : data['last_touched'] == null
+        ? null
+        : DateTime.tryParse(data['last_touched'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 

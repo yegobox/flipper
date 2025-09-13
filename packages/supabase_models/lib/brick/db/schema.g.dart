@@ -1,20 +1,22 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20250807103716.migration.dart';
+part '20250913064841.migration.dart';
 part '20250716114853.migration.dart';
+part '20250807103716.migration.dart';
 part '20250729081610.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20250807103716(),
+  const Migration20250913064841(),
   const Migration20250716114853(),
+  const Migration20250807103716(),
   const Migration20250729081610(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20250729081610,
+  20250807103716,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -866,6 +868,9 @@ final schema = Schema(
         SchemaColumn('tax_amt', Column.Double),
         SchemaColumn('tot_amt', Column.Double),
         SchemaColumn('pchs_stts_cd', Column.varchar),
+        SchemaColumn('property_ty_cd', Column.varchar),
+        SchemaColumn('room_type_cd', Column.varchar),
+        SchemaColumn('tt_cat_cd', Column.varchar),
         SchemaColumn('is_shared', Column.boolean),
         SchemaColumn('assigned', Column.boolean),
         SchemaColumn('stock_synchronized', Column.boolean),
