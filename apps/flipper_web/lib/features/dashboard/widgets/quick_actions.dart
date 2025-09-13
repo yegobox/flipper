@@ -22,7 +22,10 @@ class QuickActions extends StatelessWidget {
               style: TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
-            const Text('Add an item'),
+            InkWell(
+              onTap: () {},
+              child: const Text('Add an item', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
           ],
         ),
       ),
