@@ -1,4 +1,4 @@
-
+import 'package:flipper_web/core/localization/app_localizations_helper.dart';
 import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,24 +11,23 @@ class DashboardScreen extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: Text(context.l10n.dashboard),
         actions: [
           IconButton(
             icon: Icon(
-              themeMode == ThemeMode.light
-                  ? Icons.dark_mode
-                  : Icons.light_mode,
+              themeMode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode,
             ),
             onPressed: () {
-              ref.read(themeProvider.notifier).state =
-                  themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+              ref
+                  .read(themeProvider.notifier)
+                  .state = themeMode == ThemeMode.light
+                  ? ThemeMode.dark
+                  : ThemeMode.light;
             },
           ),
         ],
       ),
-      body: const Center(
-        child: Text('Welcome to your Dashboard!'),
-      ),
+      body: Center(child: Text(context.l10n.welcomeToDashboard)),
     );
   }
 }

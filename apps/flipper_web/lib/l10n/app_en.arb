@@ -27,5 +27,9 @@
   "language": "Language",
   "@language": {
     "description": "Language selection label"
+  },
+  "welcomeToDashboard": "Welcome to your Dashboard!",
+  "@welcomeToDashboard": {
+    "description": "Welcome message on dashboard"
   }
 }

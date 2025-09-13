@@ -28,4 +28,7 @@ class AppLocalizationsSw extends AppLocalizations {
 
   @override
   String get language => 'Lugha';
+
+  @override
+  String get welcomeToDashboard => 'Karibu kwenye Dashibodi yako!';
 }

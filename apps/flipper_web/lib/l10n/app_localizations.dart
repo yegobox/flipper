@@ -141,6 +141,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Language'**
   String get language;
+
+  /// Welcome message on dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to your Dashboard!'**
+  String get welcomeToDashboard;
 }
 
 class _AppLocalizationsDelegate

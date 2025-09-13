@@ -28,4 +28,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get language => 'Ururimi';
+
+  @override
+  String get welcomeToDashboard => 'Murakaza neza mu kibaho cyawe!';
 }

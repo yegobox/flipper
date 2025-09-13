@@ -6,5 +6,6 @@
   "dashboard": "Ikibaho",
   "welcome": "Murakaza neza",
   "settings": "Amategeko",
-  "language": "Ururimi"
+  "language": "Ururimi",
+  "welcomeToDashboard": "Murakaza neza mu kibaho cyawe!"
 }

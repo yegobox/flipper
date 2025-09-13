@@ -6,5 +6,6 @@
   "dashboard": "Dashibodi",
   "welcome": "Karibu",
   "settings": "Mipangilio",
-  "language": "Lugha"
+  "language": "Lugha",
+  "welcomeToDashboard": "Karibu kwenye Dashibodi yako!"
 }
