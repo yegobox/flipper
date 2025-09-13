@@ -272,8 +272,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
           if (response?.confirmed == true && response?.data != null) {
             defaultApp = response!.data['defaultApp'];
-            await ProxyService.box
-                .writeString(key: 'defaultApp', value: defaultApp!);
           } else {
             // User cancelled app choice, maybe default to POS or stay here
             setState(() => _isLoading = false);

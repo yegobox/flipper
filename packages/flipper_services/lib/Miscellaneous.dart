@@ -68,11 +68,9 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
 
   // Private helper method to reuse logout logic
   static Future<bool> _performLogout() async {
-
     final isTestEnvironment =
         const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
     try {
-     
       // set authComplete to false
       ProxyService.box.writeBool(key: 'authComplete', value: false);
       if (ProxyService.box.getUserId() != null &&
@@ -104,7 +102,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
       ProxyService.strategy.whoAmI();
       await ProxyService.strategy.amplifyLogout();
       await Supabase.instance.client.auth.signOut();
-
+      ProxyService.box.remove(key: 'getDefaultApp');
 
       // Unset default for all businesses and branches
       final userId = ProxyService.box.getUserId();
