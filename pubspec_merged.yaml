@@ -194,8 +194,8 @@ dependencies:
   firebase_ui_localizations: ^2.0.0
   firebase_ui_oauth: ^2.0.0
   firebase_ui_oauth_google: ^2.0.0
-  sentry: ^8.13.0
-  sentry_flutter: ^8.14.2
+  sentry: ^9.6.0
+  sentry_flutter: ^9.6.0
   
   equatable: ^2.0.3
   built_value: ^8.1.4

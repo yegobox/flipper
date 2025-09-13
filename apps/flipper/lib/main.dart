@@ -80,10 +80,8 @@ Future<void> main() async {
       ..dsn = AppSecrets.sentryKey
       ..release = await AppService().version()
       ..environment = 'production'
-      ..experimental.replay.sessionSampleRate = 1.0
-      ..experimental.replay.onErrorSampleRate = 1.0
-      ..tracesSampleRate = 1.0
-      ..attachScreenshot = true,
+      ..tracesSampleRate = 0.2
+      ..attachScreenshot = false,
     appRunner: () => runApp(
       FutureBuilder(
         future: initializeApp(),

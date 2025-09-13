@@ -38,8 +38,8 @@ dependencies:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
   loading_animation_widget: ^1.2.0+4
-  sentry: ^8.13.0
-  sentry_flutter: ^8.14.2
+  sentry: ^9.6.0
+  sentry_flutter: ^9.6.0
   flipper_models: any
   google_sign_in: ^6.2.2
   firebase_ui_oauth_apple: ^2.0.0
