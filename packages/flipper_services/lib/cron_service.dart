@@ -144,6 +144,15 @@ class CronService {
       } catch (e) {
         talker.error("Failed to add columns to tables: $e");
       }
+      ProxyService.tax.taxConfigs(branchId: branchId).then((_) {});
+      ProxyService.strategy
+          .hydrateDate(
+              branchId: (await ProxyService.strategy.activeBranch()).id)
+          .then((_) {});
+      ProxyService.strategy
+          .access(userId: ProxyService.box.getUserId()!, fetchRemote: true);
+      ProxyService.strategy.hydrateCodes(branchId: branchId).then((_) {});
+      ProxyService.strategy.hydrateSars(branchId: branchId).then((_) {});
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
         final businessId = ProxyService.box.getBusinessId()!;
@@ -156,13 +165,7 @@ class CronService {
             ProxyService.strategy
                 .getCounters(branchId: branchId, fetchRemote: true)
                 .then((_) {}),
-            ProxyService.tax.taxConfigs(branchId: branchId).then((_) {}),
-            ProxyService.strategy
-                .hydrateDate(
-                    branchId: (await ProxyService.strategy.activeBranch()).id)
-                .then((_) {}),
-            ProxyService.strategy.hydrateCodes(branchId: branchId).then((_) {}),
-            ProxyService.strategy.hydrateSars(branchId: branchId).then((_) {}),
+
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
 
             // ProxyService.strategy
@@ -171,8 +174,7 @@ class CronService {
             // ProxyService.strategy
             //     .transactions(branchId: branchId, fetchRemote: true)
             //     .then((_) {}),
-            ProxyService.strategy.access(
-                userId: ProxyService.box.getUserId()!, fetchRemote: true),
+
             // Future.value(ProxyService.strategy.tenant(
             //     userId: ProxyService.box.getUserId()!, fetchRemote: true))
           ]);

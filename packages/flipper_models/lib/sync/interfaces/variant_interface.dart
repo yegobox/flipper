@@ -32,7 +32,8 @@ abstract class VariantInterface {
   Future<List<IUnit>> units({required int branchId});
 
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
-  Future<void> updateIoFunc({required Variant variant,  Purchase? purchase,  double? approvedQty});
+  Future<void> updateIoFunc(
+      {required Variant variant, Purchase? purchase, double? approvedQty});
   FutureOr<void> updateVariant(
       {required List<Variant> updatables,
       String? color,
@@ -60,7 +61,10 @@ abstract class VariantInterface {
       double? prc,
       num? approvedQty,
       num? invoiceNumber,
-      double? dftPrc,  String? propertyTyCd,  String? roomTypeCd,  String ttCatCd});
+      double? dftPrc,
+      String? propertyTyCd,
+      String? roomTypeCd,
+      String? ttCatCd});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 
