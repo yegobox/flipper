@@ -205,14 +205,14 @@ mixin PurchaseMixin
           URI: url,
           tin: tin,
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          lastReqDt: lastRequestRecords.first.lastRequestDate ??
+          lastReqDt: lastRequestRecords.firstOrNull?.lastRequestDate ??
               DateTime.now().toYYYYMMddHHmmss(),
         );
 
         if (response.data?.saleList?.isEmpty ?? true) {
           // If no new purchases from API, return existing purchases from local DB
           try {
-           KafkaService().sendMessage("There is no search result.");
+            KafkaService().sendMessage("There is no search result.");
           } catch (e) {
             talker.debug("Error sending message to Kafka: $e");
           }

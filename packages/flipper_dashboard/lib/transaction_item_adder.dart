@@ -33,7 +33,7 @@ class TransactionItemAdder {
     try {
       // Show immediate visual feedback to indicate the item is being processed
       if (context.mounted) {
-        showCustomSnackBarUtil(context, 'Adding item to cart...');
+        // showCustomSnackBarUtil(context, 'Adding item to cart...');
       }
 
       final branchId = ProxyService.box.getBranchId()!;
