@@ -42,6 +42,9 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
+
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
@@ -100,6 +103,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
       
       # Setup Flutter (No changes needed here)
       - name: Clone Flutter repository with stable channel
@@ -195,6 +205,9 @@ jobs:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
@@ -244,6 +257,9 @@ jobs:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }} # Use a token with repo scope for releases
           persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -306,6 +322,9 @@ jobs:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}  # Use a PAT
           persist-credentials: true  # Keep this for checkout
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -387,6 +406,13 @@ jobs:
       # Checkout flipper code
       - name: Checkout flipper code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
       - uses: actions/setup-java@v4 #plugin for setting up the java
         with:
           distribution: "zulu"
@@ -534,6 +560,13 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+
+      - name: Force submodule update
+        run: git submodule update --init --force --recursive
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
