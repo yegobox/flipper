@@ -51,13 +51,10 @@ scripts:
         - flipper_auth
     description: Run tests for flipper_dashboard and flipper_auth
   test:ci:
-    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
-    concurrency: 1
-    packageFilters:
-      scope:
-        - "flipper_dashboard"
-        - "flipper_auth"
-        - "flipper_web"
+    run: |
+      melos run test:dashboard
+      melos run test:auth
+      melos run test:flipper_web
     description: Run tests for dashboard, auth, and web in CI/CD
   get_deps:
     run: melos exec -- flutter pub deps
