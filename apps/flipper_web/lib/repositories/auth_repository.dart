@@ -26,7 +26,7 @@ class AuthRepository {
 
   Future<bool> verifyPin(String pin) async {
     final response = await _httpClient.post(
-      Uri.parse('${AppSecrets.apihubProd}/v2/api/login/pin'),
+      Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/pin'),
       body: jsonEncode({'pin': pin}),
       headers: {'Content-Type': 'application/json'},
     );
@@ -50,7 +50,7 @@ class AuthRepository {
     final String basicAuth =
         'Basic ${base64Encode(utf8.encode('${AppSecrets.username}:${AppSecrets.password}'))}';
     final response = await _httpClient.post(
-      Uri.parse('${AppSecrets.apihubProd}/v2/api/login/verify-otp'),
+      Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/verify-otp'),
       body: jsonEncode({'pin': pin, 'otp': otp}),
       headers: {'Content-Type': 'application/json', 'Authorization': basicAuth},
     );
@@ -68,7 +68,7 @@ class AuthRepository {
 
   Future<bool> verifyTotp(String pin, String totp) async {
     final response = await _httpClient.post(
-      Uri.parse('${AppSecrets.apihubProd}/v2/api/login/verify-totp'),
+      Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/verify-totp'),
       body: jsonEncode({'pin': pin, 'totp': totp}),
       headers: {'Content-Type': 'application/json'},
     );
