@@ -51,11 +51,13 @@ scripts:
         - flipper_auth
     description: Run tests for flipper_dashboard and flipper_auth
   test:ci:
-    run: |
-      melos run test:dashboard --no-select && \
-      melos run test:auth --no-select && \
-      melos run test:flipper_web --no-select
-    description: Run tests for flipper_dashboard and flipper_auth in CI/CD
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope:
+        - "flipper_dashboard"
+        - "flipper_auth"
+        - "flipper_web"
+    description: Run tests for dashboard, auth, and web in CI/CD
   get_deps:
     run: melos exec -- flutter pub deps
     description: List sub dependencies
