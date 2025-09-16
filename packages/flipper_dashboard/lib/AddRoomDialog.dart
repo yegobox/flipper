@@ -205,10 +205,10 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
           Stock roomStock = Stock(
             id: stockId,
             lastTouched: DateTime.now().toUtc(),
-            rsdQty: 1.0,
-            initialStock: 1.0,
+            rsdQty: 0.0,
+            initialStock: 0.0,
             branchId: ProxyService.box.getBranchId(),
-            currentStock: 1.0,
+            currentStock: 0.0,
           );
 
           // Create a room variant first
@@ -223,7 +223,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             taxTyCd: "TT", // Tax type code
             taxName: "TT", // Tax name
             taxPercentage: 3.0,
-            qty: 1,
+            qty: 0.0,
             stock: roomStock,
             stockId: stockId,
           );
