@@ -155,7 +155,10 @@ class _SearchInputWithDropdownState
     final transaction =
         ref.read(pendingTransactionStreamProvider(isExpense: false));
 
-    if (transaction.value?.customerId != null) {
+    // Only initialize from database customer if there's no manually entered customer name
+    final existingCustomerName = ProxyService.box.customerName();
+    
+    if (transaction.value?.customerId != null && existingCustomerName == null) {
       final customer = await ProxyService.strategy.customers(
         id: transaction.value!.customerId,
         branchId: ProxyService.box.getBranchId()!,
@@ -175,6 +178,9 @@ class _SearchInputWithDropdownState
               customer.first.telNo!;
         });
       }
+    } else if (existingCustomerName != null) {
+      // Use the manually entered customer name
+      _searchController.text = existingCustomerName;
     } else {
       _searchController.clear();
       // Clear the Riverpod provider when no customer is found
@@ -247,6 +253,12 @@ class _SearchInputWithDropdownState
         transactionId: transaction.id,
       );
 
+      // Save customer information to ProxyService.box for receipt generation
+      await ProxyService.box
+          .writeString(key: 'customerName', value: customer.custNm!);
+      await ProxyService.box.writeString(
+          key: 'currentSaleCustomerPhoneNumber', value: customer.telNo ?? '');
+      
       // Save customer's TIN for future use
       if (customer.custTin != null && customer.custTin!.isNotEmpty) {
         await ProxyService.box

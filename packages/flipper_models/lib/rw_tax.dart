@@ -524,10 +524,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Map<String, double> taxTotals = calculateTaxTotals(itemsList);
 
     // Retrieve customer information
-    Customer? customer = (await ProxyService.strategy.customers(
-            id: transaction.customerId,
-            branchId: ProxyService.box.getBranchId()!))
-        .firstOrNull;
 
     // Build request data
     Map<String, dynamic> requestData = await buildRequestData(
@@ -541,7 +537,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         totalTaxable: totalTaxable,
         taxTotals: taxTotals,
         receiptCodes: receiptCodes,
-        customer: customer,
         itemsList: itemsList,
         purchaseCode: purchaseCode,
         timeToUse: timeToUser,
@@ -867,17 +862,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         await ProxyService.strategy.getByTaxType(taxtype: "D");
     odm.Configurations? taxConfigTaxTT =
         await ProxyService.strategy.getByTaxType(taxtype: "TT");
-    if (transaction.customerId != null) {
-      //  it mighbe a copy re-assign a customer
-      talker.warning("Overriding customer");
-      Customer? cus = (await ProxyService.strategy.customers(
-              id: transaction.customerId!,
-              branchId: ProxyService.box.getBranchId()!))
-          .firstOrNull;
-      customer = cus;
-      talker.warning(customer);
-    }
-
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);
@@ -895,9 +879,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");
     final pmtTyCd = ProxyService.box.pmtTyCd();
-    final customerName = transaction.customerName ??
+    final customerName = ProxyService.box.customerName() ??
+        transaction.customerName ??
         customer?.custNm ??
-        ProxyService.box.customerName() ??
         "N/A";
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",

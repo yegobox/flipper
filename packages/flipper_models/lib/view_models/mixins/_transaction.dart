@@ -212,10 +212,20 @@ mixin TransactionMixinOld {
           0;
       final paymentType = ProxyService.box.paymentType() ?? "CASH";
       final transactionType = transaction.receiptType ?? TransactionType.sale;
-      Customer? customer = (await ProxyService.strategy.customers(
-        id: transaction.customerId,
-      ))
-          .firstOrNull;
+      Customer? customer;
+      // Only fetch customer from DB if transaction has a valid customerId
+      if (transaction.customerId != null &&
+          transaction.customerId!.isNotEmpty) {
+        customer = (await ProxyService.strategy.customers(
+          id: transaction.customerId,
+        ))
+            .firstOrNull;
+      }
+
+      // Prioritize ProxyService.box.customerName() over other sources
+      final finalCustomerName =
+          ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
+
       // First collect the payment
       ProxyService.strategy.collectPayment(
         branchId: ProxyService.box.getBranchId()!,
@@ -223,9 +233,7 @@ mixin TransactionMixinOld {
         isTrainingMode: ProxyService.box.isTrainingMode(),
         countryCode: countryCode,
         bhfId: bhfId,
-        customerName: customer == null
-            ? ProxyService.box.customerName() ?? "N/A"
-            : customerName,
+        customerName: finalCustomerName,
         customerTin: customer?.custTin,
         cashReceived: amount,
         transaction: transaction,
