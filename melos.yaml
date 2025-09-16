@@ -38,6 +38,11 @@ scripts:
     packageFilters:
       scope: "flipper_auth"
     description: Run tests for flipper_auth
+  test:flipper_web:
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope: "flipper_web"
+    description: Run tests for flipper_web
   test:specific:
     exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
     packageFilters:
@@ -48,7 +53,8 @@ scripts:
   test:ci:
     run: |
       melos run test:dashboard --no-select && \
-      melos run test:auth --no-select
+      melos run test:auth --no-select && \
+      melos run test:flipper_web --no-select
     description: Run tests for flipper_dashboard and flipper_auth in CI/CD
   get_deps:
     run: melos exec -- flutter pub deps

@@ -133,22 +133,23 @@ jobs:
           AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
           
-      # Build Flutter web app (No changes needed here)
-      - name: Build Flutter Web App
-        run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
-          cd apps/flipper
-          flutter build web --release # Added --release flag for production builds
-          
-      # ----- ADD THIS STEP -----
       - name: Set up Node.js for Firebase CLI
         uses: actions/setup-node@v4 
         with:
           node-version: '20' # Specify Node.js v20.x LTS
-      # -------------------------
 
-      - name: Deploy to Firebase Hosting
+      - name: Bootstrap dependencies
+        run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+
+      - name: Build Flipper app
+        run: |
+          cd apps/flipper
+          flutter build web --release # Added --release flag for production builds
+          
+      - name: Deploy Flipper app to Firebase Hosting
+        id: deploy_flipper
         uses: FirebaseExtended/action-hosting-deploy@v0.9.0 # Consider using @v0 for latest fixes if needed
         with:
           entryPoint: apps/flipper # This should point to the directory containing firebase.json and the build output (usually build/web within the app)
@@ -157,6 +158,26 @@ jobs:
           channelId: pr-${{ github.event.commits.id }}
           # channelId: live
           projectId: yegobox-2ee43
+      - name: Echo Flipper URL
+        run: echo "Flipper app deployed to ${{ steps.deploy_flipper.outputs.urls }}"
+
+      - name: Build Flipper Web app
+        run: |
+          cd apps/flipper_web
+          flutter build web --wasm --release
+          
+      - name: Deploy Flipper Web app to Firebase Hosting
+        id: deploy_flipper_web
+        uses: FirebaseExtended/action-hosting-deploy@v0.9.0
+        with:
+          entryPoint: apps/flipper_web
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}
+          channelId: pr-${{ github.event.commits.id }}
+          # channelId: live
+          projectId: yegobox-2ee43
+      - name: Echo Flipper Web URL
+        run: echo "Flipper Web app deployed to ${{ steps.deploy_flipper_web.outputs.urls }}"
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
