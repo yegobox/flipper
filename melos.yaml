@@ -52,6 +52,7 @@ scripts:
     description: Run tests for flipper_dashboard and flipper_auth
   test:ci:
     exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    concurrency: 1
     packageFilters:
       scope:
         - "flipper_dashboard"
