@@ -55,14 +55,14 @@ class _HomeScreenState extends State<HomeScreen>
       child: Row(
         children: [
           MouseRegion(
-            onEnter: (_) => setState(() {}),
-            onExit: (_) => setState(() {}),
+            onEnter: (_) => setState(() => _isHovering = true),
+            onExit: (_) => setState(() => _isHovering = false),
             child: AnimatedDefaultTextStyle(
               duration: const Duration(milliseconds: 200),
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF22C55E),
+                color: _isHovering ? const Color(0xFF22C55E) : Colors.black,
                 letterSpacing: -0.5,
               ),
               child: const Text('Flipper'),
