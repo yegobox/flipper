@@ -47,12 +47,12 @@ class AuthRepository {
   }
 
   Future<bool> verifyOtp(String pin, String otp) async {
-    final String basicAuth =
-        'Basic ${base64Encode(utf8.encode('${AppSecrets.username}:${AppSecrets.password}'))}';
+    // final String basicAuth =
+    //     'Basic ${base64Encode(utf8.encode('${AppSecrets.username}:${AppSecrets.password}'))}';
     final response = await _httpClient.post(
       Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/verify-otp'),
       body: jsonEncode({'pin': pin, 'otp': otp}),
-      headers: {'Content-Type': 'application/json', 'Authorization': basicAuth},
+      headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
