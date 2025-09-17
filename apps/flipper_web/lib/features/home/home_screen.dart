@@ -390,26 +390,29 @@ class _HomeScreenState extends State<HomeScreen>
             spacing: 32,
             runSpacing: 32,
             children: [
-              _buildPricingCard('Free', '\$0', 'per month', [
-                '10 GB storage',
-                'Basic encryption',
+              _buildPricingCard('Mobile', '5,000', 'RWF/month', [
+                'Mobile app access',
+                'Basic business tools',
+                'Data encryption',
                 'Email support',
-                '1 user',
+                'Single device',
               ], false),
-              _buildPricingCard('Pro', '\$10', 'per month', [
-                '100 GB storage',
-                'Advanced encryption',
+              _buildPricingCard('Mobile + Desktop', '120,000', 'RWF/month', [
+                'Mobile + Desktop access',
+                'Advanced business tools',
+                'Military-grade encryption',
                 'Priority support',
-                '5 users',
+                'Multiple devices',
                 'Advanced analytics',
               ], true),
-              _buildPricingCard('Enterprise', '\$50', 'per month', [
-                'Unlimited storage',
-                'Military-grade encryption',
-                '24/7 support',
-                'Unlimited users',
+              _buildPricingCard('Enterprise', '1,500,000+', 'RWF/month', [
+                'Full platform access',
+                'Enterprise-grade security',
+                '24/7 dedicated support',
+                'Unlimited users & branches',
                 'Custom integrations',
-                'Dedicated manager',
+                'Tax reporting consulting',
+                'Dedicated account manager',
               ], false),
             ],
           ),
@@ -426,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen>
     bool isPopular,
   ) {
     return Container(
-      width: 280,
+      width: 320,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -471,28 +474,20 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                child: Text(
-                  price,
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
+              Text(
+                price,
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
                 ),
               ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    period,
-                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                  ),
-                ),
+              Text(
+                period,
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
               ),
             ],
           ),

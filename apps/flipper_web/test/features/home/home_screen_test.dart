@@ -51,12 +51,12 @@ void main() {
       
       // Verify Pricing Section
       expect(find.text('Simple, transparent pricing'), findsOneWidget);
-      expect(find.text('Free'), findsOneWidget);
-      expect(find.text('Pro'), findsOneWidget);
+      expect(find.text('Mobile'), findsOneWidget);
+      expect(find.text('Mobile + Desktop'), findsOneWidget);
       expect(find.text('Enterprise'), findsOneWidget);
-      expect(find.text('\$0'), findsOneWidget);
-      expect(find.text('\$10'), findsOneWidget);
-      expect(find.text('\$50'), findsOneWidget);
+      expect(find.text('5,000'), findsOneWidget);
+      expect(find.text('120,000'), findsOneWidget);
+      expect(find.text('1,500,000+'), findsOneWidget);
       expect(find.text('Most Popular'), findsOneWidget);
     });
 
