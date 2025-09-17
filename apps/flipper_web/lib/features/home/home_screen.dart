@@ -13,6 +13,8 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   bool _isHovering = false;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _pricingKey = GlobalKey();
 
   @override
   void initState() {
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -38,11 +41,13 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
+        controller: _scrollController,
         child: Column(
           children: [
             _buildHeader(context),
             _buildHeroSection(context),
             _buildPhotoCards(context),
+            _buildPricingSection(context),
           ],
         ),
       ),
@@ -101,14 +106,30 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildNavItem(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 16,
-        color: Colors.grey.shade700,
-        fontWeight: FontWeight.w500,
+    return GestureDetector(
+      onTap: () => _scrollToSection(text),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.grey.shade700,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
+  }
+
+  void _scrollToSection(String section) {
+    if (section == 'Pricing') {
+      final context = _pricingKey.currentContext;
+      if (context != null) {
+        Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
+    }
   }
 
   Widget _buildSignUpButton() {
@@ -337,6 +358,186 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPricingSection(BuildContext context) {
+    return Container(
+      key: _pricingKey,
+      padding: const EdgeInsets.all(80),
+      color: Colors.grey.shade50,
+      child: Column(
+        children: [
+          Text(
+            'Simple, transparent pricing',
+            style: TextStyle(
+              fontSize: 48,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Choose the plan that works best for you',
+            style: TextStyle(fontSize: 20, color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 64),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 32,
+            runSpacing: 32,
+            children: [
+              _buildPricingCard('Free', '\$0', 'per month', [
+                '10 GB storage',
+                'Basic encryption',
+                'Email support',
+                '1 user',
+              ], false),
+              _buildPricingCard('Pro', '\$10', 'per month', [
+                '100 GB storage',
+                'Advanced encryption',
+                'Priority support',
+                '5 users',
+                'Advanced analytics',
+              ], true),
+              _buildPricingCard('Enterprise', '\$50', 'per month', [
+                'Unlimited storage',
+                'Military-grade encryption',
+                '24/7 support',
+                'Unlimited users',
+                'Custom integrations',
+                'Dedicated manager',
+              ], false),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPricingCard(
+    String title,
+    String price,
+    String period,
+    List<String> features,
+    bool isPopular,
+  ) {
+    return Container(
+      width: 280,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: isPopular
+            ? Border.all(color: const Color(0xFF22C55E), width: 2)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isPopular)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF22C55E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Most Popular',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          if (isPopular) const SizedBox(height: 16),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Text(
+                  price,
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    period,
+                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          ...features.map(
+            (feature) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.check, size: 20, color: const Color(0xFF22C55E)),
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      feature,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => _navigateToLogin(context),
+              style: FilledButton.styleFrom(
+                backgroundColor: isPopular
+                    ? const Color(0xFF22C55E)
+                    : Colors.grey.shade900,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Get Started',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

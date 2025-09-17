@@ -7,8 +7,8 @@ void main() {
   group('HomeScreen', () {
     // Helper to pump the widget with MaterialApp and a larger screen size
     Future<void> pumpHomeScreen(WidgetTester tester) async {
-      // Set a wide enough screen size to avoid overflow in the header
-      tester.view.physicalSize = const Size(1920, 1080);
+      // Set a large enough screen size to avoid overflow and scrolling
+      tester.view.physicalSize = const Size(1920, 2000);
       tester.view.devicePixelRatio = 1.0;
 
       await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
@@ -48,6 +48,16 @@ void main() {
 
       // Verify Photo Cards
       expect(find.byIcon(Icons.business_outlined), findsNWidgets(4));
+      
+      // Verify Pricing Section
+      expect(find.text('Simple, transparent pricing'), findsOneWidget);
+      expect(find.text('Free'), findsOneWidget);
+      expect(find.text('Pro'), findsOneWidget);
+      expect(find.text('Enterprise'), findsOneWidget);
+      expect(find.text('\$0'), findsOneWidget);
+      expect(find.text('\$10'), findsOneWidget);
+      expect(find.text('\$50'), findsOneWidget);
+      expect(find.text('Most Popular'), findsOneWidget);
     });
 
     testWidgets('navigates to PinScreen when header "Sign up" is tapped', (
@@ -68,8 +78,6 @@ void main() {
       await pumpHomeScreen(tester);
 
       final heroSignUpButton = find.widgetWithText(TextButton, 'Sign up').last;
-      await tester.ensureVisible(heroSignUpButton);
-      await tester.pumpAndSettle();
       await tester.tap(heroSignUpButton);
       await tester.pumpAndSettle();
 
@@ -83,8 +91,6 @@ void main() {
       await pumpHomeScreen(tester);
 
       final loginButton = find.widgetWithText(TextButton, 'Login');
-      await tester.ensureVisible(loginButton);
-      await tester.pumpAndSettle();
       await tester.tap(loginButton);
       await tester.pumpAndSettle();
 
