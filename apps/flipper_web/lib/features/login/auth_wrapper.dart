@@ -1,5 +1,6 @@
 
 import 'package:flipper_web/features/dashboard/dashboard_screen.dart';
+import 'package:flipper_web/features/home/home_screen.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flipper_web/features/login/pin_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class AuthWrapper extends ConsumerWidget {
           case AuthState.authenticated:
             return const DashboardScreen();
           case AuthState.unauthenticated:
-            return const PinScreen();
+            return const HomeScreen();
         }
       },
       loading: () => const Scaffold(
