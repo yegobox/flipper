@@ -109,7 +109,7 @@ class AuthRepository {
   Future<void> _fetchAndSaveUserProfile() async {
     try {
       // Get the current session token
-      final session = _supabase.auth.currentSession;
+      final   session = _supabase.auth.currentSession;
       if (session == null) {
         throw Exception('No active session found');
       }

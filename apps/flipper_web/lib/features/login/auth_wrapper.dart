@@ -1,4 +1,4 @@
-import 'package:flipper_web/features/dashboard/dashboard_screen.dart';
+import 'package:flipper_web/features/business_selection/business_selection_providers.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
 import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flutter/material.dart';
@@ -16,16 +16,35 @@ class AuthWrapper extends ConsumerWidget {
       data: (state) {
         switch (state) {
           case AuthState.authenticated:
-            // Ensure the URL reflects the dashboard route for web
-            // Use GoRouter to navigate if we're not already on /dashboard
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final current = Uri.base.path;
-              if (current != '/dashboard') {
-                context.go('/dashboard');
-              }
-            });
-            // Return the DashboardScreen as the current content while navigation happens
-            return const DashboardScreen();
+            // Use the hasSelectedBusinessAndBranch provider to check if business and branch are selected
+            final hasSelectedBusinessAndBranchAsync = ref.watch(
+              hasSelectedBusinessAndBranchProvider,
+            );
+
+            return hasSelectedBusinessAndBranchAsync.when(
+              data: (hasSelected) {
+                // Ensure the URL reflects the appropriate route for web
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  final current = Uri.base.path;
+                  if (hasSelected && current != '/dashboard') {
+                    context.go('/dashboard');
+                  } else if (!hasSelected && current != '/business-selection') {
+                    context.go('/business-selection');
+                  }
+                });
+
+                // Return a loading screen as the current content while navigation happens
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              },
+              loading: () => const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Scaffold(
+                body: Center(child: Text('Error checking preferences: $error')),
+              ),
+            );
           case AuthState.unauthenticated:
             // If unauthenticated, ensure we land on the home screen
             WidgetsBinding.instance.addPostFrameCallback((_) {

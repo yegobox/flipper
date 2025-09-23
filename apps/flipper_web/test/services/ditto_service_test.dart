@@ -8,7 +8,7 @@ class MockDittoService extends Mock implements DittoService {}
 
 // Sample test data
 final sampleUserProfileData = {
-  'id': 75060,
+  'id': "75060",
   'phoneNumber': '+250783054884',
   'token': 'Bearer token',
   'tenants': [
@@ -75,10 +75,13 @@ void main() {
   group('DittoService Integration', () {
     test('UserProfile model can serialize/deserialize properly', () {
       // Create a user profile from the sample data
-      final userProfile = UserProfile.fromJson(sampleUserProfileData);
+      final userProfile = UserProfile.fromJson(
+        sampleUserProfileData,
+        id: "75060",
+      );
 
       // Verify that the deserialization worked correctly
-      expect(userProfile.id, equals(75060));
+      expect(userProfile.id, equals("75060"));
       expect(userProfile.phoneNumber, equals('+250783054884'));
       expect(userProfile.tenants.length, equals(1));
       expect(userProfile.tenants[0].businesses.length, equals(1));
@@ -91,7 +94,7 @@ void main() {
       expect(serialized['ownership'], equals('YEGOBOX'));
 
       // Create a new user profile from the serialized data to ensure round-trip works
-      final roundTrip = UserProfile.fromJson(serialized);
+      final roundTrip = UserProfile.fromJson(serialized, id: "75060");
       expect(roundTrip.id, equals(userProfile.id));
       expect(roundTrip.tenants.length, equals(userProfile.tenants.length));
     });

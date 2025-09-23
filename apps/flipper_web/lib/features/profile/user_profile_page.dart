@@ -26,7 +26,7 @@ class UserProfileController extends StateNotifier<AsyncValue<UserProfile?>> {
   }
 
   /// Get cached user profile from Ditto
-  Future<void> getCachedUserProfile(int userId) async {
+  Future<void> getCachedUserProfile(String userId) async {
     try {
       state = const AsyncValue.loading();
       final userProfile = await _userRepository.getCurrentUserProfile(userId);

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class UserProfile {
-  final int id;
+  final String id;
   final String phoneNumber;
   final String token;
   final List<Tenant> tenants;
@@ -27,9 +27,9 @@ class UserProfile {
     required this.external,
   });
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
+  factory UserProfile.fromJson(Map<String, dynamic> json, {String? id}) {
     return UserProfile(
-      id: json['id'],
+      id: id ?? json['id'],
       phoneNumber: json['phoneNumber'],
       token: json['token'],
       tenants: (json['tenants'] as List)

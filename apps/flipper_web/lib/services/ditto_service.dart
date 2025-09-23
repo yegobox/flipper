@@ -109,7 +109,7 @@ class DittoService {
       // Use user's ID as document ID for easier retrieval
       final docId = userProfile.id.toString();
 
-      // Use SQL-like syntax to upsert document
+      // Use SQL-like syntax to insert document
       await _ditto!.store.execute(
         "INSERT INTO COLLECTION users DOCUMENTS (:profile)",
         arguments: {
@@ -119,6 +119,38 @@ class DittoService {
       debugPrint('Saved user profile with ID: ${userProfile.id}');
     } catch (e) {
       debugPrint('Error saving user profile to Ditto: $e');
+      rethrow;
+    }
+  }
+
+  /// Update an existing user profile in Ditto
+  ///
+  /// This method uses the proper UPDATE syntax to update an existing document
+  /// which is the recommended way to update documents in Ditto
+  Future<void> updateUserProfile(UserProfile userProfile) async {
+    try {
+      if (!_isInitialized) {
+        await initialize();
+      }
+
+      if (_ditto == null) {
+        throw Exception('Ditto not initialized');
+      }
+
+      // Use user's ID as document ID for easier retrieval
+      final docId = userProfile.id.toString();
+
+      // Use the UPDATE statement to update the document with the given ID
+      await _ditto!.store.execute(
+        "UPDATE users SET doc = :profile WHERE _id = :id",
+        arguments: {"profile": userProfile.toJson(), "id": docId},
+      );
+
+      debugPrint(
+        'Successfully updated user profile with ID: ${userProfile.id}',
+      );
+    } catch (e) {
+      debugPrint('Error updating user profile in Ditto: $e');
       rethrow;
     }
   }
@@ -145,6 +177,7 @@ class DittoService {
 
       return UserProfile.fromJson(
         Map<String, dynamic>.from(result.items.first.value),
+        id: id,
       );
     } catch (e) {
       debugPrint('Error getting user profile from Ditto: $e');

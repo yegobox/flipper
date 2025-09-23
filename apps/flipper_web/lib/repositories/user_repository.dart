@@ -39,7 +39,10 @@ class UserRepository {
 
       if (response.statusCode == 200) {
         final userProfileData = jsonDecode(response.body);
-        final userProfile = UserProfile.fromJson(userProfileData);
+        final userProfile = UserProfile.fromJson(
+          userProfileData,
+          id: session.user.id,
+        );
 
         // Save user profile to Ditto for offline access
         await _dittoService.saveUserProfile(userProfile);
@@ -60,9 +63,9 @@ class UserRepository {
   ///
   /// This method is used to get the cached user data from Ditto
   /// when the app is offline or to avoid making API calls
-  Future<UserProfile?> getCurrentUserProfile(int userId) async {
+  Future<UserProfile?> getCurrentUserProfile(String userId) async {
     try {
-      return await _dittoService.getUserProfile(userId.toString());
+      return await _dittoService.getUserProfile(userId);
     } catch (e) {
       debugPrint('Error in getCurrentUserProfile: $e');
       return null;
@@ -91,7 +94,17 @@ class UserRepository {
     String token,
   ) async {
     try {
-      // API call to update user data
+      // For now, skip API update and only update in Ditto
+      // This is a temporary solution to bypass the 405 Method Not Allowed error
+
+      // Update user profile in Ditto directly using the new updateUserProfile method
+      // which handles the identifier conflict issue
+      await _dittoService.updateUserProfile(userProfile);
+
+      debugPrint('Updated user profile in Ditto: ${userProfile.id}');
+      return userProfile;
+
+      /* API update code - temporarily disabled due to 405 error
       final response = await _httpClient.put(
         Uri.parse(
           '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/user/${userProfile.id}',
@@ -102,10 +115,13 @@ class UserRepository {
 
       if (response.statusCode == 200) {
         final updatedUserProfileData = jsonDecode(response.body);
-        final updatedUserProfile = UserProfile.fromJson(updatedUserProfileData);
+        final updatedUserProfile = UserProfile.fromJson(
+          updatedUserProfileData,
+          id: userProfile.id,
+        );
 
         // Update user profile in Ditto
-        await _dittoService.saveUserProfile(updatedUserProfile);
+        await _dittoService.updateUserProfile(updatedUserProfile);
 
         return updatedUserProfile;
       } else if (response.statusCode == 401) {
@@ -115,6 +131,7 @@ class UserRepository {
           'Failed to update user profile: ${response.statusCode}',
         );
       }
+      */
     } catch (e) {
       debugPrint('Error in updateUserProfile: $e');
       rethrow;

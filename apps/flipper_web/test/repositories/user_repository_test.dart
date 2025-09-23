@@ -39,7 +39,7 @@ void main() {
 
   // Sample user profile data for testing
   final testUserProfileJson = {
-    "id": 75060,
+    "id": "75060",
     "phoneNumber": "+250783054884",
     "token":
         "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTA2MCIsImlhdCI6MTc1ODY0MDk4OCwiZXhwIjoxNzU4NjQ0NTg4LCJncm91cHMiOlsiVXNlciIsIkFkbWluIl0sImJpcnRoZGF0ZSI6Ijc1MDYwIn0.1Rq_9TcfGB0y7Q4lVKB28HeZcMPRY6dBgo9ch7t3sSs",
@@ -101,7 +101,10 @@ void main() {
     "external": false,
   };
 
-  final testUserProfile = UserProfile.fromJson(testUserProfileJson);
+  final testUserProfile = UserProfile.fromJson(
+    testUserProfileJson,
+    id: '75060',
+  );
 
   setUp(() {
     mockDittoService = MockDittoService();
@@ -187,7 +190,7 @@ void main() {
       ).thenAnswer((_) async => testUserProfile);
 
       // Act
-      final result = await userRepository.getCurrentUserProfile(75060);
+      final result = await userRepository.getCurrentUserProfile("75060");
 
       // Assert
       expect(result, equals(testUserProfile));
