@@ -24,18 +24,55 @@ class SideNavBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Business name
-          Text(
-            'Flipper Coffee',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[800],
+          // Profile dropdown menu
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
             ),
-          ),
-          Text(
-            'Rwanda',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            child: InkWell(
+              onTap: () {
+                // Handle dropdown tap
+              },
+              child: Row(
+                children: [
+                  // User avatar/icon
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey.shade200,
+                    child: const Icon(
+                      Icons.person_outline,
+                      size: 20,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // User info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Demo',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Dropdown arrow
+                  Icon(
+                    Icons.keyboard_arrow_right,
+                    size: 24,
+                    color: Colors.grey[600],
+                  ),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 24),
 
