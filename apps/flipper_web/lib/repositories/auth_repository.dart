@@ -26,7 +26,9 @@ class AuthRepository {
 
   Future<bool> verifyPin(String pin) async {
     final response = await _httpClient.post(
-      Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/pin'),
+      Uri.parse(
+        '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/login/pin',
+      ),
       body: jsonEncode({'pin': pin}),
       headers: {'Content-Type': 'application/json'},
     );
@@ -48,14 +50,19 @@ class AuthRepository {
 
   Future<bool> verifyOtp(String pin, String otp) async {
     final response = await _httpClient.post(
-      Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/verify-otp'),
+      Uri.parse(
+        '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/login/verify-otp',
+      ),
       body: jsonEncode({'pin': pin, 'otp': otp}),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
-      final email = "$pin@flipper.rw";
-      await _supabase.auth.signInWithPassword(email: email, password: email);
+      final responseData = jsonDecode(response.body);
+      final refreshToken = responseData['refreshToken'] as String;
+
+      // Use the token from the API response to authenticate with Supabase
+      await _supabase.auth.setSession(refreshToken);
       return true;
     } else if (response.statusCode == 404) {
       throw Exception('OTP not found');
@@ -66,14 +73,19 @@ class AuthRepository {
 
   Future<bool> verifyTotp(String pin, String totp) async {
     final response = await _httpClient.post(
-      Uri.parse('${AppSecrets.apihubProdDomain}/v2/api/login/verify-totp'),
+      Uri.parse(
+        '${kDebugMode ? AppSecrets.apihubDevDomain : AppSecrets.apihubProdDomain}/v2/api/login/verify-totp',
+      ),
       body: jsonEncode({'pin': pin, 'totp': totp}),
       headers: {'Content-Type': 'application/json'},
     );
 
     if (response.statusCode == 200) {
-      final email = "$pin@flipper.rw";
-      await _supabase.auth.signInWithPassword(email: email, password: email);
+      final responseData = jsonDecode(response.body);
+      final refreshToken = responseData['refreshToken'] as String;
+
+      // Use the token from the API response to authenticate with Supabase
+      await _supabase.auth.setSession(refreshToken);
       return true;
     } else if (response.statusCode == 404) {
       throw Exception('TOTP not found');

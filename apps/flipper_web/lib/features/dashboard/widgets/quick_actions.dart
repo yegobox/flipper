@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class QuickActions extends StatelessWidget {
@@ -6,25 +5,41 @@ class QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Quick actions',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             InkWell(
               onTap: () {},
-              child: const Text('Add an item', style: TextStyle(fontWeight: FontWeight.bold)),
+              borderRadius: BorderRadius.circular(4),
+              hoverColor: Colors.grey.shade100,
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: Text(
+                  'Add an item',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

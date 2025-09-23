@@ -343,6 +343,7 @@ mixin AuthMixin implements AuthInterface {
     }
   }
 
+
   @override
   Future<IUser> login(
       {required String userPhone,

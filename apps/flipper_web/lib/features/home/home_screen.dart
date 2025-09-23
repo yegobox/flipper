@@ -1,20 +1,35 @@
 import 'package:flipper_web/features/login/pin_screen.dart';
+import 'package:flipper_web/widgets/app_button.dart';
+import 'package:go_router/go_router.dart' as maybe_go;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_web/core/localization/locale_provider.dart';
+import 'package:flipper_web/l10n/app_localizations.dart';
+import 'package:flipper_web/l10n/app_localizations_en.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
+class _HomeScreenState extends ConsumerState<HomeScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   bool _isHovering = false;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _pricingKey = GlobalKey();
+
+  String _localized(String Function(AppLocalizations) getter) {
+    final localizations = AppLocalizations.of(context);
+    if (localizations != null) {
+      return getter(localizations);
+    }
+    // Fallback to English if localizations not available
+    return getter(AppLocalizationsEn());
+  }
 
   @override
   void initState() {
@@ -74,15 +89,15 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           const Spacer(),
-          _buildNavItem('Pricing'),
+          _buildNavItem('Pricing', _localized((l) => l.pricing)),
           const SizedBox(width: 32),
-          _buildNavItem('Blog'),
+          _buildNavItem('Blog', _localized((l) => l.blog)),
           const SizedBox(width: 32),
-          _buildNavItem('About'),
+          _buildNavItem('About', _localized((l) => l.about)),
           const SizedBox(width: 32),
-          _buildNavItem('Download'),
+          _buildNavItem('Download', _localized((l) => l.download)),
           const SizedBox(width: 32),
-          _buildNavItem('Help'),
+          _buildNavItem('Help', _localized((l) => l.help)),
           const SizedBox(width: 48),
           Row(
             children: [
@@ -99,15 +114,17 @@ class _HomeScreenState extends State<HomeScreen>
             ],
           ),
           const SizedBox(width: 24),
+          _buildLanguageDropdown(),
+          const SizedBox(width: 24),
           _buildSignUpButton(),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(String text) {
+  Widget _buildNavItem(String key, String text) {
     return GestureDetector(
-      onTap: () => _scrollToSection(text),
+      onTap: () => _scrollToSection(key),
       child: Text(
         text,
         style: TextStyle(
@@ -138,23 +155,31 @@ class _HomeScreenState extends State<HomeScreen>
         color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: TextButton(
+      child: AppButton(
+        label: _localized((l) => l.signUp),
         onPressed: () => _navigateToLogin(context),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-        ),
-        child: Text(
-          'Sign up',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        variant: AppButtonVariant.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
+    );
+  }
+
+  Widget _buildLanguageDropdown() {
+    final currentLocale = ref.watch(localeProvider);
+    return DropdownButton<Locale>(
+      value: currentLocale,
+      underline: const SizedBox(),
+      icon: const Icon(Icons.language, color: Colors.grey),
+      items: const [
+        DropdownMenuItem(value: Locale('en'), child: Text('English')),
+        DropdownMenuItem(value: Locale('fr'), child: Text('Français')),
+        DropdownMenuItem(value: Locale('sw'), child: Text('Kiswahili')),
+      ],
+      onChanged: (Locale? newLocale) {
+        if (newLocale != null) {
+          ref.read(localeProvider.notifier).setLocale(newLocale);
+        }
+      },
     );
   }
 
@@ -170,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen>
               text: TextSpan(
                 children: [
                   TextSpan(
-                    text: 'Safe home\n',
+                    text: _localized((l) => l.heroTitle).split('\n')[0] + '\n',
                     style: TextStyle(
                       fontSize: 88,
                       fontWeight: FontWeight.w700,
@@ -180,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   TextSpan(
-                    text: 'for your business',
+                    text: _localized((l) => l.heroTitle).split('\n')[1],
                     style: TextStyle(
                       fontSize: 88,
                       fontWeight: FontWeight.w700,
@@ -194,7 +219,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             const SizedBox(height: 32),
             Text(
-              'Private by default. Works everywhere. Ready for business.',
+              _localized((l) => l.heroSubtitle),
               style: TextStyle(
                 fontSize: 24,
                 color: Colors.grey.shade600,
@@ -224,40 +249,21 @@ class _HomeScreenState extends State<HomeScreen>
         color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(28),
       ),
-      child: TextButton(
+      child: AppButton(
+        label: _localized((l) => l.signUp),
         onPressed: () => _navigateToLogin(context),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-        ),
-        child: Text(
-          'Sign up',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        variant: AppButtonVariant.primary,
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
       ),
     );
   }
 
   Widget _buildSecondaryButton() {
-    return TextButton(
+    return AppButton(
+      label: _localized((l) => l.login),
       onPressed: () => _navigateToLogin(context),
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-      ),
-      child: Text(
-        'Login',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      variant: AppButtonVariant.secondary,
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
     );
   }
 
@@ -370,7 +376,7 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         children: [
           Text(
-            'Simple, transparent pricing',
+            _localized((l) => l.pricingTitle),
             style: TextStyle(
               fontSize: 48,
               fontWeight: FontWeight.w700,
@@ -380,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const SizedBox(height: 16),
           Text(
-            'Choose the plan that works best for you',
+            _localized((l) => l.pricingSubtitle),
             style: TextStyle(fontSize: 20, color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),
@@ -390,32 +396,50 @@ class _HomeScreenState extends State<HomeScreen>
             spacing: 32,
             runSpacing: 32,
             children: [
-              _buildPricingCard('Mobile', '5,000', 'RWF/month', [
-                'Mobile app access',
-                'Basic business tools',
-                'Data encryption',
-                'Single device',
-                '+ Tax reporting (+30,000 RWF)',
-              ], false),
-              _buildPricingCard('Mobile + Desktop', '120,000', 'RWF/month', [
-                'Mobile + Desktop access',
-                'Advanced business tools',
-                'Military-grade encryption',
-                'Priority support',
-                'Multiple devices',
-                'Advanced analytics',
-                '+ Tax reporting (+30,000 RWF)',
-              ], true),
-              _buildPricingCard('Enterprise', '1,500,000+', 'RWF/month', [
-                'Full platform access',
-                'Enterprise-grade security',
-                '24/7 dedicated support',
-                'Unlimited users & branches',
-                'Custom integrations',
-                '+ Extra support (+800,000 RWF)',
-                '+ Premium tax consulting (+400,000 RWF)',
-                '+ Unlimited branches (+600,000 RWF)',
-              ], false),
+              _buildPricingCard(
+                _localized((l) => l.planMobile),
+                _localized((l) => l.priceMobile),
+                _localized((l) => l.currencyPerMonth),
+                [
+                  _localized((l) => l.featureMobileAppAccess),
+                  _localized((l) => l.featureBasicBusinessTools),
+                  _localized((l) => l.featureDataEncryption),
+                  _localized((l) => l.featureSingleDevice),
+                  _localized((l) => l.featureTaxReportingMobile),
+                ],
+                false,
+              ),
+              _buildPricingCard(
+                _localized((l) => l.planMobileDesktop),
+                _localized((l) => l.priceMobileDesktop),
+                _localized((l) => l.currencyPerMonth),
+                [
+                  _localized((l) => l.featureMobileDesktopAppAccess),
+                  _localized((l) => l.featureAdvancedBusinessTools),
+                  _localized((l) => l.featureMilitaryGradeEncryption),
+                  _localized((l) => l.featurePrioritySupport),
+                  _localized((l) => l.featureMultipleDevices),
+                  _localized((l) => l.featureAdvancedAnalytics),
+                  _localized((l) => l.featureTaxReportingDesktop),
+                ],
+                true,
+              ),
+              _buildPricingCard(
+                _localized((l) => l.planEnterprise),
+                _localized((l) => l.priceEnterprise),
+                _localized((l) => l.currencyPerMonth),
+                [
+                  _localized((l) => l.featureFullPlatformAccess),
+                  _localized((l) => l.featureEnterpriseGradeSecurity),
+                  _localized((l) => l.feature247DedicatedSupport),
+                  _localized((l) => l.featureUnlimitedUsersBranches),
+                  _localized((l) => l.featureCustomIntegrations),
+                  _localized((l) => l.featureExtraSupport),
+                  _localized((l) => l.featurePremiumTaxConsulting),
+                  _localized((l) => l.featureUnlimitedBranches),
+                ],
+                false,
+              ),
             ],
           ),
         ],
@@ -458,7 +482,7 @@ class _HomeScreenState extends State<HomeScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Most Popular',
+                _localized((l) => l.mostPopular),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -517,21 +541,13 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
+            child: AppButton(
+              label: _localized((l) => l.getStarted),
               onPressed: () => _navigateToLogin(context),
-              style: FilledButton.styleFrom(
-                backgroundColor: isPopular
-                    ? const Color(0xFF22C55E)
-                    : Colors.grey.shade900,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Get Started',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
+              variant: isPopular
+                  ? AppButtonVariant.primary
+                  : AppButtonVariant.primary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
         ],
@@ -540,15 +556,23 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _navigateToLogin(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) =>
-            const PinScreen(),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        transitionDuration: const Duration(milliseconds: 300),
-      ),
-    );
+    // Prefer GoRouter if available (apps that provide it), otherwise fall back
+    try {
+      // Navigate to signup instead of login when sign up button is clicked
+      maybe_go.GoRouter.of(context).go('/signup');
+      return;
+    } catch (_) {
+      // Fallback to Navigator push with fade transition
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const PinScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    }
   }
 }

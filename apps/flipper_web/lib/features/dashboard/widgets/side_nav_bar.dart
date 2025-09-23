@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class SideNavBar extends StatelessWidget {
@@ -7,115 +6,150 @@ class SideNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 240,
-      color: const Color(0xFFF7F8FA),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User Profile
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.person_outline),
-                  SizedBox(width: 8),
-                  Text('Demo'),
-                  Spacer(),
-                  Icon(Icons.chevron_right),
-                ],
-              ),
+      width: 250,
+      height: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: .05),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(2, 0),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Business name
+          Text(
+            'Flipper Coffee',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
             ),
-            const SizedBox(height: 16),
+          ),
+          Text(
+            'Rwanda',
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 24),
 
-            // Search Bar
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-              ),
+          // Search box
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
             ),
-            const SizedBox(height: 16),
-
-            // Navigation Items
-            _buildNavItem(Icons.home, 'Home', isSelected: true),
-            _buildNavItem(Icons.local_offer_outlined, 'Items & services'),
-            _buildNavItem(Icons.payment, 'Payments & invoices'),
-            _buildNavItem(Icons.public, 'Online'),
-            _buildNavItem(Icons.people_outline, 'Customers'),
-            _buildNavItem(Icons.bar_chart, 'Reports'),
-            _buildNavItem(Icons.groups_outlined, 'Staff'),
-            _buildNavItem(Icons.settings_outlined, 'Settings'),
-
-            const Spacer(),
-
-            // Take Payment Button
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add_card),
-              label: const Text('Take payment'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.black,
-                backgroundColor: Colors.grey.shade200,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Bottom Icons
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            child: Row(
               children: [
-                Icon(Icons.notifications_none),
-                Icon(Icons.list_alt),
-                Icon(Icons.help_outline),
+                Icon(Icons.search, size: 20, color: Colors.grey[600]),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 16),
+
+          // Navigation items
+          _buildNavItem(
+            Icons.dashboard_outlined,
+            'Dashboard',
+            isSelected: true,
+          ),
+          _buildNavItem(Icons.shopping_bag_outlined, 'Products'),
+          _buildNavItem(Icons.receipt_outlined, 'Orders'),
+          _buildNavItem(Icons.people_outline, 'Customers'),
+          _buildNavItem(Icons.analytics_outlined, 'Analytics'),
+          _buildNavItem(Icons.settings_outlined, 'Settings'),
+
+          const Spacer(),
+
+          // Take Payment Button
+          ElevatedButton.icon(
+            onPressed: () {},
+            icon: Icon(
+              Icons.payment_outlined,
+              size: 18,
+              color: Colors.grey[800],
+            ),
+            label: Text(
+              'Take payment',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.black,
+              backgroundColor: Colors.grey.shade100,
+              elevation: 0,
+              minimumSize: const Size(double.infinity, 40),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Bottom Icons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Icon(Icons.notifications_none, color: Colors.grey[600], size: 22),
+              Icon(Icons.list_alt, color: Colors.grey[600], size: 22),
+              Icon(Icons.help_outline, color: Colors.grey[600], size: 22),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildNavItem(IconData icon, String title, {bool isSelected = false}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 4),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFE3F2FD) : null,
-        borderRadius: BorderRadius.circular(8),
+        color: isSelected ? const Color(0xFFE7F2FD) : null,
+        borderRadius: BorderRadius.circular(6),
       ),
       child: ListTile(
-        leading: Icon(icon, color: isSelected ? Colors.blue : Colors.black),
+        dense: true,
+        visualDensity: const VisualDensity(horizontal: 0, vertical: -1),
+        leading: Icon(
+          icon,
+          color: isSelected ? const Color(0xFF2196F3) : Colors.grey[700],
+          size: 22,
+        ),
         title: Text(
           title,
           style: TextStyle(
-            color: isSelected ? Colors.blue : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 14,
+            color: isSelected ? const Color(0xFF2196F3) : Colors.black87,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         onTap: () {},
       ),
     );

@@ -156,6 +156,7 @@ class DummyTransactionGenerator {
 
       items.add(
         TransactionItem(
+          ttCatCd: "TT",
           id: itemId,
           name: itemName,
           transactionId: transactionId,

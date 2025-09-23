@@ -30,6 +30,68 @@ import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
+// Expose a top-level calculateTaxTotals function so tests can call it
+// without needing to instantiate RWTax (which pulls in app-wide services).
+Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
+  // Initialize tax totals with zero values
+  Map<String, double> taxTotals = {
+    'A': 0.0,
+    'B': 0.0,
+    'C': 0.0,
+    'D': 0.0,
+    'TT': 0.0,
+    'ttTaxblAmt': 0.0,
+  };
+
+  for (var item in items) {
+    try {
+      // Validate and fetch data with default fallback
+      String taxType = (item['taxTyCd'] as String?) ?? 'B';
+
+      // Exception: treat TT as B
+      if (taxType == 'TT') {
+        taxType = 'B';
+      }
+
+      // Ensure taxType is one of the valid types
+      if (!taxTotals.containsKey(taxType)) {
+        // print(
+        //     'Warning: Invalid tax type $taxType found. Using default type B');
+        taxType = 'B';
+      }
+
+      final unitPrice = item['price'];
+      final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
+      final discountRate = item['dcRt'];
+
+      // Calculate unit discount and taxable amount
+      double unitDiscount = (unitPrice * discountRate) / 100;
+      double unitTaxableAmount = unitPrice - unitDiscount;
+
+      // Multiply by quantity
+      double totalTaxableAmount = unitTaxableAmount * quantity;
+
+      // Add to the appropriate tax type total using direct addition
+      taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
+
+      // Calculate ttTaxblAmt for TT items (check if ttTaxblAmt field exists)
+      if (item.containsKey('ttTaxblAmt')) {
+        double ttTaxblAmt = (item['ttTaxblAmt'] as num?)?.toDouble() ?? 0.0;
+        taxTotals['ttTaxblAmt'] = taxTotals['ttTaxblAmt']! + ttTaxblAmt;
+      }
+
+      // Optional: Add debug print to verify calculations
+      // print(
+      //     'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
+    } catch (e) {
+      // print('Error processing item: $item');
+      // print('Error details: $e');
+    }
+  }
+
+  return taxTotals;
+}
+
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   String itemPrefix = "flip-";
   Dio? _dio;
@@ -565,6 +627,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
                 branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
             for (Counter c in allCounters) {
               c.invcNo = c.invcNo! + 1;
+              c.curRcptNo = c.curRcptNo! + 1;
               await repository.upsert(c);
             }
           }
@@ -641,12 +704,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     // Calculate ttTaxAmt for TT items
     double ttTaxAmount = 0.0;
-    if (item.taxTyCd == 'TT') {
-      // For TT items, taxAmt uses tax B computation (18%)
-      taxAmount = (totalAfterDiscount * 18) / 118;
-      taxAmount = (taxAmount * 100).round() / 100;
-      // ttTaxblAmt = totalAfterDiscount / 1.18 (base price before VAT)
-      double ttTaxblAmt = totalAfterDiscount / 1.18;
+    if (item.ttCatCd == 'TT') {
       // Get TT tax configuration
       List<Configurations> ttTaxConfigs = await repository.get<Configurations>(
           policy: OfflineFirstGetPolicy.localOnly,
@@ -661,12 +719,28 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         throw Exception("Failed to get TT tax config");
       }
       final ttTaxPercentage = ttTaxConfig.taxPercentage ?? 0.0;
-      // Calculate ttTaxAmt using configuration tax percentage
-      ttTaxAmount = ttTaxblAmt * ttTaxPercentage / (100 + ttTaxPercentage);
+
+      // Determine taxable base for TT tax and VAT portion depending on vatEnabled
+      double ttTaxblBase;
+      if (ProxyService.box.vatEnabled()) {
+        // If VAT is enabled, TT prices are VAT-inclusive; base before VAT is /1.18
+        ttTaxblBase = totalAfterDiscount / 1.18;
+        // For TT items, when VAT is enabled, treat taxAmount as VAT (18%) portion for B
+        taxAmount = (totalAfterDiscount * 18) / 118;
+        taxAmount = (taxAmount * 100).round() / 100;
+      } else {
+        // If VAT is disabled, the gross is the base for TT tax
+        ttTaxblBase = totalAfterDiscount;
+        // Do not override taxAmount to B/VAT portion when VAT is disabled
+      }
+
+      // Calculate ttTaxAmt using configuration tax percentage on the base
+      ttTaxAmount = ttTaxblBase * ttTaxPercentage / (100 + ttTaxPercentage);
       ttTaxAmount = (ttTaxAmount * 100).round() / 100;
     }
 
     final itemJson = TransactionItem(
+      ttCatCd: item.ttCatCd,
       lastTouched: DateTime.now().toUtc(),
       qty: quantity,
       discount: item.discount,
@@ -690,7 +764,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       isrccNm: "",
       isrcRt: 0,
       isrcAmt: 0,
-      taxTyCd: item.taxTyCd == 'TT' ? 'B' : item.taxTyCd,
+      taxTyCd: item.ttCatCd == 'TT' ? 'B' : item.taxTyCd,
       bcd: item.bcd,
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
@@ -738,10 +812,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
 
     // Add ttTaxAmt and ttTaxblAmt to the JSON if it's a TT item (after cleanup)
-    if (item.taxTyCd == 'TT') {
-      double ttTaxblAmt = totalAfterDiscount / 1.18;
+    if (item.ttCatCd == 'TT') {
+      // Add TT tax amount regardless; include ttTaxblAmt only when VAT is enabled
+      if (ProxyService.box.vatEnabled()) {
+        double ttTaxblAmt = totalAfterDiscount / 1.18;
+        itemJson['ttTaxblAmt'] = ttTaxblAmt.roundToTwoDecimalPlaces();
+      }
       itemJson['ttTaxAmt'] = ttTaxAmount.roundToTwoDecimalPlaces();
-      itemJson['ttTaxblAmt'] = ttTaxblAmt.roundToTwoDecimalPlaces();
       itemJson['ttCatCd'] = "TT";
     }
 
@@ -862,6 +939,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         await ProxyService.strategy.getByTaxType(taxtype: "D");
     odm.Configurations? taxConfigTaxTT =
         await ProxyService.strategy.getByTaxType(taxtype: "TT");
+
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
     final totalTax = ((taxTotals['B'] ?? 0.0) * 18 / 118);

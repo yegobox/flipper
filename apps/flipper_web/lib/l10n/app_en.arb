@@ -31,5 +31,169 @@
   "welcomeToDashboard": "Welcome to your Dashboard!",
   "@welcomeToDashboard": {
     "description": "Welcome message on dashboard"
+  },
+  "pricing": "Pricing",
+  "@pricing": {
+    "description": "Pricing navigation item"
+  },
+  "blog": "Blog",
+  "@blog": {
+    "description": "Blog navigation item"
+  },
+  "about": "About",
+  "@about": {
+    "description": "About navigation item"
+  },
+  "download": "Download",
+  "@download": {
+    "description": "Download navigation item"
+  },
+  "help": "Help",
+  "@help": {
+    "description": "Help navigation item"
+  },
+  "signUp": "Sign up",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+  "heroTitle": "Safe home\nfor your business",
+  "@heroTitle": {
+    "description": "Hero section main title"
+  },
+  "heroSubtitle": "Private by default. Works everywhere. Ready for business.",
+  "@heroSubtitle": {
+    "description": "Hero section subtitle"
+  },
+  "pricingTitle": "Simple, transparent pricing",
+  "@pricingTitle": {
+    "description": "Pricing section title"
+  },
+  "pricingSubtitle": "Choose the plan that works best for you",
+  "@pricingSubtitle": {
+    "description": "Pricing section subtitle"
+  },
+  "planMobile": "Mobile",
+  "@planMobile": {
+    "description": "Mobile plan name"
+  },
+  "planMobileDesktop": "Mobile + Desktop",
+  "@planMobileDesktop": {
+    "description": "Mobile + Desktop plan name"
+  },
+  "planEnterprise": "Enterprise",
+  "@planEnterprise": {
+    "description": "Enterprise plan name"
+  },
+  "priceMobile": "5,000",
+  "@priceMobile": {
+    "description": "Mobile plan price"
+  },
+  "priceMobileDesktop": "120,000",
+  "@priceMobileDesktop": {
+    "description": "Mobile + Desktop plan price"
+  },
+  "priceEnterprise": "1,500,000+",
+  "@priceEnterprise": {
+    "description": "Enterprise plan price"
+  },
+  "currencyPerMonth": "RWF/month",
+  "@currencyPerMonth": {
+    "description": "Currency per month suffix"
+  },
+  "featureMobileAppAccess": "Mobile app access",
+  "@featureMobileAppAccess": {
+    "description": "Mobile plan feature"
+  },
+  "featureBasicBusinessTools": "Basic business tools",
+  "@featureBasicBusinessTools": {
+    "description": "Mobile plan feature"
+  },
+  "featureDataEncryption": "Data encryption",
+  "@featureDataEncryption": {
+    "description": "Mobile plan feature"
+  },
+  "featureSingleDevice": "Single device",
+  "@featureSingleDevice": {
+    "description": "Mobile plan feature"
+  },
+  "featureTaxReportingMobile": "+ Tax reporting (+30,000 RWF)",
+  "@featureTaxReportingMobile": {
+    "description": "Mobile plan tax reporting feature"
+  },
+  "featureMobileDesktopAppAccess": "Mobile + Desktop app access",
+  "@featureMobileDesktopAppAccess": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureAdvancedBusinessTools": "Advanced business tools",
+  "@featureAdvancedBusinessTools": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureCloudSync": "Cloud sync",
+  "@featureCloudSync": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureMultiDeviceSupport": "Multi-device support",
+  "@featureMultiDeviceSupport": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureTaxReportingDesktop": "+ Tax reporting (+30,000 RWF)",
+  "@featureTaxReportingDesktop": {
+    "description": "Mobile + Desktop plan tax reporting feature"
+  },
+  "featureFullPlatformAccess": "Full platform access",
+  "@featureFullPlatformAccess": {
+    "description": "Enterprise plan feature"
+  },
+  "featureCustomIntegrations": "Custom integrations",
+  "@featureCustomIntegrations": {
+    "description": "Enterprise plan feature"
+  },
+  "featurePrioritySupport": "Priority support",
+  "@featurePrioritySupport": {
+    "description": "Enterprise plan feature"
+  },
+  "featureAdvancedAnalytics": "Advanced analytics",
+  "@featureAdvancedAnalytics": {
+    "description": "Enterprise plan feature"
+  },
+  "featureUnlimitedBranches": "+ Unlimited branches (+600,000 RWF)",
+  "@featureUnlimitedBranches": {
+    "description": "Enterprise plan unlimited branches feature"
+  },
+  "featureMilitaryGradeEncryption": "Military-grade encryption",
+  "@featureMilitaryGradeEncryption": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureMultipleDevices": "Multiple devices",
+  "@featureMultipleDevices": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureEnterpriseGradeSecurity": "Enterprise-grade security",
+  "@featureEnterpriseGradeSecurity": {
+    "description": "Enterprise plan feature"
+  },
+  "feature247DedicatedSupport": "24/7 dedicated support",
+  "@feature247DedicatedSupport": {
+    "description": "Enterprise plan feature"
+  },
+  "featureUnlimitedUsersBranches": "Unlimited users & branches",
+  "@featureUnlimitedUsersBranches": {
+    "description": "Enterprise plan feature"
+  },
+  "featureExtraSupport": "+ Extra support (+800,000 RWF)",
+  "@featureExtraSupport": {
+    "description": "Enterprise plan extra support feature"
+  },
+  "featurePremiumTaxConsulting": "+ Premium tax consulting (+400,000 RWF)",
+  "@featurePremiumTaxConsulting": {
+    "description": "Enterprise plan premium tax consulting feature"
+  },
+  "mostPopular": "Most Popular",
+  "@mostPopular": {
+    "description": "Most popular badge text"
+  },
+  "getStarted": "Get Started",
+  "@getStarted": {
+    "description": "Get started button text"
   }
 }

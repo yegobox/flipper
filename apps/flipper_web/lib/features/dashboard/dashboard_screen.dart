@@ -11,14 +11,14 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: const Color(0xFFF9FAFB),
       body: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SideNavBar(),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(28.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -26,15 +26,25 @@ class DashboardScreen extends ConsumerWidget {
                     flex: 3,
                     child: SingleChildScrollView(
                       child: Column(
-                        children: const [
-                          SetupProgress(),
-                          SizedBox(height: 16),
-                          PerformanceDashboard(),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Home',
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const SetupProgress(),
+                          const SizedBox(height: 24),
+                          const PerformanceDashboard(),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 24),
                   const Expanded(flex: 1, child: QuickActions()),
                 ],
               ),

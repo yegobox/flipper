@@ -1,11 +1,199 @@
 {
   "@@locale": "fr",
   "appTitle": "Flipper",
-  "login": "Kwinjira",
-  "logout": "Gusohoka",
-  "dashboard": "Ikibaho",
-  "welcome": "Murakaza neza",
-  "settings": "Amategeko",
-  "language": "Ururimi",
-  "welcomeToDashboard": "Murakaza neza mu kibaho cyawe!"
+  "@appTitle": {
+    "description": "The title of the application"
+  },
+  "login": "Connexion",
+  "@login": {
+    "description": "Login button text"
+  },
+  "logout": "Déconnexion",
+  "@logout": {
+    "description": "Logout button text"
+  },
+  "dashboard": "Tableau de bord",
+  "@dashboard": {
+    "description": "Dashboard page title"
+  },
+  "welcome": "Bienvenue",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "settings": "Paramètres",
+  "@settings": {
+    "description": "Settings page title"
+  },
+  "language": "Langue",
+  "@language": {
+    "description": "Language selection label"
+  },
+  "welcomeToDashboard": "Bienvenue sur votre tableau de bord !",
+  "@welcomeToDashboard": {
+    "description": "Welcome message on dashboard"
+  },
+  "pricing": "Tarification",
+  "@pricing": {
+    "description": "Pricing navigation item"
+  },
+  "blog": "Blog",
+  "@blog": {
+    "description": "Blog navigation item"
+  },
+  "about": "À propos",
+  "@about": {
+    "description": "About navigation item"
+  },
+  "download": "Télécharger",
+  "@download": {
+    "description": "Download navigation item"
+  },
+  "help": "Aide",
+  "@help": {
+    "description": "Help navigation item"
+  },
+  "signUp": "S'inscrire",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+  "heroTitle": "Maison sûre\npour votre entreprise",
+  "@heroTitle": {
+    "description": "Hero section main title"
+  },
+  "heroSubtitle": "Privé par défaut. Fonctionne partout. Prêt pour les affaires.",
+  "@heroSubtitle": {
+    "description": "Hero section subtitle"
+  },
+  "pricingTitle": "Tarification simple et transparente",
+  "@pricingTitle": {
+    "description": "Pricing section title"
+  },
+  "pricingSubtitle": "Choisissez le plan qui vous convient le mieux",
+  "@pricingSubtitle": {
+    "description": "Pricing section subtitle"
+  },
+  "planMobile": "Mobile",
+  "@planMobile": {
+    "description": "Mobile plan name"
+  },
+  "planMobileDesktop": "Mobile + Bureau",
+  "@planMobileDesktop": {
+    "description": "Mobile + Desktop plan name"
+  },
+  "planEnterprise": "Entreprise",
+  "@planEnterprise": {
+    "description": "Enterprise plan name"
+  },
+  "priceMobile": "5 000",
+  "@priceMobile": {
+    "description": "Mobile plan price"
+  },
+  "priceMobileDesktop": "120 000",
+  "@priceMobileDesktop": {
+    "description": "Mobile + Desktop plan price"
+  },
+  "priceEnterprise": "1 500 000+",
+  "@priceEnterprise": {
+    "description": "Enterprise plan price"
+  },
+  "currencyPerMonth": "RWF/mois",
+  "@currencyPerMonth": {
+    "description": "Currency per month suffix"
+  },
+  "featureMobileAppAccess": "Accès à l'application mobile",
+  "@featureMobileAppAccess": {
+    "description": "Mobile plan feature"
+  },
+  "featureBasicBusinessTools": "Outils d'affaires de base",
+  "@featureBasicBusinessTools": {
+    "description": "Mobile plan feature"
+  },
+  "featureDataEncryption": "Chiffrement des données",
+  "@featureDataEncryption": {
+    "description": "Mobile plan feature"
+  },
+  "featureSingleDevice": "Appareil unique",
+  "@featureSingleDevice": {
+    "description": "Mobile plan feature"
+  },
+  "featureTaxReportingMobile": "+ Déclaration fiscale (+30 000 RWF)",
+  "@featureTaxReportingMobile": {
+    "description": "Mobile plan tax reporting feature"
+  },
+  "featureMobileDesktopAppAccess": "Accès aux applications Mobile + Bureau",
+  "@featureMobileDesktopAppAccess": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureAdvancedBusinessTools": "Outils d'affaires avancés",
+  "@featureAdvancedBusinessTools": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureCloudSync": "Synchronisation cloud",
+  "@featureCloudSync": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureMultiDeviceSupport": "Support multi-appareils",
+  "@featureMultiDeviceSupport": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureTaxReportingDesktop": "+ Déclaration fiscale (+30 000 RWF)",
+  "@featureTaxReportingDesktop": {
+    "description": "Mobile + Desktop plan tax reporting feature"
+  },
+  "featureFullPlatformAccess": "Accès complet à la plateforme",
+  "@featureFullPlatformAccess": {
+    "description": "Enterprise plan feature"
+  },
+  "featureCustomIntegrations": "Intégrations personnalisées",
+  "@featureCustomIntegrations": {
+    "description": "Enterprise plan feature"
+  },
+  "featurePrioritySupport": "Support prioritaire",
+  "@featurePrioritySupport": {
+    "description": "Enterprise plan feature"
+  },
+  "featureAdvancedAnalytics": "Analyses avancées",
+  "@featureAdvancedAnalytics": {
+    "description": "Enterprise plan feature"
+  },
+  "featureUnlimitedBranches": "+ Branches illimitées (+600 000 RWF)",
+  "@featureUnlimitedBranches": {
+    "description": "Enterprise plan unlimited branches feature"
+  },
+  "featureMilitaryGradeEncryption": "Chiffrement de niveau militaire",
+  "@featureMilitaryGradeEncryption": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureMultipleDevices": "Appareils multiples",
+  "@featureMultipleDevices": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureEnterpriseGradeSecurity": "Sécurité de niveau entreprise",
+  "@featureEnterpriseGradeSecurity": {
+    "description": "Enterprise plan feature"
+  },
+  "feature247DedicatedSupport": "Support dédié 24/7",
+  "@feature247DedicatedSupport": {
+    "description": "Enterprise plan feature"
+  },
+  "featureUnlimitedUsersBranches": "Utilisateurs et branches illimités",
+  "@featureUnlimitedUsersBranches": {
+    "description": "Enterprise plan feature"
+  },
+  "featureExtraSupport": "+ Support supplémentaire (+800 000 RWF)",
+  "@featureExtraSupport": {
+    "description": "Enterprise plan extra support feature"
+  },
+  "featurePremiumTaxConsulting": "+ Conseil fiscal premium (+400 000 RWF)",
+  "@featurePremiumTaxConsulting": {
+    "description": "Enterprise plan premium tax consulting feature"
+  },
+  "mostPopular": "Le plus populaire",
+  "@mostPopular": {
+    "description": "Most popular badge text"
+  },
+  "getStarted": "Commencer",
+  "@getStarted": {
+    "description": "Get started button text"
+  }
 }

@@ -151,6 +151,8 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   num? supplyPriceAtSale;
 
+  String ttCatCd;
+
   /// Creates a new TransactionItem with required fields for proper functionality
   ///
   /// Required fields:
@@ -253,6 +255,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
     this.spplrItemCd,
     bool? ignoreForReport,
     this.supplyPriceAtSale,
+    required this.ttCatCd,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         ignoreForReport = false,
@@ -351,9 +354,11 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       bool? partOfComposite,
       num? compositePrice,
       String? taxTyCd,
+      String? ttCatCd,
       num? supplyPriceAtSale}) {
     return TransactionItem(
       id: id ?? this.id,
+      ttCatCd: ttCatCd ?? this.ttCatCd,
       name: name ?? this.name,
       quantityRequested: quantityRequested ?? this.quantityRequested,
       quantityApproved: quantityApproved ?? this.quantityApproved,
@@ -531,6 +536,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       'compositePrice': compositePrice,
       'taxTyCd': taxTyCd,
       'supplyPriceAtSale': supplyPriceAtSale,
+      'ttCatCd': ttCatCd
     };
   }
 }

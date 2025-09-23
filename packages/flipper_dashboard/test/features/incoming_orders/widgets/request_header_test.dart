@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import '../../../test_helpers/setup.dart';
+
 // flutter test test/features/incoming_orders/widgets/request_header_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   late TestEnvironment env;
@@ -32,6 +33,7 @@ void main() {
       mockItems = [
         TransactionItem(
           id: '1',
+          ttCatCd: "TT",
           name: 'Test Item 1',
           qty: 10.0,
           price: 100.0,
@@ -44,6 +46,7 @@ void main() {
         ),
         TransactionItem(
           id: '2',
+          ttCatCd: "TT",
           name: 'Test Item 2',
           qty: 8.0,
           price: 150.0,
@@ -134,7 +137,8 @@ void main() {
 
       await tester.pump();
 
-      expect(find.textContaining('13/18'), findsOneWidget); // 5+8 approved / 10+8 requested
+      expect(find.textContaining('13/18'),
+          findsOneWidget); // 5+8 approved / 10+8 requested
     });
 
     testWidgets('shows loading state initially', (tester) async {
@@ -174,7 +178,8 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('(1 items)'), findsOneWidget);
-      expect(find.textContaining('Item'), findsOneWidget); // Should show "Item" not "Items"
+      expect(find.textContaining('Item'),
+          findsOneWidget); // Should show "Item" not "Items"
     });
 
     testWidgets('has correct structure', (tester) async {
@@ -191,7 +196,8 @@ void main() {
       await tester.pump();
 
       expect(find.byType(Row), findsNWidgets(2)); // Main row + inner row
-      expect(find.byType(Material), findsNWidgets(2)); // Scaffold material + Copy button material
+      expect(find.byType(Material),
+          findsNWidgets(2)); // Scaffold material + Copy button material
       expect(find.byType(InkWell), findsOneWidget); // Copy button inkwell
       expect(find.byType(Container), findsOneWidget); // Item count container
     });
@@ -234,10 +240,10 @@ void main() {
 
       final copyButton = find.byIcon(Icons.copy);
       expect(copyButton, findsOneWidget);
-      
+
       await tester.tap(copyButton);
       await tester.pump();
-      
+
       // Should not throw any errors
     });
   });

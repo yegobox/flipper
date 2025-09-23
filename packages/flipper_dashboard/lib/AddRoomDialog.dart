@@ -220,7 +220,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
             ttCatCd: "TT",
             itemTyCd: "3", // Service type
-            taxTyCd: "TT", // Tax type code
+            taxTyCd: "B", // Tax type code (changed from "TT" to "B")
             taxName: "TT", // Tax name
             taxPercentage: 3.0,
             qty: 0.0,

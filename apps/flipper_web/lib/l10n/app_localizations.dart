@@ -147,6 +147,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome to your Dashboard!'**
   String get welcomeToDashboard;
+
+  /// Pricing navigation item
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing'**
+  String get pricing;
+
+  /// Blog navigation item
+  ///
+  /// In en, this message translates to:
+  /// **'Blog'**
+  String get blog;
+
+  /// About navigation item
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// Download navigation item
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get download;
+
+  /// Help navigation item
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get help;
+
+  /// Sign up button text
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get signUp;
+
+  /// Hero section main title
+  ///
+  /// In en, this message translates to:
+  /// **'Safe home\nfor your business'**
+  String get heroTitle;
+
+  /// Hero section subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Private by default. Works everywhere. Ready for business.'**
+  String get heroSubtitle;
+
+  /// Pricing section title
+  ///
+  /// In en, this message translates to:
+  /// **'Simple, transparent pricing'**
+  String get pricingTitle;
+
+  /// Pricing section subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the plan that works best for you'**
+  String get pricingSubtitle;
+
+  /// Mobile plan name
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get planMobile;
+
+  /// Mobile + Desktop plan name
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile + Desktop'**
+  String get planMobileDesktop;
+
+  /// Enterprise plan name
+  ///
+  /// In en, this message translates to:
+  /// **'Enterprise'**
+  String get planEnterprise;
+
+  /// Mobile plan price
+  ///
+  /// In en, this message translates to:
+  /// **'5,000'**
+  String get priceMobile;
+
+  /// Mobile + Desktop plan price
+  ///
+  /// In en, this message translates to:
+  /// **'120,000'**
+  String get priceMobileDesktop;
+
+  /// Enterprise plan price
+  ///
+  /// In en, this message translates to:
+  /// **'1,500,000+'**
+  String get priceEnterprise;
+
+  /// Currency per month suffix
+  ///
+  /// In en, this message translates to:
+  /// **'RWF/month'**
+  String get currencyPerMonth;
+
+  /// Mobile plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile app access'**
+  String get featureMobileAppAccess;
+
+  /// Mobile plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Basic business tools'**
+  String get featureBasicBusinessTools;
+
+  /// Mobile plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Data encryption'**
+  String get featureDataEncryption;
+
+  /// Mobile plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Single device'**
+  String get featureSingleDevice;
+
+  /// Mobile plan tax reporting feature
+  ///
+  /// In en, this message translates to:
+  /// **'+ Tax reporting (+30,000 RWF)'**
+  String get featureTaxReportingMobile;
+
+  /// Mobile + Desktop plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile + Desktop app access'**
+  String get featureMobileDesktopAppAccess;
+
+  /// Mobile + Desktop plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced business tools'**
+  String get featureAdvancedBusinessTools;
+
+  /// Mobile + Desktop plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud sync'**
+  String get featureCloudSync;
+
+  /// Mobile + Desktop plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-device support'**
+  String get featureMultiDeviceSupport;
+
+  /// Mobile + Desktop plan tax reporting feature
+  ///
+  /// In en, this message translates to:
+  /// **'+ Tax reporting (+30,000 RWF)'**
+  String get featureTaxReportingDesktop;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Full platform access'**
+  String get featureFullPlatformAccess;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Custom integrations'**
+  String get featureCustomIntegrations;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Priority support'**
+  String get featurePrioritySupport;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced analytics'**
+  String get featureAdvancedAnalytics;
+
+  /// Enterprise plan unlimited branches feature
+  ///
+  /// In en, this message translates to:
+  /// **'+ Unlimited branches (+600,000 RWF)'**
+  String get featureUnlimitedBranches;
+
+  /// Mobile + Desktop plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Military-grade encryption'**
+  String get featureMilitaryGradeEncryption;
+
+  /// Mobile + Desktop plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple devices'**
+  String get featureMultipleDevices;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Enterprise-grade security'**
+  String get featureEnterpriseGradeSecurity;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'24/7 dedicated support'**
+  String get feature247DedicatedSupport;
+
+  /// Enterprise plan feature
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited users & branches'**
+  String get featureUnlimitedUsersBranches;
+
+  /// Enterprise plan extra support feature
+  ///
+  /// In en, this message translates to:
+  /// **'+ Extra support (+800,000 RWF)'**
+  String get featureExtraSupport;
+
+  /// Enterprise plan premium tax consulting feature
+  ///
+  /// In en, this message translates to:
+  /// **'+ Premium tax consulting (+400,000 RWF)'**
+  String get featurePremiumTaxConsulting;
+
+  /// Most popular badge text
+  ///
+  /// In en, this message translates to:
+  /// **'Most Popular'**
+  String get mostPopular;
+
+  /// Get started button text
+  ///
+  /// In en, this message translates to:
+  /// **'Get Started'**
+  String get getStarted;
 }
 
 class _AppLocalizationsDelegate

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/home/home_screen.dart';
 import 'package:flipper_web/features/login/pin_screen.dart';
 
@@ -11,7 +12,9 @@ void main() {
       tester.view.physicalSize = const Size(1920, 2000);
       tester.view.devicePixelRatio = 1.0;
 
-      await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+      await tester.pumpWidget(
+        const ProviderScope(child: MaterialApp(home: HomeScreen())),
+      );
       await tester.pumpAndSettle(); // Wait for animations
     }
 
@@ -48,7 +51,7 @@ void main() {
 
       // Verify Photo Cards
       expect(find.byIcon(Icons.business_outlined), findsNWidgets(4));
-      
+
       // Verify Pricing Section
       expect(find.text('Simple, transparent pricing'), findsOneWidget);
       expect(find.text('Mobile'), findsOneWidget);

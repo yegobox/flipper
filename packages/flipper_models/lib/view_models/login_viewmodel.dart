@@ -66,6 +66,7 @@ class LoginViewModel extends FlipperBaseModel
           .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
       talker.info('[completeLoginProcess] userId written to box');
 
+
       await ProxyService.strategy.login(
         userPhone: userPin.phoneNumber!,
         isInSignUpProgress: false,
