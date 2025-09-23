@@ -89,7 +89,10 @@ void main() {
 
       // Test serialization by converting back to JSON
       final serialized = userProfile.toJson();
-      expect(serialized['id'], equals("75060"));  // Fix: Change the expected type to match the actual string type
+      expect(
+        serialized['id'],
+        equals("75060"),
+      ); // Fix: Change the expected type to match the actual string type
       expect(serialized['phoneNumber'], equals('+250783054884'));
       expect(serialized['ownership'], equals('YEGOBOX'));
 

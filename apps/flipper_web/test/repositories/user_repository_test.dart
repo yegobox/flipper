@@ -115,7 +115,9 @@ void main() {
     // Setup mock session and user
     when(() => mockSession.user).thenReturn(mockUser);
     when(() => mockUser.phone).thenReturn('+250783054884');
-    when(() => mockUser.id).thenReturn('75060'); // Add this line to fix the null id issue
+    when(
+      () => mockUser.id,
+    ).thenReturn('75060'); // Add this line to fix the null id issue
 
     // Initialize the repository with mocks
     userRepository = UserRepository(
@@ -222,7 +224,7 @@ void main() {
       when(
         () => mockDittoService.saveUserProfile(any()),
       ).thenAnswer((_) async => {});
-      
+
       // Fix: Mock the updateUserProfile method to return a Future<void>
       when(
         () => mockDittoService.updateUserProfile(any()),
@@ -244,7 +246,9 @@ void main() {
 
       // Assert
       expect(result.id, equals(testUserProfile.id));
-      verify(() => mockDittoService.updateUserProfile(any())).called(1); // Changed from saveUserProfile to updateUserProfile
+      verify(
+        () => mockDittoService.updateUserProfile(any()),
+      ).called(1); // Changed from saveUserProfile to updateUserProfile
     });
   });
 }
