@@ -25,15 +25,6 @@ class UserRepository {
   /// for offline access and synchronization with other devices
   Future<UserProfile> fetchAndSaveUserProfile(Session session) async {
     try {
-      // Ensure Ditto is initialized but handle initialization failures
-      try {
-        await _dittoService.initialize();
-      } catch (e) {
-        debugPrint('Warning: DittoService initialization failed: $e');
-        debugPrint('Continuing without Ditto synchronization');
-        // We'll continue without Ditto, just to get the user profile
-      }
-
       // API call to get user data
       final response = await _httpClient.post(
         Uri.parse(
@@ -81,6 +72,7 @@ class UserRepository {
   Future<UserProfile?> getCurrentUserProfile(String userId) async {
     try {
       debugPrint('Getting user profile for ID: $userId');
+
       final profile = await _dittoService.getUserProfile(userId);
       if (profile == null) {
         debugPrint('No profile found for ID: $userId');

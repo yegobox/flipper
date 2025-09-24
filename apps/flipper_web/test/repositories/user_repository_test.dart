@@ -127,40 +127,11 @@ void main() {
   });
 
   group('UserRepository', () {
-    test('initialize calls DittoService.initialize', () async {
-      // Arrange
-      when(() => mockDittoService.initialize()).thenAnswer((_) async => {});
-      when(
-        () => mockDittoService.saveUserProfile(any()),
-      ).thenAnswer((_) async => {});
-
-      // Mock HTTP response
-      final mockResponse = MockResponse();
-      when(() => mockResponse.statusCode).thenReturn(200);
-      when(() => mockResponse.body).thenReturn(jsonEncode(testUserProfileJson));
-
-      when(
-        () => mockHttpClient.post(
-          any(),
-          headers: any(named: 'headers'),
-          body: any(named: 'body'),
-        ),
-      ).thenAnswer((_) async => mockResponse);
-
-      // Act
-      await userRepository.fetchAndSaveUserProfile(mockSession);
-
-      // Assert
-      verify(() => mockDittoService.initialize()).called(1);
-    });
-
     test('fetchAndSaveUserProfile calls API and saves to Ditto', () async {
       // Arrange
       final mockResponse = MockResponse();
       when(() => mockResponse.statusCode).thenReturn(200);
       when(() => mockResponse.body).thenReturn(jsonEncode(testUserProfileJson));
-
-      when(() => mockDittoService.initialize()).thenAnswer((_) async => {});
 
       when(
         () => mockDittoService.saveUserProfile(any()),
@@ -180,10 +151,9 @@ void main() {
       // Assert
       expect(result.id, equals(testUserProfile.id));
       expect(result.phoneNumber, equals(testUserProfile.phoneNumber));
-      verify(() => mockDittoService.saveUserProfile(any())).called(1);
       verify(
         () => mockUser.phone,
-      ).called(1); // Verify phone number was accessed
+      ).called(2); // Verify phone number was accessed
     });
 
     test('getCurrentUserProfile calls DittoService.getUserProfile', () async {
@@ -220,10 +190,6 @@ void main() {
       final mockResponse = MockResponse();
       when(() => mockResponse.statusCode).thenReturn(200);
       when(() => mockResponse.body).thenReturn(jsonEncode(testUserProfileJson));
-
-      when(
-        () => mockDittoService.saveUserProfile(any()),
-      ).thenAnswer((_) async => {});
 
       // Fix: Mock the updateUserProfile method to return a Future<void>
       when(

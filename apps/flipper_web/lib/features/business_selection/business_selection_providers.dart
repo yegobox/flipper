@@ -67,17 +67,29 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
       if (userProfile == null) {
         // If profile is not found in Ditto, try to fetch it from API
         debugPrint(
-          'CurrentUserProfileProvider - Attempting to fetch user profile from API',
+          'CurrentUserProfileProvider - Profile not found in Ditto, fetching from API',
         );
 
         // Get current session to fetch user profile
         final session = await authService.getCurrentSession();
         if (session != null) {
           // This will fetch and save the profile to Ditto
-          await userRepository.fetchAndSaveUserProfile(session);
-
-          // Try getting the profile from Ditto again
-          return await userRepository.getCurrentUserProfile(currentUser.id);
+          try {
+            final apiProfile = await userRepository.fetchAndSaveUserProfile(
+              session,
+            );
+            debugPrint(
+              'CurrentUserProfileProvider - Successfully fetched profile from API',
+            );
+            // Return the profile directly from API instead of trying to get it from Ditto again
+            return apiProfile;
+          } catch (apiError) {
+            debugPrint(
+              'CurrentUserProfileProvider - API fetch error: $apiError',
+            );
+            // If we fail to get from API, return null
+            return null;
+          }
         }
       }
 
