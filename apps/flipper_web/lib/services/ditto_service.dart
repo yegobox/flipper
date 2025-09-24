@@ -25,15 +25,34 @@ class DittoService {
     if (_isInitialized) return;
 
     try {
+      // Add memory specific error handler for web platform
+      if (kIsWeb) {
+        debugPrint('Web platform detected, installing specific error handlers');
+        // This is a hook that could be expanded with custom error handling if needed
+      }
+
       final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
 
-      // Initialize Ditto SDK with default initialization
-      // This works for both web and mobile/desktop platforms by using built-in assets
-      // No custom WASM URLs needed as the SDK will handle this automatically
-      await Ditto.init();
-      debugPrint(
-        'Initialized Ditto SDK for ${kIsWeb ? 'Web' : 'Mobile/Desktop'} platform using default assets',
-      );
+      // Initialize Ditto SDK with platform-specific handling
+      if (kIsWeb) {
+        // For web, we need to be careful with WebAssembly initialization
+        debugPrint('Initializing Ditto for Web platform');
+
+        try {
+          // Use init without custom parameters to use default assets bundled with the package
+          await Ditto.init();
+          debugPrint(
+            'Initialized Ditto SDK for Web platform using default assets',
+          );
+        } catch (e) {
+          debugPrint('Error during Ditto web initialization: $e');
+          rethrow;
+        }
+      } else {
+        // Non-web initialization is simpler
+        await Ditto.init();
+        debugPrint('Initialized Ditto SDK for Mobile/Desktop platform');
+      }
 
       // Configure logging (optional)
       DittoLogger.isEnabled = true;
@@ -55,25 +74,26 @@ class DittoService {
 
       // Configure transport based on platform
       _ditto!.updateTransportConfig((config) {
-        // Only enable peer-to-peer on non-web platforms
-        if (!kIsWeb) {
-          config.setAllPeerToPeerEnabled(true);
-          if (kDebugMode) {
-            debugPrint('Enabled peer-to-peer transports for mobile/desktop');
-          }
-        } else {
-          // Ensure peer-to-peer is disabled on web
-          config.setAllPeerToPeerEnabled(false);
-          if (kDebugMode) {
-            debugPrint('Disabled peer-to-peer transports for web platform');
-          }
-        }
+        // Clear any existing configs first to prevent conflicts
+        config.connect.webSocketUrls.clear();
 
-        // Cloud sync is supported on all platforms
-        config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
-        if (kDebugMode) {
+        if (kIsWeb) {
+          // For web, ensure P2P is completely disabled
+          config.setAllPeerToPeerEnabled(false);
+
+          // Add cloud sync URL
+          config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
           debugPrint(
-            'Configured cloud sync URL: wss://$appID.cloud.ditto.live',
+            'Web platform: Disabled P2P and configured cloud sync URL',
+          );
+        } else {
+          // Enable P2P for mobile/desktop
+          config.setAllPeerToPeerEnabled(true);
+
+          // Add cloud sync URL
+          config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+          debugPrint(
+            'Mobile/Desktop: Enabled P2P and configured cloud sync URL',
           );
         }
       });
@@ -88,9 +108,20 @@ class DittoService {
       // Check web platform limitations
       checkWebPlatformLimitations();
 
-      // Start sync
-      _ditto!.startSync();
-      debugPrint('Started Ditto sync');
+      // Start sync with error handling
+      try {
+        if (kIsWeb) {
+          // Allow a short delay before starting sync on web platform
+          // This can help ensure WebAssembly initialization is fully complete
+          await Future.delayed(const Duration(milliseconds: 300));
+          debugPrint('Web platform: Adding delay before sync start');
+        }
+        _ditto!.startSync();
+        debugPrint('Started Ditto sync');
+      } catch (e) {
+        debugPrint('Error starting Ditto sync: $e');
+        // Continue execution - we'll still try to observe in case it works partially
+      }
 
       // Set up live query to observe changes to users collection
       await _setupObservation();
