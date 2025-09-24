@@ -222,4 +222,199 @@ class DittoService {
 
     debugPrint('DittoService has been disposed');
   }
+
+  /// Save a business to the businesses collection
+  Future<void> saveBusiness(Business business) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot save business');
+        return;
+      }
+
+      final docId = business.id;
+
+      await _ditto!.store.execute(
+        "INSERT INTO COLLECTION businesses DOCUMENTS (:business)",
+        arguments: {
+          "business": {"_id": docId, ...business.toJson()},
+        },
+      );
+      debugPrint('Saved business with ID: ${business.id}');
+    } catch (e) {
+      debugPrint('Error saving business to Ditto: $e');
+    }
+  }
+
+  /// Save a branch to the branches collection
+  Future<void> saveBranch(Branch branch) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot save branch');
+        return;
+      }
+
+      final docId = branch.id;
+
+      await _ditto!.store.execute(
+        "INSERT INTO COLLECTION branches DOCUMENTS (:branch)",
+        arguments: {
+          "branch": {"_id": docId, ...branch.toJson()},
+        },
+      );
+      debugPrint('Saved branch with ID: ${branch.id}');
+    } catch (e) {
+      debugPrint('Error saving branch to Ditto: $e');
+    }
+  }
+
+  /// Save a tenant to the tenants collection
+  Future<void> saveTenant(Tenant tenant) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot save tenant');
+        return;
+      }
+
+      final docId = tenant.id;
+
+      await _ditto!.store.execute(
+        "INSERT INTO COLLECTION tenants DOCUMENTS (:tenant)",
+        arguments: {
+          "tenant": {"_id": docId, ...tenant.toJson()},
+        },
+      );
+      debugPrint('Saved tenant with ID: ${tenant.id}');
+    } catch (e) {
+      debugPrint('Error saving tenant to Ditto: $e');
+    }
+  }
+
+  /// Get businesses for a specific user
+  Future<List<Business>> getBusinessesForUser(String userId) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot get businesses');
+        return [];
+      }
+
+      final result = await _ditto!.store.execute(
+        "SELECT * FROM businesses WHERE userId = :userId",
+        arguments: {"userId": userId},
+      );
+
+      return result.items
+          .map((doc) => Business.fromJson(Map<String, dynamic>.from(doc.value)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting businesses for user $userId: $e');
+      return [];
+    }
+  }
+
+  /// Get branches for a specific business
+  Future<List<Branch>> getBranchesForBusiness(String businessId) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot get branches');
+        return [];
+      }
+
+      final result = await _ditto!.store.execute(
+        "SELECT * FROM branches WHERE businessId = :businessId",
+        arguments: {"businessId": businessId},
+      );
+
+      return result.items
+          .map((doc) => Branch.fromJson(Map<String, dynamic>.from(doc.value)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting branches for business $businessId: $e');
+      return [];
+    }
+  }
+
+  /// Get tenants for a specific user
+  Future<List<Tenant>> getTenantsForUser(String userId) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot get tenants');
+        return [];
+      }
+
+      final result = await _ditto!.store.execute(
+        "SELECT * FROM tenants WHERE userId = :userId",
+        arguments: {"userId": userId},
+      );
+
+      return result.items
+          .map((doc) => Tenant.fromJson(Map<String, dynamic>.from(doc.value)))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting tenants for user $userId: $e');
+      return [];
+    }
+  }
+
+  /// Update a business in the businesses collection
+  Future<void> updateBusiness(Business business) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot update business');
+        return;
+      }
+
+      final docId = business.id;
+
+      await _ditto!.store.execute(
+        "UPDATE businesses SET doc = :business WHERE _id = :id",
+        arguments: {"business": business.toJson(), "id": docId},
+      );
+
+      debugPrint('Successfully updated business with ID: ${business.id}');
+    } catch (e) {
+      debugPrint('Error updating business in Ditto: $e');
+    }
+  }
+
+  /// Update a branch in the branches collection
+  Future<void> updateBranch(Branch branch) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot update branch');
+        return;
+      }
+
+      final docId = branch.id;
+
+      await _ditto!.store.execute(
+        "UPDATE branches SET doc = :branch WHERE _id = :id",
+        arguments: {"branch": branch.toJson(), "id": docId},
+      );
+
+      debugPrint('Successfully updated branch with ID: ${branch.id}');
+    } catch (e) {
+      debugPrint('Error updating branch in Ditto: $e');
+    }
+  }
+
+  /// Update a tenant in the tenants collection
+  Future<void> updateTenant(Tenant tenant) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot update tenant');
+        return;
+      }
+
+      final docId = tenant.id;
+
+      await _ditto!.store.execute(
+        "UPDATE tenants SET doc = :tenant WHERE _id = :id",
+        arguments: {"tenant": tenant.toJson(), "id": docId},
+      );
+
+      debugPrint('Successfully updated tenant with ID: ${tenant.id}');
+    } catch (e) {
+      debugPrint('Error updating tenant in Ditto: $e');
+    }
+  }
 }

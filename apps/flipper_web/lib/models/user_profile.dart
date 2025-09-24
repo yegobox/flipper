@@ -5,43 +5,25 @@ class UserProfile {
   final String phoneNumber;
   final String token;
   final List<Tenant> tenants;
-  final List<String> channels;
-  final bool editId;
-  final bool isExternal;
-  final String ownership;
-  final int? groupId;
-  final int? pin; // Changed to nullable
-  final bool external;
+  final int? pin;
 
   UserProfile({
     required this.id,
     required this.phoneNumber,
     required this.token,
     required this.tenants,
-    required this.channels,
-    required this.editId,
-    required this.isExternal,
-    required this.ownership,
-    required this.groupId,
-    required this.pin,
-    required this.external,
+    this.pin,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json, {String? id}) {
     return UserProfile(
-      id: id ?? json['id'],
+      id: id ?? json['id'].toString(),
       phoneNumber: json['phoneNumber'],
       token: json['token'],
       tenants: (json['tenants'] as List)
           .map((e) => Tenant.fromJson(e))
           .toList(),
-      channels: List<String>.from(json['channels']),
-      editId: json['editId'],
-      isExternal: json['isExternal'],
-      ownership: json['ownership'],
-      groupId: json['groupId'],
-      pin: json['pin'], // Now accepts null
-      external: json['external'],
+      pin: json['pin'],
     );
   }
 
@@ -51,13 +33,7 @@ class UserProfile {
       'phoneNumber': phoneNumber,
       'token': token,
       'tenants': tenants.map((t) => t.toJson()).toList(),
-      'channels': channels,
-      'editId': editId,
-      'isExternal': isExternal,
-      'ownership': ownership,
-      'groupId': groupId,
       'pin': pin,
-      'external': external,
     };
   }
 
@@ -151,6 +127,8 @@ class Branch {
   final String latitude;
   final int businessId;
   final int serverId;
+  final bool active;
+  final bool isDefault;
 
   Branch({
     required this.id,
@@ -160,6 +138,8 @@ class Branch {
     required this.latitude,
     required this.businessId,
     required this.serverId,
+    this.active = false,
+    this.isDefault = false,
   });
 
   factory Branch.fromJson(Map<String, dynamic> json) {
@@ -171,6 +151,8 @@ class Branch {
       latitude: json['latitude'],
       businessId: json['businessId'],
       serverId: json['serverId'],
+      active: json['active'] ?? false,
+      isDefault: json['is_default'] ?? false,
     );
   }
 
@@ -183,6 +165,8 @@ class Branch {
       'latitude': latitude,
       'businessId': businessId,
       'serverId': serverId,
+      'active': active,
+      'is_default': isDefault,
     };
   }
 }

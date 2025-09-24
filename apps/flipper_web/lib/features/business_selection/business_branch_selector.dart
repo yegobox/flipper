@@ -1,4 +1,3 @@
-import 'package:flipper_web/models/mutable_user_profile.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
@@ -247,45 +246,60 @@ class _BusinessBranchSelectorState
       // Get the user repository from the provider
       final userRepository = ref.read(userRepositoryProvider);
 
-      // Get the current user profile and convert to mutable version
-      final userProfile = widget.userProfile;
-      final mutableProfile = MutableUserProfile.fromUserProfile(userProfile);
+      // Get all businesses for this user
+      final allBusinesses = await userRepository.getBusinessesForUser(
+        widget.userProfile.id,
+      );
 
       // Update all businesses to inactive first
-      for (var t in mutableProfile.tenants) {
-        for (var biz in t.businesses) {
-          biz.active = false;
-          biz.isDefault = false;
-        }
+      for (final biz in allBusinesses) {
+        final updatedBusiness = Business(
+          id: biz.id,
+          name: biz.name,
+          country: biz.country,
+          currency: biz.currency,
+          latitude: biz.latitude,
+          longitude: biz.longitude,
+          active: false, // Set to inactive
+          userId: biz.userId,
+          phoneNumber: biz.phoneNumber,
+          lastSeen: biz.lastSeen,
+          backUpEnabled: biz.backUpEnabled,
+          fullName: biz.fullName,
+          tinNumber: biz.tinNumber,
+          taxEnabled: biz.taxEnabled,
+          businessTypeId: biz.businessTypeId,
+          serverId: biz.serverId,
+          isDefault: false, // Set to not default
+          lastSubscriptionPaymentSucceeded:
+              biz.lastSubscriptionPaymentSucceeded,
+        );
+        await userRepository.updateBusiness(updatedBusiness);
       }
 
-      // Find the selected tenant and mark the selected business as default
-      for (var t in mutableProfile.tenants) {
-        if (t.id == tenant.id) {
-          // Mark this tenant as default
-          t.isDefault = true;
-
-          // Find and update the selected business
-          for (var biz in t.businesses) {
-            if (biz.id == business.id) {
-              biz.active = true;
-              biz.isDefault = true;
-              break;
-            }
-          }
-          break;
-        }
-      }
-
-      // Convert back to immutable model and save to Ditto
-      final updatedProfile = mutableProfile.toUserProfile();
-
-      // Since the userRepository no longer requires the token parameter for
-      // updateUserProfile (it's now handled internally), we can just pass the profile
-      await userRepository.updateUserProfile(
-        updatedProfile,
-        '', // Empty token since it's not used anymore
+      // Update the selected business to active and default
+      final selectedBusiness = Business(
+        id: business.id,
+        name: business.name,
+        country: business.country,
+        currency: business.currency,
+        latitude: business.latitude,
+        longitude: business.longitude,
+        active: true, // Set to active
+        userId: business.userId,
+        phoneNumber: business.phoneNumber,
+        lastSeen: business.lastSeen,
+        backUpEnabled: business.backUpEnabled,
+        fullName: business.fullName,
+        tinNumber: business.tinNumber,
+        taxEnabled: business.taxEnabled,
+        businessTypeId: business.businessTypeId,
+        serverId: business.serverId,
+        isDefault: true, // Set to default
+        lastSubscriptionPaymentSucceeded:
+            business.lastSubscriptionPaymentSucceeded,
       );
+      await userRepository.updateBusiness(selectedBusiness);
 
       // After successful update of the user profile
       if (mounted) {
@@ -333,45 +347,41 @@ class _BusinessBranchSelectorState
       // Get the user repository
       final userRepository = ref.read(userRepositoryProvider);
 
-      // Since we know there's always only one tenant, get it directly
-      final tenant = widget.userProfile.tenants.isNotEmpty
-          ? widget.userProfile.tenants.first
-          : null;
-
-      if (tenant == null) {
-        throw Exception("No tenant available");
+      // Get all branches for the selected business
+      final selectedBusiness = ref.read(selectedBusinessProvider);
+      if (selectedBusiness == null) {
+        throw Exception("No business selected");
       }
 
-      // Get the current user profile and convert to mutable version
-      final userProfile = widget.userProfile;
-      final mutableProfile = MutableUserProfile.fromUserProfile(userProfile);
-
-      // Find the tenant in mutable profile (there should be only one)
-      final mutableTenant = mutableProfile.tenants.first;
-
-      // Set all branches to inactive
-      for (var b in mutableTenant.branches) {
-        b.active = false;
-        b.isDefault = false;
-      }
-
-      // Find and update the selected branch
-      for (var b in mutableTenant.branches) {
-        if (b.id == branch.id) {
-          b.active = true;
-          b.isDefault = true;
-          break;
-        }
-      }
-
-      // Convert back to immutable model and save to Ditto
-      final updatedProfile = mutableProfile.toUserProfile();
-
-      // Save the updated user profile to Ditto
-      await userRepository.updateUserProfile(
-        updatedProfile,
-        '', // Empty token since it's not used anymore
+      final allBranches = await userRepository.getBranchesForBusiness(
+        selectedBusiness.id,
       );
+
+      // Update all branches to inactive first
+      for (final br in allBranches) {
+        final updatedBranch = Branch(
+          id: br.id,
+          description: br.description,
+          name: br.name,
+          longitude: br.longitude,
+          latitude: br.latitude,
+          businessId: br.businessId,
+          serverId: br.serverId,
+        );
+        await userRepository.updateBranch(updatedBranch);
+      }
+
+      // Update the selected branch to active and default
+      final selectedBranch = Branch(
+        id: branch.id,
+        description: branch.description,
+        name: branch.name,
+        longitude: branch.longitude,
+        latitude: branch.latitude,
+        businessId: branch.businessId,
+        serverId: branch.serverId,
+      );
+      await userRepository.updateBranch(selectedBranch);
 
       // Complete the flow and navigate to the dashboard
       _navigateToDashboard();

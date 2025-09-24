@@ -45,8 +45,30 @@ class UserRepository {
 
         // Try to save user profile to Ditto for offline access, but handle failures
         try {
-          await _dittoService.saveUserProfile(userProfile);
-          debugPrint('Saved user profile to Ditto');
+          // Save user profile (without embedded data)
+          final userOnlyProfile = UserProfile(
+            id: userProfile.id,
+            phoneNumber: userProfile.phoneNumber,
+            token: userProfile.token,
+            tenants: [], // We'll save tenants separately
+            pin: userProfile.pin,
+          );
+          await _dittoService.saveUserProfile(userOnlyProfile);
+
+          // Save tenants, businesses, and branches separately
+          for (final tenant in userProfile.tenants) {
+            await _dittoService.saveTenant(tenant);
+            for (final business in tenant.businesses) {
+              await _dittoService.saveBusiness(business);
+            }
+            for (final branch in tenant.branches) {
+              await _dittoService.saveBranch(branch);
+            }
+          }
+
+          debugPrint(
+            'Saved user profile and related data to Ditto in normalized form',
+          );
         } catch (e) {
           debugPrint('Warning: Could not save user profile to Ditto: $e');
           debugPrint('Continuing without offline synchronization');
@@ -73,17 +95,71 @@ class UserRepository {
     try {
       debugPrint('Getting user profile for ID: $userId');
 
-      final profile = await _dittoService.getUserProfile(userId);
-      if (profile == null) {
-        debugPrint('No profile found for ID: $userId');
-      } else {
-        debugPrint('Successfully retrieved profile for ID: $userId');
+      // Get the base user profile
+      final baseProfile = await _dittoService.getUserProfile(userId);
+      if (baseProfile == null) {
+        debugPrint('No base profile found for ID: $userId');
+        return null;
       }
-      return profile;
+
+      // Get tenants for this user
+      final tenants = await _dittoService.getTenantsForUser(userId);
+
+      // For each tenant, populate businesses and branches
+      final populatedTenants = <Tenant>[];
+      for (final tenant in tenants) {
+        // Get businesses for this user
+        final businesses = await _dittoService.getBusinessesForUser(userId);
+        final populatedBusinesses =
+            businesses; // No need to modify businesses here
+
+        // Create populated tenant
+        final populatedTenant = Tenant(
+          id: tenant.id,
+          name: tenant.name,
+          phoneNumber: tenant.phoneNumber,
+          email: tenant.email,
+          imageUrl: tenant.imageUrl,
+          permissions: tenant.permissions,
+          branches: await _getBranchesForTenantBusinesses(populatedBusinesses),
+          businesses: populatedBusinesses,
+          businessId: tenant.businessId,
+          nfcEnabled: tenant.nfcEnabled,
+          userId: tenant.userId,
+          pin: tenant.pin,
+          isDefault: tenant.isDefault,
+          type: tenant.type,
+        );
+        populatedTenants.add(populatedTenant);
+      }
+
+      // Create the complete user profile
+      final completeProfile = UserProfile(
+        id: baseProfile.id,
+        phoneNumber: baseProfile.phoneNumber,
+        token: baseProfile.token,
+        tenants: populatedTenants,
+        pin: baseProfile.pin,
+      );
+
+      debugPrint('Successfully retrieved complete profile for ID: $userId');
+      return completeProfile;
     } catch (e) {
       debugPrint('Error in getCurrentUserProfile: $e');
       return null;
     }
+  }
+
+  /// Helper method to get all branches for a tenant's businesses
+  Future<List<Branch>> _getBranchesForTenantBusinesses(
+    List<Business> businesses,
+  ) async {
+    final allBranches = <Branch>[];
+    for (final business in businesses) {
+      final branches = await _dittoService.getBranchesForBusiness(business.id);
+      allBranches.addAll(branches);
+    }
+    return allBranches;
   }
 
   /// Get all user profiles from Ditto
@@ -161,4 +237,67 @@ class UserRepository {
   /// as they are synchronized from other devices
   Stream<List<UserProfile>> get userProfilesStream =>
       _dittoService.userProfiles;
+
+  /// Get all businesses for a specific user
+  Future<List<Business>> getBusinessesForUser(String userId) async {
+    try {
+      return await _dittoService.getBusinessesForUser(userId);
+    } catch (e) {
+      debugPrint('Error getting businesses for user $userId: $e');
+      return [];
+    }
+  }
+
+  /// Get all branches for a specific business
+  Future<List<Branch>> getBranchesForBusiness(String businessId) async {
+    try {
+      return await _dittoService.getBranchesForBusiness(businessId);
+    } catch (e) {
+      debugPrint('Error getting branches for business $businessId: $e');
+      return [];
+    }
+  }
+
+  /// Get all tenants for a specific user
+  Future<List<Tenant>> getTenantsForUser(String userId) async {
+    try {
+      return await _dittoService.getTenantsForUser(userId);
+    } catch (e) {
+      debugPrint('Error getting tenants for user $userId: $e');
+      return [];
+    }
+  }
+
+  /// Update a business
+  Future<void> updateBusiness(Business business) async {
+    try {
+      await _dittoService.updateBusiness(business);
+      debugPrint('Updated business: ${business.name}');
+    } catch (e) {
+      debugPrint('Error updating business: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a branch
+  Future<void> updateBranch(Branch branch) async {
+    try {
+      await _dittoService.updateBranch(branch);
+      debugPrint('Updated branch: ${branch.name}');
+    } catch (e) {
+      debugPrint('Error updating branch: $e');
+      rethrow;
+    }
+  }
+
+  /// Update a tenant
+  Future<void> updateTenant(Tenant tenant) async {
+    try {
+      await _dittoService.updateTenant(tenant);
+      debugPrint('Updated tenant: ${tenant.name}');
+    } catch (e) {
+      debugPrint('Error updating tenant: $e');
+      rethrow;
+    }
+  }
 }

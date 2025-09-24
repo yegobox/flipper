@@ -92,13 +92,7 @@ void main() {
         "type": "Admin",
       },
     ],
-    "channels": ["75060"],
-    "editId": false,
-    "isExternal": false,
-    "ownership": "YEGOBOX",
-    "groupId": 0,
     "pin": 75060,
-    "external": false,
   };
 
   final testUserProfile = UserProfile.fromJson(
@@ -135,7 +129,7 @@ void main() {
 
       when(
         () => mockDittoService.saveUserProfile(any()),
-      ).thenAnswer((_) async => {});
+      ).thenAnswer((_) async => Future.value(null));
 
       when(
         () => mockHttpClient.post(
@@ -162,11 +156,29 @@ void main() {
         () => mockDittoService.getUserProfile(any()),
       ).thenAnswer((_) async => testUserProfile);
 
+      // Mock the additional methods called by getCurrentUserProfile
+      when(
+        () => mockDittoService.getTenantsForUser(any()),
+      ).thenAnswer((_) async => testUserProfile.tenants);
+
+      when(
+        () => mockDittoService.getBusinessesForUser(any()),
+      ).thenAnswer((_) async => testUserProfile.tenants.first.businesses);
+
+      when(
+        () => mockDittoService.getBranchesForBusiness(any()),
+      ).thenAnswer((_) async => testUserProfile.tenants.first.branches);
+
       // Act
       final result = await userRepository.getCurrentUserProfile("75060");
 
       // Assert
-      expect(result, equals(testUserProfile));
+      expect(result, isNotNull);
+      expect(result!.id, equals(testUserProfile.id));
+      expect(result.phoneNumber, equals(testUserProfile.phoneNumber));
+      expect(result.token, equals(testUserProfile.token));
+      expect(result.tenants.length, equals(testUserProfile.tenants.length));
+      expect(result.pin, equals(testUserProfile.pin));
       verify(() => mockDittoService.getUserProfile('75060')).called(1);
     });
 
@@ -194,7 +206,7 @@ void main() {
       // Fix: Mock the updateUserProfile method to return a Future<void>
       when(
         () => mockDittoService.updateUserProfile(any()),
-      ).thenAnswer((_) async => {});
+      ).thenAnswer((_) async => Future.value(null));
 
       when(
         () => mockHttpClient.put(

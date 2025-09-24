@@ -60,13 +60,7 @@ final sampleUserProfileData = {
       'type': 'Admin',
     },
   ],
-  'channels': ['75060'],
-  'editId': false,
-  'isExternal': false,
-  'ownership': 'YEGOBOX',
-  'groupId': 0,
   'pin': 75060,
-  'external': false,
 };
 
 void main() {
@@ -94,7 +88,6 @@ void main() {
         equals("75060"),
       ); // Fix: Change the expected type to match the actual string type
       expect(serialized['phoneNumber'], equals('+250783054884'));
-      expect(serialized['ownership'], equals('YEGOBOX'));
 
       // Create a new user profile from the serialized data to ensure round-trip works
       final roundTrip = UserProfile.fromJson(serialized, id: "75060");

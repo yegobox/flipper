@@ -7,26 +7,14 @@ class MutableUserProfile {
   final String phoneNumber;
   final String token;
   final List<MutableTenant> tenants;
-  final List<String> channels;
-  final bool editId;
-  final bool isExternal;
-  final String ownership;
-  final int? groupId;
   final int? pin;
-  final bool external;
 
   MutableUserProfile({
     required this.id,
     required this.phoneNumber,
     required this.token,
     required this.tenants,
-    required this.channels,
-    required this.editId,
-    required this.isExternal,
-    required this.ownership,
-    required this.groupId,
-    required this.pin,
-    required this.external,
+    this.pin,
   });
 
   /// Create a mutable user profile from an immutable one
@@ -36,13 +24,7 @@ class MutableUserProfile {
       phoneNumber: profile.phoneNumber,
       token: profile.token,
       tenants: profile.tenants.map((e) => MutableTenant.fromTenant(e)).toList(),
-      channels: List<String>.from(profile.channels),
-      editId: profile.editId,
-      isExternal: profile.isExternal,
-      ownership: profile.ownership,
-      groupId: profile.groupId,
       pin: profile.pin,
-      external: profile.external,
     );
   }
 
@@ -53,13 +35,7 @@ class MutableUserProfile {
       phoneNumber: phoneNumber,
       token: token,
       tenants: tenants.map((t) => t.toTenant()).toList(),
-      channels: channels,
-      editId: editId,
-      isExternal: isExternal,
-      ownership: ownership,
-      groupId: groupId,
       pin: pin,
-      external: external,
     );
   }
 
@@ -99,13 +75,7 @@ class MutableUserProfile {
       'phoneNumber': phoneNumber,
       'token': token,
       'tenants': tenants.map((t) => t.toJson()).toList(),
-      'channels': channels,
-      'editId': editId,
-      'isExternal': isExternal,
-      'ownership': ownership,
-      'groupId': groupId,
       'pin': pin,
-      'external': external,
     };
   }
 }

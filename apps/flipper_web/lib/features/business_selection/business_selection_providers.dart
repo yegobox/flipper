@@ -1,4 +1,3 @@
-import 'package:flipper_web/models/mutable_user_profile.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flipper_web/services/auth_service.dart';
@@ -17,20 +16,26 @@ final hasSelectedBusinessAndBranchProvider = FutureProvider<bool>((ref) async {
       return false;
     }
 
-    // Get the user profile from Ditto using the user ID
-    final userProfile = await userRepository.getCurrentUserProfile(
+    // Get businesses for this user
+    final businesses = await userRepository.getBusinessesForUser(
       currentUser.id,
     );
+    final defaultBusiness = businesses.where((b) => b.isDefault).toList();
 
-    if (userProfile == null) {
+    if (defaultBusiness.isEmpty) {
       return false;
     }
 
-    // Create a mutable version to check if it has default selections
-    final mutableProfile = MutableUserProfile.fromUserProfile(userProfile);
-    return mutableProfile.hasDefaultBusinessAndBranch();
+    // Get branches for the default business
+    final branches = await userRepository.getBranchesForBusiness(
+      defaultBusiness.first.id,
+    );
+    final defaultBranch = branches.where((b) => b.isDefault).toList();
+
+    return defaultBranch.isNotEmpty;
   } catch (e) {
     // If there's an error, assume no selection has been made
+    debugPrint('Error checking business/branch selection: $e');
     return false;
   }
 });
