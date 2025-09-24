@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:flipper_web/core/utils/http_overrides.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/supabase_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -23,7 +23,7 @@ class AuthRepository {
     _httpClient = http.Client();
     // Bypass SSL certificate validation for IP addresses (non-web only)
     if (!kIsWeb) {
-      HttpOverrides.global = _DevHttpOverrides();
+      setDevHttpOverrides(); // Uses conditional imports based on platform
     }
   }
 
@@ -109,7 +109,7 @@ class AuthRepository {
   Future<void> _fetchAndSaveUserProfile() async {
     try {
       // Get the current session token
-      final   session = _supabase.auth.currentSession;
+      final session = _supabase.auth.currentSession;
       if (session == null) {
         throw Exception('No active session found');
       }
@@ -123,14 +123,5 @@ class AuthRepository {
       // We don't re-throw the exception here to avoid failing the login process
       // if the profile fetch fails. The user can still use the app.
     }
-  }
-}
-
-class _DevHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
   }
 }

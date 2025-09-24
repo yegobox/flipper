@@ -25,8 +25,14 @@ class UserRepository {
   /// for offline access and synchronization with other devices
   Future<UserProfile> fetchAndSaveUserProfile(Session session) async {
     try {
-      // Ensure Ditto is initialized
-      await _dittoService.initialize();
+      // Ensure Ditto is initialized but handle initialization failures
+      try {
+        await _dittoService.initialize();
+      } catch (e) {
+        debugPrint('Warning: DittoService initialization failed: $e');
+        debugPrint('Continuing without Ditto synchronization');
+        // We'll continue without Ditto, just to get the user profile
+      }
 
       // API call to get user data
       final response = await _httpClient.post(
@@ -36,16 +42,25 @@ class UserRepository {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phoneNumber': "+${session.user.phone}"}),
       );
+      debugPrint('User Phone: ${session.user.phone}');
 
       if (response.statusCode == 200) {
         final userProfileData = jsonDecode(response.body);
+        debugPrint('Fetched user profile: $userProfileData');
         final userProfile = UserProfile.fromJson(
           userProfileData,
           id: session.user.id,
         );
 
-        // Save user profile to Ditto for offline access
-        await _dittoService.saveUserProfile(userProfile);
+        // Try to save user profile to Ditto for offline access, but handle failures
+        try {
+          await _dittoService.saveUserProfile(userProfile);
+          debugPrint('Saved user profile to Ditto');
+        } catch (e) {
+          debugPrint('Warning: Could not save user profile to Ditto: $e');
+          debugPrint('Continuing without offline synchronization');
+          // We'll continue without saving to Ditto
+        }
 
         return userProfile;
       } else if (response.statusCode == 401) {
@@ -65,7 +80,14 @@ class UserRepository {
   /// when the app is offline or to avoid making API calls
   Future<UserProfile?> getCurrentUserProfile(String userId) async {
     try {
-      return await _dittoService.getUserProfile(userId);
+      debugPrint('Getting user profile for ID: $userId');
+      final profile = await _dittoService.getUserProfile(userId);
+      if (profile == null) {
+        debugPrint('No profile found for ID: $userId');
+      } else {
+        debugPrint('Successfully retrieved profile for ID: $userId');
+      }
+      return profile;
     } catch (e) {
       debugPrint('Error in getCurrentUserProfile: $e');
       return null;
@@ -78,7 +100,10 @@ class UserRepository {
   /// that have been synchronized with the device
   Future<List<UserProfile>> getAllUserProfiles() async {
     try {
-      return await _dittoService.getAllUserProfiles();
+      debugPrint('Getting all user profiles');
+      final profiles = await _dittoService.getAllUserProfiles();
+      debugPrint('Retrieved ${profiles.length} user profiles');
+      return profiles;
     } catch (e) {
       debugPrint('Error in getAllUserProfiles: $e');
       return [];

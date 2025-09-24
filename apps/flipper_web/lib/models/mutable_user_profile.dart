@@ -11,8 +11,8 @@ class MutableUserProfile {
   final bool editId;
   final bool isExternal;
   final String ownership;
-  final int groupId;
-  final int pin;
+  final int? groupId;
+  final int? pin;
   final bool external;
 
   MutableUserProfile({

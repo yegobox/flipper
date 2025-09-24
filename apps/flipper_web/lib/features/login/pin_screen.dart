@@ -28,21 +28,27 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   }
 
   Future<void> _handleSubmission() async {
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final authRepository = ref.read(authRepositoryProvider);
 
-      setState(() => _errorMessage = null);
+      if (mounted) {
+        setState(() => _errorMessage = null);
+      }
 
       if (!_isPinVerified) {
         final pin = _pinController.text;
         final success = await authRepository.verifyPin(pin);
 
-        if (success) {
-          setState(() => _isPinVerified = true);
-        } else {
-          setState(() => _errorMessage = 'Invalid PIN');
+        if (mounted) {
+          if (success) {
+            setState(() => _isPinVerified = true);
+          } else {
+            setState(() => _errorMessage = 'Invalid PIN');
+          }
         }
       } else {
         final pin = _pinController.text;
@@ -54,19 +60,21 @@ class _PinScreenState extends ConsumerState<PinScreen> {
           success = await authRepository.verifyTotp(pin, otp);
         }
 
-        if (success) {
-          // The auth state will be updated by the stream provider
-        } else {
+        if (!success && mounted) {
           setState(() => _errorMessage = 'Invalid OTP');
         }
       }
     } catch (e) {
-      setState(
-        () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
-      );
+      if (mounted) {
+        setState(
+          () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
+        );
+      }
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -153,9 +161,11 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                                 ],
                                 selected: {_otpType},
                                 onSelectionChanged: (newSelection) {
-                                  setState(() {
-                                    _otpType = newSelection.first;
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      _otpType = newSelection.first;
+                                    });
+                                  }
                                 },
                               ),
                               const SizedBox(height: 16),

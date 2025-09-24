@@ -1,11 +1,10 @@
 import 'package:flipper_web/core/secrets.dart' show AppSecrets;
-// import 'package:flipper_web/core/utils/platform.dart';
 // router and auth wiring moved to router_provider
 import 'package:flipper_web/features/login/theme_provider.dart';
 import 'package:flipper_web/core/localization/locale_provider.dart';
 import 'package:flipper_web/router/router_provider.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
-// import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // go_router is used via the provider
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -32,6 +31,28 @@ Future<void> main() async {
     supabaseAnonKey = AppSecrets.supabaseAnonKeyPublishable;
   }
   await Supabase.initialize(url: supabaseUrl, anonKey: supabaseAnonKey);
+
+  // Pre-initialize DittoService singleton if running on web
+  // This ensures we handle the initialization in a controlled way before any
+  // repository tries to use it
+  if (kIsWeb) {
+    // Get the singleton instance
+    final dittoService = DittoService.instance;
+
+    // Register web-specific hooks for cleanup
+    dittoService.registerWebDisposeHooks();
+
+    // Initialize in the background without waiting, so we don't block the app startup
+    dittoService
+        .initialize()
+        .then((_) {
+          debugPrint('DittoService pre-initialized successfully');
+        })
+        .catchError((error) {
+          debugPrint('DittoService pre-initialization failed: $error');
+          debugPrint('App will continue without offline sync capabilities');
+        });
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

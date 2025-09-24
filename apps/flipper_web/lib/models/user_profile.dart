@@ -9,8 +9,8 @@ class UserProfile {
   final bool editId;
   final bool isExternal;
   final String ownership;
-  final int groupId;
-  final int pin;
+  final int? groupId;
+  final int? pin; // Changed to nullable
   final bool external;
 
   UserProfile({
@@ -40,7 +40,7 @@ class UserProfile {
       isExternal: json['isExternal'],
       ownership: json['ownership'],
       groupId: json['groupId'],
-      pin: json['pin'],
+      pin: json['pin'], // Now accepts null
       external: json['external'],
     );
   }
