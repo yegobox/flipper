@@ -25,8 +25,15 @@ class DittoService {
     if (_isInitialized) return;
 
     try {
-      // Initialize Ditto SDK
+      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+
+      // Initialize Ditto SDK with default initialization
+      // This works for both web and mobile/desktop platforms by using built-in assets
+      // No custom WASM URLs needed as the SDK will handle this automatically
       await Ditto.init();
+      debugPrint(
+        'Initialized Ditto SDK for ${kIsWeb ? 'Web' : 'Mobile/Desktop'} platform using default assets',
+      );
 
       // Configure logging (optional)
       DittoLogger.isEnabled = true;
@@ -36,7 +43,6 @@ class DittoService {
       };
 
       // Create identity using App ID and token
-      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
       final identity = OnlinePlaygroundIdentity(
         appID: appID,
         token: kDebugMode
@@ -47,17 +53,44 @@ class DittoService {
       // Open Ditto instance with identity
       _ditto = await Ditto.open(identity: identity);
 
-      // Configure transport (enable peer-to-peer and cloud sync)
+      // Configure transport based on platform
       _ditto!.updateTransportConfig((config) {
-        config.setAllPeerToPeerEnabled(true);
+        // Only enable peer-to-peer on non-web platforms
+        if (!kIsWeb) {
+          config.setAllPeerToPeerEnabled(true);
+          if (kDebugMode) {
+            debugPrint('Enabled peer-to-peer transports for mobile/desktop');
+          }
+        } else {
+          // Ensure peer-to-peer is disabled on web
+          config.setAllPeerToPeerEnabled(false);
+          if (kDebugMode) {
+            debugPrint('Disabled peer-to-peer transports for web platform');
+          }
+        }
+
+        // Cloud sync is supported on all platforms
         config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+        if (kDebugMode) {
+          debugPrint(
+            'Configured cloud sync URL: wss://$appID.cloud.ditto.live',
+          );
+        }
       });
 
       // Set device name (optional but helpful for debugging)
-      _ditto!.deviceName = "Flipper Web (${_ditto!.deviceName})";
+      final platformTag = kIsWeb ? "Web" : "Mobile";
+      _ditto!.deviceName = "Flipper $platformTag (${_ditto!.deviceName})";
+      if (kDebugMode) {
+        debugPrint('Set device name: ${_ditto!.deviceName}');
+      }
+
+      // Check web platform limitations
+      checkWebPlatformLimitations();
 
       // Start sync
       _ditto!.startSync();
+      debugPrint('Started Ditto sync');
 
       // Set up live query to observe changes to users collection
       await _setupObservation();
@@ -79,9 +112,22 @@ class DittoService {
       await _loadAndUpdateUserProfiles();
 
       // Set up a periodic timer to refresh data (simulating live updates)
-      _observationTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      // For web, we poll more frequently since data is in-memory and we want to ensure
+      // changes from the cloud are detected quickly
+      final pollingInterval = kIsWeb
+          ? const Duration(seconds: 3) // More frequent for web
+          : const Duration(seconds: 5); // Standard for mobile/desktop
+
+      _observationTimer = Timer.periodic(pollingInterval, (_) async {
         await _loadAndUpdateUserProfiles();
       });
+
+      if (kIsWeb) {
+        debugPrint(
+          'Warning: On web platform, Ditto data is in-memory only and '
+          'will not persist across page reloads.',
+        );
+      }
     } catch (e) {
       debugPrint('Error setting up user collection observation: $e');
     }
@@ -236,9 +282,61 @@ class DittoService {
     }
   }
 
+  /// Checks if the platform is web and provides information about web limitations
+  /// Returns true if the current platform is web
+  bool checkWebPlatformLimitations() {
+    if (kIsWeb) {
+      debugPrint('DITTO WEB LIMITATIONS:');
+      debugPrint(
+        '- Data is stored in-memory only and will not persist across page reloads',
+      );
+      debugPrint('- Peer-to-peer synchronization is not supported');
+      debugPrint('- Only cloud synchronization is available');
+      debugPrint(
+        '- For development: Restart the Flutter dev server after code changes',
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /// Handle browser beforeunload event to warn about data loss
+  /// This should be called from a web-specific part of your app
+  void setupWebUnloadWarning() {
+    if (kIsWeb) {
+      // This would be implemented with web-specific code in a real app
+      // using js interop to add beforeunload listener
+      debugPrint(
+        'Web unload warning would be set up here in a real implementation',
+      );
+    }
+  }
+
+  /// Helper method to ensure cloud sync is properly established for web
+  Future<bool> ensureCloudConnectivity() async {
+    if (!kIsWeb || _ditto == null) return true;
+
+    try {
+      // On web, we can check if we're connected to the cloud
+      // This is a simplified version - in a real app, you would
+      // implement proper connectivity checking
+
+      // For now, just return true since we can't easily check connectivity
+      // in this simplified version
+      return true;
+    } catch (e) {
+      debugPrint('Error checking cloud connectivity: $e');
+      return false;
+    }
+  }
+
   void dispose() {
     _observationTimer?.cancel();
     _userProfilesController.close();
     _ditto?.stopSync();
+
+    if (kIsWeb) {
+      debugPrint('Disposing Ditto service - all in-memory data will be lost');
+    }
   }
 }

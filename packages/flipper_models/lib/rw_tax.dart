@@ -626,8 +626,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             List<Counter> allCounters = await ProxyService.strategy.getCounters(
                 branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
             for (Counter c in allCounters) {
-              c.invcNo = c.invcNo! + 1;
-              c.curRcptNo = c.curRcptNo! + 1;
+              c.invcNo = (c.invcNo ?? 0) + 1;
+              c.curRcptNo = (c.curRcptNo ?? 0) + 1;
               await repository.upsert(c);
             }
           }
