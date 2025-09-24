@@ -84,7 +84,7 @@ class DittoService {
 
       // Use SQL-like syntax to insert document
       await _ditto!.store.execute(
-        "INSERT INTO COLLECTION users DOCUMENTS (:profile)",
+        "UPSERT INTO COLLECTION users DOCUMENTS (:profile)",
         arguments: {
           "profile": {"_id": docId, ...userProfile.toJson()},
         },
@@ -109,8 +109,14 @@ class DittoService {
 
       // Use the UPDATE statement to update the document with the given ID
       await _ditto!.store.execute(
-        "UPDATE users SET doc = :profile WHERE _id = :id",
-        arguments: {"profile": userProfile.toJson(), "id": docId},
+        """UPDATE users SET
+          id = :id,
+          phoneNumber = :phoneNumber,
+          token = :token,
+          tenants = :tenants,
+          pin = :pin
+        WHERE _id = :id""",
+        arguments: {"id": docId, ...userProfile.toJson()},
       );
 
       debugPrint(
@@ -234,7 +240,7 @@ class DittoService {
       final docId = business.id;
 
       await _ditto!.store.execute(
-        "INSERT INTO COLLECTION businesses DOCUMENTS (:business)",
+        "UPSERT INTO COLLECTION businesses DOCUMENTS (:business)",
         arguments: {
           "business": {"_id": docId, ...business.toJson()},
         },
@@ -256,7 +262,7 @@ class DittoService {
       final docId = branch.id;
 
       await _ditto!.store.execute(
-        "INSERT INTO COLLECTION branches DOCUMENTS (:branch)",
+        "UPSERT INTO COLLECTION branches DOCUMENTS (:branch)",
         arguments: {
           "branch": {"_id": docId, ...branch.toJson()},
         },
@@ -278,7 +284,7 @@ class DittoService {
       final docId = tenant.id;
 
       await _ditto!.store.execute(
-        "INSERT INTO COLLECTION tenants DOCUMENTS (:tenant)",
+        "UPSERT INTO COLLECTION tenants DOCUMENTS (:tenant)",
         arguments: {
           "tenant": {"_id": docId, ...tenant.toJson()},
         },
@@ -366,8 +372,27 @@ class DittoService {
       final docId = business.id;
 
       await _ditto!.store.execute(
-        "UPDATE businesses SET doc = :business WHERE _id = :id",
-        arguments: {"business": business.toJson(), "id": docId},
+        """UPDATE businesses SET
+          id = :id,
+          name = :name,
+          country = :country,
+          currency = :currency,
+          latitude = :latitude,
+          longitude = :longitude,
+          active = :active,
+          userId = :userId,
+          phoneNumber = :phoneNumber,
+          lastSeen = :lastSeen,
+          backUpEnabled = :backUpEnabled,
+          fullName = :fullName,
+          tinNumber = :tinNumber,
+          taxEnabled = :taxEnabled,
+          businessTypeId = :businessTypeId,
+          serverId = :serverId,
+          is_default = :is_default,
+          lastSubscriptionPaymentSucceeded = :lastSubscriptionPaymentSucceeded
+        WHERE _id = :id""",
+        arguments: {"id": docId, ...business.toJson()},
       );
 
       debugPrint('Successfully updated business with ID: ${business.id}');
@@ -387,8 +412,18 @@ class DittoService {
       final docId = branch.id;
 
       await _ditto!.store.execute(
-        "UPDATE branches SET doc = :branch WHERE _id = :id",
-        arguments: {"branch": branch.toJson(), "id": docId},
+        """UPDATE branches SET
+          id = :id,
+          description = :description,
+          name = :name,
+          longitude = :longitude,
+          latitude = :latitude,
+          businessId = :businessId,
+          serverId = :serverId,
+          active = :active,
+          is_default = :is_default
+        WHERE _id = :id""",
+        arguments: {"id": docId, ...branch.toJson()},
       );
 
       debugPrint('Successfully updated branch with ID: ${branch.id}');
@@ -408,8 +443,23 @@ class DittoService {
       final docId = tenant.id;
 
       await _ditto!.store.execute(
-        "UPDATE tenants SET doc = :tenant WHERE _id = :id",
-        arguments: {"tenant": tenant.toJson(), "id": docId},
+        """UPDATE tenants SET
+          id = :id,
+          name = :name,
+          phoneNumber = :phoneNumber,
+          email = :email,
+          imageUrl = :imageUrl,
+          permissions = :permissions,
+          branches = :branches,
+          businesses = :businesses,
+          businessId = :businessId,
+          nfcEnabled = :nfcEnabled,
+          userId = :userId,
+          pin = :pin,
+          is_default = :is_default,
+          type = :type
+        WHERE _id = :id""",
+        arguments: {"id": docId, ...tenant.toJson()},
       );
 
       debugPrint('Successfully updated tenant with ID: ${tenant.id}');
