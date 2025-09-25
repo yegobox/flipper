@@ -375,6 +375,8 @@ class _BusinessBranchSelectorState
           latitude: br.latitude,
           businessId: br.businessId,
           serverId: br.serverId,
+          active: false, // Set to inactive
+          isDefault: false, // Set to not default
         );
         await userRepository.updateBranch(updatedBranch);
       }
@@ -388,6 +390,8 @@ class _BusinessBranchSelectorState
         latitude: branch.latitude,
         businessId: branch.businessId,
         serverId: branch.serverId,
+        active: true, // Set to active
+        isDefault: true, // Set to default
       );
       await userRepository.updateBranch(selectedBranch);
 
