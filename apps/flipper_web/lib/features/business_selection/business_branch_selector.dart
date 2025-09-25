@@ -44,6 +44,7 @@ class _BusinessBranchSelectorState
   SelectionStep _currentStep = SelectionStep.business;
   bool _isLoading = false;
   String? _loadingItemId;
+  List<Branch> _businessBranches = [];
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +83,7 @@ class _BusinessBranchSelectorState
                     Expanded(
                       child: _currentStep == SelectionStep.business
                           ? _buildBusinessList(tenant: tenant)
-                          : _buildBranchList(branches: tenant?.branches ?? []),
+                          : _buildBranchList(),
                     ),
                   ],
                 )
@@ -130,18 +131,18 @@ class _BusinessBranchSelectorState
     );
   }
 
-  Widget _buildBranchList({required List<Branch> branches}) {
-    if (branches.isEmpty) {
+  Widget _buildBranchList() {
+    if (_businessBranches.isEmpty) {
       return const Center(child: Text('No branches available'));
     }
 
     final selectedBranch = ref.watch(selectedBranchProvider);
 
     return ListView.separated(
-      itemCount: branches.length,
+      itemCount: _businessBranches.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16.0),
       itemBuilder: (context, index) {
-        final branch = branches[index];
+        final branch = _businessBranches[index];
         return _buildSelectionTile(
           title: branch.name,
           subtitle: branch.description,
@@ -303,14 +304,21 @@ class _BusinessBranchSelectorState
 
       // After successful update of the user profile
       if (mounted) {
+        // Load branches for the selected business
+        final userRepository = ref.read(userRepositoryProvider);
+        final branches = await userRepository.getBranchesForBusiness(
+          business.serverId.toString(),
+        );
+        _businessBranches = branches;
+
         setState(() {
           _loadingItemId = null;
           _isLoading = false;
 
-          // Check if the tenant has branches
-          if (tenant.branches.length == 1) {
+          // Check if the business has branches
+          if (_businessBranches.length == 1) {
             // If there's only one branch, select it automatically
-            _handleBranchSelection(tenant.branches.first);
+            _handleBranchSelection(_businessBranches.first);
           } else {
             // Otherwise, move to branch selection step
             _currentStep = SelectionStep.branch;

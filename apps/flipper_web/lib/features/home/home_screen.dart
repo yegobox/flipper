@@ -157,7 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       child: AppButton(
         label: _localized((l) => l.signUp),
-        onPressed: () => _navigateToLogin(context),
+        onPressed: () => _navigateToSignup(context),
         variant: AppButtonVariant.primary,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ),
@@ -251,7 +251,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       ),
       child: AppButton(
         label: _localized((l) => l.signUp),
-        onPressed: () => _navigateToLogin(context),
+        onPressed: () => _navigateToSignup(context),
         variant: AppButtonVariant.primary,
         padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
       ),
@@ -543,7 +543,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             width: double.infinity,
             child: AppButton(
               label: _localized((l) => l.getStarted),
-              onPressed: () => _navigateToLogin(context),
+              onPressed: () => _navigateToSignup(context),
               variant: isPopular
                   ? AppButtonVariant.primary
                   : AppButtonVariant.primary,
@@ -556,10 +556,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   void _navigateToLogin(BuildContext context) {
-    // Prefer GoRouter if available (apps that provide it), otherwise fall back
+    // Navigate to login screen
     try {
-      // Navigate to signup instead of login when sign up button is clicked
-      maybe_go.GoRouter.of(context).go('/signup');
+      maybe_go.GoRouter.of(context).go('/login');
       return;
     } catch (_) {
       // Fallback to Navigator push with fade transition
@@ -567,6 +566,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               const PinScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
+      );
+    }
+  }
+
+  void _navigateToSignup(BuildContext context) {
+    // Navigate to signup screen
+    try {
+      maybe_go.GoRouter.of(context).go('/signup');
+      return;
+    } catch (_) {
+      // Fallback to Navigator push with fade transition
+      Navigator.of(context).push(
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const PinScreen(), // Fallback to PinScreen for now
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },

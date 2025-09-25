@@ -7,12 +7,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/models/user_profile.dart';
 
 // Global singleton instance of DittoService
-late final DittoService _dittoServiceInstance = DittoService._internal();
+final DittoService _dittoServiceInstance = DittoService._internal();
 
 /// Provider for the DittoService singleton
 final dittoServiceProvider = Provider<DittoService>((ref) {
   return _dittoServiceInstance;
 });
+
+/// Provider for Ditto sync control
+final dittoSyncProvider = Provider<DittoSyncController>((ref) {
+  return DittoSyncController();
+});
+
+class DittoSyncController {
+  /// Starts Ditto sync
+  void startSync() {
+    DittoService.instance.startSync();
+  }
+
+  /// Stops Ditto sync
+  void stopSync() {
+    DittoService.instance.stopSync();
+  }
+
+  /// Checks if Ditto is ready for sync operations
+  bool isReady() {
+    return DittoService.instance.isReady();
+  }
+}
 
 /// Simplified DittoService that manages a single Ditto instance
 /// initialized once at app startup
@@ -82,9 +104,9 @@ class DittoService {
       // Use user's ID as document ID for easier retrieval
       final docId = userProfile.id.toString();
 
-      // Use SQL-like syntax to insert document
+      // Use DQL INSERT syntax to insert document
       await _ditto!.store.execute(
-        "UPSERT INTO COLLECTION users DOCUMENTS (:profile)",
+        "INSERT INTO users DOCUMENTS (:profile)",
         arguments: {
           "profile": {"_id": docId, ...userProfile.toJson()},
         },
@@ -206,6 +228,26 @@ class DittoService {
     return _ditto != null;
   }
 
+  /// Starts Ditto sync if Ditto is initialized
+  void startSync() {
+    if (_ditto != null) {
+      _ditto!.startSync();
+      debugPrint('Ditto sync started');
+    } else {
+      debugPrint('Cannot start sync: Ditto not initialized');
+    }
+  }
+
+  /// Stops Ditto sync if Ditto is initialized
+  void stopSync() {
+    if (_ditto != null) {
+      _ditto!.stopSync();
+      debugPrint('Ditto sync stopped');
+    } else {
+      debugPrint('Cannot stop sync: Ditto not initialized');
+    }
+  }
+
   /// Static accessor for the singleton instance
   static DittoService get instance {
     return _dittoServiceInstance;
@@ -240,7 +282,7 @@ class DittoService {
       final docId = business.id;
 
       await _ditto!.store.execute(
-        "UPSERT INTO COLLECTION businesses DOCUMENTS (:business)",
+        "INSERT INTO businesses DOCUMENTS (:business) ON ID CONFLICT DO UPDATE",
         arguments: {
           "business": {"_id": docId, ...business.toJson()},
         },
@@ -262,7 +304,7 @@ class DittoService {
       final docId = branch.id;
 
       await _ditto!.store.execute(
-        "UPSERT INTO COLLECTION branches DOCUMENTS (:branch)",
+        "INSERT INTO branches DOCUMENTS (:branch) ON ID CONFLICT DO UPDATE",
         arguments: {
           "branch": {"_id": docId, ...branch.toJson()},
         },
@@ -284,7 +326,7 @@ class DittoService {
       final docId = tenant.id;
 
       await _ditto!.store.execute(
-        "UPSERT INTO COLLECTION tenants DOCUMENTS (:tenant)",
+        "INSERT INTO tenants DOCUMENTS (:tenant) ON ID CONFLICT DO UPDATE",
         arguments: {
           "tenant": {"_id": docId, ...tenant.toJson()},
         },
@@ -318,7 +360,8 @@ class DittoService {
   }
 
   /// Get branches for a specific business
-  Future<List<Branch>> getBranchesForBusiness(String businessId) async {
+  Future<List<Branch>> getBranchesForBusiness(String serverId) async {
+    debugPrint('🔍 Querying branches for serverId : $serverId');
     try {
       if (_ditto == null) {
         debugPrint('Ditto not initialized, cannot get branches');
@@ -327,14 +370,14 @@ class DittoService {
 
       final result = await _ditto!.store.execute(
         "SELECT * FROM branches WHERE businessId = :businessId",
-        arguments: {"businessId": businessId},
+        arguments: {"businessId": serverId},
       );
 
       return result.items
           .map((doc) => Branch.fromJson(Map<String, dynamic>.from(doc.value)))
           .toList();
     } catch (e) {
-      debugPrint('Error getting branches for business $businessId: $e');
+      debugPrint('Error getting branches for business $serverId: $e');
       return [];
     }
   }
