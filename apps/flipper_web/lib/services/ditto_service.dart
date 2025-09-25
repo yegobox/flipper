@@ -368,14 +368,23 @@ class DittoService {
         return [];
       }
 
+      // Convert serverId to int for querying
+      final businessIdInt = int.tryParse(serverId);
+      if (businessIdInt == null) {
+        debugPrint('❌ Invalid serverId format: $serverId');
+        return [];
+      }
+
       final result = await _ditto!.store.execute(
         "SELECT * FROM branches WHERE businessId = :businessId",
-        arguments: {"businessId": serverId},
+        arguments: {"businessId": businessIdInt},
       );
 
-      return result.items
+      final branches = result.items
           .map((doc) => Branch.fromJson(Map<String, dynamic>.from(doc.value)))
           .toList();
+
+      return branches;
     } catch (e) {
       debugPrint('Error getting branches for business $serverId: $e');
       return [];
