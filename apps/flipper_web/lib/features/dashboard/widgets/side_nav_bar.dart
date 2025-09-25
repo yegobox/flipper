@@ -1,10 +1,16 @@
+import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
+import 'package:flipper_web/features/dashboard/widgets/branch_selection_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SideNavBar extends StatelessWidget {
+class SideNavBar extends ConsumerWidget {
   const SideNavBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the selected branch
+    final selectedBranch = ref.watch(selectedBranchProvider);
+
     return Container(
       width: 250,
       height: double.infinity,
@@ -33,7 +39,7 @@ class SideNavBar extends StatelessWidget {
             ),
             child: InkWell(
               onTap: () {
-                // Handle dropdown tap
+                showBranchSelectionDialog(context, ref);
               },
               child: Row(
                 children: [
@@ -54,7 +60,7 @@ class SideNavBar extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Demo',
+                          selectedBranch?.name ?? 'No Branch Selected',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
