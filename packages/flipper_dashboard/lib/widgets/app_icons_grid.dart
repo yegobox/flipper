@@ -140,7 +140,7 @@ class AppIconsGrid extends ConsumerWidget {
     // Filtering out apps the user does not have access to
     final filteredApps = rippleApps.where((app) {
       final hasAccess = ref.watch(featureAccessProvider(
-          featureName: app['feature'], userId: ProxyService.box.getUserId()!));
+          featureName: app['feature'], userId: ProxyService.box.getUserId()??"0"));
       return hasAccess;
     }).toList();
 

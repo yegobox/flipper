@@ -693,8 +693,9 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                       ),
                                       validator: (value) {
                                         final v = value ?? '';
-                                        if (v.isEmpty)
+                                        if (v.isEmpty) {
                                           return 'Phone number is required';
+                                        }
                                         if (v
                                                 .replaceAll(
                                                   RegExp(r'[^0-9+]'),
