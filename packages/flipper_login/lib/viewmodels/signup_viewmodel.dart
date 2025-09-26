@@ -100,7 +100,7 @@ class SignupViewModel extends BaseViewModel {
         'longitude': 1,
         'latitude': 1,
         'bhfid': '00',
-        'businessTypeId': "1",
+        'businessTypeId': int.tryParse(businessType?.id ?? '1') ?? 1,
         'userId': userId,
       };
 
