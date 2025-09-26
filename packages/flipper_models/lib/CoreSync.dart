@@ -1586,7 +1586,7 @@ class CoreSync extends AiStrategyImpl
       required HttpClientInterface flipperHttpClient}) async {
     try {
       // Step 1: Create business via API
-      talker.info('Signup: Creating business via API');
+      talker.info('Signup: Creating business via API ${apihub}');
       final http.Response response = await flipperHttpClient.post(
           Uri.parse("$apihub/v2/api/business"),
           body: jsonEncode(business));

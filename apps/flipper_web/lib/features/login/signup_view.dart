@@ -231,8 +231,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
                       ),
                     ),
                     _buildDropdownField<BusinessType>(
-                      label: 'Business Type',
-                      hint: 'Select business type',
+                      label: 'Usage ',
+                      hint: 'How you intend to use flipper',
                       icon: Icons.business_outlined,
                       value: formState.businessType,
                       items: businessTypes,

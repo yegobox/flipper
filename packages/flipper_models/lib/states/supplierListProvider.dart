@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/secrets.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -23,7 +24,7 @@ final supplierListProvider =
   String token = ProxyService.box.getBearerToken()!;
 
   final response = await http.get(
-    Uri.parse('https://178.62.206.133/searchAlike?name=$keyword'),
+    Uri.parse('${AppSecrets.coreApi}/searchAlike?name=$keyword'),
     headers: {'Authorization': '${token}'},
   );
 

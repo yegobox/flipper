@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
 import 'package:flipper_scanner/random.dart';
 import 'package:flutter/services.dart'; // Added for HapticFeedback
@@ -170,7 +169,7 @@ class AuthScannerActions implements ScannerActions {
       // get the pin
       final pin = await getPinLocal(userId: userId, alwaysHydrate: false);
 
-      nub.PublishResult result = await getEventService().publish(loginDetails: {
+      await getEventService().publish(loginDetails: {
         'channel': channel,
         'userId': userId,
         'businessId': businessId,
@@ -184,17 +183,8 @@ class AuthScannerActions implements ScannerActions {
         'responseChannel': responseChannel, // Add response channel
       });
 
-      if (result.isError) {
-        // Only handle publish error here, success will be handled by response
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-        showSimpleNotification('Failed to send login request');
-
-        // Wait a moment to show failure state before closing
-        await Future.delayed(Duration(milliseconds: 1500));
-      } else {
-        // Handle successful publish - keep in pending state
-        ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
-      }
+      // Handle successful publish - keep in pending state
+      ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
     } catch (e) {
       // Handle any exceptions
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
@@ -207,48 +197,50 @@ class AuthScannerActions implements ScannerActions {
 
   void _listenForLoginResponse(String responseChannel) {
     try {
-      // Use the connect method to get the PubNub instance
-      nub.PubNub pubNub = getEventService().connect();
+      // With Ditto, we use the event service to listen for responses
+      // The EventService handles polling and event distribution
+      final eventService = getEventService();
 
-      // Listen for messages on this channel
-      pubNub.subscribe(channels: {responseChannel}).messages.listen((envelope) {
-            // Parse the response
-            Map<String, dynamic> response = envelope.payload;
+      // Listen for response events on the response channel
+      eventService
+          .subscribeToEvents(channel: responseChannel, eventType: 'login')
+          .listen((envelope) {
+        // Parse the response
+        Map<String, dynamic> response = envelope;
 
-            if (response.containsKey('status')) {
-              if (response['status'] == 'success') {
-                // Update UI to show success and close
-                ref.read(scanStatusProvider.notifier).state =
-                    ScanStatus.desktopLoginSuccess;
-                triggerHapticFeedback();
-                showSimpleNotification('Login successful');
-                Timer(const Duration(seconds: 1), pop);
-              } else if (response['status'] == 'choices_needed') {
-                // This is not a failure - it's part of the normal flow when a user
-                // needs to select a business/branch
-                ref.read(scanStatusProvider.notifier).state =
-                    ScanStatus.desktopLoginSuccess;
-                showSimpleNotification(
-                    'Login successful - select your business');
-                Timer(const Duration(seconds: 1), pop);
-              } else {
-                // Update UI to show failure and close
-                ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-
-                String errorMessage = response.containsKey('message')
-                    ? response['message']
-                    : 'Login failed';
-
-                showSimpleNotification(errorMessage);
-                Timer(const Duration(seconds: 2), pop);
-              }
-            }
-          }, onError: (error) {
-            // Handle subscription error and close
+        if (response.containsKey('status')) {
+          if (response['status'] == 'success') {
+            // Update UI to show success and close
+            ref.read(scanStatusProvider.notifier).state =
+                ScanStatus.desktopLoginSuccess;
+            triggerHapticFeedback();
+            showSimpleNotification('Login successful');
+            Timer(const Duration(seconds: 1), pop);
+          } else if (response['status'] == 'choices_needed') {
+            // This is not a failure - it's part of the normal flow when a user
+            // needs to select a business/branch
+            ref.read(scanStatusProvider.notifier).state =
+                ScanStatus.desktopLoginSuccess;
+            showSimpleNotification('Login successful - select your business');
+            Timer(const Duration(seconds: 1), pop);
+          } else {
+            // Update UI to show failure and close
             ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
-            showSimpleNotification('Connection error: $error');
+
+            String errorMessage = response.containsKey('message')
+                ? response['message']
+                : 'Login failed';
+
+            showSimpleNotification(errorMessage);
             Timer(const Duration(seconds: 2), pop);
-          });
+          }
+        }
+      }, onError: (error) {
+        // Handle subscription error and close
+        ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;
+        showSimpleNotification('Connection error: $error');
+        Timer(const Duration(seconds: 2), pop);
+      });
     } catch (e) {
       // Handle any exceptions
       ref.read(scanStatusProvider.notifier).state = ScanStatus.failed;

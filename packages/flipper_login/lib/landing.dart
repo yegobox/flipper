@@ -1,4 +1,5 @@
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'responsive_layout.dart';
@@ -129,14 +130,25 @@ class _LandingState extends State<Landing> {
                   children: [
                     _buildButton(
                       text: "Create Account",
-                      onPressed: () => _routerService.navigateTo(AuthRoute()),
+                      onPressed: () {
+                        // _routerService.navigateTo(AuthRoute()),
+                        // the bellow remove method is for us do adapt to new flow without breaking old flow the commented
+                        //_routerService.navigateTo(AuthRoute()), was for old flow
+                        ProxyService.box.remove(key: 'userPhone');
+                        ProxyService.box.remove(key: 'userId');
+                        _routerService.navigateTo(SignUpViewRoute());
+                      },
                     ),
                     const SizedBox(height: 22),
                     _buildButton(
                       text: "Sign In",
                       key: signInButtonKey,
-                      onPressed: () =>
-                          _routerService.clearStackAndShow(AuthRoute()),
+                      onPressed: () {
+                        ProxyService.box.remove(key: 'userPhone');
+                        ProxyService.box.remove(key: 'userId');
+                        // _routerService.clearStackAndShow(AuthRoute()),
+                        _routerService.navigateTo(PinLoginRoute());
+                      },
                     ),
                   ],
                 ),

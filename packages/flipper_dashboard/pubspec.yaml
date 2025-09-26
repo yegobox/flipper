@@ -16,7 +16,7 @@ dependencies:
   mime: ^2.0.0
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  pubnub: ^5.2.0
+  
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   # image_picker: ^1.1.2
@@ -128,11 +128,11 @@ dependencies:
   flipper_auth: any
   realm_dart: ^20.1.1
   flutter_soloud: ^3.3.1
-  ditto_live: ^5.0.0-experimental-windows.5
+  ditto_live: ^4.12.1
 
 dependency_overrides:
   http: ^1.2.2
-  meta: ^1.12.0
+  meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.9.0
@@ -140,8 +140,8 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   mime: ^2.0.0
-  cbor: ^4.0.0
-  pubnub: ^5.2.0
+  cbor: ^6.3.7
+  
 
 flutter:
   # The following line ensures that the Material Icons font is

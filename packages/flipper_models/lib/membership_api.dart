@@ -1,7 +1,8 @@
 import 'package:flipper_models/member.dart';
+import 'package:flipper_models/secrets.dart';
 
 class MembershipApi implements Members {
-  String apihub = "https://178.62.206.133";
+  String get apihub => AppSecrets.coreApi;
   @override
   Future<bool> deduct({required String phoneNumberOrId, int? defaultDeductor}) {
     // TODO: implement deduct

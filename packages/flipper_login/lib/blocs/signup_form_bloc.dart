@@ -25,6 +25,13 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
+  final phoneNumber = TextFieldBloc(
+    validators: [
+      FieldBlocValidators.required,
+      _validatePhoneNumber,
+    ],
+    asyncValidatorDebounceTime: const Duration(milliseconds: 300),
+  );
   late final TextFieldBloc<String> tinNumber = TextFieldBloc<String>(
     validators: [
       FieldBlocValidators.required,
@@ -38,34 +45,53 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     initialValue: 'Rwanda',
   );
 
-  final businessTypes = SelectFieldBloc<BusinessType, Object>(
-      name: 'businessType',
-      items: BusinessType.fromJsonList(jsonEncode([
-        {"id": "1", "typeName": "Flipper Retailer"},
-      ])),
-      validators: [
-        FieldBlocValidators.required,
-      ]);
+  final businessTypes =
+      SelectFieldBloc<BusinessType, Object>(name: 'businessType', validators: [
+    FieldBlocValidators.required,
+  ]);
 
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
 
-    // Load business types from API
-    ProxyService.strategy.businessTypes().then((data) {
-      log(data.toString(), name: 'AsyncFieldValidationFormBloc');
-      businessTypes.updateItems(data);
-    }).catchError((error) {
-      log(error, name: 'AsyncFieldValidationFormBloc');
-    });
+    // Business types are now hardcoded to match flipper_web app
+    // Set default to Individual after items are loaded
+    final businessTypeItems = BusinessType.fromJsonList(jsonEncode([
+      {"id": "1", "typeName": "Flipper Retailer"},
+      {"id": "2", "typeName": "Individual"},
+      {"id": "3", "typeName": "Enterprise"},
+    ]));
+    businessTypes.updateItems(businessTypeItems);
+
+    // Set Individual as the default
+    final individualType = businessTypeItems.firstWhere(
+      (type) => type.id == "2",
+      orElse: () => businessTypeItems.first,
+    );
+    businessTypes.updateInitialValue(individualType);
+
+    // Initially, tinNumber is not required for Individual
+    tinNumber.updateValidators([]);
 
     addFieldBlocs(fieldBlocs: [
       username,
       fullName,
+      phoneNumber,
       countryName,
       tinNumber,
       businessTypes
     ]);
+
+    // Listen to business type changes to update tinNumber validation
+    businessTypes.stream.listen((state) {
+      if (state.value?.id == "2") {
+        // Individual - no TIN required
+        tinNumber.updateValidators([]);
+      } else {
+        // Other business types - TIN required
+        tinNumber.updateValidators([FieldBlocValidators.required]);
+      }
+    });
 
     username.addAsyncValidators([_checkUsername]);
   }
@@ -74,6 +100,19 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   static String? _min4Char(String? username) {
     if (username!.length > 11) {
       return 'Name is too long';
+    }
+    return null;
+  }
+
+  /// Validates phone number format
+  static String? _validatePhoneNumber(String? phone) {
+    if (phone == null || phone.isEmpty) {
+      return 'Phone number is required';
+    }
+    // Phone number must start with + followed by digits
+    final phoneRegex = RegExp(r'^\+[0-9\s\-\(\)]{8,15}$');
+    if (!phoneRegex.hasMatch(phone)) {
+      return 'Phone number must start with + and contain only digits';
     }
     return null;
   }
@@ -105,9 +144,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       // Transfer form values to view model
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
+      signupViewModel.setPhoneNumber(phoneNumber: phoneNumber.value);
       signupViewModel.setCountry(country: countryName.value ?? 'Rwanda');
       signupViewModel.tin =
-          tinNumber.value.isEmpty ? "999909695" : tinNumber.value;
+          (tinNumber.value.isEmpty || businessTypes.value?.id == "2")
+              ? "999909695"
+              : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
 
       // Perform signup

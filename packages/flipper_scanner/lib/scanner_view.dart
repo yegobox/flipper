@@ -7,7 +7,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:pubnub/pubnub.dart' as nub;
 
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flipper_scanner/scanner_actions.dart';
@@ -38,8 +37,8 @@ class ScannViewState extends ConsumerState<ScannView>
   late AnimationController _animationController;
   late Animation<double> _animation;
 
-  // For managing PubNub subscriptions and timers
-  nub.Subscription? _loginResponseSubscription;
+  // For managing subscriptions and timers
+  StreamSubscription<Map<String, dynamic>>? _loginResponseSubscription;
   Timer? _loginTimeoutTimer;
 
   @override
@@ -695,11 +694,9 @@ class ScannViewState extends ConsumerState<ScannView>
 
   @override
   void dispose() {
-    // Cancel any active PubNub subscriptions
-    if (_loginResponseSubscription != null) {
-      _loginResponseSubscription!.unsubscribe();
-      _loginResponseSubscription = null;
-    }
+    // Cancel any active subscriptions
+    _loginResponseSubscription?.cancel();
+    _loginResponseSubscription = null;
 
     // Cancel any active timers
     _loginTimeoutTimer?.cancel();

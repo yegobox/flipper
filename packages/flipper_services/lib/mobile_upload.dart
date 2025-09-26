@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'abstractions/upload.dart';
 import 'proxy.dart';
+import 'package:flipper_models/secrets.dart';
 
 class HttpUpload implements UploadT {
   var processed = <String>[];
@@ -58,11 +59,7 @@ class MobileUpload implements UploadT {
     final String? token = ProxyService.box.getBearerToken();
 
     late String url;
-    if (kDebugMode) {
-      url = 'https://uat-apihub.yegobox.com/s3/upload';
-    } else {
-      url = 'https://178.62.206.133/s3/upload';
-    }
+    url = '${AppSecrets.coreApi}/s3/upload';
 
     log(paths.length.toString(), name: 'paths');
     uploader.clearUploads();

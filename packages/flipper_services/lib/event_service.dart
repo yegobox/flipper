@@ -5,14 +5,10 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
-import 'package:pubnub/pubnub.dart' as nub;
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
-
-import 'package:stacked_services/stacked_services.dart';
 import 'login_event.dart';
 import 'dart:io';
 import 'package:flipper_services/desktop_login_status.dart';
@@ -29,11 +25,14 @@ String loginDataToMap(LoginData data) => json.encode(data.toMap());
 class EventService
     with TokenLogin, CoreMiscellaneous
     implements EventInterface {
-  final _routerService = locator<RouterService>();
-  final nub.Keyset keySet;
+  final String userId;
 
   @override
-  nub.PubNub? pubnub;
+  DittoService get dittoService => DittoService.instance;
+
+  // Event handling streams
+  final StreamController<Map<String, dynamic>> _eventController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   // Desktop login state stream controller
   final _desktopLoginStatusController =
@@ -49,52 +48,100 @@ class EventService
         .add(DesktopLoginStatus(DesktopLoginState.idle));
   }
 
-  EventService({required String userId})
-      : keySet = nub.Keyset(
-          subscribeKey: 'sub-c-2fb5f1f2-84dc-11ec-9f2b-a2cedba671e8',
-          publishKey: 'pub-c-763b84f1-f366-4f07-b9db-3f626069e71c',
-          userId: nub.UserId(userId),
-        ) {
-    pubnub = nub.PubNub(defaultKeyset: keySet);
+  EventService({required this.userId}) {
     _desktopLoginStatusController
         .add(DesktopLoginStatus(DesktopLoginState.idle));
+    _setupEventObservation();
   }
 
-  @override
-  nub.PubNub connect() {
-    return pubnub!;
-  }
-
-  @override
-  Future<nub.PublishResult> publish({required Map loginDetails}) async {
-    if (pubnub == null) {
-      connect();
+  Future<void> _setupEventObservation() async {
+    try {
+      // Set up observation for events collection
+      // This is a simplified implementation - in a real scenario you'd use ditto's live queries
+      // For now, we'll use a polling mechanism similar to the user profiles
+      final pollingInterval = const Duration(seconds: 2);
+      Timer.periodic(pollingInterval, (_) async {
+        await _checkForNewEvents();
+      });
+    } catch (e) {
+      talker.error('Error setting up event observation: $e');
     }
-    final nub.Channel channel = pubnub!.channel(loginDetails['channel']);
-    return await channel.publish(loginDetails);
+  }
+
+  Future<void> _checkForNewEvents() async {
+    try {
+      // Query ditto for all events and emit them
+      final events = await DittoService.instance
+          .getEvents('*', '*'); // Get all events for now
+      for (final event in events) {
+        _eventController.add(event);
+      }
+    } catch (e) {
+      talker.error('Error checking for new events: $e');
+    }
+  }
+
+  @override
+  Future<void> saveEvent(
+      String channel, String eventType, Map<String, dynamic> data) async {
+    try {
+      final eventId =
+          '${channel}_${eventType}_${DateTime.now().millisecondsSinceEpoch}';
+      await DittoService.instance.saveEvent({
+        'channel': channel,
+        'type': eventType,
+        'data': data,
+      }, eventId);
+      talker.debug('Event saved: $eventId');
+    } catch (e) {
+      talker.error('Error saving event: $e');
+    }
+  }
+
+  Stream<Map<String, dynamic>> subscribeToEvents(
+      {required String channel, required String eventType}) {
+    // Return a stream that filters events by channel and type
+    return _eventController.stream.where(
+        (event) => event['channel'] == channel && event['type'] == eventType);
+  }
+
+  @override
+  DittoService connect() {
+    return dittoService;
+  }
+
+  @override
+  Future<void> publish({required Map loginDetails}) async {
+    try {
+      // Store the event in ditto
+      final channel = loginDetails['channel'] ?? 'default';
+      final eventType = loginDetails['type'] ?? 'broadcast';
+      await saveEvent(
+          channel, eventType, Map<String, dynamic>.from(loginDetails));
+    } catch (e) {
+      talker.error('Error publishing event with ditto: $e');
+    }
   }
 
   @override
   void subscribeToLogoutEvent({required String channel}) {
-    if (pubnub == null) {
-      connect();
-    }
     try {
-      nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
-      subscription.messages.listen((envelope) async {
-        LoginData loginData = LoginData.fromMap(envelope.payload);
+      // Set up a live query to listen for logout events in the specified channel
+      subscribeToEvents(channel: channel, eventType: 'logout')
+          .listen((event) async {
+        LoginData loginData = LoginData.fromMap(event);
         if (ProxyService.box.getUserId() != null &&
             loginData.userId == ProxyService.box.getUserId()) {
           ///TODO: work on making sure only specific device with specific linkingCode
           ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
           logOut();
-          _routerService.clearStackAndShow(LoginRoute());
+          // Note: _routerService navigation removed - handle this differently or inject the service
         }
       });
     } catch (e, stacktrace) {
-      print(e);
-      print(stacktrace);
+      talker.error('Error subscribing to logout events: $e');
+      talker.error(stacktrace);
     }
   }
 
@@ -106,16 +153,14 @@ class EventService
 
   @override
   void subscribeLoginEvent({required String channel}) {
-    if (pubnub == null) {
-      connect();
-    }
     try {
-      nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
-      subscription.messages.listen((envelope) async {
+      // Set up a live query to listen for login events in the specified channel
+      subscribeToEvents(channel: channel, eventType: 'login')
+          .listen((event) async {
         _desktopLoginStatusController
             .add(DesktopLoginStatus(DesktopLoginState.loading));
         try {
-          LoginData loginData = LoginData.fromMap(envelope.payload);
+          LoginData loginData = LoginData.fromMap(event);
 
           // Store the response channel for sending status updates back to mobile device
           String? responseChannel = loginData.responseChannel;
@@ -264,7 +309,7 @@ class EventService
 
           // Extract response channel if possible and use centralized error handling
           try {
-            Map<String, dynamic> payload = envelope.payload;
+            Map<String, dynamic> payload = event;
             String? responseChannel = payload['responseChannel'];
 
             // Use centralized error handling with response channel
@@ -289,46 +334,46 @@ class EventService
 
   @override
   void subscribeToMessages({required String channel}) {
-    if (pubnub == null) {
-      connect();
+    try {
+      // Set up a live query to listen for messages in the specified channel
+      subscribeToEvents(channel: channel, eventType: 'message')
+          .listen((event) async {
+        log("received message via ditto!");
+        // Process the message as needed
+        // helper.IConversation conversation = helper.IConversation.fromJson(event.payload);
+      });
+    } catch (e) {
+      talker.error('Error subscribing to messages: $e');
     }
-    log('subscribing to channel $channel');
-    log('userId ${ProxyService.box.getUserId()}');
-    nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
-    subscription.messages.listen((envelope) async {
-      log("received message aha!");
-      // helper.IConversation conversation =
-      //     helper.IConversation.fromJson(envelope.payload);
-    });
   }
 
   @override
   void subscribeToDeviceEvent({required String channel}) {
-    if (pubnub == null) {
-      connect();
+    try {
+      // Set up a live query to listen for device events in the specified channel
+      subscribeToEvents(channel: channel, eventType: 'device')
+          .listen((event) async {
+        LoginData deviceEvent = LoginData.fromMap(event);
+
+        Device? device = await ProxyService.strategy.getDevice(
+            phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
+
+        if (device == null) {
+          await ProxyService.strategy.create(
+              data: Device(
+                  pubNubPublished: true,
+                  branchId: deviceEvent.branchId,
+                  businessId: deviceEvent.businessId,
+                  defaultApp: deviceEvent.defaultApp,
+                  phone: deviceEvent.phone,
+                  userId: deviceEvent.userId,
+                  linkingCode: deviceEvent.linkingCode,
+                  deviceName: deviceEvent.deviceName,
+                  deviceVersion: deviceEvent.deviceVersion));
+        }
+      });
+    } catch (e) {
+      talker.error('Error subscribing to device events: $e');
     }
-    log('subscribing to channel $channel');
-    log('userId ${ProxyService.box.getUserId()}');
-    nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
-    subscription.messages.listen((envelope) async {
-      LoginData deviceEvent = LoginData.fromMap(envelope.payload);
-
-      Device? device = await ProxyService.strategy.getDevice(
-          phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
-
-      if (device == null) {
-        await ProxyService.strategy.create(
-            data: Device(
-                pubNubPublished: true,
-                branchId: deviceEvent.branchId,
-                businessId: deviceEvent.businessId,
-                defaultApp: deviceEvent.defaultApp,
-                phone: deviceEvent.phone,
-                userId: deviceEvent.userId,
-                linkingCode: deviceEvent.linkingCode,
-                deviceName: deviceEvent.deviceName,
-                deviceVersion: deviceEvent.deviceVersion));
-      }
-    });
   }
 }

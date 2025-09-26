@@ -29,7 +29,7 @@ dependencies:
   path: ^1.8.2
   googleapis: ^11.2.0
   timeago: ^3.4.0
-  pubnub: ^5.2.0
+  
   stacked_services: ^1.6.0
   universal_platform: ^1.0.0+1
   googleapis_auth: ^1.4.1
@@ -41,6 +41,7 @@ dependencies:
   injectable: ^2.5.0
   flipper_routing: ^1.0.0
   flipper_models: any
+  flipper_web: any
 
   google_fonts: ^6.1.0
   shared_preferences: ^2.5.2
@@ -61,7 +62,7 @@ dependencies:
   # device_info_plus: ^11.3.3
 dependency_overrides:
   http: ^1.2.2
-  meta: ^1.12.0
+  meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.9.0
@@ -69,8 +70,8 @@ dependency_overrides:
   device_info_plus: ^11.3.3
   archive: ^3.6.1
   excel: ^4.0.6
-  cbor: ^4.0.0
-  pubnub: ^5.2.0
+  cbor: ^6.3.7
+  
 
 dev_dependencies:
   flutter_test:

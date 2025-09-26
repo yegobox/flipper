@@ -22,7 +22,7 @@ dependencies:
   flipper_accounting: any
 dependency_overrides:
   http: ^1.2.2
-  meta: ^1.12.0
+  meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.9.0
@@ -30,8 +30,8 @@ dependency_overrides:
   device_info_plus: ^11.3.3
   archive: ^3.6.1
   excel: ^4.0.6
-  cbor: ^4.0.0
-  pubnub: ^5.2.0
+  cbor: ^6.3.7
+  
 
 dev_dependencies:
   flutter_test:

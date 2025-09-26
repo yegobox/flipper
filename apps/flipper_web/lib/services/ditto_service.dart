@@ -519,4 +519,53 @@ class DittoService {
       debugPrint('Error updating tenant in Ditto: $e');
     }
   }
+
+  /// Save an event to the events collection
+  Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot save event');
+        return;
+      }
+
+      await _ditto!.store.execute(
+        "INSERT INTO events DOCUMENTS (:event) ON ID CONFLICT DO UPDATE",
+        arguments: {
+          "event": {
+            "_id": eventId,
+            ...eventData,
+            "timestamp": DateTime.now().toIso8601String(),
+          },
+        },
+      );
+      debugPrint('Saved event with ID: $eventId');
+    } catch (e) {
+      debugPrint('Error saving event to Ditto: $e');
+    }
+  }
+
+  /// Get events for a specific channel and type
+  Future<List<Map<String, dynamic>>> getEvents(
+    String channel,
+    String eventType,
+  ) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot get events');
+        return [];
+      }
+
+      final result = await _ditto!.store.execute(
+        "SELECT * FROM events WHERE channel = :channel AND type = :eventType ORDER BY timestamp DESC",
+        arguments: {"channel": channel, "eventType": eventType},
+      );
+
+      return result.items
+          .map((doc) => Map<String, dynamic>.from(doc.value))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting events: $e');
+      return [];
+    }
+  }
 }

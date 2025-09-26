@@ -30,7 +30,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  ditto_live
   flutter_local_notifications_windows
   flutter_soloud
   jni

@@ -1,13 +1,14 @@
 import 'package:flipper_services/desktop_login_status.dart'
     show DesktopLoginStatus;
-import 'package:pubnub/pubnub.dart';
-import 'package:pubnub/pubnub.dart' as nub;
+import 'package:flipper_web/services/ditto_service.dart';
 
 abstract class EventInterface {
-  Future<PublishResult> publish({required Map loginDetails});
+  Future<void> publish({required Map loginDetails});
+  Future<void> saveEvent(
+      String channel, String eventType, Map<String, dynamic> data);
   void subscribeLoginEvent({required String channel});
   void subscribeToLogoutEvent({required String channel});
-  PubNub connect();
+  DittoService connect();
   void subscribeToMessages({required String channel});
   void subscribeToDeviceEvent({required String channel});
 
@@ -18,5 +19,5 @@ abstract class EventInterface {
   void resetLoginStatus();
 
   Stream<bool> isLoadingStream({bool? isLoading});
-  nub.PubNub? pubnub;
+  DittoService get dittoService;
 }

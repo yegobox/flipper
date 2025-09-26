@@ -1,6 +1,10 @@
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
+
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -80,9 +84,17 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                         hint: 'First name, Last name',
                                       ),
                                       components.SignupComponents
+                                          .buildInputField(
+                                        fieldBloc: formBloc.phoneNumber,
+                                        label: 'Phone Number',
+                                        icon: Icons.phone_outlined,
+                                        hint: '+250 XXX XXX XXX',
+                                        keyboardType: TextInputType.phone,
+                                      ),
+                                      components.SignupComponents
                                           .buildDropdownField<BusinessType>(
                                         fieldBloc: formBloc.businessTypes,
-                                        label: 'Business Type',
+                                        label: 'Usage',
                                         icon: Icons.business_outlined,
                                         itemBuilder: (context, value) =>
                                             FieldItem(
@@ -124,8 +136,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                           ),
                                         ),
                                       ),
-                                      _buildSubmitButton(
-                                          formBloc, model.registerStart),
+                                      components.SignupComponents
+                                          .buildSubmitButton(
+                                              formBloc, model.registerStart),
                                     ],
                                   ),
                                 ),
@@ -133,7 +146,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                               const SizedBox(height: 20),
                               TextButton(
                                 onPressed: () {
-                                  // TODO: Add navigation to login page
+                                  locator<RouterService>()
+                                      .navigateTo(PinLoginRoute());
                                 },
                                 child: Text(
                                   'Already have an account? Sign in',
@@ -155,35 +169,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildSubmitButton(
-      AsyncFieldValidationFormBloc formBloc, bool isLoading) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 30),
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : formBloc.submit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF006AFE),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : Text(
-                'Create Account',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-      ),
     );
   }
 }

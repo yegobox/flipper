@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
+import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// View model for handling signup business logic
@@ -58,6 +60,33 @@ class SignupViewModel extends BaseViewModel {
   Future<void> signup() async {
     String? phoneNumber = ProxyService.box.getUserPhone();
     int? userId = ProxyService.box.getUserId();
+
+    // If we don't have a userId, call v2/api/user to create/get user with phone number
+    if (userId == null && phoneNumber != null && phoneNumber.isNotEmpty) {
+      try {
+        // Call v2/api/user endpoint to create or get user
+        final response = await ProxyService.strategy.sendLoginRequest(
+          phoneNumber,
+          ProxyService.http,
+          AppSecrets.apihubProdDomain,
+        );
+
+        if (response.statusCode == 200 && response.body.isNotEmpty) {
+          final responseData = json.decode(response.body);
+          if (responseData['id'] != null) {
+            userId = responseData['id'] is String
+                ? int.tryParse(responseData['id'])
+                : responseData['id'] as int;
+            // Store the userId for future use
+            ProxyService.box.writeInt(key: 'userId', value: userId!);
+          }
+        }
+      } catch (e) {
+        // If user creation fails, continue with existing flow for backward compatibility
+        // The existing signup method will handle user creation
+      }
+    }
+
     try {
       // Create business map with all required fields
       final Map<String, dynamic> businessMap = {
