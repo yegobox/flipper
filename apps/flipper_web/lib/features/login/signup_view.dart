@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/business_type.dart';
 import '../../widgets/app_button.dart';
 import 'signup_providers.dart';
+
+// Duolingo-inspired color palette
+const Color primaryGreen = Color(0xFF58CC02);
+const Color darkGreen = Color(0xFF46A302);
+const Color lightGreen = Color(0xFFE8F5E8);
+const Color accentBlue = Color(0xFF1CB0F6);
+const Color backgroundColor = Color(0xFFF7F7F7);
+const Color textPrimary = Color(0xFF3C3C41);
+const Color textSecondary = Color(0xFF777777);
+const Color errorRed = Color(0xFFFF4B4B);
+const Color warningOrange = Color(0xFFFF9600);
 
 class SignupView extends ConsumerStatefulWidget {
   const SignupView({super.key});
@@ -169,7 +181,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
             _buildHeaderSection(),
             Card(
               elevation: 0,
-              color: Colors.white,
+              color: backgroundColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -203,22 +215,75 @@ class _SignupViewState extends ConsumerState<SignupView> {
                           .read(signupFormProvider.notifier)
                           .updateFullName(value),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 24),
                       child: TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
                           labelText: 'Phone Number',
                           hintText: 'Enter your phone number',
-                          prefixIcon: const Icon(Icons.phone_outlined),
+                          hintStyle: GoogleFonts.nunito(
+                            color: textSecondary.withValues(alpha: 0.7),
+                            fontSize: 16,
+                          ),
+                          prefixIcon: Container(
+                            margin: const EdgeInsets.only(right: 12),
+                            child: const Icon(
+                              Icons.phone_outlined,
+                              color: primaryGreen,
+                              size: 24,
+                            ),
+                          ),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE5E5E5),
+                              width: 2,
+                            ),
                           ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE5E5E5),
+                              width: 2,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: accentBlue,
+                              width: 3,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: const BorderSide(
+                              color: errorRed,
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
                           contentPadding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 16,
+                            horizontal: 20,
+                            vertical: 20,
                           ),
+                          labelStyle: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: textSecondary,
+                          ),
+                          floatingLabelStyle: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: primaryGreen,
+                          ),
+                        ),
+                        style: GoogleFonts.nunito(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary,
                         ),
                         validator: (value) {
                           final v = value ?? '';
@@ -358,8 +423,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
     required bool isCheckingUsername,
     bool? isUsernameAvailable,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
       child: TextFormField(
         initialValue: value,
         onChanged: onChanged,
@@ -379,18 +444,61 @@ class _SignupViewState extends ConsumerState<SignupView> {
         decoration: InputDecoration(
           labelText: 'Username',
           hintText: 'Enter your username',
-          prefixIcon: const Icon(Icons.person_outline),
+          hintStyle: GoogleFonts.nunito(
+            color: textSecondary.withValues(alpha: 0.7),
+            fontSize: 16,
+          ),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(right: 12),
+            child: const Icon(
+              Icons.person_outline,
+              color: primaryGreen,
+              size: 24,
+            ),
+          ),
           suffixIcon: value.length >= 3
               ? _buildUsernameAvailabilityIcon(
                   isCheckingUsername,
                   isUsernameAvailable,
                 )
               : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 16,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: accentBlue, width: 3),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: errorRed, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
+          labelStyle: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: textSecondary,
+          ),
+          floatingLabelStyle: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: primaryGreen,
+          ),
+        ),
+        style: GoogleFonts.nunito(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
         ),
       ),
     );
@@ -423,8 +531,8 @@ class _SignupViewState extends ConsumerState<SignupView> {
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
       child: TextFormField(
         initialValue: value,
         onChanged: onChanged,
@@ -433,12 +541,51 @@ class _SignupViewState extends ConsumerState<SignupView> {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 16,
+          hintStyle: GoogleFonts.nunito(
+            color: textSecondary.withValues(alpha: 0.7),
+            fontSize: 16,
           ),
+          prefixIcon: Container(
+            margin: const EdgeInsets.only(right: 12),
+            child: Icon(icon, color: primaryGreen, size: 24),
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: accentBlue, width: 3),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: errorRed, width: 2),
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
+          labelStyle: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: textSecondary,
+          ),
+          floatingLabelStyle: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: primaryGreen,
+          ),
+        ),
+        style: GoogleFonts.nunito(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
         ),
       ),
     );
@@ -454,17 +601,25 @@ class _SignupViewState extends ConsumerState<SignupView> {
     required void Function(T?) onChanged,
     String? Function(T?)? validator,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return DropdownButtonFormField<T>(
-            value: value,
+            initialValue: value,
             onChanged: onChanged,
             validator: validator,
             isExpanded: true, // Make dropdown expand to fill available width
-            icon: const Icon(Icons.arrow_drop_down, size: 24),
-            style: const TextStyle(overflow: TextOverflow.ellipsis),
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: textSecondary,
+              size: 28,
+            ),
+            style: GoogleFonts.nunito(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: textPrimary,
+            ),
             menuMaxHeight: 300, // Limit the height of the dropdown menu
             // Reduce horizontal padding to give more room for text
             itemHeight: 48,
@@ -472,13 +627,51 @@ class _SignupViewState extends ConsumerState<SignupView> {
             decoration: InputDecoration(
               labelText: label,
               hintText: hint,
-              prefixIcon: Icon(icon),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+              hintStyle: GoogleFonts.nunito(
+                color: textSecondary.withValues(alpha: 0.7),
+                fontSize: 16,
               ),
+              prefixIcon: Container(
+                margin: const EdgeInsets.only(right: 12),
+                child: Icon(icon, color: primaryGreen, size: 24),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE5E5E5),
+                  width: 2,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE5E5E5),
+                  width: 2,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: accentBlue, width: 3),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: errorRed, width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.white,
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 16,
-                horizontal: 10, // Reduced from 16 to give more room
+                horizontal: 20,
+                vertical: 20,
+              ),
+              labelStyle: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: textSecondary,
+              ),
+              floatingLabelStyle: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: primaryGreen,
               ),
             ),
             items: items.map((item) {
@@ -601,6 +794,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: Card(
                   elevation: 2,
+                  color: backgroundColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -669,27 +863,88 @@ class _SignupViewState extends ConsumerState<SignupView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 16),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 24),
                                     child: TextFormField(
                                       controller: _phoneController,
                                       keyboardType: TextInputType.phone,
                                       decoration: InputDecoration(
                                         labelText: 'Phone Number',
                                         hintText: 'Enter your phone number',
-                                        prefixIcon: const Icon(
-                                          Icons.phone_outlined,
+                                        hintStyle: GoogleFonts.nunito(
+                                          color: textSecondary.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                          fontSize: 16,
+                                        ),
+                                        prefixIcon: Container(
+                                          margin: const EdgeInsets.only(
+                                            right: 12,
+                                          ),
+                                          child: const Icon(
+                                            Icons.phone_outlined,
+                                            color: primaryGreen,
+                                            size: 24,
+                                          ),
                                         ),
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(
-                                            8,
+                                            16,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFFE5E5E5),
+                                            width: 2,
                                           ),
                                         ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: Color(0xFFE5E5E5),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: accentBlue,
+                                            width: 3,
+                                          ),
+                                        ),
+                                        errorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                          borderSide: const BorderSide(
+                                            color: errorRed,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.white,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                              horizontal: 16,
+                                              horizontal: 20,
+                                              vertical: 20,
                                             ),
+                                        labelStyle: GoogleFonts.nunito(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: textSecondary,
+                                        ),
+                                        floatingLabelStyle: GoogleFonts.nunito(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: primaryGreen,
+                                        ),
+                                      ),
+                                      style: GoogleFonts.nunito(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: textPrimary,
                                       ),
                                       validator: (value) {
                                         final v = value ?? '';
