@@ -193,10 +193,12 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 8),
-              Text(
-                dateFormat.format(now),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.8),
+              Expanded(
+                child: Text(
+                  dateFormat.format(now),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.8),
+                  ),
                 ),
               ),
             ],
@@ -210,10 +212,12 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Start time: ${timeFormat.format(now)}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.8),
+              Expanded(
+                child: Text(
+                  'Start time: ${timeFormat.format(now)}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withOpacity(0.8),
+                  ),
                 ),
               ),
             ],
@@ -272,7 +276,8 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 ),
               ),
             ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+            prefixIconConstraints:
+                const BoxConstraints(minWidth: 0, minHeight: 0),
             hintText: '0.00',
             filled: true,
             fillColor: colorScheme.surface,
@@ -366,6 +371,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
         border: Border.all(color: colorScheme.error.withOpacity(0.3)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             Icons.error_outline,
@@ -379,6 +385,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onErrorContainer,
               ),
+              softWrap: true,
             ),
           ),
         ],
@@ -390,31 +397,10 @@ class _StartShiftDialogState extends State<StartShiftDialog>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _isLoading
-                ? null
-                : () => widget.completer(DialogResponse(confirmed: false)),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              side: BorderSide(color: colorScheme.outline),
-            ),
-            child: Text(
-              'Cancel',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: colorScheme.onSurface,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          flex: 2,
+        SizedBox(
+          width: double.infinity,
           child: ElevatedButton(
             onPressed: _isLoading ? null : _startShift,
             style: ElevatedButton.styleFrom(
@@ -466,6 +452,28 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                       ),
                     ],
                   ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: _isLoading
+                ? null
+                : () => widget.completer(DialogResponse(confirmed: false)),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              side: BorderSide(color: colorScheme.outline),
+            ),
+            child: Text(
+              'Cancel',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+            ),
           ),
         ),
       ],

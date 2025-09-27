@@ -26,6 +26,7 @@ class SignUpView extends StatefulHookConsumerWidget {
 class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
   final _formKey = GlobalKey<FormState>();
+  bool _phoneListenerAdded = false;
 
   // Phone controller and country dial code helpers
   late final TextEditingController _phoneController;
@@ -68,11 +69,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
     _phoneController = TextEditingController(
       text: _ensurePhoneHasDialCode('', widget.countryNm ?? 'Rwanda'),
     );
-    _phoneController.addListener(() {
-      // Update the form bloc field when controller changes
-      final formBloc = context.read<AsyncFieldValidationFormBloc>();
-      formBloc.phoneNumber.updateValue(_phoneController.text);
-    });
+    // Remove the listener setup from here - we'll set it up after the provider is available
   }
 
   @override
@@ -97,9 +94,19 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
           ),
           child: Builder(
             builder: (context) {
-              final formBloc = context.read<AsyncFieldValidationFormBloc>();
+              final formBloc =
+                  BlocProvider.of<AsyncFieldValidationFormBloc>(context);
 
-              // Listen to country changes to update phone dial code
+              // Add phone controller listener only once after provider is available
+              if (!_phoneListenerAdded) {
+                _phoneController.addListener(() {
+                  final phoneNumber = _phoneController.text;
+                  if (phoneNumber.isNotEmpty) {
+                    formBloc.phoneNumber.updateValue(phoneNumber);
+                  }
+                });
+                _phoneListenerAdded = true;
+              } // Listen to country changes to update phone dial code
               formBloc.countryName.stream.listen((state) {
                 if (state.value != null) {
                   final newPhone = _ensurePhoneHasDialCode(

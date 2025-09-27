@@ -1616,6 +1616,28 @@ class CoreSync extends AiStrategyImpl
         throw e;
       }
 
+      // Step 2.5: Create default branch for the business
+      try {
+        talker.info('Signup: Creating default branch for business');
+        final defaultBranch = Branch(
+          id: bus.id,
+          name: bus.name ?? 'Main Branch',
+          serverId: bus.serverId, // Use same ID as business for default branch
+          businessId: bus.serverId,
+          location: bus.adrs ?? '',
+          description: 'Default branch created during signup',
+          active: true,
+          isDefault: true,
+          latitude: bus.latitude,
+          longitude: bus.longitude,
+        );
+        await repository.upsert<Branch>(defaultBranch);
+        talker.info('Signup: Default branch created successfully');
+      } catch (e, s) {
+        talker.error('Signup: Error creating default branch: $e', s);
+        throw e;
+      }
+
       /// deactivate any other branch/or business already set, this is the case for a user
       /// who can signup on a device that had account
       await resetForNewDevice();
