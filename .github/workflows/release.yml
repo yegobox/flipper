@@ -20,7 +20,7 @@ on:
       - 'bugfix-*'
       - main
       - dev
-      - request-enhancment
+      - end-user-facing
       - shifts
       - mislenous-post-mondy-merge
 env:
