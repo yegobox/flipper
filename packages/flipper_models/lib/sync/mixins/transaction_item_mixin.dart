@@ -150,6 +150,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         final qtyUnitCd = variation.qtyUnitCd;
 
         transactionItem = TransactionItem(
+          ttCatCd: variation.ttCatCd ?? "",
           itemNm: variation.itemNm ?? variation.name, // Required
           lastTouched: lastTouched, // Required
           name: name, // Use the passed `name` parameter

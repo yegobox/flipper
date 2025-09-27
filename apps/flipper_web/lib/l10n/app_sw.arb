@@ -1,11 +1,199 @@
 {
   "@@locale": "sw",
   "appTitle": "Flipper",
+  "@appTitle": {
+    "description": "The title of the application"
+  },
   "login": "Ingia",
+  "@login": {
+    "description": "Login button text"
+  },
   "logout": "Toka",
+  "@logout": {
+    "description": "Logout button text"
+  },
   "dashboard": "Dashibodi",
+  "@dashboard": {
+    "description": "Dashboard page title"
+  },
   "welcome": "Karibu",
+  "@welcome": {
+    "description": "Welcome message"
+  },
   "settings": "Mipangilio",
+  "@settings": {
+    "description": "Settings page title"
+  },
   "language": "Lugha",
-  "welcomeToDashboard": "Karibu kwenye Dashibodi yako!"
+  "@language": {
+    "description": "Language selection label"
+  },
+  "welcomeToDashboard": "Karibu kwenye Dashibodi yako!",
+  "@welcomeToDashboard": {
+    "description": "Welcome message on dashboard"
+  },
+  "pricing": "Bei",
+  "@pricing": {
+    "description": "Pricing navigation item"
+  },
+  "blog": "Blogu",
+  "@blog": {
+    "description": "Blog navigation item"
+  },
+  "about": "Kuhusu",
+  "@about": {
+    "description": "About navigation item"
+  },
+  "download": "Pakua",
+  "@download": {
+    "description": "Download navigation item"
+  },
+  "help": "Msaada",
+  "@help": {
+    "description": "Help navigation item"
+  },
+  "signUp": "Jisajili",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+  "heroTitle": "Nyumba salama\nkwa biashara yako",
+  "@heroTitle": {
+    "description": "Hero section main title"
+  },
+  "heroSubtitle": "Faragha kwa chaguo-msingi. Inafanya kazi kila mahali. Tayari kwa biashara.",
+  "@heroSubtitle": {
+    "description": "Hero section subtitle"
+  },
+  "pricingTitle": "Bei rahisi na wazi",
+  "@pricingTitle": {
+    "description": "Pricing section title"
+  },
+  "pricingSubtitle": "Chagua mpango unaofaa zaidi kwako",
+  "@pricingSubtitle": {
+    "description": "Pricing section subtitle"
+  },
+  "planMobile": "Simu",
+  "@planMobile": {
+    "description": "Mobile plan name"
+  },
+  "planMobileDesktop": "Simu + Kompyuta",
+  "@planMobileDesktop": {
+    "description": "Mobile + Desktop plan name"
+  },
+  "planEnterprise": "Biashara",
+  "@planEnterprise": {
+    "description": "Enterprise plan name"
+  },
+  "priceMobile": "5,000",
+  "@priceMobile": {
+    "description": "Mobile plan price"
+  },
+  "priceMobileDesktop": "120,000",
+  "@priceMobileDesktop": {
+    "description": "Mobile + Desktop plan price"
+  },
+  "priceEnterprise": "1,500,000+",
+  "@priceEnterprise": {
+    "description": "Enterprise plan price"
+  },
+  "currencyPerMonth": "RWF/mwezi",
+  "@currencyPerMonth": {
+    "description": "Currency per month suffix"
+  },
+  "featureMobileAppAccess": "Upatikanaji wa programu ya simu",
+  "@featureMobileAppAccess": {
+    "description": "Mobile plan feature"
+  },
+  "featureBasicBusinessTools": "Zana za biashara za msingi",
+  "@featureBasicBusinessTools": {
+    "description": "Mobile plan feature"
+  },
+  "featureDataEncryption": "Usimbaji fiche wa data",
+  "@featureDataEncryption": {
+    "description": "Mobile plan feature"
+  },
+  "featureSingleDevice": "Kifaa kimoja",
+  "@featureSingleDevice": {
+    "description": "Mobile plan feature"
+  },
+  "featureTaxReportingMobile": "+ Uwasilishaji wa kodi (+30,000 RWF)",
+  "@featureTaxReportingMobile": {
+    "description": "Mobile plan tax reporting feature"
+  },
+  "featureMobileDesktopAppAccess": "Upatikanaji wa programu ya Simu + Kompyuta",
+  "@featureMobileDesktopAppAccess": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureAdvancedBusinessTools": "Zana za biashara za hali ya juu",
+  "@featureAdvancedBusinessTools": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureCloudSync": "Usawazishaji wa wingu",
+  "@featureCloudSync": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureMultiDeviceSupport": "Msaada wa vifaa vingi",
+  "@featureMultiDeviceSupport": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureTaxReportingDesktop": "+ Uwasilishaji wa kodi (+30,000 RWF)",
+  "@featureTaxReportingDesktop": {
+    "description": "Mobile + Desktop plan tax reporting feature"
+  },
+  "featureFullPlatformAccess": "Upatikanaji kamili wa jukwaa",
+  "@featureFullPlatformAccess": {
+    "description": "Enterprise plan feature"
+  },
+  "featureCustomIntegrations": "Ujumuishaji maalum",
+  "@featureCustomIntegrations": {
+    "description": "Enterprise plan feature"
+  },
+  "featurePrioritySupport": "Msaada wa kipaumbele",
+  "@featurePrioritySupport": {
+    "description": "Enterprise plan feature"
+  },
+  "featureAdvancedAnalytics": "Takwimu za hali ya juu",
+  "@featureAdvancedAnalytics": {
+    "description": "Enterprise plan feature"
+  },
+  "featureUnlimitedBranches": "+ Matawi yasiyo na kikomo (+600,000 RWF)",
+  "@featureUnlimitedBranches": {
+    "description": "Enterprise plan unlimited branches feature"
+  },
+  "featureMilitaryGradeEncryption": "Usimbaji fiche wa kiwango cha kijeshi",
+  "@featureMilitaryGradeEncryption": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureMultipleDevices": "Vifaa vingi",
+  "@featureMultipleDevices": {
+    "description": "Mobile + Desktop plan feature"
+  },
+  "featureEnterpriseGradeSecurity": "Usalama wa kiwango cha biashara",
+  "@featureEnterpriseGradeSecurity": {
+    "description": "Enterprise plan feature"
+  },
+  "feature247DedicatedSupport": "Msaada maalum 24/7",
+  "@feature247DedicatedSupport": {
+    "description": "Enterprise plan feature"
+  },
+  "featureUnlimitedUsersBranches": "Watumiaji na matawi yasiyo na kikomo",
+  "@featureUnlimitedUsersBranches": {
+    "description": "Enterprise plan feature"
+  },
+  "featureExtraSupport": "+ Msaada wa ziada (+800,000 RWF)",
+  "@featureExtraSupport": {
+    "description": "Enterprise plan extra support feature"
+  },
+  "featurePremiumTaxConsulting": "+ Ushauri wa kodi wa premium (+400,000 RWF)",
+  "@featurePremiumTaxConsulting": {
+    "description": "Enterprise plan premium tax consulting feature"
+  },
+  "mostPopular": "Maarufu zaidi",
+  "@mostPopular": {
+    "description": "Most popular badge text"
+  },
+  "getStarted": "Anza",
+  "@getStarted": {
+    "description": "Get started button text"
+  }
 }

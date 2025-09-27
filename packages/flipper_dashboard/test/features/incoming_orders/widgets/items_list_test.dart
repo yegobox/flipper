@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import '../../../test_helpers/setup.dart';
+
 // flutter test test/features/incoming_orders/widgets/items_list_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   late TestEnvironment env;
@@ -39,6 +40,7 @@ void main() {
       mockItems = [
         TransactionItem(
           id: '1',
+          ttCatCd: "TT",
           name: 'Test Item 1',
           qty: 10.0,
           price: 100.0,
@@ -51,6 +53,7 @@ void main() {
         ),
         TransactionItem(
           id: '2',
+          ttCatCd: "TT",
           name: 'Test Item 2',
           qty: 8.0,
           price: 150.0,
@@ -132,10 +135,11 @@ void main() {
       await tester.pump();
 
       expect(find.text('5/10'), findsOneWidget); // Item 1: approved/requested
-      expect(find.text('8/8'), findsOneWidget);  // Item 2: approved/requested
+      expect(find.text('8/8'), findsOneWidget); // Item 2: approved/requested
     });
 
-    testWidgets('shows pending quantity for partially approved items', (tester) async {
+    testWidgets('shows pending quantity for partially approved items',
+        (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -164,7 +168,8 @@ void main() {
 
       await tester.pump();
 
-      expect(find.text('Approve'), findsOneWidget); // Only Item 1 should have approve button
+      expect(find.text('Approve'),
+          findsOneWidget); // Only Item 1 should have approve button
       expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
     });
 
@@ -181,7 +186,8 @@ void main() {
 
       await tester.pump();
 
-      expect(find.byType(Column), findsNWidgets(4)); // Main column + 2 item columns + 1 data column
+      expect(find.byType(Column),
+          findsNWidgets(4)); // Main column + 2 item columns + 1 data column
       expect(find.byType(Card), findsNWidgets(2)); // 2 item cards
     });
 

@@ -135,6 +135,7 @@ void main() {
           items: [
             TransactionItem(
                 id: '1',
+                ttCatCd: "TT",
                 price: 10,
                 qty: 1,
                 name: "test",
@@ -148,6 +149,7 @@ void main() {
               .get<TransactionItem>(query: any(named: 'query')))
           .thenAnswer((_) async => [
                 TransactionItem(
+                    ttCatCd: "TT",
                     id: '1',
                     price: 10,
                     qty: 1,

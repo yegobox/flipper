@@ -1,4 +1,16 @@
-# Miscellaneous
+cd /Users/richard/Documents/GitHub/flipper
+
+# Merge and remove AppleDouble files in target dirs
+sudo dot_clean -m ./apps/flipper/macos
+sudo dot_clean -m ./apps/flipper/build
+sudo dot_clean -m ./apps/flipper/ios
+sudo dot_clean -m ./apps/flipper
+
+# Recursively clear extended attributes where needed
+sudo xattr -rc ./apps/flipper/macos
+sudo xattr -rc ./apps/flipper/build
+sudo xattr -rc ./apps/flipper/ios/Pods
+sudo xattr -rc ./apps/flipper# Miscellaneous
 *.class
 *.log
 *.pyc
@@ -93,3 +105,20 @@ amplifytools.xcconfig
 .secret-*
 **.sample
 #amplify-do-not-edit-end
+# macOS Finder / resource fork detritus
+.DS_Store
+**/.DS_Store
+.AppleDouble/
+._*
+# Finder info / resource forks
+**/Icon
+Icon
+
+# Xcode & macOS build artifacts
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.xcuserstate
+*.xcuserdata
+*.moved-aside
+

@@ -861,4 +861,5 @@ class App {}
 // supabase db push --include-all  (push remote migrations to supabase)
 // https://services.google.com/fb/forms/reservationsappointmentsonlinebooking-interestform/
 // https://developers.google.com/maps-booking
-
+// https://github.com/features/copilot/plans
+// 

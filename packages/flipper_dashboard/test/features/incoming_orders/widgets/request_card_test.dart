@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import '../../../test_helpers/setup.dart';
+
 // flutter test test/features/incoming_orders/widgets/request_card_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   late TestEnvironment env;
@@ -39,6 +40,7 @@ void main() {
       mockItems = [
         TransactionItem(
           id: '1',
+          ttCatCd: "TT",
           name: 'Test Item 1',
           qty: 10.0,
           price: 100.0,
@@ -161,7 +163,8 @@ void main() {
 
       // Check for child widgets
       expect(find.text('Items'), findsOneWidget); // ItemsList
-      expect(find.textContaining('Source Branch'), findsAtLeastNWidgets(1)); // BranchInfo + RequestHeader
+      expect(find.textContaining('Source Branch'),
+          findsAtLeastNWidgets(1)); // BranchInfo + RequestHeader
       expect(find.text('Test order note'), findsOneWidget); // OrderNote
     });
 
@@ -306,7 +309,7 @@ void main() {
       final hasDecoratedContainer = containers.any(
         (container) => container.decoration != null,
       );
-      
+
       expect(hasDecoratedContainer, isTrue);
     });
   });
