@@ -1,8 +1,26 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:convert';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+
+/// Enum for business types
+enum BusinessTypeEnum {
+  BUSINESS('1'),
+  INDIVIDUAL('2');
+
+  const BusinessTypeEnum(this.id);
+  final String id;
+
+  static BusinessTypeEnum fromId(String id) {
+    return BusinessTypeEnum.values.firstWhere(
+      (type) => type.id == id,
+      orElse: () => BusinessTypeEnum.BUSINESS,
+    );
+  }
+}
 
 final signupRepositoryProvider = Provider<SignupRepository>((ref) {
   return SignupRepository();
@@ -81,8 +99,7 @@ class SignupRepository {
         'bhfid': '00',
         // Ensure userId is sent as a string regardless of incoming type
         'userId': userId?.toString(),
-        'businessType':
-            businessTypeId, // Including both formats for compatibility
+        'type': BusinessTypeEnum.fromId(businessTypeId).name,
       };
 
       // Add phone number if available
