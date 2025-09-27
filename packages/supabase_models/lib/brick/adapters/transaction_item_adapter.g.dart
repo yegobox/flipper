@@ -181,6 +181,7 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
     supplyPriceAtSale: data['supply_price_at_sale'] == null
         ? null
         : data['supply_price_at_sale'] as num?,
+    ttCatCd: data['tt_cat_cd'] as String,
   );
 }
 
@@ -284,6 +285,7 @@ Future<Map<String, dynamic>> _$TransactionItemToSupabase(
     'inventory_request_id': instance.inventoryRequestId,
     'ignore_for_report': instance.ignoreForReport,
     'supply_price_at_sale': instance.supplyPriceAtSale,
+    'tt_cat_cd': instance.ttCatCd,
   };
 }
 
@@ -469,6 +471,7 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
     supplyPriceAtSale: data['supply_price_at_sale'] == null
         ? null
         : data['supply_price_at_sale'] as num?,
+    ttCatCd: data['tt_cat_cd'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -582,6 +585,7 @@ Future<Map<String, dynamic>> _$TransactionItemToSqlite(
     'inventory_request_id': instance.inventoryRequestId,
     'ignore_for_report': instance.ignoreForReport ? 1 : 0,
     'supply_price_at_sale': instance.supplyPriceAtSale,
+    'tt_cat_cd': instance.ttCatCd,
   };
 }
 
@@ -950,6 +954,10 @@ class TransactionItemAdapter
     'supplyPriceAtSale': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'supply_price_at_sale',
+    ),
+    'ttCatCd': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tt_cat_cd',
     ),
   };
   @override
@@ -1491,6 +1499,12 @@ class TransactionItemAdapter
       columnName: 'supply_price_at_sale',
       iterable: false,
       type: num,
+    ),
+    'ttCatCd': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tt_cat_cd',
+      iterable: false,
+      type: String,
     ),
   };
   @override

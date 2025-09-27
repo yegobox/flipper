@@ -61,9 +61,7 @@ class CreateMockdata {
       var variants = await ProxyService.strategy.variants(
         productId: product.id,
         branchId: 1,
-        taxTyCds: ProxyService.box.vatEnabled()
-            ? ['A', 'B', 'C']
-            : ['D'],
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       );
       var variant = variants.isNotEmpty ? variants.first : null;
 
@@ -77,6 +75,7 @@ class CreateMockdata {
           transactionItems: [
             TransactionItem(
               itemTyCd: "",
+              ttCatCd: "TT",
               pkgUnitCd: "",
               qtyUnitCd: "",
               itemCd: "",
@@ -102,6 +101,7 @@ class CreateMockdata {
           transactionItems: [
             TransactionItem(
               itemTyCd: "",
+              ttCatCd: "TT",
               pkgUnitCd: "",
               qtyUnitCd: "",
               itemCd: "",

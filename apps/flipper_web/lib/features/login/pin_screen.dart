@@ -1,7 +1,7 @@
-import 'package:flipper_web/features/login/auth_providers.dart';
 import 'package:flipper_web/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_web/widgets/app_button.dart';
 
 enum OtpType { sms, authenticator }
 
@@ -28,21 +28,27 @@ class _PinScreenState extends ConsumerState<PinScreen> {
   }
 
   Future<void> _handleSubmission() async {
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
     try {
       final authRepository = ref.read(authRepositoryProvider);
 
-      setState(() => _errorMessage = null);
+      if (mounted) {
+        setState(() => _errorMessage = null);
+      }
 
       if (!_isPinVerified) {
         final pin = _pinController.text;
         final success = await authRepository.verifyPin(pin);
 
-        if (success) {
-          setState(() => _isPinVerified = true);
-        } else {
-          setState(() => _errorMessage = 'Invalid PIN');
+        if (mounted) {
+          if (success) {
+            setState(() => _isPinVerified = true);
+          } else {
+            setState(() => _errorMessage = 'Invalid PIN');
+          }
         }
       } else {
         final pin = _pinController.text;
@@ -54,28 +60,29 @@ class _PinScreenState extends ConsumerState<PinScreen> {
           success = await authRepository.verifyTotp(pin, otp);
         }
 
-        if (success) {
-          // The auth state will be updated by the stream provider
-        } else {
+        if (!success && mounted) {
           setState(() => _errorMessage = 'Invalid OTP');
         }
       }
     } catch (e) {
-      setState(
-        () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
-      );
+      if (mounted) {
+        setState(
+          () => _errorMessage = e.toString().replaceFirst('Exception: ', ''),
+        );
+      }
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get current theme for consistent styling
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: ConstrainedBox(
@@ -85,13 +92,13 @@ class _PinScreenState extends ConsumerState<PinScreen> {
             child: IntrinsicHeight(
               child: Row(
                 children: [
-                  // Left side - Authentication image
+                  // Left - auth illustration
                   Expanded(
                     flex: 2,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer.withOpacity(
-                          0.05,
+                        color: theme.colorScheme.primaryContainer.withValues(
+                          alpha: 0.05,
                         ),
                       ),
                       child: Center(
@@ -104,7 +111,7 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                     ),
                   ),
 
-                  // Right side - Form container
+                  // Right - form cardlp-\[=.]
                   Expanded(
                     flex: 3,
                     child: Center(
@@ -112,12 +119,12 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 24),
                         padding: const EdgeInsets.all(40),
                         decoration: BoxDecoration(
-                          color: theme.cardColor,
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
+                              color: Colors.black.withValues(alpha: .04),
+                              blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
                           ],
@@ -126,7 +133,6 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Title
                             Text(
                               _isPinVerified
                                   ? 'Enter ${_otpType == OtpType.sms ? 'SMS OTP' : 'Authenticator Code'}'
@@ -155,15 +161,16 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                                 ],
                                 selected: {_otpType},
                                 onSelectionChanged: (newSelection) {
-                                  setState(() {
-                                    _otpType = newSelection.first;
-                                  });
+                                  if (mounted) {
+                                    setState(() {
+                                      _otpType = newSelection.first;
+                                    });
+                                  }
                                 },
                               ),
                               const SizedBox(height: 16),
                             ],
 
-                            // Input field
                             TextFormField(
                               key: const Key('pinOrOtpInput'),
                               controller: _isPinVerified
@@ -229,7 +236,14 @@ class _PinScreenState extends ConsumerState<PinScreen> {
                             const SizedBox(height: 32),
 
                             // Action button
-                            _buildActionButton(theme),
+                            AppButton(
+                              label: _isPinVerified ? 'Verify' : 'Submit',
+                              onPressed: _handleSubmission,
+                              variant: AppButtonVariant.primary,
+                              isLoading: _isLoading,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              expanded: true,
+                            ),
                           ],
                         ),
                       ),
@@ -239,31 +253,6 @@ class _PinScreenState extends ConsumerState<PinScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(ThemeData theme) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    return FilledButton.tonal(
-      onPressed: _handleSubmission,
-      style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        elevation: 0,
-        foregroundColor: theme.colorScheme.onPrimary,
-        backgroundColor: theme.colorScheme.primary,
-      ),
-      child: Text(
-        _isPinVerified
-            ? 'Verify ${_otpType == OtpType.sms ? 'OTP' : 'Code'}'
-            : 'Submit',
-        style: theme.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w500,
         ),
       ),
     );

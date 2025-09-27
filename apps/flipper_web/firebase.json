@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "flipper-uat",
     "public": "build/web",
     "ignore": [
       "firebase.json",
@@ -10,6 +11,17 @@
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.wasm",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/wasm"
+          }
+        ]
       }
     ]
   }

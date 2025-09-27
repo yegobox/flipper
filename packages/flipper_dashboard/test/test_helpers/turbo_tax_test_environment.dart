@@ -102,6 +102,7 @@ class TurboTaxTestEnvironment {
     registerFallbackValue(TransactionItem(
         id: 'fallback_item',
         price: 0.0,
+        ttCatCd:"TT",
         qty: 0.0,
         name: 'fallback_item',
         discount: 0,

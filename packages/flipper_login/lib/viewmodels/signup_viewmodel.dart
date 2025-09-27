@@ -41,6 +41,14 @@ class SignupViewModel extends BaseViewModel {
     this.country = country;
   }
 
+  /// Set the phone number
+  void setPhoneNumber({required String phoneNumber}) {
+    // Store phone number in ProxyService box or use it directly in signup
+    if (phoneNumber.isNotEmpty) {
+      ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
+    }
+  }
+
   /// Register device location
   void registerLocation() {
     // Implementation for location registration

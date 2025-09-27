@@ -176,7 +176,7 @@ jobs:
       - name: Build Flipper Web app
         run: |
           cd apps/flipper_web
-          flutter build web --wasm --release
+          flutter build web  --release
           
       - name: Deploy Flipper Web app to Firebase Hosting
         id: deploy_flipper_web
