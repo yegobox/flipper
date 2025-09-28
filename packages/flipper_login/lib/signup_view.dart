@@ -26,11 +26,9 @@ class SignUpView extends StatefulHookConsumerWidget {
 class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
   final _formKey = GlobalKey<FormState>();
-  bool _phoneListenerAdded = false;
+  bool _countryListenerSet = false;
 
   // Phone controller and country dial code helpers
-  late final TextEditingController _phoneController;
-
   final Map<String, String> _countryDialCodes = {
     'Rwanda': '+250',
     'Zambia': '+260',
@@ -41,23 +39,19 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
     return _countryDialCodes[country] ?? '+250';
   }
 
-  String _stripDialCode(String phone) {
-    if (phone.isEmpty) return '';
-    for (final code in _countryDialCodes.values) {
-      if (phone.startsWith(code)) return phone.substring(code.length);
-    }
-    return phone;
-  }
-
   String _ensurePhoneHasDialCode(String phone, String country) {
     final code = _dialCodeForCountry(country);
     final cleaned = phone.trim();
     if (cleaned.isEmpty) return code;
-    // If phone already starts with a known code, return as-is
+    // If phone already starts with the correct dial code for this country, return as-is
+    if (cleaned.startsWith(code)) return cleaned;
+    // If phone starts with any known dial code, replace it with the correct one
     for (final c in _countryDialCodes.values) {
-      if (cleaned.startsWith(c)) return cleaned;
+      if (cleaned.startsWith(c)) {
+        return code + cleaned.substring(c.length);
+      }
     }
-    // Remove leading zero if present (local formats)
+    // Remove leading zero if present (local formats) and prepend dial code
     var local = cleaned;
     if (local.startsWith('0')) local = local.substring(1);
     return '$code$local';
@@ -66,15 +60,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   @override
   void initState() {
     super.initState();
-    _phoneController = TextEditingController(
-      text: _ensurePhoneHasDialCode('', widget.countryNm ?? 'Rwanda'),
-    );
     // Remove the listener setup from here - we'll set it up after the provider is available
   }
 
   @override
   void dispose() {
-    _phoneController.dispose();
     super.dispose();
   }
 
@@ -97,25 +87,29 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
               final formBloc =
                   BlocProvider.of<AsyncFieldValidationFormBloc>(context);
 
-              // Add phone controller listener only once after provider is available
-              if (!_phoneListenerAdded) {
-                _phoneController.addListener(() {
-                  final phoneNumber = _phoneController.text;
-                  if (phoneNumber.isNotEmpty) {
-                    formBloc.phoneNumber.updateValue(phoneNumber);
+              // Set initial phone value only if it's empty (first time setup)
+              if (formBloc.phoneNumber.value.isEmpty) {
+                formBloc.phoneNumber.updateValue(
+                    _ensurePhoneHasDialCode('', widget.countryNm ?? 'Rwanda'));
+              }
+
+              // Set up country change listener only once
+              if (!_countryListenerSet) {
+                _countryListenerSet = true;
+                formBloc.countryName.stream.listen((state) {
+                  if (state.value != null) {
+                    final currentPhone = formBloc.phoneNumber.value;
+                    final newPhone = _ensurePhoneHasDialCode(
+                      currentPhone,
+                      state.value!,
+                    );
+                    // Only update if the dial code actually changed
+                    if (newPhone != currentPhone) {
+                      formBloc.phoneNumber.updateValue(newPhone);
+                    }
                   }
                 });
-                _phoneListenerAdded = true;
-              } // Listen to country changes to update phone dial code
-              formBloc.countryName.stream.listen((state) {
-                if (state.value != null) {
-                  final newPhone = _ensurePhoneHasDialCode(
-                    _stripDialCode(_phoneController.text),
-                    state.value!,
-                  );
-                  _phoneController.text = newPhone;
-                }
-              });
+              }
 
               return Scaffold(
                 backgroundColor: const Color(0xFFF7FAFC),
@@ -155,41 +149,13 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                         icon: Icons.badge_outlined,
                                         hint: 'First name, Last name',
                                       ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 16),
-                                        child: TextFormField(
-                                          controller: _phoneController,
-                                          keyboardType: TextInputType.phone,
-                                          decoration: InputDecoration(
-                                            labelText: 'Phone Number',
-                                            hintText: 'Enter your phone number',
-                                            prefixIcon: const Icon(
-                                                Icons.phone_outlined),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                              horizontal: 16,
-                                            ),
-                                          ),
-                                          validator: (value) {
-                                            final v = value ?? '';
-                                            if (v.isEmpty)
-                                              return 'Phone number is required';
-                                            if (v
-                                                    .replaceAll(
-                                                        RegExp(r'[^0-9+]'), '')
-                                                    .length <
-                                                9) {
-                                              return 'Please enter a valid phone number';
-                                            }
-                                            return null;
-                                          },
-                                        ),
+                                      components.SignupComponents
+                                          .buildInputField(
+                                        fieldBloc: formBloc.phoneNumber,
+                                        label: 'Phone Number',
+                                        icon: Icons.phone_outlined,
+                                        hint: 'Enter your phone number',
+                                        keyboardType: TextInputType.phone,
                                       ),
                                       components.SignupComponents
                                           .buildDropdownField<BusinessType>(

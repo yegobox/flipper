@@ -137,8 +137,6 @@ mixin TenantMixin implements TenantInterface {
       "phoneNumber": phoneNumber,
       "pin": pin,
       "userId": pin.toString(),
-
-      /// TODO: parsing here is not good why not pass them as int?? to be fixed soon
       "branchId": int.parse(branchId),
       "businessId": int.parse(businessId),
       "defaultApp": defaultApp,
@@ -147,7 +145,7 @@ mixin TenantMixin implements TenantInterface {
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/pin"), body: data);
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       throw InternalServerError(term: "internal server error");
     }
   }
