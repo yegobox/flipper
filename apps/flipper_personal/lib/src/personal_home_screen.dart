@@ -2,8 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widgets/challenge_widgets.dart';
 
+/// Duolingo-inspired color palette
+class DuoPalette {
+  static const Color primaryGreen = Color(0xFF58CC02);
+  static const Color darkGreen = Color(0xFF46A302);
+  static const Color lightGreen = Color(0xFFE8F5E8);
+  static const Color accentBlue = Color(0xFF1CB0F6);
+  static const Color backgroundColor = Color(0xFFF7F7F7);
+  static const Color textPrimary = Color(0xFF3C3C41);
+  static const Color textSecondary = Color(0xFF777777);
+  static const Color errorRed = Color(0xFFFF4B4B);
+  static const Color warningOrange = Color(0xFFFF9600);
+}
+
 /// The main screen for the Flipper Personal app.
-/// This is displayed when users with individual businesses log in.
+/// Re-imagined with Duolingo-inspired playful style, bright colors, rounded shapes, and friendly UX.
 class PersonalHomeScreen extends ConsumerStatefulWidget {
   const PersonalHomeScreen({super.key});
 
@@ -18,17 +31,21 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: DuoPalette.backgroundColor,
       appBar: AppBar(
         title: const Text('Flipper Personal'),
-        backgroundColor: Colors.blue,
+        backgroundColor: DuoPalette.primaryGreen,
         foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.sync),
+            splashRadius: 24,
             onPressed: () {
               // TODO: Implement manual sync
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
+                  backgroundColor: DuoPalette.darkGreen,
                   content: Text('Syncing with nearby businesses...'),
                 ),
               );
@@ -45,46 +62,77 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
               children: [
                 // Welcome section
                 Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade50, Colors.white],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+                  decoration: const BoxDecoration(
+                    color: DuoPalette.primaryGreen,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(32),
+                      bottomRight: Radius.circular(32),
                     ),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.person, size: 80, color: Colors.blue.shade600),
-                      const SizedBox(height: 16),
+                      Container(
+                        decoration: const BoxDecoration(
+                          color: DuoPalette.lightGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(18),
+                        child: Icon(
+                          Icons.person,
+                          size: 60,
+                          color: DuoPalette.darkGreen,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       Text(
-                        'Welcome to Flipper Personal',
+                        'Welcome to Flipper Personal!',
                         style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade800,
+                              color: Colors.white,
                             ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
-                        'Discover challenges and earn rewards when you visit nearby businesses',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey.shade600,
-                        ),
+                        'Discover playful challenges, earn rewards, and have fun while supporting local businesses!',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.copyWith(color: Colors.white70),
                         textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
 
-                // User's rewards section
-                UserRewardsWidget(userId: currentUserId),
+                // User's rewards section (with playful card style)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
+                  child: Material(
+                    elevation: 3,
+                    borderRadius: BorderRadius.circular(18),
+                    color: DuoPalette.lightGreen,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 10,
+                      ),
+                      child: UserRewardsWidget(userId: currentUserId),
+                    ),
+                  ),
+                ),
 
                 // Features section
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 10,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -92,28 +140,32 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
                         'How it works',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: DuoPalette.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       _buildFeatureCard(
                         icon: Icons.location_on,
+                        iconBg: DuoPalette.accentBlue,
                         title: 'Visit Nearby Businesses',
                         description:
-                            'Walk into participating businesses to automatically discover hidden challenges.',
+                            'Walk in and automatically discover hidden challenges. It’s more fun together!',
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       _buildFeatureCard(
                         icon: Icons.celebration,
-                        title: 'Claim Rewards',
+                        iconBg: DuoPalette.warningOrange,
+                        title: 'Claim Instant Rewards',
                         description:
-                            'Get instant rewards like discounts, points, or special badges.',
+                            'Earn discounts, points, or special badges — all while exploring!',
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       _buildFeatureCard(
                         icon: Icons.sync,
+                        iconBg: DuoPalette.primaryGreen,
                         title: 'Offline First',
                         description:
-                            'Works without internet - rewards sync when you\'re back online.',
+                            'No internet? No problem! Sync your rewards when you’re back online.',
                       ),
                     ],
                   ),
@@ -121,30 +173,36 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
 
                 // Get started button
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 28,
+                  ),
                   child: ElevatedButton(
                     onPressed: () {
                       // TODO: Navigate to business discovery or settings
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
+                          backgroundColor: DuoPalette.primaryGreen,
                           content: Text('Start exploring nearby businesses!'),
                         ),
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.blue,
+                      backgroundColor: DuoPalette.primaryGreen,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 5,
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.white,
                       ),
                     ),
                     child: const Text(
                       'Start Exploring',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(color: Colors.white, letterSpacing: 0.5),
                     ),
                   ),
                 ),
@@ -161,39 +219,46 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen> {
 
   Widget _buildFeatureCard({
     required IconData icon,
+    required Color iconBg,
     required String title,
     required String description,
   }) {
     return Card(
+      color: Colors.white,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
+                color: iconBg.withOpacity(0.15),
+                shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: Colors.blue.shade600, size: 24),
+              padding: const EdgeInsets.all(14),
+              child: Icon(icon, color: iconBg, size: 32),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 18),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: DuoPalette.textPrimary,
+                      fontSize: 17,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 5),
                   Text(
                     description,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    style: TextStyle(
+                      color: DuoPalette.textSecondary,
+                      fontSize: 14.5,
+                    ),
                   ),
                 ],
               ),
