@@ -1,28 +1,11 @@
-import 'package:flipper_models/src/platform.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flutter/foundation.dart';
 
-bool isTestEnvironment() {
-  return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
-}
-
 Future<void> loadSupabase() async {
   try {
-    String supabaseUrl;
-    String supabaseAnonKey;
-
-    if (kDebugMode && !isTestEnvironment()) {
-      if (isAndroid) {
-        supabaseUrl = "http://10.0.2.2:54321";
-      } else {
-        supabaseUrl = AppSecrets.localSuperbaseUrl;
-      }
-      supabaseAnonKey = AppSecrets.localSupabaseAnonKey;
-    } else {
-      supabaseUrl = AppSecrets.superbaseurl;
-      supabaseAnonKey = AppSecrets.supabaseAnonKey;
-    }
+    String supabaseUrl = AppSecrets.supabaseUrl;
+    String supabaseAnonKey = AppSecrets.supabaseAnonKey;
 
     if (kDebugMode) {
       debugPrint('Initializing Supabase with:');
@@ -41,7 +24,7 @@ Future<void> loadSupabase() async {
     debugPrint('Error initializing Supabase: $s');
 
     // In test environment, we'll continue even if Supabase fails
-    if (!isTestEnvironment()) {
+    if (!AppSecrets.isTestEnvironment()) {
       rethrow;
     }
   }
