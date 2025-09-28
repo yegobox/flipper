@@ -15,7 +15,7 @@ dependencies:
   universal_platform: ^1.0.0+1
   stacked_services: ^1.6.0
   firebase_auth: ^6.0.1
-  stacked: ^3.4.2
+  stacked: ^3.5.0
   built_value: ^8.1.4
   azlistview: ^2.0.0
   scrollable_positioned_list: ^0.3.2-dev
@@ -67,6 +67,7 @@ dependencies:
   synchronized: ^3.3.0+3
   email_validator: ^2.1.17
   faker: ^2.2.0
+  flipper_personal: any
   
 
 dependency_overrides:

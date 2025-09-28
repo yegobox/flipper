@@ -22,7 +22,7 @@ dependencies:
   # image_picker: ^1.1.2
   file_picker: ^8.3.3
   firebase_ui_auth: ^3.0.0
-  stacked: ^3.4.2
+  stacked: ^3.5.0
   azlistview: ^2.0.0
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this
   # will increase app size.

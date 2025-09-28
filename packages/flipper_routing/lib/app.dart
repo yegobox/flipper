@@ -5,6 +5,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
 
+
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
@@ -67,6 +68,7 @@ import 'all_routes.dart';
     CustomRoute(page: CreditApp),
     CustomRoute(page: CreditApp),
     CustomRoute(page: ShiftHistoryView),
+    CustomRoute(page: PersonalHomeScreen),
     //
   ],
   dependencies: [

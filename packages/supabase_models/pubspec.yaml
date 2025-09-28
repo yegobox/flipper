@@ -47,4 +47,4 @@ dev_dependencies:
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
   build_runner: ^2.4.15
-  # realm_generator: ^20.1.1
+  # realm_generator: ^20.2.0

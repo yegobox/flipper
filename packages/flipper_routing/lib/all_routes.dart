@@ -66,3 +66,4 @@ export 'package:flipper_dashboard/logout/logout.dart';
 export 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';
 export 'package:flipper_dashboard/Reports.dart';
 export 'package:flipper_dashboard/creditApp.dart';
+export 'package:flipper_personal/flipper_personal.dart';

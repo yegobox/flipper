@@ -14,6 +14,7 @@ import 'package:flipper_models/db_model_export.dart' as _i9;
 import 'package:flutter/material.dart' as _i5;
 import 'package:stacked/stacked.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
+import 'package:flipper_personal/flipper_personal.dart' as _i10;
 
 import 'all_routes.dart' as _i1;
 
@@ -39,6 +40,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+
     SignUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<SignUpViewArgs>(
           orElse: () => const SignUpViewArgs());
@@ -52,10 +54,19 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+   
     FlipperAppRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.FlipperApp(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    PersonalHomeRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i10.PersonalHomeScreen(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -608,6 +619,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/flipper-app',
         ),
         _i4.RouteConfig(
+          PersonalHomeRoute.name,
+          path: '/personal-home',
+        ),
+        _i4.RouteConfig(
           FailedPaymentRoute.name,
           path: '/failed-payment',
         ),
@@ -912,6 +927,18 @@ class FlipperAppRoute extends _i4.PageRouteInfo<void> {
         );
 
   static const String name = 'FlipperApp';
+}
+
+/// generated route for
+/// [_i10.PersonalHomeScreen]
+class PersonalHomeRoute extends _i4.PageRouteInfo<void> {
+  const PersonalHomeRoute()
+      : super(
+          PersonalHomeRoute.name,
+          path: '/personal-home',
+        );
+
+  static const String name = 'PersonalHome';
 }
 
 /// generated route for
