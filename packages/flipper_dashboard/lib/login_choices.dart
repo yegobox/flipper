@@ -1,9 +1,4 @@
-// ignore_for_file: unused_result
-
-import 'dart:async';
-import 'package:flipper_dashboard/BranchSelectionMixin.dart';
-import 'package:flipper_models/providers/branch_business_provider.dart';
-import 'package:flipper_routing/app.dialogs.dart';
+// igimport 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -16,6 +11,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:flipper_personal/flipper_personal.dart';
+// ignore: unnecessary_import unused_result
+
+import 'dart:async';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+// Import for payment plan route is already available from app.router.dart
 // ignore: unnecessary_import
 
 final selectedBusinessIdProvider = StateProvider<int?>((ref) => null);
@@ -65,7 +68,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                         Text(
                           _isSelectingBranch
                               ? 'Choose a Branch'
-                              : 'Choose a Business',
+                              : 'Choose a Profile',
                           style: const TextStyle(
                             fontSize: 32.0,
                             fontWeight: FontWeight.bold,
@@ -76,7 +79,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                         Text(
                           _isSelectingBranch
                               ? 'Select the branch you want to access'
-                              : 'Select the business you want to log into',
+                              : 'Select a profile you want to log into',
                           style: TextStyle(
                             fontSize: 16.0,
                             color: Colors.grey[600],
@@ -201,6 +204,23 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     setState(() {
       _loadingItemId = business.serverId.toString();
     });
+
+    // Check if this is an individual business (businessTypeId == 2)
+    if (business.businessTypeId == 2) {
+      // Navigate to personal app screen
+      if (mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const PersonalHomeScreen(),
+          ),
+        );
+      }
+      setState(() {
+        _loadingItemId = null;
+      });
+      return;
+    }
+
     ref.read(selectedBusinessIdProvider.notifier).state = business.serverId;
     try {
       // Save business ID to local storage
@@ -485,6 +505,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   void _refreshBusinessAndBranchProviders() {
+    // Refresh providers to reflect changes
     ref.refresh(businessesProvider);
     final businessId = ref.read(selectedBusinessIdProvider);
     if (businessId != null) {
