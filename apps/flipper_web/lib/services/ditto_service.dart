@@ -581,4 +581,176 @@ class DittoService {
       return [];
     }
   }
+
+  /// Save a challenge code to the challengeCodes collection
+  Future<void> saveChallengeCode(Map<String, dynamic> challengeCode) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot save challenge code');
+        return;
+      }
+
+      final docId = challengeCode['_id'] ?? challengeCode['id'];
+      await _ditto!.store.execute(
+        "INSERT INTO challengeCodes DOCUMENTS (:challenge) ON ID CONFLICT DO UPDATE",
+        arguments: {
+          "challenge": {"_id": docId, ...challengeCode},
+        },
+      );
+      debugPrint('Saved challenge code with ID: $docId');
+    } catch (e) {
+      debugPrint('Error saving challenge code to Ditto: $e');
+    }
+  }
+
+  /// Get challenge codes from the challengeCodes collection
+  Future<List<Map<String, dynamic>>> getChallengeCodes({
+    String? businessId,
+    bool onlyValid = true,
+  }) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot get challenge codes');
+        return [];
+      }
+
+      String query = "SELECT * FROM challengeCodes";
+      final arguments = <String, dynamic>{};
+
+      if (businessId != null) {
+        query += " WHERE businessId = :businessId";
+        arguments["businessId"] = businessId;
+      }
+
+      if (onlyValid) {
+        final whereClause = businessId != null ? " AND" : " WHERE";
+        query += "$whereClause validTo > :now";
+        arguments["now"] = DateTime.now().toIso8601String();
+      }
+
+      query += " ORDER BY createdAt DESC";
+
+      final result = await _ditto!.store.execute(query, arguments: arguments);
+
+      return result.items
+          .map((doc) => Map<String, dynamic>.from(doc.value))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting challenge codes: $e');
+      return [];
+    }
+  }
+
+  /// Save a claim to the claims collection
+  Future<void> saveClaim(Map<String, dynamic> claim) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot save claim');
+        return;
+      }
+
+      final docId = claim['_id'] ?? claim['id'];
+      await _ditto!.store.execute(
+        "INSERT INTO claims DOCUMENTS (:claim) ON ID CONFLICT DO UPDATE",
+        arguments: {
+          "claim": {"_id": docId, ...claim},
+        },
+      );
+      debugPrint('Saved claim with ID: $docId');
+    } catch (e) {
+      debugPrint('Error saving claim to Ditto: $e');
+    }
+  }
+
+  /// Get claims for a user from the claims collection
+  Future<List<Map<String, dynamic>>> getClaimsForUser(String userId) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot get claims');
+        return [];
+      }
+
+      final result = await _ditto!.store.execute(
+        "SELECT * FROM claims WHERE userId = :userId ORDER BY claimedAt DESC",
+        arguments: {"userId": userId},
+      );
+
+      return result.items
+          .map((doc) => Map<String, dynamic>.from(doc.value))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting claims for user $userId: $e');
+      return [];
+    }
+  }
+
+  /// Check if a challenge code has already been claimed by a user
+  Future<bool> isChallengeCodeClaimed(
+    String userId,
+    String challengeCodeId,
+  ) async {
+    try {
+      if (_ditto == null) {
+        debugPrint('Ditto not initialized, cannot check claim status');
+        return false;
+      }
+
+      final result = await _ditto!.store.execute(
+        "SELECT * FROM claims WHERE userId = :userId AND challengeCodeId = :challengeCodeId LIMIT 1",
+        arguments: {"userId": userId, "challengeCodeId": challengeCodeId},
+      );
+
+      return result.items.isNotEmpty;
+    } catch (e) {
+      debugPrint('Error checking claim status: $e');
+      return false;
+    }
+  }
+
+  /// Observe challenge codes for real-time updates
+  Stream<List<Map<String, dynamic>>> observeChallengeCodes({
+    String? businessId,
+    bool onlyValid = true,
+  }) {
+    if (_ditto == null) {
+      return Stream.value([]);
+    }
+
+    String query = "SELECT * FROM challengeCodes";
+    final arguments = <String, dynamic>{};
+
+    if (businessId != null) {
+      query += " WHERE businessId = :businessId";
+      arguments["businessId"] = businessId;
+    }
+
+    if (onlyValid) {
+      final whereClause = businessId != null ? " AND" : " WHERE";
+      query += "$whereClause validTo > :now";
+      arguments["now"] = DateTime.now().toIso8601String();
+    }
+
+    query += " ORDER BY createdAt DESC";
+
+    final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
+
+    final observer = _ditto!.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) {
+        final items = queryResult.items
+            .map((doc) => Map<String, dynamic>.from(doc.value))
+            .toList();
+        controller.add(items);
+      },
+    );
+
+    // Handle stream cancellation
+    controller.onCancel = () {
+      observer.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
+  }
 }
