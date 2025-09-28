@@ -5,6 +5,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/models/user_profile.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // Global singleton instance of DittoService
 final DittoService _dittoServiceInstance = DittoService._internal();
@@ -57,6 +58,18 @@ class DittoService {
   /// Sets the Ditto instance (called from main.dart after initialization)
   void setDitto(Ditto ditto) {
     _ditto = ditto;
+
+    // Request necessary permissions for Ditto
+    final platform = Ditto.currentPlatform;
+    if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      [
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+        Permission.bluetoothScan,
+      ].request();
+    }
+
     _setupObservation();
   }
 

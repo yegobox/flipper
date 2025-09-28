@@ -46,6 +46,18 @@
             <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+         <service
+            android:name="live.ditto.transports.foregroundservice.DefaultDittoForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="true">
+            <meta-data android:name="notificationChannelName" android:value="Background Data Sync" />
+            <meta-data android:name="notificationChannelId" android:value="BackgroundDataSyncId" />
+            <meta-data android:name="smallIcon" android:resource="@drawable/app_icon" />
+            <meta-data android:name="notificationTitle" android:value="Syncing Data" />
+            <meta-data android:name="notificationText" android:value="Syncing data across connected devices" />
+            <meta-data android:name="notificationId" android:value="1001" />
+        </service>
 
          <!-- Configure admob-->
         <meta-data
