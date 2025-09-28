@@ -105,6 +105,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'customerTin',
     'vatEnabled',
     'lastZReportDate',
+    'freshSignup'
     // Add new preference keys above this line
   };
 

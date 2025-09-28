@@ -113,6 +113,14 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
+    // Check if this is a fresh signup - always show login choices
+    bool isFreshSignup = ProxyService.box.readBool(key: 'freshSignup') ?? false;
+    if (isFreshSignup) {
+      // Clear the flag after use
+      ProxyService.box.writeBool(key: 'freshSignup', value: false);
+      throw LoginChoicesException(term: "Choose default business");
+    }
+
     List<Business> businesses = await ProxyService.strategy
         .businesses(userId: ProxyService.box.getUserId()!, active: true);
 
