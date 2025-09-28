@@ -1616,6 +1616,10 @@ class CoreSync extends AiStrategyImpl
         throw e;
       }
 
+      /// deactivate any other branch/or business already set, this is the case for a user
+      /// who can signup on a device that had account
+      await resetForNewDevice();
+
       // Step 2.5: Create default branch for the business
       try {
         talker.info('Signup: Creating default branch for business');
@@ -1637,10 +1641,6 @@ class CoreSync extends AiStrategyImpl
         talker.error('Signup: Error creating default branch: $e', s);
         throw e;
       }
-
-      /// deactivate any other branch/or business already set, this is the case for a user
-      /// who can signup on a device that had account
-      await resetForNewDevice();
 
       // Save branch and business IDs early
       ProxyService.box.writeInt(key: 'businessId', value: bus.serverId);
