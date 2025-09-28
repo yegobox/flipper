@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  stacked: ^3.4.2
+  stacked: ^3.5.0
   firebase_remote_config: ^6.0.0
   share_plus: ^10.1.4
   firebase_messaging: ^16.0.0

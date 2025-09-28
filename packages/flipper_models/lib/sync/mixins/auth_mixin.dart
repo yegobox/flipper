@@ -488,8 +488,26 @@ mixin AuthMixin implements AuthInterface {
     w?.log("user logged in");
 
     // Skip subscription check for fresh signup - always go to login choices
+    // Also skip for individual businesses that are active and default
     bool isFreshSignup = ProxyService.box.readBool(key: 'freshSignup') ?? false;
+    bool skipSubscriptionCheck = isFreshSignup;
+
     if (!isFreshSignup) {
+      // Check if active business is individual type and default
+      try {
+        final activeBusiness = await ProxyService.strategy.activeBusiness();
+        if (activeBusiness != null &&
+            activeBusiness.businessTypeId == 2 &&
+            activeBusiness.isDefault == true) {
+          skipSubscriptionCheck = true;
+        }
+      } catch (e) {
+        talker.warning('Error checking active business type: $e');
+        // Continue with normal flow if we can't determine business type
+      }
+    }
+
+    if (!skipSubscriptionCheck) {
       try {
         _hasActiveSubscription();
       } catch (e) {
@@ -813,74 +831,7 @@ mixin AuthMixin implements AuthInterface {
     return null;
   }
 
-  /// Authenticates with Supabase using branch ID as email
-  @override
-  Future<void> supabaseAuth() async {
-    try {
-      // Get branch ID for email construction
-      final userId = ProxyService.box.getUserId();
-      if (userId == null) {
-        talker
-            .warning('Cannot authenticate with Supabase: No User ID available');
-        return;
-      }
-
-      final email = '$userId@flipper.rw';
-      talker.debug('Supabase email: $email');
-
-      // Check if we already have a valid session
-      final currentSession = Supabase.instance.client.auth.currentSession;
-      final currentUser = Supabase.instance.client.auth.currentUser;
-
-      // Check if the session is still valid (not expired)
-      final bool hasValidSession = currentSession != null &&
-          currentUser != null &&
-          currentUser.email == email &&
-          _isSessionValid(currentSession);
-
-      if (hasValidSession) {
-        talker.debug(
-            'Supabase session is still valid, skipping re-authentication');
-        return;
-      }
-
-      talker.debug('No valid Supabase session found, authenticating...');
-
-      // Determine if we need to sign up or sign in
-      if (currentUser == null) {
-        // Try to sign up first
-        try {
-          final session = Supabase.instance.client.auth.currentSession;
-          if (session != null) {
-            // User is already logged in.  Handle this situation.
-            talker.debug("User is already logged in.  Sign out first.");
-            await Supabase.instance.client.auth
-                .signOut(); // Sign out if necessary
-          }
-
-          // First attempt to sign up the user
-          talker.debug('Attempting to sign up user with email: $email');
-          await Supabase.instance.client.auth.signUp(
-            email: email,
-            password: email,
-          );
-          talker.debug('Supabase user created successfully, now signing in');
-
-          // After sign up, attempt to sign in
-          await _attemptSignIn(email);
-        } catch (signUpError) {
-          // If sign up fails (likely because user already exists), try sign in directly
-          talker.debug('Sign up failed, attempting sign in: $signUpError');
-          await _attemptSignIn(email);
-        }
-      } else {
-        // User exists but session is invalid, just sign in
-        await _attemptSignIn(email);
-      }
-    } catch (e) {
-      talker.error('Supabase authentication error: $e');
-    }
-  }
+ 
 
   /// Attempts to sign in with the given email
   Future<void> _attemptSignIn(String email) async {

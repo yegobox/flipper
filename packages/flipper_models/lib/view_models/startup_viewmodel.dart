@@ -66,7 +66,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       EbmSyncService(repository);
 
       AssetSyncService().initialize();
-      ProxyService.strategy.supabaseAuth();
+
       ProxyService.strategy.cleanDuplicatePlans();
 
       talker.warning("StartupViewModel Below AppInitializer.initialize()");
@@ -158,8 +158,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     }
   }
 
-  void _handleActiveSubscription() {
+  void _handleActiveSubscription() async {
     talker.info('Payment verification successful: Subscription is active');
+
+    // Check if we should navigate to personal app for individual businesses
+    final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
+
+    if (shouldGoToPersonal) {
+      talker.info('Navigating to personal app for individual business');
+      _routerService.navigateTo(PersonalHomeRoute());
+      _isInitialStartup = false;
+      return;
+    }
 
     // If we were on a payment screen, navigate back to the main app
     if (_isOnPaymentScreen) {
@@ -188,8 +198,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _routerService.navigateTo(FailedPaymentRoute());
   }
 
-  void _handleVerificationError(PaymentVerificationResponse response) {
+  void _handleVerificationError(PaymentVerificationResponse response) async {
     talker.error('Error during payment verification: ${response.errorMessage}');
+
+    // Check if we should navigate to personal app for individual businesses
+    final shouldGoToPersonal = await _shouldNavigateToPersonalApp();
+
+    if (shouldGoToPersonal) {
+      talker.info(
+          'Navigating to personal app for individual business despite payment verification error');
+      _routerService.navigateTo(PersonalHomeRoute());
+      return;
+    }
 
     // Handle specific error types
     if (response.exception is NoPaymentPlanFoundException) {
@@ -229,9 +249,17 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     _handlePaymentStatusChange(response);
   }
 
-  /// Check if payment is required without navigation
-  Future<bool> isPaymentRequired() async {
-    return await _paymentVerificationService.isPaymentRequired();
+  /// Check if we should navigate to personal app for individual businesses
+  Future<bool> _shouldNavigateToPersonalApp() async {
+    try {
+      final activeBusiness = await ProxyService.strategy.activeBusiness();
+      return activeBusiness != null &&
+          activeBusiness.businessTypeId == 2 &&
+          activeBusiness.isDefault == true;
+    } catch (e) {
+      talker.warning('Error checking if should navigate to personal app: $e');
+      return false;
+    }
   }
 
   /// Ensures the specified user has all required admin access for all features.

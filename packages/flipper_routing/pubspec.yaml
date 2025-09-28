@@ -14,19 +14,20 @@ dependencies:
   flipper_login: any
   flipper_models: any
   stacked_services: ^1.6.0
-  stacked: ^3.4.2
+  stacked: ^3.5.0
   url_strategy: ^0.2.0
   logger: ^2.5.0
   firebase_ui_auth: ^3.0.0
   flipper_actionable: 0.0.1
   flipper_accounting: any
+  flipper_personal: any
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
   sqlite3: ^2.9.0
-  stacked: ^3.4.2
+  stacked: ^3.5.0
   device_info_plus: ^11.3.3
   archive: ^3.6.1
   excel: ^4.0.6
@@ -38,9 +39,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^1.0.0
   build_runner: ^2.4.15
-  # stacked_generator: ^2.0.0-pre.1
-  # stacked_generator:
-  #   git:
-  #     url: https://github.com/richard457/generator
-  #     ref: main
+  # stacked_generator: ^2.0.0
   mockito: ^5.4.4
+  # realm_generator: ^20.2.0
