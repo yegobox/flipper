@@ -568,7 +568,7 @@ class CoreSync extends AiStrategyImpl
       await repository.delete<TransactionItem>(
         itemToDelete, // Pass the actual TransactionItem object
         query: brick.Query(
-          action: brick.QueryAction.delete,
+          action: QueryAction.delete,
           where: [brick.Where('id').isExactly(id)],
         ),
       );
@@ -1688,26 +1688,9 @@ class CoreSync extends AiStrategyImpl
         throw e;
       }
 
-      // Step 6: Configure local
-      try {
-        talker.info('Signup: Configuring local storage');
-        configureLocal(useInMemory: false, box: ProxyService.box);
-      } catch (e, s) {
-        talker.error('Signup: Error in configuring local: $e', s);
-        throw e;
-      }
+      // Set flag to indicate fresh signup for login choices
+      ProxyService.box.writeBool(key: 'freshSignup', value: true);
 
-      // Step 7: Save business ID again (redundant but keeping for safety)
-      try {
-        talker.info('Signup: Saving business ID: ${bus.serverId}');
-        ProxyService.box.writeInt(key: 'businessId', value: bus.serverId);
-        talker.info('Signup: Business ID saved successfully');
-      } catch (e) {
-        talker.error('Signup: Failed to save business ID: $e');
-        // Continue even if this fails
-      }
-
-      talker.info('Signup: Process completed successfully');
       return bus;
     } catch (e, s) {
       talker.error('Signup: Unhandled error: $e', s);

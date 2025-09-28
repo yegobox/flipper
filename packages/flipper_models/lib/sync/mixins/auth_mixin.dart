@@ -343,7 +343,6 @@ mixin AuthMixin implements AuthInterface {
     }
   }
 
-
   @override
   Future<IUser> login(
       {required String userPhone,
@@ -487,11 +486,17 @@ mixin AuthMixin implements AuthInterface {
     }
     ProxyService.box.writeBool(key: 'pinLogin', value: false);
     w?.log("user logged in");
-    try {
-      _hasActiveSubscription();
-    } catch (e) {
-      rethrow;
+
+    // Skip subscription check for fresh signup - always go to login choices
+    bool isFreshSignup = ProxyService.box.readBool(key: 'freshSignup') ?? false;
+    if (!isFreshSignup) {
+      try {
+        _hasActiveSubscription();
+      } catch (e) {
+        rethrow;
+      }
     }
+
     return user;
   }
 
@@ -661,18 +666,20 @@ mixin AuthMixin implements AuthInterface {
         if (tenant['branches'] != null && tenant['branches'] is List) {
           for (var branchData in tenant['branches']) {
             final iBranch = IBranch.fromJson(branchData);
+            ProxyService.box
+                .writeInt(key: 'branchId', value: iBranch.serverId!);
             // Convert IBranch to Branch (from supabase_models)
             final branch = Branch(
               id: iBranch.id,
               serverId: iBranch.serverId,
-              active: iBranch.active,
+              active: true,
               description: iBranch.description,
               name: iBranch.name,
               businessId: iBranch.businessId,
               longitude: iBranch.longitude,
               latitude: iBranch.latitude,
               location: iBranch.location,
-              isDefault: iBranch.isDefault,
+              isDefault: true,
             );
             await repository.upsert<Branch>(branch);
             talker.debug("Saved branch locally: ${branch.name}");
