@@ -1,5 +1,6 @@
 // import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
@@ -25,6 +26,7 @@ import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
 import 'package:flipper_web/core/utils/initialization.dart';
+
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
   try {
@@ -44,7 +46,6 @@ Future<void> _initializeSupabase() async {
     // Wrap in a microtask to allow UI thread to continue
     await Future<void>.microtask(() async {
       await loadSupabase();
-
 
       await initializeDitto();
       // talker.info('Supabase initialized successfully');
@@ -67,6 +68,16 @@ Future<void> main() async {
   // Centralized initialization function
   Future<void> initializeApp() async {
     if (!skipDependencyInitialization) {
+      // Pre-cleanup for hot restart scenarios
+      try {
+        if (kDebugMode) {
+          debugPrint('🔧 Performing pre-initialization cleanup...');
+          // Add any additional cleanup here if needed
+        }
+      } catch (e) {
+        debugPrint('⚠️  Pre-cleanup error (non-critical): $e');
+      }
+
       await _initializeFirebase();
       await initializeDependencies();
       await _initializeSupabase();

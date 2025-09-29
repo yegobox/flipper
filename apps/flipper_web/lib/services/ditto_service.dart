@@ -50,13 +50,26 @@ class DittoService {
 
   Ditto? _ditto;
   Timer? _observationTimer;
-  final StreamController<List<UserProfile>> _userProfilesController =
-      StreamController<List<UserProfile>>.broadcast();
+  StreamController<List<UserProfile>>? _userProfilesController;
 
-  Stream<List<UserProfile>> get userProfiles => _userProfilesController.stream;
+  Stream<List<UserProfile>> get userProfiles {
+    _userProfilesController ??= StreamController<List<UserProfile>>.broadcast();
+    return _userProfilesController!.stream;
+  }
 
   /// Sets the Ditto instance (called from main.dart after initialization)
   void setDitto(Ditto ditto) {
+    // Dispose of existing Ditto instance if it exists to prevent file lock conflicts
+    if (_ditto != null) {
+      debugPrint('Disposing existing Ditto instance before setting new one');
+      try {
+        _ditto!.stopSync();
+        // Give a moment for cleanup to complete
+      } catch (e) {
+        debugPrint('Error during existing Ditto disposal: $e');
+      }
+    }
+
     _ditto = ditto;
 
     // Request necessary permissions for Ditto
@@ -111,7 +124,9 @@ class DittoService {
   Future<void> _loadAndUpdateUserProfiles() async {
     try {
       final profiles = await getAllUserProfiles();
-      _userProfilesController.add(profiles);
+      _userProfilesController ??=
+          StreamController<List<UserProfile>>.broadcast();
+      _userProfilesController!.add(profiles);
     } catch (e) {
       debugPrint('Error updating user profiles: $e');
     }
@@ -279,22 +294,47 @@ class DittoService {
     return _dittoServiceInstance;
   }
 
+  /// Reset the service state (useful for hot restart scenarios)
+  static Future<void> resetInstance() async {
+    debugPrint('🔄 Resetting DittoService instance...');
+    await _dittoServiceInstance.dispose();
+    debugPrint('✅ DittoService instance reset completed');
+  }
+
   /// Disposes resources and prepares for cleanup
   Future<void> dispose() async {
-    _observationTimer?.cancel();
-    _userProfilesController.close();
+    debugPrint('🧹 Starting DittoService disposal...');
 
+    // Cancel observation timer
+    _observationTimer?.cancel();
+    _observationTimer = null;
+
+    // Close stream controller
+    if (_userProfilesController != null && !_userProfilesController!.isClosed) {
+      await _userProfilesController!.close();
+      _userProfilesController = null;
+    }
+
+    // Properly dispose of Ditto instance
     if (_ditto != null) {
       try {
-        debugPrint('Stopping Ditto sync');
+        debugPrint('🛑 Stopping Ditto sync...');
         _ditto!.stopSync();
+
+        // Wait a bit to ensure sync is fully stopped
+        await Future.delayed(const Duration(milliseconds: 200));
+
+        debugPrint('🗑️  Clearing Ditto instance reference...');
         _ditto = null;
+
+        // Additional wait to ensure file locks are released
+        await Future.delayed(const Duration(milliseconds: 300));
       } catch (e) {
-        debugPrint('Error during Ditto cleanup: $e');
+        debugPrint('❌ Error during Ditto cleanup: $e');
       }
     }
 
-    debugPrint('DittoService has been disposed');
+    debugPrint('✅ DittoService disposal completed');
   }
 
   /// Save a business to the businesses collection
