@@ -70,6 +70,16 @@ class DittoService {
       ].request();
     }
 
+    // Log Ditto device info for debugging
+    debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
+
+    // Note about mDNS warnings in debug
+    if (kDebugMode) {
+      debugPrint(
+        'ℹ️  mDNS NameConflict warnings are normal in development when multiple instances are running',
+      );
+    }
+
     _setupObservation();
   }
 
