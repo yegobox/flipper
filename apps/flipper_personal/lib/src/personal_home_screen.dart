@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widgets/challenge_widgets.dart';
+import 'widgets/challenge_finder_widget.dart';
+import 'models/models.dart';
+import 'providers/providers.dart';
 
 /// Enhanced Duolingo-inspired color palette
 class FlipperPalette {
@@ -43,6 +46,9 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
+
+  // Key to access the challenge finder widget
+  final GlobalKey<ChallengeFinderWidgetState> _challengeFinderKey = GlobalKey();
 
   @override
   void initState() {
@@ -241,6 +247,12 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
 
           // Challenge discovery overlay
           ChallengeDiscoveryWidget(userId: currentUserId),
+
+          // Challenge finder widget (provides functionality)
+          ChallengeFinderWidget(
+            key: _challengeFinderKey,
+            userId: currentUserId,
+          ),
         ],
       ),
     );
@@ -385,7 +397,9 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                 'Find\nChallenges',
                 Icons.search,
                 FlipperPalette.accentBlue,
-                () => _showActionFeedback('Searching for nearby challenges!'),
+                () {
+                  _challengeFinderKey.currentState?.findNearbyChallenges();
+                },
               ),
               const SizedBox(width: 12),
               Expanded(
