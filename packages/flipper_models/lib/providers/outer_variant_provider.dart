@@ -96,7 +96,8 @@ class OuterVariants extends _$OuterVariants {
 
   /// Filters the currently loaded variants based on the search string and taxTyCds.
   List<Variant> _filterInMemory(String searchString) {
-    final taxTyCds = ProxyService.box.vatEnabled() ? ['A', 'B', 'C', 'TT'] : ['D'];
+    final taxTyCds =
+        ProxyService.box.vatEnabled() ? ['A', 'B', 'C', 'TT'] : ['D'];
 
     // First filter by allowed tax codes
     var filteredVariants =
@@ -152,7 +153,8 @@ class OuterVariants extends _$OuterVariants {
     required int page,
     required String searchString,
   }) async {
-    final taxTyCds = ProxyService.box.vatEnabled() ? ['A', 'B', 'C', 'TT'] : ['D'];
+    final taxTyCds =
+        ProxyService.box.vatEnabled() ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
     final currentScanMode = ref.read(scanningModeProvider);
 
     // Prioritize remote fetch for initial load, otherwise local-first.
