@@ -27,10 +27,10 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - ditto_live (5.0.0-experimental-windows.5):
-    - DittoFlutter (= 5.0.0-experimental-windows.5)
+  - ditto_live (4.12.1):
+    - DittoFlutter (= 4.12.1)
     - FlutterMacOS
-  - DittoFlutter (5.0.0-experimental-windows.5)
+  - DittoFlutter (4.12.1)
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_selector_macos (0.0.1):
@@ -49,29 +49,29 @@ PODS:
   - Firebase/RemoteConfig (12.2.0):
     - Firebase/CoreOnly
     - FirebaseRemoteConfig (~> 12.2.0)
-  - firebase_analytics (12.0.1):
+  - firebase_analytics (12.0.2):
     - firebase_core
     - FirebaseAnalytics (= 12.2.0)
     - FlutterMacOS
-  - firebase_auth (6.0.2):
+  - firebase_auth (6.1.0):
     - Firebase/Auth (~> 12.2.0)
     - Firebase/CoreOnly (~> 12.2.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_core (4.1.0):
+  - firebase_core (4.1.1):
     - Firebase/CoreOnly (~> 12.2.0)
     - FlutterMacOS
-  - firebase_crashlytics (5.0.1):
+  - firebase_crashlytics (5.0.2):
     - Firebase/CoreOnly (~> 12.2.0)
     - Firebase/Crashlytics (~> 12.2.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_messaging (16.0.1):
+  - firebase_messaging (16.0.2):
     - Firebase/CoreOnly (~> 12.2.0)
     - Firebase/Messaging (~> 12.2.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_remote_config (6.0.1):
+  - firebase_remote_config (6.0.2):
     - Firebase/CoreOnly (~> 12.2.0)
     - Firebase/RemoteConfig (~> 12.2.0)
     - firebase_core
@@ -275,8 +275,6 @@ PODS:
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
-  - realm (20.1.1):
-    - FlutterMacOS
   - record_macos (1.1.0):
     - FlutterMacOS
   - screen_retriever_macos (0.0.1):
@@ -364,7 +362,6 @@ DEPENDENCIES:
   - patrol (from `Flutter/ephemeral/.symlinks/plugins/patrol/darwin`)
   - posthog_flutter (from `Flutter/ephemeral/.symlinks/plugins/posthog_flutter/macos`)
   - printing (from `Flutter/ephemeral/.symlinks/plugins/printing/macos`)
-  - realm (from `Flutter/ephemeral/.symlinks/plugins/realm/macos`)
   - record_macos (from `Flutter/ephemeral/.symlinks/plugins/record_macos/macos`)
   - screen_retriever_macos (from `Flutter/ephemeral/.symlinks/plugins/screen_retriever_macos/macos`)
   - sentry_flutter (from `Flutter/ephemeral/.symlinks/plugins/sentry_flutter/macos`)
@@ -480,8 +477,6 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/posthog_flutter/macos
   printing:
     :path: Flutter/ephemeral/.symlinks/plugins/printing/macos
-  realm:
-    :path: Flutter/ephemeral/.symlinks/plugins/realm/macos
   record_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/record_macos/macos
   screen_retriever_macos:
@@ -519,17 +514,17 @@ SPEC CHECKSUMS:
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  ditto_live: 6747639ec8e4f5f656a104d3b52636376f52da5a
-  DittoFlutter: c5c594b468d2027ba0392cedd39e03b3a9e133e5
+  ditto_live: b75bfc89eea45acc1e24ae409a40f8bbd7d1edde
+  DittoFlutter: 261af21f8f2aeb15699d97413604ff4df88f846d
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: 26f6f8d460603af3df970ad505b16b15f5e2e9a1
-  firebase_analytics: f48e2271924c9ca1caa5a874b29241f5e8041f52
-  firebase_auth: 0753b92c7edaf0f1e54dbe6c864023bca7bfe4ee
-  firebase_core: 6bcbab6947f948c61f851263e5623770873eec9d
-  firebase_crashlytics: 75f6d06c6538b268f835dbee9f645961f28870ef
-  firebase_messaging: 5ef0d6b6878cc7dd6cbc6c6cc962a1db6d497df1
-  firebase_remote_config: 6694c1867c45de52b7b1456c40b973c6a541f0f8
+  firebase_analytics: a87a708317bd23b1074ba37496527a91d8e08e84
+  firebase_auth: e570c182e1c67348de84baf1ec04636bebbe8752
+  firebase_core: 1e928aafca18da77e33d90869f86472310b03485
+  firebase_crashlytics: ab4dba522010d30c5bc3119332f559aacd4c1ef7
+  firebase_messaging: 859a738654ac03ba1343361c62316e9f86892ba6
+  firebase_remote_config: 941a767f136a3de380b5a352d14a490688508bc7
   FirebaseABTesting: 32f3fc079d72c9b93e000b60877c4e4f62ef7031
   FirebaseAnalytics: e04e23bc070e3014aa5cf4980f9df7ce5cd79ec8
   FirebaseAppCheckInterop: a1b2598c64c5a8c42fd6f6a1c3d0938ae4324678
@@ -558,7 +553,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   just_audio: a42c63806f16995daf5b219ae1d679deb76e6a79
-  local_auth_darwin: fa4b06454df7df8e97c18d7ee55151c57e7af0de
+  local_auth_darwin: 63c73d6d28cc3e239be2b6aa460ea6e317cd5100
   location: 7cdb0665bd6577d382b0a343acdadbcb7f964775
   mobile_scanner: 77265f3dc8d580810e91849d4a0811a90467ed5e
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
@@ -571,7 +566,6 @@ SPEC CHECKSUMS:
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
-  realm: 1dcd2d704e91c15ed641f2de879d49cadf4661e8
   record_macos: 4440ca269ad3b870ebb1965297a365d558f0c520
   screen_retriever_macos: 776e0fa5d42c6163d2bf772d22478df4b302b161
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e

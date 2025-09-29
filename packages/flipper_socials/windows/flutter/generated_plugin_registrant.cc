@@ -20,7 +20,6 @@
 #include <pasteboard/pasteboard_plugin.h>
 #include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <printing/printing_plugin.h>
-#include <realm/realm_plugin.h>
 #include <record_windows/record_windows_plugin_c_api.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <sentry_flutter/sentry_flutter_plugin.h>
@@ -60,8 +59,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
   PrintingPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PrintingPlugin"));
-  RealmPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("RealmPlugin"));
   RecordWindowsPluginCApiRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("RecordWindowsPluginCApi"));
   ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(

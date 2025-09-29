@@ -11,7 +11,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gtk
   pasteboard
   printing
-  realm
   record_linux
   screen_retriever_linux
   sentry_flutter

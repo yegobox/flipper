@@ -17,7 +17,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   pasteboard
   permission_handler_windows
   printing
-  realm
   record_windows
   screen_retriever_windows
   sentry_flutter

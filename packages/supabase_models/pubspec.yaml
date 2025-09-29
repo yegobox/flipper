@@ -29,7 +29,9 @@ dependencies:
   sqlite3: ^2.9.0
   # never use realm for real data, we use realm as cache layer on whatever we aim to have real time update
   # e.g querying variant come with stock but refreshing this stock might be time consuming or not effient
-  realm: ^20.1.1
+  # realm: ^20.1.1
+  ditto_live: ^4.12.1
+  flipper_web: any
 dependency_overrides:
   device_info_plus: ^11.3.3
   sqlite3: ^2.9.0

@@ -17,7 +17,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   pasteboard
   permission_handler_windows
   printing
-  realm
   record_windows
   screen_retriever_windows
   sentry_flutter
@@ -30,7 +29,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  ditto_live
   flutter_local_notifications_windows
   flutter_soloud
   jni

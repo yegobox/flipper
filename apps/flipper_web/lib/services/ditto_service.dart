@@ -241,6 +241,9 @@ class DittoService {
     return _ditto != null;
   }
 
+  /// Get the Ditto instance (for use by cache implementations)
+  Ditto? get dittoInstance => _ditto;
+
   /// Starts Ditto sync if Ditto is initialized
   void startSync() {
     if (_ditto != null) {
