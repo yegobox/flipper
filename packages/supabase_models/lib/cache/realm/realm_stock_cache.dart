@@ -1,3 +1,4 @@
+/*
 import 'package:realm/realm.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/cache/cache_layer.dart';
@@ -246,3 +247,4 @@ class RealmStockCache implements CacheLayer<Stock> {
     return getAll(filter: {'branchId': branchId});
   }
 }
+*/

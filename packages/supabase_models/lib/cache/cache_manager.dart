@@ -1,7 +1,15 @@
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/cache/cache_layer.dart';
-import 'package:supabase_models/cache/realm/realm_stock_cache.dart';
+// import 'package:supabase_models/cache/realm/realm_stock_cache.dart';
+import 'package:supabase_models/cache/ditto/ditto_stock_cache.dart';
+import 'package:ditto_live/ditto_live.dart';
+
+/// Enum for different cache implementation types
+enum CacheType {
+  // realm,
+  ditto,
+}
 
 /// Cache manager for handling different cache implementations
 /// This class provides a unified interface for caching different types of objects
@@ -15,13 +23,35 @@ class CacheManager {
   /// Private constructor for singleton pattern
   CacheManager._internal();
 
+  /// Current cache type
+  CacheType _cacheType = CacheType.ditto;
+
   /// Stock cache instance
   late CacheLayer<Stock> _stockCache;
 
+  /// Set the cache type
+  void setCacheType(CacheType cacheType) {
+    _cacheType = cacheType;
+  }
+
+  /// Set the Ditto instance for Ditto cache
+  void setDittoInstance(Ditto ditto) {
+    if (_stockCache is DittoStockCache) {
+      (_stockCache as DittoStockCache).setDitto(ditto);
+    }
+  }
+
   /// Initialize the cache manager
   Future<void> initialize() async {
-    // Initialize stock cache with Realm implementation
-    _stockCache = RealmStockCache();
+    // Initialize stock cache based on cache type
+    switch (_cacheType) {
+      // case CacheType.realm:
+      //   _stockCache = RealmStockCache();
+      //   break;
+      case CacheType.ditto:
+        _stockCache = DittoStockCache();
+        break;
+    }
     await _stockCache.initialize();
   }
 
@@ -47,73 +77,84 @@ class CacheManager {
 
   /// Get stocks by variant ID
   Future<List<Stock>> getStocksByVariantId(String variantId) async {
-    if (_stockCache is RealmStockCache) {
-      return await (_stockCache as RealmStockCache).getByVariantId(variantId);
-    }
-    return await _stockCache.getAll(filter: {'variantId': variantId});
+    // if (_stockCache is RealmStockCache) {
+    //   return await (_stockCache as RealmStockCache).getByVariantId(variantId);
+    // } else if (_stockCache is DittoStockCache) {
+    return await (_stockCache as DittoStockCache).getByVariantId(variantId);
+    // }
+    // return await _stockCache.getAll(filter: {'variantId': variantId});
   }
 
   /// Get a single stock by variant ID
   Future<Stock?> getStockByVariantId(String variantId) async {
-    if (_stockCache is RealmStockCache) {
-      // Use the specialized method if available
-      return ((_stockCache as RealmStockCache).getByVariantIdSingle(variantId));
-    } else {
-      // Fallback to the general method
-      final stocks = await getStocksByVariantId(variantId);
-      return stocks.isNotEmpty ? stocks.first : null;
-    }
+    // if (_stockCache is RealmStockCache) {
+    //   // Use the specialized method if available
+    //   return ((_stockCache as RealmStockCache).getByVariantIdSingle(variantId));
+    // } else if (_stockCache is DittoStockCache) {
+    // Use the specialized method if available
+    return await (_stockCache as DittoStockCache)
+        .getByVariantIdSingle(variantId);
+    // } else {
+    // Fallback to the general method
+    //   final stocks = await getStocksByVariantId(variantId);
+    //   return stocks.isNotEmpty ? stocks.first : null;
+    // }
   }
 
   /// Watch a stock by variant ID and get updates as a stream
   /// This is useful for UI components that need to react to stock changes
   Stream<Stock?> watchStockByVariantId(String variantId) {
-    if (_stockCache is RealmStockCache) {
-      // Use the specialized stream method if available
-      return (_stockCache as RealmStockCache).watchByVariantId(variantId);
-    } else {
-      // Fallback to polling if streaming is not supported
-      // Create a stream that emits every 5 seconds
-      return Stream.periodic(Duration(seconds: 5)).asyncMap((_) async {
-        return await getStockByVariantId(variantId);
-      });
-    }
+    // if (_stockCache is RealmStockCache) {
+    //   // Use the specialized stream method if available
+    //   return (_stockCache as RealmStockCache).watchByVariantId(variantId);
+    // } else if (_stockCache is DittoStockCache) {
+    // Use the specialized stream method if available
+    return (_stockCache as DittoStockCache).watchByVariantId(variantId);
+    // } else {
+    // Fallback to polling if streaming is not supported
+    // Create a stream that emits every 5 seconds
+    //   return Stream.periodic(Duration(seconds: 5)).asyncMap((_) async {
+    //     return await getStockByVariantId(variantId);
+    //   });
+    // }
   }
 
   /// Get stocks by branch ID
   Future<List<Stock>> getStocksByBranchId(int branchId) async {
-    if (_stockCache is RealmStockCache) {
-      return await (_stockCache as RealmStockCache).getByBranchId(branchId);
-    }
-    return await _stockCache.getAll(filter: {'branchId': branchId});
+    // if (_stockCache is RealmStockCache) {
+    //   return await (_stockCache as RealmStockCache).getByBranchId(branchId);
+    // } else if (_stockCache is DittoStockCache) {
+    return await (_stockCache as DittoStockCache).getByBranchId(branchId);
+    // }
+    // return await _stockCache.getAll(filter: {'branchId': branchId});
   }
 
   /// Save stock information for variants
   Future<void> saveStocksForVariants(List<Variant> variants) async {
-    if (_stockCache is! RealmStockCache) {
-      // If not using RealmStockCache, just save the stocks directly
-      final stocks = variants
-          .where((v) => v.stock != null && v.stock!.id.isNotEmpty)
-          .map((v) => v.stock!)
-          .toList();
+    // if (_stockCache is! RealmStockCache) {
+    // If not using RealmStockCache, just save the stocks directly
+    final stocks = variants
+        .where((v) => v.stock != null && v.stock!.id.isNotEmpty)
+        .map((v) => v.stock!)
+        .toList();
 
-      if (stocks.isNotEmpty) {
-        await saveStocks(stocks);
-      }
-      return;
+    if (stocks.isNotEmpty) {
+      await saveStocks(stocks);
     }
+    return;
+    // }
 
     // Using RealmStockCache - we need to associate stocks with their variants
-    final realmCache = _stockCache as RealmStockCache;
+    // final realmCache = _stockCache as RealmStockCache;
 
-    for (final variant in variants) {
-      if (variant.stock != null &&
-          variant.stock!.id.isNotEmpty &&
-          variant.id.isNotEmpty) {
-        // Save stock with associated variant ID
-        await realmCache.saveWithVariantId(variant.stock!, variant.id);
-      }
-    }
+    // for (final variant in variants) {
+    //   if (variant.stock != null &&
+    //       variant.stock!.id.isNotEmpty &&
+    //       variant.id.isNotEmpty) {
+    //     // Save stock with associated variant ID
+    //     await realmCache.saveWithVariantId(variant.stock!, variant.id);
+    //   }
+    // }
   }
 
   /// Clear all cached data
