@@ -864,4 +864,5 @@ class App {}
 // https://services.google.com/fb/forms/reservationsappointmentsonlinebooking-interestform/
 // https://developers.google.com/maps-booking
 // https://github.com/features/copilot/plans
-// 
+// small vs big peer
+// https://docs.ditto.live/sdk/latest/sync/sync-scopes#configuring-collection-sync

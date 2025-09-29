@@ -2964,9 +2964,37 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<models.Configurations> saveTax(
-      {required String configId, required double taxPercentage}) {
-    // TODO: implement saveTax
-    throw UnimplementedError();
+      {required String configId, required double taxPercentage}) async {
+    try {
+      // Get existing configuration or create new one
+      final existingConfig = (await repository.get<Configurations>(
+        query: brick.Query(where: [
+          brick.Where('id').isExactly(configId),
+        ]),
+      ))
+          .firstOrNull;
+
+      Configurations config;
+      if (existingConfig != null) {
+        // Update existing configuration
+        config = existingConfig;
+        config.taxPercentage = taxPercentage;
+      } else {
+        // Create new configuration
+        config = Configurations(
+          id: configId,
+          taxPercentage: taxPercentage,
+        );
+      }
+
+      // Save the configuration
+      await repository.upsert<Configurations>(config);
+      return config;
+    } catch (e, s) {
+      talker.error('Error saving tax configuration: $e');
+      talker.error(s.toString());
+      rethrow;
+    }
   }
 
   @override

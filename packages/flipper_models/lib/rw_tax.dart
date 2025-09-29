@@ -131,11 +131,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String URI, // You're not currently using this URI parameter
   }) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
-    models.Ebm? ebm = await ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!);
+    final branchId = ProxyService.box.getBranchId()!;
+    models.Ebm? ebm =
+        await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+    if (ebm == null) {
+      throw Exception("Ebm not found for branch $branchId");
+    }
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl + 'initializer/selectInitInfo'));
+        'POST', Uri.parse(ebm.taxServerUrl + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
