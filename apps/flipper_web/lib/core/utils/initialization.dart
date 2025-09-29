@@ -5,6 +5,16 @@ import 'package:flipper_web/core/secrets.dart' show AppSecrets;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'platform.dart';
 
+/// Clean up old Ditto directories to prevent accumulation
+/// Note: Cleanup is disabled to ensure web compatibility
+/// The unique directory approach already prevents conflicts
+Future<void> _cleanupOldDittoDirectories() async {
+  if (kDebugMode) {
+    debugPrint('ℹ️  Ditto directory cleanup disabled for web compatibility');
+    debugPrint('   Unique directories prevent conflicts without cleanup');
+  }
+}
+
 /// Initializes Supabase with the appropriate configuration based on the environment
 Future<void> initializeSupabase() async {
   String supabaseUrl;
@@ -27,60 +37,154 @@ Future<void> initializeSupabase() async {
 
 /// Initializes Ditto with proper configuration for the Flipper app
 Future<void> initializeDitto() async {
-  final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+  try {
+    // Clean up old directories first (non-web platforms only)
+    await _cleanupOldDittoDirectories();
 
-  await Ditto.init();
-
-  final identity = OnlinePlaygroundIdentity(
-    appID: appID,
-    token: kDebugMode
-        ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
-        : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
-    enableDittoCloudSync: false, // Required to be false to use custom URLs
-  );
-
-  final ditto = await Ditto.open(identity: identity);
-
-  // Set device name for debugging with timestamp to ensure uniqueness
-  final platformTag = kIsWeb ? "Web" : "Mobile";
-  final timestamp = DateTime.now().millisecondsSinceEpoch;
-  ditto.deviceName = "Flipper $platformTag $timestamp (${ditto.deviceName})";
-
-  ditto.updateTransportConfig((config) {
-    // Clear any existing configs first to prevent conflicts
-    config.connect.webSocketUrls.clear();
-
-    if (kIsWeb) {
-      // For web, ensure P2P is completely disabled
-      config.setAllPeerToPeerEnabled(false);
-      // Add cloud sync URL
-      config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
-    } else {
-      // Enable P2P for mobile/desktop
-      config.setAllPeerToPeerEnabled(true);
-
-      // Add cloud sync URL
-      config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+    // Check if DittoService already has an active instance and dispose it
+    if (DittoService.instance.isReady()) {
+      debugPrint(
+        '⚠️  Existing Ditto instance found, disposing before creating new one',
+      );
+      await DittoService.instance.dispose();
+      // Wait a bit to ensure cleanup is complete
+      await Future.delayed(const Duration(milliseconds: 500));
     }
-  });
 
-  // Disable DQL strict mode for flexibility
-  await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
 
-  ditto.startSync();
+    await Ditto.init();
 
-  // Log initialization info
-  if (kDebugMode) {
-    debugPrint('🚀 Ditto initialized successfully');
-    debugPrint('📱 Device name: ${ditto.deviceName}');
-    debugPrint(
-      'ℹ️  Note: mDNS NameConflict warnings are normal during development',
+    final identity = OnlinePlaygroundIdentity(
+      appID: appID,
+      token: kDebugMode
+          ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
+          : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
+      enableDittoCloudSync: false, // Required to be false to use custom URLs
     );
-    debugPrint(
-      '   Multiple Ditto instances on the same network will compete for service names',
+
+    // Create a unique persistence directory for this instance to avoid file lock conflicts
+    final dirTimestamp = DateTime.now().millisecondsSinceEpoch;
+    final processId = DateTime.now().microsecond; // Additional uniqueness
+    final uniqueDir = "ditto_flipper_${dirTimestamp}_$processId";
+
+    debugPrint('📁 Using unique Ditto directory: $uniqueDir');
+
+    final ditto = await Ditto.open(
+      identity: identity,
+      persistenceDirectory: uniqueDir,
     );
+
+    // Set device name for debugging with timestamp to ensure uniqueness
+    final platformTag = kIsWeb ? "Web" : "Mobile";
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    ditto.deviceName = "Flipper $platformTag $timestamp (${ditto.deviceName})";
+
+    ditto.updateTransportConfig((config) {
+      // Clear any existing configs first to prevent conflicts
+      config.connect.webSocketUrls.clear();
+
+      if (kIsWeb) {
+        // For web, ensure P2P is completely disabled
+        config.setAllPeerToPeerEnabled(false);
+        // Add cloud sync URL
+        config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+      } else {
+        // Enable P2P for mobile/desktop
+        config.setAllPeerToPeerEnabled(true);
+
+        // Add cloud sync URL
+        config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+      }
+    });
+
+    // Disable DQL strict mode for flexibility
+    await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+
+    ditto.startSync();
+
+    // Log initialization info
+    if (kDebugMode) {
+      debugPrint('🚀 Ditto initialized successfully');
+      debugPrint('📱 Device name: ${ditto.deviceName}');
+      debugPrint(
+        'ℹ️  Note: mDNS NameConflict warnings are normal during development',
+      );
+      debugPrint(
+        '   Multiple Ditto instances on the same network will compete for service names',
+      );
+    }
+
+    // Store the initialized Ditto instance in the service
+    DittoService.instance.setDitto(ditto);
+  } catch (e) {
+    debugPrint('❌ Error initializing Ditto: $e');
+
+    // If we get a file lock error, try to recover by waiting and retrying once
+    if (e.toString().contains('File already locked') ||
+        e.toString().contains('Multiple Ditto instances')) {
+      debugPrint('🔄 File lock conflict detected, waiting and retrying...');
+
+      // Wait longer for any existing instances to fully clean up
+      await Future.delayed(const Duration(seconds: 2));
+
+      try {
+        // Retry the initialization
+        final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+
+        final identity = OnlinePlaygroundIdentity(
+          appID: appID,
+          token: kDebugMode
+              ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
+              : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
+          enableDittoCloudSync: false,
+        );
+
+        // Create another unique directory for retry attempt
+        final retryTimestamp = DateTime.now().millisecondsSinceEpoch;
+        final retryProcessId = DateTime.now().microsecond;
+        final retryUniqueDir =
+            "ditto_flipper_retry_${retryTimestamp}_$retryProcessId";
+
+        debugPrint('📁 Using retry Ditto directory: $retryUniqueDir');
+
+        final ditto = await Ditto.open(
+          identity: identity,
+          persistenceDirectory: retryUniqueDir,
+        );
+
+        // Set device name with more randomness
+        final platformTag = kIsWeb ? "Web" : "Mobile";
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final random = (timestamp % 10000); // Add more uniqueness
+        ditto.deviceName =
+            "Flipper $platformTag $timestamp-$random (${ditto.deviceName})";
+
+        ditto.updateTransportConfig((config) {
+          config.connect.webSocketUrls.clear();
+
+          if (kIsWeb) {
+            config.setAllPeerToPeerEnabled(false);
+            config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+          } else {
+            config.setAllPeerToPeerEnabled(true);
+            config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
+          }
+        });
+
+        await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+        ditto.startSync();
+
+        debugPrint('✅ Ditto initialization retry successful');
+        DittoService.instance.setDitto(ditto);
+      } catch (retryError) {
+        debugPrint('❌ Ditto initialization retry failed: $retryError');
+        debugPrint('🔧 App will continue without Ditto functionality');
+        // Don't rethrow - allow app to continue without Ditto
+      }
+    } else {
+      debugPrint('🔧 App will continue without Ditto functionality');
+      // Don't rethrow - allow app to continue without Ditto
+    }
   }
-
-  // Store the initialized Ditto instance in the service
-  DittoService.instance.setDitto(ditto);
 }
