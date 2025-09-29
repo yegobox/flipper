@@ -21,6 +21,8 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, GlobalKey<FormState>> _formKeys = {};
   bool _isLoading = false;
+  String? _statusMessage;
+  bool _isError = false;
 
   @override
   void initState() {
@@ -35,7 +37,10 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
   Future<void> _saveTaxConfiguration(
       String configId, String newTaxValue) async {
     try {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _statusMessage = null;
+      });
 
       final newTaxPercentage = double.parse(newTaxValue);
       await ProxyService.strategy.saveTax(
@@ -44,20 +49,28 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tax settings updated successfully')),
-        );
         setState(() {
           _editingStates[configId] = false;
+          _statusMessage = 'Tax settings updated successfully';
+          _isError = false;
           _loadTaxConfigurations();
+        });
+
+        // Clear success message after 3 seconds
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) {
+            setState(() {
+              _statusMessage = null;
+            });
+          }
         });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error updating tax settings: ${e.toString()}')),
-        );
+        setState(() {
+          _statusMessage = 'Error updating tax settings:}';
+          _isError = true;
+        });
       }
     } finally {
       if (mounted) {
@@ -162,6 +175,59 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                 ),
               ),
               const SizedBox(height: 16),
+              if (_statusMessage != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: _isError ? Colors.red.shade50 : Colors.green.shade50,
+                    border: Border.all(
+                      color: _isError
+                          ? Colors.red.shade300
+                          : Colors.green.shade300,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _isError
+                            ? Icons.error_outline
+                            : Icons.check_circle_outline,
+                        color: _isError
+                            ? Colors.red.shade700
+                            : Colors.green.shade700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _statusMessage!,
+                          style: TextStyle(
+                            color: _isError
+                                ? Colors.red.shade700
+                                : Colors.green.shade700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      if (_isError)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _statusMessage = null;
+                            });
+                          },
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.red.shade700,
+                            size: 18,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               FutureBuilder<List<Configurations>>(
                 future: _taxConfigsFuture,
                 builder: (context, snapshot) {
