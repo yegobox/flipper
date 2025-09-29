@@ -41,6 +41,11 @@ Future<void> initializeDitto() async {
 
   final ditto = await Ditto.open(identity: identity);
 
+  // Set device name for debugging with timestamp to ensure uniqueness
+  final platformTag = kIsWeb ? "Web" : "Mobile";
+  final timestamp = DateTime.now().millisecondsSinceEpoch;
+  ditto.deviceName = "Flipper $platformTag $timestamp (${ditto.deviceName})";
+
   ditto.updateTransportConfig((config) {
     // Clear any existing configs first to prevent conflicts
     config.connect.webSocketUrls.clear();
@@ -53,19 +58,28 @@ Future<void> initializeDitto() async {
     } else {
       // Enable P2P for mobile/desktop
       config.setAllPeerToPeerEnabled(true);
+
       // Add cloud sync URL
       config.connect.webSocketUrls.add("wss://$appID.cloud.ditto.live");
     }
   });
 
-  // Set device name for debugging
-  final platformTag = kIsWeb ? "Web" : "Mobile";
-  ditto.deviceName = "Flipper $platformTag (${ditto.deviceName})";
-
   // Disable DQL strict mode for flexibility
   await ditto.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
 
   ditto.startSync();
+
+  // Log initialization info
+  if (kDebugMode) {
+    debugPrint('🚀 Ditto initialized successfully');
+    debugPrint('📱 Device name: ${ditto.deviceName}');
+    debugPrint(
+      'ℹ️  Note: mDNS NameConflict warnings are normal during development',
+    );
+    debugPrint(
+      '   Multiple Ditto instances on the same network will compete for service names',
+    );
+  }
 
   // Store the initialized Ditto instance in the service
   DittoService.instance.setDitto(ditto);

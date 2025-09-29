@@ -131,19 +131,20 @@ class CacheManager {
 
   /// Save stock information for variants
   Future<void> saveStocksForVariants(List<Variant> variants) async {
-    // if (_stockCache is! RealmStockCache) {
-    // If not using RealmStockCache, just save the stocks directly
-    final stocks = variants
-        .where((v) => v.stock != null && v.stock!.id.isNotEmpty)
-        .map((v) => v.stock!)
-        .toList();
+    // For Ditto cache, we need to associate stocks with their variants
+    if (_stockCache is DittoStockCache) {
+      final dittoCache = _stockCache as DittoStockCache;
 
-    if (stocks.isNotEmpty) {
-      await saveStocks(stocks);
+      for (final variant in variants) {
+        if (variant.stock != null &&
+            variant.stock!.id.isNotEmpty &&
+            variant.id.isNotEmpty) {
+          // Save stock with associated variant ID
+          await dittoCache.saveWithVariantId(variant.stock!, variant.id);
+        }
+      }
+      return;
     }
-    return;
-    // }
-
     // Using RealmStockCache - we need to associate stocks with their variants
     // final realmCache = _stockCache as RealmStockCache;
 
