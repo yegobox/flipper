@@ -345,8 +345,30 @@ class TaxController<OBJ> {
           receiptType: receiptType,
           fetchRemote: !Platform.isWindows);
       if (counter == null) {
-        throw Exception(
-            "Counter have not been initialized, call +250783054874");
+        // Initialize counter if it doesn't exist
+        final businessId = ProxyService.box.getBusinessId();
+        final bhfId = await ProxyService.box.bhfId() ?? "00";
+
+        counter = brick.Counter(
+          branchId: branchId,
+          curRcptNo: 1,
+          totRcptNo: 1,
+          invcNo: 1,
+          businessId: businessId,
+          createdAt: DateTime.now().toUtc(),
+          lastTouched: DateTime.now().toUtc(),
+          receiptType: receiptType,
+          bhfId: bhfId,
+        );
+
+        // Save the new counter to database
+        await ProxyService.strategy.create<brick.Counter>(data: counter);
+
+        // Add the new counter to the counters list for later updateCounters call
+        counters.add(counter);
+
+        talker.info(
+            'Initialized new counter for receiptType: $receiptType, branchId: $branchId');
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
