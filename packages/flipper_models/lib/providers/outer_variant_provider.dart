@@ -96,12 +96,18 @@ class OuterVariants extends _$OuterVariants {
 
   /// Filters the currently loaded variants based on the search string and taxTyCds.
   List<Variant> _filterInMemory(String searchString) {
-    final taxTyCds =
-        ProxyService.box.vatEnabled() ? ['A', 'B', 'C', 'TT'] : ['D'];
+    final isVatEnabled = ProxyService.box.vatEnabled();
 
-    // First filter by allowed tax codes
-    var filteredVariants =
-        _allLoadedVariants.where((v) => taxTyCds.contains(v.taxTyCd)).toList();
+    // Apply the same filtering logic as _fetchVariants
+    var filteredVariants = _allLoadedVariants.where((variant) {
+      if (isVatEnabled) {
+        // VAT enabled: show A, B, C tax types (includes TT items since they have taxTyCd='B')
+        return ['A', 'B', 'C'].contains(variant.taxTyCd);
+      } else {
+        // VAT disabled: show D tax type OR TT items (even though they have taxTyCd='B')
+        return variant.taxTyCd == 'D' || variant.ttCatCd == 'TT';
+      }
+    }).toList();
 
     // Then filter by search string if provided
     if (searchString.isEmpty) return filteredVariants;
@@ -153,8 +159,9 @@ class OuterVariants extends _$OuterVariants {
     required int page,
     required String searchString,
   }) async {
-    final taxTyCds =
-        ProxyService.box.vatEnabled() ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+    // Fetch all possible variants first, then filter based on VAT setting
+    final isVatEnabled = ProxyService.box.vatEnabled();
+    final taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D', 'B'];
     final currentScanMode = ref.read(scanningModeProvider);
 
     // Prioritize remote fetch for initial load, otherwise local-first.
@@ -170,6 +177,14 @@ class OuterVariants extends _$OuterVariants {
       scanMode: currentScanMode,
     );
 
+    // Apply special filtering for non-VAT mode
+    if (!isVatEnabled) {
+      fetchedVariants = fetchedVariants.where((variant) {
+        // Show D tax type items OR TT items (even though they have taxTyCd='B')
+        return variant.taxTyCd == 'D' || variant.ttCatCd == 'TT';
+      }).toList();
+    }
+
     // Fallback logic.
     if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
       fetchedVariants = await ProxyService.strategy.variants(
@@ -181,6 +196,14 @@ class OuterVariants extends _$OuterVariants {
         taxTyCds: taxTyCds,
         scanMode: currentScanMode,
       );
+
+      // Apply special filtering for non-VAT mode to fallback results too
+      if (!isVatEnabled) {
+        fetchedVariants = fetchedVariants.where((variant) {
+          // Show D tax type items OR TT items (even though they have taxTyCd='B')
+          return variant.taxTyCd == 'D' || variant.ttCatCd == 'TT';
+        }).toList();
+      }
     }
 
     // Save to cache asynchronously.
