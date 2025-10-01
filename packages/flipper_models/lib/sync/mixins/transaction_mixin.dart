@@ -447,43 +447,39 @@ mixin TransactionMixin implements TransactionInterface {
 
     // If no transaction exists, create and insert a new one
     if (transaction == null && !_isProcessingTransactionMap[branchId]!) {
-      _isProcessingTransactionMap[branchId] =
-          true; // Lock processing for this branch
+      _isProcessingTransactionMap[branchId] = true;
 
-      transaction = ITransaction(
-        lastTouched: DateTime.now().toUtc(),
-        reference: randomNumber().toString(),
-        transactionNumber: randomNumber().toString(),
-        status: PENDING,
-        isExpense: isExpense,
-        isIncome: !isExpense,
-        transactionType: transactionType,
-        subTotal: 0.0,
-        cashReceived: 0.0,
-        updatedAt: DateTime.now().toUtc(),
-        customerChangeDue: 0.0,
-        paymentType: ProxyService.box.paymentType() ?? "Cash",
-        branchId: branchId,
-        createdAt: DateTime.now().toUtc(),
-      );
+      ITransaction? createdTransaction;
 
-      await repository.upsert<ITransaction>(transaction);
+      try {
+        final now = DateTime.now().toUtc();
+        final randomRef = randomNumber().toString();
 
-      // Re-fetch the transaction to ensure it has its brick_id populated
-      final committedTransaction = (await repository.get<ITransaction>(
-        query: Query(where: [Where('id').isExactly(transaction.id)]),
-        policy: OfflineFirstGetPolicy.localOnly,
-      ))
-          .firstOrNull;
+        createdTransaction = ITransaction(
+          lastTouched: now,
+          reference: randomRef,
+          transactionNumber: randomRef,
+          status: PENDING,
+          isExpense: isExpense,
+          isIncome: !isExpense,
+          transactionType: transactionType,
+          subTotal: 0.0,
+          cashReceived: 0.0,
+          updatedAt: now,
+          customerChangeDue: 0.0,
+          paymentType: ProxyService.box.paymentType() ?? "Cash",
+          branchId: branchId,
+          createdAt: now,
+        );
 
-      if (committedTransaction == null) {
-        throw Exception(
-            'Failed to retrieve committed ITransaction after upsert.');
+        transaction = await repository.upsert<ITransaction>(createdTransaction);
+      } catch (e, s) {
+        talker.error('Error creating pending transaction stream entry: $e');
+        talker.error(s);
+        transaction ??= createdTransaction;
+      } finally {
+        _isProcessingTransactionMap[branchId] = false;
       }
-      transaction = committedTransaction; // Use the committed version
-
-      _isProcessingTransactionMap[branchId] =
-          false; // Unlock processing for this branch
     }
     if (transaction != null) {
       yield transaction;
