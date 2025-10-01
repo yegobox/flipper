@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'widgets/challenge_widgets.dart';
 import 'widgets/challenge_finder_widget.dart';
-import 'models/models.dart';
-import 'providers/providers.dart';
 
 /// Enhanced Duolingo-inspired color palette
 class FlipperPalette {
@@ -47,8 +45,16 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  // Key to access the challenge finder widget
-  final GlobalKey<ChallengeFinderWidgetState> _challengeFinderKey = GlobalKey();
+  // Opens the challenge finder experience inside a modal sheet
+  Future<void> _openChallengeFinder() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) =>
+          _ChallengeFinderBottomSheet(userId: currentUserId),
+    );
+  }
 
   @override
   void initState() {
@@ -244,15 +250,8 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
               ),
             ],
           ),
-
           // Challenge discovery overlay
           ChallengeDiscoveryWidget(userId: currentUserId),
-
-          // Challenge finder widget (provides functionality)
-          ChallengeFinderWidget(
-            key: _challengeFinderKey,
-            userId: currentUserId,
-          ),
         ],
       ),
     );
@@ -397,9 +396,7 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                 'Find\nChallenges',
                 Icons.search,
                 FlipperPalette.accentBlue,
-                () {
-                  _challengeFinderKey.currentState?.findNearbyChallenges();
-                },
+                () => _openChallengeFinder(),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -782,6 +779,89 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+}
+
+class _ChallengeFinderBottomSheet extends StatelessWidget {
+  final String userId;
+
+  const _ChallengeFinderBottomSheet({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomPadding),
+        child: Container(
+          decoration: BoxDecoration(
+            color: FlipperPalette.cardWhite,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 30,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 48,
+                height: 4,
+                margin: const EdgeInsets.only(top: 12, bottom: 16),
+                decoration: BoxDecoration(
+                  color: FlipperPalette.textSecondary.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Find nearby challenges',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: FlipperPalette.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tap the radar to scan and claim rewards around you.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: FlipperPalette.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: ChallengeFinderWidget(userId: userId),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
