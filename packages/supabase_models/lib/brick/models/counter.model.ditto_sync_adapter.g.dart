@@ -108,4 +108,9 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
     final docBranch = document["branchId"];
     return docBranch == currentBranch;
   }
+
+  static final int _$CounterDittoAdapterRegistryToken =
+      DittoSyncGeneratedRegistry.register((coordinator) async {
+    await coordinator.registerAdapter<Counter>(CounterDittoAdapter.instance);
+  });
 }

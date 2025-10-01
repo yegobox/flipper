@@ -5,6 +5,8 @@ import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
 
 // part 'counter.model.g.dart';
 part 'counter.model.ditto_sync_adapter.g.dart';

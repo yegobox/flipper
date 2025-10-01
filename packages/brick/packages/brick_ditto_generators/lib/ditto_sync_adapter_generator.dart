@@ -141,6 +141,14 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('    final docBranch = document["branchId"];')
       ..writeln('    return docBranch == currentBranch;')
       ..writeln('  }')
+      ..writeln('')
+      ..writeln(
+        '  static final int _\$${className}DittoAdapterRegistryToken = DittoSyncGeneratedRegistry.register((coordinator) async {',
+      )
+      ..writeln(
+        '    await coordinator.registerAdapter<$className>(${className}DittoAdapter.instance);',
+      )
+      ..writeln('  });')
       ..writeln('}');
 
     return buffer.toString();
