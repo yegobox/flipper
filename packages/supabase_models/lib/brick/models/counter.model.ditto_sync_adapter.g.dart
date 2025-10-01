@@ -90,12 +90,8 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
       totRcptNo: document["totRcptNo"],
       curRcptNo: document["curRcptNo"],
       invcNo: document["invcNo"],
-      lastTouched: document["lastTouched"] != null
-          ? DateTime.tryParse(document["lastTouched"])
-          : null,
-      createdAt: document["createdAt"] != null
-          ? DateTime.tryParse(document["createdAt"])
-          : null,
+      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
+      createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
       bhfId: document["bhfId"],
     );
   }

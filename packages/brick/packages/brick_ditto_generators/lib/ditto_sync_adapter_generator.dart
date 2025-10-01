@@ -177,26 +177,38 @@ String _generateConstructorArgs(List<FieldElement> fields) {
   final buffer = StringBuffer();
   for (final field in fields) {
     if (field.name == 'id') continue;
-    final typeName = field.type.getDisplayString(withNullability: false);
-    if (typeName == 'DateTime') {
-      buffer.writeln(
-        '      ${field.name}: document["${field.name}"] != null ? DateTime.tryParse(document["${field.name}"]) : null,',
-      );
-    } else {
-      buffer.writeln('      ${field.name}: document["${field.name}"],');
-    }
+    buffer.writeln('      ${field.name}: ${_deserializeField(field)},');
   }
   return buffer.toString();
 }
 
 String _serializeField(FieldElement field) {
   final accessor = 'model.${field.name}';
-  final typeName = field.type.getDisplayString(withNullability: false);
-  if (typeName == 'DateTime') {
-    return '$accessor?.toIso8601String()';
+  if (_isDateTime(field)) {
+    return _isNullable(field)
+        ? '$accessor?.toIso8601String()'
+        : '$accessor.toIso8601String()';
   }
   return accessor;
 }
+
+String _deserializeField(FieldElement field) {
+  final accessor = 'document["${field.name}"]';
+  if (_isDateTime(field)) {
+    final parseExpr = 'DateTime.tryParse($accessor?.toString() ?? "")';
+    if (_isNullable(field)) {
+      return parseExpr;
+    }
+    return '$parseExpr ?? DateTime.now().toUtc()';
+  }
+  return accessor;
+}
+
+bool _isNullable(FieldElement field) =>
+    field.type.getDisplayString(withNullability: true).endsWith('?');
+
+bool _isDateTime(FieldElement field) =>
+    field.type.getDisplayString(withNullability: false) == 'DateTime';
 
 String _generateSeedMethod(String className, {required bool hasBranchId}) {
   final branchFilter = hasBranchId
