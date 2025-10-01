@@ -181,6 +181,8 @@ class TaxController<OBJ> {
         if (responses.resultCd == "000") {
           Business? business = await ProxyService.strategy
               .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+          Ebm? ebm = await ProxyService.strategy
+              .ebm(branchId: ProxyService.box.getBranchId()!);
           List<TransactionItem> items =
               await ProxyService.strategy.transactionItems(
             transactionId: transaction.id,
@@ -261,7 +263,6 @@ class TaxController<OBJ> {
             taxB: totalB,
             taxC: totalC,
             taxA: totalA,
-
             taxD: totalD,
             grandTotal: transaction.subTotal!,
             totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
@@ -271,9 +272,6 @@ class TaxController<OBJ> {
             currencySymbol: "RW",
             originalInvoiceNumber: originalInvoiceNumber,
             transaction: transaction,
-
-            /// TODO: for totalTax we are not accounting other taxes only B
-            /// so need to account them in future
             totalTax: (totalB * 18 / 118).toStringAsFixed(2),
             items: items,
             cash: transaction.subTotal!,
@@ -292,14 +290,14 @@ class TaxController<OBJ> {
             rcptNo: receipt.rcptNo ?? 0,
             totRcptNo: receipt.totRcptNo ?? 0,
             brandName: business.name!,
-            brandAddress: business.adrs ?? "Kigali,Rwanda",
+            brandAddress: business.adrs ?? "N/A",
             brandTel: business.phoneNumber ?? "",
-            brandTIN: business.tinNumber.toString(),
+            brandTIN:
+                (ebm?.tinNumber ?? business.tinNumber ?? business.tinNumber)
+                    .toString(),
             brandDescription: business.name!,
             brandFooter: business.name!,
-            emails: ['info@yegobox.com'],
-
-            /// TODO: remove defaulting to info@yegobox.com after approval
+            emails: [business.email ?? ""],
             brandEmail: business.email ?? "info@yegobox.com",
             customerTin: transaction.customerTin,
             receiptType: receiptType,
