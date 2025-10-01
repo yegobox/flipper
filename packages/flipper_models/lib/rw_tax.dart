@@ -726,17 +726,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       // Determine taxable base for TT tax and VAT portion depending on vatEnabled
       double ttTaxblBase;
-      if (ProxyService.box.vatEnabled()) {
-        // If VAT is enabled, TT prices are VAT-inclusive; base before VAT is /1.18
-        ttTaxblBase = totalAfterDiscount / 1.18;
-        // For TT items, when VAT is enabled, treat taxAmount as VAT (18%) portion for B
-        taxAmount = (totalAfterDiscount * 18) / 118;
-        taxAmount = (taxAmount * 100).round() / 100;
-      } else {
-        // If VAT is disabled, the gross is the base for TT tax
-        ttTaxblBase = totalAfterDiscount;
-        // Do not override taxAmount to B/VAT portion when VAT is disabled
-      }
+      // If VAT is enabled, TT prices are VAT-inclusive; base before VAT is /1.18
+      ttTaxblBase = totalAfterDiscount / 1.18;
+      // For TT items, when VAT is enabled, treat taxAmount as VAT (18%) portion for B
+      taxAmount = (totalAfterDiscount * 18) / 118;
+      taxAmount = (taxAmount * 100).round() / 100;
 
       // Calculate ttTaxAmt using configuration tax percentage on the base
       ttTaxAmount = ttTaxblBase * ttTaxPercentage / (100 + ttTaxPercentage);
@@ -818,10 +812,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Add ttTaxAmt and ttTaxblAmt to the JSON if it's a TT item (after cleanup)
     if (item.ttCatCd == 'TT') {
       // Add TT tax amount regardless; include ttTaxblAmt only when VAT is enabled
-      if (ProxyService.box.vatEnabled()) {
-        double ttTaxblAmt = totalAfterDiscount / 1.18;
-        itemJson['ttTaxblAmt'] = ttTaxblAmt.roundToTwoDecimalPlaces();
-      }
+
+      double ttTaxblAmt = totalAfterDiscount / 1.18;
+      itemJson['ttTaxblAmt'] = ttTaxblAmt.roundToTwoDecimalPlaces();
+
       itemJson['ttTaxAmt'] = ttTaxAmount.roundToTwoDecimalPlaces();
       itemJson['ttCatCd'] = "TT";
     }
