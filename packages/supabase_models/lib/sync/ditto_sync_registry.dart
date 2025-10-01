@@ -7,6 +7,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/models/counter.model.dart';
 
@@ -24,8 +25,7 @@ class DittoSyncRegistry {
     }
     _registered = true;
 
-    await DittoSyncCoordinator.instance
-        .registerAdapter<Counter>(CounterDittoAdapter.instance);
+  await DittoSyncGeneratedRegistry.apply(DittoSyncCoordinator.instance);
 
     _dittoListener ??= (Ditto? ditto) {
       unawaited(DittoSyncCoordinator.instance.setDitto(ditto));

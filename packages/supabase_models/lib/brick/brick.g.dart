@@ -17,6 +17,10 @@ import 'package:flipper_services/proxy.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/message.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:flipper_models/helperModels/random.dart';
