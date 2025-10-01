@@ -88,6 +88,10 @@ For security reasons, some configuration files containing sensitive information 
 
 For templates and detailed setup instructions, please contact us at `info@yegobox.com`.
 
+Additional implementation guides:
+
+- [Flipper Sync Framework](docs/ditto_sync.md)
+
 ## 🤝 Contributing
 
 We welcome contributions from the community! If you're interested in helping improve Flipper, please follow these steps:

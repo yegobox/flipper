@@ -51,10 +51,34 @@ class DittoService {
   Ditto? _ditto;
   Timer? _observationTimer;
   StreamController<List<UserProfile>>? _userProfilesController;
+  final List<void Function(Ditto?)> _dittoListeners = [];
 
   Stream<List<UserProfile>> get userProfiles {
     _userProfilesController ??= StreamController<List<UserProfile>>.broadcast();
     return _userProfilesController!.stream;
+  }
+
+  /// Register a listener that will be notified whenever the underlying Ditto
+  /// instance changes. The listener is invoked immediately with the current
+  /// instance (which can be null).
+  void addDittoListener(void Function(Ditto?) listener) {
+    _dittoListeners.add(listener);
+    listener(_ditto);
+  }
+
+  /// Remove a previously registered Ditto listener.
+  void removeDittoListener(void Function(Ditto?) listener) {
+    _dittoListeners.remove(listener);
+  }
+
+  void _notifyDittoListeners() {
+    for (final listener in List<void Function(Ditto?)>.from(_dittoListeners)) {
+      try {
+        listener(_ditto);
+      } catch (error) {
+        debugPrint('Error notifying Ditto listener: $error');
+      }
+    }
   }
 
   /// Sets the Ditto instance (called from main.dart after initialization)
@@ -71,6 +95,7 @@ class DittoService {
     }
 
     _ditto = ditto;
+    _notifyDittoListeners();
 
     // Request necessary permissions for Ditto
     final platform = Ditto.currentPlatform;
@@ -326,6 +351,7 @@ class DittoService {
 
         debugPrint('🗑️  Clearing Ditto instance reference...');
         _ditto = null;
+        _notifyDittoListeners();
 
         // Additional wait to ensure file locks are released
         await Future.delayed(const Duration(milliseconds: 300));
