@@ -439,4 +439,22 @@ class SharedPreferenceStorageMock implements LocalStorage {
   String? lastZReportDate() {
     return "2024-08-10T12:00:00Z";
   }
+
+  @override
+  Future<void> clearReceiptLogo() {
+    // TODO: implement clearReceiptLogo
+    throw UnimplementedError();
+  }
+
+  @override
+  String? receiptLogoBase64() {
+    // TODO: implement receiptLogoBase64
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> setReceiptLogoBase64(String base64) {
+    // TODO: implement setReceiptLogoBase64
+    throw UnimplementedError();
+  }
 }

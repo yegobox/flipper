@@ -72,6 +72,11 @@ abstract class LocalStorage {
   double? discountRate();
   String? paymentType();
 
+  /// Manages the custom receipt logo stored locally as base64
+  String? receiptLogoBase64();
+  Future<void> setReceiptLogoBase64(String base64);
+  Future<void> clearReceiptLogo();
+
   String? yegoboxLoggedInUserPermission();
   bool doneDownloadingAsset();
   bool doneMigrateToLocal();

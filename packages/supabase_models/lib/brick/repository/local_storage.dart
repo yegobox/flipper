@@ -105,6 +105,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'customerTin',
     'vatEnabled',
     'lastZReportDate',
+    'receiptLogoBase64',
     'freshSignup'
     // Add new preference keys above this line
   };
@@ -573,6 +574,21 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? paymentType() {
     return _cache['paymentType'] as String?;
+  }
+
+  @override
+  String? receiptLogoBase64() {
+    return readString(key: 'receiptLogoBase64');
+  }
+
+  @override
+  Future<void> setReceiptLogoBase64(String base64) async {
+    await writeString(key: 'receiptLogoBase64', value: base64);
+  }
+
+  @override
+  Future<void> clearReceiptLogo() async {
+    await remove(key: 'receiptLogoBase64');
   }
 
   @override
