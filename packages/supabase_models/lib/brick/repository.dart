@@ -33,6 +33,7 @@ import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
 import 'models/counter.model.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// Main repository class that serves as an entry point to the database operations
 /// This class maintains backward compatibility with the original implementation
@@ -463,6 +464,10 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         EventBus().fire(CustomerUpserted(instance));
       }
 
+      unawaited(
+        DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
+      );
+
       return instance;
     } catch (e) {
       _logger.severe('Error during upsert: $e');
@@ -484,10 +489,19 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     try {
       if (instance is Counter) {
         // Only delete locally for Counter
-        return await super.delete(instance,
+        final result = await super.delete(instance,
             policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
+        if (result) {
+          unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
+        }
+        return result;
       }
-      return await super.delete(instance, policy: policy, query: query);
+      final success =
+          await super.delete(instance, policy: policy, query: query);
+      if (success) {
+        unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
+      }
+      return success;
     } catch (e) {
       _logger.severe('Error during delete: $e');
       rethrow;
