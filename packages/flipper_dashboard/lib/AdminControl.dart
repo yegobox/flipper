@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
@@ -5,6 +9,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart';
@@ -30,6 +35,9 @@ class _AdminControlState extends State<AdminControl> {
   bool enableSmsNotification = false;
   late final TextEditingController phoneController;
   String? phoneError;
+  Uint8List? receiptLogoBytes;
+  bool isUpdatingReceiptLogo = false;
+  bool isRemovingReceiptLogo = false;
 
   bool _isValidPhoneNumber(String phone) {
     // Remove any spaces or special characters
@@ -99,6 +107,14 @@ class _AdminControlState extends State<AdminControl> {
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
     phoneController = TextEditingController();
+    final logoBase64 = ProxyService.box.receiptLogoBase64();
+    if (logoBase64 != null && logoBase64.isNotEmpty) {
+      try {
+        receiptLogoBytes = base64Decode(logoBase64);
+      } catch (_) {
+        receiptLogoBytes = null;
+      }
+    }
     _loadSmsConfig();
   }
 
@@ -122,6 +138,135 @@ class _AdminControlState extends State<AdminControl> {
       }
     } catch (e) {
       print('Error loading SMS config: $e');
+    }
+  }
+
+  Future<void> _pickReceiptLogo() async {
+    try {
+      setState(() {
+        isUpdatingReceiptLogo = true;
+      });
+
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['png', 'jpg', 'jpeg'],
+        withData: false,
+      );
+
+      if (!mounted) return;
+
+      if (result == null) {
+        setState(() {
+          isUpdatingReceiptLogo = false;
+        });
+        return;
+      }
+
+      final platformFile = result.files.single;
+      Uint8List? bytes = platformFile.bytes;
+
+      // If bytes is null (e.g., on desktop), read from file path
+      if (bytes == null && platformFile.path != null) {
+        try {
+          final file = File(platformFile.path!);
+          bytes = await file.readAsBytes();
+        } catch (e) {
+          setState(() {
+            isUpdatingReceiptLogo = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to read selected file. Please try again.'),
+            ),
+          );
+          return;
+        }
+      }
+
+      if (bytes == null || bytes.isEmpty) {
+        setState(() {
+          isUpdatingReceiptLogo = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selected file has no data. Please pick another.'),
+          ),
+        );
+        return;
+      }
+
+      const maxSizeBytes = 295 * 1024; // 295KB, plenty for a logo
+      if (bytes.length > maxSizeBytes) {
+        setState(() {
+          isUpdatingReceiptLogo = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Please choose an image under 200KB for best print quality.'),
+          ),
+        );
+        return;
+      }
+
+      final encoded = base64Encode(bytes);
+      await ProxyService.box.setReceiptLogoBase64(encoded);
+
+      if (!mounted) return;
+
+      setState(() {
+        receiptLogoBytes = bytes;
+        isUpdatingReceiptLogo = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Receipt logo updated.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isUpdatingReceiptLogo = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update logo: $e'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _removeReceiptLogo() async {
+    try {
+      setState(() {
+        isRemovingReceiptLogo = true;
+      });
+
+      await ProxyService.box.clearReceiptLogo();
+
+      if (!mounted) return;
+
+      setState(() {
+        receiptLogoBytes = null;
+        isRemovingReceiptLogo = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Receipt logo removed. Default logo will be used.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isRemovingReceiptLogo = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to remove logo: $e'),
+        ),
+      );
     }
   }
 
@@ -379,6 +524,8 @@ class _AdminControlState extends State<AdminControl> {
         _buildSmsConfigSection(context),
         const SizedBox(height: 32),
         _buildSystemSettings(context),
+        const SizedBox(height: 32),
+        _buildReceiptBrandingSection(context),
       ],
     );
   }
@@ -548,6 +695,124 @@ class _AdminControlState extends State<AdminControl> {
               color: Colors.blueGrey,
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReceiptBrandingSection(BuildContext context) {
+    final theme = Theme.of(context);
+    return SettingsSection(
+      title: 'Receipt Branding',
+      children: [
+        Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Colors.grey.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Receipt Logo',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: receiptLogoBytes != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.memory(
+                                receiptLogoBytes!,
+                                fit: BoxFit.contain,
+                              ),
+                            )
+                          : Icon(
+                              Icons.image_outlined,
+                              color: theme.primaryColor,
+                              size: 32,
+                            ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Text(
+                        'Upload a transparent PNG or JPG under 200KB. The logo appears at the center of printed receipts and falls back to the default if none is provided.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed:
+                              isUpdatingReceiptLogo ? null : _pickReceiptLogo,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          icon: isUpdatingReceiptLogo
+                              ? SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(Icons.upload),
+                          label: Text(
+                            isUpdatingReceiptLogo
+                                ? 'Uploading...'
+                                : 'Upload Logo',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextButton(
+                          onPressed:
+                              receiptLogoBytes != null && !isRemovingReceiptLogo
+                                  ? _removeReceiptLogo
+                                  : null,
+                          child: isRemovingReceiptLogo
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Remove logo'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
