@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/services.dart';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
 import 'package:supabase_models/services/turbo_tax_service.dart';
@@ -554,6 +553,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     int? originalInvoiceNumber,
     String? sarTyCd,
   }) async {
+    final repository = Repository();
     // Get business details
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
