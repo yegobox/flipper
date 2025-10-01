@@ -109,8 +109,41 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
     return docBranch == currentBranch;
   }
 
+  static bool _seeded = false;
+
+  static Future<void> _seed(DittoSyncCoordinator coordinator) async {
+    if (_seeded) {
+      return;
+    }
+
+    try {
+      Query? query;
+      final branchId =
+          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+      if (branchId != null) {
+        query = Query(where: [Where('branchId').isExactly(branchId)]);
+      }
+
+      final models = await Repository().get<Counter>(
+        query: query,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+      );
+      for (final model in models) {
+        await coordinator.notifyLocalUpsert<Counter>(model);
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('Ditto seeding failed for Counter: $error\n$stack');
+      }
+    }
+
+    _seeded = true;
+  }
+
   static final int _$CounterDittoAdapterRegistryToken =
       DittoSyncGeneratedRegistry.register((coordinator) async {
     await coordinator.registerAdapter<Counter>(CounterDittoAdapter.instance);
+  }, seed: (coordinator) async {
+    await _seed(coordinator);
   });
 }

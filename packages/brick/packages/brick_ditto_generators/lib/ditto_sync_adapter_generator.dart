@@ -22,6 +22,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     final classElement = element;
     final className = classElement.name;
     final collectionName = annotation.read('collectionName').stringValue;
+    final fields =
+        classElement.fields.where((field) => !field.isStatic).toList();
+    final hasBranchId = fields.any((field) => field.name == 'branchId');
 
     // Generate the adapter code
     final buffer = StringBuffer();
@@ -101,7 +104,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       )
       ..writeln('    return {')
       // Generate fields mapping
-      ..write(_generateFieldsMapping(classElement.fields))
+      ..write(_generateFieldsMapping(fields))
       ..writeln('    };')
       ..writeln('  }')
       ..writeln('')
@@ -126,7 +129,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('    return $className(')
       ..writeln('      id: id,')
       // Generate constructor args
-      ..write(_generateConstructorArgs(classElement.fields))
+      ..write(_generateConstructorArgs(fields))
       ..writeln('    );')
       ..writeln('  }')
       ..writeln('')
@@ -142,12 +145,15 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('    return docBranch == currentBranch;')
       ..writeln('  }')
       ..writeln('')
+      ..write(_generateSeedMethod(className, hasBranchId: hasBranchId))
       ..writeln(
         '  static final int _\$${className}DittoAdapterRegistryToken = DittoSyncGeneratedRegistry.register((coordinator) async {',
       )
       ..writeln(
         '    await coordinator.registerAdapter<$className>(${className}DittoAdapter.instance);',
       )
+      ..writeln('  }, seed: (coordinator) async {')
+      ..writeln('    await _seed(coordinator);')
       ..writeln('  });')
       ..writeln('}');
 
@@ -162,7 +168,6 @@ Builder dittoSyncAdapterBuilder(BuilderOptions options) =>
 String _generateFieldsMapping(List<FieldElement> fields) {
   final buffer = StringBuffer();
   for (final field in fields) {
-    if (field.isStatic) continue;
     buffer.writeln('      "${field.name}": ${_serializeField(field)},');
   }
   return buffer.toString();
@@ -191,4 +196,44 @@ String _serializeField(FieldElement field) {
     return '$accessor?.toIso8601String()';
   }
   return accessor;
+}
+
+String _generateSeedMethod(String className, {required bool hasBranchId}) {
+  final branchFilter = hasBranchId
+      ? '''
+      final branchId =
+          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+      if (branchId != null) {
+        query = Query(where: [Where('branchId').isExactly(branchId)]);
+      }
+'''
+      : '';
+
+  return '''  static bool _seeded = false;
+
+  static Future<void> _seed(DittoSyncCoordinator coordinator) async {
+    if (_seeded) {
+      return;
+    }
+
+    try {
+      Query? query;
+$branchFilter
+      final models = await Repository().get<$className>(
+        query: query,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+      );
+      for (final model in models) {
+        await coordinator.notifyLocalUpsert<$className>(model);
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('Ditto seeding failed for $className: \$error\\n\$stack');
+      }
+    }
+
+    _seeded = true;
+  }
+
+''';
 }
