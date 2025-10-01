@@ -1,0 +1,7 @@
+targets:
+  $default:
+    builders:
+      brick_ditto_generators:ditto_sync_adapter:
+        enabled: true
+        generate_for:
+          - lib/brick/models/**.dart

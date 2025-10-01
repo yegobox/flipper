@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/counter.model.dart';
-import 'package:supabase_models/sync/adapters/counter_ditto_adapter.dart';
 
 void main() {
   final adapter = CounterDittoAdapter.instance;

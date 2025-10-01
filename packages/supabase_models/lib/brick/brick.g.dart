@@ -11,6 +11,12 @@ import 'package:brick_supabase/brick_supabase.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:flipper_services/proxy.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/message.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:flipper_models/helperModels/random.dart';
@@ -20,8 +26,6 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/brick/models/finance_provider.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:flipper_services/proxy.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/variant.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import

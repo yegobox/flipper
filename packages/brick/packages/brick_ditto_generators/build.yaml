@@ -1,0 +1,15 @@
+builders:
+  ditto_sync_adapter:
+    import: "package:brick_ditto_generators/ditto_sync_adapter_generator.dart"
+    builder_factories: ["dittoSyncAdapterBuilder"]
+    build_extensions: {".dart": [".ditto_sync_adapter.g.dart"]}
+    auto_apply: dependents
+    build_to: source
+
+targets:
+  $default:
+    builders:
+      brick_ditto_generators|ditto_sync_adapter:
+        enabled: true
+        generate_for:
+          - lib/**/*.dart

@@ -9,7 +9,8 @@ import 'package:meta/meta.dart';
 ///
 /// MemoryCacheProvider does not have a type argument due to a build_runner
 /// exception: https://github.com/dart-lang/sdk/issues/38309
-class MemoryCacheProvider<TProviderModel extends SqliteModel> extends Provider<TProviderModel> {
+class MemoryCacheProvider<TProviderModel extends SqliteModel>
+    extends Provider<TProviderModel> {
   ///
   @protected
   final logger = Logger('MemoryCacheProvider');
@@ -42,7 +43,8 @@ class MemoryCacheProvider<TProviderModel extends SqliteModel> extends Provider<T
   /// However, if the provider is extended to support complex [Where] statements in [get],
   /// this method should also be extended.
   bool canFind<TModel extends TProviderModel>([Query? query]) {
-    final byPrimaryKey = Where.firstByField(InsertTable.PRIMARY_KEY_FIELD, query?.where);
+    final byPrimaryKey =
+        Where.firstByField(InsertTable.PRIMARY_KEY_FIELD, query?.where);
     return manages(TModel) && byPrimaryKey?.value != null;
   }
 
@@ -71,7 +73,8 @@ class MemoryCacheProvider<TProviderModel extends SqliteModel> extends Provider<T
     logger.finest('#get: $TModel, $query');
 
     // If this query is searching for a unique identifier, return that specific record
-    final byId = Where.firstByField(InsertTable.PRIMARY_KEY_FIELD, query?.where);
+    final byId =
+        Where.firstByField(InsertTable.PRIMARY_KEY_FIELD, query?.where);
     if (byId?.value != null) {
       final object = managedObjects[TModel]?[byId!.value];
       if (object != null) return [object as TModel];
@@ -113,11 +116,19 @@ class MemoryCacheProvider<TProviderModel extends SqliteModel> extends Provider<T
   }) {
     if (!manages(TModel)) return null;
     logger.finest('#upsert: $TModel, $instance, $query');
+    final primaryKey = instance.primaryKey;
+    if (primaryKey == null) {
+      // Models without a resolved primary key cannot be cached yet.
+      // This happens for newly inserted rows before SQLite assigns an ID.
+      return instance;
+    }
+
     hydrate<TModel>([instance]);
-    return managedObjects[TModel]![instance.primaryKey]! as TModel;
+    return managedObjects[TModel]![primaryKey] as TModel;
   }
 }
 
-class _MemoryCacheModelDictionary extends ModelDictionary<SqliteModel, SqliteAdapter<SqliteModel>> {
+class _MemoryCacheModelDictionary
+    extends ModelDictionary<SqliteModel, SqliteAdapter<SqliteModel>> {
   _MemoryCacheModelDictionary() : super({});
 }
