@@ -1,0 +1,28 @@
+name: brick_ditto_generators
+description: Code generation for Ditto Live synchronization adapters.
+version: 1.0.0
+homepage: https://github.com/yegobox/flipper
+
+environment:
+  sdk: ^3.5.3
+
+dependencies:
+  analyzer: ">=6.11.0 <8.0.0"
+  brick_build: any
+  brick_core: any
+  brick_ditto: any
+  build: ^2.4.2
+  dart_style: ^3.1.1
+  source_gen: ^2.0.0
+
+dev_dependencies:
+  build_runner: ^2.4.15
+  test: ^1.25.0
+
+builders:
+  ditto_sync_adapter:
+    import: "package:brick_ditto_generators/ditto_sync_adapter_generator.dart"
+    builder_factories: ["dittoSyncAdapterBuilder"]
+    build_extensions: {".dart": [".ditto_sync_adapter.g.dart"]}
+    auto_apply: dependents
+    build_to: source
