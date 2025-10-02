@@ -262,6 +262,57 @@ class OuterVariants extends _$OuterVariants {
     ref.invalidateSelf();
   }
 
+  /// Method to force a full refresh of variants (e.g., after adding new products).
+  Future<void> refresh() async {
+    _allLoadedVariants.clear();
+    _currentPage = 0;
+    _hasMore = true;
+    _isLoading = false;
+
+    // Reload variants
+    try {
+      state = const AsyncValue.loading();
+      final variants = await _fetchVariants(
+        branchId: branchId,
+        page: 0,
+        searchString: '',
+      );
+      _allLoadedVariants.addAll(variants);
+
+      // Apply current search filter if any
+      final currentSearchString = ref.read(searchStringProvider);
+      final filteredVariants = _filterInMemory(currentSearchString);
+      state = AsyncValue.data(filteredVariants);
+    } catch (e, stack) {
+      talker.error('Failed to refresh variants: $e');
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  /// Add newly created variants to the provider without full reload.
+  void addVariants(List<Variant> newVariants) {
+    if (newVariants.isEmpty) return;
+
+    // Add to internal list if not already present
+    final currentIds = _allLoadedVariants.map((v) => v.id).toSet();
+    final uniqueNewVariants =
+        newVariants.where((v) => !currentIds.contains(v.id)).toList();
+
+    if (uniqueNewVariants.isNotEmpty) {
+      _allLoadedVariants.addAll(uniqueNewVariants);
+
+      // Save to cache asynchronously
+      unawaited(_saveStocksToCache(uniqueNewVariants));
+
+      // Update state with filtered results
+      if (!_isDisposed) {
+        final currentSearchString = ref.read(searchStringProvider);
+        final filteredVariants = _filterInMemory(currentSearchString);
+        state = AsyncValue.data(filteredVariants);
+      }
+    }
+  }
+
   /// Removes a variant from the state.
   void removeVariantById(String variantId) {
     _allLoadedVariants.removeWhere((v) => v.id == variantId);

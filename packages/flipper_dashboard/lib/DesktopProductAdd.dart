@@ -170,6 +170,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               if (!mounted) return;
               await completeTransaction(pendingTransaction: pendingTransaction);
             }
+
+            // Add the newly created variants to the provider immediately
+            final branchId = ProxyService.box.getBranchId();
+            if (branchId != null && mounted) {
+              ref
+                  .read(outerVariantsProvider(branchId).notifier)
+                  .addVariants(variants);
+            }
           });
         } else {
           if (!mounted) return;
@@ -223,6 +231,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 if (!mounted) return;
                 await completeTransaction(
                     pendingTransaction: pendingTransaction);
+              }
+
+              // Add the newly created variants to the provider immediately
+              final branchId = ProxyService.box.getBranchId();
+              if (branchId != null && mounted) {
+                ref
+                    .read(outerVariantsProvider(branchId).notifier)
+                    .addVariants(variants);
               }
             },
           );

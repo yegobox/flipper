@@ -467,9 +467,15 @@ class CombinedNotifier {
       throw Exception('Branch ID is null!');
     }
 
+    // Trigger search to force UI update
     ref.read(searchStringProvider.notifier).emitString(value: "search");
     ref.read(searchStringProvider.notifier).emitString(value: "");
 
+    // Note: We don't call refresh() here because variants are already added
+    // directly in the onCompleteCallback via addVariants() method.
+    // Calling refresh() here would cause duplicates.
+
+    // Reload products
     ref.read(productsProvider(branchId).notifier).loadProducts(
           searchString: productName,
           scanMode: scanMode,
