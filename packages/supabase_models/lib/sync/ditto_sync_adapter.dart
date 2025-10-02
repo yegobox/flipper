@@ -1,4 +1,6 @@
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 /// Represents a Ditto query definition (SQL + optional arguments).
 class DittoSyncQuery {
@@ -35,4 +37,14 @@ abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
 
   /// Whether a remote Ditto document should be upserted locally.
   Future<bool> shouldApplyRemote(Map<String, dynamic> document) async => true;
+
+  /// Upserts a model to the repository with the correct generic type.
+  /// This method ensures that the SQLite provider can find the correct adapter
+  /// by preserving the concrete type T rather than using the base type.
+  Future<T> upsertToRepository(T model) async {
+    return Repository().upsert<T>(
+      model,
+      policy: OfflineFirstUpsertPolicy.optimisticLocal,
+    );
+  }
 }
