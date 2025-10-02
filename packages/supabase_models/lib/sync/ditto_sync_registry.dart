@@ -35,7 +35,6 @@ class DittoSyncRegistry {
     _dittoListener ??= (Ditto? ditto) {
       debugPrint(
           '🔔 DittoSyncRegistry listener invoked with ditto: ${ditto != null ? ditto.deviceName : 'null'}');
-      unawaited(DittoSyncCoordinator.instance.setDitto(ditto));
       if (ditto != null) {
         debugPrint(
             '🚀 Ditto instance received, starting async seeding process...');
@@ -44,6 +43,17 @@ class DittoSyncRegistry {
             debugPrint('⏳ Waiting for Repository to be ready...');
             await Repository.waitUntilReady();
             debugPrint('✅ Repository is ready');
+
+            // Add delay before starting Ditto sync to let app fully initialize
+            debugPrint(
+                '⏱️  Delaying Ditto sync for 3 seconds to allow app initialization...');
+            await Future.delayed(const Duration(seconds: 3));
+            debugPrint('✅ Delay completed, starting Ditto sync');
+
+            // Skip initial fetch on startup to prevent mass upserts
+            await DittoSyncCoordinator.instance
+                .setDitto(ditto, skipInitialFetch: true);
+
             if (kDebugMode) {
               debugPrint(
                 'Ditto seeding started using device: ${ditto.deviceName}',
