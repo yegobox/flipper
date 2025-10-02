@@ -14,18 +14,22 @@ class DittoSyncCoordinator {
   final Map<Type, DittoSyncAdapter> _adapters = {};
   final Map<Type, dynamic> _observers = {};
   final Map<Type, Set<String>> _suppressedIds = {};
+  final Map<Type, Map<String, int>> _documentHashes = {};
   Ditto? _ditto;
   bool _isObserving = false;
+  bool _skipInitialFetch = false;
+  Timer? _upsertDebouncer;
 
   /// Set the Ditto instance to be used for sync operations.
   /// Passing `null` tears down existing observers.
-  Future<void> setDitto(Ditto? ditto) async {
+  Future<void> setDitto(Ditto? ditto, {bool skipInitialFetch = false}) async {
     if (_ditto == ditto) {
       return;
     }
 
     await _disposeObservers();
     _ditto = ditto;
+    _skipInitialFetch = skipInitialFetch;
 
     if (_ditto != null) {
       await _startObservers();
@@ -44,6 +48,7 @@ class DittoSyncCoordinator {
 
     _adapters[type] = adapter;
     _suppressedIds.putIfAbsent(type, () => <String>{});
+    _documentHashes.putIfAbsent(type, () => <String, int>{});
 
     if (_ditto != null) {
       await _startObserverFor(type);
@@ -57,6 +62,7 @@ class DittoSyncCoordinator {
     await _stopObserverFor(type);
     _adapters.remove(type);
     _suppressedIds.remove(type);
+    _documentHashes.remove(type);
   }
 
   /// Should be invoked when a model is upserted locally so the change can be
@@ -154,18 +160,30 @@ class DittoSyncCoordinator {
 
     _observers[type] = observer;
 
-    try {
-      final initial =
-          await ditto.store.execute(query.query, arguments: query.arguments);
-      await _handleQueryResult(type, initial);
-    } catch (error, stack) {
+    // Only fetch initial data if not skipping (e.g., on app startup we skip)
+    if (!_skipInitialFetch) {
+      try {
+        final initial =
+            await ditto.store.execute(query.query, arguments: query.arguments);
+        await _handleQueryResult(type, initial, isInitialFetch: true);
+      } catch (error, stack) {
+        if (kDebugMode) {
+          debugPrint('Ditto initial fetch failed for $type: $error\n$stack');
+        }
+      }
+    } else {
       if (kDebugMode) {
-        debugPrint('Ditto initial fetch failed for $type: $error\n$stack');
+        debugPrint(
+            '⏭️  Skipping initial fetch for $type (startup optimization)');
       }
     }
   }
 
-  Future<void> _handleQueryResult(Type type, dynamic result) async {
+  Future<void> _handleQueryResult(
+    Type type,
+    dynamic result, {
+    bool isInitialFetch = false,
+  }) async {
     final adapter = _adapters[type];
     if (adapter == null) {
       return;
@@ -177,37 +195,107 @@ class DittoSyncCoordinator {
     }
 
     final Iterable<dynamic> items = itemsDynamic as Iterable<dynamic>;
+    final List<Future<void>> upsertTasks = [];
+
     for (final item in items) {
       final payload =
           Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>);
+
+      final docId = await adapter.documentIdFromRemote(payload);
+      if (docId == null) continue;
+
+      // Calculate hash of the document to detect actual changes
+      final currentHash = _calculateHash(payload);
+      final previousHash = _documentHashes[type]?[docId];
+
+      // Skip if document hasn't changed (unless it's initial fetch)
+      if (!isInitialFetch && previousHash == currentHash) {
+        if (kDebugMode) {
+          debugPrint('⏭️  Skipping unchanged $type document: $docId');
+        }
+        continue;
+      }
+
+      // Store new hash
+      _documentHashes[type]?[docId] = currentHash;
+
       if (await adapter.shouldApplyRemote(payload)) {
         final model = await adapter.fromDittoDocument(payload);
         if (model != null) {
-          final docId = await adapter.documentIdFromRemote(payload);
-          if (docId != null) {
-            _suppressedIds[type]?.add(docId);
-          }
-          try {
-            if (kDebugMode) {
-              debugPrint('🔄 Upserting $type from Ditto: ${model.runtimeType}');
-            }
-            // Use the adapter to upsert with correct type parameter
-            await adapter.upsertToRepository(model);
-            if (kDebugMode) {
-              debugPrint('✅ Successfully upserted $type from Ditto');
-            }
-          } catch (error, stack) {
-            if (kDebugMode) {
-              debugPrint('Local upsert failed for Ditto change on $type: '
-                  '$error\n$stack');
-            }
-            if (docId != null) {
-              _suppressedIds[type]?.remove(docId);
-            }
-          }
+          _suppressedIds[type]?.add(docId);
+
+          // Add to batch instead of executing immediately
+          upsertTasks.add(_performUpsert(type, model, docId, adapter));
         }
       }
     }
+
+    // Process upserts in batches to avoid database locking
+    if (upsertTasks.isNotEmpty) {
+      await _processBatchedUpserts(upsertTasks, type);
+    }
+  }
+
+  Future<void> _performUpsert(
+    Type type,
+    dynamic model,
+    String docId,
+    DittoSyncAdapter adapter,
+  ) async {
+    try {
+      if (kDebugMode) {
+        debugPrint('🔄 Upserting $type from Ditto: $docId');
+      }
+      await adapter.upsertToRepository(model);
+      if (kDebugMode) {
+        debugPrint('✅ Successfully upserted $type from Ditto: $docId');
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('❌ Local upsert failed for Ditto change on $type: '
+            '$error\n$stack');
+      }
+      _suppressedIds[type]?.remove(docId);
+    }
+  }
+
+  Future<void> _processBatchedUpserts(
+    List<Future<void>> upsertTasks,
+    Type type,
+  ) async {
+    if (kDebugMode) {
+      debugPrint('📦 Processing ${upsertTasks.length} upserts for $type');
+    }
+
+    // Process in small batches with delays to prevent database locking
+    const batchSize = 5;
+    const delayBetweenBatches = Duration(milliseconds: 100);
+
+    for (var i = 0; i < upsertTasks.length; i += batchSize) {
+      final end = (i + batchSize < upsertTasks.length)
+          ? i + batchSize
+          : upsertTasks.length;
+      final batch = upsertTasks.sublist(i, end);
+
+      await Future.wait(batch);
+
+      // Add delay between batches
+      if (end < upsertTasks.length) {
+        await Future.delayed(delayBetweenBatches);
+      }
+    }
+
+    if (kDebugMode) {
+      debugPrint('✅ Completed batch processing for $type');
+    }
+  }
+
+  /// Simple hash function for change detection
+  int _calculateHash(Map<String, dynamic> document) {
+    // Remove _id from hash calculation as it's not part of the content
+    final docCopy = Map<String, dynamic>.from(document);
+    docCopy.remove('_id');
+    return docCopy.toString().hashCode;
   }
 
   Future<void> _stopObserverFor(Type type) async {
@@ -216,6 +304,9 @@ class DittoSyncCoordinator {
   }
 
   Future<void> _disposeObservers() async {
+    _upsertDebouncer?.cancel();
+    _upsertDebouncer = null;
+
     for (final observer in _observers.values) {
       await observer.cancel();
     }
