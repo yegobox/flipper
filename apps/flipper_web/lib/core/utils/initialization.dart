@@ -60,7 +60,8 @@ Future<void> initializeDitto() async {
       token: kDebugMode
           ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
           : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
-      enableDittoCloudSync: false, // Required to be false to use custom URLs
+      enableDittoCloudSync:
+          true, // Keep cloud sync enabled; custom URLs are configured below
     );
 
     // Create a unique persistence directory for this instance to avoid file lock conflicts
@@ -137,7 +138,8 @@ Future<void> initializeDitto() async {
           token: kDebugMode
               ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
               : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
-          enableDittoCloudSync: false,
+          enableDittoCloudSync:
+              true, // Keep cloud sync enabled; custom URLs are configured below
         );
 
         // Create another unique directory for retry attempt
