@@ -44,6 +44,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   static SharedPreferenceStorage? _sharedPreferenceStorage;
   // Flag to track if the singleton has been explicitly disposed and its resources released.
   static bool _isDisposed = false;
+  static final Completer<void> _readyCompleter = Completer<void>();
   // Flag to prevent multiple concurrent calls to initializeSupabaseAndConfigure.
   static bool _isInitializing = false;
 
@@ -143,6 +144,24 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     _isDisposed = false;
     _logger.info('FINAL DATABASE FILENAME: $dbFileName');
     _logger.info('FINAL DATABASE PATH: $dbPath');
+  }
+
+  static bool get isReady => _singleton != null && !_isDisposed;
+
+  static Future<void> waitUntilReady() async {
+    if (isReady) {
+      if (!_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
+      }
+      return;
+    }
+    await _readyCompleter.future;
+  }
+
+  static void _markReady() {
+    if (!_readyCompleter.isCompleted) {
+      _readyCompleter.complete();
+    }
   }
 
   /// Factory constructor to retrieve the singleton instance.
@@ -285,6 +304,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         // Continue without database configuration as it's not critical
       }
     }
+
+    _markReady();
   }
 
   /// Atomically ensure directory exists
@@ -354,6 +375,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (_singleton != null && !_isDisposed) {
       _logger.info(
           'Repository already initialized and not disposed. Skipping re-initialization.');
+      _markReady();
       return;
     }
 
@@ -368,6 +390,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         configureDatabase: configureDatabase,
       );
       _logger.info('Repository initialization complete.');
+      _markReady();
     } finally {
       // Ensure the initialization flag is reset
       _isInitializing = false;

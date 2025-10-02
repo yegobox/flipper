@@ -1,7 +1,7 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'counter.model.dart';
+part of 'itemCode.model.dart';
 
 // **************************************************************************
 // DittoSyncAdapterGenerator
@@ -11,10 +11,10 @@ part of 'counter.model.dart';
 // DittoSyncAdapterGenerator
 // **************************************************************************
 
-class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
-  CounterDittoAdapter._internal();
+class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
+  ItemCodeDittoAdapter._internal();
 
-  static final CounterDittoAdapter instance = CounterDittoAdapter._internal();
+  static final ItemCodeDittoAdapter instance = ItemCodeDittoAdapter._internal();
 
   static int? Function()? _branchIdProviderOverride;
   static int? Function()? _businessIdProviderOverride;
@@ -35,42 +35,36 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
     _businessIdProviderOverride = null;
   }
 
-  String get collectionName => "counters";
+  String get collectionName => "codes";
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
     final branchId =
         _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const DittoSyncQuery(query: "SELECT * FROM counters");
+      return const DittoSyncQuery(query: "SELECT * FROM codes");
     }
     return DittoSyncQuery(
-      query: "SELECT * FROM counters WHERE branchId = :branchId",
+      query: "SELECT * FROM codes WHERE branchId = :branchId",
       arguments: {"branchId": branchId},
     );
   }
 
   @override
-  Future<String?> documentIdForModel(Counter model) async => model.id;
+  Future<String?> documentIdForModel(ItemCode model) async => model.id;
 
   @override
-  Future<Map<String, dynamic>> toDittoDocument(Counter model) async {
+  Future<Map<String, dynamic>> toDittoDocument(ItemCode model) async {
     return {
       "id": model.id,
-      "businessId": model.businessId,
+      "code": model.code,
+      "createdAt": model.createdAt.toIso8601String(),
       "branchId": model.branchId,
-      "receiptType": model.receiptType,
-      "totRcptNo": model.totRcptNo,
-      "curRcptNo": model.curRcptNo,
-      "invcNo": model.invcNo,
-      "lastTouched": model.lastTouched?.toIso8601String(),
-      "createdAt": model.createdAt?.toIso8601String(),
-      "bhfId": model.bhfId,
     };
   }
 
   @override
-  Future<Counter?> fromDittoDocument(Map<String, dynamic> document) async {
+  Future<ItemCode?> fromDittoDocument(Map<String, dynamic> document) async {
     final id = document["_id"] ?? document["id"];
     if (id == null) return null;
 
@@ -82,17 +76,12 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
       return null;
     }
 
-    return Counter(
+    return ItemCode(
       id: id,
-      businessId: document["businessId"],
+      code: document["code"],
+      createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? "") ??
+          DateTime.now().toUtc(),
       branchId: document["branchId"],
-      receiptType: document["receiptType"],
-      totRcptNo: document["totRcptNo"],
-      curRcptNo: document["curRcptNo"],
-      invcNo: document["invcNo"],
-      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
-      createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
-      bhfId: document["bhfId"],
     );
   }
 
@@ -114,7 +103,7 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
   static Future<void> _seed(DittoSyncCoordinator coordinator) async {
     if (_seeded) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding skipped for Counter (already seeded)');
+        debugPrint('Ditto seeding skipped for ItemCode (already seeded)');
       }
       return;
     }
@@ -127,37 +116,37 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
         query = Query(where: [Where('branchId').isExactly(branchId)]);
       }
 
-      final models = await Repository().get<Counter>(
+      final models = await Repository().get<ItemCode>(
         query: query,
         policy: OfflineFirstGetPolicy.alwaysHydrate,
       );
       var seededCount = 0;
       for (final model in models) {
-        await coordinator.notifyLocalUpsert<Counter>(model);
+        await coordinator.notifyLocalUpsert<ItemCode>(model);
         seededCount++;
       }
       if (kDebugMode) {
         debugPrint('Ditto seeded ' +
             seededCount.toString() +
-            ' Counter record' +
+            ' ItemCode record' +
             (seededCount == 1 ? '' : 's'));
       }
     } catch (error, stack) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding failed for Counter: $error\n$stack');
+        debugPrint('Ditto seeding failed for ItemCode: $error\n$stack');
       }
     }
 
     _seeded = true;
   }
 
-  static final int _$CounterDittoAdapterRegistryToken =
+  static final int _$ItemCodeDittoAdapterRegistryToken =
       DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator.registerAdapter<Counter>(CounterDittoAdapter.instance);
+    await coordinator.registerAdapter<ItemCode>(ItemCodeDittoAdapter.instance);
   }, seed: (coordinator) async {
     await _seed(coordinator);
   }, reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
-  static int get registryToken => _$CounterDittoAdapterRegistryToken;
+  static int get registryToken => _$ItemCodeDittoAdapterRegistryToken;
 }

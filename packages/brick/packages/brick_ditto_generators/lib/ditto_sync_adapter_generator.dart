@@ -154,7 +154,12 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       )
       ..writeln('  }, seed: (coordinator) async {')
       ..writeln('    await _seed(coordinator);')
-      ..writeln('  });')
+      ..writeln('  }, reset: _resetSeedFlag);')
+      ..writeln('')
+      ..writeln('  /// Public accessor to ensure static initializer runs')
+      ..writeln(
+        '  static int get registryToken => _\$${className}DittoAdapterRegistryToken;',
+      )
       ..writeln('}');
 
     return buffer.toString();
@@ -223,8 +228,15 @@ String _generateSeedMethod(String className, {required bool hasBranchId}) {
 
   return '''  static bool _seeded = false;
 
+  static void _resetSeedFlag() {
+    _seeded = false;
+  }
+
   static Future<void> _seed(DittoSyncCoordinator coordinator) async {
     if (_seeded) {
+      if (kDebugMode) {
+        debugPrint('Ditto seeding skipped for $className (already seeded)');
+      }
       return;
     }
 
@@ -235,8 +247,16 @@ $branchFilter
         query: query,
         policy: OfflineFirstGetPolicy.alwaysHydrate,
       );
+      var seededCount = 0;
       for (final model in models) {
         await coordinator.notifyLocalUpsert<$className>(model);
+        seededCount++;
+      }
+      if (kDebugMode) {
+        debugPrint('Ditto seeded ' +
+            seededCount.toString() +
+            ' $className record' +
+            (seededCount == 1 ? '' : 's'));
       }
     } catch (error, stack) {
       if (kDebugMode) {
