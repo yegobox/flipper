@@ -7,6 +7,7 @@ import 'package:flipper_models/sync/interfaces/conversation_interface.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/sync/interfaces/storage_interface.dart';
+import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
 
 abstract class DatabaseSyncInterface extends BaseSyncInterface
     implements
@@ -17,4 +18,5 @@ abstract class DatabaseSyncInterface extends BaseSyncInterface
         ConversationInterface,
         AuthInterface,
         TenantInterface,
-        StorageInterface {}
+        StorageInterface,
+        StockRecountInterface {}

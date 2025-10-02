@@ -25,6 +25,7 @@ import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_operations_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
+import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:supabase_models/brick/models/pin.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -62,7 +63,8 @@ class CoreSync extends CoreSyncBase
         GetterOperationsMixin,
         PurchaseMixin,
         CategoryMixin,
-        LogMixin {
+        LogMixin,
+        StockRecountMixin {
   CoreSync() : super(AppSecrets.apihubProd);
 
   final Talker _talker = Talker();
@@ -135,7 +137,9 @@ class CoreSync extends CoreSyncBase
   }
 
   @override
-  Future<IPin?> getPin({required String pinString, required HttpClientInterface flipperHttpClient}) {
+  Future<IPin?> getPin(
+      {required String pinString,
+      required HttpClientInterface flipperHttpClient}) {
     // TODO: implement getPin
     throw UnimplementedError();
   }

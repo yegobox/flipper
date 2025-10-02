@@ -36,6 +36,7 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 
 class CapellaSync extends CapellaSyncBase
     with
@@ -61,7 +62,8 @@ class CapellaSync extends CapellaSyncBase
         CapellaVariantMixin,
         CapellaShiftMixin,
         CapellaStockMixin,
-        CategoryMixin {
+        CategoryMixin,
+        StockRecountMixin {
   CapellaSync() : super(AppSecrets.apihubProd);
 
   final Talker _talker = Talker();
