@@ -1,10 +1,8 @@
 import 'dart:async';
 
-import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 
 /// Coordinates two-way synchronisation between Ditto and OfflineFirst models.
@@ -190,10 +188,14 @@ class DittoSyncCoordinator {
             _suppressedIds[type]?.add(docId);
           }
           try {
-            await Repository().upsert(
-              model,
-              policy: OfflineFirstUpsertPolicy.optimisticLocal,
-            );
+            if (kDebugMode) {
+              debugPrint('🔄 Upserting $type from Ditto: ${model.runtimeType}');
+            }
+            // Use the adapter to upsert with correct type parameter
+            await adapter.upsertToRepository(model);
+            if (kDebugMode) {
+              debugPrint('✅ Successfully upserted $type from Ditto');
+            }
           } catch (error, stack) {
             if (kDebugMode) {
               debugPrint('Local upsert failed for Ditto change on $type: '
