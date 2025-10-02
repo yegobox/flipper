@@ -812,11 +812,17 @@ class DittoService {
     query += " ORDER BY createdAt DESC";
 
     final controller = StreamController<List<Map<String, dynamic>>>.broadcast();
+    dynamic observer;
 
-    final observer = _ditto!.store.registerObserver(
+    observer = _ditto!.store.registerObserver(
       query,
       arguments: arguments,
       onChange: (queryResult) {
+        // Check if controller is closed before adding data
+        if (controller.isClosed) {
+          return;
+        }
+
         final items = queryResult.items
             .map((doc) => Map<String, dynamic>.from(doc.value))
             .toList();
@@ -825,9 +831,9 @@ class DittoService {
     );
 
     // Handle stream cancellation
-    controller.onCancel = () {
-      observer.cancel();
-      controller.close();
+    controller.onCancel = () async {
+      await observer?.cancel();
+      await controller.close();
     };
 
     return controller.stream;

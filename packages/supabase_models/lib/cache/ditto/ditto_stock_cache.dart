@@ -254,11 +254,17 @@ class DittoStockCache implements CacheLayer<Stock> {
     }
 
     final controller = StreamController<Stock?>.broadcast();
+    dynamic observer;
 
-    final observer = _ditto!.store.registerObserver(
+    observer = _ditto!.store.registerObserver(
       "SELECT * FROM stocks WHERE variantId = :variantId",
       arguments: {"variantId": variantId},
       onChange: (queryResult) {
+        // Check if controller is closed before adding data
+        if (controller.isClosed) {
+          return;
+        }
+
         if (queryResult.items.isNotEmpty) {
           final stock =
               _convertFromDittoDocument(queryResult.items.first.value);
@@ -270,9 +276,9 @@ class DittoStockCache implements CacheLayer<Stock> {
     );
 
     // Handle stream cancellation
-    controller.onCancel = () {
-      observer.cancel();
-      controller.close();
+    controller.onCancel = () async {
+      await observer?.cancel();
+      await controller.close();
     };
 
     return controller.stream;
