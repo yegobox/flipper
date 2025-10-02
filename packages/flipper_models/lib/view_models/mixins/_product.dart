@@ -123,6 +123,13 @@ mixin ProductMixin {
         variations[i].useYn = "N";
         variations[i].itemSeq = i;
         variations[i].itemStdNm = productName;
+
+        /// taxation type code - set this BEFORE calling setTaxPercentage
+        variations[i].taxTyCd = variations[i].taxTyCd ??
+            "B"; // available types A(A-EX),B(B-18.00%),C,D
+        variations[i].taxName = variations[i].taxTyCd ?? "B";
+
+        // Now we can safely call setTaxPercentage since taxTyCd is set
         variations[i].taxPercentage = await setTaxPercentage(variations[i]);
 
         variations[i].tin = business?.tinNumber;
@@ -139,11 +146,6 @@ mixin ProductMixin {
 
         /// registration name
         variations[i].regrNm = productName;
-
-        /// taxation type code
-        variations[i].taxTyCd = variations[i].taxTyCd ??
-            "B"; // available types A(A-EX),B(B-18.00%),C,D
-        variations[i].taxName = variations[i].taxTyCd ?? "B";
         // default unit price
         variations[i].dftPrc = variations[i].retailPrice;
 
