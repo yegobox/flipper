@@ -25,12 +25,12 @@ class _DittoRegistryAggregatorBuilder implements Builder {
       final content = await buildStep.readAsString(input);
       if (content.contains('@DittoAdapter')) {
         modelFiles.add(input.path);
-        
+
         // Extract the actual class name from the file
         final classNameMatch = RegExp(
           r'@DittoAdapter\([^)]+\)\s*class\s+(\w+)\s+extends',
         ).firstMatch(content);
-        
+
         if (classNameMatch != null) {
           classNames[input.path] = classNameMatch.group(1)!;
         }
@@ -73,7 +73,7 @@ class _DittoRegistryAggregatorBuilder implements Builder {
       final fileName = path.split('/').last.replaceFirst('.dart', '');
       final importAlias = fileName.replaceAll('.', '_').replaceAll('-', '_');
       final className = classNames[path];
-      
+
       if (className != null) {
         buffer.writeln(
           '  $importAlias.${className}DittoAdapter.registryToken; // ignore: unnecessary_statements',

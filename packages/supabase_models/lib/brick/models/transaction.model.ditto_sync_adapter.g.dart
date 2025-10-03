@@ -121,7 +121,6 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "taxAmount": model.taxAmount,
       "numberOfItems": model.numberOfItems,
       "discountAmount": model.discountAmount,
-      "items": model.items,
       "customerPhone": model.customerPhone,
     };
   }
@@ -200,7 +199,6 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       taxAmount: document["taxAmount"],
       numberOfItems: document["numberOfItems"],
       discountAmount: document["discountAmount"],
-      items: document["items"],
       customerPhone: document["customerPhone"],
     );
   }

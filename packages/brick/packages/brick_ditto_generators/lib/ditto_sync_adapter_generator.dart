@@ -248,15 +248,65 @@ Builder dittoSyncAdapterBuilder(BuilderOptions options) =>
 String _generateFieldsMapping(List<FieldElement> fields) {
   final buffer = StringBuffer();
   for (final field in fields) {
+    // Skip fields that should not be synced to Ditto
+    if (_shouldExcludeFromDitto(field)) {
+      continue;
+    }
     buffer.writeln('      "${field.name}": ${_serializeField(field)},');
   }
   return buffer.toString();
+}
+
+/// Determines if a field should be excluded from Ditto sync
+bool _shouldExcludeFromDitto(FieldElement field) {
+  // Check for @Supabase(ignore: true)
+  try {
+    final supabaseAnnotation = field.metadata.firstWhere(
+      (annotation) => annotation.element?.displayName == 'Supabase',
+      orElse: () => throw StateError('Not found'),
+    );
+
+    final source = supabaseAnnotation.toSource();
+    if (source.contains('ignore:') && source.contains('true')) {
+      return true;
+    }
+  } catch (_) {
+    // No Supabase annotation found
+  }
+
+  // Check for @OfflineFirst annotation (usually for relationships)
+  final hasOfflineFirst = field.metadata.any(
+    (annotation) => annotation.element?.displayName == 'OfflineFirst',
+  );
+
+  if (hasOfflineFirst) {
+    return true;
+  }
+
+  // Check if field type is a complex object (List of models)
+  final typeName = field.type.getDisplayString(withNullability: false);
+  if (typeName.startsWith('List<') &&
+      !typeName.contains('String') &&
+      !typeName.contains('int') &&
+      !typeName.contains('double') &&
+      !typeName.contains('bool') &&
+      !typeName.contains('Map') &&
+      !typeName.contains('num')) {
+    // This is likely a List of model objects, exclude it
+    return true;
+  }
+
+  return false;
 }
 
 String _generateConstructorArgs(List<FieldElement> fields) {
   final buffer = StringBuffer();
   for (final field in fields) {
     if (field.name == 'id') continue;
+    // Skip fields that should not be synced to Ditto
+    if (_shouldExcludeFromDitto(field)) {
+      continue;
+    }
     buffer.writeln('      ${field.name}: ${_deserializeField(field)},');
   }
   return buffer.toString();
