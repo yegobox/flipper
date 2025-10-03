@@ -38,8 +38,8 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
     'B': 0.0,
     'C': 0.0,
     'D': 0.0,
-    'TT': 0.0,
-    'ttTaxblAmt': 0.0,
+    'ttTaxAmt': 0.0, // Sum of all TT tax amounts from items
+    'ttTaxblAmt': 0.0, // Sum of all TT taxable amounts from items
   };
 
   for (var item in items) {
@@ -47,15 +47,9 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
       // Validate and fetch data with default fallback
       String taxType = (item['taxTyCd'] as String?) ?? 'B';
 
-      // Exception: treat TT as B
-      if (taxType == 'TT') {
-        taxType = 'B';
-      }
-
       // Ensure taxType is one of the valid types
       if (!taxTotals.containsKey(taxType)) {
-        // print(
-        //     'Warning: Invalid tax type $taxType found. Using default type B');
+        print('Warning: Invalid tax type $taxType found. Using default type B');
         taxType = 'B';
       }
 
@@ -73,18 +67,23 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
       // Add to the appropriate tax type total using direct addition
       taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
 
-      // Calculate ttTaxblAmt for TT items (check if ttTaxblAmt field exists)
+      // Sum up TT tax amounts and taxable amounts from items
+      if (item.containsKey('ttTaxAmt')) {
+        double ttTaxAmt = (item['ttTaxAmt'] as num?)?.toDouble() ?? 0.0;
+        taxTotals['ttTaxAmt'] = taxTotals['ttTaxAmt']! + ttTaxAmt;
+      }
+
       if (item.containsKey('ttTaxblAmt')) {
         double ttTaxblAmt = (item['ttTaxblAmt'] as num?)?.toDouble() ?? 0.0;
         taxTotals['ttTaxblAmt'] = taxTotals['ttTaxblAmt']! + ttTaxblAmt;
       }
 
       // Optional: Add debug print to verify calculations
-      // print(
-      //     'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
+      print(
+          'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
     } catch (e) {
-      // print('Error processing item: $item');
-      // print('Error details: $e');
+      print('Error processing item: $item');
+      print('Error details: $e');
     }
   }
 
@@ -700,14 +699,18 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     talker.warning("DISCOUNT${totalAfterDiscount}");
 
-    // Get tax percentage and calculate tax
+    // Get tax percentage and calculate tax based on the item's taxTyCd
     final taxPercentage = taxConfig.taxPercentage ?? 0.0;
+    // Formula: taxAmount = (totalAfterDiscount * taxPercentage) / (100 + taxPercentage)
+    // Example for 18%: taxAmount = (totalAfterDiscount * 18) / 118
+    // This extracts the tax from a tax-inclusive price
     double taxAmount =
         (totalAfterDiscount * taxPercentage) / (100 + taxPercentage);
     taxAmount = (taxAmount * 100).round() / 100;
 
-    // Calculate ttTaxAmt for TT items
+    // Calculate ttTaxAmt for TT items (Tourism Tax is ADDITIONAL to regular tax)
     double ttTaxAmount = 0.0;
+    double ttTaxblBase = 0.0;
     if (item.ttCatCd == 'TT') {
       // Get TT tax configuration
       List<Configurations> ttTaxConfigs = await repository.get<Configurations>(
@@ -724,15 +727,26 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       }
       final ttTaxPercentage = ttTaxConfig.taxPercentage ?? 0.0;
 
-      // Determine taxable base for TT tax and VAT portion depending on vatEnabled
-      double ttTaxblBase;
-      // If VAT is enabled, TT prices are VAT-inclusive; base before VAT is /1.18
-      ttTaxblBase = totalAfterDiscount / 1.18;
-      // For TT items, when VAT is enabled, treat taxAmount as VAT (18%) portion for B
-      taxAmount = (totalAfterDiscount * 18) / 118;
-      taxAmount = (taxAmount * 100).round() / 100;
+      // Determine taxable base for TT tax depending on the item's tax type
+      // For items with VAT (taxTyCd: B or C), prices are VAT-inclusive and we need to extract the base
+      // For items without VAT (taxTyCd: A or D), prices don't include VAT, so use full amount
+      String itemTaxType = item.taxTyCd ?? "B";
 
-      // Calculate ttTaxAmt using configuration tax percentage on the base
+      if (itemTaxType == "B" || itemTaxType == "C") {
+        // VAT-inclusive items: remove VAT to get the base for TT calculation
+        // Formula: base = totalAfterDiscount / (1 + taxPercentage/100)
+        // Example for 18%: base = totalAfterDiscount / 1.18
+        // Example for 10%: base = totalAfterDiscount / 1.10
+        // This correctly handles different VAT rates for B and C
+        ttTaxblBase = totalAfterDiscount / (1 + (taxPercentage / 100));
+      } else {
+        // Non-VAT items (A: Exempt, D: Non-VAT): use full amount as base
+        // These items don't have VAT included in their price
+        ttTaxblBase = totalAfterDiscount;
+      }
+
+      // Calculate ttTaxAmt using TT tax percentage on the base
+      // Formula: ttTaxAmt = (base * ttTaxPercentage) / (100 + ttTaxPercentage)
       ttTaxAmount = ttTaxblBase * ttTaxPercentage / (100 + ttTaxPercentage);
       ttTaxAmount = (ttTaxAmount * 100).round() / 100;
     }
@@ -762,7 +776,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       isrccNm: "",
       isrcRt: 0,
       isrcAmt: 0,
-      taxTyCd: item.ttCatCd == 'TT' ? 'B' : item.taxTyCd,
+      taxTyCd: item.taxTyCd,
       bcd: item.bcd,
       itemTyCd: item.itemTyCd,
       itemStdNm: item.name,
@@ -811,11 +825,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     // Add ttTaxAmt and ttTaxblAmt to the JSON if it's a TT item (after cleanup)
     if (item.ttCatCd == 'TT') {
-      // Add TT tax amount regardless; include ttTaxblAmt only when VAT is enabled
-
-      double ttTaxblAmt = totalAfterDiscount / 1.18;
-      itemJson['ttTaxblAmt'] = ttTaxblAmt.roundToTwoDecimalPlaces();
-
+      // Add TT taxable amount (calculated above based on item's tax type)
+      itemJson['ttTaxblAmt'] = ttTaxblBase.roundToTwoDecimalPlaces();
       itemJson['ttTaxAmt'] = ttTaxAmount.roundToTwoDecimalPlaces();
       itemJson['ttCatCd'] = "TT";
     }
@@ -834,8 +845,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       'B': 0.0,
       'C': 0.0,
       'D': 0.0,
-      'TT': 0.0,
-      'ttTaxblAmt': 0.0,
+      'ttTaxAmt': 0.0, // Sum of all TT tax amounts from items
+      'ttTaxblAmt': 0.0, // Sum of all TT taxable amounts from items
     };
 
     for (var item in items) {
@@ -843,17 +854,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         // Validate and fetch data with default fallback
         String taxType = (item['taxTyCd'] as String?) ?? 'B';
 
-        // Exception: treat TT as B
-        // if (taxType == 'TT') {
-        //   taxType = 'B';
-        // }
-
         // Ensure taxType is one of the valid types
-        // if (!taxTotals.containsKey(taxType)) {
-        //   print(
-        //       'Warning: Invalid tax type $taxType found. Using default type B');
-        //   taxType = 'B';
-        // }
+        if (!taxTotals.containsKey(taxType)) {
+          print(
+              'Warning: Invalid tax type $taxType found. Using default type B');
+          taxType = 'B';
+        }
 
         final unitPrice = item['price'];
         final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;
@@ -869,7 +875,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         // Add to the appropriate tax type total using direct addition
         taxTotals[taxType] = taxTotals[taxType]! + totalTaxableAmount;
 
-        // Calculate ttTaxblAmt for TT items (check if ttTaxblAmt field exists)
+        // Sum up TT tax amounts and taxable amounts from items
+        if (item.containsKey('ttTaxAmt')) {
+          double ttTaxAmt = (item['ttTaxAmt'] as num?)?.toDouble() ?? 0.0;
+          taxTotals['ttTaxAmt'] = taxTotals['ttTaxAmt']! + ttTaxAmt;
+        }
+
         if (item.containsKey('ttTaxblAmt')) {
           double ttTaxblAmt = (item['ttTaxblAmt'] as num?)?.toDouble() ?? 0.0;
           taxTotals['ttTaxblAmt'] = taxTotals['ttTaxblAmt']! + ttTaxblAmt;
@@ -994,16 +1005,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               (taxConfigTaxD!.taxPercentage ?? 0) /
               (100 + (taxConfigTaxD.taxPercentage ?? 0)))
           .toStringAsFixed(2)),
-      "ttTaxAmt": double.parse(((taxTotals['TT'] ?? 0.0) *
-              (taxConfigTaxTT!.taxPercentage ?? 0) /
-              (100 + (taxConfigTaxTT.taxPercentage ?? 0)))
-          .toStringAsFixed(2)),
+      "ttTaxAmt": (taxTotals['ttTaxAmt'] ?? 0.0),
 
       "taxRtA": taxConfigTaxA.taxPercentage,
       "taxRtB": taxConfigTaxB!.taxPercentage,
       "taxRtC": taxConfigTaxC.taxPercentage,
       "taxRtD": taxConfigTaxD.taxPercentage,
-      "ttTaxRt": taxConfigTaxTT.taxPercentage,
+      "ttTaxRt": taxConfigTaxTT!.taxPercentage,
 
       "totTaxblAmt": totalTaxable.roundToTwoDecimalPlaces(),
 

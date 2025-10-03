@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 
 class AddRoomDialog extends StatefulHookConsumerWidget {
   final Function(Map<String, dynamic>) onRoomAdded;
@@ -33,6 +34,8 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
   };
 
   String? _selectedRoomType;
+  bool _isExempted = false;
+  String? _selectedTaxCode;
 
   @override
   void dispose() {
@@ -43,6 +46,8 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
@@ -73,6 +78,22 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
                 keyboardType: TextInputType.number,
                 validator: (value) =>
                     (value?.isEmpty ?? true) ? 'Required' : null,
+              ),
+              const SizedBox(height: 16),
+              // Tax code dropdown - shown for both VAT and non-VAT
+              vatEnabledAsync.when(
+                data: (vatEnabled) => _buildTaxCodeDropdown(vatEnabled),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
+              const SizedBox(height: 16),
+              // Exemption checkbox - shown only when VAT is enabled
+              vatEnabledAsync.when(
+                data: (vatEnabled) => vatEnabled
+                    ? _buildExemptionCheckbox()
+                    : const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
               ),
               const SizedBox(height: 24),
               _buildButtons(),
@@ -157,6 +178,80 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     );
   }
 
+  Widget _buildTaxCodeDropdown(bool vatEnabled) {
+    // Tax codes: A (Exempt), B, C for VAT-enabled branches; D for non-VAT branches
+    final taxCodes = vatEnabled ? ['A', 'B', 'C'] : ['D'];
+
+    // Set default if not already set
+    if (_selectedTaxCode == null || !taxCodes.contains(_selectedTaxCode)) {
+      _selectedTaxCode = vatEnabled ? 'B' : 'D';
+    }
+
+    return DropdownButtonFormField<String>(
+      initialValue: _selectedTaxCode,
+      decoration: InputDecoration(
+        labelText: 'Tax Code',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+        ),
+      ),
+      items: taxCodes.map((String code) {
+        String label;
+        switch (code) {
+          case 'A':
+            label = 'A - Exempt';
+            break;
+          case 'B':
+            label = 'B - Standard Rate';
+            break;
+          case 'C':
+            label = 'C - Reduced Rate';
+            break;
+          case 'D':
+            label = 'D - Non-VAT';
+            break;
+          default:
+            label = code;
+        }
+        return DropdownMenuItem<String>(
+          value: code,
+          child: Text(label),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() {
+          _selectedTaxCode = newValue;
+          // Update exemption status based on tax code
+          _isExempted = (newValue == 'A');
+        });
+      },
+      validator: (value) => value == null ? 'Please select a tax code' : null,
+    );
+  }
+
+  Widget _buildExemptionCheckbox() {
+    return CheckboxListTile(
+      value: _isExempted,
+      onChanged: (bool? value) {
+        setState(() {
+          _isExempted = value ?? false;
+          // If exempted, set tax code to A (Exempt)
+          if (_isExempted) {
+            _selectedTaxCode = 'A';
+          } else {
+            // If unchecked, reset to default B
+            _selectedTaxCode = 'B';
+          }
+        });
+      },
+      title: const Text('Tax Exempt'),
+      subtitle: const Text('Check if this room is exempt from VAT'),
+      controlAffinity: ListTileControlAffinity.leading,
+    );
+  }
+
   Widget _buildButtons() {
     final isLoading = ref.watch(loadingProvider);
     return Row(
@@ -186,6 +281,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     if (_formKey.currentState?.validate() ?? false) {
       try {
         ref.read(loadingProvider.notifier).startLoading();
+
+        // Use the selected tax code from the dropdown
+        final taxCode = _selectedTaxCode ?? "B";
 
         // Create temp product like DesktopProductAdd
         final model = ScannViewModel();
@@ -220,7 +318,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
             ttCatCd: "TT",
             itemTyCd: "3", // Service type
-            taxTyCd: "B", // Tax type code (changed from "TT" to "B")
+            taxTyCd: taxCode, // Tax type code: "B" for VAT, "D" for non-VAT
             taxName: "TT", // Tax name
             taxPercentage: 3.0,
             qty: 0.0,
