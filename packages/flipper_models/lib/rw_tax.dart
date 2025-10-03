@@ -844,16 +844,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         String taxType = (item['taxTyCd'] as String?) ?? 'B';
 
         // Exception: treat TT as B
-        if (taxType == 'TT') {
-          taxType = 'B';
-        }
+        // if (taxType == 'TT') {
+        //   taxType = 'B';
+        // }
 
         // Ensure taxType is one of the valid types
-        if (!taxTotals.containsKey(taxType)) {
-          print(
-              'Warning: Invalid tax type $taxType found. Using default type B');
-          taxType = 'B';
-        }
+        // if (!taxTotals.containsKey(taxType)) {
+        //   print(
+        //       'Warning: Invalid tax type $taxType found. Using default type B');
+        //   taxType = 'B';
+        // }
 
         final unitPrice = item['price'];
         final quantity = (item['qty'] as num?)?.toDouble() ?? 0.0;

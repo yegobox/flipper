@@ -185,12 +185,13 @@ class TableVariants extends StatelessWidget {
                   final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
                   return vatEnabledAsync.when(
                     data: (vatEnabled) {
-                      // If VAT is disabled, only allow tax type D
-                      final options = vatEnabled ? ["A", "B", "C", "D"] : ["B"];
-                      // If current value is not in options, default to D
+                      // If VAT is enabled, show A, B, C (exclude D)
+                      // If VAT is disabled, only show tax type D
+                      final options = vatEnabled ? ["A", "B", "C"] : ["D"];
+                      // If current value is not in options, default based on VAT status
                       final currentValue = options.contains(variant.taxTyCd)
                           ? variant.taxTyCd
-                          : "B";
+                          : (vatEnabled ? "B" : "D");
                       return TaxDropdown(
                         isEditMode: isEditMode,
                         selectedValue: currentValue,
@@ -367,11 +368,13 @@ class TableVariants extends StatelessWidget {
           final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
           return vatEnabledAsync.when(
             data: (vatEnabled) {
-              // If VAT is disabled, only allow tax type D
-              final options = vatEnabled ? ["A", "B", "C", "D"] : ["B"];
-              // If current value is not in options, default to D
-              final currentValue =
-                  options.contains(variant.taxTyCd) ? variant.taxTyCd : "B";
+              // If VAT is enabled, show A, B, C (exclude D)
+              // If VAT is disabled, only show tax type D
+              final options = vatEnabled ? ["A", "B", "C"] : ["D"];
+              // If current value is not in options, default based on VAT status
+              final currentValue = options.contains(variant.taxTyCd)
+                  ? variant.taxTyCd
+                  : (vatEnabled ? "B" : "D");
               return TaxDropdown(
                 selectedValue: currentValue,
                 options: options,

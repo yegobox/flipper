@@ -483,10 +483,7 @@ class CombinedNotifier {
   }
 }
 
-// final notificationStreamProvider = StreamProvider<List<AppNotification>>((ref) {
-//   return ProxyService.strategy
-//       .notificationStream(identifier: ProxyService.box.getBranchId() ?? 0);
-// });
+
 
 final reportsProvider =
     StreamProvider.autoDispose.family<List<Report>, int>((ref, branchId) {

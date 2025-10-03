@@ -107,23 +107,88 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false));
 
+    // Handle transaction async value error state early
+    if (transactionAsyncValue.hasError) {
+      talker.error('Error loading pending transaction',
+          transactionAsyncValue.error, transactionAsyncValue.stackTrace);
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red),
+              SizedBox(height: 16),
+              Text('Error loading transaction'),
+              SizedBox(height: 8),
+              Text(
+                transactionAsyncValue.error?.toString() ?? 'Unknown error',
+                style: TextStyle(fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.invalidate(pendingTransactionStreamProvider);
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          if (transactionAsyncValue.hasValue &&
-              transactionAsyncValue.value != null) {
-            final transactionId = transactionAsyncValue.value!.id;
-            final transactionItemsAsync = ref.watch(
-                transactionItemsStreamProvider(transactionId: transactionId));
-            internalTransactionItems = transactionItemsAsync.value ?? [];
-          } else {
-            internalTransactionItems = [];
+          try {
+            if (transactionAsyncValue.hasValue &&
+                transactionAsyncValue.value != null &&
+                transactionAsyncValue.value!.id.isNotEmpty) {
+              final transactionId = transactionAsyncValue.value!.id;
+              final transactionItemsAsync = ref.watch(
+                  transactionItemsStreamProvider(transactionId: transactionId));
+
+              // Properly handle AsyncValue states instead of accessing .value directly
+              internalTransactionItems = transactionItemsAsync.when(
+                data: (items) => items,
+                loading: () => [],
+                error: (err, stack) {
+                  talker.error('Error loading transaction items', err, stack);
+                  return [];
+                },
+              );
+            } else {
+              internalTransactionItems = [];
+            }
+            return context.isSmallDevice
+                ? _buildSmallDeviceScaffold(
+                    isOrdering, transactionAsyncValue, model)
+                : _buildSharedView(
+                    transactionAsyncValue, context.isSmallDevice, isOrdering);
+          } catch (e, stackTrace) {
+            talker.error('Error in QuickSellingView builder', e, stackTrace);
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text('Error loading transaction view'),
+                  SizedBox(height: 8),
+                  Text(e.toString(), style: TextStyle(fontSize: 12)),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Force refresh
+                      ref.invalidate(pendingTransactionStreamProvider);
+                    },
+                    child: Text('Retry'),
+                  ),
+                ],
+              ),
+            );
           }
-          return context.isSmallDevice
-              ? _buildSmallDeviceScaffold(
-                  isOrdering, transactionAsyncValue, model)
-              : _buildSharedView(
-                  transactionAsyncValue, context.isSmallDevice, isOrdering);
         });
   }
 

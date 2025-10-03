@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/cache/cache_export.dart';
@@ -21,6 +22,7 @@ class OuterVariants extends _$OuterVariants {
   bool _isLoading = false;
   Timer? _debounce;
   bool _isDisposed = false;
+  bool _isVatEnabled = false; // Cached VAT status from EBM
 
   @override
   FutureOr<List<Variant>> build(int branchId) async {
@@ -32,6 +34,9 @@ class OuterVariants extends _$OuterVariants {
 
     // Initialize itemsPerPage once.
     _itemsPerPage ??= ProxyService.box.itemPerPage() ?? 10;
+
+    // Fetch VAT enabled status from EBM and cache it
+    _isVatEnabled = await getVatEnabledFromEbm();
 
     // Initialize the cache manager once.
     await _initializeCacheManager();
@@ -96,7 +101,7 @@ class OuterVariants extends _$OuterVariants {
 
   /// Filters the currently loaded variants based on the search string and taxTyCds.
   List<Variant> _filterInMemory(String searchString) {
-    final isVatEnabled = ProxyService.box.vatEnabled();
+    final isVatEnabled = _isVatEnabled; // Use cached VAT status
 
     // Apply the same filtering logic as _fetchVariants
     var filteredVariants = _allLoadedVariants.where((variant) {
@@ -160,7 +165,7 @@ class OuterVariants extends _$OuterVariants {
     required String searchString,
   }) async {
     // Fetch all possible variants first, then filter based on VAT setting
-    final isVatEnabled = ProxyService.box.vatEnabled();
+    final isVatEnabled = _isVatEnabled; // Use cached VAT status
     final taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D', 'B'];
     final currentScanMode = ref.read(scanningModeProvider);
 
@@ -254,7 +259,10 @@ class OuterVariants extends _$OuterVariants {
   }
 
   /// Method to be called when VAT settings change to force a full refresh.
-  void resetForVatChange() {
+  Future<void> resetForVatChange() async {
+    // Refresh VAT status from EBM
+    _isVatEnabled = await getVatEnabledFromEbm();
+
     _allLoadedVariants.clear();
     _currentPage = 0;
     _hasMore = true;

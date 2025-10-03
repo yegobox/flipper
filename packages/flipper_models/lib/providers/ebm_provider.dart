@@ -15,3 +15,18 @@ final ebmVatEnabledProvider = FutureProvider<bool>((ref) async {
     return false;
   }
 });
+
+/// Synchronous helper to get VAT enabled status from EBM configuration
+/// This is used in non-widget contexts where providers can't be used
+/// Returns a Future that resolves to the VAT enabled status
+Future<bool> getVatEnabledFromEbm() async {
+  try {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return false;
+
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    return ebm?.vatEnabled ?? false;
+  } catch (e) {
+    return false;
+  }
+}

@@ -33,10 +33,19 @@ class CountryOfOriginSelector extends ConsumerWidget {
         ),
         child: countriesAsyncValue.when(
           data: (countries) {
+            // Remove duplicates by country code
+            final uniqueCountries = <String, Country>{};
+            for (var country in countries) {
+              if (!uniqueCountries.containsKey(country.code)) {
+                uniqueCountries[country.code] = country;
+              }
+            }
+            final uniqueCountriesList = uniqueCountries.values.toList();
+
             // Select first item if nothing is selected
-            if (selectedCountryCode == null && countries.isNotEmpty) {
+            if (selectedCountryCode == null && uniqueCountriesList.isNotEmpty) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                final firstCountry = countries.first;
+                final firstCountry = uniqueCountriesList.first;
                 if (onCountrySelected != null) {
                   onCountrySelected!(firstCountry);
                 }
@@ -48,10 +57,12 @@ class CountryOfOriginSelector extends ConsumerWidget {
 
             return DropdownButton<String>(
               value: selectedCountryCode ??
-                  (countries.isNotEmpty ? countries.first.code : null),
+                  (uniqueCountriesList.isNotEmpty
+                      ? uniqueCountriesList.first.code
+                      : null),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  final selectedCountry = countries.firstWhere(
+                  final selectedCountry = uniqueCountriesList.firstWhere(
                     (country) => country.code == newValue,
                   );
                   if (onCountrySelected != null) {
@@ -61,7 +72,7 @@ class CountryOfOriginSelector extends ConsumerWidget {
                   ref.read(selectedCountryProvider.notifier).state = newValue;
                 }
               },
-              items: countries.map((country) {
+              items: uniqueCountriesList.map((country) {
                 return DropdownMenuItem<String>(
                   value: country.code,
                   child: Text(

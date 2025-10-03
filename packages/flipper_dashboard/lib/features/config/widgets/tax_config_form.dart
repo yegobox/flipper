@@ -7,6 +7,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 
 class TaxConfigForm extends ConsumerStatefulWidget {
   const TaxConfigForm({Key? key}) : super(key: key);
@@ -41,21 +42,14 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
     String? mrc = ebm?.mrc ?? ProxyService.box.mrc();
     _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
 
-    // Load VAT enabled status
-    final vatEnabled = await ProxyService.box.vatEnabled() as bool?;
+    // Load VAT enabled status from EBM only
     if (ebm != null) {
       setState(() {
-        _vatEnabled = vatEnabled ?? ebm.vatEnabled ?? false;
+        _vatEnabled = ebm.vatEnabled ?? false;
       });
-      // Save the initial value if it came from EBM
-      if (ebm.vatEnabled != null) {
-        await ProxyService.box
-            .writeBool(key: 'vatEnabled', value: ebm.vatEnabled ?? false);
-      }
-    } else if (vatEnabled != null) {
-      setState(() {
-        _vatEnabled = vatEnabled;
-      });
+      // Save the EBM value to local storage for consistency
+      await ProxyService.box
+          .writeBool(key: 'vatEnabled', value: ebm.vatEnabled ?? false);
     }
   }
 
@@ -90,30 +84,50 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
                         ),
                   ),
                   const SizedBox(height: 16),
-                  // VAT Enabled Switch
-                  SwitchListTile(
-                    title: const Text('VAT Enabled'),
-                    subtitle:
-                        const Text('Enable Value Added Tax for this business'),
-                    value: _vatEnabled,
-                    activeColor: Colors.blue,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                    onChanged: (bool value) async {
-                      setState(() {
-                        _vatEnabled = value;
-                      });
-                      // Save the new VAT status immediately
-                      await ProxyService.box.writeBool(
-                        key: 'vatEnabled',
-                        value: value,
+                  // VAT Enabled Switch - Read-only, controlled by EBM configuration
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+                      return vatEnabledAsync.when(
+                        data: (vatEnabled) {
+                          // Update local state to match EBM
+                          if (_vatEnabled != vatEnabled) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              setState(() {
+                                _vatEnabled = vatEnabled;
+                              });
+                            });
+                          }
+                          return SwitchListTile(
+                            title: const Text('VAT Enabled'),
+                            subtitle: const Text(
+                                'VAT status is controlled by EBM configuration'),
+                            value: vatEnabled,
+                            activeThumbColor: Colors.blue,
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 0),
+                            onChanged: null, // Disabled - read-only
+                          );
+                        },
+                        loading: () => SwitchListTile(
+                          title: const Text('VAT Enabled'),
+                          subtitle: const Text('Loading...'),
+                          value: _vatEnabled,
+                          activeThumbColor: Colors.blue,
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 0),
+                          onChanged: null,
+                        ),
+                        error: (error, stack) => SwitchListTile(
+                          title: const Text('VAT Enabled'),
+                          subtitle: const Text('Error loading VAT status'),
+                          value: _vatEnabled,
+                          activeThumbColor: Colors.blue,
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 0),
+                          onChanged: null,
+                        ),
                       );
-                      // Invalidate the outerVariantsProvider to refresh the variants list
-                      final branchId = ProxyService.box.getBranchId();
-                      if (branchId != null) {
-                        ref
-                            .read(outerVariantsProvider(branchId).notifier)
-                            .resetForVatChange();
-                      }
                     },
                   ),
                   const SizedBox(height: 16),
@@ -286,6 +300,8 @@ class _TaxConfigFormState extends ConsumerState<TaxConfigForm> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId != null) {
         ref.refresh(outerVariantsProvider(branchId));
+        // Also invalidate the EBM VAT provider to reflect any changes
+        ref.invalidate(ebmVatEnabledProvider);
       }
 
       toast("Saved successfully");
