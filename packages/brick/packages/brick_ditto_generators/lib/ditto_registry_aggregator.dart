@@ -16,6 +16,7 @@ class _DittoRegistryAggregatorBuilder implements Builder {
   @override
   Future<void> build(BuildStep buildStep) async {
     final modelFiles = <String>[];
+    final classNames = <String, String>{}; // path -> class name mapping
 
     // Find all files with DittoAdapter annotation
     await for (final input in buildStep.findAssets(
@@ -24,6 +25,15 @@ class _DittoRegistryAggregatorBuilder implements Builder {
       final content = await buildStep.readAsString(input);
       if (content.contains('@DittoAdapter')) {
         modelFiles.add(input.path);
+        
+        // Extract the actual class name from the file
+        final classNameMatch = RegExp(
+          r'@DittoAdapter\([^)]+\)\s*class\s+(\w+)\s+extends',
+        ).firstMatch(content);
+        
+        if (classNameMatch != null) {
+          classNames[input.path] = classNameMatch.group(1)!;
+        }
       }
     }
 
@@ -62,15 +72,13 @@ class _DittoRegistryAggregatorBuilder implements Builder {
     for (final path in modelFiles) {
       final fileName = path.split('/').last.replaceFirst('.dart', '');
       final importAlias = fileName.replaceAll('.', '_').replaceAll('-', '_');
-      final className = fileName
-          .split('.')
-          .first
-          .split('_')
-          .map((part) => part[0].toUpperCase() + part.substring(1))
-          .join('');
-      buffer.writeln(
-        '  $importAlias.${className}DittoAdapter.registryToken; // ignore: unnecessary_statements',
-      );
+      final className = classNames[path];
+      
+      if (className != null) {
+        buffer.writeln(
+          '  $importAlias.${className}DittoAdapter.registryToken; // ignore: unnecessary_statements',
+        );
+      }
     }
 
     buffer.writeln('}');

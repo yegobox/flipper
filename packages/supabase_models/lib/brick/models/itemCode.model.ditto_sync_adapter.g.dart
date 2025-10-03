@@ -10,6 +10,21 @@ part of 'itemCode.model.dart';
 // **************************************************************************
 // DittoSyncAdapterGenerator
 // **************************************************************************
+//
+// REQUIRED IMPORTS in parent file (itemcode.model.dart):
+// - import 'package:brick_core/query.dart';
+// - import 'package:brick_offline_first/brick_offline_first.dart';
+// - import 'package:flipper_services/proxy.dart';
+// - import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+// - import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+// - import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+// - import 'package:supabase_models/sync/ditto_sync_generated.dart';
+// - import 'package:supabase_models/brick/repository.dart';
+// **************************************************************************
+//
+// Sync Direction: sendOnly
+// This adapter sends data to Ditto but does NOT receive remote updates.
+// **************************************************************************
 
 class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   ItemCodeDittoAdapter._internal();
@@ -39,15 +54,8 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    final branchId =
-        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
-    if (branchId == null) {
-      return const DittoSyncQuery(query: "SELECT * FROM codes");
-    }
-    return DittoSyncQuery(
-      query: "SELECT * FROM codes WHERE branchId = :branchId",
-      arguments: {"branchId": branchId},
-    );
+    // Send-only mode: no remote observation
+    return null;
   }
 
   @override

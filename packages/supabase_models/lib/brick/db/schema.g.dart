@@ -4,20 +4,20 @@ import 'package:brick_sqlite/db.dart';
 part '20250920163803.migration.dart';
 part '20250716114853.migration.dart';
 part '20250807103716.migration.dart';
+part '20251002084003.migration.dart';
+part '20251002082732.migration.dart';
 part '20250913064841.migration.dart';
 part '20250729081610.migration.dart';
-part '20251002082732.migration.dart';
-part '20251002084003.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
   const Migration20250920163803(),
   const Migration20250716114853(),
   const Migration20250807103716(),
+  const Migration20251002084003(),
+  const Migration20251002082732(),
   const Migration20250913064841(),
   const Migration20250729081610(),
-  const Migration20251002082732(),
-  const Migration20251002084003(),
 };
 
 /// A consumable database structure including the latest generated migration.
@@ -159,6 +159,33 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'StockRecount',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('branch_id', Column.integer),
+        SchemaColumn('status', Column.varchar),
+        SchemaColumn('user_id', Column.varchar),
+        SchemaColumn('device_id', Column.varchar),
+        SchemaColumn('device_name', Column.varchar),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('submitted_at', Column.datetime),
+        SchemaColumn('synced_at', Column.datetime),
+        SchemaColumn('notes', Column.varchar),
+        SchemaColumn('total_items_counted', Column.integer),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['branch_id'], unique: false),
       },
     ),
     SchemaTable(
@@ -1351,6 +1378,34 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'StockRecountItem',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('recount_id', Column.varchar),
+        SchemaColumn('variant_id', Column.varchar),
+        SchemaColumn('stock_id', Column.varchar),
+        SchemaColumn('product_name', Column.varchar),
+        SchemaColumn('previous_quantity', Column.num),
+        SchemaColumn('counted_quantity', Column.num),
+        SchemaColumn('difference', Column.num),
+        SchemaColumn('notes', Column.varchar),
+        SchemaColumn('created_at', Column.datetime),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['recount_id'], unique: false),
+        SchemaIndex(columns: ['variant_id'], unique: false),
+        SchemaIndex(columns: ['stock_id'], unique: false),
+      },
+    ),
+    SchemaTable(
       'AppNotification',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1833,61 +1888,6 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
-      'StockRecount',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('branch_id', Column.integer),
-        SchemaColumn('status', Column.varchar),
-        SchemaColumn('user_id', Column.varchar),
-        SchemaColumn('device_id', Column.varchar),
-        SchemaColumn('device_name', Column.varchar),
-        SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('submitted_at', Column.datetime),
-        SchemaColumn('synced_at', Column.datetime),
-        SchemaColumn('notes', Column.varchar),
-        SchemaColumn('total_items_counted', Column.integer),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-        SchemaIndex(columns: ['branch_id'], unique: false),
-      },
-    ),
-    SchemaTable(
-      'StockRecountItem',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('recount_id', Column.varchar),
-        SchemaColumn('variant_id', Column.varchar),
-        SchemaColumn('stock_id', Column.varchar),
-        SchemaColumn('product_name', Column.varchar),
-        SchemaColumn('previous_quantity', Column.num),
-        SchemaColumn('counted_quantity', Column.num),
-        SchemaColumn('difference', Column.num),
-        SchemaColumn('notes', Column.varchar),
-        SchemaColumn('created_at', Column.datetime),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-        SchemaIndex(columns: ['recount_id'], unique: false),
-        SchemaIndex(columns: ['variant_id'], unique: false),
-        SchemaIndex(columns: ['stock_id'], unique: false),
       },
     ),
   },

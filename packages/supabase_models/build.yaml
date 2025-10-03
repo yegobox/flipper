@@ -5,3 +5,5 @@ targets:
         enabled: true
         generate_for:
           - lib/brick/models/**.dart
+      brick_ditto_generators:ditto_registry_aggregator:
+        enabled: true
