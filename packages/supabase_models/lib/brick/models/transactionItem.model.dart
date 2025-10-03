@@ -151,7 +151,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
 
   num? supplyPriceAtSale;
 
-  String ttCatCd;
+  String? ttCatCd;
 
   /// Creates a new TransactionItem with required fields for proper functionality
   ///

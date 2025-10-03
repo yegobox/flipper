@@ -181,7 +181,7 @@ Future<TransactionItem> _$TransactionItemFromSupabase(
     supplyPriceAtSale: data['supply_price_at_sale'] == null
         ? null
         : data['supply_price_at_sale'] as num?,
-    ttCatCd: data['tt_cat_cd'] as String,
+    ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
   );
 }
 
@@ -471,7 +471,7 @@ Future<TransactionItem> _$TransactionItemFromSqlite(
     supplyPriceAtSale: data['supply_price_at_sale'] == null
         ? null
         : data['supply_price_at_sale'] as num?,
-    ttCatCd: data['tt_cat_cd'] as String,
+    ttCatCd: data['tt_cat_cd'] == null ? null : data['tt_cat_cd'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

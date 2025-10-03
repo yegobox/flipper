@@ -487,9 +487,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         EventBus().fire(CustomerUpserted(instance));
       }
 
-      unawaited(
-        DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
-      );
+      // unawaited(
+      //   DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
+      // );
 
       return instance;
     } catch (e) {
