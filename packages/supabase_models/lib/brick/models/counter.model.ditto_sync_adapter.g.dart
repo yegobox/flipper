@@ -10,6 +10,21 @@ part of 'counter.model.dart';
 // **************************************************************************
 // DittoSyncAdapterGenerator
 // **************************************************************************
+//
+// REQUIRED IMPORTS in parent file (counter.model.dart):
+// - import 'package:brick_core/query.dart';
+// - import 'package:brick_offline_first/brick_offline_first.dart';
+// - import 'package:flipper_services/proxy.dart';
+// - import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+// - import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+// - import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+// - import 'package:supabase_models/sync/ditto_sync_generated.dart';
+// - import 'package:supabase_models/brick/repository.dart';
+// **************************************************************************
+//
+// Sync Direction: receiveOnly
+// This adapter receives data from Ditto but does NOT send local changes.
+// **************************************************************************
 
 class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
   CounterDittoAdapter._internal();

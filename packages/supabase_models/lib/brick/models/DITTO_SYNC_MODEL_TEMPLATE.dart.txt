@@ -1,0 +1,213 @@
+// ============================================================================
+// DITTO SYNC MODEL TEMPLATE
+// ============================================================================
+// This file serves as a template for creating models with Ditto sync support.
+// Copy this template when creating new models that need peer-to-peer sync.
+// ============================================================================
+
+// ============================================================================
+// REQUIRED IMPORTS - DO NOT REMOVE
+// ============================================================================
+// These imports are required for Ditto sync adapter generation.
+// If any are missing, the generated adapter file will fail to compile.
+
+// Query and filtering support
+import 'package:brick_core/query.dart';
+
+// Offline-first architecture
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+
+// Data persistence layers
+import 'package:brick_sqlite/brick_sqlite.dart';
+import 'package:brick_supabase/brick_supabase.dart';
+
+// Ditto sync generation
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+
+// Services and utilities
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:uuid/uuid.dart';
+
+// Ditto sync infrastructure
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+// ============================================================================
+// GENERATED CODE REFERENCE
+// ============================================================================
+// The generator will create a .ditto_sync_adapter.g.dart file
+// Make sure to include the part directive below
+
+// part 'your_model.model.ditto_sync_adapter.g.dart';
+
+// ============================================================================
+// MODEL DEFINITION
+// ============================================================================
+
+/// Brief description of what this model represents
+/// 
+/// Sync behavior:
+/// - Filtered by branchId if present
+/// - Automatically syncs to Ditto collection: 'your_collection_name'
+/// - Supports offline-first with Supabase backend
+@ConnectOfflineFirstWithSupabase(
+  supabaseConfig: SupabaseSerializable(
+    tableName: 'your_table_name', // Supabase table name
+  ),
+)
+// Choose one of the following sync directions:
+
+// Option 1: Bidirectional sync (default) - sends and receives data
+@DittoAdapter('your_collection_name')
+
+// Option 2: Send-only - pushes data but doesn't receive remote updates
+// @DittoAdapter('your_collection_name', syncDirection: SyncDirection.sendOnly)
+
+// Option 3: Receive-only - receives data but doesn't push local changes
+// @DittoAdapter('your_collection_name', syncDirection: SyncDirection.receiveOnly)
+
+class YourModel extends OfflineFirstWithSupabaseModel {
+  // ============================================================================
+  // PRIMARY KEY
+  // ============================================================================
+  /// Unique identifier for this model
+  /// Generated automatically if not provided
+  @Supabase(unique: true)
+  @Sqlite(index: true, unique: true)
+  final String id;
+
+  // ============================================================================
+  // SYNC FILTERING FIELDS (OPTIONAL BUT RECOMMENDED)
+  // ============================================================================
+  /// Business ID for multi-tenant filtering
+  /// If present, enables business-level data isolation
+  @Sqlite(index: true)
+  final int? businessId;
+
+  /// Branch ID for multi-location filtering
+  /// If present, the generated adapter will automatically filter by current branch
+  @Sqlite(index: true)
+  final int? branchId;
+
+  // ============================================================================
+  // DOMAIN FIELDS
+  // ============================================================================
+  /// Add your domain-specific fields here
+  final String? name;
+  final String? description;
+  final double? amount;
+  
+  /// Timestamps for tracking changes
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? lastTouched;
+
+  // ============================================================================
+  // CONSTRUCTOR
+  // ============================================================================
+  YourModel({
+    String? id,
+    this.businessId,
+    this.branchId,
+    this.name,
+    this.description,
+    this.amount,
+    this.createdAt,
+    this.updatedAt,
+    this.lastTouched,
+  }) : id = id ?? const Uuid().v4();
+
+  // ============================================================================
+  // HELPER METHODS (OPTIONAL)
+  // ============================================================================
+  
+  /// Create a copy of this model with updated fields
+  YourModel copyWith({
+    String? id,
+    int? businessId,
+    int? branchId,
+    String? name,
+    String? description,
+    double? amount,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? lastTouched,
+  }) {
+    return YourModel(
+      id: id ?? this.id,
+      businessId: businessId ?? this.businessId,
+      branchId: branchId ?? this.branchId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      amount: amount ?? this.amount,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      lastTouched: lastTouched ?? this.lastTouched,
+    );
+  }
+}
+
+// ============================================================================
+// USAGE NOTES
+// ============================================================================
+
+/*
+After creating this model:
+
+1. Replace placeholders:
+   - YourModel → Your actual model class name
+   - your_model → snake_case version of your model name
+   - your_table_name → Supabase table name
+   - your_collection_name → Ditto collection name
+
+2. Choose sync direction:
+   - SyncDirection.bidirectional (default): Full two-way sync
+     * Sends local changes to Ditto
+     * Receives and applies remote updates
+     * Use for most models (transactions, inventory, etc.)
+   
+   - SyncDirection.sendOnly: Write-only sync
+     * Seeds initial data from local DB to Ditto
+     * Pushes all local changes to Ditto
+     * Does NOT fetch remote updates back
+     * Use for: audit logs, telemetry, events, receipts
+     * Perfect when you want to share data but don't need to receive
+   
+   - SyncDirection.receiveOnly: Read-only sync
+     * Receives data from Ditto
+     * Does NOT push local changes
+     * Use for: global settings, product catalogs, reference data
+     * Perfect for centrally-managed data
+
+3. Add your domain-specific fields in the DOMAIN FIELDS section
+
+4. Update the constructor and copyWith method to include all fields
+
+5. Generate the adapter:
+   cd packages/supabase_models
+   dart run build_runner build --delete-conflicting-outputs
+
+6. The generator will create:
+   - your_model.model.ditto_sync_adapter.g.dart
+
+7. Verify the generated file:
+   - Check the header comment for required imports
+   - Check the "Sync Direction" comment to confirm your setting
+   - Ensure all imports are present in this file
+   - Look for any warnings during generation
+
+7. Test the sync:
+   - The adapter automatically registers with DittoSyncGeneratedRegistry
+   - Data will sync based on buildObserverQuery() logic
+   - Branch filtering happens automatically if branchId is present
+
+Common Issues:
+- Missing imports: Check the generated file header for required imports
+- Sync not working: Verify branchId matches current context
+- Build errors: Run with --delete-conflicting-outputs flag
+- Test failures: Use override methods in generated adapter for testing
+*/

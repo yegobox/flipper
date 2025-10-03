@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:brick_ditto_generators/import_validator.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -11,7 +12,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     Element element,
     ConstantReader annotation,
     BuildStep buildStep,
-  ) {
+  ) async {
     final inputPath = buildStep.inputId.path;
     if (!inputPath.startsWith('lib/brick/models/')) {
       return '';
@@ -22,9 +23,33 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     final classElement = element;
     final className = classElement.name;
     final collectionName = annotation.read('collectionName').stringValue;
+
+    // Read sync direction from annotation
+    final syncDirectionField = annotation.read('syncDirection');
+    String syncDirection = 'bidirectional';
+    if (!syncDirectionField.isNull) {
+      // Extract enum value name (e.g., "SyncDirection.sendOnly" -> "sendOnly")
+      final enumValue = syncDirectionField.objectValue.toString();
+      if (enumValue.contains('sendOnly')) {
+        syncDirection = 'sendOnly';
+      } else if (enumValue.contains('receiveOnly')) {
+        syncDirection = 'receiveOnly';
+      }
+    }
+
     final fields =
         classElement.fields.where((field) => !field.isStatic).toList();
     final hasBranchId = fields.any((field) => field.name == 'branchId');
+
+    // Validate that the source file has required imports
+    final sourceContent = await buildStep.readAsString(buildStep.inputId);
+    final missingImports = validateImports(sourceContent);
+
+    if (missingImports.isNotEmpty) {
+      log.warning(
+        formatMissingImportsError(buildStep.inputId.path, missingImports),
+      );
+    }
 
     // Generate the adapter code
     final buffer = StringBuffer();
@@ -37,7 +62,45 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln(
         '// **************************************************************************',
       )
-      ..writeln('')
+      ..writeln('//')
+      ..writeln(
+        '// REQUIRED IMPORTS in parent file (${className.toLowerCase()}.model.dart):',
+      )
+      ..writeln('// - import \'package:brick_core/query.dart\';')
+      ..writeln(
+        '// - import \'package:brick_offline_first/brick_offline_first.dart\';',
+      )
+      ..writeln('// - import \'package:flipper_services/proxy.dart\';')
+      ..writeln(
+        '// - import \'package:flutter/foundation.dart\' show debugPrint, kDebugMode;',
+      )
+      ..writeln(
+        '// - import \'package:supabase_models/sync/ditto_sync_adapter.dart\';',
+      )
+      ..writeln(
+        '// - import \'package:supabase_models/sync/ditto_sync_coordinator.dart\';',
+      )
+      ..writeln(
+        '// - import \'package:supabase_models/sync/ditto_sync_generated.dart\';',
+      )
+      ..writeln(
+        '// - import \'package:supabase_models/brick/repository.dart\';',
+      )
+      ..writeln(
+        '// **************************************************************************',
+      )
+      ..writeln('//')
+      ..writeln('// Sync Direction: $syncDirection')
+      ..writeln(
+        syncDirection == 'sendOnly'
+            ? '// This adapter sends data to Ditto but does NOT receive remote updates.'
+            : syncDirection == 'receiveOnly'
+                ? '// This adapter receives data from Ditto but does NOT send local changes.'
+                : '// This adapter supports full bidirectional sync (send and receive).',
+      )
+      ..writeln(
+        '// **************************************************************************',
+      )
       ..writeln('')
       ..writeln(
         'class ${className}DittoAdapter extends DittoSyncAdapter<$className> {',
@@ -76,23 +139,35 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('  String get collectionName => "$collectionName";')
       ..writeln('')
       ..writeln('  @override')
-      ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {')
-      ..writeln(
-        '    final branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
-      )
-      ..writeln('    if (branchId == null) {')
-      ..writeln(
-        '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
-      )
-      ..writeln('    }')
-      ..writeln('    return DittoSyncQuery(')
-      ..writeln(
-        '      query: "SELECT * FROM $collectionName WHERE branchId = :branchId",',
-      )
-      ..writeln('      arguments: {"branchId": branchId},')
-      ..writeln('    );')
-      ..writeln('  }')
-      ..writeln('')
+      ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {');
+
+    // For sendOnly mode, return null to disable remote observation
+    if (syncDirection == 'sendOnly') {
+      buffer
+        ..writeln('    // Send-only mode: no remote observation')
+        ..writeln('    return null;')
+        ..writeln('  }');
+    } else {
+      // For receiveOnly and bidirectional: enable observation
+      buffer
+        ..writeln(
+          '    final branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
+        )
+        ..writeln('    if (branchId == null) {')
+        ..writeln(
+          '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+        )
+        ..writeln('    }')
+        ..writeln('    return DittoSyncQuery(')
+        ..writeln(
+          '      query: "SELECT * FROM $collectionName WHERE branchId = :branchId",',
+        )
+        ..writeln('      arguments: {"branchId": branchId},')
+        ..writeln('    );')
+        ..writeln('  }');
+    }
+
+    buffer
       ..writeln('  @override')
       ..writeln(
         '  Future<String?> documentIdForModel($className model) async => model.id;',

@@ -10,6 +10,21 @@ part of 'stock_recount_item.model.dart';
 // **************************************************************************
 // DittoSyncAdapterGenerator
 // **************************************************************************
+//
+// REQUIRED IMPORTS in parent file (stockrecountitem.model.dart):
+// - import 'package:brick_core/query.dart';
+// - import 'package:brick_offline_first/brick_offline_first.dart';
+// - import 'package:flipper_services/proxy.dart';
+// - import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+// - import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+// - import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+// - import 'package:supabase_models/sync/ditto_sync_generated.dart';
+// - import 'package:supabase_models/brick/repository.dart';
+// **************************************************************************
+//
+// Sync Direction: bidirectional
+// This adapter supports full bidirectional sync (send and receive).
+// **************************************************************************
 
 class StockRecountItemDittoAdapter extends DittoSyncAdapter<StockRecountItem> {
   StockRecountItemDittoAdapter._internal();

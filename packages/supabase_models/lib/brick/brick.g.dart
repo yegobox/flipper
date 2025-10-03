@@ -59,6 +59,7 @@ import '../brick/models/stock.model.dart';
 import '../brick/models/sars.model.dart';
 import '../brick/models/counter.model.dart';
 import '../brick/models/retryable.model.dart';
+import '../brick/models/stock_recount.model.dart';
 import '../brick/models/category.model.dart';
 import '../brick/models/business_analytic.model.dart';
 import '../brick/models/universalProduct.model.dart';
@@ -93,6 +94,7 @@ import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
 import '../brick/models/log.model.dart';
 import '../brick/models/report.model.dart';
+import '../brick/models/stock_recount_item.model.dart';
 import '../brick/models/appNotification.model.dart';
 import '../brick/models/discount.model.dart';
 import '../brick/models/business.model.dart';
@@ -108,8 +110,6 @@ import '../brick/models/product.model.dart';
 import '../brick/models/asset.model.dart';
 import '../brick/models/shift.model.dart';
 import '../brick/models/plans.model.dart';
-import '../brick/models/stock_recount.model.dart';
-import '../brick/models/stock_recount_item.model.dart';
 
 part 'adapters/item_code_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
@@ -117,6 +117,7 @@ part 'adapters/stock_adapter.g.dart';
 part 'adapters/sar_adapter.g.dart';
 part 'adapters/counter_adapter.g.dart';
 part 'adapters/retryable_adapter.g.dart';
+part 'adapters/stock_recount_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
 part 'adapters/business_analytic_adapter.g.dart';
 part 'adapters/unversal_product_adapter.g.dart';
@@ -151,6 +152,7 @@ part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
 part 'adapters/log_adapter.g.dart';
 part 'adapters/report_adapter.g.dart';
+part 'adapters/stock_recount_item_adapter.g.dart';
 part 'adapters/app_notification_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
@@ -166,8 +168,6 @@ part 'adapters/product_adapter.g.dart';
 part 'adapters/assets_adapter.g.dart';
 part 'adapters/shift_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
-part 'adapters/stock_recount_adapter.g.dart';
-part 'adapters/stock_recount_item_adapter.g.dart';
 
 /// Supabase mappings should only be used when initializing a [SupabaseProvider]
 final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
@@ -177,6 +177,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Sar: SarAdapter(),
   Counter: CounterAdapter(),
   Retryable: RetryableAdapter(),
+  StockRecount: StockRecountAdapter(),
   Category: CategoryAdapter(),
   BusinessAnalytic: BusinessAnalyticAdapter(),
   UnversalProduct: UnversalProductAdapter(),
@@ -211,6 +212,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Customer: CustomerAdapter(),
   Log: LogAdapter(),
   Report: ReportAdapter(),
+  StockRecountItem: StockRecountItemAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
@@ -225,9 +227,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Shift: ShiftAdapter(),
-  Plan: PlanAdapter(),
-  StockRecount: StockRecountAdapter(),
-  StockRecountItem: StockRecountItemAdapter()
+  Plan: PlanAdapter()
 };
 final supabaseModelDictionary = SupabaseModelDictionary(supabaseMappings);
 
@@ -239,6 +239,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Sar: SarAdapter(),
   Counter: CounterAdapter(),
   Retryable: RetryableAdapter(),
+  StockRecount: StockRecountAdapter(),
   Category: CategoryAdapter(),
   BusinessAnalytic: BusinessAnalyticAdapter(),
   UnversalProduct: UnversalProductAdapter(),
@@ -273,6 +274,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Customer: CustomerAdapter(),
   Log: LogAdapter(),
   Report: ReportAdapter(),
+  StockRecountItem: StockRecountItemAdapter(),
   AppNotification: AppNotificationAdapter(),
   Discount: DiscountAdapter(),
   Business: BusinessAdapter(),
@@ -287,8 +289,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Product: ProductAdapter(),
   Assets: AssetsAdapter(),
   Shift: ShiftAdapter(),
-  Plan: PlanAdapter(),
-  StockRecount: StockRecountAdapter(),
-  StockRecountItem: StockRecountItemAdapter()
+  Plan: PlanAdapter()
 };
 final sqliteModelDictionary = SqliteModelDictionary(sqliteMappings);
