@@ -295,10 +295,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     if (configureDatabase && !kIsWeb && !DatabasePath.isTestEnvironment()) {
       try {
         // Configure the database with WAL mode and other settings
-        if (await File(dbPath).exists()) {
-          await _singleton!._databaseManager.configureDatabaseSettings(
-              dbPath, PlatformHelpers.getDatabaseFactory());
-        }
+        // Note: PRAGMA commands work even if the database file doesn't exist yet
+        await _singleton!._databaseManager.configureDatabaseSettings(
+            dbPath, PlatformHelpers.getDatabaseFactory());
       } catch (e) {
         _logger.warning('Error during database configuration: $e');
         // Continue without database configuration as it's not critical

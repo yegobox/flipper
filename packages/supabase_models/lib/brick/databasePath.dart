@@ -20,14 +20,18 @@ mixin DatabasePath {
 
     if (Platform.isAndroid) {
       dbPath = await getDatabasesPath();
-    } else {
-      // iOS, macOS, Windows, Linux
+    } else if (Platform.isWindows) {
+      // Windows: Use AppData/Local/rw.flipper for database storage
+      final supportDir = await getApplicationSupportDirectory();
+      dbPath = join(supportDir.path, 'rw.flipper');
+    } else if (Platform.isMacOS || Platform.isIOS) {
+      // macOS/iOS: Use Application Documents directory directly (no subdirectory)
       final supportDir = await getApplicationDocumentsDirectory();
-      if (Platform.isMacOS || Platform.isIOS) {
-        dbPath = supportDir.path;
-      } else {
-        dbPath = join(supportDir.path, 'rw.flipper');
-      }
+      dbPath = supportDir.path;
+    } else {
+      // Linux and others: Use Application Documents with rw.flipper subdirectory
+      final supportDir = await getApplicationDocumentsDirectory();
+      dbPath = join(supportDir.path, 'rw.flipper');
     }
 
     debugPrint('Database path: $dbPath');

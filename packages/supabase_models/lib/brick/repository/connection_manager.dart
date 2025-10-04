@@ -26,7 +26,8 @@ class ConnectionManager {
 
   /// Get a database connection, creating it if it doesn't exist
   Future<Database> getConnection(String path,
-      {int busyTimeout = defaultBusyTimeout}) async {
+      {int busyTimeout = defaultBusyTimeout,
+      bool configurePragmas = false}) async {
     if (_connections.containsKey(path)) {
       return _connections[path]!;
     }
@@ -38,9 +39,64 @@ class ConnectionManager {
         version: 1,
         singleInstance: true,
         onConfigure: (db) async {
-          // Set busy timeout to prevent immediate "database locked" errors, except on iOS/macOS
-          if (!(Platform.isIOS || Platform.isMacOS)) {
-            await db.execute('PRAGMA busy_timeout = $busyTimeout');
+          if (configurePragmas) {
+            // Configure PRAGMA settings during database initialization
+            // This is the ONLY place where some PRAGMA commands work on certain platforms
+            print(
+                '🔧 [ConnectionManager] Configuring PRAGMA settings in onConfigure...');
+
+            try {
+              // Enable WAL mode for better concurrency and crash resistance
+              await db.execute('PRAGMA journal_mode=WAL;');
+              print('✅ [ConnectionManager] WAL mode enabled');
+
+              // FULL synchronous mode - safest against corruption
+              await db.execute('PRAGMA synchronous=FULL;');
+              print('✅ [ConnectionManager] Synchronous mode set to FULL');
+
+              // Enable auto_vacuum to prevent database bloat
+              await db.execute('PRAGMA auto_vacuum=FULL;');
+              print('✅ [ConnectionManager] Auto-vacuum enabled');
+
+              // Set busy timeout to 30 seconds for better handling of concurrent access
+              await db.execute('PRAGMA busy_timeout=30000;');
+              print('✅ [ConnectionManager] Busy timeout set to 30 seconds');
+
+              // Platform-specific optimizations
+              if (Platform.isWindows || Platform.isLinux) {
+                // Increase cache size for better performance
+                await db.execute('PRAGMA cache_size=-8192;'); // ~8MB cache
+                print('✅ [ConnectionManager] Cache size set to 8MB (Desktop)');
+
+                // Set page size (must be done before any tables are created)
+                await db.execute('PRAGMA page_size=4096;');
+                print('✅ [ConnectionManager] Page size set to 4096');
+
+                // Set temp store to memory for better performance
+                await db.execute('PRAGMA temp_store=MEMORY;');
+                print('✅ [ConnectionManager] Temp store set to MEMORY');
+              } else if (Platform.isAndroid || Platform.isIOS) {
+                // Mobile devices: More conservative cache
+                await db.execute('PRAGMA cache_size=-4096;'); // ~4MB cache
+                print('✅ [ConnectionManager] Cache size set to 4MB (Mobile)');
+              }
+
+              // Enable checkpointing on close for WAL mode
+              await db.execute('PRAGMA wal_autocheckpoint=1000;');
+              print('✅ [ConnectionManager] WAL autocheckpoint enabled');
+
+              print(
+                  '🎉 [ConnectionManager] PRAGMA configuration completed in onConfigure!');
+            } catch (e) {
+              print(
+                  '❌ [ConnectionManager] Error configuring PRAGMA in onConfigure: $e');
+              _logger.warning('Error configuring PRAGMA settings: $e');
+            }
+          } else {
+            // Legacy behavior: Set busy timeout only
+            if (!(Platform.isIOS || Platform.isMacOS)) {
+              await db.execute('PRAGMA busy_timeout = $busyTimeout');
+            }
           }
         },
       ),
