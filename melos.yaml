@@ -43,6 +43,16 @@ scripts:
     packageFilters:
       scope: "flipper_web"
     description: Run tests for flipper_web
+  test:supabase_models:
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope: "supabase_models"
+    description: Run tests for supabase_models (including stock recount tests)
+  test:stock_recount:
+    exec: flutter test test/stock_recount_test.dart test/stock_recount_item_test.dart --dart-define=FLUTTER_TEST_ENV=true --coverage
+    packageFilters:
+      scope: "supabase_models"
+    description: Run only stock recount tests in supabase_models
   test:specific:
     exec: flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
     packageFilters:
@@ -55,7 +65,8 @@ scripts:
       melos run test:dashboard
       melos run test:auth
       melos run test:flipper_web
-    description: Run tests for dashboard, auth, and web in CI/CD
+      melos run test:supabase_models
+    description: Run tests for dashboard, auth, web, and supabase_models in CI/CD
   get_deps:
     run: melos exec -- flutter pub deps
     description: List sub dependencies
