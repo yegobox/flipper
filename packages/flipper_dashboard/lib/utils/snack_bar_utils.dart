@@ -6,7 +6,7 @@ void showCustomSnackBarUtil(
   String message, {
   Color? backgroundColor,
   Duration duration = const Duration(seconds: 4),
-  bool showCloseButton = false,
+  bool showCloseButton = true,
 }) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -25,7 +25,8 @@ void showCustomSnackBarUtil(
       action: showCloseButton
           ? SnackBarAction(
               label: 'X',
-              onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+              onPressed: () =>
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar(),
             )
           : null,
     ),
@@ -57,7 +58,8 @@ void showDeletionConfirmationSnackBar<T>(
               Expanded(
                 child: Text(
                   'Delete ${items.length} item${items.length == 1 ? '' : 's'}?',
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ),
             ],
@@ -68,24 +70,30 @@ void showDeletionConfirmationSnackBar<T>(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: items.take(3).map((item) => 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(
-                      '• ${getDisplayName(item)}',
-                      style: TextStyle(color: Colors.grey[300], fontSize: 13),
-                    ),
-                  )
-                ).toList() + [
-                  if (items.length > 3)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Text(
-                        '• and ${items.length - 3} more...',
-                        style: TextStyle(color: Colors.grey[400], fontSize: 13, fontStyle: FontStyle.italic),
-                      ),
-                    ),
-                ],
+                children: items
+                        .take(3)
+                        .map((item) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Text(
+                                '• ${getDisplayName(item)}',
+                                style: TextStyle(
+                                    color: Colors.grey[300], fontSize: 13),
+                              ),
+                            ))
+                        .toList() +
+                    [
+                      if (items.length > 3)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            '• and ${items.length - 3} more...',
+                            style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 13,
+                                fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                    ],
               ),
             ),
           ),

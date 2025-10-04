@@ -3,12 +3,24 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:brick_core/query.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+part 'transactionItem.model.ditto_sync_adapter.g.dart';
 
 // Date,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count
 // https://aistudio.google.com/app/prompts/1vt4fnINIbiy_qmgSIHQHxa5YoNGXEjM9
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transaction_items'),
 )
+@DittoAdapter('transaction_items', syncDirection: SyncDirection.sendOnly)
 class TransactionItem extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)

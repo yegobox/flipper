@@ -334,7 +334,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         status: PENDING,
         cashReceived: ProxyService.box.getCashReceived(),
       );
-      
+
       if (mounted) {
         ref.read(payButtonStateProvider.notifier).stopLoading();
       }
@@ -509,7 +509,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       context,
       errorMessage,
       backgroundColor: Colors.red[600],
-      duration: const Duration(seconds: 10),
     );
   }
 
