@@ -25,6 +25,7 @@ import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/purchase_mixin.dart';
 import 'package:flipper_models/sync/mixins/stock_mixin.dart';
+import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:flipper_models/sync/mixins/tenant_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
@@ -83,6 +84,7 @@ class CoreSync extends AiStrategyImpl
         CustomerMixin,
         LogMixin,
         EbmMixin,
+        StockRecountMixin,
         ShiftMixin,
         StockMixin,
         CategoryMixin

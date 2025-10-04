@@ -124,6 +124,27 @@ class EnhancedSideMenu extends ConsumerWidget {
                     DashboardPage.kitchen;
               },
             ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Stock Recount',
+              isSelected: selectedItem == 6,
+              icon: Icon(
+                Icons.inventory_2_outlined,
+                color: selectedItem == 6 ? Colors.blue : Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () {
+                ref.read(selectedMenuItemProvider.notifier).state = 6;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.stockRecount;
+              },
+            ),
             if (isAdminAsyncValue.value ==
                 true) // Conditionally add Shift History
               SideMenuItemDataTile(
