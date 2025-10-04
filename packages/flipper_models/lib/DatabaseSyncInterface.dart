@@ -17,6 +17,7 @@ import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
+import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:http/http.dart' as http;
@@ -70,6 +71,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         AssetInterface,
         CustomerInterface,
         CategoryInterface,
+        StockRecountInterface,
         ShiftApi,
         StockInterface,
         LogInterface {

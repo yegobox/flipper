@@ -23,6 +23,8 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
+import 'package:supabase_models/brick/models/stock_recount.model.dart';
+import 'package:supabase_models/brick/models/stock_recount_item.model.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
@@ -2422,6 +2424,72 @@ class Capella extends AiStrategyImpl
   Future<void> mergeTransactions(
       {required brick.ITransaction from, required brick.ITransaction to}) {
     // TODO: implement mergeTransactions
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StockRecountItem> addOrUpdateRecountItem({required String recountId, required String variantId, required double countedQuantity, String? notes}) {
+    // TODO: implement addOrUpdateRecountItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deleteRecount({required String recountId}) {
+    // TODO: implement deleteRecount
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StockRecount?> getRecount({required String recountId}) {
+    // TODO: implement getRecount
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<StockRecountItem>> getRecountItems({required String recountId}) {
+    // TODO: implement getRecountItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<StockRecount>> getRecounts({required int branchId, String? status}) {
+    // TODO: implement getRecounts
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, double>> getStockSummary({required int branchId, List<String>? variantIds}) {
+    // TODO: implement getStockSummary
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StockRecount> markRecountSynced({required String recountId}) {
+    // TODO: implement markRecountSynced
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<StockRecount>> recountsStream({required int branchId, String? status}) {
+    // TODO: implement recountsStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> removeRecountItem({required String itemId}) {
+    // TODO: implement removeRecountItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StockRecount> startRecountSession({required int branchId, String? userId, String? deviceId, String? deviceName, String? notes}) {
+    // TODO: implement startRecountSession
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<StockRecount> submitRecount({required String recountId}) {
+    // TODO: implement submitRecount
     throw UnimplementedError();
   }
 }
