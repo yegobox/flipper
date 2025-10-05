@@ -69,7 +69,7 @@ class _RadioButtonsState extends State<RadioButtons> {
           boxShadow: [
             if (isSelected)
               BoxShadow(
-                color: widget.activeColor.withOpacity(0.3),
+                color: widget.activeColor.withValues(alpha: 0.3),
                 blurRadius: 1,
                 offset: Offset(0, 4),
               ),

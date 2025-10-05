@@ -137,7 +137,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                   Text(
                     'Initialize your cash drawer and begin operations',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -147,13 +147,13 @@ class _StartShiftDialogState extends State<StartShiftDialog>
               onPressed: () =>
                   widget.completer(DialogResponse(confirmed: false)),
               icon: Icon(Icons.close,
-                  color: colorScheme.onSurface.withOpacity(0.7)),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7)),
               tooltip: 'Close',
             ),
           ],
         ),
         const SizedBox(height: 16),
-        Divider(color: colorScheme.outline.withOpacity(0.2)),
+        Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
       ],
     );
   }
@@ -168,10 +168,10 @@ class _StartShiftDialogState extends State<StartShiftDialog>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceVariant.withOpacity(0.3),
+        color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: colorScheme.outline.withOpacity(0.2),
+          color: colorScheme.outline.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -216,7 +216,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
                 child: Text(
                   'Start time: ${timeFormat.format(now)}',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.8),
+                    color: colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                 ),
               ),
@@ -245,7 +245,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
         Text(
           'Enter the amount of cash in your drawer at the start of the shift',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurface.withOpacity(0.7),
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 12),
@@ -288,7 +288,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide:
-                  BorderSide(color: colorScheme.outline.withOpacity(0.5)),
+                  BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -329,7 +329,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
         Text(
           'Add any additional notes about this shift',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: colorScheme.onSurface.withOpacity(0.7),
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 12),
@@ -347,7 +347,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide:
-                  BorderSide(color: colorScheme.outline.withOpacity(0.5)),
+                  BorderSide(color: colorScheme.outline.withValues(alpha: 0.5)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -368,7 +368,7 @@ class _StartShiftDialogState extends State<StartShiftDialog>
       decoration: BoxDecoration(
         color: colorScheme.errorContainer,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: colorScheme.error.withOpacity(0.3)),
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

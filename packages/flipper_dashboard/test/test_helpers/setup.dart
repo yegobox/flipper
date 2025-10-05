@@ -94,9 +94,15 @@ class TestEnvironment {
   }
 
   void restore() {
-    ProxyService.strategyLink = originalStrategyLink;
-    ProxyService.box = originalBox;
-    ProxyService.tax = originalTaxApi;
+    if (originalStrategyLink != null) {
+      ProxyService.strategyLink = originalStrategyLink!;
+    }
+    if (originalBox != null) {
+      ProxyService.box = originalBox!;
+    }
+    if (originalTaxApi != null) {
+      ProxyService.tax = originalTaxApi!;
+    }
   }
 
   void stubCommonMethods() {

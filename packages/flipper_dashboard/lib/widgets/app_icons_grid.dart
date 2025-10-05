@@ -199,7 +199,7 @@ class AppIconsGrid extends ConsumerWidget {
             Container(
               padding: EdgeInsets.all(isBigScreen ? 6 : 12),
               decoration: BoxDecoration(
-                color: app['color'].withOpacity(0.1),
+                color: app['color'].withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(app['icon'],

@@ -191,7 +191,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         border: Border.all(color: Colors.grey[200]!, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: Colors.grey.withValues(alpha: 0.05),
             spreadRadius: 1,
             blurRadius: 3,
             offset: Offset(0, 1),
@@ -827,7 +827,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         Text(
           '${payments.length} method${payments.length != 1 ? 's' : ''}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.6),
               ),
         ),
 

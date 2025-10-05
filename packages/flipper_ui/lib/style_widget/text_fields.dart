@@ -15,7 +15,7 @@ class AppInputDecoration {
       labelText: labelText,
       hintText: hintText,
       hintStyle: TextStyle(
-        color: Theme.of(context).hintColor.withOpacity(.7),
+        color: Theme.of(context).hintColor.withValues(alpha: .7),
         fontSize: 14.0,
       ),
       labelStyle: TextStyle(
@@ -65,7 +65,7 @@ class AppInputDecoration {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(4.0),
       borderSide: BorderSide(
-        color: Theme.of(context).primaryColor.withOpacity(opacity),
+        color: Theme.of(context).primaryColor.withValues(alpha: opacity),
         width: width,
       ),
     );

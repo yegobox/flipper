@@ -385,7 +385,7 @@ class DataViewState extends ConsumerState<DataView>
     final displayTotal = value ?? 0.0;
     return Expanded(
       child: Card(
-        color: color.withOpacity(0.07),
+        color: color.withValues(alpha: 0.07),
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: Padding(
@@ -500,7 +500,7 @@ class DataViewState extends ConsumerState<DataView>
             border: Border(top: BorderSide(color: Colors.grey.shade300)),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.3),
+                color: Colors.grey.withValues(alpha: 0.3),
                 spreadRadius: 2,
                 blurRadius: 5,
                 offset: const Offset(0, -3),

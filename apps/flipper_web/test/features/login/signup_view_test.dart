@@ -150,7 +150,10 @@ void main() {
       // Check for fields using more reliable finders
       expect(find.text('Username'), findsOneWidget);
       expect(find.text('Full Name'), findsOneWidget);
-      expect(find.text('Business Type'), findsOneWidget);
+      expect(
+        find.text('Usage '),
+        findsOneWidget,
+      ); // Changed from 'Business Type' to 'Usage ' to match mobile layout
       expect(find.text('TIN Number'), findsOneWidget);
       expect(find.text('Country'), findsOneWidget);
 

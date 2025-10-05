@@ -103,8 +103,8 @@ class _ShazamSearchButtonState extends State<ShazamSearchButton>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: FlipperPalette.searchingBlue.withOpacity(
-                          0.3 * (1 - _rippleAnimation.value),
+                        color: FlipperPalette.searchingBlue.withValues(
+                          alpha: 0.3 * (1 - _rippleAnimation.value),
                         ),
                         width: 2,
                       ),
@@ -125,7 +125,9 @@ class _ShazamSearchButtonState extends State<ShazamSearchButton>
                         colors: widget.isSearching
                             ? [
                                 FlipperPalette.searchingBlue,
-                                FlipperPalette.searchingBlue.withOpacity(0.8),
+                                FlipperPalette.searchingBlue.withValues(
+                                  alpha: 0.8,
+                                ),
                               ]
                             : [
                                 FlipperPalette.accentBlue,
@@ -135,8 +137,12 @@ class _ShazamSearchButtonState extends State<ShazamSearchButton>
                       boxShadow: [
                         BoxShadow(
                           color: widget.isSearching
-                              ? FlipperPalette.searchingBlue.withOpacity(0.3)
-                              : FlipperPalette.accentBlue.withOpacity(0.3),
+                              ? FlipperPalette.searchingBlue.withValues(
+                                  alpha: 0.3,
+                                )
+                              : FlipperPalette.accentBlue.withValues(
+                                  alpha: 0.3,
+                                ),
                           blurRadius: 15,
                           spreadRadius: 5,
                         ),
@@ -156,7 +162,7 @@ class _ShazamSearchButtonState extends State<ShazamSearchButton>
                     height: 20,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
               ],
@@ -237,10 +243,10 @@ class _AnimatedChallengeCardState extends State<AnimatedChallengeCard>
             leading: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: FlipperPalette.accentBlue.withOpacity(0.1),
+                color: FlipperPalette.accentBlue.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: FlipperPalette.accentBlue.withOpacity(0.3),
+                  color: FlipperPalette.accentBlue.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -377,7 +383,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
                           const SizedBox(height: 8),
                           LinearProgressIndicator(
                             backgroundColor: FlipperPalette.searchingBlue
-                                .withOpacity(0.2),
+                                .withValues(alpha: 0.2),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               FlipperPalette.searchingBlue,
                             ),

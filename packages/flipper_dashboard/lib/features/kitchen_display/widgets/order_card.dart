@@ -136,7 +136,8 @@ class OrderCard extends HookConsumerWidget {
                             color: Colors.deepPurple,
                           ),
                         ),
-                        backgroundColor: Colors.deepPurple.withOpacity(0.1),
+                        backgroundColor:
+                            Colors.deepPurple.withValues(alpha: 0.1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -289,7 +290,7 @@ class OrderCard extends HookConsumerWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: borderColor.withOpacity(0.2),
+                      color: borderColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

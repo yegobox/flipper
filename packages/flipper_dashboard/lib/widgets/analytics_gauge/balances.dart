@@ -36,7 +36,7 @@ class _BalancesState extends State<Balances>
             child: Text(
               '3,355 RWF',
               style: TextStyle(
-                color: Colors.black.withOpacity(0.6200000047683716),
+                color: Colors.black.withValues(alpha: 0.6200000047683716),
                 fontSize: 20,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w600,
@@ -52,7 +52,7 @@ class _BalancesState extends State<Balances>
               '50 RWF',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.black.withOpacity(0.4099999964237213),
+                color: Colors.black.withValues(alpha: 0.4099999964237213),
                 fontSize: 20,
                 decoration: TextDecoration.none,
                 fontFamily: 'Poppins',

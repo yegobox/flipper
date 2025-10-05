@@ -355,8 +355,8 @@ class _HeroAmountCard extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: isIncome
-                        ? const Color(0xFF16C784).withOpacity(0.1)
-                        : const Color(0xFFEA3943).withOpacity(0.1),
+                        ? const Color(0xFF16C784).withValues(alpha: 0.1)
+                        : const Color(0xFFEA3943).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
@@ -437,7 +437,7 @@ class _ModernTransactionItemList extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -455,7 +455,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF007AFF).withOpacity(0.1),
+                      color: const Color(0xFF007AFF).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -651,7 +651,7 @@ class _ModernTransactionTimeline extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -669,7 +669,7 @@ class _ModernTransactionTimeline extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16C784).withOpacity(0.1),
+                      color: const Color(0xFF16C784).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(
@@ -940,7 +940,7 @@ class _ActionTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: action.color.withOpacity(0.1),
+                  color: action.color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(action.icon, color: action.color, size: 20),

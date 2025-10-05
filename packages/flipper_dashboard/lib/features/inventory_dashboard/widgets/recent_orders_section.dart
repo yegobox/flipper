@@ -37,7 +37,7 @@ class RecentOrdersSection extends StatelessWidget {
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor:
-                        _getStatusColor(order.status).withOpacity(0.2),
+                        _getStatusColor(order.status).withValues(alpha: 0.2),
                     child: Icon(
                       _getStatusIcon(order.status),
                       color: _getStatusColor(order.status),
@@ -53,7 +53,8 @@ class RecentOrdersSection extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(order.status).withOpacity(0.1),
+                      color:
+                          _getStatusColor(order.status).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

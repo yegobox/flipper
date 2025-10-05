@@ -67,7 +67,7 @@ class _StartUpViewState extends State<StartUpView> {
                         height: 20,
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.black.withOpacity(0.7)),
+                              Colors.black.withValues(alpha: 0.7)),
                           strokeWidth: 3,
                           backgroundColor: Colors.grey.shade300,
                         ),

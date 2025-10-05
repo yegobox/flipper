@@ -24,7 +24,7 @@ class WelcomeView extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AiTheme.primaryColor.withOpacity(0.1),
+                color: AiTheme.primaryColor.withValues(alpha: 0.1),
               ),
               child: const Icon(
                 Icons.auto_awesome_rounded,

@@ -81,7 +81,7 @@ class _FlipperDrawerState extends ConsumerState<FlipperDrawer>
                       ),
                       onTap: () {
                         showCupertinoModalPopup(
-                          barrierColor: Colors.black.withOpacity(0.5),
+                          barrierColor: Colors.black.withValues(alpha: 0.5),
                           context: context,
                           builder: (context) {
                             return Padding(
@@ -97,7 +97,8 @@ class _FlipperDrawerState extends ConsumerState<FlipperDrawer>
                                     child: Container(
                                       height: 200,
                                       width: double.infinity,
-                                      color: Colors.white.withOpacity(0.8),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.8),
                                       padding: const EdgeInsets.all(20),
                                       child: Column(
                                         children: [

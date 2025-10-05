@@ -125,7 +125,7 @@ class ChartsSection extends StatelessWidget {
                             dotData: FlDotData(show: false),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: Colors.blue.withOpacity(0.2),
+                              color: Colors.blue.withValues(alpha: 0.2),
                             ),
                             spots: const [
                               FlSpot(0, 300),
@@ -144,7 +144,7 @@ class ChartsSection extends StatelessWidget {
                             dotData: FlDotData(show: false),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: Colors.red.withOpacity(0.2),
+                              color: Colors.red.withValues(alpha: 0.2),
                             ),
                             spots: const [
                               FlSpot(0, 200),

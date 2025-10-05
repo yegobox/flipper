@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../services/mock_currency_service.dart';
-
+// flutter test test/features/ai/widgets/data_visualization_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   // A dummy function for onCopyGraph since the tests don't focus on copy functionality
   void _doNothing() {}

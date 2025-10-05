@@ -936,7 +936,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                       : Theme.of(context)
                                           .iconTheme
                                           .color
-                                          ?.withOpacity(0.7),
+                                          ?.withValues(alpha: 0.7),
                                   size: 24,
                                 ),
                                 const SizedBox(width: 16),

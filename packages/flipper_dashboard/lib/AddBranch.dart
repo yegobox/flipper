@@ -44,7 +44,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              theme.primaryColor.withOpacity(0.05),
+              theme.primaryColor.withValues(alpha: 0.05),
               Colors.white,
             ],
           ),
@@ -222,7 +222,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -301,7 +302,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isActive ? activeColor.withOpacity(0.1) : Colors.grey.shade100,
+        color: isActive
+            ? activeColor.withValues(alpha: 0.1)
+            : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

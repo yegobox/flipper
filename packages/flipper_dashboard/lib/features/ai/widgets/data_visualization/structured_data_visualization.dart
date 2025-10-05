@@ -317,7 +317,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             Shadow(
               offset: const Offset(0, 1),
               blurRadius: 2,
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
             ),
           ],
         ),
@@ -425,7 +425,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                barColor.withOpacity(0.7),
+                                barColor.withValues(alpha: 0.7),
                                 barColor,
                               ],
                             ),
@@ -1034,7 +1034,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
             colors: [
-              color.withOpacity(0.7),
+              color.withValues(alpha: 0.7),
               color,
             ],
           ),

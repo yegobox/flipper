@@ -47,9 +47,9 @@ enum WoltElevatedButtonTheme {
   Color splashColor(WoltColorName colorName) {
     switch (this) {
       case WoltElevatedButtonTheme.primary:
-        return WoltColorName.white.color100.withOpacity(0.12);
+        return WoltColorName.white.color100.withValues(alpha: 0.12);
       case WoltElevatedButtonTheme.secondary:
-        return colorName.color100.withOpacity(0.12);
+        return colorName.color100.withValues(alpha: 0.12);
     }
   }
 }

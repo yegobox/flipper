@@ -157,11 +157,11 @@ class ColorTileState extends ConsumerState<ColorTile> {
                           overlayColor: WidgetStateProperty.resolveWith<Color?>(
                             (Set<WidgetState> states) {
                               if (states.contains(WidgetState.hovered)) {
-                                return Colors.grey.withOpacity(0.04);
+                                return Colors.grey.withValues(alpha: 0.04);
                               }
                               if (states.contains(WidgetState.focused) ||
                                   states.contains(WidgetState.pressed)) {
-                                return Colors.grey.withOpacity(0.12);
+                                return Colors.grey.withValues(alpha: 0.12);
                               }
                               return null; // Defer to the widget's default.
                             },

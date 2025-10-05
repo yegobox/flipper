@@ -262,10 +262,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                             padding: EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.2),
+                              color: Colors.green.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                  color: Colors.green.withOpacity(0.3)),
+                                  color: Colors.green.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               'Login successful! Redirecting...',

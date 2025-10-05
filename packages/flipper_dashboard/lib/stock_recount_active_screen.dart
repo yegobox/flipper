@@ -82,7 +82,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.check_circle_outline,
@@ -321,7 +321,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -335,7 +335,8 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0078D4).withOpacity(0.1),
+                            color:
+                                const Color(0xFF0078D4).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -466,7 +467,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -480,7 +481,8 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0078D4).withOpacity(0.1),
+                              color: const Color(0xFF0078D4)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -892,7 +894,7 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -915,7 +917,7 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0078D4).withOpacity(0.1),
+                      color: const Color(0xFF0078D4).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -999,7 +1001,7 @@ class _RecountItemCard extends StatelessWidget {
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1087,7 +1089,8 @@ class _RecountItemCard extends StatelessWidget {
                     label: 'Variance',
                     value: '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(0)}',
                     color: _getDifferenceColor(),
-                    backgroundColor: _getDifferenceColor().withOpacity(0.1),
+                    backgroundColor:
+                        _getDifferenceColor().withValues(alpha: 0.1),
                     icon: _getDifferenceIcon(),
                   ),
                 ),
@@ -1153,7 +1156,7 @@ class _InfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1163,7 +1166,7 @@ class _InfoChip extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 11,
-              color: color.withOpacity(0.8),
+              color: color.withValues(alpha: 0.8),
               fontWeight: FontWeight.w500,
             ),
           ),

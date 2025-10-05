@@ -50,7 +50,7 @@ class _NotificationsState extends State<Notifications>
                           color: const Color(0xff000000)),
                     )),
               ),
-              Divider(color: const Color(0xff000000).withOpacity(0.25)),
+              Divider(color: const Color(0xff000000).withValues(alpha: 0.25)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(19.0, 2.5, 19.0, 2.5),
                 child: Container(

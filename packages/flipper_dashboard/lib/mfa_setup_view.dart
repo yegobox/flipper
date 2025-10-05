@@ -136,7 +136,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
               Text(
                 'Setting up your authenticator...',
                 style: TextStyle(
-                  color: colorScheme.onSurface.withOpacity(0.7),
+                  color: colorScheme.onSurface.withValues(alpha: 0.7),
                   fontSize: 16,
                 ),
               ),
@@ -198,7 +198,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                   _error!,
                   style: TextStyle(
                     fontSize: 16,
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -285,7 +285,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                     'Scan the QR code below with your authenticator app to set up two-factor authentication for your account.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                       height: 1.4,
                     ),
                   ),
@@ -305,7 +305,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -353,7 +353,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface.withOpacity(0.7),
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -361,7 +361,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                       'Enter this setup key manually',
                       style: TextStyle(
                         fontSize: 14,
-                        color: colorScheme.onSurface.withOpacity(0.5),
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -374,10 +374,10 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: colorScheme.outline.withOpacity(0.2),
+                    color: colorScheme.outline.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(
@@ -390,7 +390,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: colorScheme.onSurface.withOpacity(0.7),
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                         ),
                         const Spacer(),
@@ -401,7 +401,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                             size: 16,
                             color: _secretCopied
                                 ? colorScheme.primary
-                                : colorScheme.onSurface.withOpacity(0.7),
+                                : colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                           label: Text(
                             _secretCopied ? 'Copied!' : 'Copy',
@@ -410,7 +410,8 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                               fontWeight: FontWeight.w500,
                               color: _secretCopied
                                   ? colorScheme.primary
-                                  : colorScheme.onSurface.withOpacity(0.7),
+                                  : colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
                             ),
                           ),
                           style: TextButton.styleFrom(
@@ -468,7 +469,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant.withOpacity(0.2),
+                      color: colorScheme.surfaceVariant.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -479,7 +480,8 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                             Icon(
                               Icons.info_outline,
                               size: 20,
-                              color: colorScheme.onSurface.withOpacity(0.7),
+                              color:
+                                  colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -487,7 +489,8 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: colorScheme.onSurface.withOpacity(0.7),
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -497,7 +500,7 @@ class _MfaSetupViewState extends ConsumerState<MfaSetupView> {
                           'Use apps like Microsoft Authenticator, Google Authenticator, or Authy to scan the QR code and generate verification codes.',
                           style: TextStyle(
                             fontSize: 14,
-                            color: colorScheme.onSurface.withOpacity(0.6),
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
                             height: 1.3,
                           ),
                         ),

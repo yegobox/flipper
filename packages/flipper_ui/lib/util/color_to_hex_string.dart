@@ -11,6 +11,6 @@ extension ColorExtension on Color {
   /// return a random color
   static Color random({double opacity = 1.0}) {
     return Color((math.Random().nextDouble() * 0xFFFFFF).toInt())
-        .withOpacity(opacity);
+        .withValues(alpha: opacity);
   }
 }

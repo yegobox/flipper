@@ -50,7 +50,7 @@ class BoxButton extends StatelessWidget {
     final List<BoxShadow> boxShadow = !disabled && !outline && color == null
         ? [
             BoxShadow(
-              color: const Color(0xff006AFE).withOpacity(0.3),
+              color: const Color(0xff006AFE).withValues(alpha: 0.3),
               offset: const Offset(0, 4),
               blurRadius: 4.0,
             ),
@@ -61,8 +61,8 @@ class BoxButton extends StatelessWidget {
       onTap: disabled || busy ? null : onTap,
       borderRadius: BorderRadius.circular(borderRadius),
       splashColor: outline
-          ? const Color(0xff006AFE).withOpacity(0.1)
-          : Colors.white.withOpacity(0.3),
+          ? const Color(0xff006AFE).withValues(alpha: 0.1)
+          : Colors.white.withValues(alpha: 0.3),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: double.infinity,

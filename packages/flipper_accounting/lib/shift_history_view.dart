@@ -43,7 +43,7 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0078D4).withOpacity(0.1),
+                    color: const Color(0xFF0078D4).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -124,7 +124,7 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF0078D4).withOpacity(0.1),
+              color: const Color(0xFF0078D4).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -193,13 +193,13 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -223,7 +223,7 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0078D4).withOpacity(0.1),
+                          color: const Color(0xFF0078D4).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -320,13 +320,13 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: cashDifference > 0
-                          ? const Color(0xFF28A745).withOpacity(0.1)
-                          : const Color(0xFFDC3545).withOpacity(0.1),
+                          ? const Color(0xFF28A745).withValues(alpha: 0.1)
+                          : const Color(0xFFDC3545).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: cashDifference > 0
-                            ? const Color(0xFF28A745).withOpacity(0.3)
-                            : const Color(0xFFDC3545).withOpacity(0.3),
+                            ? const Color(0xFF28A745).withValues(alpha: 0.3)
+                            : const Color(0xFFDC3545).withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
@@ -420,10 +420,10 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: color.withOpacity(0.3),
+          color: color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -627,7 +627,9 @@ class ShiftHistoryView extends StackedView<ShiftHistoryViewModel> {
               : const Icon(Icons.calendar_today),
         ),
         child: Text(
-          date == null ? 'Select Date' : DateFormat('MMM dd, yyyy').format(date),
+          date == null
+              ? 'Select Date'
+              : DateFormat('MMM dd, yyyy').format(date),
           style: const TextStyle(fontSize: 16),
         ),
       ),

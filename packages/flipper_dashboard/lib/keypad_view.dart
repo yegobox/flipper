@@ -84,7 +84,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: Offset(0, 5),
           ),
@@ -189,7 +189,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         borderRadius: BorderRadius.circular(4),
         child: InkWell(
           onTap: () => _handleKeyPress(key),
-          splashColor: Colors.blue.withOpacity(0.3),
+          splashColor: Colors.blue.withValues(alpha: 0.3),
           child: Center(
             child: key == 'Confirm'
                 ? Icon(Icons.check,

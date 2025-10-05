@@ -795,7 +795,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         if (isLoading)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: const SafeArea(
                 child: Center(
                   child: CircularProgressIndicator(),

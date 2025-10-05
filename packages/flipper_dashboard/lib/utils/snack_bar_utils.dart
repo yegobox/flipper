@@ -6,7 +6,7 @@ void showCustomSnackBarUtil(
   String message, {
   Color? backgroundColor,
   Duration duration = const Duration(seconds: 4),
-  bool showCloseButton = true,
+  bool showCloseButton = false,
 }) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(

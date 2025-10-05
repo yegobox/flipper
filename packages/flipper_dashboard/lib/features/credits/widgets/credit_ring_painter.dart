@@ -56,7 +56,7 @@ class CreditRingPainter extends CustomPainter {
     // Add inner shadow/glow effect
     if (percentage > 0.05) {
       final innerGlowPaint = Paint()
-        ..color = _getColorForPercentage(percentage).withOpacity(0.15)
+        ..color = _getColorForPercentage(percentage).withValues(alpha: 0.15)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8.0);
 
       canvas.drawCircle(

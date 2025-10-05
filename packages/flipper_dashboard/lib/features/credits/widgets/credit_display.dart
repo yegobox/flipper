@@ -36,8 +36,8 @@ class CreditDisplay extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isLightMode
-                ? Colors.black.withOpacity(0.1)
-                : Colors.black.withOpacity(0.3),
+                ? Colors.black.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.3),
             offset: const Offset(0, 8),
             blurRadius: 20,
           ),
@@ -98,7 +98,7 @@ class CreditDisplay extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: credits / maxCredits,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation<Color>(
                 credits / maxCredits > 0.5
                     ? Colors.greenAccent
@@ -113,7 +113,7 @@ class CreditDisplay extends StatelessWidget {
           Text(
             'Maximum: $maxCredits',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),

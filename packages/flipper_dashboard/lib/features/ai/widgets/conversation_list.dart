@@ -102,7 +102,7 @@ class ConversationList extends StatelessWidget {
               horizontal: 8, vertical: 8), // Reduced padding
           decoration: BoxDecoration(
             color: isSelected
-                ? AiTheme.primaryColor.withOpacity(0.1)
+                ? AiTheme.primaryColor.withValues(alpha: 0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
