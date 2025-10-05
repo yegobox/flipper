@@ -116,7 +116,6 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
       "modrNm": model.modrNm,
       "lastTouched": model.lastTouched?.toIso8601String(),
       "purchaseId": model.purchaseId,
-      "stock": model.stock,
       "taxPercentage": model.taxPercentage,
       "color": model.color,
       "sku": model.sku,
@@ -223,7 +222,7 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
       modrNm: document["modrNm"],
       lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
       purchaseId: document["purchaseId"],
-      stock: document["stock"],
+      stock: null, // Excluded from Ditto sync
       taxPercentage: document["taxPercentage"],
       color: document["color"],
       sku: document["sku"],
