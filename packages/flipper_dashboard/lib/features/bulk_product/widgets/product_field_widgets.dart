@@ -1,5 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_models/providers/category_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -93,26 +94,78 @@ class TaxTypeDropdown extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final model = ref.watch(bulkAddProductViewModelProvider);
-    final List<String> options = ["A", "B", "C", "D"];
+    final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(4),
+    return vatEnabledAsync.when(
+      data: (vatEnabled) {
+        // If VAT is enabled, show A, B, C (exclude D)
+        // If VAT is disabled, only show tax type D
+        final options = vatEnabled ? ["A", "B", "C"] : ["D"];
+        // If current value is not in options, default based on VAT status
+        final currentValue = options.contains(selectedValue)
+            ? selectedValue
+            : (vatEnabled ? "B" : "D");
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: DropdownButton<String>(
+            value: currentValue,
+            items: options.map((String option) {
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(option),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              model.updateTaxType(barCode, newValue);
+            },
+            isExpanded: true,
+            underline: const SizedBox.shrink(),
+          ),
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: DropdownButton<String>(
+          value: selectedValue ?? "B",
+          items: ["A", "B", "C", "D"].map((String option) {
+            return DropdownMenuItem<String>(
+              value: option,
+              child: Text(option),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            model.updateTaxType(barCode, newValue);
+          },
+          isExpanded: true,
+          underline: const SizedBox.shrink(),
+        ),
       ),
-      child: DropdownButton<String>(
-        value: selectedValue ?? "B",
-        items: options.map((String option) {
-          return DropdownMenuItem<String>(
-            value: option,
-            child: Text(option),
-          );
-        }).toList(),
-        onChanged: (String? newValue) {
-          model.updateTaxType(barCode, newValue);
-        },
-        isExpanded: true,
-        underline: const SizedBox.shrink(),
+      error: (_, __) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: DropdownButton<String>(
+          value: selectedValue ?? "B",
+          items: ["A", "B", "C", "D"].map((String option) {
+            return DropdownMenuItem<String>(
+              value: option,
+              child: Text(option),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            model.updateTaxType(barCode, newValue);
+          },
+          isExpanded: true,
+          underline: const SizedBox.shrink(),
+        ),
       ),
     );
   }

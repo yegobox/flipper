@@ -7,6 +7,7 @@ import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -217,6 +218,7 @@ mixin ProductMixin implements ProductInterface {
           spplrItemClsCd: spplrItemClsCd,
         );
         talker.info('New variant created: ${newVariant.toFlipperJson()}');
+
         // Create and save the stock first
         final stock = Stock(
           id: const Uuid().v4(),
@@ -236,35 +238,32 @@ mixin ProductMixin implements ProductInterface {
         // Set stock reference on variant
         newVariant.stock = createdStock;
         newVariant.stockId = createdStock.id;
-        newVariant.ebmSynced =
-            false; // Ensure this is set to false to trigger EBM sync
+        newVariant.ebmSynced = false;
 
-        // Save the variant with the stock reference
-        final savedVariant = await repository.upsert<Variant>(newVariant);
-
-        // Verify the stock was saved correctly
-        if (savedVariant.stockId == null || savedVariant.stockId!.isEmpty) {
-          throw Exception('Failed to assign stock to variant');
-        }
-
-        talker.info(
-            'Variant ${savedVariant.id} created with stock ${savedVariant.stockId}');
+        // Use ProxyService.strategy.addVariant to save the variant
+        // This ensures EBM sync and SAR increment logic is applied
+        await ProxyService.strategy.addVariant(
+          variations: [newVariant],
+          branchId: branchId,
+        );
 
         // Refresh the variant to ensure we have the latest data
         final refreshedVariants = await repository.get<Variant>(
-          query: brick.Query(
-              where: [brick.Where('id').isExactly(savedVariant.id)]),
+          query:
+              brick.Query(where: [brick.Where('id').isExactly(newVariant.id)]),
         );
 
         if (refreshedVariants.isEmpty) {
           throw Exception('Failed to retrieve saved variant');
         }
 
-        final refreshedVariant = refreshedVariants.first;
-        if (refreshedVariant.stockId == null) {
-          talker.error(
-              'Variant ${refreshedVariant.id} has no stockId after save!');
+        final savedVariant = refreshedVariants.first;
+        if (savedVariant.stockId == null) {
+          talker.error('Variant ${savedVariant.id} has no stockId after save!');
         }
+
+        talker.info(
+            'Variant ${savedVariant.id} created with stock ${savedVariant.stockId}');
 
         // If associated with a purchase, update the purchase-variant relationship
         if (purchase != null) {
@@ -364,6 +363,22 @@ mixin ProductMixin implements ProductInterface {
     ))
         .firstOrNull;
 
+    // Determine tax type code - prioritize explicit taxTyCd, then taxTypes map, then default to "B"
+    String finalTaxTyCd = taxTyCd ?? taxTypes?[product?.barCode] ?? "B";
+
+    // Get tax percentage based on the tax type code
+    double finalTaxPercentage = taxType?.taxPercentage ?? 18.0;
+    try {
+      Configurations? taxConfig =
+          await ProxyService.strategy.getByTaxType(taxtype: finalTaxTyCd);
+      if (taxConfig != null) {
+        finalTaxPercentage = taxConfig.taxPercentage!;
+      }
+    } catch (e) {
+      talker.warning(
+          'Failed to get tax configuration for $finalTaxTyCd, using default: $e');
+    }
+
     return Variant(
       spplrNm: spplrNm ?? "",
       agntNm: agntNm ?? "",
@@ -405,14 +420,14 @@ mixin ProductMixin implements ProductInterface {
           ? await itemCode(
               countryCode: orgnNatCd ?? "RW",
               productType: "2",
-              packagingUnit: "CT",
-              quantityUnit: "BJ",
+              packagingUnit: pkgUnitCd ?? "CT",
+              quantityUnit: qtyUnitCd ?? "U",
               branchId: branchId,
             )
           : itemCd ?? "",
       modrNm: name,
       modrId: number,
-      pkgUnitCd: pkgUnitCd ?? "BJ",
+      pkgUnitCd: pkgUnitCd ?? "CT",
       regrId: randomNumber().toString().substring(0, 5),
       itemTyCd: itemTypes?.containsKey(product?.barCode) == true
           ? itemTypes![product!.barCode]!
@@ -423,7 +438,8 @@ mixin ProductMixin implements ProductInterface {
       useYn: "N",
       itemSeq: itemSeq,
       itemNm: product?.name ?? name,
-      taxPercentage: taxType?.taxPercentage ?? 18.0,
+      taxPercentage: finalTaxPercentage,
+      taxName: finalTaxTyCd,
       tin: tinNumber,
       bcd: bcd ??
           (product?.name ?? name)
@@ -437,19 +453,20 @@ mixin ProductMixin implements ProductInterface {
       regrNm: product?.name ?? name,
 
       /// taxation type code
-      taxTyCd: taxTypes?[product?.barCode] ?? taxTyCd ?? "B",
+      taxTyCd: finalTaxTyCd,
 
       // default unit price
       dftPrc: retailPrice,
       prc: retailPrice,
 
-      /// Packaging Unit
-      // qtyUnitCd ??
-      qtyUnitCd: "U", // see 4.6 in doc
+      /// Packaging Unit and Quantity Unit
+      qtyUnitCd: qtyUnitCd ?? "U", // see 4.6 in doc
       ebmSynced: ebmSynced,
       spplrItemCd: spplrItemCd ?? "",
       spplrItemClsCd: itemClasses?[product?.barCode] ?? spplrItemClsCd,
       spplrItemNm: product?.name ?? name,
+      isrccNm: "",
+      isrcRt: 0,
     );
   }
 

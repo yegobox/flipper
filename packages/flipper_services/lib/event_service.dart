@@ -70,6 +70,12 @@ class EventService
 
   Future<void> _checkForNewEvents() async {
     try {
+      // Check if Ditto is ready before attempting to get events
+      if (!DittoService.instance.isReady()) {
+        // Ditto not initialized yet, skip this poll cycle
+        return;
+      }
+
       // Query ditto for all events and emit them
       final events = await DittoService.instance
           .getEvents('*', '*'); // Get all events for now
@@ -85,6 +91,13 @@ class EventService
   Future<void> saveEvent(
       String channel, String eventType, Map<String, dynamic> data) async {
     try {
+      // Check if Ditto is ready before attempting to save events
+      if (!DittoService.instance.isReady()) {
+        talker.warning(
+            'Ditto not initialized yet, cannot save event. Event will be lost.');
+        return;
+      }
+
       final eventId =
           '${channel}_${eventType}_${DateTime.now().millisecondsSinceEpoch}';
       await DittoService.instance.saveEvent({

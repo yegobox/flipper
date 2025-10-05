@@ -1,6 +1,8 @@
 import 'package:brick_core/core.dart';
 import 'package:brick_sqlite/src/db/migration.dart';
+import 'package:brick_sqlite/src/db/migration_commands/insert_column.dart';
 import 'package:brick_sqlite/src/db/migration_commands/insert_table.dart';
+import 'package:brick_sqlite/src/db/migration_commands/migration_command.dart';
 import 'package:brick_sqlite/src/db/migration_manager.dart';
 import 'package:brick_sqlite/src/helpers/alter_column_helper.dart';
 import 'package:brick_sqlite/src/helpers/query_sql_transformer.dart';
@@ -13,7 +15,8 @@ import 'package:sqflite_common/utils/utils.dart' as sqlite_utils;
 import 'package:synchronized/synchronized.dart';
 
 /// Retrieves from a SQLite database
-class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TProviderModel> {
+class SqliteProvider<TProviderModel extends SqliteModel>
+    implements Provider<TProviderModel> {
   /// Access the [SQLite](https://github.com/tekartik/sqflite/tree/master/sqflite_common_ffi),
   /// instance agnostically across platforms.
   @protected
@@ -57,7 +60,8 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
   }) async {
     final adapter = modelDictionary.adapterFor[TModel]!;
     final db = await getDb();
-    final existingPrimaryKey = await adapter.primaryKeyByUniqueColumns(instance, db);
+    final existingPrimaryKey =
+        await adapter.primaryKeyByUniqueColumns(instance, db);
 
     if (instance.isNewRecord || existingPrimaryKey == null) {
       throw ArgumentError(
@@ -101,8 +105,11 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
       );
     }
 
-    final countQuery = await (await getDb()).rawQuery(statement, sqlQuery.values);
-    final count = offsetIsPresent ? countQuery.length : sqlite_utils.firstIntValue(countQuery);
+    final countQuery =
+        await (await getDb()).rawQuery(statement, sqlQuery.values);
+    final count = offsetIsPresent
+        ? countQuery.length
+        : sqlite_utils.firstIntValue(countQuery);
 
     return (count ?? 0) > 0;
   }
@@ -179,12 +186,15 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
     // Ensure foreign keys are enabled
     await db.execute('PRAGMA foreign_keys = ON');
 
-    final latestMigrationVersion = MigrationManager.latestMigrationVersion(migrations);
+    final latestMigrationVersion =
+        MigrationManager.latestMigrationVersion(migrations);
     final latestSqliteMigrationVersion = await lastMigrationVersion();
 
     // Guard if migration has already been committed.
     if (latestSqliteMigrationVersion == latestMigrationVersion && !down) {
-      _logger.info('Already at latest migration version ($latestMigrationVersion)');
+      _logger.info(
+        'Already at latest migration version ($latestMigrationVersion)',
+      );
       return;
     }
 
@@ -199,9 +209,50 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
         final alterCommand = AlterColumnHelper(command);
         await _lock.synchronized(() async {
           if (alterCommand.requiresSchema) {
-            await alterCommand.execute(db);
+            // Check if this is an InsertColumn command with a column that already exists
+            if (command is InsertColumn) {
+              final shouldSkip = await _shouldSkipCommand(db, command);
+              if (shouldSkip) {
+                _logger.info(
+                  'Skipping schema command - column already exists: ${command.forGenerator}',
+                );
+                return;
+              }
+            }
+
+            try {
+              await alterCommand.execute(db);
+            } catch (e) {
+              // If it's a duplicate column error, log and continue
+              if (e.toString().contains('duplicate column name')) {
+                _logger.warning(
+                  'Column already exists in schema operation, skipping: ${command.forGenerator}',
+                );
+              } else {
+                rethrow;
+              }
+            }
           } else if (command.statement != null) {
-            await db.execute(command.statement!);
+            // Check if this is an InsertColumn command and if the column already exists
+            if (await _shouldSkipCommand(db, command)) {
+              _logger.info(
+                'Skipping command - column already exists: ${command.forGenerator}',
+              );
+              return;
+            }
+
+            try {
+              await db.execute(command.statement!);
+            } catch (e) {
+              // If it's a duplicate column error, log and continue
+              if (e.toString().contains('duplicate column name')) {
+                _logger.warning(
+                  'Column already exists, skipping: ${command.forGenerator}',
+                );
+              } else {
+                rethrow;
+              }
+            }
           }
         });
       }
@@ -220,6 +271,43 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
     }
   }
 
+  /// Check if a migration command should be skipped (e.g., column already exists)
+  Future<bool> _shouldSkipCommand(Database db, MigrationCommand command) async {
+    // Import InsertColumn if not already imported
+    if (command is! InsertColumn) return false;
+
+    final insertCommand = command;
+    final tableName = insertCommand.onTable;
+    final columnName = insertCommand.name;
+
+    try {
+      // Check if table exists first
+      final tableExists = await _tableExists(db, tableName);
+      if (!tableExists) return false;
+
+      // Check if column exists in the table
+      final columns = await db.rawQuery('PRAGMA table_info("$tableName")');
+      return columns.any((col) => col['name'] == columnName);
+    } catch (e) {
+      _logger.warning('Error checking if column exists: $e');
+      return false;
+    }
+  }
+
+  /// Check if a table exists in the database
+  Future<bool> _tableExists(Database db, String tableName) async {
+    try {
+      final result = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+        [tableName],
+      );
+      return result.isNotEmpty;
+    } catch (e) {
+      _logger.warning('Error checking if table exists: $e');
+      return false;
+    }
+  }
+
   /// Fetch results for model with a custom SQL statement.
   /// It is recommended to use [get] whenever possible. **Advanced use only**.
   Future<List<TModel>> rawGet<TModel extends TProviderModel>(
@@ -229,7 +317,8 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
   }) async {
     final adapter = modelDictionary.adapterFor[TModel]!;
 
-    final results = await _lock.synchronized(() async => (await getDb()).rawQuery(sql, arguments));
+    final results = await _lock
+        .synchronized(() async => (await getDb()).rawQuery(sql, arguments));
 
     if (results.isEmpty || results.first.isEmpty) {
       // otherwise an empty sql result will generate a blank model
@@ -238,7 +327,8 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
 
     return await Future.wait<TModel>(
       results.map(
-        (row) => adapter.fromSqlite(row, provider: this, repository: repository) as Future<TModel>,
+        (row) => adapter.fromSqlite(row, provider: this, repository: repository)
+            as Future<TModel>,
       ),
     );
   }
@@ -252,7 +342,10 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
       await (await getDb()).rawInsert(sql, arguments);
 
   /// Query with a raw SQL statement. **Advanced use only**.
-  Future<List<Map<String, Object?>>> rawQuery(String sql, [List? arguments]) async =>
+  Future<List<Map<String, Object?>>> rawQuery(
+    String sql, [
+    List? arguments,
+  ]) async =>
       await (await getDb()).rawQuery(sql, arguments);
 
   /// Reset the DB by deleting and recreating it.
@@ -271,9 +364,12 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
   /// Perform actions within a database transaction.
   /// **DO NOT** access `sqliteProvider` methods within [callback]. Instead,
   /// access DB methods and properties from [transaction]. **Advanced use only**.
-  Future<T> transaction<T>(Future<T> Function(Transaction transaction) callback) async {
+  Future<T> transaction<T>(
+    Future<T> Function(Transaction transaction) callback,
+  ) async {
     final db = await getDb();
-    return await _lock.synchronized(() async => await db.transaction<T>(callback));
+    return await _lock
+        .synchronized(() async => await db.transaction<T>(callback));
   }
 
   /// Insert record into SQLite. Returns the primary key of the record inserted
@@ -288,11 +384,16 @@ class SqliteProvider<TProviderModel extends SqliteModel> implements Provider<TPr
 
     await adapter.beforeSave(instance, provider: this, repository: repository);
     await instance.beforeSave(provider: this, repository: repository);
-    final data = await adapter.toSqlite(instance, provider: this, repository: repository);
+    final data = await adapter.toSqlite(
+      instance,
+      provider: this,
+      repository: repository,
+    );
 
     final id = await _lock.synchronized(
       () async => await db.transaction<int?>((txn) async {
-        final existingPrimaryKey = await adapter.primaryKeyByUniqueColumns(instance, txn);
+        final existingPrimaryKey =
+            await adapter.primaryKeyByUniqueColumns(instance, txn);
 
         if (instance.isNewRecord && existingPrimaryKey == null) {
           return await txn.insert(
