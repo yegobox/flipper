@@ -741,8 +741,9 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  void saveComposite({required Composite composite}) {
-    // TODO: implement saveComposite
+  Future<void> saveComposite({required Composite composite}) async {
+    // TODO: implement saveComposite for Capella
+    throw UnimplementedError();
   }
 
   @override
@@ -2428,7 +2429,11 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<StockRecountItem> addOrUpdateRecountItem({required String recountId, required String variantId, required double countedQuantity, String? notes}) {
+  Future<StockRecountItem> addOrUpdateRecountItem(
+      {required String recountId,
+      required String variantId,
+      required double countedQuantity,
+      String? notes}) {
     // TODO: implement addOrUpdateRecountItem
     throw UnimplementedError();
   }
@@ -2452,13 +2457,15 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<List<StockRecount>> getRecounts({required int branchId, String? status}) {
+  Future<List<StockRecount>> getRecounts(
+      {required int branchId, String? status}) {
     // TODO: implement getRecounts
     throw UnimplementedError();
   }
 
   @override
-  Future<Map<String, double>> getStockSummary({required int branchId, List<String>? variantIds}) {
+  Future<Map<String, double>> getStockSummary(
+      {required int branchId, List<String>? variantIds}) {
     // TODO: implement getStockSummary
     throw UnimplementedError();
   }
@@ -2470,7 +2477,8 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Stream<List<StockRecount>> recountsStream({required int branchId, String? status}) {
+  Stream<List<StockRecount>> recountsStream(
+      {required int branchId, String? status}) {
     // TODO: implement recountsStream
     throw UnimplementedError();
   }
@@ -2482,7 +2490,12 @@ class Capella extends AiStrategyImpl
   }
 
   @override
-  Future<StockRecount> startRecountSession({required int branchId, String? userId, String? deviceId, String? deviceName, String? notes}) {
+  Future<StockRecount> startRecountSession(
+      {required int branchId,
+      String? userId,
+      String? deviceId,
+      String? deviceName,
+      String? notes}) {
     // TODO: implement startRecountSession
     throw UnimplementedError();
   }
