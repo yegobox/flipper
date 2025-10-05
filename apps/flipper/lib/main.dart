@@ -111,6 +111,7 @@ Future<void> main() async {
             // The native splash is preserved until the future completes.
             return const MaterialApp(
               home: Scaffold(
+                backgroundColor: Colors.white,
                 body: Center(
                   child: CircularProgressIndicator(),
                 ),
