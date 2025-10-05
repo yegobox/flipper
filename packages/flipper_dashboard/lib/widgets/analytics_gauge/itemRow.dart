@@ -57,7 +57,7 @@ class _ItemRowState extends State<ItemRow> with SingleTickerProviderStateMixin {
                                 '4500 RWF',
                                 style: TextStyle(
                                   color: Colors.black
-                                      .withOpacity(0.5600000023841858),
+                                      .withValues(alpha: 0.5600000023841858),
                                   fontSize: 15,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w500,
@@ -75,7 +75,7 @@ class _ItemRowState extends State<ItemRow> with SingleTickerProviderStateMixin {
                                 '05:12',
                                 style: TextStyle(
                                   color: Colors.black
-                                      .withOpacity(0.23999999463558197),
+                                      .withValues(alpha: 0.23999999463558197),
                                   fontSize: 15,
                                   fontFamily: 'Poppins',
                                   fontWeight: FontWeight.w500,
@@ -96,7 +96,8 @@ class _ItemRowState extends State<ItemRow> with SingleTickerProviderStateMixin {
                       child: Text(
                         '1 item sold',
                         style: TextStyle(
-                          color: Colors.black.withOpacity(0.38999998569488525),
+                          color: Colors.black
+                              .withValues(alpha: 0.38999998569488525),
                           fontSize: 15,
                           fontFamily: 'Poppins',
                           fontWeight: FontWeight.w300,

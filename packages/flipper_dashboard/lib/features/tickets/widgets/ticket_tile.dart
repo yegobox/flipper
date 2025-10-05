@@ -237,7 +237,7 @@ class _TicketTileState extends State<TicketTile>
                                     ),
                                   ),
                                   backgroundColor:
-                                      Colors.deepPurple.withOpacity(0.1),
+                                      Colors.deepPurple.withValues(alpha: 0.1),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -306,7 +306,7 @@ class _TicketTileState extends State<TicketTile>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withOpacity(0.2),
+                                  color: Colors.orange.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: Colors.orange,
@@ -327,7 +327,8 @@ class _TicketTileState extends State<TicketTile>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: ticketStatus.color.withOpacity(0.2),
+                                  color:
+                                      ticketStatus.color.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                       color: ticketStatus.color, width: 1),
@@ -355,7 +356,7 @@ class _TicketTileState extends State<TicketTile>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: ticketStatus.color.withOpacity(0.2),
+                      color: ticketStatus.color.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: ticketStatus.color, width: 1),
                     ),

@@ -154,7 +154,7 @@ class _CreditHomePageState extends State<CreditHomePage>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 5),
           ),
@@ -170,13 +170,13 @@ class _CreditHomePageState extends State<CreditHomePage>
             decoration: InputDecoration(
               labelText: 'Enter amount',
               labelStyle: TextStyle(
-                color: colorScheme.onSurface.withOpacity(0.6),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
               prefixText: ProxyService.box.defaultCurrency(),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: colorScheme.outline.withOpacity(0.3),
+                  color: colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -188,8 +188,8 @@ class _CreditHomePageState extends State<CreditHomePage>
               ),
               filled: true,
               fillColor: isLightMode
-                  ? Colors.grey.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.2),
+                  ? Colors.grey.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.2),
             ),
           ),
           const SizedBox(height: 16),
@@ -201,12 +201,12 @@ class _CreditHomePageState extends State<CreditHomePage>
               labelText: 'Phone Number',
               hintText: '07xxxxxxxx',
               labelStyle: TextStyle(
-                color: colorScheme.onSurface.withOpacity(0.6),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: colorScheme.outline.withOpacity(0.3),
+                  color: colorScheme.outline.withValues(alpha: 0.3),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -218,8 +218,8 @@ class _CreditHomePageState extends State<CreditHomePage>
               ),
               filled: true,
               fillColor: isLightMode
-                  ? Colors.grey.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.2),
+                  ? Colors.grey.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.2),
             ),
           ),
           const SizedBox(height: 20),
@@ -235,7 +235,8 @@ class _CreditHomePageState extends State<CreditHomePage>
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                disabledBackgroundColor: colorScheme.primary.withOpacity(0.6),
+                disabledBackgroundColor:
+                    colorScheme.primary.withValues(alpha: 0.6),
               ),
               child: _isLoading
                   ? const SizedBox(

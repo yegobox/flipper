@@ -56,7 +56,7 @@ class ReportCard extends StatelessWidget {
               value: stockValue != 0
                   ? (soldStock / stockValue).clamp(0.0, 1.0)
                   : 0.0,
-              backgroundColor: Colors.white.withOpacity(0.3),
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
               valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
             ),
             const SizedBox(height: 8),

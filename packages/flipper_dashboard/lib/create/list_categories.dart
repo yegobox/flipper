@@ -58,8 +58,9 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             model.updateCategoryCore(category: category);
           },
         ),
-        tileColor:
-            isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : null,
+        tileColor: isSelected
+            ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+            : null,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(

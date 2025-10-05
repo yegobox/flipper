@@ -88,7 +88,7 @@ class ActionRow extends ConsumerWidget
     required bool isDisabled,
   }) {
     return Material(
-      color: isDisabled ? Colors.grey[100] : color.withOpacity(0.1),
+      color: isDisabled ? Colors.grey[100] : color.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         onTap: onPressed,

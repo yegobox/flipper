@@ -351,7 +351,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color, color.withOpacity(0.8)],
+              colors: [color, color.withValues(alpha: 0.8)],
             ),
           ),
           child: Center(
@@ -465,7 +465,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),

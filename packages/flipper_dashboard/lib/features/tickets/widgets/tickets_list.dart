@@ -227,7 +227,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                             color: status.color,
                             fontWeight: FontWeight.w500,
                           ),
-                          selectedColor: status.color.withOpacity(0.1),
+                          selectedColor: status.color.withValues(alpha: 0.1),
                           side: BorderSide(color: status.color, width: 1),
                           selected: false,
                           onSelected: (_) => Navigator.of(context).pop(status),
@@ -583,7 +583,7 @@ class TicketCard extends StatelessWidget {
 
     return Card(
       elevation: 2,
-      color: isSelected ? Colors.blue.withOpacity(0.1) : null,
+      color: isSelected ? Colors.blue.withValues(alpha: 0.1) : null,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: isSelected
@@ -738,8 +738,9 @@ class TicketCard extends StatelessWidget {
                         onPressed: onTap,
                         tooltip: 'Resume Order',
                         style: IconButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).primaryColor.withOpacity(0.1),
+                          backgroundColor: Theme.of(context)
+                              .primaryColor
+                              .withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -752,7 +753,7 @@ class TicketCard extends StatelessWidget {
                         onPressed: onDelete,
                         tooltip: 'Delete Ticket',
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.red.withOpacity(0.1),
+                          backgroundColor: Colors.red.withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),

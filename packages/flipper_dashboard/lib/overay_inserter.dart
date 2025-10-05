@@ -17,7 +17,7 @@ OverlayEntry insertOverlay(
     return Material(
       color: Colors.transparent,
       child: Scaffold(
-        backgroundColor: Color(0xFF6F2F9).withOpacity(0.6),
+        backgroundColor: Color(0xFF6F2F9).withValues(alpha: 0.6),
         resizeToAvoidBottomInset: true,
         body: GestureDetector(
           onTap: () {

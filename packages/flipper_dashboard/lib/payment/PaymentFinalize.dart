@@ -258,7 +258,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                             const SizedBox(height: 16),
                             Container(
                               decoration: BoxDecoration(
-                                color: lightBlue.withOpacity(0.3),
+                                color: lightBlue.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: SwitchListTile(
@@ -272,7 +272,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                 subtitle: Text(
                                   'Toggle to specify a different number for payment',
                                   style: TextStyle(
-                                      color: darkBlue.withOpacity(0.7)),
+                                      color: darkBlue.withValues(alpha: 0.7)),
                                 ),
                                 value: useCustomPhoneNumber,
                                 onChanged: (bool value) {

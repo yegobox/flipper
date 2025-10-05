@@ -161,7 +161,7 @@ class _CreditHomePageState extends State<CreditHomePage>
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
+                            color: Colors.black.withValues(alpha: 0.05),
                             blurRadius: 20,
                             offset: const Offset(0, 5),
                           ),
@@ -177,12 +177,14 @@ class _CreditHomePageState extends State<CreditHomePage>
                             decoration: InputDecoration(
                               labelText: 'Enter amount',
                               labelStyle: TextStyle(
-                                color: colorScheme.onSurface.withOpacity(0.6),
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.6),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: colorScheme.outline.withOpacity(0.3),
+                                  color: colorScheme.outline
+                                      .withValues(alpha: 0.3),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -194,8 +196,8 @@ class _CreditHomePageState extends State<CreditHomePage>
                               ),
                               filled: true,
                               fillColor: isLightMode
-                                  ? Colors.grey.withOpacity(0.05)
-                                  : Colors.black.withOpacity(0.2),
+                                  ? Colors.grey.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.2),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -265,7 +267,7 @@ class _CreditHomePageState extends State<CreditHomePage>
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 20,
                                 offset: const Offset(0, 5),
                               ),
@@ -407,8 +409,8 @@ class CreditDisplay extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isLightMode
-                ? Colors.black.withOpacity(0.1)
-                : Colors.black.withOpacity(0.3),
+                ? Colors.black.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.3),
             offset: const Offset(0, 8),
             blurRadius: 20,
           ),
@@ -469,7 +471,7 @@ class CreditDisplay extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: credits / maxCredits,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation<Color>(
                 credits / maxCredits > 0.5
                     ? Colors.greenAccent
@@ -484,7 +486,7 @@ class CreditDisplay extends StatelessWidget {
           Text(
             'Maximum: $maxCredits',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),
@@ -543,7 +545,7 @@ class QuickAmountsSelector extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             backgroundColor: isLightMode ? Colors.white : colorScheme.surface,
             side: BorderSide(
-              color: colorScheme.outline.withOpacity(0.3),
+              color: colorScheme.outline.withValues(alpha: 0.3),
               width: 1,
             ),
             shape: RoundedRectangleBorder(

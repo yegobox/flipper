@@ -46,7 +46,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
                 IconButton(
                     icon: Icon(
                       Icons.shopping_cart_outlined,
-                      color: Color(0xFF363740).withOpacity(.7),
+                      color: Color(0xFF363740).withValues(alpha: .7),
                     ),
                     onPressed: () {}),
                 Positioned(
@@ -81,7 +81,7 @@ AppBar topNavigationBar(BuildContext context, GlobalKey<ScaffoldState> key,
             ),
             Container(
               decoration: BoxDecoration(
-                  color: Color(0xFF3C19C0).withOpacity(.5),
+                  color: Color(0xFF3C19C0).withValues(alpha: .5),
                   borderRadius: BorderRadius.circular(30)),
               child: Container(
                 decoration: BoxDecoration(

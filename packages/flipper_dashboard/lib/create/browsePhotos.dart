@@ -555,7 +555,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Center(
@@ -565,13 +565,13 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                                 Icon(
                                   Icons.camera_alt,
                                   size: 40,
-                                  color: Colors.white.withOpacity(0.8),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
                                   'Click to change image',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.8),
+                                    color: Colors.white.withValues(alpha: 0.8),
                                     fontSize: 14,
                                   ),
                                 ),
@@ -584,7 +584,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                       Positioned.fill(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Center(

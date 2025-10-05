@@ -49,7 +49,7 @@ class QuickAmountsSelector extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             backgroundColor: isLightMode ? Colors.white : colorScheme.surface,
             side: BorderSide(
-              color: colorScheme.outline.withOpacity(0.3),
+              color: colorScheme.outline.withValues(alpha: 0.3),
               width: 1,
             ),
             shape: RoundedRectangleBorder(

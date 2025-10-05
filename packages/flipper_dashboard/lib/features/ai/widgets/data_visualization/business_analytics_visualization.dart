@@ -9,7 +9,8 @@ class BusinessAnalyticsVisualization implements VisualizationInterface {
   final GlobalKey cardKey;
   final VoidCallback onCopyGraph;
 
-  BusinessAnalyticsVisualization(this.data, this.currencyService, {required this.cardKey, required this.onCopyGraph});
+  BusinessAnalyticsVisualization(this.data, this.currencyService,
+      {required this.cardKey, required this.onCopyGraph});
 
   @override
   Widget build(BuildContext context, {String? currency}) {
@@ -51,7 +52,7 @@ class BusinessAnalyticsVisualization implements VisualizationInterface {
             Text(
               summaryDisplay,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.black.withOpacity(0.87),
+                color: Colors.black.withValues(alpha: 0.87),
               ),
             ),
             const SizedBox(height: 16),

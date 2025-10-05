@@ -322,7 +322,7 @@ class PaymentsState extends ConsumerState<Payments> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withValues(alpha: 0.1),
                         width: 0.5,
                       ),
                     ),
@@ -371,7 +371,7 @@ class PaymentsState extends ConsumerState<Payments> {
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 width: 0.5,
               ),
             ),
@@ -449,7 +449,7 @@ class PaymentsState extends ConsumerState<Payments> {
           ),
           side: WidgetStateProperty.resolveWith<BorderSide>(
             (states) => BorderSide(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               width: 0.50,
             ),
           ),

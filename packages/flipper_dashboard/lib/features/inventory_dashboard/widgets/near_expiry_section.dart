@@ -38,7 +38,8 @@ class NearExpirySection extends StatelessWidget {
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: _getExpiryColor(daysLeft).withOpacity(0.2),
+                    backgroundColor:
+                        _getExpiryColor(daysLeft).withValues(alpha: 0.2),
                     child: Icon(
                       Icons.timelapse,
                       color: _getExpiryColor(daysLeft),
@@ -54,7 +55,7 @@ class NearExpirySection extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getExpiryColor(daysLeft).withOpacity(0.1),
+                      color: _getExpiryColor(daysLeft).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

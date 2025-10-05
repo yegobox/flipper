@@ -69,7 +69,7 @@ class FlowyFormTextInput extends StatelessWidget {
       hintStyle: Theme.of(context)
           .textTheme
           .bodyMedium!
-          .copyWith(color: Theme.of(context).hintColor.withOpacity(0.7)),
+          .copyWith(color: Theme.of(context).hintColor.withValues(alpha: 0.7)),
       isDense: true,
       inputBorder: const ThinUnderlineBorder(
         borderSide: BorderSide(width: 5, color: Colors.red),

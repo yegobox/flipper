@@ -252,11 +252,11 @@ ButtonStyle secondaryButtonStyle = ButtonStyle(
   overlayColor: WidgetStateProperty.resolveWith<Color?>(
     (Set<WidgetState> states) {
       if (states.contains(WidgetState.hovered)) {
-        return Colors.blue.withOpacity(0.04);
+        return Colors.blue.withValues(alpha: 0.04);
       }
       if (states.contains(WidgetState.focused) ||
           states.contains(WidgetState.pressed)) {
-        return Colors.blue.withOpacity(0.12);
+        return Colors.blue.withValues(alpha: 0.12);
       }
       return null; // Defer to the widget's default.
     },
@@ -267,18 +267,18 @@ ButtonStyle primary2ButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
   side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: Color(0xFF98C3FE).withOpacity(0.8),
+        color: Color(0xFF98C3FE).withValues(alpha: 0.8),
       )),
-  backgroundColor:
-      WidgetStateProperty.all<Color>(const Color(0xFF98C3FE).withOpacity(0.8)),
+  backgroundColor: WidgetStateProperty.all<Color>(
+      const Color(0xFF98C3FE).withValues(alpha: 0.8)),
   overlayColor: WidgetStateProperty.resolveWith<Color?>(
     (Set<WidgetState> states) {
       if (states.contains(WidgetState.hovered)) {
-        return Color(0xFF98C3FE).withOpacity(0.8);
+        return Color(0xFF98C3FE).withValues(alpha: 0.8);
       }
       if (states.contains(WidgetState.focused) ||
           states.contains(WidgetState.pressed)) {
-        return Color(0xFF98C3FE).withOpacity(0.8);
+        return Color(0xFF98C3FE).withValues(alpha: 0.8);
       }
       return null;
     },
@@ -289,7 +289,7 @@ ButtonStyle primary3ButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
   side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: Color(0xFF98C3FE).withOpacity(0.8),
+        color: Color(0xFF98C3FE).withValues(alpha: 0.8),
       )),
 );
 
@@ -297,18 +297,18 @@ ButtonStyle primary4ButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
   side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: Color(0xFF00FE38).withOpacity(0.8),
+        color: Color(0xFF00FE38).withValues(alpha: 0.8),
       )),
-  backgroundColor:
-      WidgetStateProperty.all<Color>(const Color(0xFF00FE38).withOpacity(0.8)),
+  backgroundColor: WidgetStateProperty.all<Color>(
+      const Color(0xFF00FE38).withValues(alpha: 0.8)),
   overlayColor: WidgetStateProperty.resolveWith<Color?>(
     (Set<WidgetState> states) {
       if (states.contains(WidgetState.hovered)) {
-        return Color(0xFF00FE38).withOpacity(0.8);
+        return Color(0xFF00FE38).withValues(alpha: 0.8);
       }
       if (states.contains(WidgetState.focused) ||
           states.contains(WidgetState.pressed)) {
-        return Color(0xFF00FE38).withOpacity(0.8);
+        return Color(0xFF00FE38).withValues(alpha: 0.8);
       }
       return null;
     },
@@ -321,7 +321,7 @@ TextStyle primaryTextStyle = GoogleFonts.poppins(
 );
 
 const String kPackageId = 'rw.flipper';
-final Color activeColor = Colors.blue.withOpacity(0.04);
+final Color activeColor = Colors.blue.withValues(alpha: 0.04);
 
 /// The paths to the app's icons.
 abstract class AppIcons {

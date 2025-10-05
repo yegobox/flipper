@@ -358,7 +358,8 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(widget.isDark ? 0.3 : 0.1),
+                color:
+                    Colors.black.withValues(alpha: widget.isDark ? 0.3 : 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -373,7 +374,7 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0066CC).withOpacity(0.1),
+                      color: const Color(0xFF0066CC).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
@@ -450,7 +451,7 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: _getProgressColor(remainingSeconds)
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                 ),
                                 child: CustomPaint(
                                   size: const Size(16, 16),
@@ -477,7 +478,7 @@ class _ModernTOTPCardState extends ConsumerState<ModernTOTPCard> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0066CC).withOpacity(0.1),
+                        color: const Color(0xFF0066CC).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(

@@ -57,7 +57,7 @@ class GErrorMessage extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: colorScheme.primary.withOpacity(.1),
+                    color: colorScheme.primary.withValues(alpha: .1),
                   ),
                   child: Theme(
                     data: Theme.of(context).copyWith(
@@ -78,7 +78,7 @@ class GErrorMessage extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     subtitle!,
-                    // color: colorScheme.onBackground.withOpacity(.75),
+                    // color: colorScheme.onBackground.withValues(alpha: .75),
                     textAlign: TextAlign.center,
                   ),
                 ],

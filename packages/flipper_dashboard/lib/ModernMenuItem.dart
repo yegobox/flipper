@@ -28,20 +28,20 @@ class ModernMenuItem extends StatelessWidget {
         gradient: isSelected
             ? LinearGradient(
                 colors: [
-                  color.withOpacity(0.15),
-                  color.withOpacity(0.05),
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.05),
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               )
             : null,
         border: isSelected
-            ? Border.all(color: color.withOpacity(0.3), width: 1)
+            ? Border.all(color: color.withValues(alpha: 0.3), width: 1)
             : null,
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -53,8 +53,8 @@ class ModernMenuItem extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-          splashColor: color.withOpacity(0.1),
-          highlightColor: color.withOpacity(0.05),
+          splashColor: color.withValues(alpha: 0.1),
+          highlightColor: color.withValues(alpha: 0.05),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
@@ -64,10 +64,10 @@ class ModernMenuItem extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? color.withOpacity(0.15)
+                        ? color.withValues(alpha: 0.15)
                         : (isDark
-                            ? Colors.white.withOpacity(0.05)
-                            : Colors.black.withOpacity(0.05)),
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.05)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -217,20 +217,21 @@ class _ModernMenuItemWithHoverState extends State<_ModernMenuItemWithHover>
                 gradient: widget.isSelected || _isHovered
                     ? LinearGradient(
                         colors: [
-                          widget.color.withOpacity(0.15),
-                          widget.color.withOpacity(0.05),
+                          widget.color.withValues(alpha: 0.15),
+                          widget.color.withValues(alpha: 0.05),
                         ],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       )
                     : null,
                 border: widget.isSelected || _isHovered
-                    ? Border.all(color: widget.color.withOpacity(0.3), width: 1)
+                    ? Border.all(
+                        color: widget.color.withValues(alpha: 0.3), width: 1)
                     : null,
                 boxShadow: widget.isSelected || _isHovered
                     ? [
                         BoxShadow(
-                          color: widget.color.withOpacity(0.15),
+                          color: widget.color.withValues(alpha: 0.15),
                           blurRadius: _isHovered ? 12 : 8,
                           offset: const Offset(0, 2),
                         ),
@@ -242,8 +243,8 @@ class _ModernMenuItemWithHoverState extends State<_ModernMenuItemWithHover>
                 child: InkWell(
                   onTap: widget.onTap,
                   borderRadius: BorderRadius.circular(12),
-                  splashColor: widget.color.withOpacity(0.1),
-                  highlightColor: widget.color.withOpacity(0.05),
+                  splashColor: widget.color.withValues(alpha: 0.1),
+                  highlightColor: widget.color.withValues(alpha: 0.05),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 14),
@@ -255,10 +256,10 @@ class _ModernMenuItemWithHoverState extends State<_ModernMenuItemWithHover>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: widget.isSelected || _isHovered
-                                ? widget.color.withOpacity(0.15)
+                                ? widget.color.withValues(alpha: 0.15)
                                 : (isDark
-                                    ? Colors.white.withOpacity(0.05)
-                                    : Colors.black.withOpacity(0.05)),
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.05)),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(

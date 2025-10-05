@@ -100,7 +100,8 @@ class VerificationUI extends StatelessWidget {
                   fieldWidth: 44,
                   activeFillColor: Colors.white,
                   inactiveFillColor: Colors.grey.shade100,
-                  selectedFillColor: colorScheme.primary.withOpacity(0.07),
+                  selectedFillColor:
+                      colorScheme.primary.withValues(alpha: 0.07),
                   activeColor: colorScheme.primary,
                   inactiveColor: Colors.grey.shade300,
                   selectedColor: colorScheme.primary,
@@ -129,7 +130,7 @@ class VerificationUI extends StatelessWidget {
                   ? TextButton(
                       onPressed: onResendCode,
                       style: TextButton.styleFrom(
-                        backgroundColor: Colors.red.withOpacity(0.1),
+                        backgroundColor: Colors.red.withValues(alpha: 0.1),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                       ),
@@ -184,7 +185,7 @@ class VerificationUI extends StatelessWidget {
                   backgroundColor:
                       WidgetStateProperty.resolveWith<Color>((states) {
                     if (states.contains(WidgetState.disabled)) {
-                      return colorScheme.primary.withOpacity(0.5);
+                      return colorScheme.primary.withValues(alpha: 0.5);
                     }
                     return colorScheme.primary;
                   }),
@@ -195,7 +196,7 @@ class VerificationUI extends StatelessWidget {
                     ),
                   ),
                   overlayColor: WidgetStateProperty.all(
-                      colorScheme.primary.withOpacity(0.08)),
+                      colorScheme.primary.withValues(alpha: 0.08)),
                   foregroundColor: WidgetStateProperty.all(Colors.white),
                 ),
                 onPressed: state.isLoading ? null : onVerifyCode,

@@ -45,7 +45,7 @@ class AppleLogo extends StatelessWidget {
             color: color,
             gradient: useGradient
                 ? LinearGradient(
-                    colors: [color, color.withOpacity(0.8)],
+                    colors: [color, color.withValues(alpha: 0.8)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   )

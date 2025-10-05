@@ -9,7 +9,7 @@ class RPSCustomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint_0_fill = Paint()..style = PaintingStyle.fill;
-    paint_0_fill.color = backgroundColor.withOpacity(1.0);
+    paint_0_fill.color = backgroundColor.withValues(alpha: 1.0);
     canvas.drawRRect(
         RRect.fromRectAndCorners(Rect.fromLTWH(0, 0, size.width, size.height),
             bottomRight: Radius.circular(size.width * 0.08695652),

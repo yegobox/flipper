@@ -80,18 +80,19 @@ class _ShopIconWithStatusState extends State<ShopIconWithStatus>
                 height: widget.height,
                 decoration: BoxDecoration(
                   color: _isHovered
-                      ? widget.backgroundColor.withOpacity(0.9)
+                      ? widget.backgroundColor.withValues(alpha: 0.9)
                       : widget.backgroundColor,
                   border: Border.all(
                     color: _isHovered
                         ? widget.borderColor
-                        : widget.borderColor.withOpacity(0.5),
+                        : widget.borderColor.withValues(alpha: 0.5),
                     width: _isHovered ? 2 : 1,
                   ),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(_isHovered ? 0.1 : 0.05),
+                      color: Colors.black
+                          .withValues(alpha: _isHovered ? 0.1 : 0.05),
                       blurRadius: _isHovered ? 15 : 10,
                       offset: Offset(0, _isHovered ? 6 : 4),
                     ),
@@ -146,8 +147,8 @@ class _ShopIconWithStatusState extends State<ShopIconWithStatus>
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color:
-                                          widget.statusColor.withOpacity(0.3),
+                                      color: widget.statusColor
+                                          .withValues(alpha: 0.3),
                                       blurRadius: 4,
                                       spreadRadius: 1,
                                     ),

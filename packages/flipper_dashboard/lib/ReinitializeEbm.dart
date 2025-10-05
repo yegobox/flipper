@@ -175,7 +175,8 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.7),
                           ),
                         ),
                       ),
@@ -317,7 +318,8 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withOpacity(0.3),
+                color:
+                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -401,7 +403,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
         Icon(
           icon,
           size: 20,
-          color: theme.colorScheme.primary.withOpacity(0.7),
+          color: theme.colorScheme.primary.withValues(alpha: 0.7),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -411,7 +413,8 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  color:
+                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
               ),
               const SizedBox(height: 4),

@@ -85,11 +85,11 @@ class Devices extends ConsumerWidget {
                   overlayColor: WidgetStateProperty.resolveWith<Color?>(
                     (Set<WidgetState> states) {
                       if (states.contains(WidgetState.hovered)) {
-                        return Colors.blue.withOpacity(0.04);
+                        return Colors.blue.withValues(alpha: 0.04);
                       }
                       if (states.contains(WidgetState.focused) ||
                           states.contains(WidgetState.pressed)) {
-                        return Colors.blue.withOpacity(0.12);
+                        return Colors.blue.withValues(alpha: 0.12);
                       }
                       return null; // Defer to the widget's default.
                     },
@@ -136,11 +136,11 @@ class Devices extends ConsumerWidget {
                     overlayColor: WidgetStateProperty.resolveWith<Color?>(
                       (Set<WidgetState> states) {
                         if (states.contains(WidgetState.hovered)) {
-                          return Colors.blue.withOpacity(0.04);
+                          return Colors.blue.withValues(alpha: 0.04);
                         }
                         if (states.contains(WidgetState.focused) ||
                             states.contains(WidgetState.pressed)) {
-                          return Colors.blue.withOpacity(0.12);
+                          return Colors.blue.withValues(alpha: 0.12);
                         }
                         return null; // Defer to the widget's default.
                       },

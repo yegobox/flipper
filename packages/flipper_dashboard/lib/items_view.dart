@@ -340,7 +340,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                   Theme.of(context)
                       .colorScheme
                       .surfaceContainerHighest
-                      .withOpacity(0.3),
+                      .withValues(alpha: 0.3),
                 ),
                 columns: const [
                   DataColumn(label: Text('ID')),
@@ -579,7 +579,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                             dotData: FlDotData(show: false),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: Colors.blue.withOpacity(0.2),
+                              color: Colors.blue.withValues(alpha: 0.2),
                             ),
                             spots: const [
                               FlSpot(0, 300),
@@ -598,7 +598,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                             dotData: FlDotData(show: false),
                             belowBarData: BarAreaData(
                               show: true,
-                              color: Colors.red.withOpacity(0.2),
+                              color: Colors.red.withValues(alpha: 0.2),
                             ),
                             spots: const [
                               FlSpot(0, 200),
@@ -710,7 +710,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor:
-                        _getStatusColor(order.status).withOpacity(0.2),
+                        _getStatusColor(order.status).withValues(alpha: 0.2),
                     child: Icon(
                       _getStatusIcon(order.status),
                       color: _getStatusColor(order.status),
@@ -726,7 +726,8 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getStatusColor(order.status).withOpacity(0.1),
+                      color:
+                          _getStatusColor(order.status).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -774,7 +775,8 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: _getExpiryColor(daysLeft).withOpacity(0.2),
+                    backgroundColor:
+                        _getExpiryColor(daysLeft).withValues(alpha: 0.2),
                     child: Icon(
                       Icons.timelapse,
                       color: _getExpiryColor(daysLeft),
@@ -790,7 +792,7 @@ class _InventoryDashboardState extends State<InventoryDashboard> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: _getExpiryColor(daysLeft).withOpacity(0.1),
+                      color: _getExpiryColor(daysLeft).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(

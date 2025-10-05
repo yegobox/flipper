@@ -271,7 +271,10 @@ class _FailedPaymentState extends State<FailedPayment>
           Text(
             'Loading payment details...',
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
               fontSize: 16,
             ),
           ),
@@ -301,7 +304,7 @@ class _FailedPaymentState extends State<FailedPayment>
                   color: const Color(0xFFFFEBEE),
                   borderRadius: BorderRadius.circular(40),
                   border: Border.all(
-                    color: const Color(0xFFE53E3E).withOpacity(0.2),
+                    color: const Color(0xFFE53E3E).withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),
@@ -386,7 +389,7 @@ class _FailedPaymentState extends State<FailedPayment>
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),

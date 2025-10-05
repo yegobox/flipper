@@ -55,11 +55,11 @@ class FLipperButton extends StatelessWidget {
                 overlayColor: WidgetStateProperty.resolveWith<Color?>(
                   (Set<WidgetState> states) {
                     if (states.contains(WidgetState.hovered)) {
-                      return Colors.blue.withOpacity(0.04);
+                      return Colors.blue.withValues(alpha: 0.04);
                     }
                     if (states.contains(WidgetState.focused) ||
                         states.contains(WidgetState.pressed)) {
-                      return Colors.blue.withOpacity(0.12);
+                      return Colors.blue.withValues(alpha: 0.12);
                     }
                     return null;
                   },
@@ -75,12 +75,12 @@ class FLipperButton extends StatelessWidget {
                   (Set<WidgetState> states) {
                     if (states.contains(WidgetState.hovered)) {
                       return Color.fromARGB(255, 155, 157, 160)
-                          .withOpacity(0.04);
+                          .withValues(alpha: 0.04);
                     }
                     if (states.contains(WidgetState.focused) ||
                         states.contains(WidgetState.pressed)) {
                       return Color.fromARGB(255, 155, 157, 160)
-                          .withOpacity(0.12);
+                          .withValues(alpha: 0.12);
                     }
                     return null;
                   },

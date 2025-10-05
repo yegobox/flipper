@@ -34,7 +34,7 @@ class OAuthProviderButton extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
               spreadRadius: 2,
               blurRadius: 5,
               offset: Offset(0, 3),
@@ -49,7 +49,7 @@ class OAuthProviderButton extends StatelessWidget {
             foregroundColor: Colors.black,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
-              side: BorderSide(color: Colors.grey.withOpacity(0.1)),
+              side: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
             ),
           ),
           child: isLoading
