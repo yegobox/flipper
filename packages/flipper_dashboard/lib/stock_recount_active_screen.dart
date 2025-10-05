@@ -23,6 +23,16 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
   final TextEditingController _quantityController = TextEditingController();
   Variant? _selectedVariant;
   bool _isSubmitting = false;
+  bool _canSubmit = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check if we can submit on initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkCanSubmit();
+    });
+  }
 
   @override
   void dispose() {
@@ -31,24 +41,78 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     super.dispose();
   }
 
+  Future<void> _checkCanSubmit() async {
+    try {
+      final items = await ProxyService.strategy
+          .getRecountItems(recountId: widget.recountId);
+
+      // Check if any item has counted quantity less than previous quantity
+      final hasLowerCount = items.any((item) => item.difference < 0);
+
+      setState(() {
+        _canSubmit = !hasLowerCount;
+      });
+    } catch (e) {
+      setState(() {
+        _canSubmit = true;
+      });
+    }
+  }
+
   Future<void> _submitRecount() async {
+    if (!_canSubmit) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Cannot submit: Some items have counts lower than current stock. Please adjust or remove these items.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Submit Recount'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.check_circle_outline,
+                  color: Colors.blue, size: 24),
+            ),
+            const SizedBox(width: 12),
+            const Text('Submit Stock Recount'),
+          ],
+        ),
         content: const Text(
           'Are you sure you want to submit this recount? '
           'This will update all stock levels and cannot be undone.',
+          style: TextStyle(fontSize: 15),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            child: const Text('Submit'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Submit Recount'),
           ),
         ],
       ),
@@ -121,8 +185,18 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
           _quantityController.clear();
           _searchController.clear();
         });
+        await _checkCanSubmit();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item added to recount')),
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Item added to recount'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -138,14 +212,27 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     try {
       await ProxyService.strategy.removeRecountItem(itemId: itemId);
       if (mounted) {
+        await _checkCanSubmit();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item removed')),
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Item removed'),
+              ],
+            ),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error removing item: $e')),
+          SnackBar(
+            content: Text('Error removing item: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -173,16 +260,39 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
         final isDraft = recount.status == 'draft';
 
         return Scaffold(
+          backgroundColor: const Color(0xFFF5F7FA),
           appBar: AppBar(
-            title: Text(isDraft ? 'Stock Recount' : 'View Recount'),
+            elevation: 0,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black87,
+            title: Text(
+              isDraft ? 'Stock Recount' : 'View Recount',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 20,
+              ),
+            ),
             actions: [
               if (isDraft && !_isSubmitting)
-                TextButton.icon(
-                  onPressed: _submitRecount,
-                  icon: const Icon(Icons.check_circle, color: Colors.white),
-                  label: const Text(
-                    'Submit',
-                    style: TextStyle(color: Colors.white),
+                Padding(
+                  padding: const EdgeInsets.only(right: 12.0),
+                  child: ElevatedButton.icon(
+                    onPressed: _canSubmit ? _submitRecount : null,
+                    icon: const Icon(Icons.check_circle_outline, size: 20),
+                    label: const Text('Submit Recount'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          _canSubmit ? const Color(0xFF0078D4) : Colors.grey,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
                   ),
                 ),
               if (_isSubmitting)
@@ -193,7 +303,8 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(Color(0xFF0078D4)),
                     ),
                   ),
                 ),
@@ -203,58 +314,142 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
             children: [
               // Recount Info Card
               Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.grey[100],
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.inventory_2_outlined,
-                          color: Colors.grey[700],
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          recount.deviceName ?? 'Unknown Device',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0078D4).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.inventory_2_rounded,
+                            color: Color(0xFF0078D4),
+                            size: 24,
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                recount.deviceName ?? 'Unknown Device',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Created ${DateFormat('MMM dd, yyyy at HH:mm').format(recount.createdAt)}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
+                            horizontal: 14,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
                             color: recount.status == 'draft'
-                                ? Colors.orange
-                                : Colors.blue,
-                            borderRadius: BorderRadius.circular(12),
+                                ? const Color(0xFFFFF4E5)
+                                : const Color(0xFFE3F2FD),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
                             recount.status.toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                            style: TextStyle(
+                              color: recount.status == 'draft'
+                                  ? const Color(0xFFE67E22)
+                                  : const Color(0xFF0078D4),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Created ${DateFormat('MMM dd, yyyy • HH:mm').format(recount.createdAt)}',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
                     if (recount.notes != null && recount.notes!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        recount.notes!,
-                        style: TextStyle(color: Colors.grey[700]),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.notes,
+                                size: 16, color: Colors.grey[600]),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                recount.notes!,
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    // Warning banner if cannot submit
+                    if (!_canSubmit && isDraft) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3CD),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFFE69C)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: Color(0xFF856404),
+                              size: 20,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Cannot submit: Some items have counts lower than current stock',
+                                style: TextStyle(
+                                  color: Color(0xFF856404),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -264,13 +459,15 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
               // Add Item Section (only for draft)
               if (isDraft)
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
+                        blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
                     ],
@@ -278,18 +475,37 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Add Product',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
                       Row(
                         children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0078D4).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.add_circle_outline,
+                              color: Color(0xFF0078D4),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Add Product to Count',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Expanded(
-                            flex: 2,
+                            flex: 3,
                             child: _ProductSearchField(
                               controller: _searchController,
                               onProductSelected: (variant) {
@@ -304,62 +520,127 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                           Expanded(
                             child: TextField(
                               controller: _quantityController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Quantity',
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              decoration: InputDecoration(
+                                labelText: 'Counted Qty',
+                                labelStyle: const TextStyle(fontSize: 14),
                                 hintText: '0',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.numbers),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide:
+                                      BorderSide(color: Colors.grey[300]!),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF0078D4),
+                                    width: 2,
+                                  ),
+                                ),
+                                prefixIcon: const Icon(Icons.pin, size: 20),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 16,
+                                ),
                               ),
                               enabled: _selectedVariant != null,
                             ),
                           ),
                           const SizedBox(width: 12),
-                          ElevatedButton.icon(
+                          ElevatedButton(
                             onPressed: _selectedVariant != null
                                 ? _addOrUpdateItem
                                 : null,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Add'),
                             style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0078D4),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                                horizontal: 24,
                                 vertical: 16,
                               ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              disabledBackgroundColor: Colors.grey[300],
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.add, size: 20),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Add',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                       if (_selectedVariant != null) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: const Color(0xFFE3F2FD),
                             borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFBBDEFB)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.info_outline,
-                                  size: 16, color: Colors.blue),
-                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.check_circle,
+                                size: 18,
+                                color: Color(0xFF0078D4),
+                              ),
+                              const SizedBox(width: 10),
                               Expanded(
-                                child: Text(
-                                  'Selected: ${_selectedVariant!.name}',
-                                  style: const TextStyle(
-                                    color: Colors.blue,
-                                    fontSize: 13,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _selectedVariant!.name,
+                                      style: const TextStyle(
+                                        color: Color(0xFF0078D4),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    if (_selectedVariant!.sku != null)
+                                      Text(
+                                        'SKU: ${_selectedVariant!.sku}',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close, size: 16),
+                                icon: const Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: Color(0xFF0078D4),
+                                ),
                                 onPressed: () {
                                   setState(() {
                                     _selectedVariant = null;
                                     _searchController.clear();
+                                    _quantityController.clear();
                                   });
                                 },
+                                tooltip: 'Clear selection',
                               ),
                             ],
                           ),
@@ -368,6 +649,53 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     ],
                   ),
                 ),
+
+              const SizedBox(height: 16),
+
+              // Items List Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Count Items',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const Spacer(),
+                    FutureBuilder<List<StockRecountItem>>(
+                      future: ProxyService.strategy
+                          .getRecountItems(recountId: widget.recountId),
+                      builder: (context, snapshot) {
+                        final items = snapshot.data ?? [];
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${items.length} ${items.length == 1 ? 'item' : 'items'}',
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
 
               // Items List
               Expanded(
@@ -386,25 +714,36 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.inventory_outlined,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 24),
                             Text(
                               'No items yet',
                               style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey[600],
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[700],
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               isDraft
-                                  ? 'Start scanning or searching for products'
+                                  ? 'Start by searching and adding products to count'
                                   : 'This recount has no items',
-                              style: TextStyle(color: Colors.grey[500]),
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 15,
+                              ),
                             ),
                           ],
                         ),
@@ -412,7 +751,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     }
 
                     return ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: items.length,
                       itemBuilder: (context, index) {
                         final item = items[index];
@@ -473,8 +812,16 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
         taxTyCds: [],
       );
 
+      // Filter out service items (itemTyCd == "2" or itemTyCd == "3") and match search query
       final filtered = variants
-          .where((v) => v.name.toLowerCase().contains(query.toLowerCase()))
+          .where((v) {
+            // Exclude service items (itemTyCd: "2" = service, "3" = service)
+            final isService = v.itemTyCd == "2" || v.itemTyCd == "3";
+            // Match search query
+            final matchesQuery =
+                v.name.toLowerCase().contains(query.toLowerCase());
+            return !isService && matchesQuery;
+          })
           .take(10)
           .toList();
 
@@ -496,44 +843,106 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
       children: [
         TextField(
           controller: widget.controller,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Search Product',
+            labelStyle: const TextStyle(fontSize: 14),
             hintText: 'Enter product name...',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(
+                color: Color(0xFF0078D4),
+                width: 2,
+              ),
+            ),
+            prefixIcon: const Icon(Icons.search, size: 20),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
+            ),
           ),
           onChanged: _performSearch,
         ),
         if (_isSearching)
-          const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Center(child: CircularProgressIndicator()),
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.all(16),
+            child: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           ),
         if (_searchResults.isNotEmpty && !_isSearching)
           Container(
             margin: const EdgeInsets.only(top: 4),
-            constraints: const BoxConstraints(maxHeight: 200),
+            constraints: const BoxConstraints(maxHeight: 280),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: ListView.builder(
+            child: ListView.separated(
               shrinkWrap: true,
               itemCount: _searchResults.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: Colors.grey[200],
+              ),
               itemBuilder: (context, index) {
                 final variant = _searchResults[index];
                 return ListTile(
-                  dense: true,
-                  title: Text(variant.name),
-                  subtitle: Text('SKU: ${variant.sku ?? 'N/A'}'),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0078D4).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.inventory_2,
+                      color: Color(0xFF0078D4),
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    variant.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'SKU: ${variant.sku ?? 'N/A'}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: Color(0xFF0078D4),
+                  ),
                   onTap: () {
                     widget.onProductSelected(variant);
                     setState(() {
@@ -563,24 +972,39 @@ class _RecountItemCard extends StatelessWidget {
 
   Color _getDifferenceColor() {
     final diff = item.difference;
-    if (diff > 0) return Colors.green;
-    if (diff < 0) return Colors.red;
+    if (diff > 0) return const Color(0xFF10B981);
+    if (diff < 0) return const Color(0xFFEF4444);
     return Colors.grey;
   }
 
   IconData _getDifferenceIcon() {
     final diff = item.difference;
-    if (diff > 0) return Icons.arrow_upward;
-    if (diff < 0) return Icons.arrow_downward;
+    if (diff > 0) return Icons.trending_up;
+    if (diff < 0) return Icons.trending_down;
     return Icons.remove;
   }
 
   @override
   Widget build(BuildContext context) {
     final diff = item.difference;
+    final isNegativeDiff = diff < 0;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: isNegativeDiff
+            ? Border.all(color: const Color(0xFFEF4444), width: 2)
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -589,54 +1013,114 @@ class _RecountItemCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    item.productName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.productName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      if (item.notes != null && item.notes!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            item.notes!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 if (isDraft)
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    icon: const Icon(Icons.delete_outline,
+                        color: Color(0xFFEF4444)),
                     onPressed: onRemove,
+                    tooltip: 'Remove item',
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               children: [
-                _InfoChip(
-                  label: 'Previous',
-                  value: item.previousQuantity.toString(),
-                  color: Colors.grey,
+                Expanded(
+                  child: _InfoChip(
+                    label: 'System Stock',
+                    value: item.previousQuantity.toStringAsFixed(0),
+                    color: Colors.grey[600]!,
+                    backgroundColor: Colors.grey[100]!,
+                  ),
                 ),
-                const SizedBox(width: 8),
-                Icon(Icons.arrow_forward, size: 16, color: Colors.grey[600]),
-                const SizedBox(width: 8),
-                _InfoChip(
-                  label: 'Counted',
-                  value: item.countedQuantity.toString(),
-                  color: Colors.blue,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(
+                    Icons.arrow_forward,
+                    size: 20,
+                    color: Colors.grey[400],
+                  ),
                 ),
-                const SizedBox(width: 8),
-                _InfoChip(
-                  label: 'Difference',
-                  value: '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(0)}',
-                  color: _getDifferenceColor(),
-                  icon: _getDifferenceIcon(),
+                Expanded(
+                  child: _InfoChip(
+                    label: 'Counted',
+                    value: item.countedQuantity.toStringAsFixed(0),
+                    color: const Color(0xFF0078D4),
+                    backgroundColor: const Color(0xFFE3F2FD),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(
+                    Icons.calculate_outlined,
+                    size: 20,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                Expanded(
+                  child: _InfoChip(
+                    label: 'Variance',
+                    value: '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(0)}',
+                    color: _getDifferenceColor(),
+                    backgroundColor: _getDifferenceColor().withOpacity(0.1),
+                    icon: _getDifferenceIcon(),
+                  ),
                 ),
               ],
             ),
-            if (item.notes != null && item.notes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                item.notes!,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
+            if (isNegativeDiff) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFFECACA)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFFEF4444),
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Count is lower than system stock. Adjust count or remove to submit.',
+                        style: const TextStyle(
+                          color: Color(0xFFB91C1C),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -651,47 +1135,50 @@ class _InfoChip extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
+  final Color backgroundColor;
   final IconData? icon;
 
   const _InfoChip({
     required this.label,
     required this.value,
     required this.color,
+    required this.backgroundColor,
     this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withOpacity(0.2)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 4),
-          ],
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: color.withOpacity(0.8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: color,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: color),
+                const SizedBox(width: 4),
+              ],
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 18,
                   color: color,
                   fontWeight: FontWeight.w700,
                 ),
