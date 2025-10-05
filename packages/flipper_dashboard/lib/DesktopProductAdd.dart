@@ -414,21 +414,19 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             dcRt: 0,
             regrNm: productNameController.text,
             lastTouched: DateTime.now().toUtc(),
+            itemTyCd: "3", // Mark as service (no stock reporting to RRA)
           )
         ],
         product: product,
-        selectedProductType: selectedProductType,
+        selectedProductType:
+            "3", // Service type for composite (no stock reporting)
         packagingUnit: selectedPackageUnitValue.split(":")[0],
         categoryId: selectedCategoryId,
         onCompleteCallback: (List<Variant> variants) async {
           if (!mounted) return;
 
-          // Handle stock adjustment transaction for composite variant
-          final invoiceNumber = await showInvoiceNumberModal(context);
-          if (invoiceNumber == null) return;
-
-          if (!mounted) return;
-          // Add variants to provider
+          // Composite variants are services (itemTyCd=3) and don't need stock transactions
+          // Just add variants to provider for immediate UI update
           if (mounted) {
             ref
                 .read(outerVariantsProvider(branchId).notifier)
@@ -436,7 +434,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           }
 
           talker.info(
-              "Composite variant created and transaction completed: ${productNameController.text}");
+              "Composite variant created (service type - no stock): ${productNameController.text}");
         },
       );
 
@@ -455,8 +453,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         ref.invalidate(productProvider(product.id));
       }
 
-      // Clear the state only after successful save
-      ref.read(selectedVariantsLocalProvider.notifier).clearState();
       ref.read(loadingProvider.notifier).stopLoading();
 
       if (!mounted) return;
@@ -464,6 +460,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       // Show success message and close dialog
       toast("Composite product saved successfully!");
       Navigator.pop(context);
+
+      // Clear the state after closing the dialog to prevent visual glitch
+      ref.read(selectedVariantsLocalProvider.notifier).clearState();
     } catch (e, stackTrace) {
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
