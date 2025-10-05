@@ -419,7 +419,7 @@ void main() {
 
       // Wait for all animations and futures to complete
       await tester.pumpAndSettle();
-      
+
       // Wait for the 100ms delay timers in addItemToTransaction to complete
       await tester.pump(const Duration(milliseconds: 150));
       await tester.pumpAndSettle();

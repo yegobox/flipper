@@ -5,32 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../test_helpers/setup.dart';
 // flutter test test/widgets/searchable_category_dropdown_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late TestEnvironment env;
   final testCategories = [
     Category(id: '1', name: 'Electronics'),
     Category(id: '2', name: 'Clothing'),
     Category(id: '3', name: 'Food & Beverages'),
   ];
-
-  setUpAll(() async {
-    env = TestEnvironment();
-    await env.init();
-  });
-
-  setUp(() {
-    env.injectMocks();
-    env.stubCommonMethods();
-  });
-
-  tearDown(() {
-    env.restore();
-  });
 
   Future<void> pumpWidget(
     WidgetTester tester, {

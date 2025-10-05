@@ -1,0 +1,14 @@
+# Configuration for running tests in flipper_dashboard package
+# This file defines default arguments and settings for all tests
+
+# Test timeout configuration
+timeout: 2x
+
+# Test arguments - these will be passed to all test runs
+test_args:
+  - --no-test-assets
+  - --dart-define=FLUTTER_TEST_ENV=true
+  
+# Reporter configuration
+# Use 'compact' for CI/CD or 'expanded' for local development
+# Can be overridden with --reporter flag
