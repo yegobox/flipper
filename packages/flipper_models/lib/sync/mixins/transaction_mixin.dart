@@ -538,7 +538,7 @@ mixin TransactionMixin implements TransactionInterface {
         doneWithTransaction: doneWithTransaction,
         amountTotal: variant.retailPrice!,
         customItem: false,
-        currentStock: variant.stock!.currentStock!,
+        currentStock: variant.stock?.currentStock ?? 0,
         pendingTransaction: pendingTransaction,
         partOfComposite: false,
         compositePrice: 0,

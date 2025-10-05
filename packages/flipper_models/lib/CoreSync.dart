@@ -419,7 +419,7 @@ class CoreSync extends AiStrategyImpl
 
       splyAmt: supplierPrice,
       itemClsCd: itemClasses?[product?.barCode] ?? "5020230602",
-      itemCd: createItemCode
+      itemCd: (createItemCode || itemCd == null)
           ? await itemCode(
               countryCode: orgnNatCd ?? "RW",
               productType: "2",
@@ -427,7 +427,7 @@ class CoreSync extends AiStrategyImpl
               quantityUnit: "BJ",
               branchId: branchId,
             )
-          : itemCd!,
+          : itemCd,
       modrNm: name,
       modrId: number,
       pkgUnitCd: pkgUnitCd ?? "BJ",
@@ -3009,8 +3009,16 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  void saveComposite({required models.Composite composite}) {
-    // TODO: implement saveComposite
+  Future<void> saveComposite({required models.Composite composite}) async {
+    try {
+      await repository.upsert<Composite>(composite);
+      talker.debug(
+          "Saved composite: productId=${composite.productId}, variantId=${composite.variantId}, qty=${composite.qty}");
+    } catch (e, s) {
+      talker.error("Error saving composite: $e");
+      talker.error(s.toString());
+      rethrow;
+    }
   }
 
   @override

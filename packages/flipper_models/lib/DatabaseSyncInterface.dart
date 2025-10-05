@@ -307,7 +307,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<List<Product>> getProducts(
       {String? key, int? prodIndex, required int branchId});
 
-  void saveComposite({required Composite composite});
+  Future<void> saveComposite({required Composite composite});
   FutureOr<List<Composite>> composites({String? productId, String? variantId});
   Stream<SKU?> sku({required int branchId, required int businessId});
   FutureOr<SKU> getSku({required int branchId, required int businessId});

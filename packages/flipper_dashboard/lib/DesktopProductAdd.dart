@@ -301,49 +301,143 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
+      // Check if unsavedProductProvider has a value
+      final product = ref.read(unsavedProductProvider);
+      if (product == null) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        if (mounted) {
+          toast("Product not initialized. Please try again.");
+          talker.error("Error: unsavedProductProvider is null");
+        }
+        return;
+      }
+
+      // Validate required ProxyService values
+      final branchId = ProxyService.box.getBranchId();
+      final businessId = ProxyService.box.getBusinessId();
+
+      if (branchId == null) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        if (mounted) {
+          toast(
+              "Branch ID not found. Please ensure you're logged in properly.");
+          talker.error("Error: getBranchId() returned null");
+        }
+        return;
+      }
+
+      if (businessId == null) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        if (mounted) {
+          toast(
+              "Business ID not found. Please ensure you're logged in properly.");
+          talker.error("Error: getBusinessId() returned null");
+        }
+        return;
+      }
+
       List<VariantState> partOfComposite =
-          ref.watch(selectedVariantsLocalProvider);
+          ref.read(selectedVariantsLocalProvider);
+
+      // Validate that there are components to save
+      if (partOfComposite.isEmpty) {
+        ref.read(loadingProvider.notifier).stopLoading();
+        if (mounted) {
+          toast("Please add at least one component to the composite product.");
+          talker.warning("No composite components selected");
+        }
+        return;
+      }
+
+      talker.info(
+          "Saving composite product with ${partOfComposite.length} components");
 
       // Save each composite component
       for (var component in partOfComposite) {
-        ProxyService.strategy.saveComposite(
+        await ProxyService.strategy.saveComposite(
           composite: Composite(
-            businessId: ProxyService.box.getBusinessId(),
-            productId: ref.read(unsavedProductProvider)!.id,
+            businessId: businessId,
+            productId: product.id,
             qty: component.quantity,
             actualPrice: double.tryParse(retailPriceController.text) ?? 0.0,
-            branchId: ProxyService.box.getBranchId(),
+            branchId: branchId,
             variantId: component.variant.id,
           ),
         );
+        talker.debug("Saved composite component: ${component.variant.name}");
       }
 
       if (!mounted) return;
 
       // Update the product
       await ProxyService.strategy.updateProduct(
-        productId: ref.read(unsavedProductProvider)!.id,
-        branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!,
+        productId: product.id,
+        branchId: branchId,
+        businessId: businessId,
         name: productNameController.text,
         isComposite: true,
       );
 
+      talker
+          .info("Product updated as composite: ${productNameController.text}");
+
       if (!mounted) return;
 
-      // Create default variant
-      await ProxyService.strategy.createVariant(
-        tinNumber: ProxyService.box.tin(),
-        branchId: ProxyService.box.getBranchId()!,
-        itemSeq: 1,
-        qty: 1,
-        barCode: barCodeController.text,
-        sku: int.tryParse(skuController.text) ?? 1,
+      // Create variant using the standard addVariant method for consistency
+      // This ensures all EBM fields and required configurations are properly set
+      await model.addVariant(
+        model: model,
+        productName: productNameController.text,
+        countryofOrigin: countryOfOriginController.text.isEmpty
+            ? "RW"
+            : countryOfOriginController.text,
+        rates: _rates,
+        color: product.color,
+        dates: _dates,
         retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-        supplierPrice: double.tryParse(supplyPriceController.text) ?? 0,
-        productId: ref.read(unsavedProductProvider)!.id,
-        color: ref.read(unsavedProductProvider)!.color,
-        name: productNameController.text,
+        supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+        variations: [
+          Variant(
+            name: productNameController.text,
+            sku: skuController.text,
+            bcd: barCodeController.text,
+            qty: 1.0,
+            retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+            supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+            prc: double.tryParse(retailPriceController.text) ?? 0,
+            color: product.color,
+            branchId: branchId,
+            productId: product.id,
+            productName: productNameController.text,
+            unit: 'Per Item',
+            pkgUnitCd: "NT",
+            dcRt: 0,
+            regrNm: productNameController.text,
+            lastTouched: DateTime.now().toUtc(),
+          )
+        ],
+        product: product,
+        selectedProductType: selectedProductType,
+        packagingUnit: selectedPackageUnitValue.split(":")[0],
+        categoryId: selectedCategoryId,
+        onCompleteCallback: (List<Variant> variants) async {
+          if (!mounted) return;
+
+          // Handle stock adjustment transaction for composite variant
+          final invoiceNumber = await showInvoiceNumberModal(context);
+          if (invoiceNumber == null) return;
+
+          if (!mounted) return;
+          // Add variants to provider
+          if (mounted) {
+            ref
+                .read(outerVariantsProvider(branchId).notifier)
+                .addVariants(variants);
+          }
+
+          talker.info(
+              "Composite variant created and transaction completed: ${productNameController.text}");
+        },
       );
 
       if (!mounted) return;
@@ -353,22 +447,29 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       combinedNotifier.performActions(productName: "", scanMode: true);
 
       // Refresh asset provider to show the newly uploaded image immediately
-      final productId = ref.read(unsavedProductProvider)?.id;
-      if (productId != null && productId.isNotEmpty) {
+      if (product.id.isNotEmpty) {
         // Invalidate the asset provider cache to force a refresh
-        ref.invalidate(assetProvider(productId));
+        ref.invalidate(assetProvider(product.id));
 
         // Also refresh the product provider to ensure all data is up-to-date
-        ref.invalidate(productProvider(productId));
+        ref.invalidate(productProvider(product.id));
       }
 
+      // Clear the state only after successful save
       ref.read(selectedVariantsLocalProvider.notifier).clearState();
       ref.read(loadingProvider.notifier).stopLoading();
-    } catch (e) {
+
+      if (!mounted) return;
+
+      // Show success message and close dialog
+      toast("Composite product saved successfully!");
+      Navigator.pop(context);
+    } catch (e, stackTrace) {
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
         toast("Failed to save composite product: ${e.toString()}");
-        talker.error("Error saving composite product: $e");
+        talker.error(
+            "Error saving composite product: $e\nStack trace: $stackTrace");
       }
       // Don't close the dialog automatically on error
     }
