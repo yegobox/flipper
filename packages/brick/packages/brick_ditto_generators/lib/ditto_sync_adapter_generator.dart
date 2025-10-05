@@ -296,6 +296,33 @@ bool _shouldExcludeFromDitto(FieldElement field) {
     return true;
   }
 
+  // Check if field is a model relationship (extends OfflineFirstWithSupabaseModel)
+  // Common model types that should be excluded from Ditto serialization
+  final modelRelationshipTypes = [
+    'Stock',
+    'Product',
+    'Variant',
+    'Customer',
+    'Branch',
+    'Business',
+    'Category',
+    'Unit',
+    'Favorite',
+    'Pin',
+    'Device',
+    'Setting',
+    'Ebm',
+    'Composite',
+    'VariantBranch',
+    'InventoryRequest',
+    'Financing',
+    'FinanceProvider',
+  ];
+
+  if (modelRelationshipTypes.contains(typeName)) {
+    return true;
+  }
+
   return false;
 }
 
@@ -303,8 +330,9 @@ String _generateConstructorArgs(List<FieldElement> fields) {
   final buffer = StringBuffer();
   for (final field in fields) {
     if (field.name == 'id') continue;
-    // Skip fields that should not be synced to Ditto
+    // For fields excluded from Ditto, set them to null in deserialization
     if (_shouldExcludeFromDitto(field)) {
+      buffer.writeln('      ${field.name}: null, // Excluded from Ditto sync');
       continue;
     }
     buffer.writeln('      ${field.name}: ${_deserializeField(field)},');
