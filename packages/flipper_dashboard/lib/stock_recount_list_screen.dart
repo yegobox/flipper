@@ -166,6 +166,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
@@ -181,7 +182,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
             icon: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF0078D4).withOpacity(0.1),
+                color: const Color(0xFF0078D4).withValues(alpha: .1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -202,7 +203,7 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF0078D4).withOpacity(0.1),
+                          color: const Color(0xFF0078D4).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Icon(
@@ -398,13 +399,15 @@ class _StockRecountListScreenState extends State<StockRecountListScreen> {
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0078D4).withOpacity(0.1),
+                            color:
+                                const Color(0xFF0078D4).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.inventory_2_rounded,
                             size: 80,
-                            color: const Color(0xFF0078D4).withOpacity(0.7),
+                            color:
+                                const Color(0xFF0078D4).withValues(alpha: 0.7),
                           ),
                         ),
                         const SizedBox(height: 24),
@@ -595,7 +598,7 @@ class _RecountCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -735,10 +738,10 @@ class _RecountCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0078D4).withOpacity(0.05),
+                  color: const Color(0xFF0078D4).withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: const Color(0xFF0078D4).withOpacity(0.2),
+                    color: const Color(0xFF0078D4).withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
@@ -746,7 +749,7 @@ class _RecountCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0078D4).withOpacity(0.1),
+                        color: const Color(0xFF0078D4).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Icon(
