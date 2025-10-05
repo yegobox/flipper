@@ -60,8 +60,7 @@ Future<void> initializeDitto() async {
       token: kDebugMode
           ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
           : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
-      enableDittoCloudSync:
-          true, // Keep cloud sync enabled; custom URLs are configured below
+      enableDittoCloudSync: true,
     );
 
     // Create a unique persistence directory for this instance to avoid file lock conflicts
@@ -105,9 +104,10 @@ Future<void> initializeDitto() async {
     ditto.startSync();
 
     // Log initialization info
+    debugPrint('🚀 Ditto initialized successfully');
+    debugPrint('📱 Device name: ${ditto.deviceName}');
+    debugPrint('✅ Ditto is ready for use');
     if (kDebugMode) {
-      debugPrint('🚀 Ditto initialized successfully');
-      debugPrint('📱 Device name: ${ditto.deviceName}');
       debugPrint(
         'ℹ️  Note: mDNS NameConflict warnings are normal during development',
       );
@@ -118,8 +118,10 @@ Future<void> initializeDitto() async {
 
     // Store the initialized Ditto instance in the service
     DittoService.instance.setDitto(ditto);
-  } catch (e) {
+    debugPrint('✅ DittoService instance set and ready');
+  } catch (e, stackTrace) {
     debugPrint('❌ Error initializing Ditto: $e');
+    debugPrint('Stack trace: $stackTrace');
 
     // If we get a file lock error, try to recover by waiting and retrying once
     if (e.toString().contains('File already locked') ||

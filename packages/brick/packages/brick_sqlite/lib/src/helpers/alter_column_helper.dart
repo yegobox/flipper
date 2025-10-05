@@ -18,7 +18,8 @@ class AlterColumnHelper {
   bool get isRename => command is RenameColumn;
 
   ///
-  bool get isUniqueInsert => command is InsertColumn && (command as InsertColumn).unique;
+  bool get isUniqueInsert =>
+      command is InsertColumn && (command as InsertColumn).unique;
 
   /// Declares if this command requires extra SQLite work to be migrated
   bool get requiresSchema => isDrop || isRename || isUniqueInsert;
@@ -77,7 +78,10 @@ class AlterColumnHelper {
       return newColumn;
     }
 
-    return columns.map(convertColumn).whereType<Map<String, dynamic>>().toList();
+    return columns
+        .map(convertColumn)
+        .whereType<Map<String, dynamic>>()
+        .toList();
   }
 
   /// Given new columns, create the SQLite statement
@@ -106,9 +110,39 @@ class AlterColumnHelper {
 
   /// Perform the necessary SQLite operation
   Future<void> execute(Database db) async {
-    // Ensure table is aware of inserted column first
+    // For unique insert columns, check if column already exists before attempting to add it
     if (isUniqueInsert && command.statement != null) {
-      await db.execute(command.statement!);
+      final columns = await tableInfo(db);
+      final columnName = (command as InsertColumn).name;
+
+      // Check if column already exists
+      final columnExists = columns.any((col) => col['name'] == columnName);
+
+      if (columnExists) {
+        // Column already exists, check if it needs UNIQUE constraint
+        final existingColumn =
+            columns.firstWhere((col) => col['name'] == columnName);
+
+        // If column exists but doesn't have unique constraint, we need to add it
+        // This requires the full table reconstruction below
+        if (existingColumn['unique'] != true && existingColumn['pk'] != 1) {
+          // Continue with table reconstruction to add UNIQUE constraint
+        } else {
+          // Column already exists with proper constraints, skip this migration
+          return;
+        }
+      } else {
+        // Column doesn't exist, add it first
+        try {
+          await db.execute(command.statement!);
+        } catch (e) {
+          if (e.toString().contains('duplicate column name')) {
+            // Column was just added by another process, continue
+          } else {
+            rethrow;
+          }
+        }
+      }
     }
 
     final columns = await tableInfo(db);

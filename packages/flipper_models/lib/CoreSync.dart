@@ -2753,14 +2753,40 @@ class CoreSync extends AiStrategyImpl
               ? item.bcdU!.substring(0, item.bcdU!.length - 2)
               : item.bcdU;
           variant.name = item.name;
+
+          // Update EBM fields from the maps (with proper defaults)
+          variant.itemClsCd =
+              itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
+          variant.itemTyCd = itemTypes[item.barCode] ??
+              variant.itemTyCd ??
+              "2"; // 2 = Finished Product
+          variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+
+          // Update prices if provided
+          if (item.retailPrice != null) {
+            variant.retailPrice = item.retailPrice;
+            variant.prc = item.retailPrice;
+            variant.dftPrc = item.retailPrice;
+          }
+          if (item.supplyPrice != null) {
+            variant.supplyPrice = item.supplyPrice;
+            variant.splyAmt = item.supplyPrice;
+          }
+
           Stock? stock = await getStockById(id: variant.stock!.id);
           stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
           stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
           stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
           stock.value = stock.currentStock! * variant.retailPrice!;
-          //upsert
-          await await repository.upsert(stock);
-          await repository.upsert(variant);
+
+          // Update stock first
+          await repository.upsert(stock);
+
+          // Use ProxyService.strategy.addVariant for consistency with DesktopProductAdd
+          await ProxyService.strategy.addVariant(
+            variations: [variant],
+            branchId: ProxyService.box.getBranchId()!,
+          );
 
           print('Updated variant bcd: ${variant.bcd}, name: ${variant.name}');
         } else {
@@ -2783,16 +2809,41 @@ class CoreSync extends AiStrategyImpl
           variant.name = item.name;
           variant.color = randomizeColor();
           variant.lastTouched = DateTime.now();
-          //get stock
+
+          // Update EBM fields from the maps (with proper defaults)
+          variant.itemClsCd =
+              itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
+          variant.itemTyCd = itemTypes[item.barCode] ??
+              variant.itemTyCd ??
+              "2"; // 2 = Finished Product
+          variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
+
+          // Update prices if provided
+          if (item.retailPrice != null) {
+            variant.retailPrice = item.retailPrice;
+            variant.prc = item.retailPrice;
+            variant.dftPrc = item.retailPrice;
+          }
+          if (item.supplyPrice != null) {
+            variant.supplyPrice = item.supplyPrice;
+            variant.splyAmt = item.supplyPrice;
+          }
+
+          // Get stock
           Stock? stock = await getStockById(id: variant.stock!.id);
           stock.currentStock = double.parse(quantitis[item.barCode] ?? "0");
           stock.rsdQty = double.parse(quantitis[item.barCode] ?? "0");
           stock.initialStock = double.parse(quantitis[item.barCode] ?? "0");
           stock.value = stock.currentStock! * variant.retailPrice!;
-          //upsert
+
+          // Update stock first
           await repository.upsert(stock);
-          await repository.upsert(variant);
-          //
+
+          // Use ProxyService.strategy.addVariant for consistency
+          await ProxyService.strategy.addVariant(
+            variations: [variant],
+            branchId: branchId,
+          );
         } else {
           // Get category information if available
           String? categoryId = item.categoryId;
@@ -2851,7 +2902,12 @@ class CoreSync extends AiStrategyImpl
             if (variant != null) {
               variant.categoryId = categoryId;
               variant.category = category;
-              await repository.upsert(variant);
+
+              // Use ProxyService.strategy.addVariant for consistency
+              await ProxyService.strategy.addVariant(
+                variations: [variant],
+                branchId: branchId,
+              );
             }
           }
         }

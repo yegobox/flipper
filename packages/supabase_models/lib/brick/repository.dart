@@ -478,17 +478,21 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     try {
       instance = await super.upsert(instance, policy: policy, query: query);
 
-      if (instance is Stock) {
-        // Only upsert locally for Stock
-        await CacheManager().saveStocks([instance]);
-      }
-      if (instance is Customer) {
-        EventBus().fire(CustomerUpserted(instance));
-      }
+      try {
+        if (instance is Stock) {
+          // Only upsert locally for Stock
+          await CacheManager().saveStocks([instance]);
+        }
+        if (instance is Customer) {
+          EventBus().fire(CustomerUpserted(instance));
+        }
 
-      unawaited(
-        DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
-      );
+        unawaited(
+          DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
+        );
+      } catch (e) {
+        _logger.warning('Error notifying Ditto of local change: $e');
+      }
 
       return instance;
     } catch (e) {

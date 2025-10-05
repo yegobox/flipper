@@ -295,11 +295,12 @@ class BulkAddProductViewModel extends ChangeNotifier {
           _selectedTaxTypes[barCode] = 'B'; // Default tax type
         }
         if (!_selectedItemClasses.containsKey(barCode)) {
-          _selectedItemClasses[barCode] = ''; // Default empty item class
+          _selectedItemClasses[barCode] =
+              '5020230602'; // Default item class code (finished product)
         }
         if (!_selectedProductTypes.containsKey(barCode)) {
           _selectedProductTypes[barCode] =
-              'Raw Material'; // Default product type
+              '2'; // Default: 2 = Finished Product, 1 = Raw Material, 3 = Service
         }
 
         try {
@@ -366,7 +367,21 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
   void updateItemClass(String barCode, String? newValue) {
     if (newValue != null) {
-      _selectedItemClasses[barCode] = newValue;
+      // Extract just the code from the format "Name Code"
+      // Example: "Finished Product 5020230602" -> "5020230602"
+      String itemClassCode = newValue.trim();
+
+      // If the value contains a space, take the last part (the code)
+      if (itemClassCode.contains(' ')) {
+        itemClassCode = itemClassCode.split(' ').last;
+      }
+
+      // Ensure we have a valid code (not empty after extraction)
+      if (itemClassCode.isEmpty) {
+        itemClassCode = '5020230602'; // Default to finished product
+      }
+
+      _selectedItemClasses[barCode] = itemClassCode;
       notifyListeners();
     }
   }

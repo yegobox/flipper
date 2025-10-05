@@ -11,7 +11,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_models/brick/databasePath.dart';
-import 'package:flipper_models/services/sqlite_service.dart';
+// import 'package:flipper_models/services/sqlite_service.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_models/brick/repository.dart';
 
@@ -91,56 +91,8 @@ class CronService {
         final dbDir = await DatabasePath.getDatabaseDirectory();
         // Use the imported path package correctly
         final dbPath = path.join(dbDir, Repository.dbFileName);
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Counter', 'bhf_id', 'TEXT DEFAULT "00"');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'ITransaction', 'original_transaction_id', 'TEXT');
-
-        SqliteService.addColumnIfNotExists(dbPath, 'ITransaction',
-            'is_original_transaction', 'INTEGER DEFAULT 1');
-
-        SqliteService.addColumnIfNotExists(dbPath, 'TransactionItem',
-            'ignore_for_report', 'INTEGER NOT NULL DEFAULT 0');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'branch_id', 'TEXT  NULL DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'phone_number', 'TEXT  NULL DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'external_id', 'TEXT  NULL DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'payment_status', 'TEXT  NULL DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'last_error', 'TEXT  NULL DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'processing_status', 'TEXT  NULL DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'last_processed_at', 'DATETIME DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'updated_at', 'DATETIME DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Plan', 'last_updated', 'DATETIME DEFAULT NULL');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'ITransaction', 'tax_amount', 'DOUBLE DEFAULT 0.0');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'Variant', 'assigned', 'BOOLEAN NOT NULL DEFAULT false');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'ITransaction', 'number_of_items', 'INT DEFAULT 0');
-
-        SqliteService.addColumnIfNotExists(
-            dbPath, 'ITransaction', 'discount_amount', 'DOUBLE DEFAULT 0.0');
+        // SqliteService.addColumnIfNotExists(
+        //     dbPath, 'Counter', 'bhf_id', 'TEXT DEFAULT "00"');
       } catch (e) {
         talker.error("Failed to add columns to tables: $e");
       }
