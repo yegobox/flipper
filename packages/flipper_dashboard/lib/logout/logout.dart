@@ -65,71 +65,103 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
               ),
             ),
             verticalSpaceMedium,
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      completer(DialogResponse(confirmed: false));
-                    },
-                    child: const Text(
-                      'Cancel',
+            // Show loading indicator when logout is in progress
+            if (viewModel.isBusy)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Logging out...',
                       style: TextStyle(
-                        color: Colors.black,
+                        fontSize: 15,
                         fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () {
+                        completer(DialogResponse(confirmed: false));
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () async {
-                      if (request.data != null) {
-                        Device device = request.data!;
-                        if (ProxyService.box.getUserId() != null &&
-                            ProxyService.box.getBusinessId() != null) {
-                          ProxyService.event.publish(loginDetails: {
-                            'channel':
-                                "${ProxyService.box.getUserId()!}-logout",
-                            'userId': ProxyService.box.getUserId()!,
-                            'businessId': ProxyService.box.getBusinessId()!,
-                            'branchId': ProxyService.box.getBranchId()!,
-                            'phone': ProxyService.box.getUserPhone(),
-                            'defaultApp': ProxyService.box.getDefaultApp(),
-                            'deviceName': device.deviceName,
-                            'deviceVersion': device.deviceVersion,
-                            'linkingCode': device.linkingCode,
-                          });
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        // Set busy state to show loading indicator
+                        viewModel.setBusy(true);
 
-                          try {
-                            // await ProxyService.remote.hardDelete(
-                            //     id: device.id!, collectionName: 'devices');
-                            // await ProxyService.isar.delete(
-                            //   endPoint: 'device',
-                            //   id: device.id!,
-                            // );
-                          } catch (e) {}
+                        try {
+                          if (request.data != null) {
+                            Device device = request.data!;
+                            if (ProxyService.box.getUserId() != null &&
+                                ProxyService.box.getBusinessId() != null) {
+                              ProxyService.event.publish(loginDetails: {
+                                'channel':
+                                    "${ProxyService.box.getUserId()!}-logout",
+                                'userId': ProxyService.box.getUserId()!,
+                                'businessId': ProxyService.box.getBusinessId()!,
+                                'branchId': ProxyService.box.getBranchId()!,
+                                'phone': ProxyService.box.getUserPhone(),
+                                'defaultApp': ProxyService.box.getDefaultApp(),
+                                'deviceName': device.deviceName,
+                                'deviceVersion': device.deviceVersion,
+                                'linkingCode': device.linkingCode,
+                              });
+
+                              try {
+                                // await ProxyService.remote.hardDelete(
+                                //     id: device.id!, collectionName: 'devices');
+                                // await ProxyService.isar.delete(
+                                //   endPoint: 'device',
+                                //   id: device.id!,
+                                // );
+                              } catch (e) {}
+                            }
+                          } else {
+                            //this is mobile client we can safely logout without deleting devices
+                            await logOut();
+                            await viewModel.runStartupLogic();
+                          }
+                        } finally {
+                          viewModel.setBusy(false);
                           completer(DialogResponse(confirmed: true));
                         }
-                      } else {
-                        //this is mobile client we can safely logout without deleting devices
-                        await logOut();
-
-                        viewModel.runStartupLogic();
-                        completer(DialogResponse(confirmed: true));
-                      }
-                    },
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w500,
+                      },
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
           ],
         ),
       ),
