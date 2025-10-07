@@ -8,6 +8,7 @@ import 'package:supabase_models/brick/models/counter.model.dart' as counter_mode
 import 'package:supabase_models/brick/models/stock_recount.model.dart' as stock_recount_model;
 import 'package:supabase_models/brick/models/transaction.model.dart' as transaction_model;
 import 'package:supabase_models/brick/models/transactionItem.model.dart' as transactionItem_model;
+import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
 
 /// Forces all Ditto adapter static initializers to run.
@@ -19,5 +20,6 @@ void ensureDittoAdaptersLoaded() {
   stock_recount_model.StockRecountDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_model.ITransactionDittoAdapter.registryToken; // ignore: unnecessary_statements
   transactionItem_model.TransactionItemDittoAdapter.registryToken; // ignore: unnecessary_statements
+  variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

@@ -22,8 +22,8 @@ part of 'counter.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: receiveOnly
-// This adapter receives data from Ditto but does NOT send local changes.
+// Sync Direction: bidirectional
+// This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
 class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
