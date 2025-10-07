@@ -5,10 +5,21 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:brick_core/query.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+
+part 'variant.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
+@DittoAdapter('variants', syncDirection: SyncDirection.sendOnly)
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -156,6 +167,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.purchaseId,
     bool? isShared,
     this.qty,
+    this.rsdQty,
     this.stock,
     this.stockId,
     required this.name,
@@ -560,6 +572,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       dcRt: dcRt ?? this.dcRt,
       expirationDate: expirationDate ?? this.expirationDate,
       qty: qty ?? this.qty,
+      rsdQty: rsdQty ?? this.rsdQty,
       totWt: totWt ?? this.totWt,
       netWt: netWt ?? this.netWt,
       spplrNm: spplrNm ?? this.spplrNm,
@@ -583,7 +596,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       taxAmt: taxAmt ?? this.taxAmt,
       purchaseId: purchaseId ?? this.purchaseId,
       ttCatCd: ttCatCd ?? ttCatCd,
-      propertyTyCd: propertyTyCd ??propertyTyCd,
+      propertyTyCd: propertyTyCd ?? propertyTyCd,
       roomTypeCd: roomTypeCd ?? roomTypeCd,
     );
   }

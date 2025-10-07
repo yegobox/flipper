@@ -143,7 +143,8 @@ class CustomersState extends ConsumerState<Customers> {
             leading: IconButton(
               icon: Icon(Icons.arrow_back_ios, color: primaryColor, size: 22),
               onPressed: () {
-                ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+                ref.invalidate(
+                    pendingTransactionStreamProvider(isExpense: false));
                 _routerService.pop();
               },
             ),

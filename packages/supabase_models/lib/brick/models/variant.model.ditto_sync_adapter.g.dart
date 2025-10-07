@@ -1,0 +1,308 @@
+// dart format width=80
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'variant.model.dart';
+
+// **************************************************************************
+// DittoSyncAdapterGenerator
+// **************************************************************************
+
+// **************************************************************************
+// DittoSyncAdapterGenerator
+// **************************************************************************
+//
+// REQUIRED IMPORTS in parent file (variant.model.dart):
+// - import 'package:brick_core/query.dart';
+// - import 'package:brick_offline_first/brick_offline_first.dart';
+// - import 'package:flipper_services/proxy.dart';
+// - import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+// - import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+// - import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+// - import 'package:supabase_models/sync/ditto_sync_generated.dart';
+// - import 'package:supabase_models/brick/repository.dart';
+// **************************************************************************
+//
+// Sync Direction: sendOnly
+// This adapter sends data to Ditto but does NOT receive remote updates.
+// **************************************************************************
+
+class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
+  VariantDittoAdapter._internal();
+
+  static final VariantDittoAdapter instance = VariantDittoAdapter._internal();
+
+  static int? Function()? _branchIdProviderOverride;
+  static int? Function()? _businessIdProviderOverride;
+
+  /// Allows tests to override how the current branch ID is resolved.
+  void overrideBranchIdProvider(int? Function()? provider) {
+    _branchIdProviderOverride = provider;
+  }
+
+  /// Allows tests to override how the current business ID is resolved.
+  void overrideBusinessIdProvider(int? Function()? provider) {
+    _businessIdProviderOverride = provider;
+  }
+
+  /// Clears any provider overrides (intended for tests).
+  void resetOverrides() {
+    _branchIdProviderOverride = null;
+    _businessIdProviderOverride = null;
+  }
+
+  String get collectionName => "variants";
+
+  @override
+  Future<DittoSyncQuery?> buildObserverQuery() async {
+    // Send-only mode: no remote observation
+    return null;
+  }
+
+  @override
+  Future<String?> documentIdForModel(Variant model) async => model.id;
+
+  @override
+  Future<Map<String, dynamic>> toDittoDocument(Variant model) async {
+    return {
+      "id": model.id,
+      "purchaseId": model.purchaseId,
+      "stockId": model.stockId,
+      "taxPercentage": model.taxPercentage,
+      "name": model.name,
+      "color": model.color,
+      "sku": model.sku,
+      "productId": model.productId,
+      "unit": model.unit,
+      "productName": model.productName,
+      "categoryId": model.categoryId,
+      "categoryName": model.categoryName,
+      "branchId": model.branchId,
+      "taxName": model.taxName,
+      "itemSeq": model.itemSeq,
+      "isrccCd": model.isrccCd,
+      "isrccNm": model.isrccNm,
+      "isrcRt": model.isrcRt,
+      "isrcAmt": model.isrcAmt,
+      "taxTyCd": model.taxTyCd,
+      "bcd": model.bcd,
+      "itemClsCd": model.itemClsCd,
+      "itemTyCd": model.itemTyCd,
+      "itemStdNm": model.itemStdNm,
+      "orgnNatCd": model.orgnNatCd,
+      "pkg": model.pkg,
+      "itemCd": model.itemCd,
+      "pkgUnitCd": model.pkgUnitCd,
+      "qtyUnitCd": model.qtyUnitCd,
+      "itemNm": model.itemNm,
+      "prc": model.prc,
+      "splyAmt": model.splyAmt,
+      "tin": model.tin,
+      "bhfId": model.bhfId,
+      "dftPrc": model.dftPrc,
+      "addInfo": model.addInfo,
+      "isrcAplcbYn": model.isrcAplcbYn,
+      "useYn": model.useYn,
+      "regrId": model.regrId,
+      "regrNm": model.regrNm,
+      "modrId": model.modrId,
+      "modrNm": model.modrNm,
+      "lastTouched": model.lastTouched?.toIso8601String(),
+      "supplyPrice": model.supplyPrice,
+      "retailPrice": model.retailPrice,
+      "spplrItemClsCd": model.spplrItemClsCd,
+      "spplrItemCd": model.spplrItemCd,
+      "spplrItemNm": model.spplrItemNm,
+      "ebmSynced": model.ebmSynced,
+      "dcRt": model.dcRt,
+      "expirationDate": model.expirationDate?.toIso8601String(),
+      "totWt": model.totWt,
+      "netWt": model.netWt,
+      "spplrNm": model.spplrNm,
+      "agntNm": model.agntNm,
+      "invcFcurAmt": model.invcFcurAmt,
+      "invcFcurCd": model.invcFcurCd,
+      "invcFcurExcrt": model.invcFcurExcrt,
+      "exptNatCd": model.exptNatCd,
+      "dclNo": model.dclNo,
+      "taskCd": model.taskCd,
+      "dclDe": model.dclDe,
+      "hsCd": model.hsCd,
+      "imptItemSttsCd": model.imptItemSttsCd,
+      "taxblAmt": model.taxblAmt,
+      "taxAmt": model.taxAmt,
+      "totAmt": model.totAmt,
+      "pchsSttsCd": model.pchsSttsCd,
+      "propertyTyCd": model.propertyTyCd,
+      "roomTypeCd": model.roomTypeCd,
+      "ttCatCd": model.ttCatCd,
+      "isShared": model.isShared,
+      "assigned": model.assigned,
+      "stockSynchronized": model.stockSynchronized,
+    };
+  }
+
+  @override
+  Future<Variant?> fromDittoDocument(Map<String, dynamic> document) async {
+    final id = document["_id"] ?? document["id"];
+    if (id == null) return null;
+
+    // Branch filtering
+    final currentBranch =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    final docBranch = document["branchId"];
+    if (currentBranch != null && docBranch != currentBranch) {
+      return null;
+    }
+
+    return Variant(
+      id: id,
+      purchaseId: document["purchaseId"],
+      stock: null, // Excluded from Ditto sync
+      stockId: document["stockId"],
+      taxPercentage: document["taxPercentage"],
+      name: document["name"],
+      color: document["color"],
+      sku: document["sku"],
+      productId: document["productId"],
+      unit: document["unit"],
+      productName: document["productName"],
+      categoryId: document["categoryId"],
+      categoryName: document["categoryName"],
+      branchId: document["branchId"],
+      taxName: document["taxName"],
+      itemSeq: document["itemSeq"],
+      isrccCd: document["isrccCd"],
+      isrccNm: document["isrccNm"],
+      isrcRt: document["isrcRt"],
+      isrcAmt: document["isrcAmt"],
+      taxTyCd: document["taxTyCd"],
+      bcd: document["bcd"],
+      itemClsCd: document["itemClsCd"],
+      itemTyCd: document["itemTyCd"],
+      itemStdNm: document["itemStdNm"],
+      orgnNatCd: document["orgnNatCd"],
+      pkg: document["pkg"],
+      itemCd: document["itemCd"],
+      pkgUnitCd: document["pkgUnitCd"],
+      qtyUnitCd: document["qtyUnitCd"],
+      itemNm: document["itemNm"],
+      prc: document["prc"],
+      splyAmt: document["splyAmt"],
+      tin: document["tin"],
+      bhfId: document["bhfId"],
+      dftPrc: document["dftPrc"],
+      addInfo: document["addInfo"],
+      isrcAplcbYn: document["isrcAplcbYn"],
+      useYn: document["useYn"],
+      regrId: document["regrId"],
+      regrNm: document["regrNm"],
+      modrId: document["modrId"],
+      modrNm: document["modrNm"],
+      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
+      supplyPrice: document["supplyPrice"],
+      retailPrice: document["retailPrice"],
+      spplrItemClsCd: document["spplrItemClsCd"],
+      spplrItemCd: document["spplrItemCd"],
+      spplrItemNm: document["spplrItemNm"],
+      ebmSynced: document["ebmSynced"],
+      dcRt: document["dcRt"],
+      expirationDate:
+          DateTime.tryParse(document["expirationDate"]?.toString() ?? ""),
+      qty: null, // Excluded from Ditto sync
+      rsdQty: null, // Excluded from Ditto sync
+      totWt: document["totWt"],
+      netWt: document["netWt"],
+      spplrNm: document["spplrNm"],
+      agntNm: document["agntNm"],
+      invcFcurAmt: document["invcFcurAmt"],
+      invcFcurCd: document["invcFcurCd"],
+      invcFcurExcrt: document["invcFcurExcrt"],
+      exptNatCd: document["exptNatCd"],
+      dclNo: document["dclNo"],
+      taskCd: document["taskCd"],
+      dclDe: document["dclDe"],
+      hsCd: document["hsCd"],
+      imptItemSttsCd: document["imptItemSttsCd"],
+      barCode: null, // Excluded from Ditto sync
+      bcdU: null, // Excluded from Ditto sync
+      quantity: null, // Excluded from Ditto sync
+      category: null, // Excluded from Ditto sync
+      dcAmt: null, // Excluded from Ditto sync
+      taxblAmt: document["taxblAmt"],
+      taxAmt: document["taxAmt"],
+      totAmt: document["totAmt"],
+      pchsSttsCd: document["pchsSttsCd"],
+      propertyTyCd: document["propertyTyCd"],
+      roomTypeCd: document["roomTypeCd"],
+      ttCatCd: document["ttCatCd"],
+      isShared: document["isShared"],
+      assigned: document["assigned"],
+      stockSynchronized: document["stockSynchronized"],
+    );
+  }
+
+  @override
+  Future<bool> shouldApplyRemote(Map<String, dynamic> document) async {
+    final currentBranch =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (currentBranch == null) return true;
+    final docBranch = document["branchId"];
+    return docBranch == currentBranch;
+  }
+
+  static bool _seeded = false;
+
+  static void _resetSeedFlag() {
+    _seeded = false;
+  }
+
+  static Future<void> _seed(DittoSyncCoordinator coordinator) async {
+    if (_seeded) {
+      if (kDebugMode) {
+        debugPrint('Ditto seeding skipped for Variant (already seeded)');
+      }
+      return;
+    }
+
+    try {
+      Query? query;
+      final branchId =
+          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+      if (branchId != null) {
+        query = Query(where: [Where('branchId').isExactly(branchId)]);
+      }
+
+      final models = await Repository().get<Variant>(
+        query: query,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+      );
+      var seededCount = 0;
+      for (final model in models) {
+        await coordinator.notifyLocalUpsert<Variant>(model);
+        seededCount++;
+      }
+      if (kDebugMode) {
+        debugPrint('Ditto seeded ' +
+            seededCount.toString() +
+            ' Variant record' +
+            (seededCount == 1 ? '' : 's'));
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('Ditto seeding failed for Variant: $error\n$stack');
+      }
+    }
+
+    _seeded = true;
+  }
+
+  static final int _$VariantDittoAdapterRegistryToken =
+      DittoSyncGeneratedRegistry.register((coordinator) async {
+    await coordinator.registerAdapter<Variant>(VariantDittoAdapter.instance);
+  }, seed: (coordinator) async {
+    await _seed(coordinator);
+  }, reset: _resetSeedFlag);
+
+  /// Public accessor to ensure static initializer runs
+  static int get registryToken => _$VariantDittoAdapterRegistryToken;
+}
