@@ -94,9 +94,14 @@ mixin ProductMixin {
           variations[i].qtyUnitCd = "U";
         }
         variations[i].categoryName = category?.name;
-        variations[i].dcRt = rates?[variations[i]] == null
-            ? 0
-            : double.parse(rates![variations[i]]!.text);
+        final discountController =
+            rates != null ? rates[variations[i].id] : null;
+
+        final discountText = (discountController ??
+                model.getDiscountController(variations[i].id))
+            .text;
+
+        variations[i].dcRt = double.tryParse(discountText) ?? 0;
 
         variations[i].color = color;
         variations[i].pkg = 1;
