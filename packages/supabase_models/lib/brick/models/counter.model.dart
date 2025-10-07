@@ -18,7 +18,7 @@ part 'counter.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'counters'),
 )
-@DittoAdapter('counters', syncDirection: SyncDirection.receiveOnly)
+@DittoAdapter('counters', syncDirection: SyncDirection.bidirectional)
 class Counter extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
