@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'widgets/challenge_widgets.dart';
 import 'widgets/challenge_finder_widget.dart';
 
@@ -32,7 +33,7 @@ class PersonalHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, CoreMiscellaneous {
   final String currentUserId = 'user-123';
 
   // Mock user data (in real app, this would come from state management)
@@ -108,22 +109,30 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
                           children: [
                             // Top stats bar
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildStatItem(
-                                  Icons.local_fire_department,
-                                  '$currentStreak',
-                                  FlipperPalette.streakOrange,
+                                Expanded(
+                                  child: _buildStatItem(
+                                    Icons.local_fire_department,
+                                    '$currentStreak',
+                                    FlipperPalette.streakOrange,
+                                  ),
                                 ),
-                                _buildStatItem(
-                                  Icons.diamond,
-                                  '$totalGems',
-                                  FlipperPalette.gemPurple,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildStatItem(
+                                    Icons.diamond,
+                                    '$totalGems',
+                                    FlipperPalette.gemPurple,
+                                  ),
                                 ),
-                                _buildStatItem(
-                                  Icons.stars,
-                                  '${userXP}XP',
-                                  FlipperPalette.xpGold,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildStatItem(
+                                    Icons.stars,
+                                    '${userXP}XP',
+                                    FlipperPalette.xpGold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -263,22 +272,26 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
 
   Widget _buildStatItem(IconData icon, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
+          Icon(icon, color: color, size: 18),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -862,14 +875,12 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
         ),
       );
 
-      // Clear any local state/data here if needed
-      // For example, clear user preferences, cached data, etc.
+      // Use the shared logout from Miscellaneous mixin
+      await logOut();
 
-      // Navigate back (assuming there's a login screen or parent navigator)
+      // Navigate to login/landing by popping all routes to root
       if (mounted) {
-        // Use Navigator.of(context).pop() or push to a login route
-        // For now, we'll just pop back
-        Navigator.of(context).pop();
+        Navigator.of(context).popUntil((route) => route.isFirst);
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
