@@ -17,7 +17,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
@@ -834,52 +833,6 @@ mixin AuthMixin implements AuthInterface {
   }) async {
     // Add social login logic here
     return null;
-  }
-
-  /// Attempts to sign in with the given email
-  Future<void> _attemptSignIn(String email) async {
-    try {
-      AuthResponse auth =
-          await Supabase.instance.client.auth.signInWithPassword(
-        email: email,
-        password: email,
-      );
-
-      _saveSessionData(auth);
-      talker.debug('Supabase sign in successful');
-    } catch (signInError) {
-      talker.error('Supabase sign in failed: $signInError');
-      // Do not rethrow here. Supabase auth is optional and should not
-      // block the login process, especially in offline scenarios.
-    }
-  }
-
-  /// Saves session data to local storage
-  void _saveSessionData(AuthResponse auth) {
-    final expiresAt = auth.session?.expiresAt ?? 0;
-    final refreshToken = auth.session?.refreshToken ?? "";
-
-    ProxyService.box.writeString(key: 'refreshToken', value: refreshToken);
-    ProxyService.box.writeInt(key: 'expiresAt', value: expiresAt);
-
-    // Also store the access token for potential use elsewhere
-    final accessToken = auth.session?.accessToken ?? "";
-    ProxyService.box
-        .writeString(key: 'supabaseAccessToken', value: accessToken);
-  }
-
-  /// Checks if a session is still valid
-  bool _isSessionValid(Session session) {
-    // Get current time in seconds since epoch
-    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-    // Add a buffer of 5 minutes (300 seconds) to refresh before actual expiration
-    const expirationBuffer = 300;
-
-    // Session is valid if it's not expired (with buffer)
-    // Handle null expiresAt safely
-    final expiresAt = session.expiresAt ?? 0;
-    return expiresAt > (now + expirationBuffer);
   }
 
   @override
