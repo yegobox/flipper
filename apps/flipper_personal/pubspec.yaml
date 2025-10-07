@@ -23,9 +23,16 @@ dependencies:
   # Flipper web for Ditto service
   flipper_web: any
 
+  # Flipper services for shared business logic
+  flipper_services: any
+
   # Location services for proximity detection
   geolocator: ^13.0.2
   permission_handler: ^11.3.1
+
+dependency_overrides:
+  http: ^1.2.2
+  archive: ^3.6.1
 
 dev_dependencies:
   flutter_test:
