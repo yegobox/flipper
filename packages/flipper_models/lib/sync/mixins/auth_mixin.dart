@@ -422,12 +422,11 @@ mixin AuthMixin implements AuthInterface {
                 key: 'encryptionKey',
                 value: selectedBusiness.encryptionKey ?? "");
 
-            // Mark the business as active and default
-            await ProxyService.strategy.updateBusiness(
-              businessId: selectedBusiness.serverId,
-              active: true,
-              isDefault: true,
-            );
+            // Don't automatically set business as active and default during PIN login
+            // The business's active/default status should only be changed when:
+            // 1. User explicitly selects it from login choices screen
+            // 2. There's only one business available (handled in app_service.dart)
+            // This preserves the existing business configuration
           }
 
           // Always throw LoginChoicesException to simplify the flow
@@ -472,12 +471,11 @@ mixin AuthMixin implements AuthInterface {
             await ProxyService.box
                 .writeString(key: 'branchIdString', value: selectedBranch.id);
 
-            // Set the branch as active and default
-            await ProxyService.strategy.updateBranch(
-              branchId: selectedBranch.serverId!,
-              active: true,
-              isDefault: true,
-            );
+            // Don't automatically set branch as active and default during PIN login
+            // The branch's active/default status should only be changed when:
+            // 1. User explicitly selects it from login choices screen
+            // 2. There's only one branch available (handled in app_service.dart)
+            // This preserves the existing branch configuration
           }
         } catch (e) {
           talker.error("Error setting branch ID string: $e");
@@ -684,23 +682,30 @@ mixin AuthMixin implements AuthInterface {
         if (tenant['branches'] != null && tenant['branches'] is List) {
           for (var branchData in tenant['branches']) {
             final iBranch = IBranch.fromJson(branchData);
-            ProxyService.box
-                .writeInt(key: 'branchId', value: iBranch.serverId!);
+            // Only set the last branch ID (will be overridden if multiple branches)
+            // The actual branchId selection should happen in login choices
+            if (tenant['branches'].length == 1) {
+              ProxyService.box
+                  .writeInt(key: 'branchId', value: iBranch.serverId!);
+            }
             // Convert IBranch to Branch (from supabase_models)
+            // Preserve the active and isDefault values from the API response
+            // Don't force all branches to be active:true and isDefault:true
             final branch = Branch(
               id: iBranch.id,
               serverId: iBranch.serverId,
-              active: true,
+              active: iBranch.active ?? false,
               description: iBranch.description,
               name: iBranch.name,
               businessId: iBranch.businessId,
               longitude: iBranch.longitude,
               latitude: iBranch.latitude,
               location: iBranch.location,
-              isDefault: true,
+              isDefault: iBranch.isDefault ?? false,
             );
             await repository.upsert<Branch>(branch);
-            talker.debug("Saved branch locally: ${branch.name}");
+            talker.debug(
+                "Saved branch locally: ${branch.name} (active: ${branch.active}, isDefault: ${branch.isDefault})");
           }
         }
       }
@@ -830,8 +835,6 @@ mixin AuthMixin implements AuthInterface {
     // Add social login logic here
     return null;
   }
-
- 
 
   /// Attempts to sign in with the given email
   Future<void> _attemptSignIn(String email) async {
