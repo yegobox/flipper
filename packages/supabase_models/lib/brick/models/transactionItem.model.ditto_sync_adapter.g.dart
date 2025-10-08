@@ -54,6 +54,9 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
   String get collectionName => "transaction_items";
 
   @override
+  bool get supportsBackupPull => false;
+
+  @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
     // Send-only mode: no remote observation
     return null;

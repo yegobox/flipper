@@ -55,6 +55,39 @@ class DittoSyncCoordinator {
     }
   }
 
+  /// Restores remote data for the provided generic type using the adapter's
+  /// backup pull configuration. Returns the number of records upserted.
+  Future<int> pullBackupFor<T extends OfflineFirstWithSupabaseModel>({
+    bool includeDependencies = true,
+  }) async {
+    return _pullBackupForType(
+      T,
+      includeDependencies: includeDependencies,
+    );
+  }
+
+  /// Restores remote data for all adapters that support backup pulls. Returns
+  /// a map of restored counts keyed by the adapter type.
+  Future<Map<Type, int>> pullBackupForAll({
+    List<Type>? types,
+    bool includeDependencies = true,
+  }) async {
+    final selectedTypes = types ??
+        _adapters.entries
+            .where((entry) => entry.value.supportsBackupPull)
+            .map((entry) => entry.key)
+            .toList();
+
+    final results = <Type, int>{};
+    for (final type in selectedTypes) {
+      results[type] = await _pullBackupForType(
+        type,
+        includeDependencies: includeDependencies,
+      );
+    }
+    return results;
+  }
+
   /// Unregisters an adapter and cancels its observation if running.
   Future<void>
       unregisterAdapter<T extends OfflineFirstWithSupabaseModel>() async {
@@ -313,4 +346,221 @@ class DittoSyncCoordinator {
     _observers.clear();
     _isObserving = false;
   }
+
+  Future<int> _pullBackupForType(
+    Type type, {
+    required bool includeDependencies,
+  }) async {
+    final adapter = _adapters[type];
+    final ditto = _ditto;
+    if (adapter == null) {
+      if (kDebugMode) {
+        debugPrint('No Ditto adapter registered for $type; skipping backup.');
+      }
+      return 0;
+    }
+
+    if (ditto == null) {
+      throw StateError('Ditto instance not set. Call setDitto before pulling.');
+    }
+
+    if (!adapter.supportsBackupPull) {
+      if (kDebugMode) {
+        debugPrint('Adapter for $type does not support backup pull.');
+      }
+      return 0;
+    }
+
+    final query = await adapter.buildBackupPullQuery();
+    if (query == null) {
+      if (kDebugMode) {
+        debugPrint('Adapter for $type returned null backup query.');
+      }
+      return 0;
+    }
+
+    try {
+      final result = await ditto.store.execute(
+        query.query,
+        arguments: query.arguments,
+      );
+
+      final itemsDynamic = result.items;
+      if (itemsDynamic == null) {
+        return 0;
+      }
+
+      final items = itemsDynamic as Iterable<dynamic>;
+      final visited = <_BackupKey>{};
+      var restored = 0;
+
+      for (final item in items) {
+        final document =
+            Map<String, dynamic>.from(item.value as Map<dynamic, dynamic>);
+        final didRestore = await _restoreDocument(
+          type: type,
+          document: document,
+          includeDependencies: includeDependencies,
+          visited: visited,
+        );
+        if (didRestore) {
+          restored++;
+        }
+      }
+
+      return restored;
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('Ditto backup pull failed for $type: $error\n$stack');
+      }
+      return 0;
+    }
+  }
+
+  Future<bool> _restoreDocument({
+    required Type type,
+    required Map<String, dynamic> document,
+    required bool includeDependencies,
+    required Set<_BackupKey> visited,
+  }) async {
+    final adapter = _adapters[type];
+    if (adapter == null) {
+      return false;
+    }
+
+    final docId = await adapter.documentIdFromRemote(document);
+    if (docId == null) {
+      return false;
+    }
+
+    final model = await adapter.fromDittoDocument(document);
+    if (model == null) {
+      return false;
+    }
+
+    await adapter.onBackupModelRestored(model, document);
+    await adapter.upsertToRepository(model);
+
+    if (!includeDependencies) {
+      return true;
+    }
+
+    for (final link in adapter.backupLinks) {
+      final identifier = document[link.field];
+      if (identifier == null) {
+        continue;
+      }
+
+      final idString =
+          identifier is String ? identifier : identifier.toString();
+      if (idString.isEmpty) {
+        continue;
+      }
+
+      final depKey = _BackupKey(link.targetType, idString);
+      if (!visited.add(depKey)) {
+        continue;
+      }
+
+      await _restoreDependency(
+        type: link.targetType,
+        identifier: idString,
+        remoteKey: link.remoteKey,
+        includeDependencies: link.cascade,
+        visited: visited,
+      );
+    }
+
+    return true;
+  }
+
+  Future<void> _restoreDependency({
+    required Type type,
+    required String identifier,
+    required String remoteKey,
+    required bool includeDependencies,
+    required Set<_BackupKey> visited,
+  }) async {
+    final adapter = _adapters[type];
+    final ditto = _ditto;
+    if (adapter == null || ditto == null) {
+      if (kDebugMode) {
+        debugPrint('Missing adapter or Ditto instance for dependency $type.');
+      }
+      return;
+    }
+
+    final queries = <DittoSyncQuery>[
+      DittoSyncQuery(
+        query: 'SELECT * FROM ${adapter.collectionName} WHERE $remoteKey = :id',
+        arguments: {'id': identifier},
+      ),
+    ];
+
+    if (remoteKey != '_id') {
+      queries.add(
+        DittoSyncQuery(
+          query: 'SELECT * FROM ${adapter.collectionName} WHERE _id = :id',
+          arguments: {'id': identifier},
+        ),
+      );
+    }
+
+    Map<String, dynamic>? document;
+
+    for (final query in queries) {
+      try {
+        final result = await ditto.store.execute(
+          query.query,
+          arguments: query.arguments,
+        );
+        final itemsDynamic = result.items;
+        if (itemsDynamic == null) {
+          continue;
+        }
+
+        final items = itemsDynamic as Iterable<dynamic>;
+        if (items.isEmpty) {
+          continue;
+        }
+
+        document = Map<String, dynamic>.from(
+            items.first.value as Map<dynamic, dynamic>);
+        break;
+      } catch (error, stack) {
+        if (kDebugMode) {
+          debugPrint(
+            'Ditto dependency fetch failed for $type ($identifier): '
+            '$error\n$stack',
+          );
+        }
+      }
+    }
+
+    if (document == null) {
+      return;
+    }
+
+    await _restoreDocument(
+      type: type,
+      document: document,
+      includeDependencies: includeDependencies,
+      visited: visited,
+    );
+  }
+}
+
+class _BackupKey {
+  const _BackupKey(this.type, this.id);
+
+  final Type type;
+  final String id;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _BackupKey && other.type == type && other.id == id;
+  }
+
+  @override
+  int get hashCode => Object.hash(type, id);
 }

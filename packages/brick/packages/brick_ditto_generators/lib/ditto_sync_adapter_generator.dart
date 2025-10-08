@@ -40,6 +40,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     final fields =
         classElement.fields.where((field) => !field.isStatic).toList();
     final hasBranchId = fields.any((field) => field.name == 'branchId');
+    final enableBackupPull =
+        annotation.peek('enableBackupPull')?.boolValue ?? false;
+    final backupLinks = _collectBackupLinks(fields);
 
     // Validate that the source file has required imports
     final sourceContent = await buildStep.readAsString(buildStep.inputId);
@@ -138,6 +141,56 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('')
       ..writeln('  String get collectionName => "$collectionName";')
       ..writeln('')
+      ..writeln('  @override')
+      ..writeln(
+        enableBackupPull
+            ? '  bool get supportsBackupPull => true;'
+            : '  bool get supportsBackupPull => false;',
+      )
+      ..writeln('');
+
+    if (enableBackupPull) {
+      buffer
+        ..writeln('  @override')
+        ..writeln('  Future<DittoSyncQuery?> buildBackupPullQuery() async {')
+        ..writeln(
+          '    final branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
+        )
+        ..writeln('    if (branchId == null) {')
+        ..writeln(
+          '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+        )
+        ..writeln('    }')
+        ..writeln('    return DittoSyncQuery(')
+        ..writeln(
+          '      query: "SELECT * FROM $collectionName WHERE branchId = :branchId",',
+        )
+        ..writeln('      arguments: {"branchId": branchId},')
+        ..writeln('    );')
+        ..writeln('  }')
+        ..writeln('')
+        ..writeln('  @override')
+        ..writeln('  List<DittoBackupLinkConfig> get backupLinks => const [');
+
+      if (backupLinks.isEmpty) {
+        buffer.writeln('    ];');
+      } else {
+        for (final link in backupLinks) {
+          buffer
+            ..writeln('    DittoBackupLinkConfig(')
+            ..writeln('      field: "${link.fieldName}",')
+            ..writeln('      targetType: ${link.targetType},')
+            ..writeln('      remoteKey: "${link.remoteKey}",')
+            ..writeln('      cascade: ${link.cascade},')
+            ..writeln('    ),');
+        }
+        buffer.writeln('  ];');
+      }
+
+      buffer.writeln('');
+    }
+
+    buffer
       ..writeln('  @override')
       ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {');
 
@@ -421,4 +474,48 @@ $branchFilter
   }
 
 ''';
+}
+
+List<_BackupLink> _collectBackupLinks(List<FieldElement> fields) {
+  final links = <_BackupLink>[];
+  for (final field in fields) {
+    for (final annotation in field.metadata) {
+      final constant = annotation.computeConstantValue();
+      if (constant == null) continue;
+      final typeName =
+          constant.type?.getDisplayString(withNullability: false) ?? '';
+      if (typeName != 'DittoBackupLink') continue;
+
+      final modelType = constant.getField('model')?.toTypeValue();
+      if (modelType == null) continue;
+
+      final overrideField = constant.getField('field')?.toStringValue();
+      final remoteKey = constant.getField('remoteKey')?.toStringValue() ?? 'id';
+      final cascade = constant.getField('cascade')?.toBoolValue() ?? true;
+
+      links.add(
+        _BackupLink(
+          fieldName: overrideField ?? field.name,
+          targetType: modelType.getDisplayString(withNullability: false),
+          remoteKey: remoteKey,
+          cascade: cascade,
+        ),
+      );
+    }
+  }
+  return links;
+}
+
+class _BackupLink {
+  _BackupLink({
+    required this.fieldName,
+    required this.targetType,
+    required this.remoteKey,
+    required this.cascade,
+  });
+
+  final String fieldName;
+  final String targetType;
+  final String remoteKey;
+  final bool cascade;
 }

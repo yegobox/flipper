@@ -19,7 +19,11 @@ part 'variant.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'variants'),
 )
-@DittoAdapter('variants', syncDirection: SyncDirection.sendOnly)
+@DittoAdapter(
+  'variants',
+  syncDirection: SyncDirection.sendOnly,
+  enableBackupPull: true,
+)
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -29,6 +33,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? purchaseId;
 
   Stock? stock;
+  @DittoBackupLink(model: Stock)
   String? stockId;
 
   @Sqlite(defaultValue: "18.0", columnType: Column.num)

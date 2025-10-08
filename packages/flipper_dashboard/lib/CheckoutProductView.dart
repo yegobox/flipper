@@ -12,8 +12,6 @@ import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
-    as oldImplementationOfRiverpod;
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +29,7 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
     required this.tabController,
     required this.textEditController,
     required this.model,
+    required this.onCompleteTransaction,
     Key? key,
   }) : super(key: key);
 
@@ -38,6 +37,8 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
   final CheckOut widget;
   final TabController tabController;
   final TextEditingController textEditController;
+  final Future<void> Function(
+      ITransaction transaction, bool immediateCompletion) onCompleteTransaction;
 
   @override
   _CheckoutProductViewState createState() => _CheckoutProductViewState();
@@ -380,23 +381,15 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ref: ref,
         transactionId: transaction.id,
         onCharge: (transactionId, total) async {
-          await _handleCompleteTransaction(transaction);
-          Navigator.of(context).pop();
+          await widget.onCompleteTransaction(transaction, false);
         },
         doneDelete: () {
           ref.refresh(transactionItemsStreamProvider(
               branchId: ProxyService.box.branchIdString()!,
               transactionId: transaction.id));
-          Navigator.of(context).pop();
         },
       );
     }
-  }
-
-  Future<void> _handleCompleteTransaction(ITransaction transaction) async {
-    // This should call the same complete transaction logic as the old implementation
-    // For now, we'll trigger the cart preview to show the payment flow
-    ref.read(oldImplementationOfRiverpod.previewingCart.notifier).state = true;
   }
 
   Widget _buildSearchFilterBar() {

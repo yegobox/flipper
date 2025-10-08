@@ -1,7 +1,7 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'stock_recount.model.dart';
+part of 'stock.model.dart';
 
 // **************************************************************************
 // DittoSyncAdapterGenerator
@@ -11,7 +11,7 @@ part of 'stock_recount.model.dart';
 // DittoSyncAdapterGenerator
 // **************************************************************************
 //
-// REQUIRED IMPORTS in parent file (stockrecount.model.dart):
+// REQUIRED IMPORTS in parent file (stock.model.dart):
 // - import 'package:brick_core/query.dart';
 // - import 'package:brick_offline_first/brick_offline_first.dart';
 // - import 'package:flipper_services/proxy.dart';
@@ -22,15 +22,14 @@ part of 'stock_recount.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: bidirectional
-// This adapter supports full bidirectional sync (send and receive).
+// Sync Direction: sendOnly
+// This adapter sends data to Ditto but does NOT receive remote updates.
 // **************************************************************************
 
-class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
-  StockRecountDittoAdapter._internal();
+class StockDittoAdapter extends DittoSyncAdapter<Stock> {
+  StockDittoAdapter._internal();
 
-  static final StockRecountDittoAdapter instance =
-      StockRecountDittoAdapter._internal();
+  static final StockDittoAdapter instance = StockDittoAdapter._internal();
 
   static int? Function()? _branchIdProviderOverride;
   static int? Function()? _businessIdProviderOverride;
@@ -51,46 +50,58 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
     _businessIdProviderOverride = null;
   }
 
-  String get collectionName => "stock_recounts";
+  String get collectionName => "stocks";
 
   @override
-  bool get supportsBackupPull => false;
+  bool get supportsBackupPull => true;
 
   @override
-  Future<DittoSyncQuery?> buildObserverQuery() async {
+  Future<DittoSyncQuery?> buildBackupPullQuery() async {
     final branchId =
         _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
     if (branchId == null) {
-      return const DittoSyncQuery(query: "SELECT * FROM stock_recounts");
+      return const DittoSyncQuery(query: "SELECT * FROM stocks");
     }
     return DittoSyncQuery(
-      query: "SELECT * FROM stock_recounts WHERE branchId = :branchId",
+      query: "SELECT * FROM stocks WHERE branchId = :branchId",
       arguments: {"branchId": branchId},
     );
   }
 
   @override
-  Future<String?> documentIdForModel(StockRecount model) async => model.id;
+  List<DittoBackupLinkConfig> get backupLinks => const [];
 
   @override
-  Future<Map<String, dynamic>> toDittoDocument(StockRecount model) async {
+  Future<DittoSyncQuery?> buildObserverQuery() async {
+    // Send-only mode: no remote observation
+    return null;
+  }
+
+  @override
+  Future<String?> documentIdForModel(Stock model) async => model.id;
+
+  @override
+  Future<Map<String, dynamic>> toDittoDocument(Stock model) async {
     return {
       "id": model.id,
+      "tin": model.tin,
+      "bhfId": model.bhfId,
       "branchId": model.branchId,
-      "status": model.status,
-      "userId": model.userId,
-      "deviceId": model.deviceId,
-      "deviceName": model.deviceName,
-      "createdAt": model.createdAt.toIso8601String(),
-      "submittedAt": model.submittedAt?.toIso8601String(),
-      "syncedAt": model.syncedAt?.toIso8601String(),
-      "notes": model.notes,
-      "totalItemsCounted": model.totalItemsCounted,
+      "currentStock": model.currentStock,
+      "lowStock": model.lowStock,
+      "canTrackingStock": model.canTrackingStock,
+      "showLowStockAlert": model.showLowStockAlert,
+      "active": model.active,
+      "value": model.value,
+      "rsdQty": model.rsdQty,
+      "lastTouched": model.lastTouched?.toIso8601String(),
+      "ebmSynced": model.ebmSynced,
+      "initialStock": model.initialStock,
     };
   }
 
   @override
-  Future<StockRecount?> fromDittoDocument(Map<String, dynamic> document) async {
+  Future<Stock?> fromDittoDocument(Map<String, dynamic> document) async {
     final id = document["_id"] ?? document["id"];
     if (id == null) return null;
 
@@ -102,19 +113,21 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
       return null;
     }
 
-    return StockRecount(
+    return Stock(
       id: id,
+      tin: document["tin"],
+      bhfId: document["bhfId"],
       branchId: document["branchId"],
-      status: document["status"],
-      userId: document["userId"],
-      deviceId: document["deviceId"],
-      deviceName: document["deviceName"],
-      createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? "") ??
-          DateTime.now().toUtc(),
-      submittedAt: DateTime.tryParse(document["submittedAt"]?.toString() ?? ""),
-      syncedAt: DateTime.tryParse(document["syncedAt"]?.toString() ?? ""),
-      notes: document["notes"],
-      totalItemsCounted: document["totalItemsCounted"],
+      currentStock: document["currentStock"],
+      lowStock: document["lowStock"],
+      canTrackingStock: document["canTrackingStock"],
+      showLowStockAlert: document["showLowStockAlert"],
+      active: document["active"],
+      value: document["value"],
+      rsdQty: document["rsdQty"],
+      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
+      ebmSynced: document["ebmSynced"],
+      initialStock: document["initialStock"],
     );
   }
 
@@ -136,7 +149,7 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
   static Future<void> _seed(DittoSyncCoordinator coordinator) async {
     if (_seeded) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding skipped for StockRecount (already seeded)');
+        debugPrint('Ditto seeding skipped for Stock (already seeded)');
       }
       return;
     }
@@ -149,38 +162,37 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
         query = Query(where: [Where('branchId').isExactly(branchId)]);
       }
 
-      final models = await Repository().get<StockRecount>(
+      final models = await Repository().get<Stock>(
         query: query,
         policy: OfflineFirstGetPolicy.alwaysHydrate,
       );
       var seededCount = 0;
       for (final model in models) {
-        await coordinator.notifyLocalUpsert<StockRecount>(model);
+        await coordinator.notifyLocalUpsert<Stock>(model);
         seededCount++;
       }
       if (kDebugMode) {
         debugPrint('Ditto seeded ' +
             seededCount.toString() +
-            ' StockRecount record' +
+            ' Stock record' +
             (seededCount == 1 ? '' : 's'));
       }
     } catch (error, stack) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding failed for StockRecount: $error\n$stack');
+        debugPrint('Ditto seeding failed for Stock: $error\n$stack');
       }
     }
 
     _seeded = true;
   }
 
-  static final int _$StockRecountDittoAdapterRegistryToken =
+  static final int _$StockDittoAdapterRegistryToken =
       DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator
-        .registerAdapter<StockRecount>(StockRecountDittoAdapter.instance);
+    await coordinator.registerAdapter<Stock>(StockDittoAdapter.instance);
   }, seed: (coordinator) async {
     await _seed(coordinator);
   }, reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
-  static int get registryToken => _$StockRecountDittoAdapterRegistryToken;
+  static int get registryToken => _$StockDittoAdapterRegistryToken;
 }

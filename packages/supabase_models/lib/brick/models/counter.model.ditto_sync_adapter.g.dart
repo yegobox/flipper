@@ -53,6 +53,9 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
   String get collectionName => "counters";
 
   @override
+  bool get supportsBackupPull => false;
+
+  @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
     final branchId =
         _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();

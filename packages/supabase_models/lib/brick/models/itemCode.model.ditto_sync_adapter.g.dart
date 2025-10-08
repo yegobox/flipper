@@ -53,6 +53,9 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   String get collectionName => "codes";
 
   @override
+  bool get supportsBackupPull => false;
+
+  @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
     // Send-only mode: no remote observation
     return null;
