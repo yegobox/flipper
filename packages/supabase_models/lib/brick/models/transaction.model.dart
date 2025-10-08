@@ -19,7 +19,7 @@ part 'transaction.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
 )
-@DittoAdapter('transactions', syncDirection: SyncDirection.sendOnly)
+@DittoAdapter('transactions', syncDirection: SyncDirection.bidirectional)
 class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)

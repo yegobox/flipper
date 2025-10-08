@@ -381,7 +381,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         ref: ref,
         transactionId: transaction.id,
         onCharge: (transactionId, total) async {
-          await widget.onCompleteTransaction(transaction, false);
+          return await widget.onCompleteTransaction(transaction, false);
         },
         doneDelete: () {
           ref.refresh(transactionItemsStreamProvider(

@@ -7,15 +7,20 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
-// import 'package:cbl/cbl.dart'
-//     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
+import 'package:flipper_models/mixins/transaction_delegation_mixin.dart';
 import 'package:uuid/uuid.dart';
 import 'package:receipt/print.dart';
 
-class TaxController<OBJ> {
+class TaxController<OBJ> with TransactionDelegationMixin {
   TaxController({this.object});
 
   OBJ? object;
+
+  /// Implement the createTaxController method required by the mixin
+  @override
+  dynamic createTaxController(ITransaction transaction) {
+    return TaxController<ITransaction>(object: transaction);
+  }
 
   Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt(
       {bool skiGenerateRRAReceiptSignature = false,
@@ -150,6 +155,9 @@ class TaxController<OBJ> {
   /**
    * Prints a receipt for the given transaction.
    * 
+   * On mobile devices, if delegation is enabled and EBM server is not accessible,
+   * the transaction will be delegated to desktop for processing.
+   * 
    * @params items - The list of transaction items. 
    * @params business - The business this transaction is for.
    * @params receiptType - The type of receipt to print.
@@ -164,6 +172,37 @@ class TaxController<OBJ> {
     int? originalInvoiceNumber,
     String? sarTyCd,
   }) async {
+    // Check if we should delegate to desktop (mobile only)
+    if (isMobileDevice &&
+        await isDelegationEnabled() &&
+        !skiGenerateRRAReceiptSignature) {
+      try {
+        // Delegate to desktop for processing
+        await delegateTransactionToDesktop(
+          transaction: transaction,
+          receiptType: receiptType,
+          purchaseCode: purchaseCode,
+          salesSttsCd: salesSttsCd,
+          originalInvoiceNumber: originalInvoiceNumber,
+          sarTyCd: sarTyCd,
+        );
+
+        // Return a placeholder response indicating delegation
+        return (
+          response: RwApiResponse(
+            resultCd: '001',
+            resultMsg: 'Transaction delegated to desktop for processing',
+            resultDt: DateTime.now().toIso8601String(),
+          ),
+          bytes: null,
+        );
+      } catch (e) {
+        // If delegation fails, fall through to normal processing
+        talker.error('Failed to delegate transaction: $e');
+      }
+    }
+
+    // Normal processing (desktop or mobile with delegation disabled)
     RwApiResponse responses;
     Uint8List? bytes;
     if (!skiGenerateRRAReceiptSignature) {

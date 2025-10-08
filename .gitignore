@@ -91,3 +91,7 @@ coverage/
 
 # GEMINI.md
 supabase
+
+proprietary/*
+proprietary/.*
+proprietary

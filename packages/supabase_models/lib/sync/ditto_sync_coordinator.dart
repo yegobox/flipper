@@ -149,8 +149,9 @@ class DittoSyncCoordinator {
     }
 
     try {
+      // Use EVICT instead of REMOVE FROM COLLECTION for DQL compatibility
       await ditto.store.execute(
-        'REMOVE FROM COLLECTION ${adapter.collectionName} WHERE _id = :id',
+        'EVICT FROM ${adapter.collectionName} WHERE _id = :id',
         arguments: {'id': docId},
       );
     } catch (error, stack) {
