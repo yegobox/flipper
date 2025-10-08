@@ -45,6 +45,15 @@ Future<List<TransactionItem>> _getTransactionItems(
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
+  // Store stream subscription for proper cleanup
+  StreamSubscription? _paymentStatusSubscription;
+
+  @override
+  void dispose() {
+    _paymentStatusSubscription?.cancel();
+    super.dispose();
+  }
+
   /// this method will either preview or completeOrder
   Future<void> placeFinalOrder(
       {bool isShoppingFromWareHouse = true,
@@ -177,7 +186,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> startCompleteTransactionFlow({
+  Future<bool> startCompleteTransactionFlow({
     required String transactionId,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
@@ -195,7 +204,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         throw Exception("Transaction not found for completion.");
       }
       final isValid = formKey.currentState?.validate() ?? true;
-      if (!isValid) return;
+      if (!isValid) return false;
 
       // Validate stock levels before proceeding
       final transactionItems =
@@ -209,7 +218,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           await showOutOfStockDialog(context, outOfStockItems);
         }
         ref.read(payButtonStateProvider.notifier).stopLoading();
-        return;
+        return false;
       }
 
       // Deduct stock for each transaction item
@@ -270,7 +279,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // Get customer if exists
       final customer = await _getCustomer(transaction.customerId);
 
-      if (!isValid) return;
+      if (!isValid) return false;
 
       final isDigitalPaymentEnabled = await ProxyService.strategy
           // since we need to have updated EBM settings and we rely on internet for that for the bellow platfrom
@@ -291,6 +300,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           completeTransaction: completeTransaction,
           paymentType: paymentType,
         );
+        // Return true to indicate we're waiting for payment confirmation
+        // Bottom sheet should NOT close yet
+        return true;
       } else {
         // Process cash payment or skip digital payment if immediateCompletion is true
         await _finalStepInCompletingTransaction(
@@ -301,9 +313,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
           completeTransaction: completeTransaction,
         );
+        // Return false to indicate payment is complete
+        // Bottom sheet can close now
+        return false;
       }
-
-      await _refreshTransactionItems(transactionId: transaction.id);
     } catch (e, s) {
       talker.error("Error in complete transaction flow: $e", s);
 
@@ -358,6 +371,26 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     return customers.firstOrNull;
   }
 
+  /// Get country calling code from country name
+  String _getCountryCallingCode(String? countryName) {
+    final countryCodeMap = {
+      'Rwanda': '250',
+      'Kenya': '254',
+      'Uganda': '256',
+      'Tanzania': '255',
+      'Burundi': '257',
+      'South Africa': '27',
+      'Zambia': '260',
+      'Mozambique': '258',
+      'Zimbabwe': '263',
+      'Malawi': '265',
+      'DRC': '243',
+      'Congo': '243',
+    };
+    return countryCodeMap[countryName] ??
+        '250'; // Default to Rwanda if country not found
+  }
+
   Future<void> _processDigitalPayment({
     required Customer? customer,
     required ITransaction transaction,
@@ -368,14 +401,37 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String paymentType,
   }) async {
     try {
-      final phoneNumber = customer?.telNo?.replaceAll("+", "") ??
-          "250${ProxyService.box.currentSaleCustomerPhoneNumber()}";
+      // customer.telNo from database already has country code (e.g., "+250783054874")
+      // currentSaleCustomerPhoneNumber from localStorage is just digits (e.g., "783054874")
+      String phoneNumber;
+      if (customer?.telNo != null) {
+        phoneNumber = customer!.telNo!.replaceAll("+", "");
+      } else {
+        // Get country code dynamically from business country
+        final branch = await ProxyService.strategy.activeBranch();
+        final business = await ProxyService.strategy
+            .getBusiness(businessId: branch.businessId!);
+        final countryCode = _getCountryCallingCode(business?.country);
+
+        String localPhone =
+            ProxyService.box.currentSaleCustomerPhoneNumber() ?? "";
+
+        // Remove leading 0 if present (e.g., "0783054874" -> "783054874")
+        if (localPhone.startsWith("0")) {
+          localPhone = localPhone.substring(1);
+        }
+
+        // Only add country code prefix if phone doesn't already start with it
+        phoneNumber = localPhone.startsWith(countryCode)
+            ? localPhone
+            : "$countryCode$localPhone";
+      }
 
       await _sendpaymentRequest(
         phoneNumber: phoneNumber,
         branchId: branchId,
         externalId: transaction.id,
-        finalPrice: amount.toInt(),
+        finalPrice: transaction.subTotal!.toInt(),
       );
 
       await ProxyService.strategy.upsertPayment(CustomerPayments(
@@ -390,23 +446,61 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         Where('paymentStatus').isExactly('completed'),
       ]);
 
-      Repository().subscribeToRealtime<CustomerPayments>(query: query).listen(
+      // Cancel any existing subscription
+      await _paymentStatusSubscription?.cancel();
+
+      // Store subscription for cleanup
+      _paymentStatusSubscription = Repository()
+          .subscribeToRealtime<CustomerPayments>(query: query)
+          .listen(
         (data) async {
           if (data.isEmpty) return;
           talker.warning("Payment Completed by a user ${data}");
 
-          await _finalStepInCompletingTransaction(
-            customer: customer,
-            transaction: transaction,
-            amount: amount,
-            discount: discount,
-            paymentType: paymentType,
-            completeTransaction: completeTransaction,
-          );
+          // Check if widget is still mounted before proceeding
+          if (!mounted) {
+            talker.warning("Widget disposed, skipping payment completion");
+            return;
+          }
+
+          try {
+            await _finalStepInCompletingTransaction(
+              customer: customer,
+              transaction: transaction,
+              amount: amount,
+              discount: discount,
+              paymentType: paymentType,
+              completeTransaction: completeTransaction,
+            );
+
+            // Note: completeTransaction() is called by finalizePayment on success
+            // If we reach here without error, payment was successful
+            talker.info("Digital payment completed successfully");
+          } catch (e) {
+            talker.error("Error completing transaction after payment: $e");
+
+            // Stop loading states
+            if (mounted) {
+              ref.read(payButtonStateProvider.notifier).stopLoading();
+            }
+
+            // Show error to user - don't close bottom sheet, let them retry
+            if (mounted && context.mounted) {
+              showCustomSnackBarUtil(
+                context,
+                e.toString().replaceAll('Exception: ', ''),
+                type: NotificationType.error,
+                duration: const Duration(seconds: 5),
+                showCloseButton: true,
+              );
+            }
+          }
         },
         onError: (error) {
           talker.error("Digital payment error: $error");
-          throw Exception("Digital payment failed: $error");
+          if (mounted) {
+            throw Exception("Digital payment failed: $error");
+          }
         },
       );
     } catch (e) {
@@ -424,6 +518,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function completeTransaction,
   }) async {
     try {
+      // Check if widget is still mounted before using ref
+      if (!mounted) {
+        talker.warning("Widget disposed, cannot complete transaction");
+        return;
+      }
+
       if (customer != null) {
         await additionalInformationIsRequiredToCompleteTransaction(
           amount: amount,
@@ -440,10 +540,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           ));
         }
       } else {
+        // Get the controller value before async operations
+        final customerNameController = mounted
+            ? ref.watch(customerNameControllerProvider)
+            : TextEditingController();
+
         await finalizePayment(
           formKey: formKey,
           countryCodeController: countryCodeController,
-          customerNameController: ref.watch(customerNameControllerProvider),
+          customerNameController: customerNameController,
           context: context,
           paymentType: paymentType,
           transactionType: TransactionType.sale,

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
+import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -525,6 +526,8 @@ class _AdminControlState extends State<AdminControl> {
         const SizedBox(height: 32),
         _buildSystemSettings(context),
         const SizedBox(height: 32),
+        _buildTransactionDelegationSection(context),
+        const SizedBox(height: 32),
         _buildReceiptBrandingSection(context),
       ],
     );
@@ -696,6 +699,25 @@ class _AdminControlState extends State<AdminControl> {
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionDelegationSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0, bottom: 16.0),
+          child: Text(
+            'Cross-Device Features',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ),
+        const TransactionDelegationSettings(),
       ],
     );
   }

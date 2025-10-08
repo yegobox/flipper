@@ -27,6 +27,7 @@ import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
+import 'package:flipper_services/transaction_delegation_service.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -53,6 +54,20 @@ Future<void> _initializeSupabase() async {
     });
   } catch (e) {
     // talker.info('Supabase initialization error: $e');
+  }
+}
+
+// Function to initialize Transaction Delegation
+Future<void> _initializeTransactionDelegation() async {
+  try {
+    await Future<void>.microtask(() async {
+      final delegationService = TransactionDelegationService();
+      await delegationService.startMonitoring();
+      debugPrint('✅ Transaction Delegation service initialized');
+    });
+  } catch (e) {
+    debugPrint(
+        '⚠️  Transaction Delegation initialization error (non-critical): $e');
   }
 }
 
@@ -87,6 +102,9 @@ Future<void> main() async {
       setupBottomSheetUi();
       await initDependencies();
       await DittoSyncRegistry.registerDefaults();
+
+      // Initialize transaction delegation service (desktop only)
+      await _initializeTransactionDelegation();
     }
   }
 

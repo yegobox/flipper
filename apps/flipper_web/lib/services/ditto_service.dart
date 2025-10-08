@@ -275,8 +275,9 @@ class DittoService {
         return;
       }
 
+      // Use EVICT instead of REMOVE FROM COLLECTION for DQL compatibility
       await _ditto!.store.execute(
-        "REMOVE FROM COLLECTION users WHERE _id = :id",
+        "EVICT FROM users WHERE _id = :id",
         arguments: {"id": id},
       );
       debugPrint('Deleted user profile with ID: $id');

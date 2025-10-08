@@ -106,7 +106,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'vatEnabled',
     'lastZReportDate',
     'receiptLogoBase64',
-    'freshSignup'
+    'freshSignup',
+    'enableTransactionDelegation'
     // Add new preference keys above this line
   };
 

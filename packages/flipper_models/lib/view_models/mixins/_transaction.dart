@@ -84,14 +84,14 @@ mixin TransactionMixinOld {
       if (response == null) {
         return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
       }
+
+      // Only call onComplete on success, not on error
+      onComplete();
+
       return response;
     } catch (e) {
       talker.error('Error in finalizePayment: $e');
       rethrow;
-    } finally {
-      // Always call onComplete to ensure the loading state is reset
-      // This ensures the pay button stops loading even if there's an error
-      onComplete();
     }
   }
 

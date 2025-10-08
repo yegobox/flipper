@@ -1,8 +1,10 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/SearchCustomer.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
@@ -111,10 +114,13 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin {
   bool _isLoading = false;
+  bool _isWaitingForPayment = false;
   late final TextEditingController _customerPhoneController;
   String? _customerPhoneError;
   late AnimationController _buttonAnimationController;
   late Animation<double> _buttonScaleAnimation;
+  late AnimationController _pulseAnimationController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -134,12 +140,26 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       parent: _buttonAnimationController,
       curve: Curves.easeInOut,
     ));
+
+    // Pulse animation for waiting state
+    _pulseAnimationController = AnimationController(
+      duration: Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _pulseAnimationController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   @override
   void dispose() {
     _customerPhoneController.dispose();
     _buttonAnimationController.dispose();
+    _pulseAnimationController.dispose();
     super.dispose();
   }
 
@@ -484,35 +504,47 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       });
       ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
-      await widget.onCharge(transactionId, total);
+      // Call onCharge and get the result
+      // Returns true if waiting for digital payment confirmation
+      // Returns false if payment is complete (cash/immediate)
+      final shouldWaitForPayment = await widget.onCharge(transactionId, total);
 
-      if (mounted) {
+      // Only close the bottom sheet if we're NOT waiting for payment
+      if (mounted && shouldWaitForPayment != true) {
         setState(() {
           _isLoading = false;
+          _isWaitingForPayment = false;
         });
+        _pulseAnimationController.stop();
+        _pulseAnimationController.reset();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
         Navigator.of(context).pop();
+      } else if (mounted && shouldWaitForPayment == true) {
+        // We're waiting for digital payment confirmation
+        setState(() {
+          _isWaitingForPayment = true;
+          _isLoading = true; // Keep loading state
+        });
+        // Start pulse animation
+        _pulseAnimationController.repeat(reverse: true);
       }
+      // If shouldWaitForPayment is true, the bottom sheet stays open
+      // and will be closed when the payment completes via the callback
     } catch (e) {
+      talker.error('Charge failed: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isWaitingForPayment = false;
         });
+        _pulseAnimationController.stop();
+        _pulseAnimationController.reset();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 8),
-                Expanded(child: Text('Error: ${e.toString()}')),
-              ],
-            ),
-            backgroundColor: Colors.red[600],
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          ),
+        showCustomSnackBarUtil(
+          context,
+          'Error processing payment',
+          backgroundColor: Colors.red[600],
+          showCloseButton: true,
         );
       }
     }
@@ -520,10 +552,28 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
   @override
   Widget build(BuildContext context) {
-    // Add a listener to the provider
+    // Listen for phone number changes
     ref.listen<String?>(customerPhoneNumberProvider, (previous, next) {
       if (_customerPhoneController.text != next) {
         _customerPhoneController.text = next ?? '';
+      }
+    });
+
+    // Listen for loading state changes to detect errors during payment
+    ref.listen(payButtonStateProvider, (previous, next) {
+      // If we're waiting for payment and loading stops, there might be an error
+      final wasLoading = previous?[ButtonType.pay] == true;
+      final isNowLoading = next[ButtonType.pay] == true;
+
+      if (_isWaitingForPayment && wasLoading && !isNowLoading) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _isWaitingForPayment = false;
+          });
+          _pulseAnimationController.stop();
+          _pulseAnimationController.reset();
+        }
       }
     });
 
@@ -819,16 +869,27 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             ),
             SizedBox(height: 20),
             AnimatedBuilder(
-              animation: _buttonScaleAnimation,
+              animation: Listenable.merge([
+                _buttonScaleAnimation,
+                _pulseAnimation,
+              ]),
               builder: (context, child) {
                 return Transform.scale(
-                  scale: _buttonScaleAnimation.value,
+                  scale: _isWaitingForPayment
+                      ? _pulseAnimation.value
+                      : _buttonScaleAnimation.value,
                   child: FlipperButton(
-                    color: items.isEmpty ? Colors.grey : Colors.green,
+                    color: items.isEmpty
+                        ? Colors.grey
+                        : _isWaitingForPayment
+                            ? Colors.orange
+                            : Colors.green,
                     width: double.infinity,
                     text: items.isEmpty
                         ? 'Add items to charge'
-                        : 'Charge ${formatNumber(total)}',
+                        : _isWaitingForPayment
+                            ? 'Waiting for payment...'
+                            : 'Charge ${formatNumber(total)}',
                     isLoading: _isLoading,
                     onPressed: items.isEmpty || _isLoading
                         ? null

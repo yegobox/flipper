@@ -274,6 +274,92 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
               );
             },
           ),
+          const SizedBox(height: 12),
+          _ModernMenuItem(
+            icon: Icons.sync_rounded,
+            title: 'Transaction Delegation',
+            color: const Color(0xFF0078D4),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => DraggableScrollableSheet(
+                  initialChildSize: 0.75,
+                  minChildSize: 0.5,
+                  maxChildSize: 0.9,
+                  builder: (context, scrollController) => Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // Handle bar
+                        Container(
+                          margin: const EdgeInsets.only(top: 12, bottom: 8),
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        // Header
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color:
+                                      const Color(0xFF0078D4).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.sync_rounded,
+                                  color: Color(0xFF0078D4),
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              const Expanded(
+                                child: Text(
+                                  'Transaction Delegation',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        // Content
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: scrollController,
+                            padding: const EdgeInsets.all(20),
+                            child: const _MobileTransactionDelegationSettings(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -1025,6 +1111,309 @@ class _ModernMenuItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Mobile-optimized Transaction Delegation Settings
+class _MobileTransactionDelegationSettings extends StatefulWidget {
+  const _MobileTransactionDelegationSettings();
+
+  @override
+  State<_MobileTransactionDelegationSettings> createState() =>
+      _MobileTransactionDelegationSettingsState();
+}
+
+class _MobileTransactionDelegationSettingsState
+    extends State<_MobileTransactionDelegationSettings> {
+  bool _isEnabled = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final enabled = ProxyService.box.readBool(
+      key: 'enableTransactionDelegation',
+    );
+
+    setState(() {
+      _isEnabled = enabled ?? false;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _toggleDelegation(bool value) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await ProxyService.box.writeBool(
+        key: 'enableTransactionDelegation',
+        value: value,
+      );
+
+      setState(() {
+        _isEnabled = value;
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value
+                  ? '✓ Transaction delegation enabled'
+                  : 'Transaction delegation disabled',
+            ),
+            backgroundColor: value ? const Color(0xFF107C10) : Colors.grey[700],
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: const Color(0xFFD13438),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Toggle section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.sync_rounded,
+                  color: Color(0xFF0078D4),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Delegate',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      'receipt printing to desktop when EBM server is unavailable',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Switch(
+                value: _isEnabled,
+                onChanged: _toggleDelegation,
+                activeColor: const Color(0xFF0078D4),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // How it works section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE3F2FD),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFF90CAF9),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0078D4).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF0078D4),
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'How it works',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF01579B),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildStep(
+                icon: Icons.phone_android_rounded,
+                text:
+                    'Mobile completes transaction but delegates receipt generation',
+              ),
+              const SizedBox(height: 8),
+              _buildStep(
+                icon: Icons.cloud_sync_rounded,
+                text: 'Desktop picks up the transaction via sync',
+              ),
+              const SizedBox(height: 8),
+              _buildStep(
+                icon: Icons.receipt_long_rounded,
+                text:
+                    'Desktop generates receipt and communicates with EBM server',
+              ),
+              const SizedBox(height: 8),
+              _buildStep(
+                icon: Icons.notifications_active_rounded,
+                text: 'Mobile is notified when processing is complete',
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Requirements section
+        if (_isEnabled)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFFFB74D),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.lightbulb_outline,
+                      color: Color(0xFFE65100),
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Requirements',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange[900],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _buildRequirement(
+                  '• Desktop app must be running with delegation enabled',
+                ),
+                const SizedBox(height: 6),
+                _buildRequirement(
+                  '• Both devices must be syncing via flipper sync',
+                ),
+                const SizedBox(height: 6),
+                _buildRequirement(
+                  '• Desktop processes delegated transactions every 10 seconds',
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStep({required IconData icon, required String text}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: const Color(0xFF0078D4),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF01579B),
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRequirement(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 13,
+        color: Colors.orange[900],
+        height: 1.4,
       ),
     );
   }

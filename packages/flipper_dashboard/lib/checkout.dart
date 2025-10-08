@@ -282,7 +282,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
-  Future<void> _handleCompleteTransaction(
+  Future<bool> _handleCompleteTransaction(
       ITransaction transaction, bool immediateCompletion) async {
     final startTime = transaction.createdAt!;
 
@@ -295,11 +295,17 @@ class CheckOutState extends ConsumerState<CheckOut>
     }
     try {
       applyDiscount(transaction);
-      await startCompleteTransactionFlow(
+      final isWaitingForPayment = await startCompleteTransactionFlow(
         transactionId: transaction.id,
         immediateCompletion: immediateCompletion,
         completeTransaction: () async {
           ref.read(payButtonStateProvider.notifier).stopLoading();
+
+          // Close the bottom sheet if it's open (for digital payments)
+          if (mounted && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+
           await newTransaction(typeOfThisTransactionIsExpense: false);
           final endTime = DateTime.now().toUtc();
           final duration = endTime.difference(startTime).inSeconds;
@@ -321,6 +327,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         paymentMethods:
             ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
       );
+      return isWaitingForPayment;
       // No need to call newTransaction here as it's already called in the completeTransaction callback
       // This prevents creating a new transaction when there's an error in the flow
     } catch (e) {
