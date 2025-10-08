@@ -20,9 +20,42 @@ class DittoAdapter {
   /// Defaults to [SyncDirection.bidirectional].
   final SyncDirection syncDirection;
 
+  /// Whether this adapter should expose a backup pull workflow even if the
+  /// sync direction normally prevents receiving remote updates. When enabled,
+  /// the generated adapter exposes metadata that can be used to fetch and
+  /// restore documents on demand.
+  final bool enableBackupPull;
+
   /// Creates a DittoAdapter annotation.
   const DittoAdapter(
     this.collectionName, {
     this.syncDirection = SyncDirection.bidirectional,
+    this.enableBackupPull = false,
+  });
+}
+
+/// Describes how a model retrieved via a backup pull links to additional
+/// collections that should also be restored. Apply this annotation to the
+/// field holding the foreign key that references the related model.
+class DittoBackupLink {
+  /// Name of the field holding the foreign key that references the related
+  /// document. Defaults to the annotated field name when omitted.
+  final String? field;
+
+  /// Remote identifier field on the related document. Usually `id`, but some
+  /// collections use `_id` or custom values.
+  final String remoteKey;
+
+  /// Whether to recursively restore the dependencies of the related model.
+  final bool cascade;
+
+  /// Type of the related model (must also be decorated with [DittoAdapter]).
+  final Type model;
+
+  const DittoBackupLink({
+    required this.model,
+    this.field,
+    this.remoteKey = 'id',
+    this.cascade = true,
   });
 }

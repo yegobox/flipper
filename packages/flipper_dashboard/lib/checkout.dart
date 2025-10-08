@@ -355,6 +355,11 @@ class CheckOutState extends ConsumerState<CheckOut>
                   tabController: tabController,
                   textEditController: textEditController,
                   model: model,
+                  onCompleteTransaction:
+                      (transaction, immediateCompletion) async {
+                    await _handleCompleteTransaction(
+                        transaction, immediateCompletion);
+                  },
                 )
               : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
         );

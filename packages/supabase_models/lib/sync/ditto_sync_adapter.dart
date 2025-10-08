@@ -10,10 +10,54 @@ class DittoSyncQuery {
   final Map<String, dynamic> arguments;
 }
 
+/// Describes how a model restored from a backup pull should fetch related
+/// records to keep local relationships intact.
+class DittoBackupLinkConfig {
+  const DittoBackupLinkConfig({
+    required this.field,
+    required this.targetType,
+    this.remoteKey = 'id',
+    this.cascade = true,
+  });
+
+  /// Field on the parent document containing the foreign key identifier.
+  final String field;
+
+  /// Target model type for the related document.
+  final Type targetType;
+
+  /// Field on the related document indicating its identifier.
+  final String remoteKey;
+
+  /// Whether the related model should also restore its dependencies.
+  final bool cascade;
+}
+
 /// Contract for integrating an OfflineFirst model with Ditto peer-to-peer sync.
 abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
   /// Logical Ditto collection backing this model (e.g. `counters`).
   String get collectionName;
+
+  /// Indicates whether this adapter can participate in a backup pull flow even
+  /// if its normal synchronisation direction would normally prevent remote
+  /// reads (for example, `sendOnly`).
+  bool get supportsBackupPull => false;
+
+  /// Builds the query used when performing a backup pull. Defaults to `null`
+  /// (no backup support).
+  Future<DittoSyncQuery?> buildBackupPullQuery() async => null;
+
+  /// Specifies the foreign-key links that should be restored alongside this
+  /// model when backing up from Ditto.
+  List<DittoBackupLinkConfig> get backupLinks => const [];
+
+  /// Hook invoked after the model has been reconstructed from a Ditto document
+  /// during a backup pull but before it is persisted locally. Override to
+  /// compute derived fields or perform additional linking.
+  Future<void> onBackupModelRestored(
+    T model,
+    Map<String, dynamic> document,
+  ) async {}
 
   /// Builds the observation query we should listen to.
   /// Returning `null` disables remote observation (useful for write-only data).

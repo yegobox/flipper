@@ -54,6 +54,9 @@ class StockRecountItemDittoAdapter extends DittoSyncAdapter<StockRecountItem> {
   String get collectionName => "stock_recount_items";
 
   @override
+  bool get supportsBackupPull => false;
+
+  @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
     final branchId =
         _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();

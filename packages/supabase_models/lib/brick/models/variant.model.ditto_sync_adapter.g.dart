@@ -53,6 +53,32 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   String get collectionName => "variants";
 
   @override
+  bool get supportsBackupPull => true;
+
+  @override
+  Future<DittoSyncQuery?> buildBackupPullQuery() async {
+    final branchId =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return const DittoSyncQuery(query: "SELECT * FROM variants");
+    }
+    return DittoSyncQuery(
+      query: "SELECT * FROM variants WHERE branchId = :branchId",
+      arguments: {"branchId": branchId},
+    );
+  }
+
+  @override
+  List<DittoBackupLinkConfig> get backupLinks => const [
+        DittoBackupLinkConfig(
+          field: "stockId",
+          targetType: Stock,
+          remoteKey: "id",
+          cascade: true,
+        ),
+      ];
+
+  @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
     // Send-only mode: no remote observation
     return null;

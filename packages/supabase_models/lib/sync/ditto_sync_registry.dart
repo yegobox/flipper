@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
@@ -80,5 +81,32 @@ class DittoSyncRegistry {
     debugPrint('➕ Adding Ditto listener to DittoService...');
     DittoService.instance.addDittoListener(_dittoListener!);
     debugPrint('✅ DittoSyncRegistry.registerDefaults completed');
+  }
+
+  /// Restores data for a single registered adapter supporting backup pulls.
+  static Future<int> restoreBackupFor<T extends OfflineFirstWithSupabaseModel>({
+    bool includeDependencies = true,
+  }) async {
+    if (!_registered) {
+      await registerDefaults();
+    }
+    return DittoSyncCoordinator.instance.pullBackupFor<T>(
+      includeDependencies: includeDependencies,
+    );
+  }
+
+  /// Restores data for all (or a subset of) adapters supporting backup pulls
+  /// and returns the number of records restored per type.
+  static Future<Map<Type, int>> restoreBackupAll({
+    List<Type>? types,
+    bool includeDependencies = true,
+  }) async {
+    if (!_registered) {
+      await registerDefaults();
+    }
+    return DittoSyncCoordinator.instance.pullBackupForAll(
+      types: types,
+      includeDependencies: includeDependencies,
+    );
   }
 }
