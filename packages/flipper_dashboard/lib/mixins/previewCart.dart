@@ -48,6 +48,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   // Store stream subscription for proper cleanup
   StreamSubscription? _paymentStatusSubscription;
 
+  // Track if we're already processing a payment to prevent double-processing
+  bool _isProcessingPayment = false;
+
   @override
   void dispose() {
     _paymentStatusSubscription?.cancel();
@@ -434,12 +437,20 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         finalPrice: transaction.subTotal!.toInt(),
       );
 
+      talker.info("📤 Payment request sent to phone: $phoneNumber");
+      talker.info("💰 Amount: ${transaction.subTotal!.toInt()}");
+
       await ProxyService.strategy.upsertPayment(CustomerPayments(
         phoneNumber: phoneNumber,
         paymentStatus: "pending",
         amountPayable: transaction.subTotal!,
         transactionId: transaction.id,
       ));
+
+      talker.info(
+          "⏳ Payment status set to PENDING - Waiting for user confirmation...");
+      talker.info(
+          "🔍 Setting up realtime listener for transaction: ${transaction.id}");
 
       final query = Query(where: [
         Where('transactionId').isExactly(transaction.id),
@@ -449,35 +460,71 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // Cancel any existing subscription
       await _paymentStatusSubscription?.cancel();
 
+      talker.info(
+          "👂 Realtime listener active - Will trigger when payment status = 'completed'");
+
       // Store subscription for cleanup
       _paymentStatusSubscription = Repository()
           .subscribeToRealtime<CustomerPayments>(query: query)
           .listen(
         (data) async {
           if (data.isEmpty) return;
-          talker.warning("Payment Completed by a user ${data}");
+
+          // Prevent double-processing
+          if (_isProcessingPayment) {
+            talker.warning(
+                "⚠️ Already processing payment, skipping duplicate event");
+            return;
+          }
+
+          // Verify payment is actually completed
+          final payment = data.first;
+          if (payment.paymentStatus != 'completed') {
+            talker.warning(
+                "Payment status is not completed: ${payment.paymentStatus}");
+            return;
+          }
+
+          // Mark as processing
+          _isProcessingPayment = true;
+
+          talker.info(
+              "✅ Payment CONFIRMED by user - Status: ${payment.paymentStatus}");
+          talker.info(
+              "📱 Phone: ${payment.phoneNumber}, Amount: ${payment.amountPayable}");
 
           // Check if widget is still mounted before proceeding
           if (!mounted) {
             talker.warning("Widget disposed, skipping payment completion");
+            _isProcessingPayment = false;
             return;
           }
 
           try {
+            talker.info(
+                "🧾 Starting receipt generation after payment confirmation...");
             await _finalStepInCompletingTransaction(
               customer: customer,
               transaction: transaction,
               amount: amount,
               discount: discount,
               paymentType: paymentType,
-              completeTransaction: completeTransaction,
+              completeTransaction: () {
+                // For digital payments, don't call completeTransaction yet
+                // We'll call it after this succeeds
+                talker.info("Receipt generation completed for digital payment");
+              },
             );
 
-            // Note: completeTransaction() is called by finalizePayment on success
-            // If we reach here without error, payment was successful
-            talker.info("Digital payment completed successfully");
+            // Digital payment confirmed and receipt generated successfully
+            // NOW we can call the actual completeTransaction callback
+            talker.info(
+                "✅ Digital payment completed successfully - Closing bottom sheet");
+            _isProcessingPayment = false;
+            completeTransaction();
           } catch (e) {
-            talker.error("Error completing transaction after payment: $e");
+            talker.error("❌ Error completing transaction after payment: $e");
+            _isProcessingPayment = false; // Reset flag on error
 
             // Stop loading states
             if (mounted) {
@@ -497,7 +544,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           }
         },
         onError: (error) {
-          talker.error("Digital payment error: $error");
+          talker.error("❌ Digital payment stream error: $error");
+          _isProcessingPayment = false; // Reset flag on error
           if (mounted) {
             throw Exception("Digital payment failed: $error");
           }
