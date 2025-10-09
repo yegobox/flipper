@@ -26,11 +26,18 @@ class DittoAdapter {
   /// restore documents on demand.
   final bool enableBackupPull;
 
+  /// Whether the generated adapter should perform a manual hydration when
+  /// observers start while the coordinator skips Ditto's initial fetch.
+  /// Defaults to `false` to avoid delaying startup while waiting for
+  /// additional context (for example, the active branch).
+  final bool hydrateOnStartup;
+
   /// Creates a DittoAdapter annotation.
   const DittoAdapter(
     this.collectionName, {
     this.syncDirection = SyncDirection.bidirectional,
     this.enableBackupPull = false,
+    this.hydrateOnStartup = false,
   });
 }
 

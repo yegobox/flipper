@@ -50,10 +50,33 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
     _businessIdProviderOverride = null;
   }
 
+  @override
   String get collectionName => "codes";
 
   @override
+  bool get shouldHydrateOnStartup => false;
+
+  @override
   bool get supportsBackupPull => false;
+
+  Future<int?> _resolveBranchId({bool waitForValue = false}) async {
+    int? branchId =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (!waitForValue || branchId != null) {
+      return branchId;
+    }
+    final stopwatch = Stopwatch()..start();
+    const timeout = Duration(seconds: 30);
+    while (branchId == null && stopwatch.elapsed < timeout) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      branchId =
+          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    }
+    if (branchId == null && kDebugMode) {
+      debugPrint("Ditto hydration for ItemCode timed out waiting for branchId");
+    }
+    return branchId;
+  }
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {

@@ -13,6 +13,7 @@ class DittoSyncCoordinator {
 
   final Map<Type, DittoSyncAdapter> _adapters = {};
   final Map<Type, dynamic> _observers = {};
+  final Map<Type, SyncSubscription> _subscriptions = {};
   final Map<Type, Set<String>> _suppressedIds = {};
   final Map<Type, Map<String, int>> _documentHashes = {};
   Ditto? _ditto;
@@ -161,6 +162,38 @@ class DittoSyncCoordinator {
     }
   }
 
+  /// Performs a one-off hydration for the adapter associated with [T].
+  ///
+  /// This executes the adapter's [DittoSyncAdapter.buildHydrationQuery] and
+  /// feeds the results through the normal observation pipeline as an initial
+  /// fetch. If the adapter or Ditto instance is unavailable, the call is a
+  /// no-op.
+  Future<void> hydrate<T extends OfflineFirstWithSupabaseModel>() async {
+    final adapter = _adapters[T];
+    final ditto = _ditto;
+    if (adapter == null || ditto == null) {
+      return;
+    }
+
+    try {
+      final query = await adapter.buildHydrationQuery();
+      if (query == null) {
+        if (kDebugMode) {
+          debugPrint('Ditto hydration skipped for $T (null query).');
+        }
+        return;
+      }
+
+      final result =
+          await ditto.store.execute(query.query, arguments: query.arguments);
+      await _handleQueryResult(T, result, isInitialFetch: true);
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('Ditto hydration failed for $T: $error\n$stack');
+      }
+    }
+  }
+
   Future<void> _startObservers() async {
     if (_isObserving || _ditto == null) {
       return;
@@ -186,6 +219,31 @@ class DittoSyncCoordinator {
 
     await _observers[type]?.cancel();
 
+    try {
+      _subscriptions[type]?.cancel();
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint(
+            'Ditto subscription cancel failed for $type: $error\n$stack');
+      }
+    }
+
+    try {
+      final subscription = ditto.sync.registerSubscription(
+        query.query,
+        arguments: query.arguments,
+      );
+      _subscriptions[type] = subscription;
+      if (kDebugMode) {
+        debugPrint('📡 Registered Ditto subscription for $type');
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint(
+            '❌ Failed to register Ditto subscription for $type: $error\n$stack');
+      }
+    }
+
     final observer = ditto.store.registerObserver(
       query.query,
       arguments: query.arguments,
@@ -208,7 +266,29 @@ class DittoSyncCoordinator {
     } else {
       if (kDebugMode) {
         debugPrint(
-            '⏭️  Skipping initial fetch for $type (startup optimization)');
+            '⏭️  Skipping Ditto initial fetch for $type (startup optimization)');
+      }
+
+      if (adapter.shouldHydrateOnStartup) {
+        try {
+          final hydrationQuery = await adapter.buildHydrationQuery();
+          if (hydrationQuery != null) {
+            if (kDebugMode) {
+              debugPrint(
+                  '💧 Performing manual Ditto hydration for $type using ${hydrationQuery.query}');
+            }
+            final hydration = await ditto.store.execute(hydrationQuery.query,
+                arguments: hydrationQuery.arguments);
+            await _handleQueryResult(type, hydration, isInitialFetch: true);
+          } else if (kDebugMode) {
+            debugPrint(
+                'ℹ️  Adapter for $type opted into hydration but returned null query.');
+          }
+        } catch (error, stack) {
+          if (kDebugMode) {
+            debugPrint('❌ Ditto hydration failed for $type: $error\n$stack');
+          }
+        }
       }
     }
   }
@@ -223,12 +303,12 @@ class DittoSyncCoordinator {
       return;
     }
 
-    final dynamic itemsDynamic = result.items;
+    final itemsDynamic = result.items as Iterable<dynamic>?;
     if (itemsDynamic == null) {
       return;
     }
 
-    final Iterable<dynamic> items = itemsDynamic as Iterable<dynamic>;
+    final Iterable<dynamic> items = itemsDynamic;
     final List<Future<void>> upsertTasks = [];
 
     for (final item in items) {
@@ -335,6 +415,9 @@ class DittoSyncCoordinator {
   Future<void> _stopObserverFor(Type type) async {
     await _observers[type]?.cancel();
     _observers.remove(type);
+
+    _subscriptions[type]?.cancel();
+    _subscriptions.remove(type);
   }
 
   Future<void> _disposeObservers() async {
@@ -345,6 +428,11 @@ class DittoSyncCoordinator {
       await observer.cancel();
     }
     _observers.clear();
+
+    for (final subscription in _subscriptions.values) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
     _isObserving = false;
   }
 
@@ -386,12 +474,12 @@ class DittoSyncCoordinator {
         arguments: query.arguments,
       );
 
-      final itemsDynamic = result.items;
+      final itemsDynamic = result.items as Iterable<dynamic>?;
       if (itemsDynamic == null) {
         return 0;
       }
 
-      final items = itemsDynamic as Iterable<dynamic>;
+      final items = itemsDynamic;
       final visited = <_BackupKey>{};
       var restored = 0;
 
@@ -515,12 +603,12 @@ class DittoSyncCoordinator {
           query.query,
           arguments: query.arguments,
         );
-        final itemsDynamic = result.items;
+        final itemsDynamic = result.items as Iterable<dynamic>?;
         if (itemsDynamic == null) {
           continue;
         }
 
-        final items = itemsDynamic as Iterable<dynamic>;
+        final items = itemsDynamic;
         if (items.isEmpty) {
           continue;
         }

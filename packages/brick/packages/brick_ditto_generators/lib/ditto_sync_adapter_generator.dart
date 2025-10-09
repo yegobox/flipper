@@ -28,7 +28,6 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     final syncDirectionField = annotation.read('syncDirection');
     String syncDirection = 'bidirectional';
     if (!syncDirectionField.isNull) {
-      // Extract enum value name (e.g., "SyncDirection.sendOnly" -> "sendOnly")
       final enumValue = syncDirectionField.objectValue.toString();
       if (enumValue.contains('sendOnly')) {
         syncDirection = 'sendOnly';
@@ -42,6 +41,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     final hasBranchId = fields.any((field) => field.name == 'branchId');
     final enableBackupPull =
         annotation.peek('enableBackupPull')?.boolValue ?? false;
+    final hydrateOnStartup =
+        annotation.peek('hydrateOnStartup')?.boolValue ?? false;
+    final hydrateOnStartupLiteral = hydrateOnStartup ? 'true' : 'false';
     final backupLinks = _collectBackupLinks(fields);
 
     // Validate that the source file has required imports
@@ -54,7 +56,6 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       );
     }
 
-    // Generate the adapter code
     final buffer = StringBuffer();
 
     buffer
@@ -139,7 +140,13 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('    _businessIdProviderOverride = null;')
       ..writeln('  }')
       ..writeln('')
+      ..writeln('  @override')
       ..writeln('  String get collectionName => "$collectionName";')
+      ..writeln('')
+      ..writeln('  @override')
+      ..writeln(
+        '  bool get shouldHydrateOnStartup => $hydrateOnStartupLiteral;',
+      )
       ..writeln('')
       ..writeln('  @override')
       ..writeln(
@@ -152,21 +159,27 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     if (enableBackupPull) {
       buffer
         ..writeln('  @override')
-        ..writeln('  Future<DittoSyncQuery?> buildBackupPullQuery() async {')
-        ..writeln(
-          '    final branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
-        )
-        ..writeln('    if (branchId == null) {')
-        ..writeln(
-          '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
-        )
-        ..writeln('    }')
-        ..writeln('    return DittoSyncQuery(')
-        ..writeln(
-          '      query: "SELECT * FROM $collectionName WHERE branchId = :branchId",',
-        )
-        ..writeln('      arguments: {"branchId": branchId},')
-        ..writeln('    );')
+        ..writeln('  Future<DittoSyncQuery?> buildBackupPullQuery() async {');
+      if (hasBranchId) {
+        buffer
+          ..writeln('    final branchId = await _resolveBranchId();')
+          ..writeln('    if (branchId == null) {')
+          ..writeln(
+            '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+          )
+          ..writeln('    }')
+          ..writeln('    return DittoSyncQuery(')
+          ..writeln(
+            '      query: "SELECT * FROM $collectionName WHERE branchId = :branchId",',
+          )
+          ..writeln('      arguments: {"branchId": branchId},')
+          ..writeln('    );');
+      } else {
+        buffer.writeln(
+          '    return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+        );
+      }
+      buffer
         ..writeln('  }')
         ..writeln('')
         ..writeln('  @override')
@@ -177,7 +190,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       } else {
         for (final link in backupLinks) {
           buffer
-            ..writeln('    DittoBackupLinkConfig(')
+            ..writeln('    const DittoBackupLinkConfig(')
             ..writeln('      field: "${link.fieldName}",')
             ..writeln('      targetType: ${link.targetType},')
             ..writeln('      remoteKey: "${link.remoteKey}",')
@@ -190,37 +203,126 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       buffer.writeln('');
     }
 
-    buffer
-      ..writeln('  @override')
-      ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {');
+    if (hasBranchId) {
+      buffer
+        ..writeln(
+          '  Future<int?> _resolveBranchId({bool waitForValue = false}) async {',
+        )
+        ..writeln(
+          '    int? branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
+        )
+        ..writeln('    if (!waitForValue || branchId != null) {')
+        ..writeln('      return branchId;')
+        ..writeln('    }')
+        ..writeln('    final stopwatch = Stopwatch()..start();')
+        ..writeln('    const timeout = Duration(seconds: 30);')
+        ..writeln(
+          '    while (branchId == null && stopwatch.elapsed < timeout) {',
+        )
+        ..writeln(
+          '      await Future.delayed(const Duration(milliseconds: 200));',
+        )
+        ..writeln(
+          '      branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
+        )
+        ..writeln('    }')
+        ..writeln('    if (branchId == null && kDebugMode) {')
+        ..writeln(
+          '      debugPrint("Ditto hydration for $className timed out waiting for branchId");',
+        )
+        ..writeln('    }')
+        ..writeln('    return branchId;')
+        ..writeln('  }')
+        ..writeln('');
+    }
 
-    // For sendOnly mode, return null to disable remote observation
     if (syncDirection == 'sendOnly') {
       buffer
+        ..writeln('  @override')
+        ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {')
         ..writeln('    // Send-only mode: no remote observation')
         ..writeln('    return null;')
         ..writeln('  }');
     } else {
-      // For receiveOnly and bidirectional: enable observation
       buffer
+        ..writeln('  @override')
+        ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {')
+        ..writeln('    return _buildQuery(waitForBranchId: false);')
+        ..writeln('  }')
+        ..writeln('')
         ..writeln(
-          '    final branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
-        )
-        ..writeln('    if (branchId == null) {')
-        ..writeln(
-          '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
-        )
-        ..writeln('    }')
-        ..writeln('    return DittoSyncQuery(')
-        ..writeln(
-          '      query: "SELECT * FROM $collectionName WHERE branchId = :branchId",',
-        )
-        ..writeln('      arguments: {"branchId": branchId},')
-        ..writeln('    );')
+          '  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {',
+        );
+
+      if (hasBranchId) {
+        buffer
+          ..writeln(
+            '    final branchId = await _resolveBranchId(waitForValue: waitForBranchId);',
+          )
+          ..writeln(
+            '    final branchIdString = ProxyService.box.branchIdString();',
+          )
+          ..writeln('    final bhfId = await ProxyService.box.bhfId();')
+          ..writeln('    final arguments = <String, dynamic>{};')
+          ..writeln('    final whereParts = <String>[];')
+          ..writeln('')
+          ..writeln('    if (branchId != null) {')
+          ..writeln("      whereParts.add('branchId = :branchId');")
+          ..writeln('      arguments["branchId"] = branchId;')
+          ..writeln('    }')
+          ..writeln('')
+          ..writeln(
+            '    if (branchIdString != null && branchIdString.isNotEmpty) {',
+          )
+          ..writeln(
+            "      whereParts.add('(branchId = :branchIdString OR branchIdString = :branchIdString)');",
+          )
+          ..writeln('      arguments["branchIdString"] = branchIdString;')
+          ..writeln('    }')
+          ..writeln('')
+          ..writeln('    if (bhfId != null && bhfId.isNotEmpty) {')
+          ..writeln("      whereParts.add('bhfId = :bhfId');")
+          ..writeln('      arguments["bhfId"] = bhfId;')
+          ..writeln('    }')
+          ..writeln('')
+          ..writeln('    if (whereParts.isEmpty) {')
+          ..writeln('      if (waitForBranchId) {')
+          ..writeln('        if (kDebugMode) {')
+          ..writeln(
+            '          debugPrint("Ditto hydration for $className skipped because branch context is unavailable");',
+          )
+          ..writeln('        }')
+          ..writeln('        return null;')
+          ..writeln('      }')
+          ..writeln(
+            '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+          )
+          ..writeln('    }')
+          ..writeln('')
+          ..writeln('    final whereClause = whereParts.join(" OR ");')
+          ..writeln('    return DittoSyncQuery(')
+          ..writeln(
+            '      query: "SELECT * FROM $collectionName WHERE \$whereClause",',
+          )
+          ..writeln('      arguments: arguments,')
+          ..writeln('    );');
+      } else {
+        buffer.writeln(
+          '    return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+        );
+      }
+
+      buffer
+        ..writeln('  }')
+        ..writeln('')
+        ..writeln('  @override')
+        ..writeln('  Future<DittoSyncQuery?> buildHydrationQuery() async {')
+        ..writeln('    return _buildQuery(waitForBranchId: true);')
         ..writeln('  }');
     }
 
     buffer
+      ..writeln('')
       ..writeln('  @override')
       ..writeln(
         '  Future<String?> documentIdForModel($className model) async => model.id;',
@@ -231,7 +333,6 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
         '  Future<Map<String, dynamic>> toDittoDocument($className model) async {',
       )
       ..writeln('    return {')
-      // Generate fields mapping
       ..write(_generateFieldsMapping(fields))
       ..writeln('    };')
       ..writeln('  }')
@@ -256,7 +357,6 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('')
       ..writeln('    return $className(')
       ..writeln('      id: id,')
-      // Generate constructor args
       ..write(_generateConstructorArgs(fields))
       ..writeln('    );')
       ..writeln('  }')

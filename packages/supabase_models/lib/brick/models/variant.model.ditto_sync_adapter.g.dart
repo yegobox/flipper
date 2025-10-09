@@ -50,15 +50,18 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
     _businessIdProviderOverride = null;
   }
 
+  @override
   String get collectionName => "variants";
+
+  @override
+  bool get shouldHydrateOnStartup => false;
 
   @override
   bool get supportsBackupPull => true;
 
   @override
   Future<DittoSyncQuery?> buildBackupPullQuery() async {
-    final branchId =
-        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    final branchId = await _resolveBranchId();
     if (branchId == null) {
       return const DittoSyncQuery(query: "SELECT * FROM variants");
     }
@@ -70,13 +73,32 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
 
   @override
   List<DittoBackupLinkConfig> get backupLinks => const [
-        DittoBackupLinkConfig(
+        const DittoBackupLinkConfig(
           field: "stockId",
           targetType: Stock,
           remoteKey: "id",
           cascade: true,
         ),
       ];
+
+  Future<int?> _resolveBranchId({bool waitForValue = false}) async {
+    int? branchId =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (!waitForValue || branchId != null) {
+      return branchId;
+    }
+    final stopwatch = Stopwatch()..start();
+    const timeout = Duration(seconds: 30);
+    while (branchId == null && stopwatch.elapsed < timeout) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      branchId =
+          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    }
+    if (branchId == null && kDebugMode) {
+      debugPrint("Ditto hydration for Variant timed out waiting for branchId");
+    }
+    return branchId;
+  }
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {

@@ -51,22 +51,27 @@ class StockRecountItemDittoAdapter extends DittoSyncAdapter<StockRecountItem> {
     _businessIdProviderOverride = null;
   }
 
+  @override
   String get collectionName => "stock_recount_items";
+
+  @override
+  bool get shouldHydrateOnStartup => false;
 
   @override
   bool get supportsBackupPull => false;
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    final branchId =
-        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
-    if (branchId == null) {
-      return const DittoSyncQuery(query: "SELECT * FROM stock_recount_items");
-    }
-    return DittoSyncQuery(
-      query: "SELECT * FROM stock_recount_items WHERE branchId = :branchId",
-      arguments: {"branchId": branchId},
-    );
+    return _buildQuery(waitForBranchId: false);
+  }
+
+  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
+    return const DittoSyncQuery(query: "SELECT * FROM stock_recount_items");
+  }
+
+  @override
+  Future<DittoSyncQuery?> buildHydrationQuery() async {
+    return _buildQuery(waitForBranchId: true);
   }
 
   @override

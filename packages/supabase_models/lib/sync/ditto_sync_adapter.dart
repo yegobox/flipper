@@ -38,6 +38,11 @@ abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
   /// Logical Ditto collection backing this model (e.g. `counters`).
   String get collectionName;
 
+  /// Whether the coordinator should perform an initial remote hydration for
+  /// this adapter when observers are started while skipping the default Ditto
+  /// initial fetch. Defaults to `false`.
+  bool get shouldHydrateOnStartup => false;
+
   /// Indicates whether this adapter can participate in a backup pull flow even
   /// if its normal synchronisation direction would normally prevent remote
   /// reads (for example, `sendOnly`).
@@ -62,6 +67,14 @@ abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
   /// Builds the observation query we should listen to.
   /// Returning `null` disables remote observation (useful for write-only data).
   Future<DittoSyncQuery?> buildObserverQuery();
+
+  /// Builds the query that should be executed when the coordinator performs an
+  /// explicit hydration (a manual one-off fetch of existing Ditto documents).
+  ///
+  /// By default this simply delegates to [buildObserverQuery], but adapters can
+  /// override this to wait for additional context (such as the active branch)
+  /// before constructing the hydration query.
+  Future<DittoSyncQuery?> buildHydrationQuery() => buildObserverQuery();
 
   /// Serialises the model into a Ditto document.
   Future<Map<String, dynamic>> toDittoDocument(T model);
