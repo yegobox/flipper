@@ -116,7 +116,13 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
         }
         return null;
       }
-      return const DittoSyncQuery(query: "SELECT * FROM stock_recounts");
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto observation for StockRecount deferred until branch context is available");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM stock_recounts WHERE 1 = 0",
+      );
     }
 
     final whereClause = whereParts.join(" OR ");

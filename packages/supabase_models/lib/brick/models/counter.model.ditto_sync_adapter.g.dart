@@ -114,7 +114,13 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
         }
         return null;
       }
-      return const DittoSyncQuery(query: "SELECT * FROM counters");
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto observation for Counter deferred until branch context is available");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM counters WHERE 1 = 0",
+      );
     }
 
     final whereClause = whereParts.join(" OR ");

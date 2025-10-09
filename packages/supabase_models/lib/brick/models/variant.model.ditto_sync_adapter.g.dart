@@ -63,7 +63,13 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   Future<DittoSyncQuery?> buildBackupPullQuery() async {
     final branchId = await _resolveBranchId();
     if (branchId == null) {
-      return const DittoSyncQuery(query: "SELECT * FROM variants");
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto backup pull for Variant skipped because branch context is unavailable");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM variants WHERE 1 = 0",
+      );
     }
     return DittoSyncQuery(
       query: "SELECT * FROM variants WHERE branchId = :branchId",

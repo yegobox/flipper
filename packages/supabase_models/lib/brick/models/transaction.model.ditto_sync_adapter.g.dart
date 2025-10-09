@@ -116,7 +116,13 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
         }
         return null;
       }
-      return const DittoSyncQuery(query: "SELECT * FROM transactions");
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto observation for ITransaction deferred until branch context is available");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM transactions WHERE 1 = 0",
+      );
     }
 
     final whereClause = whereParts.join(" OR ");

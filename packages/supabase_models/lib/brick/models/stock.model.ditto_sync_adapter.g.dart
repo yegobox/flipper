@@ -63,7 +63,13 @@ class StockDittoAdapter extends DittoSyncAdapter<Stock> {
   Future<DittoSyncQuery?> buildBackupPullQuery() async {
     final branchId = await _resolveBranchId();
     if (branchId == null) {
-      return const DittoSyncQuery(query: "SELECT * FROM stocks");
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto backup pull for Stock skipped because branch context is unavailable");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM stocks WHERE 1 = 0",
+      );
     }
     return DittoSyncQuery(
       query: "SELECT * FROM stocks WHERE branchId = :branchId",
