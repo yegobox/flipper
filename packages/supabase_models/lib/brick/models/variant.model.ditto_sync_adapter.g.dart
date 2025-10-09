@@ -323,11 +323,16 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   }
 
   static final int _$VariantDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator.registerAdapter<Variant>(VariantDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator
+                .registerAdapter<Variant>(VariantDittoAdapter.instance);
+          },
+          modelType: Variant,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$VariantDittoAdapterRegistryToken;

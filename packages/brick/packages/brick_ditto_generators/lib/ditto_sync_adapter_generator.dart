@@ -280,7 +280,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln(
         '    await coordinator.registerAdapter<$className>(${className}DittoAdapter.instance);',
       )
-      ..writeln('  }, seed: (coordinator) async {')
+      ..writeln('  }, modelType: $className, seed: (coordinator) async {')
       ..writeln('    await _seed(coordinator);')
       ..writeln('  }, reset: _resetSeedFlag);')
       ..writeln('')

@@ -22,8 +22,8 @@ part of 'transactionItem.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: sendOnly
-// This adapter sends data to Ditto but does NOT receive remote updates.
+// Sync Direction: bidirectional
+// This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
 class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
@@ -58,8 +58,15 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    // Send-only mode: no remote observation
-    return null;
+    final branchId =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return const DittoSyncQuery(query: "SELECT * FROM transaction_items");
+    }
+    return DittoSyncQuery(
+      query: "SELECT * FROM transaction_items WHERE branchId = :branchId",
+      arguments: {"branchId": branchId},
+    );
   }
 
   @override
@@ -323,12 +330,16 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
   }
 
   static final int _$TransactionItemDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator
-        .registerAdapter<TransactionItem>(TransactionItemDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator.registerAdapter<TransactionItem>(
+                TransactionItemDittoAdapter.instance);
+          },
+          modelType: TransactionItem,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$TransactionItemDittoAdapterRegistryToken;

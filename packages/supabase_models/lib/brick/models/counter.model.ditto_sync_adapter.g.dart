@@ -170,11 +170,16 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
   }
 
   static final int _$CounterDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator.registerAdapter<Counter>(CounterDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator
+                .registerAdapter<Counter>(CounterDittoAdapter.instance);
+          },
+          modelType: Counter,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$CounterDittoAdapterRegistryToken;

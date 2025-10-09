@@ -187,11 +187,16 @@ class StockDittoAdapter extends DittoSyncAdapter<Stock> {
   }
 
   static final int _$StockDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator.registerAdapter<Stock>(StockDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator
+                .registerAdapter<Stock>(StockDittoAdapter.instance);
+          },
+          modelType: Stock,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$StockDittoAdapterRegistryToken;

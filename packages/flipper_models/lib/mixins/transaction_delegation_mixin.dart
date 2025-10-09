@@ -47,10 +47,42 @@ mixin TransactionDelegationMixin {
   static const int _maxRetries = 3;
   static const Duration _retryDelay = Duration(seconds: 30);
 
-  /// Initialize the delegation service
-  Future<void> initializeDelegation() async {
+  /// Helper method to ensure delegation service is ready
+  /// Automatically initializes and waits for Ditto connection
+  Future<bool> _ensureDelegationServiceReady({int maxRetries = 10}) async {
+    if (_delegationService.isReady()) {
+      return true;
+    }
+
+    debugPrint('⏳ Ensuring delegation service is ready...');
     await _delegationService.initialize();
-    debugPrint('✅ Transaction delegation initialized');
+
+    var retries = 0;
+    while (!_delegationService.isReady() && retries < maxRetries) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      retries++;
+    }
+
+    final isReady = _delegationService.isReady();
+    if (!isReady) {
+      debugPrint('❌ Delegation service not ready after $maxRetries retries');
+    }
+
+    return isReady;
+  }
+
+  /// Initialize the delegation service
+  /// Note: This is now optional as methods will auto-initialize if needed
+  Future<void> initializeDelegation() async {
+    final isReady = await _ensureDelegationServiceReady(maxRetries: 20);
+
+    if (isReady) {
+      debugPrint('✅ Transaction delegation initialized');
+    } else {
+      debugPrint(
+          '⚠️  Transaction delegation initialized but Ditto not ready yet');
+      debugPrint('   Service will auto-connect when Ditto becomes available');
+    }
   }
 
   /// Mobile: Check delegation status for a transaction
@@ -58,7 +90,7 @@ mixin TransactionDelegationMixin {
   Future<TransactionDelegationStatus?> checkDelegationStatus(
       String transactionId) async {
     try {
-      if (!_delegationService.isReady()) {
+      if (!await _ensureDelegationServiceReady(maxRetries: 5)) {
         debugPrint('⚠️  Delegation service not ready');
         return null;
       }
@@ -83,7 +115,7 @@ mixin TransactionDelegationMixin {
   /// Mobile: Get full delegation data for a transaction
   Future<Map<String, dynamic>?> getDelegationData(String transactionId) async {
     try {
-      if (!_delegationService.isReady()) {
+      if (!await _ensureDelegationServiceReady(maxRetries: 5)) {
         return null;
       }
 
@@ -128,9 +160,10 @@ mixin TransactionDelegationMixin {
     String? sarTyCd,
   }) async {
     try {
-      if (!_delegationService.isReady()) {
+      // Ensure delegation service is initialized and ready
+      if (!await _ensureDelegationServiceReady(maxRetries: 10)) {
         throw Exception(
-            'Delegation service not initialized. Call initializeDelegation() first.');
+            'Delegation service could not connect to Ditto. Please ensure Ditto is running and try again.');
       }
 
       // Create delegation in Ditto (syncs automatically to desktop)
@@ -184,8 +217,9 @@ mixin TransactionDelegationMixin {
       return; // Feature not enabled
     }
 
-    if (!_delegationService.isReady()) {
-      debugPrint('❌ Delegation service not ready');
+    // Ensure delegation service is ready
+    if (!await _ensureDelegationServiceReady(maxRetries: 20)) {
+      debugPrint('❌ Delegation service not ready after initialization');
       return;
     }
 

@@ -37,8 +37,7 @@ class DittoSyncRegistry {
       debugPrint(
           '🔔 DittoSyncRegistry listener invoked with ditto: ${ditto != null ? ditto.deviceName : 'null'}');
       if (ditto != null) {
-        debugPrint(
-            '🚀 Ditto instance received, starting async seeding process...');
+        debugPrint('🚀 Ditto instance received, initializing coordinator...');
         unawaited(() async {
           try {
             debugPrint('⏳ Waiting for Repository to be ready...');
@@ -57,24 +56,19 @@ class DittoSyncRegistry {
 
             if (kDebugMode) {
               debugPrint(
-                'Ditto seeding started using device: ${ditto.deviceName}',
+                'Ditto coordinator initialized using device: ${ditto.deviceName}',
               );
+              debugPrint(
+                  '� Call DittoSyncRegistry.seedAll() or DittoSyncRegistry.seedModel<T>() to seed data');
             }
-            debugPrint('🔄 Resetting seed state...');
-            DittoSyncGeneratedRegistry.resetSeedState();
-            debugPrint('🌱 Starting seed operation...');
-            await DittoSyncGeneratedRegistry.seed(
-              DittoSyncCoordinator.instance,
-            );
-            debugPrint('✅ Seed operation completed');
           } catch (error, stack) {
             if (kDebugMode) {
-              debugPrint('Ditto seeding failed: $error\n$stack');
+              debugPrint('Ditto initialization failed: $error\n$stack');
             }
           }
         }());
       } else {
-        debugPrint('⚠️  Ditto instance is null, skipping seeding');
+        debugPrint('⚠️  Ditto instance is null, coordinator not initialized');
       }
     };
 
@@ -108,5 +102,69 @@ class DittoSyncRegistry {
       types: types,
       includeDependencies: includeDependencies,
     );
+  }
+
+  /// Manually trigger seeding for all registered adapters.
+  /// This should be called by the user when they want to seed data to Ditto.
+  ///
+  /// Example:
+  /// ```dart
+  /// await DittoSyncRegistry.seedAll();
+  /// ```
+  static Future<void> seedAll() async {
+    if (!_registered) {
+      await registerDefaults();
+    }
+
+    if (kDebugMode) {
+      debugPrint('🌱 Manual seed operation started for all models...');
+    }
+
+    try {
+      DittoSyncGeneratedRegistry.resetSeedState();
+      await DittoSyncGeneratedRegistry.seed(
+        DittoSyncCoordinator.instance,
+      );
+      if (kDebugMode) {
+        debugPrint('✅ Manual seed operation completed successfully');
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('❌ Manual seed operation failed: $error\n$stack');
+      }
+      rethrow;
+    }
+  }
+
+  /// Manually trigger seeding for a specific model type.
+  /// This should be called by the user when they want to seed data for a specific model.
+  ///
+  /// Example:
+  /// ```dart
+  /// await DittoSyncRegistry.seedModel<Product>();
+  /// ```
+  static Future<void>
+      seedModel<T extends OfflineFirstWithSupabaseModel>() async {
+    if (!_registered) {
+      await registerDefaults();
+    }
+
+    if (kDebugMode) {
+      debugPrint('🌱 Manual seed operation started for ${T.toString()}...');
+    }
+
+    try {
+      await DittoSyncGeneratedRegistry.seedModel<T>(
+        DittoSyncCoordinator.instance,
+      );
+      if (kDebugMode) {
+        debugPrint('✅ Manual seed operation completed for ${T.toString()}');
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('❌ Manual seed failed for ${T.toString()}: $error\n$stack');
+      }
+      rethrow;
+    }
   }
 }

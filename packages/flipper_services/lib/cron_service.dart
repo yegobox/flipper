@@ -114,9 +114,9 @@ class CronService {
         // Hydrate essential data
         try {
           await Future.wait<void>([
-            ProxyService.strategy
-                .getCounters(branchId: branchId, fetchRemote: true)
-                .then((_) {}),
+            // ProxyService.strategy
+            //     .getCounters(branchId: branchId, fetchRemote: true)
+            //     .then((_) {}),
 
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
 
