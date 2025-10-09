@@ -51,22 +51,84 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
     _businessIdProviderOverride = null;
   }
 
+  @override
   String get collectionName => "stock_recounts";
+
+  @override
+  bool get shouldHydrateOnStartup => false;
 
   @override
   bool get supportsBackupPull => false;
 
+  Future<int?> _resolveBranchId({bool waitForValue = false}) async {
+    int? branchId =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (!waitForValue || branchId != null) {
+      return branchId;
+    }
+    final stopwatch = Stopwatch()..start();
+    const timeout = Duration(seconds: 30);
+    while (branchId == null && stopwatch.elapsed < timeout) {
+      await Future.delayed(const Duration(milliseconds: 200));
+      branchId =
+          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    }
+    if (branchId == null && kDebugMode) {
+      debugPrint(
+          "Ditto hydration for StockRecount timed out waiting for branchId");
+    }
+    return branchId;
+  }
+
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    final branchId =
-        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
-    if (branchId == null) {
+    return _buildQuery(waitForBranchId: false);
+  }
+
+  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
+    final branchId = await _resolveBranchId(waitForValue: waitForBranchId);
+    final branchIdString = ProxyService.box.branchIdString();
+    final bhfId = await ProxyService.box.bhfId();
+    final arguments = <String, dynamic>{};
+    final whereParts = <String>[];
+
+    if (branchId != null) {
+      whereParts.add('branchId = :branchId');
+      arguments["branchId"] = branchId;
+    }
+
+    if (branchIdString != null && branchIdString.isNotEmpty) {
+      whereParts.add(
+          '(branchId = :branchIdString OR branchIdString = :branchIdString)');
+      arguments["branchIdString"] = branchIdString;
+    }
+
+    if (bhfId != null && bhfId.isNotEmpty) {
+      whereParts.add('bhfId = :bhfId');
+      arguments["bhfId"] = bhfId;
+    }
+
+    if (whereParts.isEmpty) {
+      if (waitForBranchId) {
+        if (kDebugMode) {
+          debugPrint(
+              "Ditto hydration for StockRecount skipped because branch context is unavailable");
+        }
+        return null;
+      }
       return const DittoSyncQuery(query: "SELECT * FROM stock_recounts");
     }
+
+    final whereClause = whereParts.join(" OR ");
     return DittoSyncQuery(
-      query: "SELECT * FROM stock_recounts WHERE branchId = :branchId",
-      arguments: {"branchId": branchId},
+      query: "SELECT * FROM stock_recounts WHERE $whereClause",
+      arguments: arguments,
     );
+  }
+
+  @override
+  Future<DittoSyncQuery?> buildHydrationQuery() async {
+    return _buildQuery(waitForBranchId: true);
   }
 
   @override
