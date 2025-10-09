@@ -512,16 +512,28 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               completeTransaction: () {
                 // For digital payments, don't call completeTransaction yet
                 // We'll call it after this succeeds
-                talker.info("Receipt generation completed for digital payment");
+                talker
+                    .info("✅ Receipt generation completed for digital payment");
+                talker.info("📄 Receipt successfully saved and synced");
               },
             );
+
+            // Execution reaches here AFTER _finalStepInCompletingTransaction completes
+            talker.info(
+                "🏁 _finalStepInCompletingTransaction returned successfully");
 
             // Digital payment confirmed and receipt generated successfully
             // NOW we can call the actual completeTransaction callback
             talker.info(
                 "✅ Digital payment completed successfully - Closing bottom sheet");
+            talker.info(
+                "⏰ Receipt generation took: ${DateTime.now().toIso8601String()}");
+            talker.info(
+                "🔄 Calling completeTransaction callback to close bottom sheet...");
             _isProcessingPayment = false;
             completeTransaction();
+            talker.info(
+                "✅ completeTransaction callback executed - Bottom sheet should now close");
           } catch (e) {
             talker.error("❌ Error completing transaction after payment: $e");
             _isProcessingPayment = false; // Reset flag on error

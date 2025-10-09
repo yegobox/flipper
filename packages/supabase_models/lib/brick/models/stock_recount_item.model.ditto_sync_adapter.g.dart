@@ -169,12 +169,16 @@ class StockRecountItemDittoAdapter extends DittoSyncAdapter<StockRecountItem> {
   }
 
   static final int _$StockRecountItemDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator.registerAdapter<StockRecountItem>(
-        StockRecountItemDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator.registerAdapter<StockRecountItem>(
+                StockRecountItemDittoAdapter.instance);
+          },
+          modelType: StockRecountItem,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$StockRecountItemDittoAdapterRegistryToken;

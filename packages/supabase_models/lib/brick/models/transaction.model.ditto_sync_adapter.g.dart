@@ -22,8 +22,8 @@ part of 'transaction.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: sendOnly
-// This adapter sends data to Ditto but does NOT receive remote updates.
+// Sync Direction: bidirectional
+// This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
 class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
@@ -58,8 +58,15 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    // Send-only mode: no remote observation
-    return null;
+    final branchId =
+        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return const DittoSyncQuery(query: "SELECT * FROM transactions");
+    }
+    return DittoSyncQuery(
+      query: "SELECT * FROM transactions WHERE branchId = :branchId",
+      arguments: {"branchId": branchId},
+    );
   }
 
   @override
@@ -263,12 +270,16 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   }
 
   static final int _$ITransactionDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator
-        .registerAdapter<ITransaction>(ITransactionDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator.registerAdapter<ITransaction>(
+                ITransactionDittoAdapter.instance);
+          },
+          modelType: ITransaction,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$ITransactionDittoAdapterRegistryToken;

@@ -27,7 +27,7 @@ import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
-import 'package:flipper_services/transaction_delegation_service.dart';
+import 'package:flipper_services/realtime_delegation_service.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -57,13 +57,14 @@ Future<void> _initializeSupabase() async {
   }
 }
 
-// Function to initialize Transaction Delegation
+// Function to initialize Transaction Delegation (Real-time Ditto-based)
 Future<void> _initializeTransactionDelegation() async {
   try {
     await Future<void>.microtask(() async {
-      final delegationService = TransactionDelegationService();
-      await delegationService.startMonitoring();
-      debugPrint('✅ Transaction Delegation service initialized');
+      // Use the new real-time Ditto-based monitoring
+      final delegationService = RealtimeDelegationService();
+      await delegationService.initialize();
+      debugPrint('✅ Real-time Transaction Delegation initialized');
     });
   } catch (e) {
     debugPrint(

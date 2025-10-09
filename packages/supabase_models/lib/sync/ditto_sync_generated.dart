@@ -12,11 +12,13 @@ typedef DittoAdapterSeeder = Future<void> Function(
 class _DittoSyncGeneratedEntry {
   _DittoSyncGeneratedEntry({
     required this.registrar,
+    required this.modelType,
     this.seeder,
     this.reset,
   });
 
   final DittoAdapterRegistrar registrar;
+  final Type modelType;
   final DittoAdapterSeeder? seeder;
   final void Function()? reset;
   bool seeded = false;
@@ -31,18 +33,21 @@ class DittoSyncGeneratedRegistry {
   /// Adds a generated registrar and returns the total number registered.
   static int register(
     DittoAdapterRegistrar registrar, {
+    required Type modelType,
     DittoAdapterSeeder? seed,
     void Function()? reset,
   }) {
     _entries.add(
       _DittoSyncGeneratedEntry(
         registrar: registrar,
+        modelType: modelType,
         seeder: seed,
         reset: reset,
       ),
     );
     if (kDebugMode) {
-      debugPrint('📝 Registered adapter #${_entries.length}');
+      debugPrint(
+          '📝 Registered adapter #${_entries.length} for ${modelType.toString()}');
     }
     return _entries.length;
   }
@@ -83,6 +88,52 @@ class DittoSyncGeneratedRegistry {
     }
     if (kDebugMode) {
       debugPrint('✅ Seeding complete: ran $seededCount seeder(s)');
+    }
+  }
+
+  /// Runs seeder for a specific model type.
+  /// This is useful when you only want to seed one model at a time.
+  static Future<void> seedModel<T>(DittoSyncCoordinator coordinator) async {
+    if (kDebugMode) {
+      debugPrint('🌱 Seeding model ${T.toString()}...');
+    }
+
+    _DittoSyncGeneratedEntry? targetEntry;
+    for (final entry in _entries) {
+      if (entry.modelType == T) {
+        targetEntry = entry;
+        break;
+      }
+    }
+
+    if (targetEntry == null) {
+      if (kDebugMode) {
+        debugPrint('⚠️  No seeder found for model ${T.toString()}');
+      }
+      return;
+    }
+
+    final seeder = targetEntry.seeder;
+    if (seeder == null) {
+      if (kDebugMode) {
+        debugPrint('⚠️  Model ${T.toString()} has no seeder defined');
+      }
+      return;
+    }
+
+    try {
+      // Reset the seeded flag to allow re-seeding
+      targetEntry.seeded = false;
+      await seeder(coordinator);
+      targetEntry.seeded = true;
+      if (kDebugMode) {
+        debugPrint('✅ Seeded model ${T.toString()}');
+      }
+    } catch (error, stack) {
+      if (kDebugMode) {
+        debugPrint('❌ Failed to seed model ${T.toString()}: $error\n$stack');
+      }
+      rethrow;
     }
   }
 

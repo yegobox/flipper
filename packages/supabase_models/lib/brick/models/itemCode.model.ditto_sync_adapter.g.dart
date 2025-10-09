@@ -152,11 +152,16 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   }
 
   static final int _$ItemCodeDittoAdapterRegistryToken =
-      DittoSyncGeneratedRegistry.register((coordinator) async {
-    await coordinator.registerAdapter<ItemCode>(ItemCodeDittoAdapter.instance);
-  }, seed: (coordinator) async {
-    await _seed(coordinator);
-  }, reset: _resetSeedFlag);
+      DittoSyncGeneratedRegistry.register(
+          (coordinator) async {
+            await coordinator
+                .registerAdapter<ItemCode>(ItemCodeDittoAdapter.instance);
+          },
+          modelType: ItemCode,
+          seed: (coordinator) async {
+            await _seed(coordinator);
+          },
+          reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
   static int get registryToken => _$ItemCodeDittoAdapterRegistryToken;

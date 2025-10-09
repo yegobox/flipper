@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_dashboard/bottomSheet.dart';
+import 'package:flipper_dashboard/widgets/reset_transaction_button.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -185,7 +186,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
           // Action Icons
           Row(
             children: [
-              // Camera Icon
+              // Reset Transaction Icon
+              const ResetTransactionButton(),
 
               // Add Customer Icon
               IconButton(
