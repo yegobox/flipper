@@ -164,9 +164,14 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
         buffer
           ..writeln('    final branchId = await _resolveBranchId();')
           ..writeln('    if (branchId == null) {')
+          ..writeln('      if (kDebugMode) {')
           ..writeln(
-            '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+            '        debugPrint("Ditto backup pull for $className skipped because branch context is unavailable");',
           )
+          ..writeln('      }')
+          ..writeln('      return const DittoSyncQuery(')
+          ..writeln('        query: "SELECT * FROM $collectionName WHERE 1 = 0",')
+          ..writeln('      );')
           ..writeln('    }')
           ..writeln('    return DittoSyncQuery(')
           ..writeln(
@@ -294,9 +299,14 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
           ..writeln('        }')
           ..writeln('        return null;')
           ..writeln('      }')
+          ..writeln('      if (kDebugMode) {')
           ..writeln(
-            '      return const DittoSyncQuery(query: "SELECT * FROM $collectionName");',
+            '        debugPrint("Ditto observation for $className deferred until branch context is available");',
           )
+          ..writeln('      }')
+          ..writeln('      return const DittoSyncQuery(')
+          ..writeln('        query: "SELECT * FROM $collectionName WHERE 1 = 0",',)
+          ..writeln('      );')
           ..writeln('    }')
           ..writeln('')
           ..writeln('    final whereClause = whereParts.join(" OR ");')

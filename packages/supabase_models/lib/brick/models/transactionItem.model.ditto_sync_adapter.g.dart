@@ -116,7 +116,13 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
         }
         return null;
       }
-      return const DittoSyncQuery(query: "SELECT * FROM transaction_items");
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto observation for TransactionItem deferred until branch context is available");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM transaction_items WHERE 1 = 0",
+      );
     }
 
     final whereClause = whereParts.join(" OR ");
