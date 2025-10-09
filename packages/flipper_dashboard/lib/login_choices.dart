@@ -16,8 +16,11 @@ import 'package:flipper_personal/flipper_personal.dart';
 
 import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:supabase_models/sync/ditto_sync_registry.dart';
+import 'package:supabase_models/brick/models/counter.model.dart';
 // Import for payment plan route is already available from app.router.dart
 // ignore: unnecessary_import
 
@@ -39,6 +42,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   final _routerService = locator<RouterService>();
   final talker = Talker();
+
   @override
   void dispose() {
     _navigationTimer?.cancel();
@@ -250,12 +254,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } catch (e) {
       talker.error('Error handling business selection: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorHandler.showErrorSnackBar(context, e);
       }
     } finally {
       if (mounted) {
@@ -282,6 +281,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
     try {
       await _setDefaultBranch(branch);
+
+      // Observers are now registered in _setDefaultBranch
+      // They will automatically pull data and listen for changes
+      // No need for manual pull, diagnostics, or delays here!
 
       if (!isMobile) {
         // Choose default app if not set
@@ -352,12 +355,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text('An error occurred: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ErrorHandler.showErrorSnackBar(context, e);
     } finally {
       if (mounted) {
         setState(() {
@@ -383,12 +381,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } catch (e) {
       talker.error('Error setting default business: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ErrorHandler.showErrorSnackBar(context, e);
         rethrow;
       }
     } finally {
@@ -417,6 +410,23 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
           value: DateTime.now().millisecondsSinceEpoch);
       await ProxyService.box
           .writeInt(key: 'active_branch_id', value: branch.serverId!);
+
+      // ✨ NOW REGISTER DITTO OBSERVER FOR COUNTER ONLY - branchId is set!
+      try {
+        talker.info('🔔 Registering Ditto observer for Counter model only...');
+        // skipInitialFetch: false ensures we pull existing data from Ditto Cloud
+        await DittoSyncRegistry.registerObserversForTypes(
+          [Counter],
+          skipInitialFetch: false, // PULL initial data!
+        );
+        talker.info('✅ Counter observer registered successfully');
+        talker
+            .info('💡 Observer will pull existing data and listen for changes');
+      } catch (e) {
+        talker.warning('⚠️  Failed to register Counter observer: $e');
+        // Don't block login if observer registration fails
+      }
+
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
     } catch (e) {
