@@ -26,8 +26,8 @@ import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_dashboard/utils/stock_validator.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Stock validation functions have been moved to utils/stock_validator.dart
 
@@ -47,6 +47,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixinOld, TextEditingControllersMixin {
   // Store stream subscription for proper cleanup
   StreamSubscription? _paymentStatusSubscription;
+  RealtimeChannel? _paymentStatusChannel;
 
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
@@ -54,6 +55,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   @override
   void dispose() {
     _paymentStatusSubscription?.cancel();
+    _paymentStatusChannel?.unsubscribe();
     super.dispose();
   }
 
@@ -519,25 +521,17 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       talker.info("📤 Payment request sent to phone: $phoneNumber");
       talker.info("💰 Amount: ${transaction.subTotal!.toInt()}");
 
-      await ProxyService.strategy.upsertPayment(CustomerPayments(
-        phoneNumber: phoneNumber,
-        paymentStatus: "pending",
-        amountPayable: transaction.subTotal!,
-        transactionId: transaction.id,
-      ));
+      await Supabase.instance.client.from('customer_payments').upsert({
+        'phoneNumber': phoneNumber,
+        'paymentStatus': "pending",
+        'amountPayable': transaction.subTotal!,
+        'transactionId': transaction.id,
+      });
 
       talker.info(
           "⏳ Payment status set to PENDING - Waiting for user confirmation...");
       talker.info(
           "🔍 Setting up realtime listener for transaction: ${transaction.id}");
-
-      final query = Query(where: [
-        Where('transactionId').isExactly(transaction.id),
-        Where('paymentStatus').isExactly('completed'),
-      ]);
-
-      // Cancel any existing subscription
-      await _paymentStatusSubscription?.cancel();
 
       talker.info(
           "👂 Realtime listener active - Will trigger when payment status = 'completed'");
@@ -548,103 +542,105 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           talker.warning("⏰ Payment confirmation timeout after 60 seconds");
           onPaymentFailed
               ?.call('Payment confirmation timeout. Please try again.');
-          _paymentStatusSubscription?.cancel();
+          _paymentStatusChannel?.unsubscribe();
         }
       });
 
-      // Store subscription for cleanup
-      _paymentStatusSubscription = Repository()
-          .subscribeToRealtime<CustomerPayments>(query: query)
-          .listen(
-        (data) async {
-          if (data.isEmpty) return;
+      // Cancel any existing subscription
+      await _paymentStatusSubscription?.cancel();
 
-          // Prevent double-processing
-          if (_isProcessingPayment) {
-            talker.warning(
-                "⚠️ Already processing payment, skipping duplicate event");
-            return;
-          }
+      // Create channel with callback
+      final channel = Supabase.instance.client
+          .channel('customer_payments_${transaction.id}')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.update,
+            schema: 'public',
+            table: 'customer_payments',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'transactionId',
+              value: transaction.id,
+            ),
+            callback: (payload) async {
+              // Extract the new record from the payload
+              final newRecord = payload.newRecord;
+              // Filter for completed payments only
+              if (newRecord['paymentStatus'] != 'completed') return;
 
-          // Verify payment is actually completed
-          final payment = data.first;
-          if (payment.paymentStatus != 'completed') {
-            talker.warning(
-                "Payment status is not completed: ${payment.paymentStatus}");
-            return;
-          }
+              // Prevent double-processing
+              if (_isProcessingPayment) {
+                talker.warning(
+                    "⚠️ Already processing payment, skipping duplicate event");
+                return;
+              }
 
-          // Mark as processing
-          _isProcessingPayment = true;
+              // Mark as processing
+              _isProcessingPayment = true;
 
-          talker.info(
-              "✅ Payment CONFIRMED by user - Status: ${payment.paymentStatus}");
-          talker.info(
-              "📱 Phone: ${payment.phoneNumber}, Amount: ${payment.amountPayable}");
+              talker.info(
+                  "✅ Payment CONFIRMED by user - Status: ${newRecord['paymentStatus']}");
+              talker.info(
+                  "📱 Phone: ${newRecord['phoneNumber']}, Amount: ${newRecord['amountPayable']}");
 
-          // Check if widget is still mounted before proceeding
-          if (!mounted) {
-            talker.warning("Widget disposed, skipping payment completion");
-            _isProcessingPayment = false;
-            return;
-          }
+              // Check if widget is still mounted before proceeding
+              if (!mounted) {
+                talker.warning("Widget disposed, skipping payment completion");
+                _isProcessingPayment = false;
+                return;
+              }
 
-          try {
-            // Call the onPaymentConfirmed callback to update UI
-            onPaymentConfirmed?.call();
+              try {
+                // Call the onPaymentConfirmed callback to update UI
+                onPaymentConfirmed?.call();
 
-            talker.info(
-                "🧾 Starting receipt generation after payment confirmation...");
-            await _finalStepInCompletingTransaction(
-              customer: customer,
-              transaction: transaction,
-              amount: amount,
-              discount: discount,
-              paymentType: paymentType,
-              completeTransaction: () {
-                // For digital payments, don't call completeTransaction yet
-                // We'll call it after this succeeds
+                talker.info(
+                    "🧾 Starting receipt generation after payment confirmation...");
+                await _finalStepInCompletingTransaction(
+                  customer: customer,
+                  transaction: transaction,
+                  amount: amount,
+                  discount: discount,
+                  paymentType: paymentType,
+                  completeTransaction: () {
+                    // For digital payments, don't call completeTransaction yet
+                    // We'll call it after this succeeds
+                    talker.info(
+                        "✅ Receipt generation completed for digital payment");
+                    talker.info("📄 Receipt successfully saved and synced");
+                  },
+                );
+
+                // Execution reaches here AFTER _finalStepInCompletingTransaction completes
+                talker.info(
+                    "🏁 _finalStepInCompletingTransaction returned successfully");
+
+                // Digital payment confirmed and receipt generated successfully
+                // NOW we can call the actual completeTransaction callback
+                talker.info(
+                    "✅ Digital payment completed successfully - Closing bottom sheet");
+                talker.info(
+                    "⏰ Receipt generation took: ${DateTime.now().toIso8601String()}");
+                talker.info(
+                    "🔄 Calling completeTransaction callback to close bottom sheet...");
+                _isProcessingPayment = false;
+                paymentTimeout.cancel(); // Cancel timeout on success
+                completeTransaction();
+                talker.info(
+                    "✅ completeTransaction callback executed - Bottom sheet should now close");
+              } catch (e) {
                 talker
-                    .info("✅ Receipt generation completed for digital payment");
-                talker.info("📄 Receipt successfully saved and synced");
-              },
-            );
+                    .error("❌ Error completing transaction after payment: $e");
+                _isProcessingPayment = false; // Reset flag on error
+                paymentTimeout.cancel(); // Cancel timeout on error
+                onPaymentFailed
+                    ?.call(e.toString().replaceAll('Exception: ', ''));
+                rethrow;
+              }
+            },
+          );
 
-            // Execution reaches here AFTER _finalStepInCompletingTransaction completes
-            talker.info(
-                "🏁 _finalStepInCompletingTransaction returned successfully");
-
-            // Digital payment confirmed and receipt generated successfully
-            // NOW we can call the actual completeTransaction callback
-            talker.info(
-                "✅ Digital payment completed successfully - Closing bottom sheet");
-            talker.info(
-                "⏰ Receipt generation took: ${DateTime.now().toIso8601String()}");
-            talker.info(
-                "🔄 Calling completeTransaction callback to close bottom sheet...");
-            _isProcessingPayment = false;
-            paymentTimeout.cancel(); // Cancel timeout on success
-            completeTransaction();
-            talker.info(
-                "✅ completeTransaction callback executed - Bottom sheet should now close");
-          } catch (e) {
-            talker.error("❌ Error completing transaction after payment: $e");
-            _isProcessingPayment = false; // Reset flag on error
-            paymentTimeout.cancel(); // Cancel timeout on error
-            onPaymentFailed?.call(e.toString().replaceAll('Exception: ', ''));
-            rethrow;
-          }
-        },
-        onError: (error) {
-          talker.error("❌ Digital payment stream error: $error");
-          _isProcessingPayment = false; // Reset flag on error
-          paymentTimeout.cancel(); // Cancel timeout on error
-          onPaymentFailed?.call('Digital payment failed. Please try again.');
-          if (mounted) {
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-          }
-        },
-      );
+      // Subscribe to the channel
+      _paymentStatusChannel = channel.subscribe();
     } catch (e) {
       talker.error("Error in digital payment processing: $e");
       rethrow;

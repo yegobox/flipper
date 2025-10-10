@@ -173,7 +173,6 @@ dependencies:
   path: ^1.8.1
   googleapis: ^11.2.0
   googleapis_auth: ^1.4.1
-  flipper_nfc: ^1.2.0
   timezone: ^0.10.0
   flutter_statusbarcolor_ns: ^0.5.0-flipper
   
