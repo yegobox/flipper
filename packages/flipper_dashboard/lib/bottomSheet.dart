@@ -518,15 +518,18 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       final shouldWaitForPayment = await widget.onCharge(transactionId, total);
 
       // Only close the bottom sheet if we're NOT waiting for payment
+      // For cash payments, the confirmation dialog will handle closing
       if (mounted && shouldWaitForPayment != true) {
+        // Don't close immediately for cash payments - let confirmation dialog handle it
         setState(() {
           _isLoading = false;
           _isWaitingForPayment = false;
         });
         _pulseAnimationController.stop();
         _pulseAnimationController.reset();
+        // Note: We don't call Navigator.of(context).pop() here anymore
+        // The confirmation dialog in previewCart.dart will handle closing
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-        Navigator.of(context).pop();
       } else if (mounted && shouldWaitForPayment == true) {
         // We're waiting for digital payment confirmation
         setState(() {
