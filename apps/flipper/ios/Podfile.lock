@@ -25,10 +25,10 @@ PODS:
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
-  - ditto_live (4.12.1):
-    - DittoFlutter (= 4.12.1)
+  - ditto_live (4.12.3):
+    - DittoFlutter (= 4.12.3)
     - Flutter
-  - DittoFlutter (4.12.1)
+  - DittoFlutter (4.12.3)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -311,7 +311,7 @@ PODS:
     - Flutter
   - pointer_interceptor_ios (0.0.1):
     - Flutter
-  - PostHog (3.31.0)
+  - PostHog (3.32.0)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -324,9 +324,9 @@ PODS:
   - RecaptchaInterop (101.0.0)
   - record_ios (1.1.0):
     - Flutter
-  - SDWebImage (5.21.2):
-    - SDWebImage/Core (= 5.21.2)
-  - SDWebImage/Core (5.21.2)
+  - SDWebImage (5.21.3):
+    - SDWebImage/Core (= 5.21.3)
+  - SDWebImage/Core (5.21.3)
   - Sentry/HybridSDK (8.52.1)
   - sentry_flutter (9.6.0):
     - Flutter
@@ -576,8 +576,8 @@ SPEC CHECKSUMS:
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
   desktop_webview_auth: d645139460ef203d50bd0cdb33356785dd939cce
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
-  ditto_live: 1be1eed05839d3b3799ee3918c9bcf9e4b99a20a
-  DittoFlutter: 261af21f8f2aeb15699d97413604ff4df88f846d
+  ditto_live: 84e627026343b822e0f9e6d3630076143d663d57
+  DittoFlutter: a3880144e39140ce02625c14fcadb1044c7455cb
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
@@ -634,14 +634,14 @@ SPEC CHECKSUMS:
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   pointer_interceptor_ios: 508241697ff0947f853c061945a8b822463947c1
-  PostHog: fcb0bc4425a69a2b0ee0ff5782b298a23aedcc83
+  PostHog: 9a72bf7af69258c8e335670394a8974de4c6f160
   posthog_flutter: 1d3bb477afcff6282596402b3d49187099f02b91
   printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   record_ios: 840d21cce013c5a3b2168b74a54ebdb4136359e2
-  SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
+  SDWebImage: 16309af6d214ba3f77a7c6f6fdda888cb313a50a
   Sentry: 2cbbe3592f30050c60e916c63c7f5a2fa584005e
   sentry_flutter: feb376a4d8fd37387898b94e00da2060eeab2a41
   share_plus: 8b6f8b3447e494cca5317c8c3073de39b3600d1f

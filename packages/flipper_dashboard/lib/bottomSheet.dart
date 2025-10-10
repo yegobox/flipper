@@ -35,6 +35,8 @@ class BottomSheets {
       onModalDismissedWithBarrierTap: () {
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
       },
+      barrierDismissible: false,
+      enableDrag: false,
       context: context,
       pageListBuilder: (BuildContext context) {
         return [
@@ -62,14 +64,26 @@ class BottomSheets {
                   ),
                   // Header
                   Container(
-                    padding: EdgeInsets.only(left: 90, right: 90),
+                    padding: EdgeInsets.only(left: 20, right: 20),
                     child: Row(
                       children: [
                         Text(
-                          'Complete Your Sale',
+                          'Complete Your Sale!',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.close, color: Colors.grey[600]),
+                          onPressed: () {
+                            ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+                            Navigator.of(context).pop();
+                          },
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.grey[100],
+                            padding: EdgeInsets.all(8),
                           ),
                         ),
                       ],
@@ -481,19 +495,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       _customerPhoneError = phoneError;
     });
     if (phoneError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Expanded(child: Text(phoneError)),
-            ],
-          ),
-          backgroundColor: Colors.red[600],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
+      showCustomSnackBarUtil(
+        context,
+        phoneError,
+        backgroundColor: Colors.red[600],
+        showCloseButton: true,
       );
       return;
     }
@@ -561,7 +567,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
     // Listen for loading state changes to detect errors during payment
     ref.listen(payButtonStateProvider, (previous, next) {
-      // If we're waiting for payment and loading stops, there might be an error
+      // If we're waiting for payment and loading stops, close the sheet
       final wasLoading = previous?[ButtonType.pay] == true;
       final isNowLoading = next[ButtonType.pay] == true;
 
@@ -573,6 +579,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           });
           _pulseAnimationController.stop();
           _pulseAnimationController.reset();
+          Navigator.of(context)
+              .pop(); // Close the sheet after payment completes
         }
       }
     });
