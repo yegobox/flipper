@@ -78,7 +78,9 @@ class BottomSheets {
                         IconButton(
                           icon: Icon(Icons.close, color: Colors.grey[600]),
                           onPressed: () {
-                            ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+                            ref
+                                .read(oldProvider.loadingProvider.notifier)
+                                .stopLoading();
                             Navigator.of(context).pop();
                           },
                           style: IconButton.styleFrom(
