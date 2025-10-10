@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_services/proxy.dart';
 
 /// Service for managing transaction delegation between mobile and desktop devices
 /// using Ditto for real-time cross-device sync
@@ -168,6 +169,8 @@ class DittoDelegationService {
           for (final delegation in delegations) {
             debugPrint(
                 '🔔 Desktop received delegation: ${delegation['transactionId']}');
+            ProxyService.notification.sendLocalNotification(
+                body: "Received new Request for processing");
             onNewDelegation(delegation);
           }
 

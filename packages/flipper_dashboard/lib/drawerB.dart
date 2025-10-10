@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -1164,17 +1165,13 @@ class _MobileTransactionDelegationSettingsState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              value
-                  ? '✓ Transaction delegation enabled'
-                  : 'Transaction delegation disabled',
-            ),
-            backgroundColor: value ? const Color(0xFF107C10) : Colors.grey[700],
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 2),
-          ),
+        showCustomSnackBarUtil(
+          context,
+          value
+              ? 'Transaction delegation enabled'
+              : 'Transaction delegation disabled',
+          type: value ? NotificationType.success : NotificationType.info,
+          duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
@@ -1183,12 +1180,10 @@ class _MobileTransactionDelegationSettingsState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: const Color(0xFFD13438),
-            behavior: SnackBarBehavior.floating,
-          ),
+        showCustomSnackBarUtil(
+          context,
+          'Error: ${e.toString()}',
+          type: NotificationType.error,
         );
       }
     }
@@ -1256,7 +1251,7 @@ class _MobileTransactionDelegationSettingsState
               Switch(
                 value: _isEnabled,
                 onChanged: _toggleDelegation,
-                activeColor: const Color(0xFF0078D4),
+                activeThumbColor: const Color(0xFF0078D4),
               ),
             ],
           ),
@@ -1283,7 +1278,7 @@ class _MobileTransactionDelegationSettingsState
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0078D4).withOpacity(0.1),
+                      color: const Color(0xFF0078D4).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Icon(
