@@ -27,10 +27,10 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - ditto_live (4.12.1):
-    - DittoFlutter (= 4.12.1)
+  - ditto_live (4.12.3):
+    - DittoFlutter (= 4.12.3)
     - FlutterMacOS
-  - DittoFlutter (4.12.1)
+  - DittoFlutter (4.12.3)
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_selector_macos (0.0.1):
@@ -265,7 +265,7 @@ PODS:
     - CocoaAsyncSocket (~> 7.6)
     - Flutter
     - FlutterMacOS
-  - PostHog (3.31.0)
+  - PostHog (3.32.0)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -514,8 +514,8 @@ SPEC CHECKSUMS:
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  ditto_live: b75bfc89eea45acc1e24ae409a40f8bbd7d1edde
-  DittoFlutter: 261af21f8f2aeb15699d97413604ff4df88f846d
+  ditto_live: a7046de26dd36d41e7a206d76c795e2a1d43af27
+  DittoFlutter: a3880144e39140ce02625c14fcadb1044c7455cb
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: 26f6f8d460603af3df970ad505b16b15f5e2e9a1
@@ -561,7 +561,7 @@ SPEC CHECKSUMS:
   pasteboard: 9b69dba6fedbb04866be632205d532fe2f6b1d99
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
-  PostHog: fcb0bc4425a69a2b0ee0ff5782b298a23aedcc83
+  PostHog: 9a72bf7af69258c8e335670394a8974de4c6f160
   posthog_flutter: 1d3bb477afcff6282596402b3d49187099f02b91
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
@@ -581,6 +581,6 @@ SPEC CHECKSUMS:
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
   window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
 
-PODFILE CHECKSUM: 7ce0337a96d3ed617629d7e8264f55543acf0f0f
+PODFILE CHECKSUM: 07a5f03c3804b0dc35f1884d9a39ae9d72f46f82
 
 COCOAPODS: 1.16.2
