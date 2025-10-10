@@ -506,41 +506,30 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       return;
     }
 
-    try {
-      setState(() {
-        _isLoading = true;
-      });
-      ref.read(oldProvider.loadingProvider.notifier).startLoading();
+    // Optimistically transition to waiting state for better UX
+    setState(() {
+      _isLoading = true;
+      _isWaitingForPayment = true;
+    });
+    _pulseAnimationController.repeat(reverse: true);
+    ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
+    try {
       // Call onCharge and get the result
-      // Returns true if waiting for digital payment confirmation
-      // Returns false if payment is complete (cash/immediate)
       final shouldWaitForPayment = await widget.onCharge(transactionId, total);
 
-      // Only close the bottom sheet if we're NOT waiting for payment
-      // For cash payments, the confirmation dialog will handle closing
+      // If it's not a waiting payment (e.g., cash), reset the UI.
+      // The confirmation dialog in previewCart.dart will handle closing.
       if (mounted && shouldWaitForPayment != true) {
-        // Don't close immediately for cash payments - let confirmation dialog handle it
         setState(() {
           _isLoading = false;
           _isWaitingForPayment = false;
         });
         _pulseAnimationController.stop();
         _pulseAnimationController.reset();
-        // Note: We don't call Navigator.of(context).pop() here anymore
-        // The confirmation dialog in previewCart.dart will handle closing
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-      } else if (mounted && shouldWaitForPayment == true) {
-        // We're waiting for digital payment confirmation
-        setState(() {
-          _isWaitingForPayment = true;
-          _isLoading = true; // Keep loading state
-        });
-        // Start pulse animation
-        _pulseAnimationController.repeat(reverse: true);
       }
-      // If shouldWaitForPayment is true, the bottom sheet stays open
-      // and will be closed when the payment completes via the callback
+      // If shouldWaitForPayment is true, we're already in the waiting state, so we do nothing.
     } catch (e) {
       talker.error('Charge failed: $e');
       if (mounted) {
@@ -572,7 +561,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
     // Listen for loading state changes to detect errors during payment
     ref.listen(payButtonStateProvider, (previous, next) {
-      // If we're waiting for payment and loading stops, close the sheet
+      // If we're waiting for payment and loading stops, reset the button state.
       final wasLoading = previous?[ButtonType.pay] == true;
       final isNowLoading = next[ButtonType.pay] == true;
 
@@ -584,8 +573,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           });
           _pulseAnimationController.stop();
           _pulseAnimationController.reset();
-          Navigator.of(context)
-              .pop(); // Close the sheet after payment completes
+          // NOTE: We no longer pop the navigator here.
+          // Closing is handled by the completeTransaction callback to prevent premature closing.
         }
       }
     });
@@ -869,7 +858,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       ),
                     ),
                     Text(
-                      formatNumber(total),
+                      total.toCurrencyFormatted(),
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -891,23 +880,51 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                   scale: _isWaitingForPayment
                       ? _pulseAnimation.value
                       : _buttonScaleAnimation.value,
-                  child: FlipperButton(
-                    color: items.isEmpty
-                        ? Colors.grey
-                        : _isWaitingForPayment
-                            ? Colors.orange
-                            : Colors.green,
-                    width: double.infinity,
-                    text: items.isEmpty
-                        ? 'Add items to charge'
-                        : _isWaitingForPayment
-                            ? 'Waiting for payment...'
-                            : 'Charge ${formatNumber(total)}',
-                    isLoading: _isLoading,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: items.isEmpty
+                          ? Colors.grey
+                          : _isWaitingForPayment
+                              ? Colors.orange
+                              : Colors.green,
+                      foregroundColor: Colors.white,
+                      minimumSize: Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: items.isEmpty || _isLoading
                         ? null
                         : () => _handleCharge(
                             widget.transactionIdInt.toString(), total),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isWaitingForPayment) ...[
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                        ],
+                        Text(
+                          items.isEmpty
+                              ? 'Add items to charge'
+                              : _isWaitingForPayment
+                                  ? 'Waiting for payment...'
+                                  : 'Charge ${total.toCurrencyFormatted()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
