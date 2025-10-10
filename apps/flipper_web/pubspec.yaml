@@ -4,7 +4,7 @@ description: "A new Flutter project."
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+162
+version: 1.0.0+163
 
 environment:
   sdk: ^3.9.2
@@ -25,7 +25,7 @@ dependencies:
   equatable: ^2.0.7
   firebase_auth: ^6.1.0
   firebase_core: ^4.1.1
-  ditto_live: ^4.12.1
+  ditto_live: ^4.12.3
   permission_handler: ^11.3.1
   wolt_modal_sheet: 0.11.0
   google_fonts: ^6.2.1

@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
+import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -55,7 +56,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         TextEditingControllersMixin,
         PreviewCartMixin,
         TransactionItemTable,
-        DateCoreWidget {
+        DateCoreWidget,
+        Refresh<QuickSellingView> {
   double get totalAfterDiscountAndShipping {
     final discountPercent =
         double.tryParse(widget.discountController.text) ?? 0.0;
@@ -85,9 +87,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Future<void> _onQuickSellComplete(ITransaction transaction) async {
-    final startTime = transaction.createdAt!;
+    final startTime = transaction.createdAt ?? DateTime.now().toUtc();
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
+
     PosthogService.instance.capture('quick_sell_completed', properties: {
       'transaction_id': transaction.id,
       'branch_id': transaction.branchId!,
@@ -97,7 +100,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       'duration_seconds': duration,
       'source': 'quick_selling_view',
     });
-    // Place your existing completion logic here...
+
+    ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
+    ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+
+    if (!mounted) {
+      return;
+    }
+
+    ref.read(payButtonStateProvider.notifier).stopLoading();
+
+    // Clear stale cart items for the completed transaction.
+    ref.refresh(
+      transactionItemsStreamProvider(transactionId: transaction.id),
+    );
+
+    await newTransaction(typeOfThisTransactionIsExpense: false);
+
+    if (ref.read(previewingCart)) {
+      ref.read(previewingCart.notifier).state = false;
+    }
   }
 
   @override

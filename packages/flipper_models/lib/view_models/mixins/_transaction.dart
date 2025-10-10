@@ -82,6 +82,7 @@ mixin TransactionMixinOld {
       }
 
       if (response == null) {
+        onComplete();
         return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
       }
 
