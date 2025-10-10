@@ -369,6 +369,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                       TextButton(
                         onPressed: () {
                           Navigator.of(dialogContext).pop();
+                          // Stop loading before completing
+                          ref
+                              .read(payButtonStateProvider.notifier)
+                              .stopLoading();
                           completeTransaction(); // Close bottom sheet
                         },
                         child: Text(
@@ -379,6 +383,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                       ElevatedButton(
                         onPressed: () async {
                           Navigator.of(dialogContext).pop();
+                          // Stop loading before completing
+                          ref
+                              .read(payButtonStateProvider.notifier)
+                              .stopLoading();
                           // Print receipt will be handled by the completeTransaction callback
                           completeTransaction(); // Close bottom sheet
                         },
@@ -636,7 +644,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           talker.error("❌ Digital payment stream error: $error");
           _isProcessingPayment = false; // Reset flag on error
           if (mounted) {
-            throw Exception("Digital payment failed: $error");
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            showCustomSnackBarUtil(
+              context,
+              'Digital payment failed. Please try again.',
+              type: NotificationType.error,
+              showCloseButton: true,
+            );
           }
         },
       );
