@@ -20,6 +20,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -302,7 +303,11 @@ class CheckOutState extends ConsumerState<CheckOut>
           ref.read(payButtonStateProvider.notifier).stopLoading();
 
           // Close the bottom sheet if it's open (for digital payments)
-          if (mounted && Navigator.of(context).canPop()) {
+          if (!kIsWeb &&
+              (defaultTargetPlatform == TargetPlatform.iOS ||
+                  defaultTargetPlatform == TargetPlatform.android) &&
+              mounted &&
+              Navigator.of(context).canPop()) {
             Navigator.of(context).pop();
           }
 

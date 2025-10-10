@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/transaction_delegation_service.dart';
+import 'package:flipper_services/realtime_delegation_service.dart';
 import 'dart:io';
 
 /// Widget to manage transaction delegation settings
@@ -49,11 +49,11 @@ class _TransactionDelegationSettingsState
 
       // Start/stop monitoring service on desktop
       if (_isDesktopPlatform()) {
-        final service = TransactionDelegationService();
+        final service = RealtimeDelegationService();
         if (value) {
-          await service.startMonitoring();
+          await service.initialize();
         } else {
-          service.stopMonitoring();
+          await service.dispose();
         }
       }
 
@@ -216,7 +216,7 @@ class _TransactionDelegationSettingsState
             ),
           ] else if (_isDesktopPlatform()) ...[
             _buildInfoItem(
-              '• Desktop monitors for delegated transactions every 10 seconds',
+              '• Desktop monitors for delegated transactions in real-time',
             ),
             _buildInfoItem(
               '• Automatically processes receipts from mobile devices',
@@ -247,7 +247,7 @@ class _TransactionDelegationSettingsState
   }
 
   Widget _buildDesktopMonitoringStatus(BuildContext context) {
-    final service = TransactionDelegationService();
+    final service = RealtimeDelegationService();
     final isMonitoring = service.isMonitoring;
 
     return Container(
@@ -281,29 +281,18 @@ class _TransactionDelegationSettingsState
           if (isMonitoring)
             TextButton.icon(
               onPressed: () async {
-                try {
-                  await service.checkNow();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Checked for delegated transactions'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error: ${e.toString()}'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
+                // Real-time monitoring doesn't need manual checks
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Real-time monitoring is active'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 }
               },
               icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Check Now'),
+              label: const Text('Status'),
             ),
         ],
       ),

@@ -170,7 +170,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
           )
           ..writeln('      }')
           ..writeln('      return const DittoSyncQuery(')
-          ..writeln('        query: "SELECT * FROM $collectionName WHERE 1 = 0",')
+          ..writeln(
+            '        query: "SELECT * FROM $collectionName WHERE 1 = 0",',
+          )
           ..writeln('      );')
           ..writeln('    }')
           ..writeln('    return DittoSyncQuery(')
@@ -305,7 +307,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
           )
           ..writeln('      }')
           ..writeln('      return const DittoSyncQuery(')
-          ..writeln('        query: "SELECT * FROM $collectionName WHERE 1 = 0",',)
+          ..writeln(
+            '        query: "SELECT * FROM $collectionName WHERE 1 = 0",',
+          )
           ..writeln('      );')
           ..writeln('    }')
           ..writeln('')

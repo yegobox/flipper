@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flipper_services/transaction_delegation_service.dart';
+import 'package:flipper_services/realtime_delegation_service.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// Example initialization for Transaction Delegation feature
@@ -50,7 +50,7 @@ class TransactionDelegationInitializer {
 
   /// Initialize desktop monitoring service
   static Future<void> _initializeDesktopMonitoring() async {
-    final delegationService = TransactionDelegationService();
+    final delegationService = RealtimeDelegationService();
 
     // Check if feature is enabled
     final isEnabled = ProxyService.box.readBool(
@@ -59,7 +59,7 @@ class TransactionDelegationInitializer {
         false;
 
     if (isEnabled) {
-      await delegationService.startMonitoring();
+      await delegationService.initialize();
       debugPrint('🖥️  Desktop monitoring started');
     } else {
       debugPrint('ℹ️  Transaction delegation is disabled');
@@ -91,8 +91,8 @@ class TransactionDelegationInitializer {
 
     // If on desktop, start monitoring
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      final delegationService = TransactionDelegationService();
-      await delegationService.startMonitoring();
+      final delegationService = RealtimeDelegationService();
+      await delegationService.initialize();
     }
 
     debugPrint('✅ Transaction delegation enabled');
@@ -107,8 +107,8 @@ class TransactionDelegationInitializer {
 
     // If on desktop, stop monitoring
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-      final delegationService = TransactionDelegationService();
-      delegationService.stopMonitoring();
+      final delegationService = RealtimeDelegationService();
+      await delegationService.dispose();
     }
 
     debugPrint('ℹ️  Transaction delegation disabled');
@@ -128,7 +128,7 @@ class TransactionDelegationInitializer {
       return false;
     }
 
-    final delegationService = TransactionDelegationService();
+    final delegationService = RealtimeDelegationService();
     return delegationService.isMonitoring;
   }
 
@@ -145,9 +145,8 @@ class TransactionDelegationInitializer {
       throw Exception('Manual checks only available on desktop platforms');
     }
 
-    final delegationService = TransactionDelegationService();
-    await delegationService.checkNow();
-    debugPrint('✅ Manual delegation check completed');
+    // Real-time service monitors continuously, no manual check needed
+    debugPrint('✅ Real-time delegation monitoring is active');
   }
 }
 
