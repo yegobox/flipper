@@ -30,6 +30,16 @@ jobs:
     # runs-on: ubuntu-22.04
     runs-on: macOS-14
     steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
       - run: git config --global core.autocrlf false
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
