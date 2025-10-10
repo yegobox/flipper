@@ -193,7 +193,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String transactionId,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
-    bool immediateCompletion = false, // New parameter
+    bool immediateCompletion = false,
+    Function? onPaymentConfirmed,
+    Function(String)? onPaymentFailed,
   }) async {
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
@@ -302,6 +304,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           branchId: branchId,
           completeTransaction: completeTransaction,
           paymentType: paymentType,
+          onPaymentConfirmed: onPaymentConfirmed,
+          onPaymentFailed: onPaymentFailed,
         );
         // Return true to indicate we're waiting for payment confirmation
         // Bottom sheet should NOT close yet
@@ -491,6 +495,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String branchId,
     required Function completeTransaction,
     required String paymentType,
+    Function? onPaymentConfirmed,
+    Function(String)? onPaymentFailed,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -552,6 +558,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       talker.info(
           "👂 Realtime listener active - Will trigger when payment status = 'completed'");
 
+      // Add timeout for payment confirmation (60 seconds)
+      Timer? paymentTimeout = Timer(Duration(seconds: 60), () {
+        if (!_isProcessingPayment) {
+          talker.warning("⏰ Payment confirmation timeout after 60 seconds");
+          onPaymentFailed?.call('Payment confirmation timeout. Please try again.');
+          _paymentStatusSubscription?.cancel();
+        }
+      });
+
       // Store subscription for cleanup
       _paymentStatusSubscription = Repository()
           .subscribeToRealtime<CustomerPayments>(query: query)
@@ -590,6 +605,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           }
 
           try {
+            // Call the onPaymentConfirmed callback to update UI
+            onPaymentConfirmed?.call();
+            
             talker.info(
                 "🧾 Starting receipt generation after payment confirmation...");
             await _finalStepInCompletingTransaction(
@@ -620,37 +638,25 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             talker.info(
                 "🔄 Calling completeTransaction callback to close bottom sheet...");
             _isProcessingPayment = false;
+            paymentTimeout.cancel(); // Cancel timeout on success
             completeTransaction();
             talker.info(
                 "✅ completeTransaction callback executed - Bottom sheet should now close");
           } catch (e) {
             talker.error("❌ Error completing transaction after payment: $e");
             _isProcessingPayment = false; // Reset flag on error
-
-            // Show error to user - don't close bottom sheet, let them retry
-            if (mounted && context.mounted) {
-              showCustomSnackBarUtil(
-                context,
-                e.toString().replaceAll('Exception: ', ''),
-                type: NotificationType.error,
-                duration: const Duration(seconds: 5),
-                showCloseButton: true,
-              );
-            }
+            paymentTimeout.cancel(); // Cancel timeout on error
+            onPaymentFailed?.call(e.toString().replaceAll('Exception: ', ''));
             rethrow;
           }
         },
         onError: (error) {
           talker.error("❌ Digital payment stream error: $error");
           _isProcessingPayment = false; // Reset flag on error
+          paymentTimeout.cancel(); // Cancel timeout on error
+          onPaymentFailed?.call('Digital payment failed. Please try again.');
           if (mounted) {
             ref.read(payButtonStateProvider.notifier).stopLoading();
-            showCustomSnackBarUtil(
-              context,
-              'Digital payment failed. Please try again.',
-              type: NotificationType.error,
-              showCloseButton: true,
-            );
           }
         },
       );

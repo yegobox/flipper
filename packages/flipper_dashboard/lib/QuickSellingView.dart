@@ -814,22 +814,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           wording:
                               "Complete Sale • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
                           mode: SellingMode.forSelling,
-                          completeTransaction: (immediateCompleteTransaction) {
+                          completeTransaction: (immediateCompleteTransaction,
+                              [onPaymentConfirmed, onPaymentFailed]) async {
                             talker.warning("We are about to complete a sale");
-                            transactionAsyncValue
-                                .whenData((ITransaction transaction) {
-                              startCompleteTransactionFlow(
-                                immediateCompletion:
-                                    immediateCompleteTransaction,
-                                completeTransaction: () async {
-                                  await _onQuickSellComplete(transaction);
-                                },
-                                transactionId: transaction.id,
-                                paymentMethods:
-                                    ref.watch(paymentMethodsProvider),
-                              );
-                            });
-                            ref.read(previewingCart.notifier).state = false;
+                            return transactionAsyncValue.when(
+                              data: (ITransaction transaction) async {
+                                await startCompleteTransactionFlow(
+                                  immediateCompletion:
+                                      immediateCompleteTransaction,
+                                  completeTransaction: () async {
+                                    await _onQuickSellComplete(transaction);
+                                  },
+                                  transactionId: transaction.id,
+                                  paymentMethods:
+                                      ref.watch(paymentMethodsProvider),
+                                  onPaymentConfirmed: onPaymentConfirmed,
+                                  onPaymentFailed: onPaymentFailed,
+                                );
+                                ref.read(previewingCart.notifier).state = false;
+                                return true;
+                              },
+                              loading: () async => false,
+                              error: (error, stack) async => false,
+                            );
                           },
                           model: model,
                           ticketHandler: () {

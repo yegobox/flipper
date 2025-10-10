@@ -1,3 +1,3 @@
 typedef PreviewCart = void Function()?;
-typedef CompleteTransaction = void Function(bool immediateCompletion);
+typedef CompleteTransaction = Future<bool> Function(bool immediateCompletion, [Function? onPaymentConfirmed, Function(String)? onPaymentFailed]);
 typedef Function onClick();

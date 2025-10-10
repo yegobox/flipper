@@ -19,6 +19,13 @@ import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'dart:async';
 
+enum ChargeButtonState {
+  initial, // "Charge"
+  waitingForPayment, // "Waiting for payment..."
+  printingReceipt, // "Printing receipt..."
+  failed, // "Payment Failed. Retry?"
+}
+
 class BottomSheets {
   static void showBottom({
     required BuildContext context,
@@ -130,7 +137,7 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin {
   bool _isLoading = false;
-  bool _isWaitingForPayment = false;
+  ChargeButtonState _chargeState = ChargeButtonState.initial;
   late final TextEditingController _customerPhoneController;
   String? _customerPhoneError;
   late AnimationController _buttonAnimationController;
@@ -506,36 +513,61 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       return;
     }
 
-    // Optimistically transition to waiting state for better UX
     setState(() {
       _isLoading = true;
-      _isWaitingForPayment = true;
+      _chargeState = ChargeButtonState.waitingForPayment;
     });
     _pulseAnimationController.repeat(reverse: true);
     ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
     try {
-      // Call onCharge and get the result
-      final shouldWaitForPayment = await widget.onCharge(transactionId, total);
+      // Define callbacks for payment state changes
+      void onPaymentConfirmed() {
+        if (mounted) {
+          setState(() {
+            _chargeState = ChargeButtonState.printingReceipt;
+          });
+        }
+      }
 
-      // If it's not a waiting payment (e.g., cash), reset the UI.
-      // The confirmation dialog in previewCart.dart will handle closing.
+      void onPaymentFailed(String error) {
+        if (mounted) {
+          setState(() {
+            _chargeState = ChargeButtonState.failed;
+            _isLoading = false;
+          });
+          _pulseAnimationController.stop();
+          _pulseAnimationController.reset();
+          ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+          showCustomSnackBarUtil(
+            context,
+            error,
+            backgroundColor: Colors.red[600],
+            showCloseButton: true,
+          );
+        }
+      }
+
+      // Call onCharge with callbacks
+      final shouldWaitForPayment = await widget.onCharge(
+          transactionId, total, onPaymentConfirmed, onPaymentFailed);
+
+      // Handle immediate completion (cash payments)
       if (mounted && shouldWaitForPayment != true) {
         setState(() {
           _isLoading = false;
-          _isWaitingForPayment = false;
+          _chargeState = ChargeButtonState.initial;
         });
         _pulseAnimationController.stop();
         _pulseAnimationController.reset();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
       }
-      // If shouldWaitForPayment is true, we're already in the waiting state, so we do nothing.
     } catch (e) {
       talker.error('Charge failed: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _isWaitingForPayment = false;
+          _chargeState = ChargeButtonState.failed;
         });
         _pulseAnimationController.stop();
         _pulseAnimationController.reset();
@@ -565,16 +597,18 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       final wasLoading = previous?[ButtonType.pay] == true;
       final isNowLoading = next[ButtonType.pay] == true;
 
-      if (_isWaitingForPayment && wasLoading && !isNowLoading) {
+      if (_chargeState == ChargeButtonState.printingReceipt &&
+          wasLoading &&
+          !isNowLoading) {
         if (mounted) {
           setState(() {
             _isLoading = false;
-            _isWaitingForPayment = false;
+            _chargeState = ChargeButtonState.initial;
           });
           _pulseAnimationController.stop();
           _pulseAnimationController.reset();
-          // NOTE: We no longer pop the navigator here.
-          // Closing is handled by the completeTransaction callback to prevent premature closing.
+          Navigator.of(context)
+              .pop(); // Close the sheet after payment completes
         }
       }
     });
@@ -877,30 +911,26 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               ]),
               builder: (context, child) {
                 return Transform.scale(
-                  scale: _isWaitingForPayment
+                  scale: _shouldPulse()
                       ? _pulseAnimation.value
                       : _buttonScaleAnimation.value,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: items.isEmpty
-                          ? Colors.grey
-                          : _isWaitingForPayment
-                              ? Colors.orange
-                              : Colors.green,
+                      backgroundColor: _getButtonColor(items.isEmpty),
                       foregroundColor: Colors.white,
                       minimumSize: Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    onPressed: items.isEmpty || _isLoading
-                        ? null
-                        : () => _handleCharge(
-                            widget.transactionIdInt.toString(), total),
+                    onPressed: _getButtonEnabled(items.isEmpty)
+                        ? () => _handleCharge(
+                            widget.transactionIdInt.toString(), total)
+                        : null,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        if (_isWaitingForPayment) ...[
+                        if (_shouldShowSpinner()) ...[
                           SizedBox(
                             width: 16,
                             height: 16,
@@ -913,11 +943,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                           SizedBox(width: 8),
                         ],
                         Text(
-                          items.isEmpty
-                              ? 'Add items to charge'
-                              : _isWaitingForPayment
-                                  ? 'Waiting for payment...'
-                                  : 'Charge ${total.toCurrencyFormatted()}',
+                          _getButtonText(items.isEmpty, total),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -995,5 +1021,49 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         ),
       ),
     );
+  }
+
+  bool _shouldPulse() {
+    return _chargeState == ChargeButtonState.waitingForPayment ||
+        _chargeState == ChargeButtonState.printingReceipt;
+  }
+
+  Color _getButtonColor(bool isEmpty) {
+    if (isEmpty) return Colors.grey;
+    switch (_chargeState) {
+      case ChargeButtonState.initial:
+        return Colors.green;
+      case ChargeButtonState.waitingForPayment:
+        return Colors.orange;
+      case ChargeButtonState.printingReceipt:
+        return Colors.blue;
+      case ChargeButtonState.failed:
+        return Colors.red;
+    }
+  }
+
+  bool _getButtonEnabled(bool isEmpty) {
+    return !isEmpty &&
+        _chargeState != ChargeButtonState.waitingForPayment &&
+        _chargeState != ChargeButtonState.printingReceipt;
+  }
+
+  bool _shouldShowSpinner() {
+    return _chargeState == ChargeButtonState.waitingForPayment ||
+        _chargeState == ChargeButtonState.printingReceipt;
+  }
+
+  String _getButtonText(bool isEmpty, double total) {
+    if (isEmpty) return 'Add items to charge';
+    switch (_chargeState) {
+      case ChargeButtonState.initial:
+        return 'Charge ${total.toCurrencyFormatted()}';
+      case ChargeButtonState.waitingForPayment:
+        return 'Waiting for payment...';
+      case ChargeButtonState.printingReceipt:
+        return 'Printing receipt...';
+      case ChargeButtonState.failed:
+        return 'Payment Failed. Retry?';
+    }
   }
 }

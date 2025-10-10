@@ -223,9 +223,13 @@ class CheckOutState extends ConsumerState<CheckOut>
                   child: PayableView(
                     transactionId: transaction.id,
                     mode: oldImplementationOfRiverpod.SellingMode.forSelling,
-                    completeTransaction: (immediateCompletion) async {
-                      await _handleCompleteTransaction(
-                          transaction, immediateCompletion);
+                    completeTransaction: (immediateCompletion,
+                        [onPaymentConfirmed, onPaymentFailed]) async {
+                      return await _handleCompleteTransaction(
+                          transaction,
+                          immediateCompletion,
+                          onPaymentConfirmed,
+                          onPaymentFailed);
                     },
                     model: model,
                     ticketHandler: () => handleTicketNavigation(transaction),
@@ -284,7 +288,8 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Future<bool> _handleCompleteTransaction(
-      ITransaction transaction, bool immediateCompletion) async {
+      ITransaction transaction, bool immediateCompletion,
+      [Function? onPaymentConfirmed, Function(String)? onPaymentFailed]) async {
     final startTime = transaction.createdAt!;
 
     // Set flags to prevent UI flicker during transaction completion
@@ -299,7 +304,9 @@ class CheckOutState extends ConsumerState<CheckOut>
       final isWaitingForPayment = await startCompleteTransactionFlow(
         transactionId: transaction.id,
         immediateCompletion: immediateCompletion,
-        completeTransaction: () async {
+        onPaymentConfirmed: onPaymentConfirmed,
+        onPaymentFailed: onPaymentFailed,
+        completeTransaction: () {
           ref.read(payButtonStateProvider.notifier).stopLoading();
 
           // Close the bottom sheet if it's open (for digital payments)
@@ -311,22 +318,24 @@ class CheckOutState extends ConsumerState<CheckOut>
             Navigator.of(context).pop();
           }
 
-          await newTransaction(typeOfThisTransactionIsExpense: false);
-          final endTime = DateTime.now().toUtc();
-          final duration = endTime.difference(startTime).inSeconds;
+          newTransaction(typeOfThisTransactionIsExpense: false).then((_) {
+            final endTime = DateTime.now().toUtc();
+            final duration = endTime.difference(startTime).inSeconds;
 
-          ProxyService.box
-              .writeBool(key: 'transactionInProgress', value: false);
-          ProxyService.box
-              .writeBool(key: 'transactionCompleting', value: false);
-          PosthogService.instance.capture('transaction_completed', properties: {
-            'transaction_id': transaction.id,
-            'branch_id': transaction.branchId!,
-            'business_id': ProxyService.box.getBusinessId()!,
-            'created_at': startTime.toIso8601String(),
-            'completed_at': endTime.toIso8601String(),
-            'duration_seconds': duration,
-            'source': 'checkout',
+            ProxyService.box
+                .writeBool(key: 'transactionInProgress', value: false);
+            ProxyService.box
+                .writeBool(key: 'transactionCompleting', value: false);
+            PosthogService.instance
+                .capture('transaction_completed', properties: {
+              'transaction_id': transaction.id,
+              'branch_id': transaction.branchId!,
+              'business_id': ProxyService.box.getBusinessId()!,
+              'created_at': startTime.toIso8601String(),
+              'completed_at': endTime.toIso8601String(),
+              'duration_seconds': duration,
+              'source': 'checkout',
+            });
           });
         },
         paymentMethods:
@@ -367,10 +376,13 @@ class CheckOutState extends ConsumerState<CheckOut>
                   tabController: tabController,
                   textEditController: textEditController,
                   model: model,
-                  onCompleteTransaction:
-                      (transaction, immediateCompletion) async {
-                    await _handleCompleteTransaction(
-                        transaction, immediateCompletion);
+                  onCompleteTransaction: (transaction, immediateCompletion,
+                      [onPaymentConfirmed, onPaymentFailed]) async {
+                    return await _handleCompleteTransaction(
+                        transaction,
+                        immediateCompletion,
+                        onPaymentConfirmed,
+                        onPaymentFailed);
                   },
                 )
               : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
