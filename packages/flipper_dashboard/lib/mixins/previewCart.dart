@@ -370,35 +370,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                       ],
                     ),
                     actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(dialogContext).pop();
-                          // Stop loading before completing
-                          ref
-                              .read(payButtonStateProvider.notifier)
-                              .stopLoading();
-                          completeTransaction(); // Close bottom sheet
-                        },
-                        child: Text(
-                          'Skip Receipt',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                      ),
                       ElevatedButton(
                         onPressed: () async {
                           Navigator.of(dialogContext).pop();
-                          // Stop loading before completing
                           ref
                               .read(payButtonStateProvider.notifier)
                               .stopLoading();
-                          // Print receipt will be handled by the completeTransaction callback
-                          completeTransaction(); // Close bottom sheet
+                          completeTransaction();
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                         ),
-                        child: Text('Print Receipt'),
+                        child: Text('Ok'),
                       ),
                     ],
                   );
@@ -562,7 +546,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       Timer? paymentTimeout = Timer(Duration(seconds: 60), () {
         if (!_isProcessingPayment) {
           talker.warning("⏰ Payment confirmation timeout after 60 seconds");
-          onPaymentFailed?.call('Payment confirmation timeout. Please try again.');
+          onPaymentFailed
+              ?.call('Payment confirmation timeout. Please try again.');
           _paymentStatusSubscription?.cancel();
         }
       });
@@ -607,7 +592,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           try {
             // Call the onPaymentConfirmed callback to update UI
             onPaymentConfirmed?.call();
-            
+
             talker.info(
                 "🧾 Starting receipt generation after payment confirmation...");
             await _finalStepInCompletingTransaction(
