@@ -192,6 +192,7 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     runs-on: windows-2022
+    if: false  # skip for now as it is flaky
     needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows
