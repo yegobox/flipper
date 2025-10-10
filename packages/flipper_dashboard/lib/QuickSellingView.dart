@@ -58,6 +58,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         TransactionItemTable,
         DateCoreWidget,
         Refresh<QuickSellingView> {
+  /// Returns the amount to change to the customer (received - totalAfterDiscountAndShipping), or 0 if negative/invalid.
+  double _amountToChange() {
+    final received =
+        double.tryParse(widget.receivedAmountController.text) ?? 0.0;
+    final change = received - totalAfterDiscountAndShipping;
+    return change > 0 ? change : 0.0;
+  }
+
   double get totalAfterDiscountAndShipping {
     final discountPercent =
         double.tryParse(widget.discountController.text) ?? 0.0;
@@ -71,6 +79,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final initialCode = CountryCode.fromCountryCode("RW");
     widget.countryCodeController.text = initialCode.dialCode!;
 
+    // Initialize FocusNodes with Enter-key handlers for precise traversal
+    _receivedAmountFocusNode = FocusNode(onKeyEvent: _handleReceivedAmountKey);
+    _customerNameFocusNode = FocusNode(onKeyEvent: _handleCustomerNameKey);
+    _customerPhoneFocusNode = FocusNode(onKeyEvent: _handleCustomerPhoneKey);
+    _deliveryNoteFocusNode = FocusNode(onKeyEvent: _handleDeliveryNoteKey);
+
+    // Auto-focus on the received amount field after a short delay
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _receivedAmountFocusNode.requestFocus();
+    });
+
     // Listen for transaction completion flag
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
   }
@@ -78,11 +97,81 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Controllers for quantity inputs per item (small device view)
   final Map<String, TextEditingController> _quantityControllers = {};
 
+  // FocusNodes for accessibility and keyboard navigation
+  late final FocusNode _receivedAmountFocusNode;
+  late final FocusNode _customerNameFocusNode;
+  late final FocusNode _customerPhoneFocusNode;
+  late final FocusNode _deliveryNoteFocusNode;
+
+  bool _isPlainEnter(KeyEvent event) {
+    if (event is! KeyDownEvent) {
+      return false;
+    }
+    final key = event.logicalKey;
+    if (key != LogicalKeyboardKey.enter &&
+        key != LogicalKeyboardKey.numpadEnter) {
+      return false;
+    }
+    final hardware = HardwareKeyboard.instance;
+    return !hardware.isControlPressed &&
+        !hardware.isMetaPressed &&
+        !hardware.isAltPressed &&
+        !hardware.isShiftPressed;
+  }
+
+  KeyEventResult _handleReceivedAmountKey(FocusNode node, KeyEvent event) {
+    if (_isPlainEnter(event)) {
+      _customerNameFocusNode.requestFocus();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  KeyEventResult _handleCustomerNameKey(FocusNode node, KeyEvent event) {
+    if (_isPlainEnter(event)) {
+      _customerPhoneFocusNode.requestFocus();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  KeyEventResult _handleCustomerPhoneKey(FocusNode node, KeyEvent event) {
+    // Tab: move to payment method
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.tab) {
+      // Find the first focusable payment method field and request focus
+      // This assumes PaymentMethodsCard exposes a static method or global key for focus
+      // For now, try to move focus to the next focusable widget
+      FocusScope.of(context).nextFocus();
+      return KeyEventResult.handled;
+    }
+    if (_isPlainEnter(event)) {
+      final isOrdering = ProxyService.box.isOrdering() ?? false;
+      if (isOrdering) {
+        _deliveryNoteFocusNode.requestFocus();
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
+  KeyEventResult _handleDeliveryNoteKey(FocusNode node, KeyEvent event) {
+    if (_isPlainEnter(event)) {
+      // Keep focus here; do not propagate to prevent unintended navigation
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
   @override
   void dispose() {
     for (final c in _quantityControllers.values) {
       c.dispose();
     }
+    // Dispose FocusNodes
+    _receivedAmountFocusNode.dispose();
+    _customerNameFocusNode.dispose();
+    _customerPhoneFocusNode.dispose();
+    _deliveryNoteFocusNode.dispose();
     super.dispose();
   }
 
@@ -271,64 +360,68 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildTransactionSummaryCard(
       AsyncValue<ITransaction> transactionAsyncValue) {
-    return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+    return Semantics(
+      label: 'Transaction summary',
+      hint: 'Shows the total amount and transaction ID for the current sale',
+      child: Container(
+        margin: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Total Amount',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-              ),
-              Text(
-                getSumOfItems(transactionId: transactionAsyncValue.value?.id)
-                    .toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency()),
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Transaction ID',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onPrimaryContainer
-                          .withValues(alpha: 0.7),
-                    ),
-              ),
-              Text(
-                '#${transactionAsyncValue.value?.id.substring(0, 8) ?? "--------"}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontFamily: 'monospace',
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onPrimaryContainer
-                          .withValues(alpha: 0.7),
-                    ),
-              ),
-            ],
-          ),
-        ],
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Amount',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                ),
+                Text(
+                  getSumOfItems(transactionId: transactionAsyncValue.value?.id)
+                      .toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency()),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Transaction ID',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimaryContainer
+                            .withValues(alpha: 0.7),
+                      ),
+                ),
+                Text(
+                  '#${transactionAsyncValue.value?.id.substring(0, 8) ?? "--------"}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontFamily: 'monospace',
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimaryContainer
+                            .withValues(alpha: 0.7),
+                      ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -395,167 +488,178 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildModernItemCard(
       TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
-    return Container(
-      key: Key('item-card-${item.id}'), // Add a key to the item card
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: Offset(0, 2),
+    return Semantics(
+      label: 'Item: ${item.name}',
+      hint:
+          'Quantity: ${item.qty}, Unit price: ${item.price.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}, Subtotal: ${(item.price * item.qty).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+      child: Container(
+        key: Key('item-card-${item.id}'), // Add a key to the item card
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Item header with name and delete
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    item.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ),
-                IconButton(
-                  key: Key('delete-item-${item.id}'), // Add this key
-                  icon: Icon(Icons.delete_outline, size: 20),
-                  onPressed: () =>
-                      _showDeleteConfirmation(item, transactionAsyncValue),
-                  style: IconButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).colorScheme.errorContainer,
-                    foregroundColor:
-                        Theme.of(context).colorScheme.onErrorContainer,
-                    minimumSize: Size(32, 32),
-                  ),
-                  tooltip: 'Remove item',
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: Offset(0, 2),
             ),
-
-            SizedBox(height: 12),
-
-            // Price and quantity controls
-            Row(
-              children: [
-                // Price info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Unit Price',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.color
-                                  ?.withValues(alpha: 0.7),
-                            ),
-                      ),
-                      Text(
-                        item.price.toCurrencyFormatted(
-                            symbol: ProxyService.box.defaultCurrency()),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Quantity controls
-                Container(
-                  decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        key: Key('quantity-remove-${item.id}'),
-                        icon: Icon(Icons.remove, size: 16),
-                        onPressed: item.qty > 1
-                            ? () => _updateQuantity(item,
-                                (item.qty - 1).toInt(), transactionAsyncValue)
-                            : null,
-                        style: IconButton.styleFrom(
-                          minimumSize: Size(32, 32),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          '${item.qty}',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                        ),
-                      ),
-                      IconButton(
-                        key: Key('quantity-add-${item.id}'),
-                        icon: Icon(Icons.add, size: 16),
-                        onPressed: () {
-                          _updateQuantity(item, (item.qty + 1).toInt(),
-                              transactionAsyncValue);
-                        },
-                        style: IconButton.styleFrom(
-                          minimumSize: Size(32, 32),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 12),
-
-            // Total for this item
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primaryContainer
-                    .withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Item header with name and delete
+              Row(
                 children: [
-                  Text(
-                    'Subtotal',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
                   ),
-                  Text(
-                    (item.price * item.qty).toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency()),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                  IconButton(
+                    key: Key('delete-item-${item.id}'), // Add this key
+                    icon: Icon(Icons.delete_outline, size: 20),
+                    onPressed: () =>
+                        _showDeleteConfirmation(item, transactionAsyncValue),
+                    style: IconButton.styleFrom(
+                      backgroundColor:
+                          Theme.of(context).colorScheme.errorContainer,
+                      foregroundColor:
+                          Theme.of(context).colorScheme.onErrorContainer,
+                      minimumSize: Size(32, 32),
+                    ),
+                    tooltip: 'Remove item',
                   ),
                 ],
               ),
-            ),
-          ],
+
+              SizedBox(height: 12),
+
+              // Price and quantity controls
+              Row(
+                children: [
+                  // Price info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Unit Price',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color
+                                        ?.withValues(alpha: 0.7),
+                                  ),
+                        ),
+                        Text(
+                          item.price.toCurrencyFormatted(
+                              symbol: ProxyService.box.defaultCurrency()),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Quantity controls
+                  Container(
+                    decoration: BoxDecoration(
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          key: Key('quantity-remove-${item.id}'),
+                          icon: Icon(Icons.remove, size: 16),
+                          onPressed: item.qty > 1
+                              ? () => _updateQuantity(item,
+                                  (item.qty - 1).toInt(), transactionAsyncValue)
+                              : null,
+                          tooltip: 'Decrease quantity by 1',
+                          style: IconButton.styleFrom(
+                            minimumSize: Size(32, 32),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            '${item.qty}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                        IconButton(
+                          key: Key('quantity-add-${item.id}'),
+                          icon: Icon(Icons.add, size: 16),
+                          onPressed: () {
+                            _updateQuantity(item, (item.qty + 1).toInt(),
+                                transactionAsyncValue);
+                          },
+                          tooltip: 'Increase quantity by 1',
+                          style: IconButton.styleFrom(
+                            minimumSize: Size(32, 32),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 12),
+
+              // Total for this item
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Subtotal',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    Text(
+                      (item.price * item.qty).toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency()),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -701,36 +805,43 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   child: SafeArea(
                     child: Padding(
                       padding: EdgeInsets.all(16),
-                      child: PayableView(
-                        transactionId: transactionAsyncValue.value?.id ?? "",
-                        wording:
-                            "Complete Sale • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
-                        mode: SellingMode.forSelling,
-                        completeTransaction: (immediateCompleteTransaction) {
-                          talker.warning("We are about to complete a sale");
-                          transactionAsyncValue
-                              .whenData((ITransaction transaction) {
-                            startCompleteTransactionFlow(
-                              immediateCompletion: immediateCompleteTransaction,
-                              completeTransaction: () async {
-                                await _onQuickSellComplete(transaction);
-                              },
-                              transactionId: transaction.id,
-                              paymentMethods: ref.watch(paymentMethodsProvider),
-                            );
-                          });
-                          ref.read(previewingCart.notifier).state = false;
-                        },
-                        model: model,
-                        ticketHandler: () {
-                          talker.warning("We are about to complete a ticket");
-                          transactionAsyncValue
-                              .whenData((ITransaction transaction) {
-                            handleTicketNavigation(transaction);
-                          });
-                          ref.read(toggleProvider.notifier).state = false;
-                        },
-                        digitalPaymentEnabled: digitalPaymentEnabled,
+                      child: Semantics(
+                        label: 'Transaction summary and payment actions',
+                        hint:
+                            'Complete sale with total amount ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+                        child: PayableView(
+                          transactionId: transactionAsyncValue.value?.id ?? "",
+                          wording:
+                              "Complete Sale • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
+                          mode: SellingMode.forSelling,
+                          completeTransaction: (immediateCompleteTransaction) {
+                            talker.warning("We are about to complete a sale");
+                            transactionAsyncValue
+                                .whenData((ITransaction transaction) {
+                              startCompleteTransactionFlow(
+                                immediateCompletion:
+                                    immediateCompleteTransaction,
+                                completeTransaction: () async {
+                                  await _onQuickSellComplete(transaction);
+                                },
+                                transactionId: transaction.id,
+                                paymentMethods:
+                                    ref.watch(paymentMethodsProvider),
+                              );
+                            });
+                            ref.read(previewingCart.notifier).state = false;
+                          },
+                          model: model,
+                          ticketHandler: () {
+                            talker.warning("We are about to complete a ticket");
+                            transactionAsyncValue
+                                .whenData((ITransaction transaction) {
+                              handleTicketNavigation(transaction);
+                            });
+                            ref.read(toggleProvider.notifier).state = false;
+                          },
+                          digitalPaymentEnabled: digitalPaymentEnabled,
+                        ),
                       ),
                     ),
                   ),
@@ -807,7 +918,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       child: Column(
         children: [
           SizedBox(height: 20),
-          buildTransactionItemsTable(isOrdering),
+          Semantics(
+            label: 'Transaction items list',
+            hint:
+                'List of items in the current transaction with quantities and prices',
+            child: buildTransactionItemsTable(isOrdering),
+          ),
           SizedBox(height: 20),
           if (!isOrdering)
             _buildForm(isOrdering,
@@ -833,30 +949,74 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildForm(bool isOrdering, {required String transactionId}) {
-    return Form(
-      key: widget.formKey,
-      child: Column(
-        children: [
-          // Customer Information Section (only shown when not ordering)
-          if (!isOrdering) ...[
-            _buildReceivedAmountField(transactionId: transactionId),
-            const SizedBox(height: 6.0),
-            _customerNameField(),
-            const SizedBox(height: 6.0),
-          ],
-          IntrinsicWidth(
-            child: Row(
-              children: [
-                const SizedBox(height: 6.0),
-                Expanded(
-                    child: SizedBox(
-                        width: 850, child: _buildCustomerPhoneField())),
-              ],
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
+          // Handle Ctrl+Enter or Cmd+Enter to complete sale
+          if ((HardwareKeyboard.instance.isControlPressed ||
+                  HardwareKeyboard.instance.isMetaPressed) &&
+              event.logicalKey == LogicalKeyboardKey.enter) {
+            // Trigger complete sale action
+            final transactionAsyncValue = ref.watch(
+                pendingTransactionStreamProvider(
+                    isExpense: ProxyService.box.isOrdering() ?? false));
+            transactionAsyncValue.whenData((ITransaction transaction) {
+              startCompleteTransactionFlow(
+                immediateCompletion: false,
+                completeTransaction: () async {
+                  await _onQuickSellComplete(transaction);
+                },
+                transactionId: transaction.id,
+                paymentMethods: ref.watch(paymentMethodsProvider),
+              );
+            });
+          }
+          // Handle Enter key for focus traversal (without Ctrl/Cmd modifiers)
+          else if (event.logicalKey == LogicalKeyboardKey.enter &&
+              !HardwareKeyboard.instance.isControlPressed &&
+              !HardwareKeyboard.instance.isMetaPressed) {
+            // Determine which field currently has focus and move to the next one
+            if (_receivedAmountFocusNode.hasFocus && !isOrdering) {
+              _customerNameFocusNode.requestFocus();
+            } else if (_customerNameFocusNode.hasFocus && !isOrdering) {
+              _customerPhoneFocusNode.requestFocus();
+            } else if (_customerPhoneFocusNode.hasFocus) {
+              if (isOrdering) {
+                _deliveryNoteFocusNode.requestFocus();
+              }
+              // If not ordering, stay on phone field or move to payment section
+            } else if (_deliveryNoteFocusNode.hasFocus && isOrdering) {
+              // Stay on delivery note field or move to complete sale
+            }
+          }
+        }
+      },
+      child: Form(
+        key: widget.formKey,
+        child: Column(
+          children: [
+            // Customer Information Section (only shown when not ordering)
+            if (!isOrdering) ...[
+              _buildReceivedAmountField(transactionId: transactionId),
+              const SizedBox(height: 6.0),
+              _customerNameField(),
+              const SizedBox(height: 6.0),
+            ],
+            IntrinsicWidth(
+              child: Row(
+                children: [
+                  const SizedBox(height: 6.0),
+                  Expanded(
+                      child: SizedBox(
+                          width: 850, child: _buildCustomerPhoneField())),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 6.0),
-          _buildPaymentRow(isOrdering, transactionId),
-        ],
+            const SizedBox(height: 6.0),
+            _buildPaymentRow(isOrdering, transactionId),
+          ],
+        ),
       ),
     );
   }
@@ -877,26 +1037,31 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _deliveryNote() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: StyledTextFormField.create(
-        context: context,
-        labelText: 'Delivery Note',
-        hintText: 'Enter any special instructions for delivery',
-        controller: widget.deliveryNoteCotroller,
-        keyboardType: TextInputType.multiline,
-        maxLines: 3,
-        minLines: 1,
-        prefixIcon: Icons.local_shipping,
-        onChanged: (value) {
-          setState(() {});
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
+    return Semantics(
+      label: 'Delivery note',
+      hint: 'Add any special instructions for delivery',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: StyledTextFormField.create(
+          context: context,
+          labelText: 'Delivery Note',
+          hintText: 'Enter any special instructions for delivery',
+          controller: widget.deliveryNoteCotroller,
+          focusNode: _deliveryNoteFocusNode,
+          keyboardType: TextInputType.multiline,
+          maxLines: 3,
+          minLines: 1,
+          prefixIcon: Icons.local_shipping,
+          onChanged: (value) {
+            setState(() {});
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return null;
+            }
             return null;
-          }
-          return null;
-        },
+          },
+        ),
       ),
     );
   }
@@ -945,168 +1110,190 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildReceivedAmountField({required String transactionId}) {
-    return StyledTextFormField.create(
-        context: context,
-        labelText: null,
-        hintText: 'Received Amount',
-        controller: widget.receivedAmountController,
-        keyboardType: TextInputType.number,
-        maxLines: 1,
-        minLines: 1,
-        key: const Key('received-amount-field'), // Add this line
-        suffixIcon: Text(ProxyService.box.defaultCurrency(),
-            style: const TextStyle(color: Colors.blue)),
-        onChanged: (value) => setState(() {
-              final receivedAmount = double.tryParse(value);
-              ProxyService.box.writeDouble(
-                  key: 'getCashReceived', value: receivedAmount ?? 0.0);
+    return Semantics(
+      label: 'Received amount in ${ProxyService.box.defaultCurrency()}',
+      hint: 'Enter the amount received from the customer',
+      child: StyledTextFormField.create(
+          context: context,
+          labelText: null,
+          hintText: 'Received Amount',
+          controller: widget.receivedAmountController,
+          focusNode: _receivedAmountFocusNode,
+          keyboardType: TextInputType.number,
+          maxLines: 1,
+          minLines: 1,
+          key: const Key('received-amount-field'), // Add this line
+          suffixIcon: Text(ProxyService.box.defaultCurrency(),
+              style: const TextStyle(color: Colors.blue)),
+          onChanged: (value) => setState(() {
+                final receivedAmount = double.tryParse(value);
+                ProxyService.box.writeDouble(
+                    key: 'getCashReceived', value: receivedAmount ?? 0.0);
 
-              if (receivedAmount != null) {
-                ref.read(paymentMethodsProvider)[0].controller.text = value;
-                if (ref.read(paymentMethodsProvider).length == 1) {
-                  /// if it is one payment method just swap
-                  ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
-                      Payment(
-                          amount: receivedAmount,
-                          method: ref.read(paymentMethodsProvider)[0].method));
+                if (receivedAmount != null) {
+                  ref.read(paymentMethodsProvider)[0].controller.text = value;
+                  if (ref.read(paymentMethodsProvider).length == 1) {
+                    /// if it is one payment method just swap
+                    ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+                        Payment(
+                            amount: receivedAmount,
+                            method:
+                                ref.read(paymentMethodsProvider)[0].method));
 
-                  talker.warning(ref.read(paymentMethodsProvider).first.amount);
-                  talker.warning(ref.read(paymentMethodsProvider).first.method);
-                  return;
-                }
-                for (Payment payment in ref.read(paymentMethodsProvider)) {
-                  ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
-                      Payment(amount: receivedAmount, method: payment.method));
-                }
-              } // Update payment amounts after received amount changes
-            }),
-        validator: (String? value) {
-          if (value == null || value.isEmpty) {
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'Please enter received amount';
-          }
-          final number = double.tryParse(value);
-          if (number == null) {
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'Please enter a valid number';
-          }
-          if (number < totalAfterDiscountAndShipping) {
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'You are receiving less than the total due';
-          }
-          return null;
-        });
+                    talker
+                        .warning(ref.read(paymentMethodsProvider).first.amount);
+                    talker
+                        .warning(ref.read(paymentMethodsProvider).first.method);
+                    return;
+                  }
+                  for (Payment payment in ref.read(paymentMethodsProvider)) {
+                    ref.read(paymentMethodsProvider.notifier).addPaymentMethod(
+                        Payment(
+                            amount: receivedAmount, method: payment.method));
+                  }
+                } // Update payment amounts after received amount changes
+              }),
+          validator: (String? value) {
+            if (value == null || value.isEmpty) {
+              ref.read(payButtonStateProvider.notifier).stopLoading();
+              return 'Please enter received amount';
+            }
+            final number = double.tryParse(value);
+            if (number == null) {
+              ref.read(payButtonStateProvider.notifier).stopLoading();
+              return 'Please enter a valid number';
+            }
+            if (number < totalAfterDiscountAndShipping) {
+              ref.read(payButtonStateProvider.notifier).stopLoading();
+              return 'You are receiving less than the total due';
+            }
+            return null;
+          }),
+    );
   }
 
   Widget _customerNameField() {
     final customerNameController = ref.watch(customerNameControllerProvider);
-    return StyledTextFormField.create(
-      context: context,
-      labelText: 'Customer  Name',
-      hintText: 'Customer  Name',
-      controller: customerNameController,
-      keyboardType: TextInputType.text,
-      maxLines: 3,
-      minLines: 1,
-      suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
-      validator: (String? value) {
-        if (value == null || value.isEmpty) {
-          ref.read(payButtonStateProvider.notifier).stopLoading();
-          return 'Please enter customer name';
-        }
-        return null;
-      },
-      onChanged: (value) {
-        // Store the customer name with the exact key expected by rw_tax.dart
-        ProxyService.box.writeString(key: 'customerName', value: value);
+    return Semantics(
+      label: 'Customer name',
+      hint: 'Enter the full name of the customer',
+      child: StyledTextFormField.create(
+        context: context,
+        labelText: 'Customer  Name',
+        hintText: 'Customer  Name',
+        controller: customerNameController,
+        focusNode: _customerNameFocusNode,
+        keyboardType: TextInputType.text,
+        maxLines: 3,
+        minLines: 1,
+        suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
+        validator: (String? value) {
+          if (value == null || value.isEmpty) {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            return 'Please enter customer name';
+          }
+          return null;
+        },
+        onChanged: (value) {
+          // Store the customer name with the exact key expected by rw_tax.dart
+          ProxyService.box.writeString(key: 'customerName', value: value);
 
-        // For debugging
-        talker.info('Customer name set to: $value');
-      },
+          // For debugging
+          talker.info('Customer name set to: $value');
+        },
+      ),
     );
   }
 
   Widget _buildCustomerPhoneField() {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+    return Semantics(
+      label: 'Customer phone number',
+      hint:
+          'Enter the customer\'s phone number for contact and billing purposes',
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+          ),
+          borderRadius: BorderRadius.circular(6),
+          color:
+              Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
         ),
-        borderRadius: BorderRadius.circular(6),
-        color: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
-      ),
-      child: Row(
-        children: [
-          // Country code picker with consistent padding and height
-          Container(
-            height: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(6),
-                bottomLeft: Radius.circular(6),
+        child: Row(
+          children: [
+            // Country code picker with consistent padding and height
+            Container(
+              height: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(6),
+                  bottomLeft: Radius.circular(6),
+                ),
+              ),
+              child: Center(
+                child: CountryCodePicker(
+                  onChanged: (countryCode) {
+                    widget.countryCodeController.text = countryCode.dialCode!;
+                  },
+                  initialSelection: 'RW',
+                  favorite: ['+250', 'RW'],
+                  showCountryOnly: false,
+                  showOnlyCountryWhenClosed: false,
+                  alignLeft: false,
+                  padding: EdgeInsets.zero,
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
               ),
             ),
-            child: Center(
-              child: CountryCodePicker(
-                onChanged: (countryCode) {
-                  widget.countryCodeController.text = countryCode.dialCode!;
-                },
-                initialSelection: 'RW',
-                favorite: ['+250', 'RW'],
-                showCountryOnly: false,
-                showOnlyCountryWhenClosed: false,
-                alignLeft: false,
-                padding: EdgeInsets.zero,
-                textStyle: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
 
-          // No divider — we make it feel seamless
-          Expanded(
-            child: StyledTextFormField.create(
-              context: context,
-              labelText: null,
-              hintText: 'Phone number',
-              controller: widget.customerPhoneNumberController,
-              keyboardType: TextInputType.number,
-              maxLines: 1,
-              minLines: 1,
-              suffixIcon: Icon(FluentIcons.call_20_regular, color: Colors.blue),
-              onChanged: (value) {
-                ProxyService.box.writeString(
-                  key: 'currentSaleCustomerPhoneNumber',
-                  value: value,
-                );
-                if (ProxyService.box.customerTin() == null) {
-                  ProxyService.box
-                      .writeString(key: 'customerTin', value: value);
-                }
-              },
-              validator: (String? value) {
-                final customerTin = ProxyService.box.customerTin();
-
-                if ((customerTin == null || customerTin.isEmpty) &&
-                    (value == null || value.isEmpty)) {
-                  ref.read(payButtonStateProvider.notifier).stopLoading();
-                  return 'Phone number is required when customer TIN is not available';
-                }
-
-                if (value != null && value.isEmpty) {
-                  final phoneExp = RegExp(r'^[1-9]\d{8}$');
-                  if (!phoneExp.hasMatch(value)) {
-                    ref.read(payButtonStateProvider.notifier).stopLoading();
-                    return 'Please enter a valid 9-digit phone number without a leading zero';
+            // No divider — we make it feel seamless
+            Expanded(
+              child: StyledTextFormField.create(
+                context: context,
+                labelText: null,
+                hintText: 'Phone number',
+                controller: widget.customerPhoneNumberController,
+                focusNode: _customerPhoneFocusNode,
+                keyboardType: TextInputType.number,
+                maxLines: 1,
+                minLines: 1,
+                suffixIcon:
+                    Icon(FluentIcons.call_20_regular, color: Colors.blue),
+                onChanged: (value) {
+                  ProxyService.box.writeString(
+                    key: 'currentSaleCustomerPhoneNumber',
+                    value: value,
+                  );
+                  if (ProxyService.box.customerTin() == null) {
+                    ProxyService.box
+                        .writeString(key: 'customerTin', value: value);
                   }
-                }
+                },
+                validator: (String? value) {
+                  final customerTin = ProxyService.box.customerTin();
 
-                return null;
-              },
+                  if ((customerTin == null || customerTin.isEmpty) &&
+                      (value == null || value.isEmpty)) {
+                    ref.read(payButtonStateProvider.notifier).stopLoading();
+                    return 'Phone number is required when customer TIN is not available';
+                  }
+
+                  if (value != null && value.isEmpty) {
+                    final phoneExp = RegExp(r'^[1-9]\d{8}$');
+                    if (!phoneExp.hasMatch(value)) {
+                      ref.read(payButtonStateProvider.notifier).stopLoading();
+                      return 'Please enter a valid 9-digit phone number without a leading zero';
+                    }
+                  }
+
+                  return null;
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1160,7 +1347,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Net Total',
+                  'Amount to Change',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Theme.of(context)
                             .colorScheme
@@ -1170,7 +1357,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       ),
                 ),
                 Text(
-                  totalAfterDiscountAndShipping.toCurrencyFormatted(
+                  _amountToChange().toCurrencyFormatted(
                     symbol: ProxyService.box.defaultCurrency(),
                   ),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -1251,26 +1438,30 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           width: 1.0,
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.content_copy_outlined,
-                            size: 16.0,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 4.0),
-                          Text(
-                            'Copy',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                          ),
-                        ],
+                      child: Tooltip(
+                        message: 'Copy transaction ID to clipboard',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.content_copy_outlined,
+                              size: 16.0,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 4.0),
+                            Text(
+                              'Copy',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
