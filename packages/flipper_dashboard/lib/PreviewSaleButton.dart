@@ -40,7 +40,7 @@ class PreviewSaleButton extends ConsumerWidget {
         loadingNotifier.startLoading(buttonType); // Start loading
 
         // Call the transaction function
-        completeTransaction?.call(immediateCompletion);
+        await completeTransaction?.call(immediateCompletion);
 
         // The transaction function is responsible for stopping the loading state.
       } catch (e) {
