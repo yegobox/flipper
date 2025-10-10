@@ -538,11 +538,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             talker.error("❌ Error completing transaction after payment: $e");
             _isProcessingPayment = false; // Reset flag on error
 
-            // Stop loading states
-            if (mounted) {
-              ref.read(payButtonStateProvider.notifier).stopLoading();
-            }
-
             // Show error to user - don't close bottom sheet, let them retry
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
@@ -553,6 +548,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 showCloseButton: true,
               );
             }
+            rethrow;
           }
         },
         onError: (error) {

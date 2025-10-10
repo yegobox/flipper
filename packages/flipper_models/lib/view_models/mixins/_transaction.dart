@@ -70,7 +70,7 @@ mixin TransactionMixinOld {
           purchaseCode: purchaseCode,
         );
         if (response.resultCd != "000") {
-          throw Exception("Invalid response from server");
+          throw Exception(response.resultMsg);
         }
       } else {
         // For non-tax enabled scenarios, complete the transaction here

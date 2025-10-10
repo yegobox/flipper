@@ -172,187 +172,200 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     int? originalInvoiceNumber,
     String? sarTyCd,
   }) async {
-    // Check if we should delegate to desktop (mobile only)
-    if (isMobileDevice &&
-        await isDelegationEnabled() &&
-        !skiGenerateRRAReceiptSignature) {
-      try {
-        // Delegate to desktop for processing
-        await delegateTransactionToDesktop(
-          transaction: transaction,
-          receiptType: receiptType,
-          purchaseCode: purchaseCode,
-          salesSttsCd: salesSttsCd,
-          originalInvoiceNumber: originalInvoiceNumber,
-          sarTyCd: sarTyCd,
-        );
-
-        // Return a placeholder response indicating delegation
-        return (
-          response: RwApiResponse(
-            resultCd: '001',
-            resultMsg: 'Transaction delegated to desktop for processing',
-            resultDt: DateTime.now().toIso8601String(),
-          ),
-          bytes: null,
-        );
-      } catch (e) {
-        // If delegation fails, fall through to normal processing
-        talker.error('Failed to delegate transaction: $e');
-      }
-    }
-
-    // Normal processing (desktop or mobile with delegation disabled)
-    RwApiResponse responses;
-    Uint8List? bytes;
-    if (!skiGenerateRRAReceiptSignature) {
-      try {
-        responses = await generateRRAReceiptSignature(
-          transaction: transaction,
-          receiptType: receiptType,
-          salesSttsCd: salesSttsCd,
-          originalInvoiceNumber: originalInvoiceNumber,
-          purchaseCode: purchaseCode,
-          sarTyCd: sarTyCd,
-        );
-        // fetch same transaction
-
-        if (responses.resultCd == "000") {
-          Business? business = await ProxyService.strategy
-              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-          Ebm? ebm = await ProxyService.strategy
-              .ebm(branchId: ProxyService.box.getBranchId()!);
-          List<TransactionItem> items =
-              await ProxyService.strategy.transactionItems(
-            transactionId: transaction.id,
-            branchId: (await ProxyService.strategy.activeBranch()).id,
-          );
-          Receipt? receipt = await ProxyService.strategy
-              .getReceipt(transactionId: transaction.id);
-
-          double totalB = 0;
-          double totalC = 0;
-          double totalA = 0;
-          double totalD = 0;
-          double totalTT = 0;
-          double totalDiscount = 0;
-
-          try {
-            for (var item in items) {
-              // Calculate discounted price if discount rate exists and is not 0
-              var discountedPrice = item.price;
-              if (item.dcRt != 0) {
-                discountedPrice = item.price * (1 - item.dcRt! / 100);
-                // Calculate and add the discount amount for this item
-                var discountAmount = (item.price - discountedPrice) * item.qty;
-                totalDiscount += discountAmount;
-              }
-
-              // Calculate total with discounted price * quantity
-              var itemTotal = discountedPrice * item.qty;
-
-              // Add to respective totals based on tax type code
-              switch (item.taxTyCd) {
-                case "B":
-                  totalB += itemTotal;
-                  break;
-                case "C":
-                  totalC += itemTotal;
-                  break;
-                case "A":
-                  totalA += itemTotal;
-                  break;
-                case "D":
-                  totalD += itemTotal;
-                  break;
-                case "TT":
-                  totalTT += itemTotal;
-                  break;
-              }
-            }
-          } catch (s) {
-            rethrow;
-          }
-
-          Configurations? taxConfigTaxB =
-              await ProxyService.strategy.getByTaxType(taxtype: "B");
-          Configurations? taxConfigTaxA =
-              await ProxyService.strategy.getByTaxType(taxtype: "A");
-          Configurations? taxConfigTaxC =
-              await ProxyService.strategy.getByTaxType(taxtype: "C");
-          Configurations? taxConfigTaxD =
-              await ProxyService.strategy.getByTaxType(taxtype: "D");
-          Configurations? taxConfigTaxTT =
-              await ProxyService.strategy.getByTaxType(taxtype: "TT");
-
-          Print print = Print();
-
-          final List<TransactionPaymentRecord> paymentTypes = await ProxyService
-              .strategy
-              .getPaymentType(transactionId: transaction.id);
-          await print.print(
-            taxTT: totalTT,
-            totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
-            customerPhone: transaction.customerPhone,
-            totalDiscount: totalDiscount,
-            whenCreated: receipt!.whenCreated!,
-            timeFromServer:
-                responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
-                    receipt.timeReceivedFromserver!,
-            taxB: totalB,
-            taxC: totalC,
-            taxA: totalA,
-            taxD: totalD,
-            grandTotal: transaction.subTotal!,
-            totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
-            totalTaxB: calculateTotalTax(totalB, taxConfigTaxB!),
-            totalTaxC: calculateTotalTax(totalC, taxConfigTaxC!),
-            totalTaxD: calculateTotalTax(totalD, taxConfigTaxD!),
-            currencySymbol: "RW",
-            originalInvoiceNumber: originalInvoiceNumber,
+    // Try normal processing first
+    try {
+      // Normal processing (desktop or mobile)
+      RwApiResponse responses;
+      Uint8List? bytes;
+      if (!skiGenerateRRAReceiptSignature) {
+        try {
+          responses = await generateRRAReceiptSignature(
             transaction: transaction,
-            totalTax: (totalB * 18 / 118).toStringAsFixed(2),
-            items: items,
-            cash: transaction.subTotal!,
-            received: transaction.cashReceived!,
-            payMode: paymentTypes.isEmpty
-                ? "CASH".toPaymentType()
-                : paymentTypes.last.paymentMethod?.toPaymentType() ??
-                    "CASH".toPaymentType(),
-            mrc: receipt.mrcNo ?? "",
-            internalData: receipt.intrlData ?? "",
-            receiptQrCode: receipt.qrCode ?? "",
-            receiptSignature: receipt.rcptSign ?? "",
-            cashierName: business!.name!,
-            sdcId: receipt.sdcId ?? "",
-            invoiceNum: receipt.invcNo!,
-            rcptNo: receipt.rcptNo ?? 0,
-            totRcptNo: receipt.totRcptNo ?? 0,
-            brandName: business.name!,
-            brandAddress: business.adrs ?? "N/A",
-            brandTel: business.phoneNumber ?? "",
-            brandTIN:
-                (ebm?.tinNumber ?? business.tinNumber ?? business.tinNumber)
-                    .toString(),
-            brandDescription: business.name!,
-            brandFooter: business.name!,
-            emails: [business.email ?? ""],
-            brandEmail: business.email ?? "info@yegobox.com",
-            customerTin: transaction.customerTin,
             receiptType: receiptType,
-            customerName: transaction.customerName ?? "N/A",
-            printCallback: (Uint8List data) {
-              bytes = data;
-            },
+            salesSttsCd: salesSttsCd,
+            originalInvoiceNumber: originalInvoiceNumber,
+            purchaseCode: purchaseCode,
+            sarTyCd: sarTyCd,
           );
-          return (response: responses, bytes: bytes);
+          // fetch same transaction
+
+          if (responses.resultCd == "000") {
+            Business? business = await ProxyService.strategy
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            Ebm? ebm = await ProxyService.strategy
+                .ebm(branchId: ProxyService.box.getBranchId()!);
+            List<TransactionItem> items =
+                await ProxyService.strategy.transactionItems(
+              transactionId: transaction.id,
+              branchId: (await ProxyService.strategy.activeBranch()).id,
+            );
+            Receipt? receipt = await ProxyService.strategy
+                .getReceipt(transactionId: transaction.id);
+
+            double totalB = 0;
+            double totalC = 0;
+            double totalA = 0;
+            double totalD = 0;
+            double totalTT = 0;
+            double totalDiscount = 0;
+
+            try {
+              for (var item in items) {
+                // Calculate discounted price if discount rate exists and is not 0
+                var discountedPrice = item.price;
+                if (item.dcRt != 0) {
+                  discountedPrice = item.price * (1 - item.dcRt! / 100);
+                  // Calculate and add the discount amount for this item
+                  var discountAmount =
+                      (item.price - discountedPrice) * item.qty;
+                  totalDiscount += discountAmount;
+                }
+
+                // Calculate total with discounted price * quantity
+                var itemTotal = discountedPrice * item.qty;
+
+                // Add to respective totals based on tax type code
+                switch (item.taxTyCd) {
+                  case "B":
+                    totalB += itemTotal;
+                    break;
+                  case "C":
+                    totalC += itemTotal;
+                    break;
+                  case "A":
+                    totalA += itemTotal;
+                    break;
+                  case "D":
+                    totalD += itemTotal;
+                    break;
+                  case "TT":
+                    totalTT += itemTotal;
+                    break;
+                }
+              }
+            } catch (s) {
+              rethrow;
+            }
+
+            Configurations? taxConfigTaxB =
+                await ProxyService.strategy.getByTaxType(taxtype: "B");
+            Configurations? taxConfigTaxA =
+                await ProxyService.strategy.getByTaxType(taxtype: "A");
+            Configurations? taxConfigTaxC =
+                await ProxyService.strategy.getByTaxType(taxtype: "C");
+            Configurations? taxConfigTaxD =
+                await ProxyService.strategy.getByTaxType(taxtype: "D");
+            Configurations? taxConfigTaxTT =
+                await ProxyService.strategy.getByTaxType(taxtype: "TT");
+
+            Print print = Print();
+
+            final List<TransactionPaymentRecord> paymentTypes =
+                await ProxyService.strategy
+                    .getPaymentType(transactionId: transaction.id);
+            await print.print(
+              taxTT: totalTT,
+              totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
+              customerPhone: transaction.customerPhone,
+              totalDiscount: totalDiscount,
+              whenCreated: receipt!.whenCreated!,
+              timeFromServer:
+                  responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
+                      receipt.timeReceivedFromserver!,
+              taxB: totalB,
+              taxC: totalC,
+              taxA: totalA,
+              taxD: totalD,
+              grandTotal: transaction.subTotal!,
+              totalTaxA: calculateTotalTax(totalA, taxConfigTaxA!),
+              totalTaxB: calculateTotalTax(totalB, taxConfigTaxB!),
+              totalTaxC: calculateTotalTax(totalC, taxConfigTaxC!),
+              totalTaxD: calculateTotalTax(totalD, taxConfigTaxD!),
+              currencySymbol: "RW",
+              originalInvoiceNumber: originalInvoiceNumber,
+              transaction: transaction,
+              totalTax: (totalB * 18 / 118).toStringAsFixed(2),
+              items: items,
+              cash: transaction.subTotal!,
+              received: transaction.cashReceived!,
+              payMode: paymentTypes.isEmpty
+                  ? "CASH".toPaymentType()
+                  : paymentTypes.last.paymentMethod?.toPaymentType() ??
+                      "CASH".toPaymentType(),
+              mrc: receipt.mrcNo ?? "",
+              internalData: receipt.intrlData ?? "",
+              receiptQrCode: receipt.qrCode ?? "",
+              receiptSignature: receipt.rcptSign ?? "",
+              cashierName: business!.name!,
+              sdcId: receipt.sdcId ?? "",
+              invoiceNum: receipt.invcNo!,
+              rcptNo: receipt.rcptNo ?? 0,
+              totRcptNo: receipt.totRcptNo ?? 0,
+              brandName: business.name!,
+              brandAddress: business.adrs ?? "N/A",
+              brandTel: business.phoneNumber ?? "",
+              brandTIN:
+                  (ebm?.tinNumber ?? business.tinNumber ?? business.tinNumber)
+                      .toString(),
+              brandDescription: business.name!,
+              brandFooter: business.name!,
+              emails: [business.email ?? ""],
+              brandEmail: business.email ?? "info@yegobox.com",
+              customerTin: transaction.customerTin,
+              receiptType: receiptType,
+              customerName: transaction.customerName ?? "N/A",
+              printCallback: (Uint8List data) {
+                bytes = data;
+              },
+            );
+            return (response: responses, bytes: bytes);
+          }
+          throw Exception("Invalid action");
+        } catch (e) {
+          rethrow;
         }
-        throw Exception("Invalid action");
-      } catch (e) {
+      }
+      throw Exception("invalid action");
+    } catch (e) {
+      // If normal processing fails and we're on mobile with delegation enabled, try delegation
+      if (isMobileDevice &&
+          await isDelegationEnabled() &&
+          !skiGenerateRRAReceiptSignature) {
+        try {
+          talker.warning(
+              'Normal receipt processing failed, delegating to desktop: $e');
+
+          // Delegate to desktop for processing
+          await delegateTransactionToDesktop(
+            transaction: transaction,
+            receiptType: receiptType,
+            purchaseCode: purchaseCode,
+            salesSttsCd: salesSttsCd,
+            originalInvoiceNumber: originalInvoiceNumber,
+            sarTyCd: sarTyCd,
+          );
+
+          // Return a placeholder response indicating delegation
+          return (
+            response: RwApiResponse(
+              resultCd: '001',
+              resultMsg:
+                  'Transaction delegated to desktop for processing after local failure',
+              resultDt: DateTime.now().toIso8601String(),
+            ),
+            bytes: null,
+          );
+        } catch (delegationError) {
+          // If delegation also fails, rethrow the original error
+          talker.error(
+              'Both normal processing and delegation failed: $e, delegation error: $delegationError');
+          rethrow;
+        }
+      } else {
+        // Not mobile or delegation not enabled, rethrow the original error
         rethrow;
       }
     }
-    throw Exception("invalid action");
   }
 
   /**
