@@ -47,19 +47,35 @@ class ConnectionManager {
 
             try {
               // Enable WAL mode for better concurrency and crash resistance
-              await db.execute('PRAGMA journal_mode=WAL;');
+              if (Platform.isAndroid) {
+                await db.rawQuery('PRAGMA journal_mode=WAL;');
+              } else {
+                await db.execute('PRAGMA journal_mode=WAL;');
+              }
               print('✅ [ConnectionManager] WAL mode enabled');
 
               // FULL synchronous mode - safest against corruption
-              await db.execute('PRAGMA synchronous=FULL;');
+              if (Platform.isAndroid) {
+                await db.rawQuery('PRAGMA synchronous=FULL;');
+              } else {
+                await db.execute('PRAGMA synchronous=FULL;');
+              }
               print('✅ [ConnectionManager] Synchronous mode set to FULL');
 
               // Enable auto_vacuum to prevent database bloat
-              await db.execute('PRAGMA auto_vacuum=FULL;');
+              if (Platform.isAndroid) {
+                await db.rawQuery('PRAGMA auto_vacuum=FULL;');
+              } else {
+                await db.execute('PRAGMA auto_vacuum=FULL;');
+              }
               print('✅ [ConnectionManager] Auto-vacuum enabled');
 
               // Set busy timeout to 30 seconds for better handling of concurrent access
-              await db.execute('PRAGMA busy_timeout=30000;');
+              if (Platform.isAndroid) {
+                await db.rawQuery('PRAGMA busy_timeout=30000;');
+              } else {
+                await db.execute('PRAGMA busy_timeout=30000;');
+              }
               print('✅ [ConnectionManager] Busy timeout set to 30 seconds');
 
               // Platform-specific optimizations
@@ -77,12 +93,20 @@ class ConnectionManager {
                 print('✅ [ConnectionManager] Temp store set to MEMORY');
               } else if (Platform.isAndroid || Platform.isIOS) {
                 // Mobile devices: More conservative cache
-                await db.execute('PRAGMA cache_size=-4096;'); // ~4MB cache
+                if (Platform.isAndroid) {
+                  await db.rawQuery('PRAGMA cache_size=-4096;'); // ~4MB cache
+                } else {
+                  await db.execute('PRAGMA cache_size=-4096;'); // ~4MB cache
+                }
                 print('✅ [ConnectionManager] Cache size set to 4MB (Mobile)');
               }
 
               // Enable checkpointing on close for WAL mode
-              await db.execute('PRAGMA wal_autocheckpoint=1000;');
+              if (Platform.isAndroid) {
+                await db.rawQuery('PRAGMA wal_autocheckpoint=1000;');
+              } else {
+                await db.execute('PRAGMA wal_autocheckpoint=1000;');
+              }
               print('✅ [ConnectionManager] WAL autocheckpoint enabled');
 
               print(

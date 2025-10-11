@@ -42,7 +42,7 @@ Future<void> _initializeFirebase() async {
   }
 }
 
-// Function to initialize Supabase
+// Function to initialize Supabase. 
 Future<void> _initializeSupabase() async {
   try {
     // Wrap in a microtask to allow UI thread to continue
