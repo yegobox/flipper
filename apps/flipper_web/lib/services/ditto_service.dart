@@ -105,6 +105,7 @@ class DittoService {
         Permission.bluetoothAdvertise,
         Permission.nearbyWifiDevices,
         Permission.bluetoothScan,
+        Permission.location, // Required for Ditto on Android
       ].request();
     }
 
@@ -620,17 +621,30 @@ class DittoService {
         debugPrint('Ditto not initialized, cannot save event');
         return;
       }
+      // Normalize event payload: if caller provided a nested `data` map, merge
+      // its keys to the top-level so observers and downstream parsers see a
+      // flat map (e.g. userId, phone, etc are top-level). Keep the original
+      // top-level keys like `channel` and `type`.
+      final Map<String, dynamic> flattened = {};
+      // Start with top-level eventData fields
+      flattened.addAll(eventData);
+
+      // If there's a nested `data` object, merge it into the flattened map
+      if (eventData['data'] is Map<String, dynamic>) {
+        flattened.addAll(Map<String, dynamic>.from(eventData['data']));
+        // Optionally remove the nested `data` key to avoid duplication
+        flattened.remove('data');
+      }
+
+      // Ensure timestamp and _id are present
+      flattened['timestamp'] = DateTime.now().toIso8601String();
+      flattened['_id'] = eventId;
 
       await _ditto!.store.execute(
         "INSERT INTO events DOCUMENTS (:event) ON ID CONFLICT DO UPDATE",
-        arguments: {
-          "event": {
-            "_id": eventId,
-            ...eventData,
-            "timestamp": DateTime.now().toIso8601String(),
-          },
-        },
+        arguments: {"event": flattened},
       );
+
       debugPrint('Saved event with ID: $eventId');
     } catch (e) {
       debugPrint('Error saving event to Ditto: $e');
