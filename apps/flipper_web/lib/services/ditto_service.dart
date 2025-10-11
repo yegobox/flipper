@@ -639,6 +639,7 @@ class DittoService {
       // Ensure timestamp and _id are present
       flattened['timestamp'] = DateTime.now().toIso8601String();
       flattened['_id'] = eventId;
+      flattened['channel'] = eventId;
 
       await _ditto!.store.execute(
         "INSERT INTO events DOCUMENTS (:event) ON ID CONFLICT DO UPDATE",
