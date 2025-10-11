@@ -243,6 +243,7 @@ class DittoSyncCoordinator {
             '❌ Failed to register Ditto subscription for $type: $error\n$stack');
       }
     }
+    
 
     final observer = ditto.store.registerObserver(
       query.query,

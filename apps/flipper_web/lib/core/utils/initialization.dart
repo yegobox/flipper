@@ -57,9 +57,7 @@ Future<void> initializeDitto() async {
 
     final identity = OnlinePlaygroundIdentity(
       appID: appID,
-      token: kDebugMode
-          ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
-          : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
+      token: kDebugMode ? AppSecrets.appTokenDebug : AppSecrets.appTokenProd,
       enableDittoCloudSync: true,
     );
 
@@ -138,10 +136,9 @@ Future<void> initializeDitto() async {
         final identity = OnlinePlaygroundIdentity(
           appID: appID,
           token: kDebugMode
-              ? 'd8b7ac92-004a-47ac-a052-ea8d92d5869f' // dev token
-              : 'd8b7ac92-004a-47ac-a052-ea8d92d5869f',
-          enableDittoCloudSync:
-              true, // Keep cloud sync enabled; custom URLs are configured below
+              ? AppSecrets.appTokenDebug
+              : AppSecrets.appTokenProd,
+          enableDittoCloudSync: true,
         );
 
         // Create another unique directory for retry attempt
