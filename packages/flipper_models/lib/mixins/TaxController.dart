@@ -180,7 +180,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       if (!skiGenerateRRAReceiptSignature) {
         try {
           //
-          if (await isDelegationEnabled()) {
+          if (await isDelegationEnabled() && isMobileDevice) {
             throw Exception("Delegation enabled, skipping local processing");
           }
           responses = await generateRRAReceiptSignature(

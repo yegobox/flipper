@@ -38,6 +38,9 @@ class EventService
   final _desktopLoginStatusController =
       StreamController<DesktopLoginStatus>.broadcast();
 
+  // Observer for real-time event updates
+  dynamic _eventObserver;
+
   @override
   Stream<DesktopLoginStatus> desktopLoginStatusStream() =>
       _desktopLoginStatusController.stream;
@@ -56,15 +59,58 @@ class EventService
 
   Future<void> _setupEventObservation() async {
     try {
-      // Set up observation for events collection
-      // This is a simplified implementation - in a real scenario you'd use ditto's live queries
-      // For now, we'll use a polling mechanism similar to the user profiles
+      // Set up real-time observation for events collection using Ditto observer
+      if (DittoService.instance.isReady()) {
+        await _setupRealtimeObservation();
+      } else {
+        // Fallback to polling if Ditto is not ready yet
+        _setupPollingObservation();
+      }
+    } catch (e) {
+      talker.error('Error setting up event observation: $e');
+      // Fallback to polling on error
+      _setupPollingObservation();
+    }
+  }
+
+  Future<void> _setupRealtimeObservation() async {
+    try {
+      // Cancel any existing observer
+      await _eventObserver?.cancel();
+
+      // Register observer for all events
+      _eventObserver =
+          DittoService.instance.dittoInstance!.store.registerObserver(
+        "SELECT * FROM events ORDER BY timestamp DESC",
+        onChange: (queryResult) {
+          // Emit all events to the stream
+          for (final item in queryResult.items) {
+            final event = Map<String, dynamic>.from(item.value);
+            if (!_eventController.isClosed) {
+              _eventController.add(event);
+            }
+          }
+        },
+      );
+
+      talker.debug('Real-time event observation set up successfully');
+    } catch (e) {
+      talker.error(
+          'Error setting up real-time observation, falling back to polling: $e');
+      _setupPollingObservation();
+    }
+  }
+
+  void _setupPollingObservation() {
+    try {
+      // Set up observation for events collection using polling as fallback
       final pollingInterval = const Duration(seconds: 2);
       Timer.periodic(pollingInterval, (_) async {
         await _checkForNewEvents();
       });
+      talker.debug('Polling-based event observation set up as fallback');
     } catch (e) {
-      talker.error('Error setting up event observation: $e');
+      talker.error('Error setting up polling observation: $e');
     }
   }
 
@@ -388,5 +434,12 @@ class EventService
     } catch (e) {
       talker.error('Error subscribing to device events: $e');
     }
+  }
+
+  /// Dispose of resources
+  void dispose() {
+    _eventObserver?.cancel();
+    _eventController.close();
+    _desktopLoginStatusController.close();
   }
 }
