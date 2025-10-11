@@ -394,11 +394,22 @@ jobs:
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
     continue-on-error: true
+  
     strategy:
       fail-fast: false
       matrix:
         app: [flipper, flipper_auth]
     steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
       - run: git config --global core.autocrlf false
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
