@@ -146,14 +146,11 @@ class EventService
         return;
       }
 
-      final eventId =
-          '${channel}_${eventType}_${DateTime.now().millisecondsSinceEpoch}';
       await DittoService.instance.saveEvent({
         'channel': channel,
         'type': eventType,
         'data': data,
-      }, eventId);
-      talker.debug('Event saved: $eventId');
+      }, channel);
     } catch (e) {
       talker.error('Error saving event: $e');
     }
