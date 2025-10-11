@@ -5,7 +5,6 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
 
-
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
@@ -96,6 +95,7 @@ class App {}
 // flutter build apk --release
 // dart run build_runner watch
 // `dart run realm generate --watch`
+// 
 // dart pub cache clean
 //  dart pub global run melos bootstrap
 // While debugging if you lost communication, then you can not use the Hot-Reload or Hot-Restart feature. So, instead of re-building or installing new applications, you can attach existing installed applications.
