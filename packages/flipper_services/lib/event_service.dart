@@ -215,39 +215,22 @@ class EventService
   @override
   void subscribeLoginEvent({required String channel}) {
     try {
-      // Use a Ditto registerObserver to listen only for events matching this
-      // channel and types 'login' or 'broadcast'. This reduces work and avoids
-      // having to filter the global event stream on every message.
+      // Cancel any existing login observer
       _loginObserver?.cancel();
+      // Subscribe to sync events for this specific channel
+      DittoService.instance.dittoInstance!.sync.registerSubscription(
+          "SELECT * FROM events WHERE channel = :channel",
+          arguments: {"channel": channel});
 
-      // Use a parameterized query to avoid string interpolation issues and
-      // pass the channel as an argument to the observer.
-      final query = "SELECT * FROM events WHERE channel = :channel";
-
-      _loginObserver =
-          DittoService.instance.dittoInstance!.store.registerObserver(
-        query,
-        arguments: {"channel": channel},
-        onChange: (queryResult) {
-          talker.debug(
-              'Login observer triggered for channel $channel with ${queryResult.items.length} items');
-          for (final item in queryResult.items) {
-            final event = Map<String, dynamic>.from(item.value);
-            talker.debug('Processing login event: $event');
-            // Process each matching event the same way the stream listener did
-            _processLoginEvent(event, channel);
-          }
-        },
-      );
+      // Use the global event stream to catch both local changes and synced data
+      _loginObserver = _eventController.stream
+          .where((event) => event['channel'] == channel)
+          .listen((event) {
+        _processLoginEvent(event, channel);
+      });
 
       talker.debug(
-          'Login observer registered for channel $channel with query: $query');
-
-      // Also test if there are existing events for this channel
-      DittoService.instance.getEvents(channel, '*').then((existingEvents) {
-        talker.debug(
-            'Found ${existingEvents.length} existing events for channel $channel: $existingEvents');
-      });
+          'Login observer registered for channel $channel using global stream');
     } catch (e) {
       talker.error('Error subscribing to login events: $e');
       String errorMessage = 'Connection error. Please try again.';
@@ -480,6 +463,7 @@ class EventService
   /// Dispose of resources
   void dispose() {
     _eventObserver?.cancel();
+    _loginObserver?.cancel();
     _eventController.close();
     _desktopLoginStatusController.close();
   }
