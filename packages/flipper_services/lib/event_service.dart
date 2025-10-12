@@ -220,8 +220,10 @@ class EventService
           arguments: {"channel": channel});
 
       // Use the global event stream to catch both local changes and synced data
+      // Exclude events marked as logged out
       _loginObserver = _eventController.stream
-          .where((event) => event['channel'] == channel)
+          .where((event) =>
+              event['channel'] == channel && event['loggedOut'] != true)
           .listen((event) {
         _processLoginEvent(event, channel);
       });

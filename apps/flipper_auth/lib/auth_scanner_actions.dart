@@ -13,6 +13,7 @@ import 'package:flipper_scanner/random.dart';
 import 'package:flutter/services.dart'; // Added for HapticFeedback
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 class AuthScannerActions implements ScannerActions {
   final BuildContext context;
@@ -161,7 +162,7 @@ class AuthScannerActions implements ScannerActions {
       String responseChannel = 'login-response-$userId-$linkingCode';
 
       // Start listening for response on the response channel
-      _listenForLoginResponse(responseChannel);
+      _listenForLoginResponse(channel);
 
       // Update UI to show we're processing
       ref.read(scanStatusProvider.notifier).state = ScanStatus.processing;
@@ -195,15 +196,20 @@ class AuthScannerActions implements ScannerActions {
     }
   }
 
-  void _listenForLoginResponse(String responseChannel) {
+  void _listenForLoginResponse(String channel) {
     try {
       // With Ditto, we use the event service to listen for responses
       // The EventService handles polling and event distribution
       final eventService = getEventService();
 
+      // Register subscription with Ditto sync to ensure we receive events for this channel
+      DittoService.instance.dittoInstance!.sync.registerSubscription(
+          "SELECT * FROM events WHERE channel = :channel",
+          arguments: {"channel": channel});
+
       // Listen for response events on the response channel
       eventService
-          .subscribeToEvents(channel: responseChannel, eventType: 'login')
+          .subscribeToEvents(channel: channel, eventType: 'broadcast')
           .listen((envelope) {
         // Parse the response
         Map<String, dynamic> response = envelope;
