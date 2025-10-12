@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/supabase_models.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 // Define the interface
 abstract class CoreMiscellaneousInterface {
@@ -90,6 +91,20 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
           'deviceVersion': Platform.operatingSystemVersion,
           'linkingCode': randomNumber().toString()
         });
+
+        // Mark existing Ditto events for this user as logged out
+        if (DittoService.instance.isReady()) {
+          try {
+            await DittoService.instance.dittoInstance!.store.execute(
+              "UPDATE events SET loggedOut = true WHERE userId = :userId",
+              arguments: {"userId": ProxyService.box.getUserId()},
+            );
+            print(
+                'Marked Ditto events as logged out for user ${ProxyService.box.getUserId()}');
+          } catch (e) {
+            print('Error updating Ditto events on logout: $e');
+          }
+        }
       }
 
       // Sign out from Firebase
