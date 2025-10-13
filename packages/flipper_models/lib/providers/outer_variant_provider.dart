@@ -307,16 +307,24 @@ class OuterVariants extends _$OuterVariants {
         newVariants.where((v) => !currentIds.contains(v.id)).toList();
 
     if (uniqueNewVariants.isNotEmpty) {
-      _allLoadedVariants.addAll(uniqueNewVariants);
+      // Insert at the beginning so new variants appear first
+      _allLoadedVariants.insertAll(0, uniqueNewVariants);
 
       // Save to cache asynchronously
       unawaited(_saveStocksToCache(uniqueNewVariants));
 
-      // Update state with filtered results
+      // Force immediate state update
       if (!_isDisposed) {
         final currentSearchString = ref.read(searchStringProvider);
         final filteredVariants = _filterInMemory(currentSearchString);
         state = AsyncValue.data(filteredVariants);
+
+        // Also invalidate to trigger rebuild
+        Future.microtask(() {
+          if (!_isDisposed) {
+            ref.invalidateSelf();
+          }
+        });
       }
     }
   }

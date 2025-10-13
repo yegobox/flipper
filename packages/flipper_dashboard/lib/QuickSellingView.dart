@@ -103,6 +103,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   late final FocusNode _customerPhoneFocusNode;
   late final FocusNode _deliveryNoteFocusNode;
 
+  // Track last auto-set amount to detect manual changes
+  double _lastAutoSetAmount = 0.0;
+
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
       return false;
@@ -1117,6 +1120,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildReceivedAmountField({required String transactionId}) {
+    // Auto-update received amount when total changes (unless user manually changed it)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.receivedAmountController.text.isEmpty ||
+          widget.receivedAmountController.text ==
+              _lastAutoSetAmount.toString()) {
+        widget.receivedAmountController.text =
+            totalAfterDiscountAndShipping.toString();
+        _lastAutoSetAmount = totalAfterDiscountAndShipping;
+      }
+    });
+
     return Semantics(
       label: 'Received amount in ${ProxyService.box.defaultCurrency()}',
       hint: 'Enter the amount received from the customer',
