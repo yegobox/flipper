@@ -28,6 +28,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 // Stock validation functions have been moved to utils/stock_validator.dart
 
@@ -521,11 +522,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       talker.info("📤 Payment request sent to phone: $phoneNumber");
       talker.info("💰 Amount: ${transaction.subTotal!.toInt()}");
 
+      final uuid = Uuid();
+      final paymentId = uuid.v4();
+
       await Supabase.instance.client.from('customer_payments').upsert({
-        'phoneNumber': phoneNumber,
-        'paymentStatus': "pending",
-        'amountPayable': transaction.subTotal!,
-        'transactionId': transaction.id,
+        'id': paymentId,
+        'phone_number': phoneNumber,
+        'payment_status': "pending",
+        'amount_payable': transaction.subTotal!,
+        'transaction_id': transaction.id,
       });
 
       talker.info(
@@ -558,14 +563,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             table: 'customer_payments',
             filter: PostgresChangeFilter(
               type: PostgresChangeFilterType.eq,
-              column: 'transactionId',
+              column: 'transaction_id',
               value: transaction.id,
             ),
             callback: (payload) async {
               // Extract the new record from the payload
               final newRecord = payload.newRecord;
               // Filter for completed payments only
-              if (newRecord['paymentStatus'] != 'completed') return;
+              if (newRecord['payment_status'] != 'completed') return;
 
               // Prevent double-processing
               if (_isProcessingPayment) {
