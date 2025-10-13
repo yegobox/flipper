@@ -615,7 +615,7 @@ class DittoService {
   }
 
   /// Save an event to the events collection
-  Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
+  Future<void>  saveEvent(Map<String, dynamic> eventData, String eventId) async {
     try {
       if (_ditto == null) {
         debugPrint('Ditto not initialized, cannot save event');

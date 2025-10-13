@@ -8,6 +8,10 @@ import 'package:flipper_services/event_interface.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_event.dart';
 import 'dart:io';
@@ -171,11 +175,19 @@ class EventService
   @override
   Future<void> publish({required Map loginDetails}) async {
     try {
-      // Store the event in ditto
+      // Store the event in ditto - for response events, don't nest the data
       final channel = loginDetails['channel'] ?? 'default';
       final eventType = loginDetails['type'] ?? 'broadcast';
-      await saveEvent(
-          channel, eventType, Map<String, dynamic>.from(loginDetails));
+
+      // For response events (success/error), save the data directly without nesting
+      if (loginDetails.containsKey('status')) {
+        await DittoService.instance
+            .saveEvent(Map<String, dynamic>.from(loginDetails), channel);
+      } else {
+        // For other events, use the nested structure
+        await saveEvent(
+            channel, eventType, Map<String, dynamic>.from(loginDetails));
+      }
     } catch (e) {
       talker.error('Error publishing event with ditto: $e');
     }
@@ -212,18 +224,21 @@ class EventService
   @override
   void subscribeLoginEvent({required String channel}) {
     try {
+      talker.debug('Subscribing to login events for channel $channel');
       // Cancel any existing login observer
       _loginObserver?.cancel();
-      // Subscribe to sync events for this specific channel
+      // Subscribe to sync events for this specific channel, excluding successful responses
       DittoService.instance.dittoInstance!.sync.registerSubscription(
-          "SELECT * FROM events WHERE channel = :channel",
+          "SELECT * FROM events WHERE channel = :channel AND (status IS NULL OR status IS MISSING OR status != 'success')",
           arguments: {"channel": channel});
 
       // Use the global event stream to catch both local changes and synced data
       // Exclude events marked as logged out
       _loginObserver = _eventController.stream
           .where((event) =>
-              event['channel'] == channel && event['loggedOut'] != true)
+              event['channel'] == channel &&
+              event['loggedOut'] != true &&
+              event['status'] != 'success')
           .listen((event) {
         _processLoginEvent(event, channel);
       });
@@ -242,173 +257,129 @@ class EventService
   // stream-based listener to keep logic in one place).
   Future<void> _processLoginEvent(
       Map<String, dynamic> event, String channel) async {
+    LoginData? loginData;
+    String? responseChannel;
+
     try {
       talker
           .debug('Received login/broadcast event for channel $channel: $event');
       _desktopLoginStatusController
           .add(DesktopLoginStatus(DesktopLoginState.loading));
-      try {
-        LoginData loginData = LoginData.fromMap(event);
 
-        // Store the response channel for sending status updates back to mobile device
-        String? responseChannel = loginData.responseChannel;
+      loginData = LoginData.fromMap(event);
+      responseChannel = loginData.responseChannel;
 
-        ProxyService.box
-            .writeInt(key: 'businessId', value: loginData.businessId);
-        // ProxyService.box.writeString(key: 'uid', value: loginData.uid);
-        ProxyService.box.writeInt(key: 'branchId', value: loginData.branchId);
-        ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
-        ProxyService.box.writeString(key: 'userPhone', value: loginData.phone);
-        ProxyService.box
-            .writeString(key: 'defaultApp', value: loginData.defaultApp);
+      // Store basic login data
+      ProxyService.box.writeInt(key: 'businessId', value: loginData.businessId);
+      ProxyService.box.writeInt(key: 'branchId', value: loginData.branchId);
+      ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
+      ProxyService.box.writeString(key: 'userPhone', value: loginData.phone);
+      ProxyService.box
+          .writeString(key: 'defaultApp', value: loginData.defaultApp);
 
-        // get the device name and version
-        String deviceName = Platform.operatingSystem;
+      // Get device info
+      final deviceName = Platform.operatingSystem;
+      final deviceVersion = Platform.version;
 
-        // Get the device version.
-        String deviceVersion = Platform.version;
-        // publish the device name and version
+      // Create or update device record
+      final device = await ProxyService.strategy.getDevice(
+          phone: loginData.phone, linkingCode: loginData.linkingCode);
 
-        try {
-          Device? device = await ProxyService.strategy.getDevice(
-              phone: loginData.phone, linkingCode: loginData.linkingCode);
-          if (device == null) {
-            ProxyService.strategy.create(
-                data: Device(
-                    pubNubPublished: false,
-                    branchId: loginData.branchId,
-                    businessId: loginData.businessId,
-                    defaultApp: loginData.defaultApp,
-                    phone: loginData.phone,
-                    userId: loginData.userId,
-                    linkingCode: loginData.linkingCode,
-                    deviceName: deviceName,
-                    deviceVersion: deviceVersion));
-          }
-
-          // Update local authentication
-          await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-          await ProxyService.box
-              .writeBool(key: 'pinLogin', value: false); // QR login
-
-          // Check if a PIN with this userId already exists in the local database
-          final existingPin = await ProxyService.strategy
-              .getPinLocal(userId: loginData.userId, alwaysHydrate: true);
-
-          Pin thePin;
-          if (existingPin != null) {
-            // Update the existing PIN instead of creating a new one
-            thePin = existingPin;
-
-            // Update fields with the latest information
-            thePin.phoneNumber = loginData.phone;
-            thePin.branchId = loginData.branchId;
-            thePin.businessId = loginData.businessId;
-            thePin.tokenUid = loginData.tokenUid;
-
-            talker.debug(
-                "Using existing PIN with userId: ${loginData.userId}, ID: ${thePin.id}");
-          } else {
-            // Create a new PIN if none exists
-            thePin = Pin(
-                userId: loginData.userId,
-                pin: loginData.userId,
+      if (device == null) {
+        await ProxyService.strategy.create(
+            data: Device(
+                pubNubPublished: false,
                 branchId: loginData.branchId,
                 businessId: loginData.businessId,
-                phoneNumber: loginData.phone,
-                tokenUid: loginData.tokenUid);
-            talker.debug("Creating new PIN with userId: ${loginData.userId}");
-          }
+                defaultApp: loginData.defaultApp,
+                phone: loginData.phone,
+                userId: loginData.userId,
+                linkingCode: loginData.linkingCode,
+                deviceName: deviceName,
+                deviceVersion: deviceVersion));
+      }
 
-          // Use the standard login flow from auth_mixin
-          await ProxyService.strategy.login(
-            pin: thePin,
-            isInSignUpProgress: false,
-            flipperHttpClient: ProxyService.http,
-            skipDefaultAppSetup: false,
-            userPhone: loginData.phone,
-          );
+      // Update authentication flags
+      await ProxyService.box.writeBool(key: 'isAnonymous', value: true);
+      await ProxyService.box
+          .writeBool(key: 'pinLogin', value: false); // QR login
 
-          // Verify userId is properly saved - this is critical for offline login to work later
-          final savedUserId = ProxyService.box.getUserId();
-          if (savedUserId == null || savedUserId != loginData.userId) {
-            talker.debug(
-                "QR Login: userId not properly saved, explicitly setting it now");
-            await ProxyService.box
-                .writeInt(key: 'userId', value: loginData.userId);
-          } else {
-            talker.debug("QR Login: userId properly saved: $savedUserId");
-          }
+      // Get or create PIN
+      final existingPin = await ProxyService.strategy
+          .getPinLocal(userId: loginData.userId, alwaysHydrate: true);
 
-          // Signal success to update the UI
-          _desktopLoginStatusController
-              .add(DesktopLoginStatus(DesktopLoginState.success));
+      final Pin thePin;
+      if (existingPin != null) {
+        thePin = existingPin;
+        // Update existing PIN with latest info
+        thePin.phoneNumber = loginData.phone;
+        thePin.branchId = loginData.branchId;
+        thePin.businessId = loginData.businessId;
+        thePin.tokenUid = loginData.tokenUid;
+        talker.debug(
+            "Using existing PIN with userId: ${loginData.userId}, ID: ${thePin.id}");
+      } else {
+        thePin = Pin(
+            userId: loginData.userId,
+            pin: loginData.userId,
+            branchId: loginData.branchId,
+            businessId: loginData.businessId,
+            phoneNumber: loginData.phone,
+            tokenUid: loginData.tokenUid);
+        talker.debug("Creating new PIN with userId: ${loginData.userId}");
+      }
 
-          // Complete login first, then send success status
-          try {
-            await ProxyService.strategy.completeLogin(thePin);
+      // Perform login (may throw LoginChoicesException)
+      await ProxyService.strategy.login(
+        pin: thePin,
+        isInSignUpProgress: false,
+        flipperHttpClient: ProxyService.http,
+        skipDefaultAppSetup: false,
+        userPhone: loginData.phone,
+      );
+      // Complete login and send success response
+      await ProxyService.strategy.completeLogin(thePin);
+    } on LoginChoicesException {
+      _desktopLoginStatusController
+          .add(DesktopLoginStatus(DesktopLoginState.success));
 
-            // Send success status back to the mobile device if response channel is provided
-            if (responseChannel != null) {
-              await publish(loginDetails: {
-                'channel': responseChannel,
-                'status': 'success',
-                'message': 'Login successful',
-              });
-              talker.debug(
-                  "Sent login success response to channel: $responseChannel");
-            }
-          } catch (completeLoginError) {
-            talker.error('Failed to complete login: $completeLoginError');
+      // This is expected - rethrow to let auth_mixin handle navigation
+      if (responseChannel != null) {
+        await publish(loginDetails: {
+          'channel': loginData?.channel,
+          'status': 'success',
+          'loggedOut': false,
+          'message': 'Login successful',
+        });
+        talker
+            .debug("Sent login success response to channel: $responseChannel");
+      }
+      await Future<void>.delayed(const Duration(seconds: 5));
+      locator<RouterService>().navigateTo(LoginChoicesRoute());
+    } catch (e) {
+      talker.error('Login processing error: $e');
 
-            // Send error status if we have a response channel
-            if (responseChannel != null) {
-              try {
-                await publish(loginDetails: {
-                  'channel': responseChannel,
-                  'status': 'error',
-                  'message': 'Failed to complete login',
-                });
-              } catch (responseError) {
-                talker.error('Failed to send error response: $responseError');
-              }
-            }
-          }
+      // Determine error message and response channel
+      String errorMessage = 'Connection error. Please try again.';
+      final errorResponseChannel =
+          responseChannel ?? event['responseChannel'] as String?;
 
-          // Note: Navigation is handled by the standard login flow in auth_mixin.dart
-          // which will properly handle business and branch choices if needed
-        } catch (deviceError, stacktrace) {
-          // Use centralized error handling with response channel
-          await ProxyService.strategy.handleLoginError(deviceError, stacktrace,
-              responseChannel: responseChannel);
-
-          // Log the error but continue with login process
-          talker.error('Device registration error: $deviceError');
-        }
-      } catch (e, stackTrace) {
-        talker.error(e);
-        // Show a user-friendly error message
-        String errorMessage = 'Connection error. Please try again.';
-        _desktopLoginStatusController.add(DesktopLoginStatus(
-            DesktopLoginState.failure,
-            message: errorMessage));
-
-        // Extract response channel if possible and use centralized error handling
+      // Send error response if we have a channel
+      if (errorResponseChannel != null) {
         try {
-          Map<String, dynamic> payload = event;
-          String? responseChannel = payload['responseChannel'];
-
-          // Use centralized error handling with response channel
-          if (responseChannel != null) {
-            await ProxyService.strategy.handleLoginError(e, stackTrace,
-                responseChannel: responseChannel);
-          }
-        } catch (extractError) {
-          talker.error('Failed to extract response channel: $extractError');
+          await publish(loginDetails: {
+            'channel': errorResponseChannel,
+            'status': 'error',
+            'message': errorMessage,
+          });
+        } catch (responseError) {
+          talker.error('Failed to send error response: $responseError');
         }
       }
-    } catch (e) {
-      talker.error(e);
+
+      // Update UI with failure status
+      _desktopLoginStatusController.add(
+          DesktopLoginStatus(DesktopLoginState.failure, message: errorMessage));
     }
   }
 

@@ -70,7 +70,7 @@ class TransactionItemAdder {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           }
           showCustomSnackBarUtil(context, "You do not have enough stock",
-              backgroundColor: Colors.red);
+              backgroundColor: Colors.red, showCloseButton: true);
           return;
         }
         if (variant.taxTyCd != "D" &&
@@ -80,7 +80,7 @@ class TransactionItemAdder {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           }
           showCustomSnackBarUtil(context, "You do not have enough stock",
-              backgroundColor: Colors.red);
+              backgroundColor: Colors.red, showCloseButton: true);
           return;
         }
       }

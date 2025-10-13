@@ -105,6 +105,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     toast('Please select a category!');
   }
 
+  void _addVariantsToProvider(List<Variant> variants) {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId != null && mounted) {
+      ref.read(outerVariantsProvider(branchId).notifier).addVariants(variants);
+    }
+  }
+
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef,
       {required String selectedProductType}) async {
@@ -137,6 +144,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               rates: _rates,
               dates: _dates,
               onCompleteCallback: (List<Variant> variants) async {
+            _addVariantsToProvider(variants);
             if (!mounted) return;
             final invoiceNumber = await showInvoiceNumberModal(context);
             if (invoiceNumber == null) return;
@@ -168,15 +176,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
             if (pendingTransaction != null) {
               if (!mounted) return;
-              await completeTransaction(pendingTransaction: pendingTransaction);
-            }
 
-            // Add the newly created variants to the provider immediately
-            final branchId = ProxyService.box.getBranchId();
-            if (branchId != null && mounted) {
-              ref
-                  .read(outerVariantsProvider(branchId).notifier)
-                  .addVariants(variants);
+              await completeTransaction(pendingTransaction: pendingTransaction);
             }
           });
         } else {
@@ -198,6 +199,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             packagingUnit: selectedPackageUnitValue.split(":")[0],
             categoryId: selectedCategoryId,
             onCompleteCallback: (List<Variant> variants) async {
+              _addVariantsToProvider(variants);
               if (!mounted) return;
               final invoiceNumber = await showInvoiceNumberModal(context);
               if (invoiceNumber == null) return;
@@ -229,16 +231,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
               if (pendingTransaction != null) {
                 if (!mounted) return;
+
                 await completeTransaction(
                     pendingTransaction: pendingTransaction);
-              }
-
-              // Add the newly created variants to the provider immediately
-              final branchId = ProxyService.box.getBranchId();
-              if (branchId != null && mounted) {
-                ref
-                    .read(outerVariantsProvider(branchId).notifier)
-                    .addVariants(variants);
               }
             },
           );
@@ -427,11 +422,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
           // Composite variants are services (itemTyCd=3) and don't need stock transactions
           // Just add variants to provider for immediate UI update
-          if (mounted) {
-            ref
-                .read(outerVariantsProvider(branchId).notifier)
-                .addVariants(variants);
-          }
+          _addVariantsToProvider(variants);
 
           talker.info(
               "Composite variant created (service type - no stock): ${productNameController.text}");
