@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
@@ -405,6 +406,12 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       List<brick.Counter> counters = await ProxyService.strategy.getCounters(
           branchId: ProxyService.box.getBranchId()!,
           fetchRemote: !Platform.isWindows);
+      // Determine the highest invoice number across all counters and use that
+      // when assigning invoiceNumber. We still pass the specific `counter`
+      // instance to the external tax service, but persist the highest value
+      // as the invoiceNumber so it reflects the latest counter globally.
+      final int highestInvcNo =
+          counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
       brick.Counter? counter = await ProxyService.strategy.getCounter(
           branchId: branchId,
           receiptType: receiptType,
@@ -482,7 +489,8 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             receiptNumber: counter.invcNo,
             customerPhone: transaction.customerPhone,
             totalReceiptNumber: counter.totRcptNo,
-            invoiceNumber: counter.invcNo,
+            // Use the highest invoice number across counters as requested
+            invoiceNumber: highestInvcNo,
             customerName: transaction.customerName ?? "N/A",
             paymentType: transaction.paymentType,
             subTotal: transaction.subTotal,
@@ -558,7 +566,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             sarNo: counter.invcNo.toString(),
             receiptNumber: counter.invcNo,
             totalReceiptNumber: counter.totRcptNo,
-            invoiceNumber: transaction.invoiceNumber ?? counter.invcNo,
+            // Prefer an existing transaction.invoiceNumber, otherwise use the
+            // highest invoice number across counters.
+            invoiceNumber: transaction.invoiceNumber ?? highestInvcNo,
             isProformaMode: ProxyService.box.isProformaMode(),
             isTrainingMode: ProxyService.box.isTrainingMode(),
           );
@@ -566,7 +576,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
 
         await saveReceipt(
             receiptSignature, transaction, qrCode, counter, receiptNumber,
-            whenCreated: now, invoiceNumber: counter.invcNo!);
+            whenCreated: now, invoiceNumber: highestInvcNo);
 
         /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
         /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
