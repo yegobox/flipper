@@ -425,6 +425,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     bool fetchRemote = false,
     String? requestId,
     bool forceRealData = true,
+    List<String>? itemIds,
   }) async {
     if ((ProxyService.box.enableDebug() ?? false) && !forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactionItems(
@@ -438,16 +439,20 @@ mixin TransactionItemMixin implements TransactionItemInterface {
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.localOnly,
         query: Query(where: [
-          if (transactionId != null)
-            Where('transactionId').isExactly(transactionId),
-          if (branchId != null) Where('branchId').isExactly(branchId),
-          if (id != null) Where('id').isExactly(id),
-          if (doneWithTransaction != null)
-            Where('doneWithTransaction').isExactly(doneWithTransaction),
-          if (active != null) Where('active').isExactly(active),
-          if (variantId != null) Where('variantId').isExactly(active),
-          if (requestId != null)
-            Where('inventoryRequestId').isExactly(requestId),
+          if (itemIds != null && itemIds.isNotEmpty)
+            Where('id').isIn(itemIds)
+          else ...[  
+            if (transactionId != null)
+              Where('transactionId').isExactly(transactionId),
+            if (branchId != null) Where('branchId').isExactly(branchId),
+            if (id != null) Where('id').isExactly(id),
+            if (doneWithTransaction != null)
+              Where('doneWithTransaction').isExactly(doneWithTransaction),
+            if (active != null) Where('active').isExactly(active),
+            if (variantId != null) Where('variantId').isExactly(variantId),
+            if (requestId != null)
+              Where('inventoryRequestId').isExactly(requestId),
+          ]
         ]));
     return items;
   }

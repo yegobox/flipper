@@ -907,7 +907,7 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<ITransaction?> getTransaction(
-      {String? sarNo, required int branchId, String? id}) async {
+      {String? sarNo, required int branchId, String? id, bool awaitRemote = false}) async {
     try {
       final query = Query(where: [
         if (sarNo != null) Where('sarNo').isExactly(sarNo),
@@ -918,7 +918,9 @@ mixin TransactionMixin implements TransactionInterface {
       final List<ITransaction> transactions =
           await repository.get<ITransaction>(
         query: query,
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: awaitRemote 
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
       );
 
       return transactions.isNotEmpty ? transactions.last : null;

@@ -28,6 +28,7 @@ abstract class TransactionItemInterface {
     bool fetchRemote = false,
     String? requestId,
     bool forceRealData = true,
+    List<String>? itemIds,
   });
   Stream<List<TransactionItem>> transactionItemsStreams({
     String? transactionId,

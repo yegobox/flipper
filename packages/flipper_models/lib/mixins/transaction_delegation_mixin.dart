@@ -158,6 +158,7 @@ mixin TransactionDelegationMixin {
     required String salesSttsCd,
     int? originalInvoiceNumber,
     String? sarTyCd,
+    List<TransactionItem>? items,
   }) async {
     try {
       // Ensure delegation service is initialized and ready
@@ -183,6 +184,7 @@ mixin TransactionDelegationMixin {
           'originalInvoiceNumber': originalInvoiceNumber,
           'sarTyCd': sarTyCd,
           'businessId': ProxyService.box.getBusinessId(),
+          'items': items?.map((item) => item.id).toList() ?? [],
         },
       );
 
@@ -250,6 +252,10 @@ mixin TransactionDelegationMixin {
   /// Handle a new delegation received from mobile device
   Future<void> _handleNewDelegation(Map<String, dynamic> delegationData) async {
     final transactionId = delegationData['transactionId'] as String;
+    final branchId = delegationData['branchId'] as String;
+    final itemIds =
+        (delegationData['additionalData']?['items'] as List?)?.cast<String>() ??
+            [];
 
     try {
       debugPrint('🔔 Desktop processing new delegation: $transactionId');
@@ -261,17 +267,37 @@ mixin TransactionDelegationMixin {
         processingDevice: _delegationService.getDeviceId(),
       );
 
-      // Get transaction from local database
-      final transaction = await _getTransaction(transactionId);
+      // Fetch fresh transaction data from repository using awaitRemote
+      final transaction = await ProxyService.strategy.getTransaction(
+        id: transactionId,
+        branchId: int.parse(branchId),
+        awaitRemote: true,
+      );
 
       if (transaction == null) {
         throw Exception('Transaction not found: $transactionId');
+      }
+
+      // Fetch fresh transaction items from repository using awaitRemote
+      List<TransactionItem> items = [];
+      if (itemIds.isNotEmpty) {
+        items = await ProxyService.strategy.transactionItems(
+          itemIds: itemIds,
+          fetchRemote: true,
+        );
+      } else {
+        // Fallback to get all items for the transaction
+        items = await ProxyService.strategy.transactionItems(
+          transactionId: transactionId,
+          fetchRemote: true,
+        );
       }
 
       // Process the transaction (generate receipt, print, EBM sync)
       await _completeTransactionOnDesktop(
         transaction: transaction,
         delegationData: delegationData,
+        items: items,
       );
 
       // Update status to 'completed'
@@ -294,23 +320,6 @@ mixin TransactionDelegationMixin {
         status: TransactionDelegationStatus.error.value,
         errorMessage: e.toString(),
       );
-    }
-  }
-
-  /// Get a transaction by ID (helper method)
-  Future<ITransaction?> _getTransaction(String transactionId) async {
-    try {
-      final transactions = await ProxyService.strategy.transactions(
-        branchId: ProxyService.box.getBranchId(),
-      );
-
-      return transactions.firstWhere(
-        (t) => t.id == transactionId,
-        orElse: () => throw Exception('Transaction not found'),
-      );
-    } catch (e) {
-      debugPrint('Error getting transaction $transactionId: $e');
-      return null;
     }
   }
 
@@ -377,10 +386,17 @@ mixin TransactionDelegationMixin {
         processingDevice: _delegationService.getDeviceId(),
       );
 
+      // Fetch transaction items for processing
+      final items = await ProxyService.strategy.transactionItems(
+        transactionId: transaction.id,
+        fetchRemote: true,
+      );
+
       // Process the transaction (generate receipt, print, etc.)
       await _completeTransactionOnDesktop(
         transaction: transaction,
         delegationData: delegationData,
+        items: items,
       );
 
       // Mark as completed
@@ -408,6 +424,7 @@ mixin TransactionDelegationMixin {
   Future<void> _completeTransactionOnDesktop({
     required ITransaction transaction,
     required Map<String, dynamic> delegationData,
+    required List<TransactionItem> items,
   }) async {
     // Create a new TaxController instance for this transaction
     // We use late import to avoid circular dependency
@@ -417,10 +434,14 @@ mixin TransactionDelegationMixin {
     await taxController.printReceipt(
       receiptType: delegationData['receiptType'] as String,
       transaction: transaction,
-      purchaseCode: delegationData['purchaseCode'] as String?,
-      salesSttsCd: delegationData['salesSttsCd'] as String,
-      originalInvoiceNumber: delegationData['originalInvoiceNumber'] as int?,
-      sarTyCd: delegationData['sarTyCd'] as String?,
+      purchaseCode:
+          delegationData['additionalData']?['purchaseCode'] as String?,
+      salesSttsCd:
+          delegationData['additionalData']?['salesSttsCd'] as String? ?? '11',
+      originalInvoiceNumber:
+          delegationData['additionalData']?['originalInvoiceNumber'] as int?,
+      sarTyCd: delegationData['additionalData']?['sarTyCd'] as String?,
+      items: items,
     );
   }
 
