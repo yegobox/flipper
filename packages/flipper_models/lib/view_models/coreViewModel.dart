@@ -1140,19 +1140,25 @@ class CoreViewModel extends FlipperBaseModel
       talker.debug(
           "Item ${variant.id} is a service (code 3), no stock assignment needed");
 
+      // Ensure service items have no stock/quantity
+      variant.qty = 0;
+      if (variant.stock != null) {
+        variant.stock!.currentStock = 0;
+      }
+
       await ProxyService.strategy.updateVariant(
         updatables: [variant],
         purchase: purchase,
-        approvedQty: null, // No stock for services
+        approvedQty: 0, // Explicitly set to 0 for services
         invoiceNumber: purchase.spplrInvcNo,
         updateIo: updateIo,
       );
 
-      // Still update IO but with null approvedQty for services
+      // Still update IO but with 0 approvedQty for services
       await ProxyService.strategy.updateIoFunc(
         variant: variant,
         purchase: purchase,
-        approvedQty: null,
+        approvedQty: 0,
       );
     } else {
       // Normal handling for non-service items

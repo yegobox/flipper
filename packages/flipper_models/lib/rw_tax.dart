@@ -28,6 +28,7 @@ import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'dart:math' as math;
 
 // Expose a top-level calculateTaxTotals function so tests can call it
 // without needing to instantiate RWTax (which pulls in app-wide services).
@@ -970,10 +971,21 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         transaction.customerName ??
         customer?.custNm ??
         "N/A";
+    // Use the highest available invoice number across branch counters for the
+    // top-level `invcNo` (covers all receipt types like NS, TS, etc.). We
+    // intentionally fetch local counters (fetchRemote: false) to avoid blocking
+    // remote calls during request build; this mirrors the behavior used when
+    // resolving counters elsewhere.
+    List<odm.Counter> _counters = await ProxyService.strategy.getCounters(
+        branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
+    final int highestInvcNo =
+        _counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
+
     Map<String, dynamic> json = {
       "tin": business?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
-      "invcNo": counter.invcNo,
+      // Use highest counter value for invoice number (as requested)
+      "invcNo": highestInvcNo,
       "salesTyCd": receiptCodes['salesTyCd'],
       "rcptTyCd": receiptCodes['rcptTyCd'],
       "pmtTyCd": pmtTyCd,
@@ -1040,7 +1052,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "prchrAcptcYn": "Y",
       "receipt": {
         "prchrAcptcYn": "Y",
-        "rptNo": counter.invcNo,
+        // Use highest invoice number in the receipt sub-object as well
+        "rptNo": highestInvcNo,
         "adrs": "Kigali, Rwanda",
         "topMsg": topMessage,
         "btmMsg": "THANK YOU COME BACK AGAIN",
