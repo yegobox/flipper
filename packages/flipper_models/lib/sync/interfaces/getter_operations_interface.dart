@@ -21,7 +21,11 @@ abstract class GetterOperationsInterface {
   Future<IPin?> getPin(
       {required String pinString,
       required HttpClientInterface flipperHttpClient});
-  FutureOr<Pin?> getPinLocal({required int userId});
+  FutureOr<Pin?> getPinLocal({
+    int? userId,
+    String? phoneNumber,
+    required bool alwaysHydrate,
+  });
   Future<String?> getPlatformDeviceId();
   Future<List<Product>> getProducts(
       {String? key, int? prodIndex, required int branchId});
@@ -29,7 +33,10 @@ abstract class GetterOperationsInterface {
   FutureOr<Tenant?> getTenant({int? userId, int? pin});
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period});
-  Future<Plan?> getPaymentPlan({required int businessId});
+  Future<Plan?> getPaymentPlan({
+    required String businessId,
+    bool? fetchOnline,
+  });
 
   // Required methods that should be provided by other mixins
   FutureOr<Business?> getBusinessById({required int businessId});

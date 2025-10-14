@@ -349,7 +349,7 @@ class CronService {
       ProxyService.strategy.startReplicator();
 
       // Set strategy based on platform
-      ProxyService.setStrategy(Strategy.bricks);
+      ProxyService.setStrategy(Strategy.cloudSync);
       ProxyService.strategy.whoAmI();
 
       // Get payment plan

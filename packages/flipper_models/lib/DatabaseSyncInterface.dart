@@ -16,6 +16,7 @@ import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/interfaces/receipt_interface.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
@@ -31,7 +32,6 @@ import 'package:flipper_models/sync/interfaces/log_interface.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
-import 'package:supabase_models/brick/models/all_models.dart' as odm;
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
@@ -74,6 +74,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         StockRecountInterface,
         ShiftApi,
         StockInterface,
+        ReceiptInterface,
         LogInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
@@ -240,15 +241,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
       String? itemCd,
       String? productId});
   Future<bool> isTaxEnabled({required int businessId});
-  Future<Receipt?> createReceipt(
-      {required RwApiResponse signature,
-      required DateTime whenCreated,
-      required ITransaction transaction,
-      required String qrCode,
-      required String receiptType,
-      required odm.Counter counter,
-      required int invoiceNumber,
-      required String timeReceivedFromserver});
+ 
   Future<Receipt?> getReceipt({required String transactionId});
 
   Future<void> refund({required int itemId});

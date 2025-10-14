@@ -8,7 +8,7 @@ mixin CapellaStockMixin implements StockInterface {
   Talker get talker;
 
   @override
-  Future<Stock?> getStockById({required String id}) async {
+  Future<Stock> getStockById({required String id}) async {
     throw UnimplementedError(
         'getStockById needs to be implemented for Capella');
   }

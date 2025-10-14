@@ -84,10 +84,6 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     throw UnimplementedError('getPin needs to be implemented for Capella');
   }
 
-  @override
-  FutureOr<Pin?> getPinLocal({required int userId}) async {
-    throw UnimplementedError('getPinLocal needs to be implemented for Capella');
-  }
 
   @override
   Future<String?> getPlatformDeviceId() async {
@@ -118,11 +114,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
         'getTransactionsAmountsSum needs to be implemented for Capella');
   }
 
-  @override
-  Future<Plan?> getPaymentPlan({required int businessId}) async {
-    throw UnimplementedError(
-        'getPaymentPlan needs to be implemented for Capella');
-  }
+
 
   @override
   FutureOr<Business?> getBusinessById(

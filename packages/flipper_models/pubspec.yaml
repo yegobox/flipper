@@ -68,6 +68,7 @@ dependencies:
   email_validator: ^2.1.17
   faker: ^2.2.0
   flipper_personal: any
+  flipper_web: any
   
 
 dependency_overrides:

@@ -341,6 +341,8 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   void enableDebugFunc(bool value) async {
+    // ProxyService.setStrategy(Strategy.capella);
+    // ProxyService.strategy.whoAmI();
     await ProxyService.box
         .writeBool(key: 'enableDebug', value: !ProxyService.box.enableDebug()!);
 

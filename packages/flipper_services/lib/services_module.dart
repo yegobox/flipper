@@ -6,11 +6,12 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/MockHttpClient.dart';
+import 'package:flipper_models/sync/capella/capella_sync.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
-import 'package:flipper_services/Capella.dart';
+// import 'package:flipper_services/Capella.dart';
 import 'package:flipper_services/HttpApi.dart';
 import 'package:flipper_services/PayStackService.dart';
 
@@ -74,7 +75,7 @@ abstract class ServicesModule {
   @Named('coresync')
   Future<DatabaseSyncInterface> provideSyncInterface(LocalStorage box) async {
     if (kIsWeb) {
-      return await Capella().configureCapella(
+      return await CapellaSync().configureLocal(
         box: box,
         useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
@@ -91,7 +92,7 @@ abstract class ServicesModule {
   Future<DatabaseSyncInterface> capella(
     LocalStorage box,
   ) async {
-    return await Capella().configureCapella(
+    return await CapellaSync().configureLocal(
       box: box,
       useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
     );
@@ -105,7 +106,7 @@ abstract class ServicesModule {
     @Named('coresync') DatabaseSyncInterface coresync,
   ) {
     return SyncStrategy(
-      capella: capella as Capella,
+      capella: capella as CapellaSync,
       cloudSync: coresync as CoreSync,
     );
   }
@@ -126,7 +127,7 @@ abstract class ServicesModule {
         useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
       );
     }
-    return await Capella().configureLocal(
+    return await CapellaSync().configureLocal(
       box: box,
       useInMemory: true,
     );

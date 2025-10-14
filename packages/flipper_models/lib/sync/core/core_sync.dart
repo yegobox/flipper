@@ -145,7 +145,8 @@ class CoreSync extends CoreSyncBase
   }
 
   @override
-  FutureOr<Pin?> getPinLocal({required int userId}) {
+  FutureOr<Pin?> getPinLocal(
+      {int? userId, String? phoneNumber, required bool alwaysHydrate}) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }

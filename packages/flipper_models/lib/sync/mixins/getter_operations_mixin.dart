@@ -148,7 +148,6 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     );
   }
 
-
   @override
   Future<String?> getPlatformDeviceId() async {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -254,10 +253,12 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
 
     return (income: sum_cash_in, expense: sum_cash_out);
   }
-  
 
   @override
-  Future<Plan?> getPaymentPlan({required int businessId}) async {
+  Future<Plan?> getPaymentPlan({
+    required String businessId,
+    bool? fetchOnline,
+  }) async {
     try {
       final query = Query(where: [Where('businessId').isExactly(businessId)]);
       final result = await repository.get<Plan>(

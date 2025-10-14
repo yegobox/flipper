@@ -43,6 +43,7 @@ class TransactionListWrapperState
             child: TransactionList(
               showDetailedReport: widget.showDetailedReport,
               hideHeader: true,
+              showSearch: true,
             ),
           ),
         ],

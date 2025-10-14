@@ -33,7 +33,18 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
-  Future<Variant?> getVariant({required String id}) async {
+  Future<Variant?> getVariant({
+    String? id,
+    String? modrId,
+    String? name,
+    String? bcd,
+    String? stockId,
+    String? taskCd,
+    String? itemClsCd,
+    String? itemNm,
+    String? itemCd,
+    String? productId,
+  }) async {
     throw UnimplementedError('getVariant needs to be implemented for Capella');
   }
 
