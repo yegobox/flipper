@@ -14,10 +14,12 @@ class TransactionList extends StatefulHookConsumerWidget {
     Key? key,
     this.showDetailedReport = true,
     this.hideHeader = false,
+    this.showSearch = true,
   }) : super(key: key);
 
   final bool showDetailedReport;
   final bool hideHeader;
+  final bool showSearch;
 
   @override
   TransactionListState createState() => TransactionListState();
@@ -27,12 +29,20 @@ class TransactionListState extends ConsumerState<TransactionList>
     with WidgetsBindingObserver, DateCoreWidget {
   // Use a late initialized key to ensure it's created fresh when needed
   late GlobalKey<SfDataGridState> workBookKey;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     // Initialize the key
     workBookKey = GlobalKey<SfDataGridState>();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,7 +85,19 @@ class TransactionListState extends ConsumerState<TransactionList>
     if (dataProvider.hasValue && dataProvider.value!.isNotEmpty) {
       try {
         if (!showDetailed) {
-          transactions = dataProvider.value!.cast<ITransaction>();
+          var allTransactions = dataProvider.value!.cast<ITransaction>();
+          // Filter transactions by search query
+          if (_searchQuery.isNotEmpty) {
+            transactions = allTransactions.where((transaction) {
+              final receiptNumber = transaction.receiptNumber?.toString() ?? '';
+
+              return receiptNumber
+                      .toLowerCase()
+                      .contains(_searchQuery.toLowerCase()) ;
+            }).toList();
+          } else {
+            transactions = allTransactions;
+          }
         } else {
           transactionItems = dataProvider.value!.cast<TransactionItem>();
         }
@@ -134,14 +156,27 @@ class TransactionListState extends ConsumerState<TransactionList>
                   child: _buildReportTypeSwitch(showDetailed),
                 ),
               const SizedBox(height: 8),
-              if (!widget.hideHeader)
+              if (!widget.hideHeader || widget.showSearch)
                 Row(
                   children: [
                     Expanded(
                       child: TextField(
+                        controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search transactions...',
+                          hintText:
+                              'Search by receipt number, SAR number, customer name...',
                           prefixIcon: Icon(Icons.search),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                )
+                              : null,
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8)),
                           contentPadding: const EdgeInsets.symmetric(
@@ -149,7 +184,9 @@ class TransactionListState extends ConsumerState<TransactionList>
                         ),
                         style: TextStyle(fontSize: 16),
                         onChanged: (value) {
-                          // TODO: Implement search/filter logic
+                          setState(() {
+                            _searchQuery = value;
+                          });
                         },
                       ),
                     ),

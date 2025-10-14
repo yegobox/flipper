@@ -157,7 +157,7 @@ mixin TransactionMixin implements TransactionInterface {
     }
     final result = await repository.get<ITransaction>(
       policy: fetchRemote
-          ? OfflineFirstGetPolicy.alwaysHydrate
+          ? OfflineFirstGetPolicy.localOnly
           : OfflineFirstGetPolicy.localOnly,
       query: queryString,
     );
@@ -907,7 +907,10 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<ITransaction?> getTransaction(
-      {String? sarNo, required int branchId, String? id, bool awaitRemote = false}) async {
+      {String? sarNo,
+      required int branchId,
+      String? id,
+      bool awaitRemote = false}) async {
     try {
       final query = Query(where: [
         if (sarNo != null) Where('sarNo').isExactly(sarNo),
@@ -918,7 +921,7 @@ mixin TransactionMixin implements TransactionInterface {
       final List<ITransaction> transactions =
           await repository.get<ITransaction>(
         query: query,
-        policy: awaitRemote 
+        policy: awaitRemote
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.localOnly,
       );
@@ -1029,7 +1032,7 @@ mixin TransactionMixin implements TransactionInterface {
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
+            query: queryString, policy: OfflineFirstGetPolicy.localOnly)
         .map((data) {
       talker.info('Transaction stream returned: ${data.length} records');
       return data;

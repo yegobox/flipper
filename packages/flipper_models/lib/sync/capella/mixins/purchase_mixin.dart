@@ -26,6 +26,7 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
     required String bhfId,
     required int tin,
     required String url,
+    String? pchsSttsCd,
   }) async {
     throw UnimplementedError(
         'selectPurchases needs to be implemented for Capella');

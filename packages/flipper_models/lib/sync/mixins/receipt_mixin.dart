@@ -15,6 +15,7 @@ mixin ReceiptMixin implements ReceiptInterface {
       required String qrCode,
       required String receiptType,
       required Counter counter,
+      required String timeReceivedFromserver,
       required int invoiceNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
 

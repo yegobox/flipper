@@ -10,5 +10,6 @@ abstract class ReceiptInterface {
     required String receiptType,
     required Counter counter,
     required int invoiceNumber,
+    required String timeReceivedFromserver,
   });
 }

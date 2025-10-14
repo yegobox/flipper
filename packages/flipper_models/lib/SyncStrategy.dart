@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart'; // Import for kIsWeb
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 
-enum Strategy { capella, cloudSync, bricks }
+enum Strategy { capella, cloudSync }
 
 class SyncStrategy {
   final DatabaseSyncInterface capella;

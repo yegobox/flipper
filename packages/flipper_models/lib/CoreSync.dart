@@ -474,15 +474,16 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Receipt?> createReceipt(
-      {required RwApiResponse signature,
-      required DateTime whenCreated,
-      required ITransaction transaction,
-      required String qrCode,
-      required String receiptType,
-      required String timeReceivedFromserver,
-      required Counter counter,
-      required int invoiceNumber}) async {
+  Future<Receipt?> createReceipt({
+    required RwApiResponse signature,
+    required DateTime whenCreated,
+    required ITransaction transaction,
+    required String qrCode,
+    required String receiptType,
+    required Counter counter,
+    required int invoiceNumber,
+    required String timeReceivedFromserver,
+  }) async {
     int branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(

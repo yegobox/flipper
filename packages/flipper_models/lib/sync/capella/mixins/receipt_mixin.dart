@@ -17,6 +17,7 @@ mixin CapellaReceiptMixin implements ReceiptInterface {
     required String receiptType,
     required Counter counter,
     required int invoiceNumber,
+    required String timeReceivedFromserver,
   }) async {
     throw UnimplementedError(
         'createReceipt needs to be implemented for Capella');
