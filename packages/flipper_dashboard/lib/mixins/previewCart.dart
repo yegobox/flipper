@@ -556,7 +556,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Create channel with callback
       final channel = Supabase.instance.client
-          .channel('customer_payments_${transaction.id}')
+          .channel('schema-db-changes',
+              opts: const RealtimeChannelConfig(ack: true))
           .onPostgresChanges(
             event: PostgresChangeEvent.update,
             schema: 'public',
@@ -644,7 +645,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             },
           );
 
-      // Subscribe to the channel
+      // Subscribe to the channel with status monitoring
       _paymentStatusChannel = channel.subscribe();
     } catch (e) {
       talker.error("Error in digital payment processing: $e");

@@ -38,6 +38,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     bool fetchRemote = false,
     String? requestId,
     bool forceRealData = true,
+    List<String>? itemIds,
   }) {
     throw UnimplementedError();
   }

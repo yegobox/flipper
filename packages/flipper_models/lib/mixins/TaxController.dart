@@ -171,7 +171,22 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     bool skiGenerateRRAReceiptSignature = false,
     int? originalInvoiceNumber,
     String? sarTyCd,
+    List<TransactionItem>? items,
   }) async {
+    // Use provided items or fetch transaction items
+    List<TransactionItem> transactionItems = items ?? [];
+    if (transactionItems.isEmpty) {
+      try {
+        transactionItems = await ProxyService.strategy.transactionItems(
+          transactionId: transaction.id,
+          branchId: (await ProxyService.strategy.activeBranch()).id,
+        );
+      } catch (e) {
+        // If we can't fetch items, continue with empty list for delegation
+        talker.warning('Could not fetch transaction items: $e');
+      }
+    }
+
     // Try normal processing first
     try {
       // Normal processing (desktop or mobile)
@@ -198,11 +213,6 @@ class TaxController<OBJ> with TransactionDelegationMixin {
                 .getBusiness(businessId: ProxyService.box.getBusinessId()!);
             Ebm? ebm = await ProxyService.strategy
                 .ebm(branchId: ProxyService.box.getBranchId()!);
-            List<TransactionItem> items =
-                await ProxyService.strategy.transactionItems(
-              transactionId: transaction.id,
-              branchId: (await ProxyService.strategy.activeBranch()).id,
-            );
             Receipt? receipt = await ProxyService.strategy
                 .getReceipt(transactionId: transaction.id);
 
@@ -214,7 +224,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             double totalDiscount = 0;
 
             try {
-              for (var item in items) {
+              for (var item in transactionItems) {
                 // Calculate discounted price if discount rate exists and is not 0
                 var discountedPrice = item.price;
                 if (item.dcRt != 0) {
@@ -289,7 +299,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               originalInvoiceNumber: originalInvoiceNumber,
               transaction: transaction,
               totalTax: (totalB * 18 / 118).toStringAsFixed(2),
-              items: items,
+              items: transactionItems,
               cash: transaction.subTotal!,
               received: transaction.cashReceived!,
               payMode: paymentTypes.isEmpty
@@ -347,6 +357,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             salesSttsCd: salesSttsCd,
             originalInvoiceNumber: originalInvoiceNumber,
             sarTyCd: sarTyCd,
+            items: transactionItems,
           );
 
           // Return a placeholder response indicating delegation

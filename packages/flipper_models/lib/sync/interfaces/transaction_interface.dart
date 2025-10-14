@@ -169,7 +169,7 @@ abstract class TransactionInterface {
     String? transactionId,
   });
   Future<ITransaction?> getTransaction(
-      {String? sarNo, required int branchId, String? id});
+      {String? sarNo, required int branchId, String? id, bool awaitRemote = false});
   Future<bool> deleteTransaction({required ITransaction transaction});
 
   Future<bool> migrateToNewDateTime({required int branchId});

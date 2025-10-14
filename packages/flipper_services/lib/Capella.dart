@@ -1225,6 +1225,7 @@ class Capella extends AiStrategyImpl
     bool fetchRemote = false,
     String? requestId,
     bool forceRealData = true,
+    List<String>? itemIds,
   }) {
     // TODO: implement transactionItems
     throw UnimplementedError();
@@ -1914,7 +1915,10 @@ class Capella extends AiStrategyImpl
 
   @override
   Future<ITransaction?> getTransaction(
-      {String? sarNo, required int branchId, String? id}) {
+      {String? sarNo,
+      required int branchId,
+      String? id,
+      bool awaitRemote = false}) {
     throw UnimplementedError(
         'getTransaction needs to be implemented for Capella');
   }
