@@ -36,6 +36,17 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     });
   }
 
+  @override
+  void didUpdateWidget(PaymentMethodsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-update payment amounts when totalPayable changes
+    if (oldWidget.totalPayable != widget.totalPayable) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        updatePaymentAmounts(transactionId: widget.transactionId);
+      });
+    }
+  }
+
   void updatePaymentAmounts(
       {required String transactionId, int? focusedIndex}) {
     final payments = ref.read(paymentMethodsProvider);
