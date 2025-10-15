@@ -205,8 +205,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
-      final transaction = await ProxyService.strategy.getTransaction(
-          id: transactionId, branchId: ProxyService.box.getBranchId()!);
+      int branchIdInt = ProxyService.box.getBranchId()!;
+      final transaction = await ProxyService.strategy
+          .getTransaction(id: transactionId, branchId: branchIdInt);
 
       if (transaction == null) {
         throw Exception("Transaction not found for completion.");

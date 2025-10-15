@@ -130,7 +130,7 @@ class _RefundState extends ConsumerState<Refund> {
                           await proceed(receiptType: "NR");
                         }
                       }
-                    } catch (e,s) {
+                    } catch (e, s) {
                       toast(e.toString());
                       talker.error(s);
                     }
@@ -297,8 +297,11 @@ class _RefundState extends ConsumerState<Refund> {
           if (variant != null) {
             if (variant.stock != null) {
               // Mark the variant.ebmSynced to false (for re-sync if needed)
-              ProxyService.strategy
-                  .updateVariant(updatables: [variant], ebmSynced: false);
+              ProxyService.strategy.updateVariant(
+                  updatables: [variant],
+                  ebmSynced: false,
+                  updateIo: false,
+                  approvedQty: item.qty);
               // Update the stock
               ProxyService.strategy.updateStock(
                   stockId: variant.stock!.id,
@@ -322,12 +325,6 @@ class _RefundState extends ConsumerState<Refund> {
             }
           }
         }
-        // After all operations are successful, mark the original transaction as refunded
-        // This will be handled in handleReceipt for refund types
-        // await ProxyService.strategy.updateTransaction(
-        //   transaction: widget.transaction!,
-        //   isRefunded: true,
-        // );
         await handleReceipt(filterType: FilterType.NR);
         talker.info(
             "Original transaction ${widget.transaction!.id} marked as refunded");
