@@ -92,6 +92,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Listen for transaction completion flag
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
+    
+    // Store initial branch ID to detect changes
+    _currentBranchId = ProxyService.box.getBranchId();
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -105,6 +108,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Track last auto-set amount to detect manual changes
   double _lastAutoSetAmount = 0.0;
+  
+  // Track current branch ID to detect branch changes
+  int? _currentBranchId;
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
@@ -217,14 +223,43 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
+    
+    // Check for branch changes and refresh transaction if needed
+    final currentBranchId = ProxyService.box.getBranchId();
+    if (_currentBranchId != currentBranchId && currentBranchId != null) {
+      _currentBranchId = currentBranchId;
+      // Invalidate pending transaction provider to fetch transaction for new branch
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.invalidate(pendingTransactionStreamProvider);
+      });
+    }
 
     final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false));
 
     // Handle transaction async value error state early
     if (transactionAsyncValue.hasError) {
+      final errorMessage = transactionAsyncValue.error?.toString() ?? 'Unknown error';
+      
+      // If it's a branch selection error, just show loading while we wait for branch to be set
+      if (errorMessage.contains('No default branch selected')) {
+        // Auto-retry after a short delay
+        Future.delayed(Duration(milliseconds: 300), () {
+          if (mounted) {
+            ref.invalidate(pendingTransactionStreamProvider);
+          }
+        });
+        
+        return Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      
       talker.error('Error loading pending transaction',
           transactionAsyncValue.error, transactionAsyncValue.stackTrace);
+      
       return Scaffold(
         body: Center(
           child: Column(
@@ -235,7 +270,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               Text('Error loading transaction'),
               SizedBox(height: 8),
               Text(
-                transactionAsyncValue.error?.toString() ?? 'Unknown error',
+                errorMessage,
                 style: TextStyle(fontSize: 12),
                 textAlign: TextAlign.center,
               ),

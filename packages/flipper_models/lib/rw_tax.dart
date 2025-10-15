@@ -622,7 +622,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           // Use GlobalErrorHandler to log the error
-          final errorMessage = "Error processing your request";
+          final errorMessage = data.resultMsg;
           final exception = Exception(errorMessage);
           if (data.resultMsg == "Invoice number already exists.") {
             print("Invoice number already exists.");
