@@ -22,6 +22,16 @@ class SyncStrategy {
         : (_currentStrategy == Strategy.capella ? capella : cloudSync);
   }
 
+  DatabaseSyncInterface getStrategy(Strategy? strategy) {
+    if (strategy == null) return current;
+    
+    if (kIsWeb && strategy != Strategy.capella) {
+      throw UnsupportedError("Only Capella is supported on the web.");
+    }
+    
+    return strategy == Strategy.capella ? capella : cloudSync;
+  }
+
   void setStrategy(Strategy strategy) {
     if (kIsWeb && strategy != Strategy.capella) {
       throw UnsupportedError("Only Capella is supported on the web.");

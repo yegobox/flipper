@@ -808,17 +808,20 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) return;
 
-      // Search for variants - using empty list for taxTyCds as it's not needed for search
+      // Search for variants with proper tax type codes based on VAT settings
+      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      final taxTyCds =
+          ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
       final variants = await ProxyService.strategy.variants(
         branchId: branchId,
-        taxTyCds: [],
+        taxTyCds: taxTyCds,
       );
 
       // Filter out service items (itemTyCd == "2" or itemTyCd == "3") and match search query
       final filtered = variants
           .where((v) {
-            // Exclude service items (itemTyCd: "2" = service, "3" = service)
-            final isService = v.itemTyCd == "2" || v.itemTyCd == "3";
+            // Exclude service items (service, "3" = service)
+            final isService = v.itemTyCd == "3";
             // Match search query
             final matchesQuery =
                 v.name.toLowerCase().contains(query.toLowerCase());

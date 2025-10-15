@@ -47,6 +47,10 @@ abstract class ProxyService {
   /// Provides access to the current database implementation (e.g., Isar, Realm).
   static DatabaseSyncInterface get strategy => strategyLink.current;
 
+  /// Provides access to a specific database implementation strategy.
+  static DatabaseSyncInterface getStrategy([Strategy? strategy]) =>
+      strategyLink.getStrategy(strategy);
+
   /// Sets the desired database strategy (e.g., Isar, Realm).
   static void setStrategy(Strategy strategy) =>
       strategyLink.setStrategy(strategy);

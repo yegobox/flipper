@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
+import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
@@ -8,7 +9,7 @@ import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
 
-mixin StockRecountMixin implements StockRecountInterface {
+mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
   Repository get repository;
 
   @override
@@ -245,6 +246,16 @@ mixin StockRecountMixin implements StockRecountInterface {
       }
 
       await repository.upsert<Stock>(stock);
+
+      // Trigger RRA stock IO for the variant
+      final variantQuery = Query(where: [Where('id').isExactly(item.variantId)]);
+      final variants = await repository.get<Variant>(query: variantQuery);
+      if (variants.isNotEmpty) {
+        await updateIoFunc(
+          variant: variants.first,
+          approvedQty: item.countedQuantity,
+        );
+      }
     }
 
     // Mark recount as submitted
