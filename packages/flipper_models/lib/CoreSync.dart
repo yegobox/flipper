@@ -16,6 +16,7 @@ import 'package:flipper_models/sync/mixins/branch_mixin.dart';
 import 'package:flipper_models/sync/mixins/business_mixin.dart';
 
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
+import 'package:flipper_models/sync/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/mixins/customer_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
@@ -31,14 +32,13 @@ import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
-import 'package:supabase_models/brick/models/sars.model.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -87,7 +87,8 @@ class CoreSync extends AiStrategyImpl
         StockRecountMixin,
         ShiftMixin,
         StockMixin,
-        CategoryMixin
+        CategoryMixin,
+        CounterMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -99,38 +100,6 @@ class CoreSync extends AiStrategyImpl
   bool isInIsolate() {
     return Isolate.current.debugName != null;
   }
-
-  // Future<void> _supa({required String tableName, required int id}) async {
-  //   await ProxyService.supa.init();
-  //   try {
-  //     // Attempt to call the RPC function
-  //     final rpcResult =
-  //         await ProxyService.supa.client?.rpc('insert_key', params: {
-  //       'current_secret_key': AppSecrets.insertKey,
-  //     });
-
-  //     // If RPC call is successful, proceed with the insert operation
-  //     if (rpcResult != null) {
-  //       final response =
-  //           await ProxyService.supa.client?.from(dataMapperTable).upsert({
-  //         'table_name': tableName,
-  //         'object_id': id,
-  //         'device_identifier':
-  //             await ProxyService.strategy.getPlatformDeviceId(),
-
-  //         /// Tobe done incorporate it into payment wall the device expected to download the object.
-  //         'sync_devices': 0,
-
-  //         /// this exclude the device that is writing the object setting it to 1
-  //         'device_downloaded_object': 1
-  //       }).select();
-  //       talker.warning(response);
-  //     }
-  //   } catch (e) {
-  //     talker.error('Error occurred: $e');
-  //     // Handle the error appropriately (e.g., show an error message to the user)
-  //   }
-  // }
 
   bool compareChanges(Map<String, dynamic> item, Map<String, dynamic> map) {
     for (final key in item.keys) {
@@ -689,39 +658,6 @@ class CoreSync extends AiStrategyImpl
     final result = await repository.get<models.PColor>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
-  }
-
-  @override
-  Future<Counter?> getCounter(
-      {required int branchId,
-      required String receiptType,
-      required bool fetchRemote}) async {
-    final repository = brick.Repository();
-    final query = brick.Query(where: [
-      brick.Where('branchId').isExactly(branchId),
-      brick.Where('receiptType').isExactly(receiptType),
-    ]);
-    final counter = await repository.get<models.Counter>(
-        query: query,
-        policy: fetchRemote == true
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly);
-    return counter.firstOrNull;
-  }
-
-  @override
-  Future<List<Counter>> getCounters(
-      {required int branchId, bool fetchRemote = false}) async {
-    final repository = brick.Repository();
-    final query =
-        brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
-    final counters = await repository.get<models.Counter>(
-        query: query,
-        policy: fetchRemote == true
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly);
-
-    return counters;
   }
 
   @override
@@ -1867,38 +1803,6 @@ class CoreSync extends AiStrategyImpl
     return repository.get<UnversalProduct>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
     );
-  }
-
-  @override
-  Future<void> updateCounters(
-      {required List<Counter> counters,
-      RwApiResponse? receiptSignature}) async {
-    // build brick Counter to pass in to upsert
-    for (Counter counter in counters) {
-      counter.createdAt = DateTime.now().toUtc();
-      counter.lastTouched = DateTime.now().toUtc();
-
-      counter.curRcptNo = receiptSignature!.data?.rcptNo ?? 0;
-      counter.totRcptNo = receiptSignature.data?.totRcptNo ?? 0;
-      counter.invcNo = counter.invcNo! + 1;
-      await repository.upsert(counter);
-
-      /// also update sar
-      // get the sar
-      final sar = await getSar(branchId: counter.branchId!);
-      if (sar != null) {
-        sar.sarNo = sar.sarNo + 1;
-        await repository.upsert(sar);
-      } else {
-        final sar = Sar(
-          sarNo: counter.totRcptNo!,
-          branchId: counter.branchId!,
-        );
-        await repository.upsert(sar);
-      }
-      // in erference https://github.com/GetDutchie/brick/issues/580#issuecomment-2845610769
-      // Repository().sqliteProvider.upsert<Counter>(upCounter);
-    }
   }
 
   @override
