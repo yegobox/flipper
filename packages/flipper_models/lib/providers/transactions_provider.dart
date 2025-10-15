@@ -157,13 +157,24 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
 
 @riverpod
 Stream<ITransaction> pendingTransactionStream(Ref ref,
-    {required bool isExpense, bool forceRealData = true}) {
+    {required bool isExpense, bool forceRealData = true}) async* {
   int? branchId = ProxyService.box.getBranchId();
-  return ProxyService.strategy.manageTransactionStream(
+  
+  // If branch ID is null, wait a bit and retry
+  if (branchId == null) {
+    await Future.delayed(Duration(milliseconds: 100));
+    branchId = ProxyService.box.getBranchId();
+    
+    if (branchId == null) {
+      throw StateError('No default branch selected. Please select a branch first.');
+    }
+  }
+  
+  yield* ProxyService.strategy.manageTransactionStream(
     transactionType:
         isExpense ? TransactionType.purchase : TransactionType.sale,
     isExpense: isExpense,
-    branchId: branchId ?? 0,
+    branchId: branchId,
   );
 }
 

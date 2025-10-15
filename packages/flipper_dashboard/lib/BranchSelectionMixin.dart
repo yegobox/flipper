@@ -3,6 +3,8 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
@@ -154,6 +156,13 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       // Force refresh of branch providers
       ref.invalidate(
           branchesProvider(businessId: ProxyService.box.getBusinessId()));
+
+      // Add a small delay to ensure branch ID is fully set before invalidating transaction providers
+      await Future.delayed(Duration(milliseconds: 100));
+
+      // Invalidate transaction providers to refresh for new branch
+      ref.invalidate(pendingTransactionStreamProvider);
+      ref.invalidate(transactionItemsStreamProvider);
 
       // Trigger a search refresh to force variant reload
       // First emit "search" to trigger the refresh
@@ -396,10 +405,18 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _syncBranchWithDatabase(Branch branch) async {
-    // Update the branch ID in storage
+    // Update the branch ID in storage with explicit flush
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
     await ProxyService.box.writeString(key: 'branchIdString', value: branch.id);
-    // No need to reload the app, we'll handle UI updates separately
+
+    // Force flush to ensure data is written to storage immediately
+
+    // Verify the branch ID was set correctly
+    final verifyBranchId = ProxyService.box.getBranchId();
+    if (verifyBranchId != branch.serverId) {
+      throw StateError(
+          'Failed to set branch ID properly: expected ${branch.serverId}, got $verifyBranchId');
+    }
   }
 
   // Helper method to get the current branch ID
@@ -414,6 +431,10 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       // Force a refresh of branch providers
       ref.invalidate(
           branchesProvider(businessId: ProxyService.box.getBusinessId()));
+
+      // Invalidate transaction providers to refresh for new branch
+      ref.invalidate(pendingTransactionStreamProvider);
+      ref.invalidate(transactionItemsStreamProvider);
 
       // Set a flag in storage to indicate a branch switch occurred
       // This can be used by other widgets to detect when they should refresh
