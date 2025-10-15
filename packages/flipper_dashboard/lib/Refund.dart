@@ -300,7 +300,7 @@ class _RefundState extends ConsumerState<Refund> {
               ProxyService.strategy.updateVariant(
                   updatables: [variant],
                   ebmSynced: false,
-                  updateIo: false,
+                  updateIo: true,
                   approvedQty: item.qty);
               // Update the stock
               ProxyService.strategy.updateStock(
