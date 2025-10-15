@@ -136,7 +136,6 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin {
-  bool _isLoading = false;
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   late final TextEditingController _customerPhoneController;
   String? _customerPhoneError;
@@ -514,7 +513,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     }
 
     setState(() {
-      _isLoading = true;
       _chargeState = ChargeButtonState.waitingForPayment;
     });
     _pulseAnimationController.repeat(reverse: true);
@@ -534,7 +532,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         if (mounted) {
           setState(() {
             _chargeState = ChargeButtonState.failed;
-            _isLoading = false;
           });
           _pulseAnimationController.stop();
           _pulseAnimationController.reset();
@@ -555,7 +552,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       // Handle immediate completion (cash payments)
       if (mounted && shouldWaitForPayment != true) {
         setState(() {
-          _isLoading = false;
           _chargeState = ChargeButtonState.initial;
         });
         _pulseAnimationController.stop();
@@ -566,7 +562,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       talker.error('Charge failed: $e');
       if (mounted) {
         setState(() {
-          _isLoading = false;
           _chargeState = ChargeButtonState.failed;
         });
         _pulseAnimationController.stop();
@@ -602,7 +597,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           !isNowLoading) {
         if (mounted) {
           setState(() {
-            _isLoading = false;
             _chargeState = ChargeButtonState.initial;
           });
           _pulseAnimationController.stop();

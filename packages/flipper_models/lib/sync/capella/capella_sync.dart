@@ -41,6 +41,7 @@ import 'package:flipper_models/sync/capella/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -51,6 +52,7 @@ class CapellaSync extends AiStrategyImpl
         CapellaBranchMixin,
         CapellaBusinessMixin,
         CapellaConversationMixin,
+        CapellaCounterMixin,
         CapellaCustomerMixin,
         CapellaDeleteOperationsMixin,
         CapellaEbmMixin,
@@ -62,7 +64,6 @@ class CapellaSync extends AiStrategyImpl
         CapellaReceiptMixin,
         CapellaStorageMixin,
         CapellaSystemMixin,
-        CapellaEbmMixin,
         CapellaTenantMixin,
         CapellaTransactionItemMixin,
         CapellaTransactionMixin,
@@ -523,71 +524,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Counter?> getCounter(
-      {required int branchId,
-      required String receiptType,
-      required bool fetchRemote}) async {
-    final ditto = DittoService.instance.dittoInstance;
-    if (ditto == null) return null;
-
-    final result = await ditto.store.execute(
-      "SELECT * FROM counters WHERE branchId = :branchId AND receiptType = :receiptType LIMIT 1",
-      arguments: {"branchId": branchId, "receiptType": receiptType},
-    );
-
-    if (result.items.isEmpty) return null;
-
-    final data = Map<String, dynamic>.from(result.items.first.value);
-    return Counter(
-      id: data['id'],
-      branchId: data['branchId'],
-      curRcptNo: data['curRcptNo'],
-      totRcptNo: data['totRcptNo'],
-      invcNo: data['invcNo'],
-      businessId: data['businessId'],
-      createdAt:
-          data['createdAt'] != null ? DateTime.parse(data['createdAt']) : null,
-      lastTouched: data['lastTouched'] != null
-          ? DateTime.parse(data['lastTouched'])
-          : null,
-      receiptType: data['receiptType'],
-      bhfId: data['bhfId'] ?? '',
-    );
-  }
-
-  @override
-  Future<List<Counter>> getCounters(
-      {required int branchId, bool fetchRemote = false}) async {
-    final ditto = DittoService.instance.dittoInstance;
-    if (ditto == null) return [];
-
-    final result = await ditto.store.execute(
-      "SELECT * FROM counters WHERE branchId = :branchId",
-      arguments: {"branchId": branchId},
-    );
-
-    return result.items.map((doc) {
-      final data = Map<String, dynamic>.from(doc.value);
-      return Counter(
-        id: data['id'],
-        branchId: data['branchId'],
-        curRcptNo: data['curRcptNo'],
-        totRcptNo: data['totRcptNo'],
-        invcNo: data['invcNo'],
-        businessId: data['businessId'],
-        createdAt: data['createdAt'] != null
-            ? DateTime.parse(data['createdAt'])
-            : null,
-        lastTouched: data['lastTouched'] != null
-            ? DateTime.parse(data['lastTouched'])
-            : null,
-        receiptType: data['receiptType'],
-        bhfId: data['bhfId'] ?? '',
-      );
-    }).toList();
-  }
-
-  @override
   Future<Credit?> getCredit({required String branchId}) {
     // TODO: implement getCredit
     throw UnimplementedError();
@@ -1016,13 +952,6 @@ class CapellaSync extends AiStrategyImpl
   FutureOr<void> updateColor(
       {required String colorId, String? name, bool? active}) {
     // TODO: implement updateColor
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateCounters(
-      {required List<Counter> counters, RwApiResponse? receiptSignature}) {
-    // TODO: implement updateCounters
     throw UnimplementedError();
   }
 
