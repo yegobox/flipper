@@ -130,9 +130,11 @@ mixin ProductMixin {
         variations[i].itemStdNm = productName;
 
         /// taxation type code - set this BEFORE calling setTaxPercentage
-        variations[i].taxTyCd = variations[i].taxTyCd ??
-            "B"; // available types A(A-EX),B(B-18.00%),C,D
-        variations[i].taxName = variations[i].taxTyCd ?? "B";
+        /// Tax type must be set - no fallback allowed
+        if (variations[i].taxTyCd == null || variations[i].taxTyCd!.isEmpty) {
+          throw Exception('Fatal Error: Tax type (taxTyCd) must be set for variant ${variations[i].id}. This is a required field.');
+        }
+        variations[i].taxName = variations[i].taxTyCd!;
 
         // Now we can safely call setTaxPercentage since taxTyCd is set
         variations[i].taxPercentage = await setTaxPercentage(variations[i]);

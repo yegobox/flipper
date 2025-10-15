@@ -257,6 +257,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     talker.info(
         "Scanned or about to create variant with productId ${product.id}");
     // If no matching variant was found, add a new one
+    // Set correct tax type based on EBM VAT status
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final isVatEnabled = ebm?.vatEnabled ?? false;
     final variant = Variant(
       name: product.name,
       retailPrice: retailPrice,
@@ -274,7 +277,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       unit: 'Per Item',
       productName: product.name,
       branchId: branchId,
-
+      taxTyCd: isVatEnabled ? "B" : "D", // Set correct tax type based on EBM VAT status
       lastTouched: DateTime.now().toUtc(),
     );
     final stock = Stock(

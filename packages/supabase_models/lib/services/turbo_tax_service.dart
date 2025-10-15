@@ -161,8 +161,9 @@ class TurboTaxService {
     ]));
     if (retryable.isNotEmpty) {
       // increment retry count
-      retryable.first.retryCount++;
-      await repository.upsert(retryable.first);
+      final existingRetryable = retryable.first;
+      existingRetryable.retryCount = (existingRetryable.retryCount) + 1;
+      await repository.upsert(existingRetryable);
     } else {
       await repository.upsert(Retryable(
         entityId: entityId,
