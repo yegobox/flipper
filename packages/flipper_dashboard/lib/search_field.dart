@@ -141,16 +141,10 @@ class SearchFieldState extends ConsumerState<SearchField>
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
                       ),
                     )
-                  : IconButton(
-                      onPressed: () {
-                        // Handle search functionality here
-                      },
-                      icon: Icon(FluentIcons.search_24_regular),
-                    ),
+                  : Icon(FluentIcons.search_24_regular, color: Colors.grey),
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  toggleSearch(),
                   Consumer(
                     builder: (context, ref, child) {
                       final notice = ref.watch(noticesProvider);
@@ -215,22 +209,6 @@ class SearchFieldState extends ConsumerState<SearchField>
     return IconButton(
       onPressed: _handlePurchaseImport,
       icon: Icon(FluentIcons.expand_up_right_16_regular, color: Colors.grey),
-    );
-  }
-
-  IconButton toggleSearch() {
-    return IconButton(
-      onPressed: () {
-        ref.read(toggleProvider.notifier).state =
-            !ref.read(toggleProvider.notifier).state;
-
-        if (!ref.read(toggleProvider)) {
-          ref.read(searchStringProvider.notifier).emitString(value: '');
-        }
-      },
-      icon: ref.watch(toggleProvider)
-          ? Icon(FluentIcons.search_16_regular, color: Colors.blue)
-          : Icon(FluentIcons.search_16_regular, color: Colors.grey),
     );
   }
 

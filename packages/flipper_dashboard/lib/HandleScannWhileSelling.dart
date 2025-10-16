@@ -3,7 +3,6 @@
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -17,11 +16,13 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
   Future<void> processDebouncedValue(String value, CoreViewModel model,
       TextEditingController controller) async {
-    final isScanningModeEnabled = ref.read(toggleProvider.notifier).state;
-    if (isScanningModeEnabled) {
-      focusNode.requestFocus();
-      await handleScanningMode(value, model, controller);
+    final enableAutoAdd = ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+    
+    if (value.isNotEmpty && enableAutoAdd) {
+      // Use auto-add search when enabled
+      await searchAndAutoAdd(value, model, controller);
     } else {
+      // Use normal search behavior
       ref.read(searchStringProvider.notifier).emitString(value: value);
     }
   }
@@ -153,6 +154,54 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           );
         }
       }
+    }
+  }
+
+  Future<void> searchAndAutoAdd(String value, CoreViewModel model,
+      TextEditingController controller) async {
+    try {
+      final branchId = ProxyService.box.getBranchId()!;
+      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      final taxTyCds = ebm?.vatEnabled == true ? ['A', 'B', 'C'] : ['D', 'B'];
+
+      // Search by both name and barcode
+      final nameResults = await ProxyService.strategy.variants(
+        name: value,
+        branchId: branchId,
+        scanMode: false,
+        taxTyCds: taxTyCds,
+      );
+
+      final barcodeResults = await ProxyService.strategy.variants(
+        name: value,
+        branchId: branchId,
+        scanMode: true,
+        taxTyCds: taxTyCds,
+      );
+
+      // Combine and deduplicate results
+      final allResults = <Variant>[];
+      final seenIds = <String>{};
+      
+      for (final variant in [...nameResults, ...barcodeResults]) {
+        if (!seenIds.contains(variant.id)) {
+          seenIds.add(variant.id);
+          allResults.add(variant);
+        }
+      }
+
+      if (allResults.length == 1) {
+        // Exactly one match - auto-add to cart
+        controller.clear();
+        hasText = false;
+        await _processTransaction(allResults.first, model);
+      } else {
+        // Multiple or no matches - show search results
+        ref.read(searchStringProvider.notifier).emitString(value: value);
+      }
+    } catch (e) {
+      // On error, fall back to normal search
+      ref.read(searchStringProvider.notifier).emitString(value: value);
     }
   }
 

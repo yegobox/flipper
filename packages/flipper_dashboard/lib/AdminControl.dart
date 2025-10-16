@@ -34,6 +34,7 @@ class _AdminControlState extends State<AdminControl> {
   bool switchToCloudSync = false;
   String? smsPhoneNumber;
   bool enableSmsNotification = false;
+  bool enableAutoAddSearch = false;
   late final TextEditingController phoneController;
   String? phoneError;
   Uint8List? receiptLogoBytes;
@@ -107,6 +108,7 @@ class _AdminControlState extends State<AdminControl> {
     forceUPSERT = ProxyService.box.forceUPSERT();
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
+    enableAutoAddSearch = ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
     phoneController = TextEditingController();
     final logoBase64 = ProxyService.box.receiptLogoBase64();
     if (logoBase64 != null && logoBase64.isNotEmpty) {
@@ -351,13 +353,21 @@ class _AdminControlState extends State<AdminControl> {
     });
   }
 
+  void toggleAutoAddSearch(bool value) async {
+    await ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: value);
+    setState(() {
+      enableAutoAddSearch = value;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -365,44 +375,24 @@ class _AdminControlState extends State<AdminControl> {
           },
           tooltip: 'Back',
         ),
-        title: Text(
+        title: const Text(
           'Management Dashboard',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(
-            color: Colors.white.withValues(alpha: 0.2),
-            height: 1.0,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).primaryColor.withValues(alpha: 0.05),
-              Colors.white,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildQuickActions(context),
+              const SizedBox(height: 24),
+              _buildMainSections(context),
             ],
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildQuickActions(context),
-                const SizedBox(height: 32),
-                _buildMainSections(context),
-              ],
-            ),
           ),
         ),
       ),
@@ -699,6 +689,14 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleDownload,
               color: Colors.blueGrey,
             ),
+            SwitchSettingsCard(
+              title: 'Auto-Add Search',
+              subtitle: 'Auto-add items when 1 match found',
+              icon: Icons.auto_awesome,
+              value: enableAutoAddSearch,
+              onChanged: toggleAutoAddSearch,
+              color: Colors.pink,
+            ),
           ],
         ),
       ],
@@ -924,14 +922,17 @@ class SettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Colors.grey.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: onTap,
@@ -941,10 +942,10 @@ class SettingsCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
@@ -952,31 +953,35 @@ class SettingsCard extends StatelessWidget {
                   color: color,
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
               ),
               if (trailing != null) trailing!,
               Icon(
-                Icons.chevron_right,
-                color: color.withValues(alpha: 0.5),
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: Colors.grey[400],
               ),
             ],
           ),
@@ -1006,24 +1011,27 @@ class SwitchSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Colors.grey.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
@@ -1031,23 +1039,26 @@ class SwitchSettingsCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
