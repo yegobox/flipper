@@ -107,7 +107,8 @@ class SharedPreferenceStorage implements LocalStorage {
     'lastZReportDate',
     'receiptLogoBase64',
     'freshSignup',
-    'enableTransactionDelegation'
+    'enableTransactionDelegation',
+    'enableAutoAddSearch',
     // Add new preference keys above this line
   };
 
