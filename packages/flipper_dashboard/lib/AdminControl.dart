@@ -14,6 +14,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';
 
 class AdminControl extends StatefulWidget {
@@ -108,7 +110,8 @@ class _AdminControlState extends State<AdminControl> {
     forceUPSERT = ProxyService.box.forceUPSERT();
     stopTaxService = ProxyService.box.stopTaxService() ?? false;
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
-    enableAutoAddSearch = ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+    enableAutoAddSearch =
+        ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
     phoneController = TextEditingController();
     final logoBase64 = ProxyService.box.receiptLogoBase64();
     if (logoBase64 != null && logoBase64.isNotEmpty) {
@@ -354,6 +357,7 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   void toggleAutoAddSearch(bool value) async {
+    await DittoSyncCoordinator.instance.hydrate<Stock>();
     await ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: value);
     setState(() {
       enableAutoAddSearch = value;

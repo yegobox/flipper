@@ -4,6 +4,8 @@ import 'package:supabase_models/cache/cache_layer.dart';
 // import 'package:supabase_models/cache/realm/realm_stock_cache.dart';
 import 'package:supabase_models/cache/ditto/ditto_stock_cache.dart';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/sync/interfaces/stock_interface.dart';
+import 'package:flipper_services/proxy.dart';
 
 /// Enum for different cache implementation types
 enum CacheType {
@@ -104,19 +106,19 @@ class CacheManager {
   /// Watch a stock by variant ID and get updates as a stream
   /// This is useful for UI components that need to react to stock changes
   Stream<Stock?> watchStockByVariantId(String variantId) {
-    // if (_stockCache is RealmStockCache) {
-    //   // Use the specialized stream method if available
-    //   return (_stockCache as RealmStockCache).watchByVariantId(variantId);
-    // } else if (_stockCache is DittoStockCache) {
-    // Use the specialized stream method if available
+    // Check if we're using Capella strategy
+    try {
+      final currentStrategy = ProxyService.strategy;
+      if (currentStrategy is StockInterface) {
+        // Use Capella's watchStockByVariantId method
+        return (currentStrategy as StockInterface).watchStockByVariantId(variantId);
+      }
+    } catch (e) {
+      // Fallback to cache implementation if strategy doesn't support it
+    }
+    
+    // Fallback to Ditto cache implementation
     return (_stockCache as DittoStockCache).watchByVariantId(variantId);
-    // } else {
-    // Fallback to polling if streaming is not supported
-    // Create a stream that emits every 5 seconds
-    //   return Stream.periodic(Duration(seconds: 5)).asyncMap((_) async {
-    //     return await getStockByVariantId(variantId);
-    //   });
-    // }
   }
 
   /// Get stocks by branch ID
