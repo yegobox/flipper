@@ -64,10 +64,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
             ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
 
         // Search for variants (matches both name and barcode)
-        List<Variant> variants =
-            await ProxyService.getStrategy(Strategy.capella)
-                .variants(name: value, branchId: branchId, taxTyCds: taxTyCds)
-                .timeout(
+        List<Variant> variants = await ProxyService.strategy
+            .variants(name: value, branchId: branchId, taxTyCds: taxTyCds)
+            .timeout(
           const Duration(seconds: 10),
           onTimeout: () {
             return [];
@@ -129,8 +128,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
 
       // Search variants (matches both name and barcode)
-      final variants =
-          await ProxyService.getStrategy(Strategy.capella).variants(
+      final variants = await ProxyService.strategy.variants(
         name: value,
         branchId: branchId,
         taxTyCds: taxTyCds,

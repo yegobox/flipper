@@ -326,9 +326,13 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               brandFooter: business.name!,
               emails: [business.email ?? ""],
               brandEmail: business.email ?? "info@yegobox.com",
-              customerTin: transaction.customerTin,
+              customerTin: transaction.customerTin ??
+                  ProxyService.box.customerTin() ??
+                  "",
               receiptType: receiptType,
-              customerName: transaction.customerName ?? "N/A",
+              customerName: transaction.customerName ??
+                  ProxyService.box.customerName() ??
+                  "N/A",
               printCallback: (Uint8List data) {
                 bytes = data;
               },
@@ -487,11 +491,15 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
             receiptNumber: counter.invcNo,
-            customerPhone: transaction.customerPhone,
+            customerPhone: transaction.customerPhone ??
+                ProxyService.box.currentSaleCustomerPhoneNumber() ??
+                "",
             totalReceiptNumber: counter.totRcptNo,
             // Use the highest invoice number across counters as requested
             invoiceNumber: highestInvcNo,
-            customerName: transaction.customerName ?? "N/A",
+            customerName: transaction.customerName ??
+                ProxyService.box.customerName() ??
+                "N/A",
             paymentType: transaction.paymentType,
             subTotal: transaction.subTotal,
             // Adding other fields from transaction object

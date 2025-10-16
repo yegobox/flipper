@@ -503,17 +503,25 @@ class _RowItemState extends ConsumerState<RowItem>
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                // Stock display
-                if (widget.variant?.stock?.currentStock != null)
-                  Text(
-                    '${widget.variant?.stock?.currentStock ?? 0} in stock',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                      fontSize: 11,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                // Stock display with live updates from cache
+                StreamBuilder<Stock?>(
+                  stream: _getStockStreamForVariant(),
+                  builder: (context, snapshot) {
+                    final stockValue = snapshot.data?.currentStock ?? 0;
+                    return Text(
+                      '$stockValue in stock!!',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: stockValue > 0
+                            ? Colors.green[700]
+                            : Colors.red[700],
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -779,12 +787,14 @@ class _RowItemState extends ConsumerState<RowItem>
     required CoreViewModel model,
     required bool isOrdering,
   }) async {
-    final flipperWatch? w = kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
+    final flipperWatch? w =
+        kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
     w?.start();
 
     if (widget.variant != null) {
       // Use the shared TransactionItemAdder
-      final itemAdder = TransactionItemAdder(context, ref, cacheManager: CacheManager());
+      final itemAdder =
+          TransactionItemAdder(context, ref, cacheManager: CacheManager());
       await itemAdder.addItemToTransaction(
         variant: widget.variant!,
         isOrdering: isOrdering,

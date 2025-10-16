@@ -21,7 +21,6 @@ part 'stock.model.ditto_sync_adapter.g.dart';
   'stocks',
   syncDirection: SyncDirection.bidirectional,
   enableBackupPull: true,
-  
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

@@ -173,8 +173,7 @@ class OuterVariants extends _$OuterVariants {
     // Prioritize remote fetch for initial load, otherwise local-first.
     bool fetchRemote = searchString.isEmpty && page == 0;
 
-    List<Variant> fetchedVariants =
-        await ProxyService.getStrategy(Strategy.capella).variants(
+    List<Variant> fetchedVariants = await ProxyService.strategy.variants(
       name: searchString.toLowerCase(),
       fetchRemote: fetchRemote,
       branchId: branchId,
@@ -194,8 +193,7 @@ class OuterVariants extends _$OuterVariants {
 
     // Fallback logic.
     if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
-      fetchedVariants =
-          await ProxyService.getStrategy(Strategy.capella).variants(
+      fetchedVariants = await ProxyService.strategy.variants(
         name: searchString.toLowerCase(),
         fetchRemote: !fetchRemote, // Try the other source.
         branchId: branchId,
